@@ -330,7 +330,7 @@ $historyQuery = "
     LEFT JOIN tbuser u ON i.created_by = u.Id
     LEFT JOIN product_batches pb ON id.import_detail_id = pb.import_detail_id
     {$historyWhere}
-    GROUP BY id.import_detail_id
+    GROUP BY id.import_detail_id, p.product_name, p.barcode, p.qty, p.unit, u.username, u.fname, u.lname, pb.initial_qty, pb.quantity
     ORDER BY id.import_detail_id DESC
 ";
 $histStmt = $pdo->prepare($historyQuery);

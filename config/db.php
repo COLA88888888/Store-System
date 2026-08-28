@@ -10,13 +10,40 @@ ini_set('log_errors', '1');
 error_reporting(E_ALL);
 
 // TODO before going live: replace with the production MySQL host/user/password.
-$server = "localhost";
+$server = "127.0.0.1";
 $username = "root";
 $password = "";
 $database = "minipos";
 
-$conn = mysqli_connect($server, $username, $password, $database);
-mysqli_set_charset($conn, "utf8");
+$conn = null;
+$pdo = null;
+$port = 3306;
+$portsToTry = [3306, 3336];
+foreach ($portsToTry as $p) {
+    try {
+        $testConn = @mysqli_connect($server, $username, $password, $database, $p);
+        if ($testConn) {
+            $conn = $testConn;
+            $port = $p;
+            mysqli_set_charset($conn, "utf8");
+            try {
+                $pdo = new PDO(
+                    "mysql:host={$server};port={$port};dbname={$database};charset=utf8mb4",
+                    $username,
+                    $password,
+                    [
+                        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                    ]
+                );
+                $pdo->exec("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
+            } catch (Throwable $pe) {}
+            @mysqli_query($conn, "SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
+            break;
+        }
+    } catch (Throwable $ex) {}
+}
+
 
 if (session_status() === PHP_SESSION_NONE) {
     // ຕັ້ງຄ່າ Session Cookie ໃຫ້ເປັນ 0 (Expired ເມື່ອປິດ Browser)
@@ -110,13 +137,16 @@ if ($conn && !empty($_SESSION['user_id'])) {
         // Refresh switch states from database table user_permission_switch_states
         $uid = intval($_SESSION['user_id']);
         $swStates = [];
-        $swRes = mysqli_query($conn, "SELECT switch_key, is_enabled FROM user_permission_switch_states WHERE user_id = '$uid'");
-        if ($swRes) {
-            while ($swRow = mysqli_fetch_assoc($swRes)) {
-                $swStates[$swRow['switch_key']] = (int)$swRow['is_enabled'];
+        try {
+            $swRes = mysqli_query($conn, "SELECT switch_key, is_enabled FROM user_permission_switch_states WHERE user_id = '$uid'");
+            if ($swRes) {
+                while ($swRow = mysqli_fetch_assoc($swRes)) {
+                    $swStates[$swRow['switch_key']] = (int)$swRow['is_enabled'];
+                }
             }
-        }
+        } catch (Throwable $ex) {}
         $_SESSION['switch_states'] = $swStates;
+
 
         // Enforce active branch status check (log out non-admin user if their branch is disabled/inactive)
         if (!$isAdmin) {
@@ -145,19 +175,28 @@ if ($conn && !empty($_SESSION['user_id'])) {
     }
 }
 
-try {
-    $pdo = new PDO(
-        "mysql:host={$server};dbname={$database};charset=utf8mb4",
-        $username,
-        $password,
-        [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]
-    );
-
-    // Migration for tbstore table & store_id
+if (!$pdo) {
     try {
+        $pdo = new PDO(
+            "mysql:host={$server};port={$port};dbname={$database};charset=utf8mb4",
+            $username,
+            $password,
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]
+        );
+    } catch (Throwable $e) {}
+}
+
+if ($pdo) {
+
+    // Migration for database tables & schema (runs once per installation or when flag is missing for extreme performance)
+    $schemaFlagFile = __DIR__ . '/.db_schema_v1';
+    if (!file_exists($schemaFlagFile)) {
+        try {
+
+
         $pdo->exec("CREATE TABLE IF NOT EXISTS `tbstore` (
             `store_id` INT AUTO_INCREMENT PRIMARY KEY,
             `store_code` VARCHAR(50) NOT NULL UNIQUE,
@@ -260,6 +299,66 @@ try {
             $pdo->exec("DROP TABLE IF EXISTS `{$uTbl}`");
         } catch (Throwable $ex) {}
     }
+
+    // Ensure tbuser table exists (auto-create on fresh install)
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `tbuser` (
+            `Id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+            `user_code` VARCHAR(50) DEFAULT NULL,
+            `username` VARCHAR(100) NOT NULL,
+            `fname` VARCHAR(100) DEFAULT NULL,
+            `lname` VARCHAR(100) DEFAULT NULL,
+            `gender` VARCHAR(20) DEFAULT NULL,
+            `dob` DATE DEFAULT NULL,
+            `tel` VARCHAR(30) DEFAULT NULL,
+            `password` VARCHAR(255) DEFAULT NULL,
+            `status` VARCHAR(50) DEFAULT 'ພະນັກງານ',
+            `store_id` INT(11) NOT NULL DEFAULT 1,
+            `address` TEXT DEFAULT NULL,
+            `notes` TEXT DEFAULT NULL,
+            `profile_img` VARCHAR(255) DEFAULT 'default.png',
+            `last_activity` DATETIME DEFAULT NULL,
+            `dashboard` TINYINT(1) DEFAULT 0,
+            `sale` TINYINT(1) DEFAULT 0,
+            `item_sales` TINYINT(1) DEFAULT 0,
+            `stock` TINYINT(1) DEFAULT 0,
+            `categories` TINYINT(1) DEFAULT 0,
+            `products` TINYINT(1) DEFAULT 0,
+            `import_stock` TINYINT(1) DEFAULT 0,
+            `import_list` TINYINT(1) DEFAULT 0,
+            `report` TINYINT(1) DEFAULT 0,
+            `daily_report` TINYINT(1) DEFAULT 0,
+            `all_sales` TINYINT(1) DEFAULT 0,
+            `best_seller` TINYINT(1) DEFAULT 0,
+            `profit_cost` TINYINT(1) DEFAULT 0,
+            `financial` TINYINT(1) DEFAULT 0,
+            `category_sales` TINYINT(1) DEFAULT 0,
+            `delete_bills` TINYINT(1) DEFAULT 0,
+            `accounting` TINYINT(1) DEFAULT 0,
+            `setup` TINYINT(1) DEFAULT 0,
+            `users` TINYINT(1) DEFAULT 0,
+            `permissions` TINYINT(1) DEFAULT 0,
+            `branches` TINYINT(1) DEFAULT 0,
+            `edit` TINYINT(1) DEFAULT 0,
+            `customers` TINYINT(1) DEFAULT 1,
+            `database` TINYINT(1) DEFAULT 0,
+            `stock_transfer` TINYINT(1) DEFAULT 0,
+            `transfer_history` TINYINT(1) DEFAULT 0,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        // Auto-seed admin user if tbuser is empty
+        $userCount = (int)$pdo->query("SELECT COUNT(*) FROM `tbuser`")->fetchColumn();
+        if ($userCount === 0) {
+            $pdo->exec("INSERT INTO `tbuser` (Id, user_code, username, password, status, store_id,
+                dashboard, sale, item_sales, stock, categories, products, import_stock, import_list,
+                report, daily_report, all_sales, best_seller, profit_cost, financial, category_sales,
+                delete_bills, accounting, setup, users, permissions, branches, edit, customers,
+                `database`, stock_transfer, transfer_history)
+                VALUES (1, '001', 'admin', SHA2('123456', 256), 'Admin', 1,
+                1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1)");
+        }
+    } catch (Throwable $ex) {}
 
     try {
         $hasBranchId = $pdo->query("SHOW COLUMNS FROM tbuser LIKE 'branch_id'")->fetch();
@@ -729,9 +828,24 @@ try {
             FROM tbsale_save");
     } catch (Throwable $ex) {}
 
-} catch (PDOException $e) {
-    $pdo = null;
+    // Ensure user_permission_switch_states exists
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `user_permission_switch_states` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `user_id` INT NOT NULL,
+            `switch_key` VARCHAR(100) NOT NULL,
+            `is_enabled` TINYINT(1) DEFAULT 1,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            UNIQUE KEY `uq_user_switch` (`user_id`, `switch_key`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    } catch (Throwable $ex) {}
+
+    @file_put_contents($schemaFlagFile, date('Y-m-d H:i:s'));
 }
+}
+
+
+
 
 if (!function_exists('getSetting')) {
     function getSetting($pdo, $key, $default = '') {
@@ -1027,6 +1141,18 @@ if (!function_exists('getCompanyInfoForBranch')) {
     // The LOGO is the one field that's branch-specific: each branch may have its own row with
     // just its own img_url, which overrides the shared logo when present.
     function getCompanyInfoForBranch($pdo, $storeId) {
+        if (!$pdo) {
+            return [
+                'com_id' => 1,
+                'com_name_la' => 'Mini POS Store',
+                'com_address' => '',
+                'com_tel' => '',
+                'barcode' => 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!',
+                'img_url' => 'logo.png',
+                'vat_percent' => 0,
+                'tax_type' => 'none'
+            ];
+        }
         $mainStoreId = intval($pdo->query("SELECT store_id FROM tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1")->fetchColumn() ?: 1);
 
         $stmt = $pdo->prepare("SELECT * FROM tbcompanyinfo WHERE branch_id = ? LIMIT 1");

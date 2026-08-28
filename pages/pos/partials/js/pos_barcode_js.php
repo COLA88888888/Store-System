@@ -1,6 +1,7 @@
 <script>
 // --- BARCODE SCANNER, SEARCH & CATEGORY FILTERING ---
 var selectedCategoryPillId = '';
+var filterGridTimer = null;
 
 function playPosBeep() {
   try {
@@ -17,6 +18,50 @@ function playPosBeep() {
   } catch(e) {}
 }
 
+// --- SMART BARCODE FOCUS & SCANNER TRAP ---
+function ensureBarcodeInputFocused() {
+  var activeEl = document.activeElement;
+  if (activeEl && (
+      activeEl.tagName === 'INPUT' || 
+      activeEl.tagName === 'TEXTAREA' || 
+      activeEl.tagName === 'SELECT' || 
+      activeEl.isContentEditable ||
+      $(activeEl).closest('.modal, .swal2-container').length > 0
+  )) {
+    return;
+  }
+  var barcodeInput = document.getElementById('barcodeInput');
+  if (barcodeInput && activeEl !== barcodeInput) {
+    barcodeInput.focus();
+  }
+}
+
+// Automatically catch scanner typing or refocus barcode input when user scans/types outside inputs
+$(document).on('keydown', function(e) {
+  var activeEl = document.activeElement;
+  var isInputOrModal = activeEl && (
+      activeEl.tagName === 'INPUT' || 
+      activeEl.tagName === 'TEXTAREA' || 
+      activeEl.tagName === 'SELECT' || 
+      activeEl.isContentEditable ||
+      $(activeEl).closest('.modal, .swal2-container').length > 0
+  );
+
+  if (!isInputOrModal && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    var barcodeInput = document.getElementById('barcodeInput');
+    if (barcodeInput && activeEl !== barcodeInput) {
+      barcodeInput.focus();
+    }
+  }
+});
+
+// Auto-refocus on barcode box when clicking on neutral background areas
+$(document).on('click', function(e) {
+  if ($(e.target).closest('input, textarea, select, button, a, .modal, .swal2-container, .product-card').length === 0) {
+    setTimeout(ensureBarcodeInputFocused, 50);
+  }
+});
+
 $('#barcodeInput').on('keypress', function(e) {
   if (e.which === 13) {
     e.preventDefault();
@@ -26,11 +71,12 @@ $('#barcodeInput').on('keypress', function(e) {
 
 function handleBarcodeSubmit() {
   var rawCode = $('#barcodeInput').val().trim();
-  $('#barcodeInput').val('').focus();
+  $('#barcodeInput').val('');
+  ensureBarcodeInputFocused();
   if (!rawCode) return;
   
   findAndAddByBarcode(rawCode);
-  filterGrid();
+  _executeFilterGrid();
 }
 
 function findAndAddByBarcode(code) {
@@ -83,7 +129,8 @@ function findAndAddByBarcode(code) {
       title: 'ບໍ່ພົບສິນຄ້າ!',
       text: 'ລະຫັດບາໂຄ້ດ: ' + code,
       timer: 1500,
-      showConfirmButton: false
+      showConfirmButton: false,
+      didClose: function() { ensureBarcodeInputFocused(); }
     });
   }
 }
@@ -114,7 +161,6 @@ $(document).on('click', '.product-card', function(e) {
 function addProductToCart(product, specificUnit) {
   if (!product) return;
 
-  // 1. ກວດ stock ກ່ອນທຸກຢ່າງ — ຖ້າໝົດແລ້ວ ສະແດງ alert "ສິນຄ້າໝົດແລ້ວ!" ທັນທີ (ບໍ່ໃຫ້ເຕືອນເປີດບິນ)
   var cutQty = getProductCutQty(product.product_id);
   var remaining = getProductRemainingStock(product.product_id);
   var isOutOfStock = (cutQty !== 0 && remaining <= 0) || (parseFloat(product.qty || 0) <= 0 && cutQty !== 0);
@@ -130,23 +176,22 @@ function addProductToCart(product, specificUnit) {
       confirmButtonColor: '#ef4444',
       customClass: {
         confirmButton: 'btn btn-danger font-weight-bold px-4'
-      }
+      },
+      didClose: function() { ensureBarcodeInputFocused(); }
     });
     return;
   }
 
-  // 2. ຖ້າສິນຄ້າມີໃນສາງ — ກວດສອບວ່າເປີດບິນແລ້ວຫຼືບໍ່ (ຫຼື ເປີດບິນອັດໂນມັດ)
   if (!checkBillOpenedOrAlert()) return;
 
   var allUnits = buildAvailableUnits(product);
 
-  // ຖ້າລະບຸ specificUnit ມາແລ້ວ ຫຼື ມີຫົວໜ່ວຍດຽວ — ເພີ່ມເລີຍ
   if (specificUnit || allUnits.length <= 1) {
     _doAddToCart(product, specificUnit || null);
+    ensureBarcodeInputFocused();
     return;
   }
 
-  // ຖ້າມີຫຼາຍຫົວໜ່ວຍ — popup ໃຫ້ເລືອກ
   var htmlOptions = allUnits.map(function(u, uIdx) {
     return `<button class="unit-pick-btn" data-unit-idx="${uIdx}"
       style="display:flex; align-items:center; justify-content:space-between; width:100%; margin-bottom:8px; padding:10px 16px; border:1.5px solid #e2e8f0; border-radius:10px; background:#fff; cursor:pointer; transition:all 0.15s ease; font-family:inherit;"
@@ -169,49 +214,61 @@ function addProductToCart(product, specificUnit) {
         var uObj = allUnits[uIdx];
         Swal.close();
         _doAddToCart(product, uObj);
+        ensureBarcodeInputFocused();
       });
-    }
+    },
+    didClose: function() { ensureBarcodeInputFocused(); }
   });
 }
-
 
 function selectCategoryPill(btn, catId) {
   $('.category-pill-btn').removeClass('active');
   $(btn).addClass('active');
   selectedCategoryPillId = String(catId);
-  filterGrid();
+  _executeFilterGrid();
+  ensureBarcodeInputFocused();
 }
 
 function filterGrid() {
+  if (filterGridTimer) clearTimeout(filterGridTimer);
+  filterGridTimer = setTimeout(function() {
+    _executeFilterGrid();
+  }, 100);
+}
+
+function _executeFilterGrid() {
   var q = ($('#barcodeInput').val() || '').toLowerCase().trim();
   var catId = selectedCategoryPillId;
   var visibleCount = 0;
 
-  $('.product-item-card').each(function() {
-    var name = $(this).attr('data-name') || '';
-    var barcode = $(this).attr('data-barcode') || '';
-    var pid = $(this).attr('data-id') || '';
-    var cat = $(this).attr('data-category') || '';
+  var cards = document.querySelectorAll('.product-item-card');
+  for (var i = 0; i < cards.length; i++) {
+    var card = cards[i];
+    var name = card.getAttribute('data-name') || '';
+    var barcode = card.getAttribute('data-barcode') || '';
+    var pid = card.getAttribute('data-id') || '';
+    var cat = card.getAttribute('data-category') || '';
 
-    var matchText = (name.indexOf(q) !== -1) || (barcode.indexOf(q) !== -1) || (pid.indexOf(q) !== -1);
+    var matchText = (!q) || (name.indexOf(q) !== -1) || (barcode.indexOf(q) !== -1) || (pid.indexOf(q) !== -1);
     var matchCat = (!catId) || (cat == catId);
 
     if (matchText && matchCat) {
-      $(this).show();
+      if (card.style.display === 'none') card.style.display = '';
       visibleCount++;
     } else {
-      $(this).hide();
+      if (card.style.display !== 'none') card.style.display = 'none';
     }
-  });
+  }
 
-  // Show the "ບໍ່ມີຂໍ້ມູນສິນຄ້າ" placeholder whenever the current category / search yields nothing
-  if (visibleCount === 0) {
-    $('#productGridEmpty').css('display', 'block');
-  } else {
-    $('#productGridEmpty').css('display', 'none');
+  var emptyEl = document.getElementById('productGridEmpty');
+  if (emptyEl) {
+    emptyEl.style.display = (visibleCount === 0) ? 'block' : 'none';
   }
 }
 
-// Run once on load so an empty default view (or a store with no products) shows the placeholder
-$(function() { filterGrid(); });
+$(function() { 
+  _executeFilterGrid();
+  ensureBarcodeInputFocused();
+});
 </script>
+

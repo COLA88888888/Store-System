@@ -12,8 +12,9 @@ html, body {
     display: flex !important;
     flex-direction: row !important;
     width: 100% !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
     gap: 12px !important;
     overflow: hidden !important;
     padding: 8px !important;
@@ -101,12 +102,12 @@ html, body {
 }
 
 .cart-items {
-    flex: 1 1 auto !important;
+    flex: 1 1 0px !important;
     height: 0 !important;
     min-height: 0 !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
-    padding: 10px 10px !important;
+    padding: 6px 8px !important;
     border-bottom: 1.5px solid #e2e8f0 !important;
     scrollbar-width: thin !important;
     scrollbar-color: #cbd5e1 transparent !important;
@@ -127,59 +128,93 @@ html, body {
 
 .cart-footer {
     flex-shrink: 0 !important;
-    padding: 12px 15px !important;
+    margin-top: auto !important;
+    padding: 5px 8px 4px 8px !important;
     background: #ffffff !important;
-    border-top: none !important;
+    border-top: 1.5px solid #cbd5e1 !important;
 }
 
-/* Tablet / short screens (desktop 2-column layout): if the cart panel content is taller
-   than the viewport, let the panel scroll and keep the checkout buttons pinned & visible. */
-@media (min-width: 992px) {
+
+.cart-footer .row.mb-2 {
+    margin-bottom: 6px !important;
+}
+
+#cartPlaceholder {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+
+#cartPlaceholder i {
+    font-size: 2.0rem !important;
+    margin-bottom: 0.25rem !important;
+}
+
+
+
+/* Ensure POS cart container maintains clean flex column layout on all screens */
+.pos-cart {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+.cart-items {
+    flex: 1 1 auto !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 8px 8px !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+}
+
+/* Specific layout tuning for Tablet devices & short viewports (768px - 1366px or height <= 900px) */
+@media (min-width: 768px) and (max-width: 1366px), (max-height: 900px) {
     .pos-cart {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 450px !important;
+        min-width: 450px !important;
+        height: 100% !important;
+        max-height: 100% !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
     }
+
+
+    .cart-items {
+        flex: 1 1 0px !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        padding: 6px 8px !important;
+    }
+
     .cart-footer {
-        position: sticky !important;
-        bottom: 0 !important;
-        z-index: 6 !important;
-        box-shadow: 0 -4px 14px rgba(15, 23, 42, 0.08) !important;
+        flex-shrink: 0 !important;
+        margin-top: auto !important;
+        padding: 6px 8px 6px 8px !important;
+        background: #ffffff !important;
+        border-top: 1.5px solid #cbd5e1 !important;
     }
 }
 
-/* Tablet portrait / mobile: pin the checkout buttons to the bottom of the cart tab too */
-@media (max-width: 991.98px) {
-    .pos-cart.mobile-active .cart-footer {
-        position: sticky !important;
-        bottom: 0 !important;
-        z-index: 60 !important;
-        box-shadow: 0 -4px 14px rgba(15, 23, 42, 0.08) !important;
-    }
-}
 
-/* The dashboard iframe host renders taller than the visible area (AdminLTE double-counts the
-   navbar height as .content-wrapper margin-top), pushing the bottom of the POS cart — the
-   ລວມມູນຄ່າ / ສ່ວນຫຼຸດ / ຍອດຊຳລະ card and the ລ້າງ / ຊຳລະເງິນ buttons — below the fold on
-   tablet. Shrink the scrolling item list so that whole white card rides up into view, and
-   drop the sticky-to-bottom pin (it was sticking the card to an off-screen edge).
-   Tune the 560px: raise it if the ຊຳລະເງິນ button is still clipped, lower it if the item list is too short. */
-@media (max-width: 991.98px) {
-    .pos-cart.mobile-active .cart-items {
-        max-height: calc(100vh - 560px) !important;
-    }
-    .pos-cart.mobile-active .cart-footer {
-        position: static !important;
-        bottom: auto !important;
-    }
-}
 
-/* Responsive adjustments for mobile/tablet */
-@media (max-width: 991.98px) {
+/* Responsive adjustments for mobile phones ONLY (< 768px) */
+@media (max-width: 767.98px) {
+
     html, body {
         overflow-x: hidden !important;
-        overflow-y: auto !important;
-        height: auto !important;
-        min-height: 100% !important;
+        overflow-y: hidden !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        height: -webkit-fill-available !important;
         width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
@@ -187,37 +222,51 @@ html, body {
     }
 
     .pos-wrapper {
+        display: -webkit-box !important;
+        display: -webkit-flex !important;
+        display: flex !important;
+        -webkit-box-orient: vertical !important;
+        -webkit-box-direction: normal !important;
+        -webkit-flex-direction: column !important;
         flex-direction: column !important;
-        height: auto !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        height: -webkit-fill-available !important;
         min-height: 100% !important;
-        overflow-x: hidden !important;
-        overflow-y: visible !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
         padding: 6px !important;
-        gap: 8px !important;
+        gap: 6px !important;
         max-width: 100% !important;
         width: 100% !important;
         box-sizing: border-box !important;
     }
 
     .pos-mobile-nav {
-        position: sticky !important;
-        top: 0 !important;
+        -webkit-flex-shrink: 0 !important;
+        flex-shrink: 0 !important;
+        position: relative !important;
+        top: auto !important;
         z-index: 1040 !important;
         background: #ffffff !important;
-        margin: -6px -6px 6px -6px !important;
+        margin: 0 0 4px 0 !important;
         padding: 5px 8px !important;
-        border-radius: 0 0 10px 10px !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
     }
 
     .pos-products {
         width: 100% !important;
         max-width: 100% !important;
-        height: auto !important;
+        -webkit-box-flex: 1 !important;
+        -webkit-flex: 1 1 100% !important;
+        flex: 1 1 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
         overflow-x: hidden !important;
-        overflow-y: visible !important;
+        overflow-y: auto !important;
         padding-right: 0 !important;
-        padding-bottom: 16px !important;
+        padding-bottom: 12px !important;
         box-sizing: border-box !important;
     }
 
@@ -234,8 +283,14 @@ html, body {
         width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
-        height: auto !important;
-        overflow: visible !important;
+        background: #ffffff !important;
+        -webkit-box-flex: 1 !important;
+        -webkit-flex: 1 1 100% !important;
+        flex: 1 1 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
         margin-top: 0 !important;
         box-sizing: border-box !important;
         display: none !important;
@@ -243,8 +298,20 @@ html, body {
     }
 
     .pos-cart.mobile-active {
+        display: -webkit-box !important;
+        display: -webkit-flex !important;
         display: flex !important;
-        height: auto !important;
+        -webkit-box-orient: vertical !important;
+        -webkit-box-direction: normal !important;
+        -webkit-flex-direction: column !important;
+        flex-direction: column !important;
+        background: #ffffff !important;
+        -webkit-box-flex: 1 !important;
+        -webkit-flex: 1 1 100% !important;
+        flex: 1 1 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        max-height: 100% !important;
         margin-top: 0 !important;
     }
 
@@ -254,9 +321,12 @@ html, body {
 
     /* cart-items scroll ໄດ້ສະເພາະລາຍການສິນຄ້າໃນ mobile (Headers & Footer Fixed) */
     .cart-items {
-        height: auto !important;
-        max-height: calc(100vh - 360px) !important;
-        min-height: 100px !important;
+        -webkit-box-flex: 1 !important;
+        -webkit-flex: 1 1 auto !important;
+        flex: 1 1 auto !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        max-height: none !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
         padding: 6px 4px !important;
@@ -444,8 +514,10 @@ html, body {
     }
 
     .cart-footer {
-        padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 10px)) 8px !important;
+        padding: 6px 6px calc(2px + env(safe-area-inset-bottom, 2px)) 6px !important;
         flex-shrink: 0 !important;
+        -webkit-flex-shrink: 0 !important;
+        margin-top: auto !important;
         background: #ffffff !important;
         border-top: 1.5px solid #cbd5e1 !important;
         position: relative !important;

@@ -274,7 +274,7 @@ if ($logoImg && file_exists($logoDir . $logoImg)) {
 require_once __DIR__ . '/../../../layouts/header.php';
 ?>
 
-<link rel="stylesheet" href="../../themes/settings.css?v=<?php echo filemtime(__DIR__ . '/../../themes/settings.css'); ?>">
+<link rel="stylesheet" href="../../../themes/settings.css?v=<?php echo file_exists(__DIR__ . '/../../../themes/settings.css') ? filemtime(__DIR__ . '/../../../themes/settings.css') : time(); ?>">
 
 <div class="container-fluid p-4">
   <!-- Page Header -->

@@ -11,23 +11,11 @@ var isBillOpened = false;
 
 function checkBillOpenedOrAlert() {
   if (!isBillOpened || !activeBills || activeBills.length === 0) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'ກະລຸນາເປີດບິນກ່ອນ!',
-      html: '<div style="font-size:1.0rem; font-weight:600; color:#d97706;">ທ່ານຍັງບໍ່ທັນໄດ້ເປີດບິນການຂາຍ!</div><div class="mt-2 text-muted" style="font-size:0.88rem;">ກະລຸນາກົດ <b>"+ ເປີດບິນໃໝ່"</b> ເພື່ອເລີ່ມຕົ້ນການຂາຍ.</div>',
-      confirmButtonText: '<i class="fas fa-plus-circle mr-1"></i> ເປີດບິນໃໝ່',
-      confirmButtonColor: '#16a34a',
-      showCancelButton: true,
-      cancelButtonText: 'ຍົກເລີກ',
-      cancelButtonColor: '#64748b'
-    }).then(function(result) {
-      if (result.isConfirmed) {
-        if (typeof createNewBillModal === 'function') {
-          createNewBillModal();
-        }
-      }
-    });
-    return false;
+    if (typeof createNewBillModal === 'function') {
+      createNewBillModal();
+    } else {
+      isBillOpened = true;
+    }
   }
   return true;
 }

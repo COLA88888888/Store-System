@@ -17,11 +17,11 @@ window.POS_BACKEND_URL = '../../api/pos_backend.php';
 window.CURRENT_USER_NAME = "<?php echo htmlspecialchars($_SESSION['fname'] ?? $_SESSION['username'] ?? 'Admin'); ?>";
 window.POS_TODAY_SALE_COUNT = <?php echo $todaySaleCount; ?>;
 </script>
-<link rel="stylesheet" href="../../themes/pos.css?v=<?php echo filemtime(__DIR__ . '/../../themes/pos.css'); ?>">
+<link rel="stylesheet" href="../../themes/pos.css?v=<?php echo time(); ?>">
 
 <div class="pos-wrapper">
-  <!-- Mobile Navigation / Tab Switcher (Visible ONLY on Mobile ≤ 991px) -->
-  <div class="pos-mobile-nav border-bottom bg-white d-lg-none">
+  <!-- Mobile Navigation / Tab Switcher (Visible ONLY on Mobile Phones < 768px) -->
+  <div class="pos-mobile-nav border-bottom bg-white d-md-none">
     <div class="d-flex" style="gap: 6px;">
       <button type="button" class="btn flex-fill font-weight-bold btn-primary active py-2 px-2 shadow-sm" id="mobileTabProductsBtn" onclick="switchMobilePosTab('products')" style="border-radius: 10px; font-size: 1.35rem; min-height: 40px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-weight: 800;">
         <i class="fas fa-boxes mr-2" style="font-size: 1.4rem;"></i> ເລືອກສິນຄ້າ
@@ -43,12 +43,26 @@ window.POS_TODAY_SALE_COUNT = <?php echo $todaySaleCount; ?>;
   <?php require_once __DIR__ . '/partials/cart_section.php'; ?>
 </div>
 
-<!-- Mobile Floating Cart Bar (Visible on Mobile when on Products tab) -->
-<div id="mobileFloatingCartBar" class="d-lg-none" style="display: none; position: fixed; bottom: 14px; left: 12px; right: 12px; z-index: 1050;">
-  <button type="button" class="btn btn-primary btn-block shadow-lg font-weight-bold py-3 px-3.5 d-flex justify-content-between align-items-center" onclick="switchMobilePosTab('cart')" style="border-radius: 14px; font-size: 1.05rem; min-height: 52px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none; box-shadow: 0 8px 24px rgba(36,72,134,0.5) !important;">
-    <span><i class="fas fa-shopping-basket mr-2" style="font-size: 1.15rem;"></i> <?php echo htmlspecialchars(t('pos.view_cart', 'ເບິ່ງລາຍການຂາຍ')); ?> (<span id="floatingCartItemCount">0 <?php echo htmlspecialchars(t('pos.cart_count_items', 'ລາຍການ')); ?></span>)</span>
-    <span class="font-weight-bold" style="font-size: 1.15rem;" id="floatingCartTotal">0 ₭ <i class="fas fa-chevron-right ml-1"></i></span>
-  </button>
+<!-- Mobile Floating Cart Bar (Visible ONLY on Mobile Phones < 768px when on Products tab) -->
+<div id="mobileFloatingCartBar" class="d-md-none" style="display: none; position: fixed; bottom: 4px; left: 8px; right: 8px; z-index: 1050;">
+
+  <div class="d-flex align-items-center p-1.5 shadow-lg" style="border-radius: 16px; background: rgba(30, 41, 59, 0.96) !important; backdrop-filter: blur(8px); gap: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;">
+    <!-- 1. Clear Cart Button -->
+    <button type="button" class="btn btn-danger font-weight-bold d-flex align-items-center justify-content-center px-2.5 py-2" onclick="clearCart()" title="<?php echo htmlspecialchars(t('pos.clear', 'ລ້າງ')); ?>" style="border-radius: 12px; min-height: 44px; flex-shrink: 0;">
+      <i class="fas fa-trash-alt" style="font-size: 1.05rem;"></i>
+    </button>
+
+    <!-- 2. View Cart Details (Middle Button) -->
+    <button type="button" class="btn btn-primary flex-fill font-weight-bold px-2 py-2 d-flex justify-content-between align-items-center" onclick="switchMobilePosTab('cart')" style="border-radius: 12px; min-height: 44px; font-size: 0.88rem; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
+      <span class="text-truncate mr-1"><i class="fas fa-shopping-basket mr-1"></i> <span id="floatingCartItemCount">0 <?php echo htmlspecialchars(t('pos.cart_count_items', 'ລາຍການ')); ?></span></span>
+      <span class="font-weight-bold text-nowrap" id="floatingCartTotal">0 ₭</span>
+    </button>
+
+    <!-- 3. Direct Checkout Button -->
+    <button type="button" class="btn btn-warning font-weight-bold text-dark d-flex align-items-center justify-content-center px-3 py-2 shadow-sm" onclick="openCheckoutModal()" title="<?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?>" style="border-radius: 12px; min-height: 44px; flex-shrink: 0; background: #eab308; border-color: #ca8a04; font-size: 0.92rem; white-space: nowrap;">
+      <i class="fas fa-money-bill-wave mr-1"></i> <span><?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?></span>
+    </button>
+  </div>
 </div>
 
 <!-- POS Partial Modals -->

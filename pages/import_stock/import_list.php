@@ -319,7 +319,7 @@ $allBillStmt = $pdo->prepare("
     LEFT JOIN products p ON (id.product_id = p.product_id AND p.store_id = (CASE WHEN i.store_id > 0 THEN i.store_id ELSE 1 END))
     LEFT JOIN product_batches pb ON id.import_detail_id = pb.import_detail_id
     {$allBillWhere}
-    GROUP BY id.import_detail_id
+    GROUP BY id.import_detail_id, p.product_name, p.barcode, p.unit
     ORDER BY id.import_detail_id ASC
 ");
 $allBillStmt->execute($allBillParams);

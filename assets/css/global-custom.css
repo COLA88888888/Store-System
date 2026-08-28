@@ -645,6 +645,8 @@ body {
         padding-top: 0 !important;
         height: calc(100vh - 64px - 42px) !important;
         height: calc(100dvh - 64px - 42px) !important;
+        min-height: calc(100vh - 64px - 42px) !important;
+        min-height: calc(100dvh - 64px - 42px) !important;
     }
     .modal-dialog {
         margin: 0.75rem auto !important;

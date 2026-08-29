@@ -1478,15 +1478,27 @@ if (!hasPermission('dashboard')) {
     <iframe width="100%" height="100%" frameborder="0" name="frame" src="<?php echo $default_iframe_src; ?>" style="background-color: #f4f6f9;"></iframe>
     <style>
       .content-wrapper {
-        height: calc(100vh - 64px - 42px) !important;
+        height: calc(var(--app-vh, 1vh) * 100 - 64px - 42px) !important;
       }
       @media (max-width: 991.98px) {
         .content-wrapper {
-          height: calc(100vh - 64px - 42px) !important;
+          height: calc(var(--app-vh, 1vh) * 100 - 64px - 42px) !important;
         }
       }
     </style>
     <script>
+      // 100vh on tablet/mobile browsers can include area hidden behind the address bar/toolbar,
+      // which made the content-wrapper (and anything pinned to its bottom, like the POS action
+      // buttons) taller than what's actually visible with no way to scroll to it. Measure the
+      // real visible height with window.innerHeight instead and drive the CSS off that.
+      (function () {
+        function setAppVh() {
+          document.documentElement.style.setProperty('--app-vh', (window.innerHeight * 0.01) + 'px');
+        }
+        setAppVh();
+        window.addEventListener('resize', setAppVh);
+        window.addEventListener('orientationchange', setAppVh);
+      })();
       function hideFastLoader() {
         var loader = document.getElementById('iframeLoaderOverlay');
         if (loader) {

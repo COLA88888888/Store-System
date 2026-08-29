@@ -494,30 +494,10 @@ function removeFromCart(cartKey) {
 }
 
 function clearCart() {
-  if (cart.length === 0) {
-    Swal.fire({
-      icon: 'info',
-      title: 'ແຈ້ງເຕືອນ',
-      text: 'ກະຕ່າສິນຄ້າຫວ່າງເປົ່າຢູ່ແລ້ວ!',
-      confirmButtonColor: '#244886'
-    });
-    return;
-  }
-  Swal.fire({
-    title: 'ຢືນຢັນລ້າງກະຕ່າ?',
-    text: 'ລາຍການສິນຄ້າທັງໝົດໃນກະຕ່າຈະຖືກລຶບອອກ!',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#ef4444',
-    cancelButtonColor: '#64748b',
-    confirmButtonText: 'ລ້າງກະຕ່າ',
-    cancelButtonText: 'ຍົກເລີກ'
-  }).then(function(result) {
-    if (result.isConfirmed) {
-      cart = [];
-      updateCartUI();
-    }
-  });
+  // ລ້າງກະຕ່າໂດຍກົງ ບໍ່ຕ້ອງມີ popup ຢືນຢັນ
+  if (cart.length === 0) return;
+  cart = [];
+  updateCartUI();
 }
 
 function buildAvailableUnits(product) {
@@ -597,8 +577,13 @@ function _doAddToCart(product, unitObj) {
   var cartKey = product.product_id + '_' + unitName;
   var existing = cart.find(function(i) { return i.cartKey === cartKey; });
 
+  // Monotonic "last touched" stamp so the customer display can float the most
+  // recently scanned/tapped item to the top without reordering the cashier's cart.
+  window._cartTouchSeq = (window._cartTouchSeq || 0) + 1;
+
   if (existing) {
     existing.quantity += 1;
+    existing._touch = window._cartTouchSeq;
   } else {
     cart.push({
       cartKey: cartKey,
@@ -610,7 +595,8 @@ function _doAddToCart(product, unitObj) {
       cost_price: costPrice,
       multiplier: multiplier,
       quantity: 1,
-      image: product.img_url || product.image || ''
+      image: product.img_url || product.image || '',
+      _touch: window._cartTouchSeq
     });
   }
 

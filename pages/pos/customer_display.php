@@ -300,45 +300,54 @@ $base_path = '../../';
     .display-table-body::-webkit-scrollbar {
       display: none;
     }
-    .display-table-body > table {
-      height: 100%;
-    }
     .display-empty-state td {
       vertical-align: middle !important;
+      height: 56vh;
     }
     .display-table-body td {
-      padding: 12px 14px;
+      padding: 7px 14px;
       vertical-align: middle;
-      border-bottom: none;
-      font-size: 1.1rem;
+      border-bottom: 1px solid #eef2f7;
+      font-size: 1rem;
       color: #0f172a;
-      height: 112px;
+      height: 60px;
       box-sizing: border-box;
     }
     .display-table-body tr:nth-child(even) {
       background: #f8fafc;
     }
+    /* Latest scanned/tapped item is rendered first and highlighted so the customer
+       can immediately spot what the cashier just added. */
+    .display-table-body tr.display-row-newest td {
+      background: #eaf3ff;
+      box-shadow: inset 4px 0 0 #0263ff;
+      animation: newRowIn 0.35s ease;
+    }
+    @keyframes newRowIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
     /* ENLARGED PRODUCT IMAGE & DETAILS */
     .display-pro-img {
-      width: 84px;
-      height: 84px;
+      width: 46px;
+      height: 46px;
       object-fit: cover;
-      border-radius: 8px;
+      border-radius: 6px;
       border: 2px solid #cbd5e1;
       background: #ffffff;
       padding: 2px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
 
     .badge-qty {
       background: #0263ff;
       color: #ffffff;
-      font-size: 1.05rem;
-      padding: 4px 14px;
-      border-radius: 8px;
+      font-size: 0.95rem;
+      padding: 3px 11px;
+      border-radius: 7px;
       font-weight: 800;
-      box-shadow: 0 3px 8px rgba(2, 99, 255, 0.3);
+      box-shadow: 0 2px 6px rgba(2, 99, 255, 0.3);
     }
 
     /* PAYMENT SUMMARY & BREAKDOWN CARD — 6 stats in a 3-col x 2-row grid, plus grand total below */
@@ -346,15 +355,15 @@ $base_path = '../../';
       background: #ffffff;
       border-radius: 8px;
       border: 2px solid #cbd5e1;
-      padding: 12px 18px;
+      padding: 10px 18px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.05);
     }
 
     .summary-stats-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px 18px;
-      margin-bottom: 10px;
+      gap: 5px 18px;
+      margin-bottom: 7px;
     }
 
     .summary-stat-item {
@@ -378,12 +387,12 @@ $base_path = '../../';
 
     .grand-total-banner {
       background: linear-gradient(135deg, #059669 0%, #047857 100%);
-      border-radius: 10px;
-      padding: 10px 18px;
+      border-radius: 9px;
+      padding: 4px 18px;
       box-sizing: border-box;
       text-align: center;
       color: #ffffff;
-      box-shadow: 0 6px 20px rgba(5, 150, 105, 0.30);
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.26);
       animation: glowTotal 2.4s ease-in-out infinite;
     }
   </style>
@@ -515,8 +524,8 @@ $base_path = '../../';
         </div>
 
         <div class="grand-total-banner d-flex flex-column justify-content-center align-items-center">
-          <span class="text-uppercase font-weight-bold" style="color: #dcfce7; letter-spacing: 0.5px; font-size: 0.76rem;">ຍອດຊຳລະ (ຍອດລວມ - ສ່ວນຫຼຸດ)</span>
-          <h2 class="font-weight-bold mb-0 text-white" id="displayGrandTotal" style="font-size: 1.75rem; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; text-shadow: 0 3px 6px rgba(0,0,0,0.2);">0 ₭</h2>
+          <span class="text-uppercase font-weight-bold" style="color: #dcfce7; letter-spacing: 0.5px; font-size: 0.66rem;">ຍອດຊຳລະ (ຍອດລວມ - ສ່ວນຫຼຸດ)</span>
+          <h2 class="font-weight-bold mb-0 text-white" id="displayGrandTotal" style="font-size: 1.3rem; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; text-shadow: 0 2px 5px rgba(0,0,0,0.2);">0 ₭</h2>
         </div>
       </div>
 
@@ -690,7 +699,19 @@ function renderDisplayData(data) {
       </tr>
     `);
   } else {
-    cart.forEach(function(item, idx) {
+    // Render newest first: the most recently scanned/tapped item shows at the top and
+    // is highlighted. Prefer the "_touch" stamp set by the POS cart; fall back to the
+    // cart's own order. The "ລຳດັບ" number still reflects the original add order.
+    var origIndex = new Map();
+    cart.forEach(function(it, n) { origIndex.set(it, n); });
+    var orderedCart = cart.slice().sort(function(a, b) {
+      var ta = (typeof a._touch === 'number') ? a._touch : origIndex.get(a);
+      var tb = (typeof b._touch === 'number') ? b._touch : origIndex.get(b);
+      return tb - ta;
+    });
+    orderedCart.forEach(function(item, i) {
+      var idx = origIndex.get(item);
+      var isNewest = (i === 0);
       var isGift = !!item.is_free_gift;
       var itemTotal = isGift ? '0 ₭' : (item.quantity * item.unit_price).toLocaleString() + ' ₭';
       var unitPriceStr = isGift ? '0 ₭' : parseFloat(item.unit_price).toLocaleString() + ' ₭';
@@ -702,7 +723,7 @@ function renderDisplayData(data) {
       var imgSrc = (!imgName || imgName === 'image.jpg') ? '../../assets/img/image.jpg' : '../../assets/product_img/' + imgName;
 
       tbody.append(`
-        <tr style="${isGift ? 'background:#f0fdf4;' : ''}">
+        <tr class="${isNewest ? 'display-row-newest' : ''}" style="${isGift ? 'background:#f0fdf4;' : ''}">
           <td class="text-center text-muted font-weight-bold">${idx + 1}</td>
           <td class="text-center">
             <img src="${imgSrc}" alt="${item.product_name}" class="display-pro-img" onerror="this.src='../../assets/img/image.jpg';">

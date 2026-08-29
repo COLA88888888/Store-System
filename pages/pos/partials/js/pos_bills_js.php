@@ -275,10 +275,8 @@ function holdCurrentCart() {
 }
 
 function holdCurrentOrder() {
-  if (cart.length === 0) {
-    Swal.fire({ icon: 'warning', title: 'ແຈ້ງເຕືອນ', text: 'ກະຕ່າສິນຄ້າຫວ່າງເປົ່າ ບໍ່ສາມາດພັກບິນໄດ້! ກະລຸນາເພີ່ມສິນຄ້າລົງກະຕ່າກ່ອນ', confirmButtonColor: '#244886' });
-    return;
-  }
+  // ກະຕ່າຫວ່າງ: ບໍ່ເຮັດຫຍັງ ບໍ່ຕ້ອງມີ popup
+  if (cart.length === 0) return;
 
   var heldItem = {
     id: 'HOLD-' + Date.now(),
@@ -301,6 +299,8 @@ function holdCurrentOrder() {
   updateHeldOrdersBadge();
 
   Swal.fire({
+    toast: true,
+    position: 'top-end',
     icon: 'success',
     title: 'ພັກບິນສຳເລັດ!',
     timer: 1200,
@@ -429,5 +429,35 @@ function deleteHeldOrder(orderId) {
   localStorage.setItem('pos_held_orders', JSON.stringify(heldOrders));
   renderHeldOrders();
   updateHeldOrdersBadge();
+}
+
+// ລ້າງບິນພັກທັງໝົດ — ເປັນການລົບຫຼາຍລາຍການພ້ອມກັນ ຈຶ່ງມີ popup ຢືນຢັນກ່ອນ
+function clearAllHeldOrders() {
+  if (!heldOrders || heldOrders.length === 0) return;
+  Swal.fire({
+    title: 'ລ້າງບິນພັກທັງໝົດ?',
+    text: 'ບິນທີ່ພັກໄວ້ທັງໝົດ (' + heldOrders.length + ' ບິນ) ຈະຖືກລຶບອອກ ແລະ ກູ້ຄືນບໍ່ໄດ້!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'ລ້າງທັງໝົດ',
+    cancelButtonText: 'ຍົກເລີກ'
+  }).then(function(result) {
+    if (!result.isConfirmed) return;
+    heldOrders = [];
+    localStorage.setItem('pos_held_orders', JSON.stringify(heldOrders));
+    renderHeldOrders();
+    updateHeldOrdersBadge();
+    $('#heldOrdersModal').modal('hide');
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'success',
+      title: 'ລ້າງບິນພັກທັງໝົດແລ້ວ',
+      timer: 1200,
+      showConfirmButton: false
+    });
+  });
 }
 </script>

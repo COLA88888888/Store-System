@@ -181,8 +181,7 @@ html, body {
         min-width: 450px !important;
         height: 100% !important;
         max-height: 100% !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
+        overflow: hidden !important;
     }
 
 
@@ -741,9 +740,6 @@ html, body {
     display: block !important;
     margin: 0 !important;
     border-radius: 9px 9px 0 0 !important;
-    transition: none !important;
-    transform: none !important;
-}
     transition: none !important;
     transform: none !important;
 }

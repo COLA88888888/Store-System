@@ -40,16 +40,27 @@ if ($per_page_raw === 'all') {
     $per_page = max(1, intval($per_page_raw));
 }
 
-// Fetch Categories for Dropdown
-$catStmt = $pdo->query("SELECT category_id, category_name FROM categories ORDER BY category_name ASC");
+// Fetch Categories for Dropdown — categories are duplicated per branch (same 10 names exist
+// in every store), so collapse by name to one entry each. The value is a representative id.
+$catStmt = $pdo->query("SELECT MIN(category_id) AS category_id, category_name FROM categories GROUP BY category_name ORDER BY category_name ASC");
 $all_categories = $catStmt ? $catStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
+// The selected value is one representative id; resolve it to the shared name so the report
+// matches that category across every branch, not just the one store's copy.
+$category_name_filter = '';
+if ($category_id !== '') {
+    $cnStmt = $pdo->prepare("SELECT category_name FROM categories WHERE category_id = ? LIMIT 1");
+    $cnStmt->execute([$category_id]);
+    $category_name_filter = $cnStmt->fetchColumn() ?: '';
+}
+$hasCatFilter = ($category_id !== '' && $category_name_filter !== '');
 
 $storeWhere = ($filter_store_id > 0 && $hasStoreIdCol) ? " AND s.{$storeColName} = :filter_store_id" : "";
 
 // Query ALL categories from database, joining sales data to get total quantity sold and revenue
 $sql = "
     SELECT
-        cat.category_id,
+        MIN(cat.category_id) AS category_id,
         cat.category_name,
         COALESCE(SUM(CASE WHEN s.sale_save_bill IS NOT NULL THEN d.save_qty ELSE 0 END), 0) AS total_qty_sold,
         COALESCE(SUM(CASE WHEN s.sale_save_bill IS NOT NULL THEN d.save_qty * d.multiplier ELSE 0 END), 0) AS total_stock_cut_qty,
@@ -66,9 +77,9 @@ $sql = "
         {$storeWhere}
         " . (!empty($from_date) ? " AND s.sale_date >= :from_date" : "") . "
         " . (!empty($to_date) ? " AND s.sale_date <= :to_date" : "") . "
-    " . (!empty($category_id) ? "WHERE cat.category_id = :category_filter_id" : "") . "
-    " . (!empty($search) ? (!empty($category_id) ? "AND" : "WHERE") . " (cat.category_name LIKE :search OR d.save_proname LIKE :search OR p.product_name LIKE :search)" : "") . "
-    GROUP BY cat.category_id, cat.category_name
+    " . ($hasCatFilter ? "WHERE cat.category_name = :category_name_filter" : "") . "
+    " . (!empty($search) ? ($hasCatFilter ? "AND" : "WHERE") . " (cat.category_name LIKE :search OR d.save_proname LIKE :search OR p.product_name LIKE :search)" : "") . "
+    GROUP BY cat.category_name
     ORDER BY cat.category_name ASC
 ";
 
@@ -82,8 +93,8 @@ if (!empty($from_date)) {
 if (!empty($to_date)) {
     $params[':to_date'] = $to_date;
 }
-if (!empty($category_id)) {
-    $params[':category_filter_id'] = $category_id;
+if ($hasCatFilter) {
+    $params[':category_name_filter'] = $category_name_filter;
 }
 if (!empty($search)) {
     $params[':search'] = '%' . $search . '%';
@@ -96,7 +107,7 @@ $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Fetch all sold products per category
 $items_sql = "
     SELECT
-        COALESCE(cat.category_id, 0) AS category_id,
+        COALESCE(cat.category_name, '') AS category_name,
         COALESCE(d.save_proname, p.product_name, 'ບໍ່ລະບຸຊື່ສິນຄ້າ') AS product_name,
         SUM(d.save_qty) AS qty_sold,
         SUM(d.save_qty * d.multiplier) AS stock_cut_qty,
@@ -116,7 +127,7 @@ $items_sql = "
         " . (!empty($to_date) ? " AND s.sale_date <= :to_date" : "") . "
         " . (($filter_store_id > 0 && $hasStoreIdCol) ? " AND s.{$storeColName} = :items_filter_store_id" : "") . "
         " . (!empty($search) ? " AND (d.save_proname LIKE :search OR d.save_proid LIKE :search OR p.product_name LIKE :search)" : "") . "
-    GROUP BY COALESCE(cat.category_id, 0), BINARY COALESCE(d.save_proname, p.product_name, 'ບໍ່ລະບຸຊື່ສິນຄ້າ')
+    GROUP BY COALESCE(cat.category_name, ''), BINARY COALESCE(d.save_proname, p.product_name, 'ບໍ່ລະບຸຊື່ສິນຄ້າ')
     ORDER BY qty_sold DESC
 ";
 $items_stmt = $pdo->prepare($items_sql);
@@ -131,7 +142,7 @@ $raw_items = $items_stmt->fetchAll(PDO::FETCH_ASSOC);
 $category_products = [];
 $category_products_index = []; // [cid][cleaned_display_name] => index into $category_products[cid], for merging duplicates
 foreach ($raw_items as $item) {
-    $cid = $item['category_id'];
+    $cid = $item['category_name'];
 
     // Extract the unit name sold, e.g. "ຢາສູບ AA (ຕູດ)" -> "ຕູດ", to explain the stock-cut multiplier
     $item['unit_label'] = '';
@@ -201,9 +212,9 @@ try {
         $grandWhere[] = "s.{$storeColName} = :grand_store_id";
         $grandParams[':grand_store_id'] = $filter_store_id;
     }
-    if (!empty($category_id)) {
-        $grandWhere[] = "p.category_id = :grand_category_id";
-        $grandParams[':grand_category_id'] = $category_id;
+    if ($hasCatFilter) {
+        $grandWhere[] = "p.category_id IN (SELECT category_id FROM categories WHERE category_name = :grand_category_name)";
+        $grandParams[':grand_category_name'] = $category_name_filter;
     }
     if (!empty($search)) {
         $grandWhere[] = "(d.save_proname LIKE :grand_search OR d.save_proid LIKE :grand_search OR p.product_name LIKE :grand_search)";
@@ -426,7 +437,7 @@ require_once __DIR__ . '/../../layouts/header.php';
             <?php else: ?>
               <?php foreach ($display_data as $idx => $row): ?>
                 <?php
-                  $cid = $row['category_id'];
+                  $cid = $row['category_name'];
                   $prods = $category_products[$cid] ?? [];
                 ?>
                 <!-- Category Header Row -->

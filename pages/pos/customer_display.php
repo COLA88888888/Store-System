@@ -255,7 +255,7 @@ $base_path = '../../';
       flex: 1.15;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
       overflow: hidden;
     }
 
@@ -279,11 +279,11 @@ $base_path = '../../';
     .display-table-head {
       color: #ffffff;
       font-weight: 700;
-      font-size: 0.92rem;
+      font-size: 0.98rem;
     }
     .display-table-head th {
       background: linear-gradient(135deg, #2c5aa0 0%, #244886 100%);
-      padding: 9px 14px;
+      padding: 10px 14px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       border: none;
@@ -305,12 +305,11 @@ $base_path = '../../';
       height: 56vh;
     }
     .display-table-body td {
-      padding: 7px 14px;
+      padding: 9px 14px;
       vertical-align: middle;
-      border-bottom: 1px solid #eef2f7;
-      font-size: 1rem;
+      font-size: 1.05rem;
       color: #0f172a;
-      height: 60px;
+      height: 62px;
       box-sizing: border-box;
     }
     .display-table-body tr:nth-child(even) {
@@ -319,8 +318,7 @@ $base_path = '../../';
     /* Latest scanned/tapped item is rendered first and highlighted so the customer
        can immediately spot what the cashier just added. */
     .display-table-body tr.display-row-newest td {
-      background: #eaf3ff;
-      box-shadow: inset 4px 0 0 #0263ff;
+      background: #dbeafe;
       animation: newRowIn 0.35s ease;
     }
     @keyframes newRowIn {
@@ -350,50 +348,79 @@ $base_path = '../../';
       box-shadow: 0 2px 6px rgba(2, 99, 255, 0.3);
     }
 
-    /* PAYMENT SUMMARY & BREAKDOWN CARD — 6 stats in a 3-col x 2-row grid, plus grand total below */
-    .summary-card {
-      background: #ffffff;
-      border-radius: 8px;
-      border: 2px solid #cbd5e1;
-      padding: 10px 18px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.05);
-    }
-
-    .summary-stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 5px 18px;
-      margin-bottom: 7px;
-    }
-
-    .summary-stat-item {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .summary-item-label {
-      color: #64748b;
-      font-weight: 700;
-      font-size: 0.86rem;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .summary-item-value {
-      font-weight: 800;
-      font-size: 1.2rem;
-    }
-
+    /* GREEN GRAND-TOTAL BOX — carries every payment stat + grand total */
     .grand-total-banner {
       background: linear-gradient(135deg, #059669 0%, #047857 100%);
-      border-radius: 9px;
-      padding: 4px 18px;
+      border-radius: 12px;
+      padding: 14px 22px 16px;
       box-sizing: border-box;
-      text-align: center;
       color: #ffffff;
-      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.26);
+      box-shadow: 0 6px 18px rgba(5, 150, 105, 0.30);
       animation: glowTotal 2.4s ease-in-out infinite;
+    }
+    .gt-substats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px 18px;
+      margin-bottom: 14px;
+    }
+    .gt-substat {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .gt-substat-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #d1fae5;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .gt-substat-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    #displayItemCount {
+      font-size: 1.1rem;
+    }
+    .gt-final {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .gt-final-label {
+      text-transform: uppercase;
+      color: #dcfce7;
+      letter-spacing: 0.5px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .gt-final h2 {
+      font-weight: 800;
+      margin: 3px 0 0;
+      font-size: 2.1rem;
+      color: #ffffff;
+      font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.25);
+    }
+
+    /* Short customer-display monitors (e.g. 1024x600): tighten the green summary box
+       so the product list keeps enough visible rows instead of being squeezed. */
+    @media (max-height: 720px) {
+      .display-main { padding: 10px; gap: 10px; }
+      .grand-total-banner { padding: 9px 16px 11px; }
+      .gt-substats { gap: 6px 14px; margin-bottom: 9px; }
+      .gt-substat-label { font-size: 0.85rem; }
+      .gt-substat-value { font-size: 1.05rem; }
+      .gt-final-label { font-size: 0.74rem; }
+      .gt-final h2 { font-size: 1.6rem; }
+      .display-table-body td { height: 52px; font-size: 0.98rem; padding: 6px 12px; }
+      .display-table-head th { padding: 7px 12px; font-size: 0.9rem; }
     }
   </style>
 </head>
@@ -494,38 +521,38 @@ $base_path = '../../';
         </div>
       </div>
 
-      <!-- FULL PAYMENT BREAKDOWN SUMMARY CARD: 6 stats in a 2-row grid + grand total banner -->
-      <div class="summary-card">
-        <div class="summary-stats-grid">
-          <div class="summary-stat-item">
-            <span class="summary-item-label"><i class="fas fa-boxes text-primary"></i> ລາຍການສິນຄ້າ</span>
-            <span class="summary-item-value text-dark" id="displayItemCount">0 ລາຍການ (0 ຈຳນວນ)</span>
+      <!-- GREEN GRAND-TOTAL BOX: every payment stat lives here, grand total below -->
+      <div class="grand-total-banner">
+        <div class="gt-substats">
+          <div class="gt-substat">
+            <span class="gt-substat-label"><i class="fas fa-boxes"></i> ລາຍການສິນຄ້າ</span>
+            <span class="gt-substat-value" id="displayItemCount">0 ລາຍການ / 0 ອັນ</span>
           </div>
-          <div class="summary-stat-item">
-            <span class="summary-item-label"><i class="fas fa-calculator text-primary"></i> ຍອດລວມ</span>
-            <span class="summary-item-value text-dark" id="displaySubtotal">0 ₭</span>
+          <div class="gt-substat">
+            <span class="gt-substat-label"><i class="fas fa-calculator"></i> ຍອດລວມ</span>
+            <span class="gt-substat-value" id="displaySubtotal">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
           </div>
-          <div class="summary-stat-item">
-            <span class="summary-item-label"><i class="fas fa-percent text-danger"></i> ສ່ວນຫຼຸດ</span>
-            <span class="summary-item-value text-danger" id="displayDiscount">0 ₭</span>
+          <div class="gt-substat">
+            <span class="gt-substat-label"><i class="fas fa-percent"></i> ສ່ວນຫຼຸດ</span>
+            <span class="gt-substat-value" id="displayDiscount">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
           </div>
-          <div class="summary-stat-item">
-            <span class="summary-item-label"><i class="fas fa-qrcode text-info"></i> ຮັບເງິນໂອນ</span>
-            <span class="summary-item-value text-info" id="displayQrReceived">0 ₭</span>
+          <div class="gt-substat">
+            <span class="gt-substat-label"><i class="fas fa-qrcode"></i> ຮັບເງິນໂອນ</span>
+            <span class="gt-substat-value" id="displayQrReceived">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
           </div>
-          <div class="summary-stat-item">
-            <span class="summary-item-label"><i class="fas fa-money-bill-wave text-success"></i> ຮັບເງິນສົດ</span>
-            <span class="summary-item-value text-success" id="displayCashReceived">0 ₭</span>
+          <div class="gt-substat">
+            <span class="gt-substat-label"><i class="fas fa-money-bill-wave"></i> ຮັບເງິນສົດ</span>
+            <span class="gt-substat-value" id="displayCashReceived">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
           </div>
-          <div class="summary-stat-item">
-            <span class="summary-item-label"><i class="fas fa-hand-holding-usd text-warning"></i> ເງິນທອນ</span>
-            <span class="summary-item-value text-warning" id="displayChangeAmount">0 ₭</span>
+          <div class="gt-substat">
+            <span class="gt-substat-label"><i class="fas fa-hand-holding-usd"></i> ເງິນທອນ</span>
+            <span class="gt-substat-value" id="displayChangeAmount">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
           </div>
         </div>
 
-        <div class="grand-total-banner d-flex flex-column justify-content-center align-items-center">
-          <span class="text-uppercase font-weight-bold" style="color: #dcfce7; letter-spacing: 0.5px; font-size: 0.66rem;">ຍອດຊຳລະ (ຍອດລວມ - ສ່ວນຫຼຸດ)</span>
-          <h2 class="font-weight-bold mb-0 text-white" id="displayGrandTotal" style="font-size: 1.3rem; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; text-shadow: 0 2px 5px rgba(0,0,0,0.2);">0 ₭</h2>
+        <div class="gt-final">
+          <span class="gt-final-label">ຍອດຊຳລະ (ຍອດລວມ - ສ່ວນຫຼຸດ)</span>
+          <h2 id="displayGrandTotal">0 <?php echo htmlspecialchars($cd['symbol']); ?></h2>
         </div>
       </div>
 
@@ -536,6 +563,28 @@ $base_path = '../../';
 
 <script src="<?php echo $base_path; ?>plugins/jquery/jquery.min.js"></script>
 <script>
+// ===== Display currency (cart data arrives in KIP; shown in the active currency) =====
+<?php
+  $cd = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo)
+      : ['code' => 'KIP', 'symbol' => '₭', 'decimals' => 0, 'rate' => 1];
+?>
+window.CD_CUR = {
+  code: <?php echo json_encode($cd['code']); ?>,
+  symbol: <?php echo json_encode($cd['symbol'], JSON_UNESCAPED_UNICODE); ?>,
+  decimals: <?php echo (int)$cd['decimals']; ?>,
+  rate: <?php echo json_encode((float)$cd['rate']); ?>,
+  isKip: <?php echo ($cd['code'] === 'KIP') ? 'true' : 'false'; ?>
+};
+function cdFmt(v) {
+  v = parseFloat(v) || 0;
+  return v.toLocaleString('en-US', { minimumFractionDigits: CD_CUR.decimals, maximumFractionDigits: CD_CUR.decimals }) + ' <span class="cur-sym">' + CD_CUR.symbol + '</span>';
+}
+// kip -> formatted display string
+function cdMoney(kip) {
+  kip = parseFloat(kip) || 0;
+  return cdFmt(CD_CUR.isKip ? Math.round(kip) : (kip / CD_CUR.rate));
+}
+
 // Fullscreen: try automatically on load (works when opened via a user click), and
 // always offer the manual toggle button since browsers can silently block the auto request.
 function toggleFullscreen() {
@@ -713,8 +762,8 @@ function renderDisplayData(data) {
       var idx = origIndex.get(item);
       var isNewest = (i === 0);
       var isGift = !!item.is_free_gift;
-      var itemTotal = isGift ? '0 ₭' : (item.quantity * item.unit_price).toLocaleString() + ' ₭';
-      var unitPriceStr = isGift ? '0 ₭' : parseFloat(item.unit_price).toLocaleString() + ' ₭';
+      var itemTotal = isGift ? cdMoney(0) : cdMoney(item.quantity * item.unit_price);
+      var unitPriceStr = isGift ? cdMoney(0) : cdMoney(item.unit_price);
       var unitNameStr = item.unit_name ? item.unit_name : 'ອັນ';
       var giftBadgeHtml = isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.82rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i>ແຖມຟຣີ</span>` : '';
 
@@ -753,15 +802,12 @@ function renderDisplayData(data) {
   var discountVal = parseFloat((data.discount || '0').toString().replace(/[^\d]/g, '')) || 0;
   var netGrandTotal = Math.max(0, subtotal - discountVal);
 
-  // Animated number counter helper
-  function animateNumber(elementId, targetValue, suffix) {
+  // Animated number counter helper. targetKip is in KIP; displayed in CD_CUR.
+  function animateNumber(elementId, targetKip) {
     var $el = $('#' + elementId);
-    var currentText = $el.text().replace(/[^\d]/g, '');
-    var startValue = parseFloat(currentText) || 0;
-    if (startValue === targetValue) {
-      $el.text(targetValue.toLocaleString() + (suffix || ''));
-      return;
-    }
+    var target = CD_CUR.isKip ? Math.round(targetKip) : (parseFloat(targetKip) || 0) / CD_CUR.rate;
+    var startValue = parseFloat(($el.text() || '').replace(/[^0-9.]/g, '')) || 0;
+    if (startValue === target) { $el.html(cdFmt(target)); return; }
     var duration = 400;
     var startTime = null;
 
@@ -769,30 +815,30 @@ function renderDisplayData(data) {
       if (!startTime) startTime = timestamp;
       var progress = Math.min((timestamp - startTime) / duration, 1);
       var easeProgress = 1 - Math.pow(1 - progress, 3); // easeOutCubic
-      var val = Math.floor(startValue + (targetValue - startValue) * easeProgress);
-      $el.text(val.toLocaleString() + (suffix || ''));
+      var val = startValue + (target - startValue) * easeProgress;
+      $el.html(cdFmt(val));
       if (progress < 1) {
         window.requestAnimationFrame(step);
       } else {
-        $el.text(targetValue.toLocaleString() + (suffix || ''));
+        $el.html(cdFmt(target));
       }
     }
     window.requestAnimationFrame(step);
   }
 
-  $('#displayItemCount').text(lineCount + ' ລາຍການ (' + totalQty + ' ຈຳນວນ)');
-  animateNumber('displaySubtotal', subtotal, ' ₭');
-  animateNumber('displayDiscount', discountVal, ' ₭');
-  animateNumber('displayGrandTotal', netGrandTotal, ' ₭');
+  $('#displayItemCount').text(lineCount + ' ລາຍການ / ' + totalQty + ' ອັນ');
+  animateNumber('displaySubtotal', subtotal);
+  animateNumber('displayDiscount', discountVal);
+  animateNumber('displayGrandTotal', netGrandTotal);
 
   // 3. Cash, QR, and Change Breakdown
   var cashRec = parseFloat(data.cashReceived || 0);
   var qrRec = parseFloat(data.qrReceived || 0);
   var changeAmt = parseFloat(data.changeAmount || 0);
 
-  animateNumber('displayCashReceived', cashRec, ' ₭');
-  animateNumber('displayQrReceived', qrRec, ' ₭');
-  animateNumber('displayChangeAmount', changeAmt, ' ₭');
+  animateNumber('displayCashReceived', cashRec);
+  animateNumber('displayQrReceived', qrRec);
+  animateNumber('displayChangeAmount', changeAmt);
 }
 </script>
 

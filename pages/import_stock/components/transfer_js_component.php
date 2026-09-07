@@ -291,7 +291,7 @@
       var item = cartItems[idx];
       html += '<tr>' +
                 '<td class="text-center align-middle font-weight-bold text-secondary">' + (idx + 1) + '</td>' +
-                '<td class="align-middle">' +
+                '<td class="align-middle transfer-cell-name">' +
                   '<strong class="d-block text-dark">' + escapeHtml(item.product_name) + '</strong>' +
                   '<small class="text-muted">' + I18N_STOCK_TRANSFER['stock_transfer.barcode_label'] + ' ' + escapeHtml(item.barcode || '-') + '</small>' +
                 '</td>' +

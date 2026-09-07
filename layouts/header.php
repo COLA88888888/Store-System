@@ -18,8 +18,7 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
     <title><?php echo htmlspecialchars($header_site_name); ?></title>
     <link rel="shortcut icon" href="<?php echo htmlspecialchars($header_site_logo); ?>" type="image/jpeg">
     <link rel="icon" href="<?php echo htmlspecialchars($header_site_logo); ?>" type="image/jpeg">
-    <link rel="manifest" href="<?php echo $base_path; ?>manifest.json">
-    
+
     <!-- System Modern Font - Noto Sans Lao -->
     <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/local-font.css?v=<?php echo time(); ?>">
     
@@ -49,6 +48,8 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
     <script src="<?php echo $base_path; ?>plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="<?php echo $base_path; ?>plugins/sweetalert2/sweetalert2.all.min.js"></script>
     <script>
+      // Offline mode has been removed. Unregister any service worker still installed
+      // from an older build so it can't serve stale cached pages.
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(regs) {
           regs.forEach(function(reg) { reg.unregister(); });

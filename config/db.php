@@ -168,7 +168,12 @@ if ($conn && !empty($_SESSION['user_id'])) {
         // Multi-Branch Store Switcher Handler for Executive / Admin Users
         if (isset($_GET['switch_store_id'])) {
             $switchId = intval($_GET['switch_store_id']);
-            if ($isAdmin) {
+            if ($isAdmin || isMainBranch($pdo, $_SESSION['store_id'] ?? 1)) {
+                $_SESSION['active_store_id'] = $switchId;
+            }
+        } elseif (isset($_GET['store_id'])) {
+            $switchId = intval($_GET['store_id']);
+            if ($isAdmin || isMainBranch($pdo, $_SESSION['store_id'] ?? 1)) {
                 $_SESSION['active_store_id'] = $switchId;
             }
         }
@@ -272,6 +277,21 @@ if ($pdo) {
         $hasTaxId = $pdo->query("SHOW COLUMNS FROM `tbcompanyinfo` LIKE 'tax_id'")->fetch();
         if (!$hasTaxId) {
             $pdo->exec("ALTER TABLE `tbcompanyinfo` ADD COLUMN `tax_id` VARCHAR(100) NULL AFTER `com_email`");
+        }
+    } catch (Throwable $ex) {}
+
+    // CNY (ຢວນຈີນ) exchange-rate column — kept in its OWN try/catch so an unrelated
+    // migration failure above can never stop it landing (the exchange_rate save page
+    // does INSERT/UPDATE ... ex_kip_cn and hard-fails without it).
+    try {
+        $hasExKipCn = $pdo->query("SHOW COLUMNS FROM `tbexchange` LIKE 'ex_kip_cn'")->fetch();
+        if (!$hasExKipCn) {
+            try {
+                $pdo->exec("ALTER TABLE `tbexchange` ADD COLUMN `ex_kip_cn` VARCHAR(255) NULL AFTER `ex_kip_us`");
+            } catch (Throwable $e2) {
+                // fall back to a plain ADD if AFTER-column resolution failed
+                $pdo->exec("ALTER TABLE `tbexchange` ADD COLUMN `ex_kip_cn` VARCHAR(255) NULL");
+            }
         }
     } catch (Throwable $ex) {}
 
@@ -673,6 +693,29 @@ if ($pdo) {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     } catch (Throwable $ex) {}
 
+    // Auto Migration: suppliers (ຜູ້ສະໜອງ) — ໃນ try/catch ຂອງຕົນເອງ ເພື່ອບໍ່ໃຫ້ຖືກຂ້າມ
+    // ຖ້າ migration ອື່ນຂ້າງເທິງລົ້ມກ່ອນ. ໃຊ້ເລືອກຕອນເພີ່ມ/ແກ້ໄຂສິນຄ້າ + ໜ້າ pages/suppliers.
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `suppliers` (
+            `supplier_id` INT AUTO_INCREMENT PRIMARY KEY,
+            `supplier_name` VARCHAR(191) NOT NULL,
+            `phone` VARCHAR(50) DEFAULT NULL,
+            `contact_person` VARCHAR(120) DEFAULT NULL,
+            `address` VARCHAR(255) DEFAULT NULL,
+            `notes` TEXT DEFAULT NULL,
+            `status` VARCHAR(20) NOT NULL DEFAULT 'active',
+            `store_id` INT NOT NULL DEFAULT 1,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX (`store_id`),
+            INDEX (`supplier_name`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        $hasSupplierId = $pdo->query("SHOW COLUMNS FROM products LIKE 'supplier_id'")->fetch();
+        if (!$hasSupplierId) {
+            $pdo->exec("ALTER TABLE products ADD COLUMN `supplier_id` INT DEFAULT NULL");
+        }
+    } catch (Throwable $ex) {}
+
     // Auto Migration for promotions table
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `promotions` (
@@ -724,6 +767,8 @@ if ($pdo) {
             ('loyalty_enabled', '0'),
             ('loyalty_spend_amount', '100000'),
             ('loyalty_points_earned', '1')");
+        // Active display currency for POS/receipt (KIP | THB | USD | CNY). KIP = base, no conversion.
+        $pdo->exec("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('display_currency', 'KIP')");
     } catch (Throwable $ex) {}
 
     // Auto Migration for tbsale_save, tbsale_save_detail & sales view
@@ -868,6 +913,115 @@ if (!function_exists('formatCurrency')) {
     }
 }
 
+if (!function_exists('getExchangeRates')) {
+    /**
+     * KIP value of 1 unit of each currency, from the newest Active tbexchange row.
+     * KIP is always 1. A 0 means that rate has not been configured yet.
+     */
+    function getExchangeRates($pdo)
+    {
+        $rates = ['KIP' => 1.0, 'THB' => 0.0, 'USD' => 0.0, 'CNY' => 0.0];
+        if (!$pdo) return $rates;
+        try {
+            // `ex_kip_cn` may be missing on a not-yet-migrated install — SELECT * so one
+            // absent column can never wipe out the THB/USD rates too.
+            $row = $pdo->query("SELECT * FROM tbexchange ORDER BY (ex_status = 'Active') DESC, Id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                $rates['THB'] = (float) str_replace(',', '', (string)($row['ex_kip_bath'] ?? '0'));
+                $rates['USD'] = (float) str_replace(',', '', (string)($row['ex_kip_us'] ?? '0'));
+                $rates['CNY'] = (float) str_replace(',', '', (string)($row['ex_kip_cn'] ?? '0'));
+            }
+        } catch (Throwable $e) {}
+        return $rates;
+    }
+}
+
+if (!function_exists('getCurrencyMeta')) {
+    function getCurrencyMeta()
+    {
+        // decimals 0 everywhere: amounts show whole numbers with a comma thousands
+        // separator and no decimal point (e.g. "1,234 $").
+        return [
+            'KIP' => ['name' => 'ກີບ',  'symbol' => '₭', 'decimals' => 0],
+            'THB' => ['name' => 'ບາດ',  'symbol' => '฿', 'decimals' => 0],
+            'USD' => ['name' => 'ໂດລາ', 'symbol' => '$', 'decimals' => 0],
+            'CNY' => ['name' => 'ຢວນ',  'symbol' => '¥', 'decimals' => 0],
+        ];
+    }
+}
+
+if (!function_exists('getDisplayCurrency')) {
+    /**
+     * Returns the active display currency: ['code','name','symbol','decimals','rate','rates'].
+     * `rate` = KIP per 1 unit of this currency (1 for KIP). Falls back to KIP when the
+     * chosen currency has no configured exchange rate yet.
+     */
+    function getDisplayCurrency($pdo)
+    {
+        $code  = strtoupper(trim((string) getSetting($pdo, 'display_currency', 'KIP')));
+        $meta  = getCurrencyMeta();
+        $rates = getExchangeRates($pdo);
+        if (!isset($meta[$code])) $code = 'KIP';
+        if ($code !== 'KIP' && (empty($rates[$code]) || $rates[$code] <= 0)) $code = 'KIP';
+        return array_merge(
+            ['code' => $code, 'rate' => ($code === 'KIP' ? 1.0 : (float)$rates[$code]), 'rates' => $rates],
+            $meta[$code]
+        );
+    }
+}
+
+if (!function_exists('convertFromKip')) {
+    /** Convert a KIP amount into `$code`, rounded to that currency's decimals. */
+    function convertFromKip($amountKip, $code, $rates = null, $pdo = null)
+    {
+        $code = strtoupper((string)$code);
+        if ($code === 'KIP' || $code === '') return round((float)$amountKip);
+        if ($rates === null) $rates = getExchangeRates($pdo);
+        $rate = isset($rates[$code]) ? (float)$rates[$code] : 0.0;
+        if ($rate <= 0) return (float)$amountKip;
+        $meta = getCurrencyMeta();
+        $dec  = $meta[$code]['decimals'] ?? 2;
+        return round((float)$amountKip / $rate, $dec);
+    }
+}
+
+if (!function_exists('formatMoneyIn')) {
+    /** Format a KIP amount as a string in currency `$code` (e.g. "$ 12.50", "1,000 ₭"). */
+    function formatMoneyIn($amountKip, $code, $rates = null, $pdo = null)
+    {
+        $code = strtoupper((string)$code) ?: 'KIP';
+        $meta = getCurrencyMeta();
+        if (!isset($meta[$code])) $code = 'KIP';
+        $dec = $meta[$code]['decimals'];
+        $val = convertFromKip($amountKip, $code, $rates, $pdo);
+        return number_format((float)$val, $dec, '.', ',')
+             . ' <span class="cur-sym">' . $meta[$code]['symbol'] . '</span>';
+    }
+}
+
+if (!function_exists('displayMoney')) {
+    /**
+     * Format a KIP amount in the request's active display currency, with the
+     * currency lookup cached for the whole request. Use everywhere a report shows
+     * money: displayMoney($pdo, $kipAmount). Data stays KIP — this is display only.
+     */
+    function displayMoney($pdo, $amountKip, $withSymbol = true)
+    {
+        static $dc = null;
+        if ($dc === null) {
+            $dc = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo)
+                : ['code' => 'KIP', 'rates' => ['KIP' => 1]];
+        }
+        if ($withSymbol) {
+            return formatMoneyIn($amountKip, $dc['code'], $dc['rates']);
+        }
+        $meta = getCurrencyMeta();
+        $code = $dc['code'];
+        $val  = convertFromKip($amountKip, $code, $dc['rates']);
+        return number_format((float)$val, $meta[$code]['decimals'], '.', ',');
+    }
+}
+
 if (!function_exists('logDebug')) {
     function logDebug($message)
     {
@@ -970,6 +1124,7 @@ if (!function_exists('hasPermission')) {
             'categories'       => 'categories',
             'units'            => 'units',
             'products'         => 'products',
+            'suppliers'        => 'products',
             'import'           => 'import',
             'import_stock'     => 'import_stock',
             'import_list'      => 'import_list',

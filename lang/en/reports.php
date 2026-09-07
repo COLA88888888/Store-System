@@ -198,9 +198,9 @@ return [
     'reports.chart_daily_net_sales'  => 'Daily Net Sales',
     'reports.chart_payment_ratio'    => 'Payment Method Ratio',
     'reports.chart_daily_bill_count' => 'Daily Bill Count',
-    'reports.chart_legend_net'       => 'Net (₭)',
-    'reports.chart_legend_cash'      => 'Cash (₭)',
-    'reports.chart_legend_transfer'  => 'Transfer (₭)',
+    'reports.chart_legend_net'       => 'Net',
+    'reports.chart_legend_cash'      => 'Cash',
+    'reports.chart_legend_transfer'  => 'Transfer',
     'reports.chart_legend_bill_count' => 'Bill Count',
     'reports.chart_tooltip_bill'     => 'Bills:',
 ];

@@ -145,6 +145,13 @@
         <div class="d-flex justify-content-between" style="color:#000;font-weight:600;"><span><?php echo htmlspecialchars(t('reports.discount_label', 'ສ່ວນຫຼຸດ')); ?>:</span><span id="rc_rep_discount">0 ₭</span></div>
         <div class="d-flex justify-content-between" id="rc_rep_vat_row" style="color:#000;font-weight:600;display:none;"><span id="rc_rep_vat_label"><?php echo htmlspecialchars(t('reports.vat_label', 'ອມພ (VAT):')); ?></span><span id="rc_rep_vat">0 ₭</span></div>
         <div class="d-flex justify-content-between font-weight-bold" style="font-size:13.5px;color:#000;font-weight:700;"><span><?php echo htmlspecialchars(t('reports.net_total_label', 'ຍອດສຸດທິ:')); ?></span><span id="rc_rep_total">0 ₭</span></div>
+        <!-- ຍອດຊຳລະສຸດທິ ໃນ 4 ສະກຸນເງິນ (ຄິດຈາກກີບ × ອັດຕາລ່າສຸດ) -->
+        <div id="rc_rep_multicur" style="color:#000;font-weight:600;font-size:11.5px;margin-top:2px;border-top:1px dotted #000;padding-top:3px;">
+          <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('reports.receipt_cur_kip', 'ກີບ (LAK):')); ?></span><span id="rc_rep_total_kip">0 ₭</span></div>
+          <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('reports.receipt_cur_thb', 'ບາດ (THB):')); ?></span><span id="rc_rep_total_thb">-</span></div>
+          <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('reports.receipt_cur_usd', 'ໂດລາ (USD):')); ?></span><span id="rc_rep_total_usd">-</span></div>
+          <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('reports.receipt_cur_cny', 'ຢວນ (CNY):')); ?></span><span id="rc_rep_total_cny">-</span></div>
+        </div>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
         <div class="d-flex justify-content-between font-weight-bold" style="color:#000;font-weight:700;"><span><?php echo htmlspecialchars(t('reports.modal_change_label', 'ເງິນທອນ:')); ?></span><span id="rc_rep_change">0 ₭</span></div>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
@@ -156,7 +163,23 @@
           <div id="rc_rep_bank_name_lbl" style="font-size:10.5px;font-weight:700;color:#000;margin-top:2px;"><?php echo htmlspecialchars(t('reports.scan_qr_label', 'ສະແກນ QR Code ເພື່ອຊຳລະເງິນ')); ?></div>
           <div id="rc_rep_bank_acc_lbl" style="font-size:10px;font-weight:700;color:#000;display:none;margin-top:1px;"></div>
         </div>
-        <div class="text-center receipt-footer-msg" style="margin-top:10px !important; padding-top:8px; border-top:1px dashed #000; font-size:12.5px; font-weight:700; color:#000; text-align:center;"><?php echo htmlspecialchars(!empty($company['barcode']) ? $company['barcode'] : t('reports.thank_you_msg', 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!')); ?></div>
+        <?php
+          // Only use the shop's custom "receipt footer" (tbcompanyinfo.barcode) when it was
+          // actually customised — the seed value is the default thank-you text, which should
+          // follow the language instead.
+          $repFooterDefaults = [
+            'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!',
+            'Thank you for your purchase, see you again!',
+            'ขอบคุณที่อุดหนุน แล้วพบกันใหม่!',
+            '感谢惠顾，欢迎再次光临！',
+            '感谢惠顾，欢迎下次光临！',
+          ];
+          $repFooterRaw = trim((string)($company['barcode'] ?? ''));
+          $repFooterMsg = ($repFooterRaw === '' || in_array($repFooterRaw, $repFooterDefaults, true))
+            ? t('reports.thank_you_msg', 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!')
+            : $repFooterRaw;
+        ?>
+        <div class="text-center receipt-footer-msg" style="margin-top:10px !important; padding-top:8px; border-top:1px dashed #000; font-size:12.5px; font-weight:700; color:#000; text-align:center;"><?php echo htmlspecialchars($repFooterMsg); ?></div>
       </div>
       <div class="modal-footer border-0 p-3 bg-light">
         <button type="button" class="btn btn-secondary btn-sm font-weight-bold" data-dismiss="modal"><?php echo htmlspecialchars(t('reports.close_btn', 'ປິດ')); ?></button>

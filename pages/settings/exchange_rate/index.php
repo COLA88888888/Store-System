@@ -21,6 +21,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
     $username = $_SESSION['username'] ?? 'admin';
 
+    // Safety net: make sure the CNY column exists before any INSERT/UPDATE that names it
+    // (in case the auto-migration in config/db.php has not run on this server yet).
+    try {
+        if (!$pdo->query("SHOW COLUMNS FROM `tbexchange` LIKE 'ex_kip_cn'")->fetch()) {
+            $pdo->exec("ALTER TABLE `tbexchange` ADD COLUMN `ex_kip_cn` VARCHAR(255) NULL");
+        }
+    } catch (Throwable $e) {}
+
     if ($action === 'save_rate') {
         $thb_rate = floatval(str_replace(',', '', $_POST['ex_kip_bath'] ?? '0'));
         $usd_rate = floatval(str_replace(',', '', $_POST['ex_kip_us'] ?? '0'));
@@ -59,6 +67,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $message_type = 'danger';
             }
         }
+    } elseif ($action === 'set_display_currency') {
+        $cur = strtoupper(trim($_POST['display_currency'] ?? 'KIP'));
+        if (!in_array($cur, ['KIP', 'THB', 'USD', 'CNY'], true)) {
+            $cur = 'KIP';
+        }
+        try {
+            $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('display_currency', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$cur]);
+            $message = t('exchange_rate.msg_currency_saved', 'ຕັ້ງຄ່າສະກຸນເງິນສະແດງຜົນສຳເລັດ!');
+            $message_type = 'success';
+            logActivity($pdo, "ຕັ້ງຄ່າສະກຸນເງິນສະແດງຜົນ", $cur);
+        } catch (Exception $e) {
+            $message = t('exchange_rate.msg_error_prefix', 'ຜິດພາດ: ') . $e->getMessage();
+            $message_type = 'danger';
+        }
     } elseif ($action === 'delete_rate') {
         $rate_id = intval($_POST['rate_id'] ?? 0);
         if ($rate_id > 0) {
@@ -78,6 +100,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 // ດຶງປະຫວັດອັດຕາແລກປ່ຽນທັງໝົດ
 $historyRates = $pdo->query("SELECT * FROM tbexchange ORDER BY Id DESC")->fetchAll(PDO::FETCH_ASSOC);
+
+// ສະກຸນເງິນສະແດງຜົນປັດຈຸບັນ + ອັດຕາລ່າສຸດ (ສຳລັບ POS/ບິນ)
+$displayCurrency = getDisplayCurrency($pdo);
+$exRates = $displayCurrency['rates'];
 
 require_once __DIR__ . '/../../../layouts/header.php';
 ?>

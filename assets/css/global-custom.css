@@ -656,3 +656,6 @@ body {
         margin-top: 0 !important;
     }
 }
+
+/* Multi-currency: make the currency symbol stand out a bit larger */
+.cur-sym { font-size: 1.28em; font-weight: 800; letter-spacing: 0.5px; }

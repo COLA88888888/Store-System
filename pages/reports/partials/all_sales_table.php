@@ -48,9 +48,9 @@
                 <td class="text-left font-weight-bold text-secondary"><?php echo htmlspecialchars($row['pro_code']); ?></td>
                 <td class="text-left font-weight-bold text-dark"><?php echo htmlspecialchars($row['pro_name']); ?></td>
                 <td class="text-center font-weight-bold text-dark"><?php echo number_format($row['qty']); ?></td>
-                <td class="text-right font-weight-bold text-secondary"><?php echo number_format($row['gross'], 0); ?> ₭</td>
-                <td class="text-right text-danger font-weight-bold"><?php echo number_format($row['discount'], 0); ?> ₭</td>
-                <td class="text-right font-weight-bold text-success" style="font-size: 0.94rem;"><?php echo number_format($row['net'], 0); ?> ₭</td>
+                <td class="text-right font-weight-bold text-secondary"><?php echo displayMoney($pdo, $row['gross']); ?></td>
+                <td class="text-right text-danger font-weight-bold"><?php echo displayMoney($pdo, $row['discount']); ?></td>
+                <td class="text-right font-weight-bold text-success" style="font-size: 0.94rem;"><?php echo displayMoney($pdo, $row['net']); ?></td>
               </tr>
             <?php endforeach; ?>
 
@@ -66,13 +66,13 @@
                 </td>
                 <td class="text-left" style="font-size: 0.84rem; color: #475569;"><?php echo htmlspecialchars($row['date_time']); ?></td>
                 <td class="text-center font-weight-bold text-dark"><?php echo number_format($row['qty']); ?></td>
-                <td class="text-right font-weight-bold text-secondary"><?php echo number_format($row['gross'], 0); ?> ₭</td>
-                <td class="text-right text-danger font-weight-bold"><?php echo number_format($row['discount'], 0); ?> ₭</td>
-                <td class="text-right font-weight-bold text-success" style="font-size: 0.94rem;"><?php echo number_format($row['net'], 0); ?> ₭</td>
-                <td class="text-right font-weight-bold text-dark"><?php echo number_format($row['cash'], 0); ?> ₭</td>
+                <td class="text-right font-weight-bold text-secondary"><?php echo displayMoney($pdo, $row['gross']); ?></td>
+                <td class="text-right text-danger font-weight-bold"><?php echo displayMoney($pdo, $row['discount']); ?></td>
+                <td class="text-right font-weight-bold text-success" style="font-size: 0.94rem;"><?php echo displayMoney($pdo, $row['net']); ?></td>
+                <td class="text-right font-weight-bold text-dark"><?php echo displayMoney($pdo, $row['cash']); ?></td>
                 <td class="text-right font-weight-bold text-primary">
                   <?php if (($row['qr'] ?? 0) > 0): ?>
-                    <div><?php echo number_format($row['qr'], 0); ?> ₭</div>
+                    <div><?php echo displayMoney($pdo, $row['qr']); ?></div>
                     <?php 
                       $bName = !empty($row['bank_name']) ? $row['bank_name'] : 'BCEL One';
                       $bLogoUrl = getBankLogoByInfo($bName, $row['bank_account_id'] ?? 0);
@@ -81,7 +81,7 @@
                       <img src="<?php echo htmlspecialchars($bLogoUrl); ?>" style="width: 24px; height: 24px; object-fit: cover; border-radius: 50% !important; background: #ffffff; padding: 1px; border: 1.5px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08);" title="<?php echo htmlspecialchars($bName); ?>" onerror="this.src='../../assets/img/banks/bcel.svg';">
                     </div>
                   <?php else: ?>
-                    <span class="text-muted">0 ₭</span>
+                    <span class="text-muted"><?php echo displayMoney($pdo, 0); ?></span>
                   <?php endif; ?>
                 </td>
                 <td class="text-center font-weight-bold">
@@ -106,19 +106,19 @@
         <tfoot style="background: #f8fafc; font-weight: 800; border-top: 2px solid #cbd5e1;">
           <tr>
             <?php if ($view_mode === 'item'): ?>
-              <td colspan="3" class="text-right text-dark"><?php echo htmlspecialchars(t('reports.total_all_label', 'ລວມທັງໝົດ:')); ?></td>
-              <td class="text-center text-dark"><?php echo number_format($total_qty); ?></td>
-              <td class="text-right text-secondary"><?php echo number_format($total_gross, 0); ?> ₭</td>
-              <td class="text-right text-danger"><?php echo number_format($total_disc, 0); ?> ₭</td>
-              <td class="text-right text-success" style="font-size: 1.0rem;"><?php echo number_format($total_net, 0); ?> ₭</td>
+              <td colspan="3" class="text-right text-dark" style="white-space: nowrap !important;"><?php echo htmlspecialchars(t('reports.total_all_label', 'ລວມທັງໝົດ:')); ?></td>
+              <td class="text-center text-dark" style="white-space: nowrap !important;"><?php echo number_format($total_qty); ?></td>
+              <td class="text-right text-secondary" style="white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_gross); ?></td>
+              <td class="text-right text-danger" style="white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_disc); ?></td>
+              <td class="text-right text-success" style="font-size: 1.0rem; white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_net); ?></td>
             <?php else: ?>
-              <td colspan="3" class="text-right text-dark"><?php echo htmlspecialchars(t('reports.total_all_label', 'ລວມທັງໝົດ:')); ?></td>
-              <td class="text-center text-dark"><?php echo number_format($total_qty); ?></td>
-              <td class="text-right text-secondary"><?php echo number_format($total_gross, 0); ?> ₭</td>
-              <td class="text-right text-danger"><?php echo number_format($total_disc, 0); ?> ₭</td>
-              <td class="text-right text-success" style="font-size: 1.0rem;"><?php echo number_format($total_net, 0); ?> ₭</td>
-              <td class="text-right text-dark"><?php echo number_format($total_cash, 0); ?> ₭</td>
-              <td class="text-right text-primary"><?php echo number_format($total_qr, 0); ?> ₭</td>
+              <td colspan="3" class="text-right text-dark" style="white-space: nowrap !important;"><?php echo htmlspecialchars(t('reports.total_all_label', 'ລວມທັງໝົດ:')); ?></td>
+              <td class="text-center text-dark" style="white-space: nowrap !important;"><?php echo number_format($total_qty); ?></td>
+              <td class="text-right text-secondary" style="white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_gross); ?></td>
+              <td class="text-right text-danger" style="white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_disc); ?></td>
+              <td class="text-right text-success" style="font-size: 1.0rem; white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_net); ?></td>
+              <td class="text-right text-dark" style="white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_cash); ?></td>
+              <td class="text-right text-primary" style="white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_qr); ?></td>
               <td></td>
               <td colspan="2"></td>
             <?php endif; ?>

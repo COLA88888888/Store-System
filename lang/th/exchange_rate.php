@@ -7,10 +7,13 @@ return [
     'exchange_rate.msg_invalid_rate' => 'กรุณากรอกอัตราแลกเปลี่ยนให้ถูกต้อง!',
     'exchange_rate.msg_error_prefix' => 'ผิดพลาด: ',
 
-    'exchange_rate.header_title' => 'อัตราแลกเปลี่ยนเงิน (Exchange Rates)',
+    'exchange_rate.header_title' => 'อัตราแลกเปลี่ยนเงิน',
     'exchange_rate.btn_add_new' => 'อัปเดตอัตราใหม่',
     'exchange_rate.swal_success_title' => 'สำเร็จ',
     'exchange_rate.swal_error_title' => 'แจ้งเตือน',
+    'exchange_rate.display_currency_label' => 'สกุลเงินที่แสดงหลัก:',
+    'exchange_rate.display_currency_hint' => 'ข้อมูลยังเก็บเป็นกีบ — นี่เพียงเปลี่ยนการแสดง/คำนวณหน้า POS เท่านั้น ในใบเสร็จแสดงครบ 4 สกุลเสมอ',
+    'exchange_rate.rate_not_set' => 'ยังไม่ได้ตั้งอัตรา',
 
     'exchange_rate.confirm_delete_title' => 'ยืนยันการลบ?',
     'exchange_rate.confirm_delete_text' => 'ท่านต้องการลบประวัติอัตราแลกเปลี่ยนนี้จริงหรือไม่?',

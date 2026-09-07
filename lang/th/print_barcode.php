@@ -14,6 +14,8 @@ return [
     'print_barcode.sticker_size_label' => 'ขนาดสติกเกอร์:',
     'print_barcode.size_40x30' => '40mm x 30mm (ม้วนมาตรฐาน)',
     'print_barcode.size_50x30' => '50mm x 30mm (ม้วนกลาง)',
+    'print_barcode.size_3up' => '105mm x 25mm (3 คอลัมน์)',
+    'print_barcode.opt_rotate_180' => 'หมุนป้าย 180° (ถ้าพิมพ์ออกมากลับหัว)',
     'print_barcode.size_a4' => 'กระดาษ A4 (ตาราง)',
     'print_barcode.footer_summary_initial' => 'เลือกแล้ว: 0 รายการ (รวม 0 ดวง)',
     'print_barcode.summary_selected_label' => 'เลือกแล้ว',

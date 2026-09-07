@@ -1,4 +1,47 @@
 <script>
+// ===== Report display currency (data is stored in KIP; reports show the active currency) =====
+<?php
+  $__rdc = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo)
+         : ['code' => 'KIP', 'symbol' => '₭', 'decimals' => 0, 'rate' => 1, 'rates' => ['KIP' => 1]];
+?>
+window.REP_CUR = {
+  code: <?php echo json_encode($__rdc['code']); ?>,
+  symbol: <?php echo json_encode($__rdc['symbol'], JSON_UNESCAPED_UNICODE); ?>,
+  decimals: <?php echo (int)$__rdc['decimals']; ?>,
+  rate: <?php echo json_encode((float)$__rdc['rate']); ?>,
+  isKip: <?php echo ($__rdc['code'] === 'KIP') ? 'true' : 'false'; ?>,
+  rates: <?php echo json_encode($__rdc['rates'] ?? ['KIP'=>1,'THB'=>0,'USD'=>0,'CNY'=>0]); ?>,
+  meta: <?php echo json_encode(getCurrencyMeta(), JSON_UNESCAPED_UNICODE); ?>
+};
+
+// A KIP amount formatted into currency `code` (KIP|THB|USD|CNY); '-' if no rate set.
+function repMoneyInCode(kip, code) {
+  kip = parseFloat(kip) || 0;
+  var m = (REP_CUR.meta && REP_CUR.meta[code]) || { symbol: code, decimals: 0 };
+  if (code === 'KIP') return Math.round(kip).toLocaleString('en-US') + ' ' + m.symbol;
+  var r = parseFloat(REP_CUR.rates[code]) || 0;
+  if (r <= 0) return '-';
+  return (kip / r).toLocaleString('en-US', { minimumFractionDigits: m.decimals, maximumFractionDigits: m.decimals }) + ' ' + m.symbol;
+}
+// Fill the reprint receipt's 4-currency net-total block from a KIP amount.
+function fillReprintMultiCurrency(netKip) {
+  $('#rc_rep_total_kip').text(repMoneyInCode(netKip, 'KIP'));
+  $('#rc_rep_total_thb').text(repMoneyInCode(netKip, 'THB'));
+  $('#rc_rep_total_usd').text(repMoneyInCode(netKip, 'USD'));
+  $('#rc_rep_total_cny').text(repMoneyInCode(netKip, 'CNY'));
+}
+// n is a KIP amount -> formatted string in the report currency
+function repMoneyFromKip(n) {
+  n = parseFloat(n) || 0;
+  var v = REP_CUR.isKip ? Math.round(n) : (n / REP_CUR.rate);
+  return v.toLocaleString('en-US', { minimumFractionDigits: REP_CUR.decimals, maximumFractionDigits: REP_CUR.decimals }) + ' <span class="cur-sym">' + REP_CUR.symbol + '</span>';
+}
+// n is ALREADY in the report currency -> just format it
+function repMoney(n) {
+  n = parseFloat(n) || 0;
+  return n.toLocaleString('en-US', { minimumFractionDigits: REP_CUR.decimals, maximumFractionDigits: REP_CUR.decimals }) + ' <span class="cur-sym">' + REP_CUR.symbol + '</span>';
+}
+
 function viewBillDetails(billNo) {
   if (!billNo) return;
 
@@ -38,12 +81,12 @@ function viewBillDetails(billNo) {
         var qr       = parseFloat(b.qr_received || 0);
         var change   = parseFloat(b.sale_return || 0);
 
-        $('#modal_subtotal').text(subtotal.toLocaleString() + ' ₭');
-        $('#modal_discount').text(discount.toLocaleString() + ' ₭');
-        $('#modal_net_total').text(net.toLocaleString() + ' ₭');
-        $('#modal_cash_rec').text(cash.toLocaleString() + ' ₭');
-        $('#modal_qr_rec').text(qr.toLocaleString() + ' ₭');
-        $('#modal_change').text(change.toLocaleString() + ' ₭');
+        $('#modal_subtotal').html(repMoneyFromKip(subtotal));
+        $('#modal_discount').html(repMoneyFromKip(discount));
+        $('#modal_net_total').html(repMoneyFromKip(net));
+        $('#modal_cash_rec').html(repMoneyFromKip(cash));
+        $('#modal_qr_rec').html(repMoneyFromKip(qr));
+        $('#modal_change').html(repMoneyFromKip(change));
 
         var tbody = $('#modal_items_body');
         tbody.empty();
@@ -58,8 +101,8 @@ function viewBillDetails(billNo) {
               <tr>
                 <td class="text-left font-weight-bold">${item.save_proname || item.product_name || 'ສິນຄ້າ'}</td>
                 <td class="text-center">${q.toLocaleString()}</td>
-                <td class="text-right">${p.toLocaleString()} ₭</td>
-                <td class="text-right font-weight-bold">${total.toLocaleString()} ₭</td>
+                <td class="text-right">${repMoneyFromKip(p)}</td>
+                <td class="text-right font-weight-bold">${repMoneyFromKip(total)}</td>
               </tr>
             `);
           });
@@ -110,8 +153,8 @@ function printBill(billNo) {
           }
         }
 
-        $('#rc_rep_subtotal').text(subtotal.toLocaleString() + ' ₭');
-        $('#rc_rep_discount').text(discount.toLocaleString() + ' ₭');
+        $('#rc_rep_subtotal').html(repMoneyFromKip(subtotal));
+        $('#rc_rep_discount').html(repMoneyFromKip(discount));
 
         var bTaxType = b.tax_type || 'none';
         var bTaxId   = b.tax_id || b.company_tax_id || '';
@@ -140,26 +183,27 @@ function printBill(billNo) {
           $('#rc_rep_vat_row').hide();
         } else if (bTaxType === 'exclusive' && (bVatAmt > 0 || bVatRate > 0)) {
           $('#rc_rep_vat_label').text('ອມພ (' + bVatRate + '%):');
-          $('#rc_rep_vat').text(bVatAmt.toLocaleString() + ' ₭');
+          $('#rc_rep_vat').html(repMoneyFromKip(bVatAmt));
           $('#rc_rep_vat_row').show();
         } else if (bTaxType === 'inclusive' && (bVatAmt > 0 || bVatRate > 0)) {
           $('#rc_rep_vat_label').text('ລວມ ອມພ (' + bVatRate + '%):');
-          $('#rc_rep_vat').text(bVatAmt.toLocaleString() + ' ₭');
+          $('#rc_rep_vat').html(repMoneyFromKip(bVatAmt));
           $('#rc_rep_vat_row').show();
         } else if (bVatAmt > 0) {
           $('#rc_rep_vat_label').text('ອມພ (' + (bVatRate > 0 ? bVatRate + '%' : '') + '):');
-          $('#rc_rep_vat').text(bVatAmt.toLocaleString() + ' ₭');
+          $('#rc_rep_vat').html(repMoneyFromKip(bVatAmt));
           $('#rc_rep_vat_row').show();
         } else {
           $('#rc_rep_vat_row').hide();
         }
 
-        $('#rc_rep_total').text(net.toLocaleString() + ' ₭');
-        $('#rc_rep_change').text(change.toLocaleString() + ' ₭');
+        $('#rc_rep_total').html(repMoneyFromKip(net));
+        $('#rc_rep_change').html(repMoneyFromKip(change));
+        fillReprintMultiCurrency(net);   // net total in all 4 currencies
 
         var payHtml = '';
-        payHtml += '<div class="d-flex justify-content-between"><span>ຮັບເງິນສົດ:</span><span>' + cash.toLocaleString() + ' ₭</span></div>';
-        payHtml += '<div class="d-flex justify-content-between"><span>ຮັບເງິນໂອນ:</span><span>' + qr.toLocaleString() + ' ₭</span></div>';
+        payHtml += '<div class="d-flex justify-content-between"><span>ຮັບເງິນສົດ:</span><span>' + repMoneyFromKip(cash) + '</span></div>';
+        payHtml += '<div class="d-flex justify-content-between"><span>ຮັບເງິນໂອນ:</span><span>' + repMoneyFromKip(qr) + '</span></div>';
         $('#rc_rep_payment_rows').html(payHtml);
 
         // Bank QR box — must show the exact bank/QR/account used for this sale, same as the
@@ -172,14 +216,10 @@ function printBill(billNo) {
           } else {
             $('#rc_rep_bank_qr_img').hide();
           }
+          // Reprinted bill: show the bank name only — no account name, no account number.
           var labelBank = b.bank_name || '';
-          if (b.bank_account_name) labelBank += (labelBank ? ' - ' : '') + b.bank_account_name;
           $('#rc_rep_bank_name_lbl').text(labelBank ? 'ສະແກນ QR ໂອນຊຳລະ (' + labelBank + ')' : 'ສະແກນ QR ໂອນຊຳລະ');
-          if (b.bank_account_no) {
-            $('#rc_rep_bank_acc_lbl').text('ເລກບັນຊີ: ' + b.bank_account_no).show();
-          } else {
-            $('#rc_rep_bank_acc_lbl').hide();
-          }
+          $('#rc_rep_bank_acc_lbl').text('').hide();
           $('.receipt-qr-box').show();
         } else {
           $('.receipt-qr-box').hide();
@@ -198,7 +238,7 @@ function printBill(billNo) {
               <tr>
                 <td style="text-align:left;padding:3px 0;">${item.save_proname || item.product_name || 'ສິນຄ້າ'}</td>
                 <td style="text-align:center;padding:3px 0;">${q.toLocaleString()}</td>
-                <td style="text-align:right;padding:3px 0;">${total.toLocaleString()} ₭</td>
+                <td style="text-align:right;padding:3px 0;">${repMoneyFromKip(total)}</td>
               </tr>
             `);
           });

@@ -73,6 +73,7 @@ return [
     'price_adjustment.calc_set' => 'Set',
     'price_adjustment.calc_increase' => 'Increase',
     'price_adjustment.calc_decrease' => 'Decrease',
+    'price_adjustment.title_edit' => 'Edit',
     'price_adjustment.title_delete' => 'Delete History',
 
     'price_adjustment.err_select_product' => 'Please select a product to adjust the price!',

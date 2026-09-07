@@ -3,15 +3,9 @@
   <!-- Active Bills Navigation Bar -->
   <div class="pos-active-bills-bar bg-light border-bottom p-2 d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center" style="gap: 6px;">
-      <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold px-3 py-1.5 shadow-sm" onclick="openCustomerDisplayWindow()" title="<?php echo htmlspecialchars(t('pos.customer_display_title', 'ເປີດໜ້າຈໍສະແດງຜົນລູກຄ້າ (Customer Display)')); ?>" style="border-radius: 8px; white-space: nowrap; font-size: 0.85rem; background: #ffffff;">
+      <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold px-3 py-1.5 shadow-sm d-none d-md-inline-block" onclick="openCustomerDisplayWindow()" title="<?php echo htmlspecialchars(t('pos.customer_display_title', 'ເປີດໜ້າຈໍສະແດງຜົນລູກຄ້າ (Customer Display)')); ?>" style="border-radius: 8px; white-space: nowrap; font-size: 0.85rem; background: #ffffff;">
         <i class="fas fa-desktop mr-1"></i> <?php echo htmlspecialchars(t('pos.customer_display_btn', 'ຈໍລູກຄ້າ')); ?>
       </button>
-      <!-- Network Status Badge (Shown ONLY when Offline or when Pending Sync exists) -->
-      <span class="badge px-2.5 py-1.5 shadow-2xs font-weight-bold" id="netStatusBadge" onclick="syncOfflineSalesToServer(true)" style="display: none; font-size: 0.86rem; border-radius: 6px; background-color: #e2e8f0; color: #1e293b; cursor: pointer;" title="<?php echo htmlspecialchars(t('pos.net_status_title', 'ສະຖານະການເຊື່ອມຕໍ່ (ກົດເພື່ອ Sync)')); ?>">
-        <i class="fas fa-circle text-success mr-1" id="netStatusIcon" style="font-size: 0.6rem;"></i>
-        <span id="netStatusText"><?php echo htmlspecialchars(t('pos.net_status_online', 'ອອນໄລນ໌')); ?></span>
-        <span id="offlineQueueBadge" class="badge badge-warning ml-1 text-dark" style="display: none; font-size: 0.8rem; border-radius: 4px;">0</span>
-      </span>
     </div>
     <div class="d-flex align-items-center" style="gap: 6px;">
       <button type="button" class="btn btn-sm btn-success font-weight-bold px-3 py-1.5 shadow-sm" onclick="createNewBillModal()" title="<?php echo htmlspecialchars(t('pos.new_bill', 'ເປີດບິນໃໝ່')); ?>" style="border-radius: 8px; white-space: nowrap; font-size: 0.85rem;">
@@ -60,9 +54,9 @@
 
     <div class="d-flex justify-content-between align-items-center mb-1">
       <span class="small text-muted"><?php echo htmlspecialchars(t('pos.bill_discount_label', 'ສ່ວນຫຼຸດທ້າຍບິນ:')); ?></span>
-      <div class="input-group input-group-sm" style="width: 120px; height: 26px;">
-        <input type="text" id="cartDiscount" class="form-control text-right text-danger font-weight-bold" value="0" style="height: 26px; padding: 2px 6px; font-size: 0.85rem;" oninput="formatPriceInput(this); updateCartUI();">
-        <div class="input-group-append"><span class="input-group-text font-weight-bold" style="padding: 2px 6px; font-size: 0.8rem;">₭</span></div>
+      <div class="input-group input-group-sm" style="width: 130px; height: 26px;">
+        <input type="text" id="cartDiscount" class="form-control text-right text-danger font-weight-bold" value="0" style="height: 26px; padding: 2px 6px; font-size: 0.85rem;" oninput="formatMoneyInput(this); updateCartUI();">
+        <div class="input-group-append"><span class="input-group-text font-weight-bold" id="cartDiscountCurSym" style="padding: 2px 6px; font-size: 0.8rem;"><?php echo htmlspecialchars($posDisplayCurrency['symbol'] ?? '₭'); ?></span></div>
       </div>
     </div>
     

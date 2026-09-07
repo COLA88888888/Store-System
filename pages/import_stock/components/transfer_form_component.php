@@ -109,7 +109,9 @@
   </div>
 
   <!-- LIVE TRANSFER ITEMS TABLE -->
-  <div class="table-responsive border rounded mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+  <div class="border rounded mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+    <!-- Only the table scrolls sideways on phones; header, pagination and submit bar stay put -->
+    <div class="table-responsive">
     <table class="table table-hover mb-0 align-middle">
       <thead class="font-weight-bold bg-light">
         <tr>
@@ -130,6 +132,7 @@
         </tr>
       </tbody>
     </table>
+    </div>
 
     <!-- Table Pagination Bar: Displays when > 10 items -->
     <div id="cart_pagination_row" class="px-3 py-2 bg-light border-top d-none align-items-center justify-content-between" style="border-color: #cbd5e1 !important;">
@@ -147,7 +150,7 @@
       <div style="flex: 1 1 300px;">
         <input type="text" name="notes" class="form-control form-control-sm" placeholder="<?php echo htmlspecialchars(t('stock_transfer.notes_placeholder', 'ໝາຍເຫດການໂອນສິນຄ້າ (ຖ້າມີ)...')); ?>" style="border-radius: 6px; height: 38px;">
       </div>
-      <div>
+      <div class="ml-auto">
         <button type="button" class="btn btn-success font-weight-bold px-4 shadow-sm" style="height: 38px; border-radius: 6px; background: linear-gradient(135deg, #10b981, #059669); border: none;" onclick="submitDirectTransferBill()">
           <i class="fas fa-paper-plane mr-1.5" style="font-size: 1rem;"></i> <?php echo htmlspecialchars(t('stock_transfer.confirm_transfer_button', 'ຢືນຢັນການໂອນສິນຄ້າ')); ?>
         </button>

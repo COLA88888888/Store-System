@@ -11,7 +11,7 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
     <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
       <form action="" method="POST">
         <input type="hidden" name="action" value="save_rate">
-        <div class="modal-header bg-primary text-white py-3 px-4">
+        <div class="modal-header text-white py-3 px-4" style="background-color: #244886;">
           <h5 class="modal-title font-weight-bold" style="font-size: 1rem;">
             <i class="fas fa-plus-circle mr-2"></i> <?php echo htmlspecialchars(t('exchange_rate.modal_add_title', 'ອັບເດດອັດຕາແລກປ່ຽນເງິນໃໝ່')); ?>
           </h5>
@@ -68,7 +68,7 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
       <form action="" method="POST">
         <input type="hidden" name="action" value="update_rate">
         <input type="hidden" name="rate_id" id="edit_rate_id" value="">
-        <div class="modal-header text-white py-3 px-4" style="background: linear-gradient(135deg, #2563eb, #1d4ed8);">
+        <div class="modal-header text-white py-3 px-4" style="background-color: #244886;">
           <h5 class="modal-title font-weight-bold" style="font-size: 1rem;">
             <i class="fas fa-edit mr-2"></i> <?php echo htmlspecialchars(t('exchange_rate.modal_edit_title', 'ແກ້ໄຂອັດຕາແລກປ່ຽນເງິນ')); ?>
           </h5>

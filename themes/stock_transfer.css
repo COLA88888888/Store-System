@@ -14,6 +14,11 @@
   font-weight: 700;
 }
 
+/* Keep the transfer table's column headings on a single line */
+#directTransferForm .table-responsive > table thead th {
+  white-space: nowrap;
+}
+
 .form-control:focus {
   border-color: #2563eb !important;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
@@ -31,5 +36,27 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ===== Phone: keep the transfer items table whole (header visible), scroll it sideways ===== */
+@media (max-width: 767.98px) {
+  #directTransferForm .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #directTransferForm .table-responsive > table {
+    min-width: 640px;
+  }
+  #directTransferForm .table-responsive > table td {
+    white-space: nowrap;
+  }
+  /* Product name + empty-state message are allowed to wrap */
+  #directTransferForm #cart_table_body td.transfer-cell-name {
+    white-space: normal;
+    min-width: 180px;
+  }
+  #directTransferForm #cart_table_body #empty_cart_row td {
+    white-space: normal;
   }
 }

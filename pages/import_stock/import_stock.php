@@ -278,6 +278,14 @@ $catStmt = $pdo->prepare("SELECT category_id, category_name FROM categories WHER
 $catStmt->execute([$activeStoreId]);
 $categories = $catStmt->fetchAll();
 
+// Fetch active suppliers so the receiving form is a dropdown, not free text
+$suppliers = [];
+try {
+    $supStmt = $pdo->prepare("SELECT supplier_id, supplier_name FROM suppliers WHERE store_id = ? AND status = 'active' ORDER BY supplier_name ASC");
+    $supStmt->execute([$activeStoreId]);
+    $suppliers = $supStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {}
+
 // Fetch products for current active store with categories & multi-units
 $prodStmt = $pdo->prepare("
     SELECT p.product_id, p.product_name, p.barcode, p.unit, p.bprice, p.price, p.qty, p.category_id, c.category_name 
@@ -440,7 +448,15 @@ require_once __DIR__ . '/../../layouts/header.php';
                 <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
                   <?php echo htmlspecialchars(t('import_stock.supplier_label', 'ຊື່ຜູ້ສະໜອງ / ຮ້ານສົ່ງ')); ?>
                 </label>
-                <input type="text" name="supplier_name" id="supplier_name_input" class="form-control" placeholder="<?php echo htmlspecialchars(t('import_stock.supplier_placeholder', 'ປ້ອນຊື່ຜູ້ສະໜອງ (ຖ້າມີ)')); ?>" style="height: 42px; border-radius: 8px;">
+                <select name="supplier_name" id="supplier_name_input" class="form-control" style="height: 42px; border-radius: 8px;">
+                  <option value=""><?php echo htmlspecialchars(t('import_stock.supplier_placeholder', '-- ບໍ່ລະບຸ / ເລືອກຜູ້ສະໜອງ --')); ?></option>
+                  <?php foreach ($suppliers as $sp): ?>
+                    <option value="<?php echo htmlspecialchars($sp['supplier_name']); ?>"><?php echo htmlspecialchars($sp['supplier_name']); ?></option>
+                  <?php endforeach; ?>
+                </select>
+                <?php if (empty($suppliers)): ?>
+                  <small class="text-muted"><?php echo htmlspecialchars(t('import_stock.supplier_empty_hint', 'ຍັງບໍ່ມີຜູ້ສະໜອງ — ເພີ່ມໄດ້ທີ່ເມນູ "ຈັດການຜູ້ສະໜອງ"')); ?></small>
+                <?php endif; ?>
               </div>
             </div>
 

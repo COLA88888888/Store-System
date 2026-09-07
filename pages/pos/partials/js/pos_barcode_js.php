@@ -168,11 +168,11 @@ function addProductToCart(product, specificUnit) {
   if (isOutOfStock) {
     Swal.fire({
       icon: 'error',
-      title: 'ສິນຄ້າໝົດແລ້ວ!',
-      html: '<div style="font-size:1.05rem; font-weight:700; color:#ef4444; margin-bottom:6px;">ສິນຄ້າ "' + product.product_name + '"</div>' +
-            '<div class="text-dark font-weight-bold" style="font-size:0.92rem;">ບໍ່ສາມາດກົດຂາຍໄດ້ ເນື່ອງຈາກຈຳນວນສິນຄ້າໃນຄັງເປັນ 0</div>' +
-            '<small class="text-muted d-block mt-2">ກະລຸນາເພີ່ມສະຕັອກ ຫຼື ເລືອກສິນຄ້າອື່ນ</small>',
-      confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ',
+      title: posT('pos.alert_out_of_stock_title'),
+      html: '<div style="font-size:1.05rem; font-weight:700; color:#ef4444; margin-bottom:6px;">' + posT('pos.alert_product_quoted', product.product_name) + '</div>' +
+            '<div class="text-dark font-weight-bold" style="font-size:0.92rem;">' + posT('pos.alert_out_of_stock_body') + '</div>' +
+            '<small class="text-muted d-block mt-2">' + posT('pos.alert_out_of_stock_hint') + '</small>',
+      confirmButtonText: '<i class="fas fa-check mr-1"></i> ' + posT('pos.btn_ok'),
       confirmButtonColor: '#ef4444',
       customClass: {
         confirmButton: 'btn btn-danger font-weight-bold px-4'
@@ -193,12 +193,17 @@ function addProductToCart(product, specificUnit) {
   }
 
   var htmlOptions = allUnits.map(function(u, uIdx) {
+    var hasPromo = (parseFloat(u.original_price) || 0) > (parseFloat(u.price) || 0);
+    var priceHtml = hasPromo
+      ? `<span style="font-size:0.82rem; font-weight:700; color:#94a3b8; text-decoration:line-through; margin-right:6px;">${POSCUR.fmt(u.original_price)}</span>
+         <span style="font-size:1.0rem; font-weight:800; color:#ef4444;">${POSCUR.fmt(u.price)}</span>`
+      : `<span style="font-size:1.0rem; font-weight:800; color:#16a34a;">${POSCUR.fmt(u.price)}</span>`;
     return `<button class="unit-pick-btn" data-unit-idx="${uIdx}"
       style="display:flex; align-items:center; justify-content:space-between; width:100%; margin-bottom:8px; padding:10px 16px; border:1.5px solid #e2e8f0; border-radius:10px; background:#fff; cursor:pointer; transition:all 0.15s ease; font-family:inherit;"
       onmouseover="this.style.borderColor='#244886'; this.style.background='#eef2fb';"
       onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#fff';">
       <span style="font-size:0.95rem; font-weight:700; color:#1e293b;">${u.unit_name}</span>
-      <span style="font-size:1.0rem; font-weight:800; color:#16a34a;">${Number(u.price).toLocaleString()} ₭</span>
+      <span style="display:flex; align-items:baseline;">${priceHtml}</span>
     </button>`;
   }).join('');
 
@@ -208,6 +213,17 @@ function addProductToCart(product, specificUnit) {
            <div style="margin-top:10px;">${htmlOptions}</div>`,
     showConfirmButton: false,
     showCloseButton: true,
+    // ບໍ່ໃຫ້ໜ້າ POS ຂ້າງຫຼັງຍັບ/ເດັ້ງຕອນເປີດ:
+    //   animation:false      -> ບໍ່ເດັ້ງ scale
+    //   backdrop:false + heightAuto:false + scrollbarPadding:false
+    //                        -> SweetAlert ບໍ່ໄປແຕະ <body>/<html> ເລີຍ (ບໍ່ lock scroll,
+    //                           ບໍ່ toggle scrollbar, ບໍ່ height:auto) => ບັອກສິນຄ້າ ແລະ ປຸ່ມກະຕ່າ ຢູ່ນິ່ງ
+    // ພື້ນມືດໆ ແລະ ການຈັດກາງ ສ້າງຄືນດ້ວຍ CSS (.unit-pick-container ໃນ themes/pos.css)
+    animation: false,
+    backdrop: false,
+    heightAuto: false,
+    scrollbarPadding: false,
+    customClass: { popup: 'unit-pick-popup', container: 'unit-pick-container' },
     didOpen: function() {
       $('.unit-pick-btn').on('click', function() {
         var uIdx = parseInt($(this).data('unit-idx'));

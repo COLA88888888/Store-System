@@ -239,7 +239,7 @@ require_once __DIR__ . '/partials/reports_modal.php';
                   <td class="text-center font-weight-bold text-dark"><?php echo $date_formatted; ?></td>
                   <td class="text-center text-muted font-weight-bold"><?php echo $time_formatted; ?></td>
                   <td class="text-right font-weight-bold text-primary" style="font-size: 0.95rem;">
-                    <?php echo number_format($net, 0); ?> ₭
+                    <?php echo displayMoney($pdo, $net); ?>
                   </td>
                   <td class="text-center">
                     <span class="badge badge-light border text-dark px-2.5 py-1" style="font-family: monospace; font-size: 0.82rem; border-radius: 6px;">
@@ -259,7 +259,7 @@ require_once __DIR__ . '/partials/reports_modal.php';
             <tfoot style="background: #f8fafc; font-weight: 800; border-top: 2px solid #cbd5e1;">
               <tr style="font-size: 0.92rem; color: #0f172a;">
                 <td colspan="5" class="text-right text-dark py-3"><?php echo htmlspecialchars(t('reports.total_all_label', 'ລວມທັງໝົດ:')); ?></td>
-                <td class="text-right text-primary py-3" style="font-size: 0.98rem;"><?php echo number_format($deleted_total_net, 0); ?> ₭</td>
+                <td class="text-right text-primary py-3" style="font-size: 0.98rem;"><?php echo displayMoney($pdo, $deleted_total_net); ?></td>
                 <td colspan="2"></td>
               </tr>
             </tfoot>

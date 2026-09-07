@@ -95,7 +95,9 @@ $bs_total_revenue  = 0;
 foreach ($best_sellers as $bsRow) {
     $bs_total_qty      += floatval($bsRow['total_qty_sold'] ?? 0);
     $bs_total_discount += floatval($bsRow['total_discount'] ?? 0);
-    $bs_total_revenue  += floatval($bsRow['total_revenue'] ?? 0);
+    // Net of both item-level and prorated bill-level discount — the money column must
+    // reflect what was actually collected, not the pre-discount gross
+    $bs_total_revenue  += max(0, floatval($bsRow['total_revenue'] ?? 0) - floatval($bsRow['total_discount'] ?? 0));
 }
 
 $total_records = count($best_sellers);
@@ -235,15 +237,15 @@ require_once __DIR__ . '/../../layouts/header.php';
                   <td class="text-center">
                     <?php if (!empty($row['total_discount']) && floatval($row['total_discount']) > 0): ?>
                       <span class="badge badge-danger font-weight-bold px-2 py-1" style="font-size: 0.76rem; border-radius: 6px;">
-                        -<?php echo number_format($row['total_discount']); ?> ₭
+                        -<?php echo displayMoney($pdo, $row['total_discount']); ?>
                       </span>
                     <?php else: ?>
                       <span class="text-muted">-</span>
                     <?php endif; ?>
                   </td>
-                  <td class="text-right text-dark"><?php echo number_format($row['avg_price']); ?> ₭</td>
+                  <td class="text-right text-dark"><?php echo displayMoney($pdo, $row['avg_price']); ?></td>
                   <td class="text-right font-weight-bold text-primary" style="font-size: 0.95rem;">
-                    <?php echo number_format($row['total_revenue']); ?> ₭
+                    <?php echo displayMoney($pdo, max(0, floatval($row['total_revenue']) - floatval($row['total_discount']))); ?>
                   </td>
                 </tr>
               <?php endforeach; ?>
@@ -256,13 +258,13 @@ require_once __DIR__ . '/../../layouts/header.php';
                 <td class="text-center text-dark py-3"><?php echo number_format($bs_total_qty); ?></td>
                 <td class="text-center py-3">
                   <?php if ($bs_total_discount > 0): ?>
-                    <span class="badge badge-danger font-weight-bold px-2 py-1" style="font-size: 0.76rem; border-radius: 6px;">-<?php echo number_format($bs_total_discount); ?> ₭</span>
+                    <span class="badge badge-danger font-weight-bold px-2 py-1" style="font-size: 0.76rem; border-radius: 6px;">-<?php echo displayMoney($pdo, $bs_total_discount); ?></span>
                   <?php else: ?>
                     <span class="text-muted">-</span>
                   <?php endif; ?>
                 </td>
                 <td class="text-right text-muted py-3">-</td>
-                <td class="text-right text-primary py-3" style="font-size: 0.98rem;"><?php echo number_format($bs_total_revenue); ?> ₭</td>
+                <td class="text-right text-primary py-3" style="font-size: 0.98rem;"><?php echo displayMoney($pdo, $bs_total_revenue); ?></td>
               </tr>
             </tfoot>
           <?php endif; ?>

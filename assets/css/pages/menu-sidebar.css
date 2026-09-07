@@ -238,7 +238,7 @@ html, body { overflow: hidden !important; height: 100% !important; }
     color: #ffffff !important;
 }
 .main-sidebar .sidebar .nav-link {
-    color: rgba(255,255,255,0.85) !important;
+    color: rgba(255,255,255,0.96) !important;
     border-radius: 8px !important;
     margin: 2px 8px !important;
     padding: 10px 12px !important;
@@ -253,7 +253,9 @@ html, body { overflow: hidden !important; height: 100% !important; }
 }
 .nav-sidebar > .nav-item:not(.has-treeview) > .nav-link.active,
 .nav-sidebar .nav-treeview .nav-link.active {
-    background: linear-gradient(135deg, #1b3869, #3864aa) !important;
+    /* old dark navy start, but the right/end stop lightened toward white-blue
+       (previously #3864aa read a bit muddy/green) */
+    background: linear-gradient(135deg, #1b3869, #6f9bd8) !important;
     color: #ffffff !important;
     box-shadow: 0 3px 8px rgba(36, 72, 134, 0.45) !important;
 }
@@ -267,7 +269,7 @@ html, body { overflow: hidden !important; height: 100% !important; }
     background-color: rgba(255,255,255,0.15) !important;
     color: #ffffff !important;
 }
-.main-sidebar .nav-icon { color: rgba(255,255,255,0.7) !important; }
+.main-sidebar .nav-icon { color: rgba(255,255,255,0.92) !important; }
 .main-sidebar .nav-link:hover .nav-icon,
 .main-sidebar .nav-link.active .nav-icon { color: #ffffff !important; }
 .main-sidebar .nav-treeview {

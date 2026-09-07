@@ -1,23 +1,42 @@
 <!-- Modal: Add Product -->
 <div class="modal fade" id="addProductModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width: 860px;">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="max-width: 1120px;">
     <div class="modal-content shadow-lg border-0" style="border-radius: 16px; overflow: hidden;">
+
+      <!-- HEADER -->
+      <div class="modal-header text-white py-3 px-4" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important;">
+        <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.15rem;">
+          <i class="fas fa-plus-circle mr-2"></i> <?php echo htmlspecialchars(t('products.modal_add_title', 'ເພີ່ມສິນຄ້າໃໝ່')); ?>
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <!-- MODE TABS: ເພີ່ມດ່ຽວ / ເພີ່ມຫຼາຍລາຍການ -->
+      <ul class="nav nav-tabs px-4 pt-2" id="addProductModeTabs" role="tablist" style="border-bottom: 1px solid #e2e8f0;">
+        <li class="nav-item">
+          <a class="nav-link active font-weight-bold" id="tab-add-single" data-toggle="tab" href="#pane-add-single" role="tab" style="font-size: 0.9rem;">
+            <i class="fas fa-box mr-1"></i> <?php echo htmlspecialchars(t('products.tab_add_single', 'ເພີ່ມດ່ຽວ')); ?>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link font-weight-bold" id="tab-add-bulk" data-toggle="tab" href="#pane-add-bulk" role="tab" style="font-size: 0.9rem;">
+            <i class="fas fa-layer-group mr-1"></i> <?php echo htmlspecialchars(t('products.tab_add_bulk', 'ເພີ່ມຫຼາຍລາຍການ')); ?>
+          </a>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+
+      <!-- ============================ PANE 1: SINGLE ADD ============================ -->
+      <div class="tab-pane fade show active" id="pane-add-single" role="tabpanel">
       <form id="addProductForm" novalidate action="" method="POST" enctype="multipart/form-data" onsubmit="return submitAddProduct(event)">
         <input type="hidden" name="action" value="add_product">
         <input type="hidden" name="product_id" id="add_product_id">
-        
-        <!-- HEADER -->
-        <div class="modal-header text-white py-3 px-4" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important;">
-          <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.15rem;">
-            <i class="fas fa-plus-circle mr-2"></i> <?php echo htmlspecialchars(t('products.modal_add_title', 'ເພີ່ມສິນຄ້າໃໝ່')); ?>
-          </h5>
-          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
 
         <!-- BODY -->
-        <div class="modal-body p-4" style="max-height: 80vh; overflow-y: auto;">
+        <div class="modal-body p-4" style="max-height: 78vh; overflow-y: auto;">
           <div class="row align-items-center">
             
             <!-- LEFT: Product Image -->
@@ -106,21 +125,34 @@
                 </div>
                 <?php if ($isAdmin): ?>
                   <div class="col-md-5 mb-3">
-                    <label class="font-weight-bold text-dark mb-1">
-                      <?php echo htmlspecialchars(t('products.field_qty', 'ຈຳນວນສະຕັອກ:')); ?>
-                      <small class="text-muted font-weight-normal"><?php echo htmlspecialchars(t('products.field_qty_optional', '(ຖ້າມີ)')); ?></small>
-                    </label>
+                    <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_qty', 'ຈຳນວນສະຕັອກ:')); ?></label>
                     <input type="number" name="qty" id="add_qty" class="form-control text-center font-weight-bold text-primary" placeholder="0" min="0" value="0" style="border-radius: 6px; height: 40px;">
                   </div>
                 <?php endif; ?>
               </div>
 
+              <!-- Row 3b: ຜູ້ສະໜອງ (ບໍ່ບັງຄັບ) -->
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_supplier', 'ຜູ້ສະໜອງ:')); ?></label>
+                  <select name="supplier_id" id="add_supplier_id" class="form-control" style="border-radius: 6px; height: 40px;">
+                    <option value=""><?php echo htmlspecialchars(t('products.select_supplier_placeholder', '-- ບໍ່ລະບຸ / ເລືອກຜູ້ສະໜອງ --')); ?></option>
+                    <?php foreach (($suppliers ?? []) as $sp): ?>
+                      <option value="<?php echo (int)$sp['supplier_id']; ?>"><?php echo htmlspecialchars($sp['supplier_name']); ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                  <?php if (empty($suppliers)): ?>
+                    <small class="text-muted"><?php echo htmlspecialchars(t('products.supplier_empty_hint', 'ຍັງບໍ່ມີຜູ້ສະໜອງ — ເພີ່ມໄດ້ທີ່ເມນູ "ຈັດການຜູ້ສະໜອງ"')); ?></small>
+                  <?php endif; ?>
+                </div>
+              </div>
+
               <!-- Row 4: ລາຄາຊື້ & ລາຄາຂາຍຍ່ອຍ -->
               <div class="row">
                 <div class="col-6">
-                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_bprice', 'ລາຄາຊື້:')); ?><span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_bprice', 'ລາຄາຊື້:')); ?></label>
                   <div class="input-group">
-                    <input type="text" id="add_bprice" name="bprice" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #475569;" oninput="formatPriceInput(this)" required>
+                    <input type="text" id="add_bprice" name="bprice" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #475569;" oninput="formatPriceInput(this)">
                     <div class="input-group-append"><span class="input-group-text" style="border-radius: 0 6px 6px 0; font-size: 0.85rem;">₭</span></div>
                   </div>
                 </div>
@@ -165,6 +197,39 @@
           </button>
         </div>
       </form>
+      </div><!-- /pane-add-single -->
+
+      <!-- ============================ PANE 2: BULK ADD ============================ -->
+      <div class="tab-pane fade" id="pane-add-bulk" role="tabpanel">
+      <form id="bulkAddProductForm" novalidate action="" method="POST" onsubmit="return submitBulkAddProduct(event)">
+        <input type="hidden" name="action" value="add_products_bulk">
+
+        <div class="modal-body p-4" style="max-height: 78vh; overflow-y: auto;">
+          <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap" style="gap: 8px;">
+            <small class="text-muted font-weight-bold" style="font-size: 0.8rem;">
+              <i class="fas fa-info-circle mr-1"></i>
+              <?php echo htmlspecialchars(t('products.bulk_hint', 'ປ້ອນໄດ້ຫຼາຍລາຍການພ້ອມກັນ — ບັອກທີ່ວ່າງຈະຖືກຂ້າມ. ຈຳນວນສະຕັອກເລີ່ມຕົ້ນ = 0')); ?>
+            </small>
+            <span class="badge badge-primary" style="font-size: 0.8rem;" id="bulkRowCounter">0</span>
+          </div>
+
+          <div id="bulk_rows_container"></div>
+
+          <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold mt-2" style="border-radius: 6px;" onclick="bulkAddRow()">
+            <i class="fas fa-plus mr-1"></i> <?php echo htmlspecialchars(t('products.bulk_add_row', 'ເພີ່ມແຖວ')); ?>
+          </button>
+        </div>
+
+        <div class="modal-footer border-0 pt-0 pb-4 px-4">
+          <button type="button" class="btn btn-light font-weight-bold px-4" style="border-radius: 6px; cursor: pointer;" data-dismiss="modal"><?php echo htmlspecialchars(t('products.cancel', 'ຍົກເລີກ')); ?></button>
+          <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 6px; cursor: pointer; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
+            <i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('products.bulk_btn_save', 'ບັນທຶກທັງໝົດ')); ?>
+          </button>
+        </div>
+      </form>
+      </div><!-- /pane-add-bulk -->
+
+      </div><!-- /tab-content -->
     </div>
   </div>
 </div>
@@ -199,11 +264,15 @@ var I18N_ADD_PRODUCT = <?php echo tjson([
 
 // ດຶງລຳດັບການປ້ອນສິນຄ້າເພີ່ມເຂົ້າທົ່ວລະບົບ (Sequence: 0001, 0002, 0003...)
 var GLOBAL_NEXT_SEQ = '<?php echo htmlspecialchars($nextSeqFormatted ?? "0001"); ?>';
+var LAST_ADD_CATEGORY_ID = localStorage.getItem('minipos_last_add_category_id') || '';
+var LAST_ADD_UNIT_ID = localStorage.getItem('minipos_last_add_unit_id') || '';
 
 function onAddCategoryChange() {
   var select = document.getElementById('add_category_id');
   var catId = select ? select.value : '';
   if (catId) {
+    LAST_ADD_CATEGORY_ID = catId;
+    try { localStorage.setItem('minipos_last_add_category_id', catId); } catch(e){}
     var fullCode = catId + GLOBAL_NEXT_SEQ;
     $('#add_product_id_display').val(fullCode);
     $('#add_product_id').val(fullCode);
@@ -213,10 +282,26 @@ function onAddCategoryChange() {
   }
 }
 
+$(document).on('change', '#add_unit', function() {
+  var uVal = $(this).val();
+  if (uVal) {
+    LAST_ADD_UNIT_ID = uVal;
+    try { localStorage.setItem('minipos_last_add_unit_id', uVal); } catch(e){}
+  }
+});
+
 $('#addProductModal').on('show.bs.modal', function() {
   $.getJSON('api_product.php?action=get_next_product_id', function(res) {
     if (res && res.success && res.seq_formatted) {
       GLOBAL_NEXT_SEQ = res.seq_formatted;
+
+      // ຖ້າມີໝວດໝູ່ຫຼ້າສຸດທີ່ເລືອກໄວ້ ໃຫ້ຄົງໝວດໝູ່ນັ້ນໄວ້ (ບໍ່ໃຫ້ເລີ່ມຕົ້ນໃໝ່)
+      if (LAST_ADD_CATEGORY_ID && $('#add_category_id option[value="' + LAST_ADD_CATEGORY_ID + '"]').length > 0) {
+        $('#add_category_id').val(LAST_ADD_CATEGORY_ID);
+      }
+      if (LAST_ADD_UNIT_ID && $('#add_unit option[value="' + LAST_ADD_UNIT_ID + '"]').length > 0) {
+        $('#add_unit').val(LAST_ADD_UNIT_ID);
+      }
       onAddCategoryChange();
     }
   });
@@ -345,19 +430,7 @@ function submitAddProduct(e) {
     });
     return false;
   }
-  if (bprice === '' || bprice === '0') {
-    if (e) e.preventDefault();
-    Swal.fire({
-      icon: 'warning',
-      title: I18N_ADD_PRODUCT['products.alert_notice_title'],
-      text: I18N_ADD_PRODUCT['products.validate_bprice'],
-      confirmButtonColor: '#2563eb',
-      confirmButtonText: I18N_ADD_PRODUCT['products.btn_ok']
-    }).then(function() {
-      $('#add_bprice').focus();
-    });
-    return false;
-  }
+  // ລາຄາຊື້ (bprice) ບໍ່ບັງຄັບ — ປ້ອນ ຫຼື ບໍ່ປ້ອນກໍໄດ້ (ວ່າງ = 0)
   if (price === '' || price === '0') {
     if (e) e.preventDefault();
     Swal.fire({
@@ -531,20 +604,244 @@ $(document).on('change blur', '#addProductForm input[name="extra_unit_barcode[]"
   checkBarcodeDuplicate(this, 0);
 });
 
-// Reset add modal on close
+// Reset add modal on close (ລ້າງສະເພາະຂໍ້ມູນສິນຄ້າ, ຄົງໝວດໝູ່ ແລະ ຫົວໜ່ວຍຫຼ້າສຸດໄວ້ ເພື່ອໃຫ້ເພີ່ມສິນຄ້າໄວขึ้น)
 $('#addProductModal').on('hidden.bs.modal', function() {
-  $('#addProductForm')[0].reset();
-  $('#add_product_id_display').val('');
-  $('#add_product_id').val('');
+  var savedCat  = $('#add_category_id').val() || LAST_ADD_CATEGORY_ID;
+  var savedUnit = $('#add_unit').val() || LAST_ADD_UNIT_ID;
+
+  $('#add_product_name').val('');
+  $('#add_barcode').val('');
+  $('#add_bprice').val('');
+  $('#add_price').val('');
+  $('#add_qty').val('0');
+  $('#add_supplier_id').val('');
   $('#add_multi_units_container').empty();
   removeProductImg('add');
+
+  if (savedCat && $('#add_category_id option[value="' + savedCat + '"]').length > 0) {
+    $('#add_category_id').val(savedCat);
+    onAddCategoryChange();
+  }
+  if (savedUnit && $('#add_unit option[value="' + savedUnit + '"]').length > 0) {
+    $('#add_unit').val(savedUnit);
+  }
 });
 
 // Prevent Enter key in barcode inputs from prematurely submitting form
-$(document).on('keydown', '#add_barcode, input[name="extra_unit_barcode[]"]', function(e) {
+$(document).on('keydown', '#add_barcode, input[name="extra_unit_barcode[]"], #bulkAddProductForm input[name="b_barcode[]"]', function(e) {
   if (e.key === 'Enter' || e.keyCode === 13) {
     e.preventDefault();
     return false;
   }
+});
+
+/* ============================ BULK ADD (ເພີ່ມຫຼາຍລາຍການ) ============================ */
+
+var __bulkT = <?php echo tjson([
+    'products.bulk_col_cat'            => 'ໝວດໝູ່',
+    'products.bulk_col_name'           => 'ຊື່ສິນຄ້າ',
+    'products.bulk_col_barcode'        => 'ບາໂຄ້ດ',
+    'products.bulk_col_unit'           => 'ຫົວໜ່ວຍ',
+    'products.bulk_col_bprice'         => 'ລາຄາຊື້',
+    'products.bulk_col_price'          => 'ລາຄາຂາຍ',
+    'products.select_category_placeholder' => '-- ເລືອກປະເພດ --',
+    'products.select_unit_placeholder' => '-- ເລືອກຫົວໜ່ວຍ --',
+    'products.product_name_placeholder' => 'ປ້ອນຊື່ສິນຄ້າ...',
+    'products.barcode_placeholder'     => 'ສະແກນ ຫຼື ປ້ອນຕົວເລກ...',
+    'products.gen_barcode_title'       => 'ສ້າງບາໂຄ້ດ 13 ຫຼັກ',
+    'products.unit_row_delete_title'   => 'ລົບແຖວນີ້',
+    'products.validate_name'           => 'ກະລຸນາປ້ອນຊື່ສິນຄ້າ!',
+    'products.validate_category'       => 'ກະລຸນາເລືອກປະເພດສິນຄ້າ!',
+    'products.validate_barcode_required' => 'ກະລຸນາປ້ອນ ຫຼື ສະແກນລະຫັດບາໂຄ້ດສິນຄ້າ!',
+    'products.validate_barcode_numeric' => 'ລະຫັດບາໂຄ້ດຮອງຮັບສະເພາະຕົວເລກ (0-9) ເທົ່ານັ້ນ!',
+    'products.validate_unit'           => 'ກະລຸນາເລືອກຫົວໜ່ວຍ!',
+    'products.validate_bprice'         => 'ກະລຸນາປ້ອນລາຄາຊື້!',
+    'products.validate_price'          => 'ກະລຸນາປ້ອນລາຄາຂາຍ!',
+    'products.duplicate_in_form_text'  => 'ລະຫັດບາໂຄ້ດ "{value}" ນີ້ຊໍ້າກັນກັບແຖວອື່ນໃນຟອມດຽວກັນ!',
+    'products.bulk_validate_none'      => 'ກະລຸນາປ້ອນຢ່າງໜ້ອຍ 1 ລາຍການ!',
+]); ?>;
+
+var I18N_BULK = {
+  cat: __bulkT['products.bulk_col_cat'], cat_ph: __bulkT['products.select_category_placeholder'],
+  name: __bulkT['products.bulk_col_name'], name_ph: __bulkT['products.product_name_placeholder'],
+  barcode: __bulkT['products.bulk_col_barcode'], barcode_ph: __bulkT['products.barcode_placeholder'],
+  unit: __bulkT['products.bulk_col_unit'], unit_ph: __bulkT['products.select_unit_placeholder'],
+  bprice: __bulkT['products.bulk_col_bprice'], price: __bulkT['products.bulk_col_price'],
+  gen: __bulkT['products.gen_barcode_title'], del: __bulkT['products.unit_row_delete_title'],
+  e_name: __bulkT['products.validate_name'], e_cat: __bulkT['products.validate_category'],
+  e_bc: __bulkT['products.validate_barcode_required'], e_bc_num: __bulkT['products.validate_barcode_numeric'],
+  e_unit: __bulkT['products.validate_unit'], e_bp: __bulkT['products.validate_bprice'],
+  e_pr: __bulkT['products.validate_price'], e_bc_dup: __bulkT['products.duplicate_in_form_text'],
+  e_none: __bulkT['products.bulk_validate_none']
+};
+
+var BULK_CAT_OPTIONS = <?php echo json_encode(implode('', array_map(function ($c) {
+    return '<option value="' . (int)$c['category_id'] . '">' . htmlspecialchars($c['category_name']) . '</option>';
+}, $categories)), JSON_UNESCAPED_UNICODE); ?>;
+
+var BULK_UNIT_OPTIONS = <?php echo json_encode(implode('', array_map(function ($u) {
+    return '<option value="' . (int)$u['unit_id'] . '">' . htmlspecialchars($u['unit_name']) . '</option>';
+}, $units)), JSON_UNESCAPED_UNICODE); ?>;
+
+var BULK_DEFAULT_ROWS = 10;
+
+function bulkRenumber() {
+  var rows = $('#bulk_rows_container .bulk-row');
+  rows.each(function (i) { $(this).find('.bulk-row-idx').text(i + 1); });
+  $('#bulkRowCounter').text(rows.length);
+}
+
+function bulkAddRow(data) {
+  data = data || {};
+  var html = `
+  <div class="card border mb-2 bulk-row" style="border-radius: 10px;">
+    <div class="card-body p-2">
+      <div class="row align-items-end" style="row-gap: 8px;">
+        <div class="col-auto d-flex align-items-center" style="padding-bottom: 6px;">
+          <span class="badge badge-light border font-weight-bold bulk-row-idx" style="font-size: 0.8rem;">0</span>
+        </div>
+        <div class="col-md col-6">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.cat} <span class="text-danger">*</span></label>
+          <select name="b_category_id[]" class="form-control form-control-sm bulk-cat"><option value="">${I18N_BULK.cat_ph}</option>${BULK_CAT_OPTIONS}</select>
+        </div>
+        <div class="col-md col-6">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.name} <span class="text-danger">*</span></label>
+          <input type="text" name="b_name[]" class="form-control form-control-sm bulk-name" placeholder="${I18N_BULK.name_ph}">
+        </div>
+        <div class="col-md col-8">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.barcode} <span class="text-danger">*</span></label>
+          <div class="input-group input-group-sm">
+            <input type="text" name="b_barcode[]" class="form-control form-control-sm bulk-barcode" placeholder="${I18N_BULK.barcode_ph}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <div class="input-group-append">
+              <button type="button" class="btn btn-outline-primary" title="${I18N_BULK.gen}" onclick="generateEAN13(this)"><i class="fas fa-barcode"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md col-4">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.unit} <span class="text-danger">*</span></label>
+          <select name="b_unit_id[]" class="form-control form-control-sm bulk-unit"><option value="">${I18N_BULK.unit_ph}</option>${BULK_UNIT_OPTIONS}</select>
+        </div>
+        <div class="col-md col-6">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.bprice}</label>
+          <input type="text" name="b_bprice[]" class="form-control form-control-sm text-right price-input bulk-bprice" placeholder="0" oninput="formatPriceInput(this)">
+        </div>
+        <div class="col-md col-6">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.price} <span class="text-danger">*</span></label>
+          <input type="text" name="b_price[]" class="form-control form-control-sm text-right font-weight-bold text-success price-input bulk-price" placeholder="0" oninput="formatPriceInput(this)">
+        </div>
+        <div class="col-auto text-right" style="padding-bottom: 4px;">
+          <button type="button" class="btn btn-sm btn-outline-danger border-0 bulk-row-del" title="${I18N_BULK.del}"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  var $row = $(html);
+  if (data.category_id) $row.find('.bulk-cat').val(String(data.category_id));
+  if (data.unit_id) $row.find('.bulk-unit').val(String(data.unit_id));
+  $('#bulk_rows_container').append($row);
+  bulkRenumber();
+}
+
+function bulkResetRows() {
+  $('#bulk_rows_container').empty();
+  for (var i = 0; i < BULK_DEFAULT_ROWS; i++) bulkAddRow();
+}
+
+// Delete a box — keep at least one (clear it instead of removing the last one)
+$(document).on('click', '.bulk-row-del', function () {
+  var $rows = $('#bulk_rows_container .bulk-row');
+  if ($rows.length <= 1) {
+    var $r = $(this).closest('.bulk-row');
+    $r.find('input').val('');
+    $r.find('select').prop('selectedIndex', 0);
+  } else {
+    $(this).closest('.bulk-row').remove();
+  }
+  bulkRenumber();
+});
+
+// Barcode duplicate check (within the bulk form, then against the DB)
+$(document).on('blur', '#bulkAddProductForm input[name="b_barcode[]"]', function () {
+  var $input = $(this), bc = $input.val().trim();
+  if (!bc) return;
+  var cnt = 0;
+  $('#bulkAddProductForm input[name="b_barcode[]"]').each(function () {
+    if ($(this).val().trim() === bc) cnt++;
+  });
+  if (cnt > 1) {
+    Swal.fire({
+      icon: 'warning', title: I18N_ADD_PRODUCT['products.alert_duplicate_title'],
+      text: I18N_BULK.e_bc_dup.replace('{value}', bc),
+      confirmButtonColor: '#2563eb', confirmButtonText: I18N_ADD_PRODUCT['products.btn_ok']
+    }).then(function () { $input.val('').focus(); });
+    return;
+  }
+  $.getJSON('api_product.php', { action: 'check_barcode', barcode: bc, product_id: 0 }, function (res) {
+    if (res && res.exists) {
+      Swal.fire({
+        icon: 'warning', title: I18N_ADD_PRODUCT['products.alert_duplicate_title'],
+        text: res.message || I18N_ADD_PRODUCT['products.duplicate_in_db_text'].replace('{value}', bc),
+        confirmButtonColor: '#2563eb', confirmButtonText: I18N_ADD_PRODUCT['products.btn_ok']
+      }).then(function () { $input.val('').focus(); });
+    }
+  });
+});
+
+function submitBulkAddProduct(e) {
+  var validCount = 0;
+  var seen = [];
+  var err = null;
+
+  $('#bulk_rows_container .bulk-row').each(function () {
+    if (err) return false;
+    var $r = $(this);
+    var cat  = $r.find('.bulk-cat').val();
+    var name = $r.find('.bulk-name').val().trim();
+    var bc   = $r.find('.bulk-barcode').val().trim();
+    var unit = $r.find('.bulk-unit').val();
+    var bp   = $r.find('.bulk-bprice').val().trim();
+    var pr   = $r.find('.bulk-price').val().trim();
+
+    var isBlank = (!cat && !name && !bc && !unit && (bp === '' || bp === '0') && (pr === '' || pr === '0'));
+    if (isBlank) return; // unused box — skip
+
+    if (name === '')            { err = [$r.find('.bulk-name'), I18N_BULK.e_name]; return false; }
+    if (!cat)                   { err = [$r.find('.bulk-cat'), I18N_BULK.e_cat]; return false; }
+    if (bc === '')              { err = [$r.find('.bulk-barcode'), I18N_BULK.e_bc]; return false; }
+    if (!/^[0-9]+$/.test(bc))   { err = [$r.find('.bulk-barcode'), I18N_BULK.e_bc_num]; return false; }
+    if (!unit)                  { err = [$r.find('.bulk-unit'), I18N_BULK.e_unit]; return false; }
+    // ລາຄາຊື້ (bp) ບໍ່ບັງຄັບ — ປ້ອນ ຫຼື ບໍ່ປ້ອນກໍໄດ້ (ວ່າງ = 0)
+    if (pr === '' || pr === '0') { err = [$r.find('.bulk-price'), I18N_BULK.e_pr]; return false; }
+    if (seen.indexOf(bc) !== -1) { err = [$r.find('.bulk-barcode'), I18N_BULK.e_bc_dup.replace('{value}', bc)]; return false; }
+    seen.push(bc);
+    validCount++;
+  });
+
+  if (err) {
+    if (e) e.preventDefault();
+    Swal.fire({
+      icon: 'warning', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: err[1],
+      confirmButtonColor: '#2563eb', confirmButtonText: I18N_ADD_PRODUCT['products.btn_ok']
+    }).then(function () { err[0].focus(); });
+    return false;
+  }
+  if (validCount === 0) {
+    if (e) e.preventDefault();
+    Swal.fire({
+      icon: 'warning', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: I18N_BULK.e_none,
+      confirmButtonColor: '#2563eb', confirmButtonText: I18N_ADD_PRODUCT['products.btn_ok']
+    });
+    return false;
+  }
+  return true;
+}
+
+// Seed 10 boxes the first time the modal opens, and re-seed on close
+$('#addProductModal').on('show.bs.modal', function () {
+  if ($('#bulk_rows_container .bulk-row').length === 0) bulkResetRows();
+});
+$('#addProductModal').on('hidden.bs.modal', function () {
+  $('#tab-add-single').tab('show');
+  bulkResetRows();
 });
 </script>

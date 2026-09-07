@@ -133,13 +133,34 @@
                 </small>
               </td>
 
-              <!-- 11. ຈັດການ (ໄອຄອນລຶບ - Real-time AJAX) -->
-              <td class="text-center">
-                <?php if (hasPermission('price_adjustment', 'del')): ?>
+              <!-- 11. ຈັດການ (ແກ້ໄຂ / ລຶບ - Real-time AJAX) -->
+              <td class="text-center" style="white-space: nowrap;">
+                <?php
+                  $canEdit = hasPermission('price_adjustment', 'edit') && $adj['target_mode'] !== 'category' && !empty($adj['product_id']);
+                  $canDel  = hasPermission('price_adjustment', 'del');
+                  if ($canEdit):
+                    $editData = json_encode([
+                      'adjust_id'         => (int)$adj['adjust_id'],
+                      'product_id'        => (int)$adj['product_id'],
+                      'product_name'      => $adj['product_name'] ?? '',
+                      'old_bprice'        => (float)$adj['old_bprice'],
+                      'old_price'         => (float)$adj['old_price'],
+                      'target_price_type' => $adj['target_price_type'] ?? 'price',
+                      'calc_type'         => $adj['calc_type'] ?? 'set',
+                      'adjust_value'      => (float)$adj['adjust_value'],
+                      'remark'            => $adj['remark'] ?? '',
+                    ], JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT);
+                ?>
+                  <button type="button" class="btn btn-outline-primary btn-sm px-2 py-1 mr-1" title="<?php echo htmlspecialchars(t('price_adjustment.title_edit', 'ແກ້ໄຂ')); ?>" style="border-radius: 6px;" onclick='editPriceAdjLog(<?php echo $editData; ?>)'>
+                    <i class="fas fa-edit" style="font-size: 0.84rem;"></i>
+                  </button>
+                <?php endif; ?>
+                <?php if ($canDel): ?>
                   <button type="button" class="btn btn-outline-danger btn-sm px-2 py-1" title="<?php echo htmlspecialchars(t('price_adjustment.title_delete', 'ລຶບປະຫວັດ')); ?>" style="border-radius: 6px;" onclick="deletePriceAdjLog(<?php echo $adj['adjust_id']; ?>, this)">
                     <i class="fas fa-trash-alt" style="font-size: 0.84rem;"></i>
                   </button>
-                <?php else: ?>
+                <?php endif; ?>
+                <?php if (!$canEdit && !$canDel): ?>
                   <span class="badge badge-light text-muted" style="font-size: 0.75rem;">-</span>
                 <?php endif; ?>
               </td>

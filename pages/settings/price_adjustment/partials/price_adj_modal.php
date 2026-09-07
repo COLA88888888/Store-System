@@ -2,7 +2,7 @@
 <div class="modal fade" id="priceAdjModal" tabindex="-1" role="dialog" aria-labelledby="priceAdjModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document" style="max-width: 760px;">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-      <div class="modal-header bg-primary text-white py-3 px-4" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
+      <div class="modal-header text-white py-3 px-4" style="border-top-left-radius: 16px; border-top-right-radius: 16px; background-color: #244886;">
         <h6 class="modal-title font-weight-bold m-0" id="priceAdjModalLabel">
           <i class="fas fa-edit mr-1.5"></i> <?php echo htmlspecialchars(t('price_adjustment.modal_title', 'ຟອມປັບປຸງລາຄາສິນຄ້າ')); ?>
         </h6>

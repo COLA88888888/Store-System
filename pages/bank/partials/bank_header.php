@@ -16,16 +16,16 @@ if (!defined('MINIPOS_APP')) {
   }
 ?>
 <!-- Bank Management Header with Date Range & Store Filter -->
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+<div class="bank-header-bar d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
   <div>
-    <h5 class="font-weight-bold text-dark mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+    <h5 class="font-weight-bold text-dark mb-0 text-nowrap" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
       <i class="fas fa-university text-primary mr-2"></i> <?php echo htmlspecialchars(t('bank.title', 'ຈັດການທະນາຄານ')); ?>
     </h5>
   </div>
 
-  <div class="d-flex align-items-center flex-wrap mt-2 mt-md-0" style="gap: 8px;">
+  <div class="bank-header-tools d-flex align-items-center flex-wrap mt-2 mt-md-0" style="gap: 6px;">
     <!-- Date & Store Filter Form -->
-    <form method="GET" action="" class="form-inline d-flex align-items-center" style="gap: 6px;">
+    <form method="GET" action="" class="form-inline d-flex align-items-center flex-wrap" style="gap: 6px;">
       <!-- Store / Branch Selector Box -->
       <div class="input-group input-group-sm">
         <div class="input-group-prepend">
@@ -33,7 +33,7 @@ if (!defined('MINIPOS_APP')) {
             <i class="fas fa-store text-primary mr-1"></i> <?php echo htmlspecialchars(t('bank.branch_label', 'ສາຂາ:')); ?>
           </span>
         </div>
-        <select name="store_id" class="form-control form-control-sm font-weight-bold text-primary" style="border-radius: 0 6px 6px 0; min-width: 150px; width: auto; font-size: 0.82rem;" onchange="this.form.submit()">
+        <select name="store_id" class="form-control form-control-sm font-weight-bold text-primary" style="border-radius: 0 6px 6px 0; min-width: 118px; width: auto; font-size: 0.82rem;" onchange="this.form.submit()">
           <option value="0"><?php echo htmlspecialchars(t('bank.all_branches', '-- ທຸກສາຂາ --')); ?></option>
           <?php foreach ($branches_list as $b): ?>
             <option value="<?php echo $b['store_id']; ?>" <?php echo ($filter_store_id == $b['store_id']) ? 'selected' : ''; ?>>
@@ -75,6 +75,23 @@ if (!defined('MINIPOS_APP')) {
 </div>
 
 <style>
+  /* Keep the title and the whole filter toolbar on ONE line. Lao labels are short; English
+     and Thai are wider and used to spill the toolbar onto a second row. Tighten every
+     control (label padding, font, gaps, date-input width) so the row fits beside the title
+     down to ~1100px before Bootstrap's flex-wrap finally lets it drop on small screens. */
+  .bank-header-tools { flex: 1 1 auto; justify-content: flex-end; }
+  .bank-header-tools form { gap: 4px !important; }
+  .bank-header-tools .input-group-text {
+    padding: 0.15rem 0.4rem;
+    font-size: 0.72rem !important;
+    white-space: nowrap;
+  }
+  .bank-header-tools input[type="date"] {
+    max-width: 132px;
+    font-size: 0.78rem;
+  }
+  .bank-header-tools .btn { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+
   /* On mobile, the filter form wraps onto its own line(s) and the Add button drops below
      it — align that button to the right edge instead of leaving it stuck on the left. */
   @media (max-width: 767.98px) {

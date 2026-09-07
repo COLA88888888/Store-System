@@ -198,9 +198,9 @@ return [
     'reports.chart_daily_net_sales'  => '每日净销售额',
     'reports.chart_payment_ratio'    => '支付方式占比',
     'reports.chart_daily_bill_count' => '每日账单数量',
-    'reports.chart_legend_net'       => '净额 (₭)',
-    'reports.chart_legend_cash'      => '现金 (₭)',
-    'reports.chart_legend_transfer'  => '转账 (₭)',
+    'reports.chart_legend_net'       => '净额',
+    'reports.chart_legend_cash'      => '现金',
+    'reports.chart_legend_transfer'  => '转账',
     'reports.chart_legend_bill_count' => '账单数量',
     'reports.chart_tooltip_bill'     => '账单:',
 ];

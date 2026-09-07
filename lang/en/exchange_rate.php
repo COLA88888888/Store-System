@@ -11,6 +11,9 @@ return [
     'exchange_rate.btn_add_new' => 'Update New Rate',
     'exchange_rate.swal_success_title' => 'Success',
     'exchange_rate.swal_error_title' => 'Notice',
+    'exchange_rate.display_currency_label' => 'Main display currency:',
+    'exchange_rate.display_currency_hint' => 'Data is still stored in Kip — this only changes the display/calculation on the POS screen. Receipts always show all 4 currencies.',
+    'exchange_rate.rate_not_set' => 'Rate not set',
 
     'exchange_rate.confirm_delete_title' => 'Confirm Deletion?',
     'exchange_rate.confirm_delete_text' => 'Are you sure you want to delete this exchange rate history?',

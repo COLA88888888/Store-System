@@ -164,12 +164,12 @@
 
                     <!-- 5. ລາຄາຊື້ (₭) -->
                     <td class="text-right align-middle font-weight-bold text-danger" style="font-size: 0.98rem;">
-                      <?php echo number_format($p['bprice']); ?> ₭
+                      <?php echo displayMoney($pdo, $p['bprice']); ?>
                     </td>
 
                     <!-- 6. ລາຄາຂາຍ (₭) -->
                     <td class="text-right align-middle font-weight-bold text-success" style="font-size: 0.98rem;">
-                      <?php echo number_format($p['price']); ?> ₭
+                      <?php echo displayMoney($pdo, $p['price']); ?>
                     </td>
 
                     <!-- 7. ປຸ່ມເລືອກ + ບັອກຕິກ (Checkbox & Green Check Button) -->

@@ -2,6 +2,9 @@
 // Component: JavaScript Logic for Import List (import_list.php)
 ?>
 <script>
+<?php $__idc = getDisplayCurrency($pdo); ?>
+window.IMP_CUR = { code: <?php echo json_encode($__idc['code']); ?>, symbol: <?php echo json_encode($__idc['symbol'], JSON_UNESCAPED_UNICODE); ?>, decimals: <?php echo (int)$__idc['decimals']; ?>, rate: <?php echo json_encode((float)$__idc['rate']); ?>, isKip: <?php echo ($__idc['code']==='KIP')?'true':'false'; ?> };
+function impFmtFromKip(n){ n=parseFloat(n)||0; var v=IMP_CUR.isKip?Math.round(n):(n/IMP_CUR.rate); return v.toLocaleString('en-US',{minimumFractionDigits:IMP_CUR.decimals,maximumFractionDigits:IMP_CUR.decimals}) + ' <span class="cur-sym">' + IMP_CUR.symbol + '</span>'; }
   var I18N_IMPORT_LIST = <?php echo tjson([
       'import_list.default_unit' => 'ອັນ',
       'import_list.js_no_items_in_bill' => 'ບໍ່ມີລາຍການສິນຄ້າໃນໃບບິນນີ້',
@@ -126,7 +129,7 @@
       : document.querySelectorAll('#historyTableBody .import-row');
     var sum = 0;
     rows.forEach(function(r) { sum += parseFloat(r.getAttribute('data-cost')) || 0; });
-    el.textContent = Math.round(sum).toLocaleString('en-US') + ' ₭';
+    el.innerHTML = impFmtFromKip(sum);
   }
 
   function changePageSize(val) {
@@ -317,7 +320,7 @@
     $('#modal_invoice_no').text(invoiceNo);
     $('#modal_supplier').text(supplier || '-');
     $('#modal_import_date').text(importDate);
-    $('#modal_total_cost').text(totalCost.toLocaleString() + ' ₭');
+    $('#modal_total_cost').html(impFmtFromKip(totalCost));
 
     var items = BILL_ITEMS_MAP[importId] || [];
     var tbody = $('#bill_items_modal_tbody');
@@ -346,8 +349,8 @@
               ${item.barcode ? '<small class="text-muted"><i class="fas fa-barcode mr-1"></i> ' + escapeHtml(item.barcode) + '</small>' : ''}
             </td>
             <td class="text-center align-middle font-weight-bold text-dark">${item.quantity.toLocaleString()} ${escapeHtml(item.unit_name)}</td>
-            <td class="text-right align-middle font-weight-bold text-dark">${parseFloat(item.cost_price).toLocaleString()} ₭</td>
-            <td class="text-right align-middle font-weight-bold text-primary">${parseFloat(item.total_cost).toLocaleString()} ₭</td>
+            <td class="text-right align-middle font-weight-bold text-dark">${impFmtFromKip(item.cost_price)}</td>
+            <td class="text-right align-middle font-weight-bold text-primary">${impFmtFromKip(item.total_cost)}</td>
             <td class="text-center align-middle">${actionCol}</td>
           </tr>
         `);

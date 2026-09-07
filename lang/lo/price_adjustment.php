@@ -77,6 +77,7 @@ return [
     'price_adjustment.calc_set' => 'ຕັ້ງໃໝ່',
     'price_adjustment.calc_increase' => 'ເພີ່ມ',
     'price_adjustment.calc_decrease' => 'ຫຼຸດ',
+    'price_adjustment.title_edit' => 'ແກ້ໄຂ',
     'price_adjustment.title_delete' => 'ລຶບປະຫວັດ',
 
     // api/price_adj_backend.php messages

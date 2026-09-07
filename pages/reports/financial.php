@@ -39,8 +39,9 @@ if ($per_page_raw === 'all') {
     $per_page = max(1, intval($per_page_raw));
 }
 
-// SQL Filter Conditions
-$where   = ["1=1"];
+// SQL Filter Conditions — cancelled bills must not be counted in the money totals
+// (they have their own report: ປະຫວັດການລົບບິນຂາຍ / delete_bills)
+$where   = ["(s.sale_status IS NULL OR s.sale_status != 'CANCEL')"];
 $params  = [];
 
 if (!empty($from_date)) {
@@ -258,16 +259,16 @@ require_once __DIR__ . '/../../layouts/header.php';
                     <?php $billDiscount = floatval($row['sale_discount_bill'] ?? 0); ?>
                     <?php if ($billDiscount > 0): ?>
                       <span class="badge badge-danger font-weight-bold px-2 py-1" style="font-size: 0.76rem; border-radius: 6px;">
-                        -<?php echo number_format($billDiscount); ?> ₭
+                        -<?php echo displayMoney($pdo, $billDiscount); ?>
                       </span>
                     <?php else: ?>
                       <span class="text-muted">-</span>
                     <?php endif; ?>
                   </td>
-                  <td class="text-right font-weight-bold text-dark"><?php echo number_format($cash, 0); ?> ₭</td>
-                  <td class="text-right font-weight-bold text-primary"><?php echo number_format($qr, 0); ?> ₭</td>
-                  <td class="text-right font-weight-bold text-info"><?php echo number_format($change, 0); ?> ₭</td>
-                  <td class="text-right font-weight-bold text-success" style="font-size: 0.94rem;"><?php echo number_format($received, 0); ?> ₭</td>
+                  <td class="text-right font-weight-bold text-dark"><?php echo displayMoney($pdo, $cash); ?></td>
+                  <td class="text-right font-weight-bold text-primary"><?php echo displayMoney($pdo, $qr); ?></td>
+                  <td class="text-right font-weight-bold text-info"><?php echo displayMoney($pdo, $change); ?></td>
+                  <td class="text-right font-weight-bold text-success" style="font-size: 0.94rem;"><?php echo displayMoney($pdo, $received); ?></td>
                   <td class="text-center font-weight-bold">
                     <?php if ($status === 'CANCEL'): ?>
                       <span class="badge badge-danger px-2 py-1" style="font-size: 0.76rem;"><?php echo htmlspecialchars(t('reports.status_cancel', 'ຍົກເລີກ')); ?></span>
@@ -369,10 +370,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const elChange = document.getElementById('tot_change');
         const elRec = document.getElementById('tot_rec');
 
-        if (elCash) elCash.textContent = Math.round(sumCash).toLocaleString() + ' ₭';
-        if (elQr) elQr.textContent = Math.round(sumQr).toLocaleString() + ' ₭';
-        if (elChange) elChange.textContent = Math.round(sumChange).toLocaleString() + ' ₭';
-        if (elRec) elRec.textContent = Math.round(sumRec).toLocaleString() + ' ₭';
+        // repMoney() returns markup (<span class="cur-sym">…</span>), so assign as HTML
+        if (elCash) elCash.innerHTML = repMoney(sumCash);
+        if (elQr) elQr.innerHTML = repMoney(sumQr);
+        if (elChange) elChange.innerHTML = repMoney(sumChange);
+        if (elRec) elRec.innerHTML = repMoney(sumRec);
     }
 
     if (searchInput && table) {

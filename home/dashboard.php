@@ -748,11 +748,13 @@ if (!hasPermission('dashboard')) {
           retranslateIframeI18nObjects(lang);
 
           // 2c. Notify the iframe page so it can redo anything the DOM walker can't reach —
-          //     e.g. redraw <canvas> charts whose labels are baked into the bitmap.
+          //     e.g. redraw <canvas> charts whose labels are baked into the bitmap, or re-render
+          //     JS-animated counters whose suffix text got baked into a compound text node
+          //     ("16 ບິນ") that never exact-matches a dictionary value on its own.
           try {
             var _frameForEvt = document.querySelector('iframe[name="frame"]');
             if (_frameForEvt && _frameForEvt.contentWindow) {
-              _frameForEvt.contentWindow.dispatchEvent(new Event('pos:langchange'));
+              _frameForEvt.contentWindow.dispatchEvent(new CustomEvent('pos:langchange', { detail: { lang: lang, fromLang: fromLang } }));
             }
           } catch (e) {}
 
@@ -1812,23 +1814,24 @@ if (!hasPermission('dashboard')) {
       var $tree = $parent.children('.nav-treeview');
       var isOpen = $parent.hasClass('menu-open');
 
-      // Accordion: Close ALL OTHER open dropdown menus first with balanced animation
-      $('.nav-sidebar .has-treeview').not($parent).each(function() {
+      // Accordion: close ONLY the other menus that are actually open. Iterating every
+      // .has-treeview and .stop(true,false)-ing closed ones left in-flight slides frozen
+      // mid-height, which nudged the whole sidebar (and every chevron) sideways.
+      $('.nav-sidebar .has-treeview.menu-open, .nav-sidebar .has-treeview.menu-is-opening').not($parent).each(function() {
         var $otherParent = $(this);
-        var $otherTree = $otherParent.children('.nav-treeview');
-        $otherTree.stop(true, false).slideUp(300, function() {
-          $otherParent.removeClass('menu-open menu-is-opening');
-        });
+        // Drop the classes now so the chevron rotates back in step with the slide,
+        // not 300ms later in a callback.
+        $otherParent.removeClass('menu-open menu-is-opening');
+        $otherParent.children('.nav-treeview').stop(true, true).slideUp(300);
       });
 
-      // Toggle current clicked dropdown menu with balanced 350ms animation
+      // Toggle current menu — same 300ms both ways, and finish (not freeze) any running anim
       if (isOpen) {
-        $tree.stop(true, false).slideUp(300, function() {
-          $parent.removeClass('menu-open menu-is-opening');
-        });
+        $parent.removeClass('menu-open menu-is-opening');
+        $tree.stop(true, true).slideUp(300);
       } else {
         $parent.addClass('menu-is-opening');
-        $tree.stop(true, false).slideDown(350, function() {
+        $tree.stop(true, true).slideDown(300, function() {
           $parent.addClass('menu-open').removeClass('menu-is-opening');
         });
       }

@@ -10,7 +10,7 @@ if (!defined('MINIPOS_APP')) {
     <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
       <form method="POST">
         <input type="hidden" name="action" value="add_branch">
-        <div class="modal-header bg-primary text-white">
+        <div class="modal-header text-white" style="background-color: #244886;">
           <h5 class="modal-title font-weight-bold"><i class="fas fa-plus-circle mr-2"></i> <?php echo htmlspecialchars(t('branches.modal_add_title', 'ເພີ່ມສາຂາໃໝ່')); ?></h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
@@ -56,7 +56,7 @@ if (!defined('MINIPOS_APP')) {
       <form method="POST">
         <input type="hidden" name="action" value="edit_branch">
         <input type="hidden" name="store_id" id="edit_store_id">
-        <div class="modal-header bg-primary text-white">
+        <div class="modal-header text-white" style="background-color: #244886;">
           <h5 class="modal-title font-weight-bold"><i class="fas fa-edit mr-2"></i> <?php echo htmlspecialchars(t('branches.modal_edit_title', 'ແກ້ໄຂຂໍ້ມູນສາຂາ')); ?></h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>

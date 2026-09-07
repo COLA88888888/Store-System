@@ -7,10 +7,13 @@ return [
     'exchange_rate.msg_invalid_rate' => '请输入正确的汇率!',
     'exchange_rate.msg_error_prefix' => '错误: ',
 
-    'exchange_rate.header_title' => '汇率设置 (Exchange Rates)',
+    'exchange_rate.header_title' => '汇率设置',
     'exchange_rate.btn_add_new' => '更新新汇率',
     'exchange_rate.swal_success_title' => '成功',
     'exchange_rate.swal_error_title' => '提示',
+    'exchange_rate.display_currency_label' => '主显示货币：',
+    'exchange_rate.display_currency_hint' => '数据仍以基普存储 — 这只更改 POS 页面的显示/计算。小票始终显示全部 4 种货币。',
+    'exchange_rate.rate_not_set' => '尚未设置汇率',
 
     'exchange_rate.confirm_delete_title' => '确认删除?',
     'exchange_rate.confirm_delete_text' => '您确定要删除此汇率记录吗?',

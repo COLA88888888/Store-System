@@ -306,6 +306,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 ?>
 
 <link rel="stylesheet" href="../../themes/reports.css?v=<?php echo filemtime(__DIR__ . '/../../themes/reports.css'); ?>">
+<!-- category_sales build: dedup-by-name-2026-08-30 | categories in dropdown: <?php echo count($all_categories); ?> -->
 
 <div class="container-fluid p-3 p-md-4">
   <!-- Header -->
@@ -454,7 +455,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   <td class="text-center align-middle" style="background-color: #f1f5f9;">
                     <?php if (!empty($row['total_category_discount']) && floatval($row['total_category_discount']) > 0): ?>
                       <span class="font-weight-bold text-danger" style="font-size: 0.9rem;">
-                        -<?php echo number_format($row['total_category_discount']); ?> ₭
+                        -<?php echo displayMoney($pdo, $row['total_category_discount']); ?>
                       </span>
                     <?php else: ?>
                       <span class="text-muted">-</span>
@@ -464,7 +465,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                     <?php echo number_format($row['total_stock_cut_qty']); ?>
                   </td>
                   <td class="text-right align-middle text-dark" style="font-size: 0.96rem; font-weight: 700; background-color: #f1f5f9;">
-                    <?php echo number_format($row['total_category_revenue'], 0); ?>
+                    <?php echo displayMoney($pdo, max(0, floatval($row['total_category_revenue']) - floatval($row['total_category_discount'])), false); ?>
                   </td>
                 </tr>
 
@@ -498,7 +499,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                       <td class="text-center align-middle">
                         <?php if (!empty($p['item_discount']) && floatval($p['item_discount']) > 0): ?>
                           <span class="font-weight-bold text-danger" style="font-size: 0.86rem;">
-                            -<?php echo number_format($p['item_discount']); ?> ₭
+                            -<?php echo displayMoney($pdo, $p['item_discount']); ?>
                           </span>
                         <?php else: ?>
                           <span class="text-muted">-</span>
@@ -508,7 +509,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                         <?php echo number_format($p['stock_cut_qty']); ?>
                       </td>
                       <td class="text-right align-middle text-dark" style="font-size: 0.9rem;">
-                        <?php echo number_format($p['item_revenue'], 0); ?>
+                        <?php echo displayMoney($pdo, max(0, floatval($p['item_revenue']) - floatval($p['item_discount'])), false); ?>
                       </td>
                     </tr>
                   <?php endforeach; ?>
@@ -531,20 +532,20 @@ require_once __DIR__ . '/../../layouts/header.php';
                 <td class="text-center py-3 text-dark font-weight-bold" style="background: #f8fafc;"><?php echo number_format($grand_total_qty); ?></td>
                 <td class="text-center py-3 font-weight-bold" style="background: #f8fafc;">
                   <?php if ($grand_total_discount > 0): ?>
-                    <span class="font-weight-bold text-danger" style="font-size: 0.94rem;">-<?php echo number_format($grand_total_discount); ?> ₭</span>
+                    <span class="font-weight-bold text-danger" style="font-size: 0.94rem;">-<?php echo displayMoney($pdo, $grand_total_discount); ?></span>
                   <?php else: ?>
                     <span class="text-muted">-</span>
                   <?php endif; ?>
                 </td>
                 <td class="text-center py-3 text-dark font-weight-bold" style="background: #f8fafc;"><?php echo number_format($grand_total_stock_cut); ?></td>
-                <td class="text-right py-3 text-primary font-weight-bold" style="background: #f8fafc; font-size: 0.96rem;"><?php echo number_format($grand_total_revenue); ?> ₭</td>
+                <td class="text-right py-3 text-primary font-weight-bold" style="background: #f8fafc; font-size: 0.96rem;"><?php echo displayMoney($pdo, max(0, $grand_total_revenue - $grand_total_discount)); ?></td>
               </tr>
               <tr style="font-size: 0.88rem; color: #16a34a;">
                 <td colspan="5" class="text-right py-2 font-weight-bold" style="background: #f8fafc; color: #16a34a;">
                    <?php echo htmlspecialchars(t('reports.total_cash_label', 'ເງິນສົດ:')); ?>
                 </td>
                 <td class="text-right py-2 font-weight-bold" style="background: #f8fafc; color: #16a34a;">
-                  <?php echo number_format($cash_total, 0); ?> ₭
+                  <?php echo displayMoney($pdo, $cash_total); ?>
                 </td>
               </tr>
               <tr style="font-size: 0.88rem; color: #2563eb;">
@@ -552,7 +553,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                    <?php echo htmlspecialchars(t('reports.total_transfer_label', 'ເງິນໂອນ:')); ?>
                 </td>
                 <td class="text-right py-2 font-weight-bold" style="background: #f8fafc; color: #2563eb;">
-                  <?php echo number_format($transfer_total, 0); ?> ₭
+                  <?php echo displayMoney($pdo, $transfer_total); ?>
                 </td>
               </tr>
               <tr style="font-size: 0.98rem; border-top: 2px solid #cbd5e1;">
@@ -560,7 +561,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                    <?php echo htmlspecialchars(t('reports.total_label', 'ລວມ:')); ?>
                 </td>
                 <td class="text-right py-2.5 font-weight-bold" style="background: #f1f5f9; color: #0f172a; font-size: 1.02rem;">
-                  <?php echo number_format($grand_total_paid, 0); ?> ₭
+                  <?php echo displayMoney($pdo, $grand_total_paid); ?>
                 </td>
               </tr>
             </tfoot>

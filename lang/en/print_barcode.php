@@ -14,6 +14,8 @@ return [
     'print_barcode.sticker_size_label' => 'Sticker Size:',
     'print_barcode.size_40x30' => '40mm x 30mm (Standard Roll)',
     'print_barcode.size_50x30' => '50mm x 30mm (Medium Roll)',
+    'print_barcode.size_3up' => '105mm x 25mm (3 Columns)',
+    'print_barcode.opt_rotate_180' => 'Rotate label 180° (if it prints upside down)',
     'print_barcode.size_a4' => 'A4 Paper (Grid)',
     'print_barcode.footer_summary_initial' => 'Selected: 0 items (0 stickers total)',
     'print_barcode.summary_selected_label' => 'Selected',

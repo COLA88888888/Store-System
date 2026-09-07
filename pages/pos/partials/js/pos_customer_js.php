@@ -4,7 +4,7 @@ function updateSelectedCustomerUI() {
   if (selectedCustomer && selectedCustomer.customer_id) {
     $('#selectedCustomerDisplay').text(selectedCustomer.customer_name);
   } else {
-    $('#selectedCustomerDisplay').text('ລູກຄ້າທົ່ວໄປ');
+    $('#selectedCustomerDisplay').text(posCustomerDisplayName(''));
   }
 }
 

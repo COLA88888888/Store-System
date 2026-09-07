@@ -2,6 +2,11 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 
+// Multi-currency: dashboard figures stored in KIP, shown in the active currency.
+$__hdc = getDisplayCurrency($pdo);
+$__hsym = $__hdc['symbol']; $__hdec = (int)$__hdc['decimals'];
+$__hcvt = function($v) use ($__hdc) { return convertFromKip($v, $__hdc['code'], $__hdc['rates']); };
+
 if (empty($_SESSION['user_id']) || empty($_SESSION['checked'])) {
     echo "<script>window.top.location.href = '../auth/login.php?expired=1';</script>";
     exit();
@@ -21,7 +26,7 @@ try {
         SELECT DISTINCT YEAR(sale_date) AS yr 
         FROM tbsale_save 
         WHERE sale_date IS NOT NULL 
-          AND sale_date != '0000-00-00' 
+          AND sale_date > '1970-01-01' 
           AND (sale_status IS NULL OR sale_status != 'CANCEL')
         ORDER BY yr DESC
     ");
@@ -187,7 +192,7 @@ foreach ($available_years as $yrItem) {
 }
 
 try {
-    $yearlyWhere = ["sale_date IS NOT NULL", "sale_date != '0000-00-00'", "(sale_status IS NULL OR sale_status != 'CANCEL')"];
+    $yearlyWhere = ["sale_date > '1970-01-01'", "(sale_status IS NULL OR sale_status != 'CANCEL')"];
     $yearlyParams = [];
     if ($selected_store > 0) {
         $yearlyWhere[] = "store_id = :store_id";
@@ -338,7 +343,7 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
           </div>
           <h4 class="font-weight-bold text-white mb-0" style="font-family: sans-serif; word-break: break-word; white-space: normal; line-height: 1.2;">
-            <span class="metric-num counter-num" data-target="<?php echo (float)$total_sales; ?>" data-decimals="0">0</span> <small class="metric-currency">₭</small>
+            <span class="metric-num counter-num" data-target="<?php echo $__hcvt((float)$total_sales); ?>" data-decimals="<?php echo $__hdec; ?>">0</span> <small class="metric-currency"><?php echo htmlspecialchars($__hsym); ?></small>
           </h4>
         </div>
       </div>
@@ -355,7 +360,7 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
           </div>
           <h4 class="font-weight-bold text-white mb-0" style="font-family: sans-serif; word-break: break-word; white-space: normal; line-height: 1.2;">
-            <span class="metric-num counter-num" data-target="<?php echo (float)$total_cost; ?>" data-decimals="0">0</span> <small class="metric-currency">₭</small>
+            <span class="metric-num counter-num" data-target="<?php echo $__hcvt((float)$total_cost); ?>" data-decimals="<?php echo $__hdec; ?>">0</span> <small class="metric-currency"><?php echo htmlspecialchars($__hsym); ?></small>
           </h4>
         </div>
       </div>
@@ -372,7 +377,7 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
           </div>
           <h4 class="font-weight-bold text-white mb-0" style="font-family: sans-serif; word-break: break-word; white-space: normal; line-height: 1.2;">
-            <span class="metric-num counter-num" data-target="<?php echo (float)$cogs; ?>" data-decimals="0">0</span> <small class="metric-currency">₭</small>
+            <span class="metric-num counter-num" data-target="<?php echo $__hcvt((float)$cogs); ?>" data-decimals="<?php echo $__hdec; ?>">0</span> <small class="metric-currency"><?php echo htmlspecialchars($__hsym); ?></small>
           </h4>
         </div>
       </div>
@@ -389,7 +394,7 @@ require_once __DIR__ . '/../layouts/header.php';
             </div>
           </div>
           <h4 class="font-weight-bold text-white mb-0" style="font-family: sans-serif; word-break: break-word; white-space: normal; line-height: 1.2;">
-            <span class="metric-num counter-num" data-target="<?php echo (float)$total_profit; ?>" data-decimals="0">0</span> <small class="metric-currency">₭</small>
+            <span class="metric-num counter-num" data-target="<?php echo $__hcvt((float)$total_profit); ?>" data-decimals="<?php echo $__hdec; ?>">0</span> <small class="metric-currency"><?php echo htmlspecialchars($__hsym); ?></small>
           </h4>
         </div>
       </div>
@@ -416,14 +421,14 @@ require_once __DIR__ . '/../layouts/header.php';
   <style>
     .metric-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.3px; }
     .metric-num { font-size: 0.95rem; }
-    .metric-currency { font-size: 0.7rem; }
+    .metric-currency { font-size: 1.05rem; font-weight: 800; }
     .metric-icon-box { width: 30px; height: 30px; }
     .metric-icon { font-size: 0.9rem; }
 
     @media (min-width: 992px) {
       .metric-title { font-size: 0.85rem; letter-spacing: 0.5px; }
       .metric-num { font-size: 1.4rem; }
-      .metric-currency { font-size: 0.85rem; }
+      .metric-currency { font-size: 1.15rem; font-weight: 800; }
       .metric-icon-box { width: 38px; height: 38px; }
       .metric-icon { font-size: 1.1rem; }
     }
@@ -510,9 +515,9 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <script>
 var I18N_HOME = <?php echo tjson([
-    'home.legend_sales' => 'ຍອດຂາຍ (₭)',
-    'home.legend_cost' => 'ຕົ້ນທຶນ (₭)',
-    'home.legend_profit' => 'ກຳໄລ (₭)',
+    'home.legend_sales' => 'ຍອດຂາຍ',
+    'home.legend_cost' => 'ຕົ້ນທຶນ',
+    'home.legend_profit' => 'ກຳໄລ',
     'home.legend_margin' => 'ອັດຕາກຳໄລ (%)',
     'home.legend_qty_sold' => 'ຈຳນວນຂາຍ',
     'home.no_sales_data' => 'ບໍ່ມີຂໍ້ມູນການຂາຍ',
@@ -598,15 +603,20 @@ $(document).ready(function() {
     return chunks;
   }
 
+  // Multi-currency: append the active symbol in brackets to chart legends.
+  var CUR_SYM = <?php echo json_encode($__hsym, JSON_UNESCAPED_UNICODE); ?>;
+  var CUR_DEC = <?php echo $__hdec; ?>;
+  function curLabel(name){ return name + ' (' + CUR_SYM + ')'; }
+  function curAxis(v){ return Number(v).toLocaleString('en-US',{maximumFractionDigits:CUR_DEC}) + ' ' + CUR_SYM; }
   // Data variables from PHP
   var monthLabels   = <?php echo json_encode($month_labels_i18n, JSON_UNESCAPED_UNICODE); ?>;
-  var monthlySales  = <?php echo json_encode(array_values($monthly_sales)); ?>;
-  var monthlyCost   = <?php echo json_encode(array_values($monthly_cost)); ?>;
-  var monthlyProfit = <?php echo json_encode(array_values($monthly_profit)); ?>;
+  var monthlySales  = <?php echo json_encode(array_map($__hcvt, array_values($monthly_sales))); ?>;
+  var monthlyCost   = <?php echo json_encode(array_map($__hcvt, array_values($monthly_cost))); ?>;
+  var monthlyProfit = <?php echo json_encode(array_map($__hcvt, array_values($monthly_profit))); ?>;
   var monthlyMargin = <?php echo json_encode(array_values($monthly_margin)); ?>;
 
   var yearlyLabels  = <?php echo json_encode($yearly_labels); ?>;
-  var yearlySales   = <?php echo json_encode($yearly_sales); ?>;
+  var yearlySales   = <?php echo json_encode(array_map($__hcvt, $yearly_sales)); ?>;
 
   var top10Names    = <?php echo json_encode($top10_names); ?>;
   var top10Qty      = <?php echo json_encode($top10_qty); ?>;
@@ -634,21 +644,21 @@ $(document).ready(function() {
         labels: monthLabels,
         datasets: [
           {
-            label: I18N_HOME['home.legend_sales'],
+            label: curLabel(I18N_HOME['home.legend_sales']),
             backgroundColor: '#2563eb',
             borderColor: '#1d4ed8',
             data: monthlySales,
             borderRadius: 6
           },
           {
-            label: I18N_HOME['home.legend_cost'],
+            label: curLabel(I18N_HOME['home.legend_cost']),
             backgroundColor: '#38bdf8',
             borderColor: '#0284c7',
             data: monthlyCost,
             borderRadius: 6
           },
           {
-            label: I18N_HOME['home.legend_profit'],
+            label: curLabel(I18N_HOME['home.legend_profit']),
             backgroundColor: '#22c55e',
             borderColor: '#16a34a',
             data: monthlyProfit,
@@ -660,19 +670,20 @@ $(document).ready(function() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'top' }
+          legend: { position: 'top' },
+          tooltip: { callbacks: { label: function(ctx){ return ctx.dataset.label + ': ' + curAxis(ctx.parsed.y); } } }
         },
         scales: {
           y: {
             beginAtZero: true,
             ticks: {
               callback: function(val) {
-                if (val >= 1000000) {
-                  return (val / 1000000).toLocaleString() + 'M';
-                } else if (val >= 1000) {
-                  return (val / 1000).toLocaleString() + 'k';
+                if (<?php echo ($__hdc['code']==='KIP')?'true':'false'; ?>) {
+                  if (val >= 1000000) return (val / 1000000).toLocaleString() + 'M';
+                  if (val >= 1000) return (val / 1000).toLocaleString() + 'k';
+                  return val;
                 }
-                return val;
+                return curAxis(val);
               }
             }
           }
@@ -689,7 +700,7 @@ $(document).ready(function() {
       data: {
         labels: yearlyLabels,
         datasets: [{
-          label: I18N_HOME['home.legend_sales'],
+          label: curLabel(I18N_HOME['home.legend_sales']),
           backgroundColor: ['#2563eb', '#0284c7', '#16a34a', '#d97706', '#8b5cf6'],
           data: yearlySales,
           borderRadius: 8
@@ -705,7 +716,7 @@ $(document).ready(function() {
           y: {
             beginAtZero: true,
             ticks: {
-              callback: function(val) { return Number(val).toLocaleString() + ' ₭'; }
+              callback: function(val) { return curAxis(val); }
             }
           }
         }
@@ -829,9 +840,9 @@ $(document).ready(function() {
     if (monthlyRevenueChartObj) {
       monthlyRevenueChartObj.data.labels = monthLabels;
       var mds = monthlyRevenueChartObj.data.datasets;
-      if (mds[0]) mds[0].label = I18N_HOME['home.legend_sales'];
-      if (mds[1]) mds[1].label = I18N_HOME['home.legend_cost'];
-      if (mds[2]) mds[2].label = I18N_HOME['home.legend_profit'];
+      if (mds[0]) mds[0].label = curLabel(I18N_HOME['home.legend_sales']);
+      if (mds[1]) mds[1].label = curLabel(I18N_HOME['home.legend_cost']);
+      if (mds[2]) mds[2].label = curLabel(I18N_HOME['home.legend_profit']);
       monthlyRevenueChartObj.update();
     }
     if (profitMarginChartObj) {

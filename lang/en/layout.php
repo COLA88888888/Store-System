@@ -13,6 +13,7 @@ return [
     'layout.categories' => 'Categories',
     'layout.units' => 'Units Management',
     'layout.products' => 'Product List',
+    'layout.suppliers' => 'Manage Suppliers',
     'layout.import_stock' => 'Import Stock',
     'layout.import_list' => 'Import History',
     'layout.stock_transfer' => 'Stock Transfer Between Branches',

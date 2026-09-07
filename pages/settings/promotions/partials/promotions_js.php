@@ -15,7 +15,62 @@ var PROMO_I18N = <?php echo tjson([
     'promotions.btn_cancel'            => 'ຍົກເລີກ',
     'promotions.js_deleted_success'    => 'ລົບໂປຣໂມຊັ່ນສຳເລັດ!',
     'promotions.js_done'               => 'ດຳເນີນການສຳເລັດ!',
+    'promotions.target_label_all'      => 'ຊື່ ສິນຄ້າ/ປະເພດ:',
+    'promotions.target_label_category' => 'ຊື່ ໝວດໝູ່ສິນຄ້າ:',
+    'promotions.target_label_product'  => 'ລະຫັດ ຫຼື ຊື່ ສິນຄ້າ:',
 ]); ?>;
+
+// Product directory for the target field: lets the user type a barcode / code and see the
+// matching product name underneath, so they know exactly which item the promo will hit.
+var PROMO_PRODUCTS = <?php echo json_encode(array_values($productsLookup ?? []), JSON_UNESCAPED_UNICODE); ?>;
+
+function promoLookupProduct(val) {
+  val = (val || '').trim();
+  if (!val) return null;
+  var low = val.toLowerCase();
+  return PROMO_PRODUCTS.find(function (p) {
+    return (p.barcode && p.barcode === val) ||
+           (p.code && p.code === val) ||
+           (p.name && p.name.toLowerCase() === low);
+  }) || null;
+}
+
+// Show the resolved product name (or a "not found" note) under the target-name input.
+function promoUpdateTargetHint(mode) {
+  var typeEl = document.getElementById(mode + '_target_type');
+  var inEl   = document.getElementById(mode + '_target_name');
+  var hintEl = document.getElementById(mode + '_target_name_hint');
+  if (!inEl || !hintEl) return;
+  var val = inEl.value.trim();
+  if (!typeEl || typeEl.value !== 'product' || val === '' || val === PROMO_I18N['promotions.opt_target_all']) {
+    hintEl.textContent = '';
+    promoFillUnitDatalist(null);
+    return;
+  }
+  var hit = promoLookupProduct(val);
+  if (hit) {
+    var us = (hit.units && hit.units.length) ? ' — ຫົວໜ່ວຍ: ' + hit.units.join(', ') : '';
+    hintEl.textContent = '✓ ' + hit.name + us;
+    hintEl.style.color = '#16a34a';
+    promoFillUnitDatalist(hit.units || []);
+  } else {
+    hintEl.textContent = 'ບໍ່ພົບສິນຄ້ານີ້ໃນລະບົບ';
+    hintEl.style.color = '#f59e0b';
+    promoFillUnitDatalist(null);
+  }
+}
+
+// Repopulate #units_datalist with the chosen product's real unit names (ແກ້ວ / ປ໋ອງຍາວ / ...)
+// so the "ສະເພາະ ຫົວໜ່ວຍ" field offers exactly what exists. null = restore the generic list.
+var PROMO_UNITS_DEFAULT = ['all', 'ລັງ', 'ແກ້ວ', 'ເເກັດ', 'ປ໋ອງ', 'ຖົງ', 'ຊິ້ນ', 'ອັນ'];
+function promoFillUnitDatalist(units) {
+  var dl = document.getElementById('units_datalist');
+  if (!dl) return;
+  var list = (units && units.length) ? ['all'].concat(units) : PROMO_UNITS_DEFAULT;
+  dl.innerHTML = list.map(function (u) {
+    return '<option value="' + String(u).replace(/"/g, '&quot;') + '"></option>';
+  }).join('');
+}
 
 function formatNumberInput(input) {
   let val = input.value.replace(/[^0-9.]/g, '');
@@ -39,9 +94,31 @@ function formatNumVal(val) {
 }
 
 function togglePromoType(val, mode) {
+  var isGift = (val === 'buy_x_get_y');
   var giftSec = document.getElementById(mode + '_gift_section');
   if (giftSec) {
-    giftSec.style.display = (val === 'buy_x_get_y') ? 'flex' : 'none';
+    giftSec.style.display = isGift ? 'flex' : 'none';
+  }
+  // A pure freebie promo needs no money value — don't let the required field block the save.
+  var modal = document.getElementById(mode + 'PromoModal');
+  if (modal) {
+    var dv = modal.querySelector('[name="discount_value"]');
+    if (dv) {
+      if (isGift) {
+        dv.removeAttribute('required');
+        if (dv.value.trim() === '') dv.value = '0';
+      } else {
+        dv.setAttribute('required', 'required');
+      }
+      var dvGroup = dv.closest('.mb-3') || dv.parentElement;
+      var star = dvGroup ? dvGroup.querySelector('label .text-danger') : null;
+      if (star) star.style.display = isGift ? 'none' : '';
+    }
+    var gn = modal.querySelector('[name="gift_product_name"]');
+    if (gn) {
+      if (isGift) gn.setAttribute('required', 'required');
+      else gn.removeAttribute('required');
+    }
   }
 }
 
@@ -57,7 +134,21 @@ function toggleTargetInput(val, mode) {
     if (inputEl.value === PROMO_I18N['promotions.opt_target_all']) inputEl.value = '';
     inputEl.setAttribute('list', 'product_datalist');
   }
+  var lblEl = document.getElementById(mode + '_target_name_label');
+  if (lblEl) {
+    lblEl.textContent = (val === 'product') ? PROMO_I18N['promotions.target_label_product']
+                      : (val === 'category') ? PROMO_I18N['promotions.target_label_category']
+                      : PROMO_I18N['promotions.target_label_all'];
+  }
+  promoUpdateTargetHint(mode);
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+  ['add', 'edit'].forEach(function (mode) {
+    var el = document.getElementById(mode + '_target_name');
+    if (el) el.addEventListener('input', function () { promoUpdateTargetHint(mode); });
+  });
+});
 
 function editPromo(p) {
   document.getElementById('edit_promo_id').value = p.id;

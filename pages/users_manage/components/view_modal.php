@@ -2,9 +2,9 @@
 <div class="modal fade" id="viewUserModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
     <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
-      <div class="modal-header bg-primary text-white py-3">
+      <div class="modal-header text-white py-3" style="background-color: #244886;">
         <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-          <i class="fas fa-id-card mr-2"></i> ລາຍລະອຽດຂໍ້ມູນຜູ້ນຳໃຊ້
+          <i class="fas fa-id-card mr-2"></i> <?php echo htmlspecialchars(t('users_manage.view_modal_title', 'ລາຍລະອຽດຂໍ້ມູນຜູ້ນຳໃຊ້')); ?>
         </h5>
         <button type="button" class="close text-white opacity-90" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
@@ -24,28 +24,28 @@
           <!-- RIGHT COLUMN: Detailed Information Grid -->
           <div class="col-md-8 pl-md-4 py-2">
             <h6 class="font-weight-bold text-primary mb-3 border-bottom pb-2">
-              <i class="fas fa-user-circle mr-1"></i> ຂໍ້ມູນສ່ວນຕົວ & ບັນຊີ
+              <i class="fas fa-user-circle mr-1"></i> <?php echo htmlspecialchars(t('users_manage.view_section_personal', 'ຂໍ້ມູນສ່ວນຕົວ & ບັນຊີ')); ?>
             </h6>
-            
+
             <div class="row" style="font-size: 0.95rem;">
               <div class="col-6 mb-3">
-                <span class="text-muted d-block" style="font-size: 0.8rem;"><i class="fas fa-venus-mars mr-1"></i> ເພດ:</span>
+                <span class="text-muted d-block" style="font-size: 0.8rem;"><i class="fas fa-venus-mars mr-1"></i> <?php echo htmlspecialchars(t('users_manage.view_label_gender', 'ເພດ:')); ?></span>
                 <strong id="view_gender" class="text-dark"></strong>
               </div>
               <div class="col-6 mb-3">
-                <span class="text-muted d-block" style="font-size: 0.8rem;"><i class="fas fa-calendar-alt mr-1"></i> ວັນເດືອນປີເກີດ:</span>
+                <span class="text-muted d-block" style="font-size: 0.8rem;"><i class="fas fa-calendar-alt mr-1"></i> <?php echo htmlspecialchars(t('users_manage.view_label_dob', 'ວັນເດືອນປີເກີດ:')); ?></span>
                 <strong id="view_dob" class="text-dark"></strong>
               </div>
               <div class="col-6 mb-3">
-                <span class="text-muted d-block" style="font-size: 0.8rem;"><i class="fas fa-phone mr-1"></i> ເບີໂທລະສັບ:</span>
+                <span class="text-muted d-block" style="font-size: 0.8rem;"><i class="fas fa-phone mr-1"></i> <?php echo htmlspecialchars(t('users_manage.view_label_tel', 'ເບີໂທລະສັບ:')); ?></span>
                 <strong id="view_tel" class="text-dark"></strong>
               </div>
               <div class="col-6 mb-3">
-                <span class="text-muted d-block" style="font-size: 0.8rem;"><i class="fas fa-map-marker-alt mr-1"></i> ທີ່ຢູ່:</span>
+                <span class="text-muted d-block" style="font-size: 0.8rem;"><i class="fas fa-map-marker-alt mr-1"></i> <?php echo htmlspecialchars(t('users_manage.view_label_address', 'ທີ່ຢູ່:')); ?></span>
                 <span id="view_address" class="text-dark font-weight-bold"></span>
               </div>
               <div class="col-6 mb-2">
-                <span class="text-muted d-block" style="font-size: 0.8rem;"><i class="fas fa-sticky-note mr-1"></i> ໝາຍເຫດ:</span>
+                <span class="text-muted d-block" style="font-size: 0.8rem;"><i class="fas fa-sticky-note mr-1"></i> <?php echo htmlspecialchars(t('users_manage.view_label_notes', 'ໝາຍເຫດ:')); ?></span>
                 <span id="view_notes" class="text-muted"></span>
               </div>
             </div>
@@ -54,9 +54,9 @@
       </div>
 
       <div class="modal-footer bg-light py-3">
-        <button type="button" class="btn btn-secondary px-4 font-weight-bold" data-dismiss="modal" style="border-radius: 6px;">ປິດ</button>
+        <button type="button" class="btn btn-secondary px-4 font-weight-bold" data-dismiss="modal" style="border-radius: 6px;"><?php echo htmlspecialchars(t('users_manage.btn_close', 'ປິດ')); ?></button>
         <button type="button" class="btn btn-primary px-4 font-weight-bold shadow-sm" id="btn_edit_from_view" style="border-radius: 6px;">
-          <i class="fas fa-edit mr-1"></i> ແກ້ໄຂ
+          <i class="fas fa-edit mr-1"></i> <?php echo htmlspecialchars(t('users_manage.btn_edit', 'ແກ້ໄຂ')); ?>
         </button>
       </div>
     </div>

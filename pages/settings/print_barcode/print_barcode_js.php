@@ -34,6 +34,9 @@ function initPageBarcodeState() {
 
 // 2. ຟັງຊັ້ນ Render ບັອກສິນຄ້າ ແລະ Barcode SVG Preview
 function renderPageBarcodeBlocks() {
+  // ຊ່ອງ "ໝູນປ້າຍ 180°" ໃຫ້ຂຶ້ນສະເພາະຂະໜາດ 3-up (ຂະໜາດອື່ນບໍ່ຕ້ອງການ)
+  $('#rotateLabelWrap').toggle($('#print_size').val() === '3up_105x25');
+
   var container = $('#pageBarcodeBlocksContainer');
   container.empty();
 
@@ -76,7 +79,7 @@ function renderPageBarcodeBlocks() {
     var copies = st.copies || 1;
 
     var blockHtml = `
-      <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-4">
+      <div class="col-md-4 col-sm-6 col-12 mb-4">
         <div class="barcode-block-card p-3 ${isSelected ? 'selected' : ''}" id="page_block_card_${pId}">
           
           <!-- Block Header: Checkbox & Product Title -->
@@ -152,17 +155,41 @@ function renderPageBarcodeBlocks() {
 
     container.append(blockHtml);
 
-    // ວາດ Barcode SVG ດ້ວຍ JsBarcode
+  // ວາດ Barcode SVG ດ້ວຍ JsBarcode
+    var bcMode = $('#barcode_height').val() || 'auto';
+    var printSize = $('#print_size').val() || '3up_105x25';
+    var bcWidth = 1.0;
+    var bcHeight = 26;
+    var bcFontSize = 8.5;
+
+    if (printSize === '3up_105x25') {
+      if (bcMode === 'tall') { bcHeight = 32; bcWidth = 1.1; bcFontSize = 9; }
+      else if (bcMode === 'extra_tall') { bcHeight = 38; bcWidth = 1.2; bcFontSize = 9.5; }
+      else { bcHeight = 26; bcWidth = 1.0; bcFontSize = 8.5; }
+    } else if (printSize === '40x30') {
+      if (bcMode === 'tall') { bcHeight = 40; bcWidth = 1.4; bcFontSize = 10; }
+      else if (bcMode === 'extra_tall') { bcHeight = 48; bcWidth = 1.5; bcFontSize = 10.5; }
+      else { bcHeight = 34; bcWidth = 1.3; bcFontSize = 9; }
+    } else if (printSize === '50x30') {
+      if (bcMode === 'tall') { bcHeight = 46; bcWidth = 1.6; bcFontSize = 11.5; }
+      else if (bcMode === 'extra_tall') { bcHeight = 54; bcWidth = 1.75; bcFontSize = 12; }
+      else { bcHeight = 38; bcWidth = 1.5; bcFontSize = 11; }
+    } else {
+      if (bcMode === 'tall') { bcHeight = 52; bcWidth = 1.85; bcFontSize = 12; }
+      else if (bcMode === 'extra_tall') { bcHeight = 62; bcWidth = 2.0; bcFontSize = 13; }
+      else { bcHeight = 42; bcWidth = 1.7; bcFontSize = 11; }
+    }
+
     try {
       JsBarcode(`#page_svg_${pId}`, pBarcode, {
         format: "CODE128",
-        width: 1.3,
-        height: 32,
+        width: bcWidth,
+        height: bcHeight,
         displayValue: true,
-        fontSize: 10,
+        fontSize: bcFontSize,
         font: "monospace",
-        margin: 1,
-        textMargin: 1
+        margin: 0,
+        textMargin: 0
       });
     } catch (e) {
       console.error("Barcode render error for product " + pId, e);
@@ -282,9 +309,33 @@ function updatePageBarcodeSummary() {
 // 8. ຟັງຊັ້ນປະມວນຜົນ ແລະ ສັ່ງພິມບາໂຄ້ດຜ່ານ Iframe
 function executePageBarcodePrint() {
   var size      = $('#print_size').val();
+  var bcMode    = $('#barcode_height').val() || 'auto';
   var showShop  = $('#opt_show_shop').is(':checked');
   var showName  = $('#opt_show_name').is(':checked');
   var showPrice = $('#opt_show_price').is(':checked');
+  var rotate180 = $('#opt_rotate_180').is(':checked');
+
+  var bcWidth = 1.0;
+  var bcHeight = 26;
+  var bcFontSize = 8.5;
+
+  if (size === '3up_105x25') {
+    if (bcMode === 'tall') { bcHeight = 32; bcWidth = 1.05; bcFontSize = 8.5; }
+    else if (bcMode === 'extra_tall') { bcHeight = 38; bcWidth = 1.15; bcFontSize = 9; }
+    else { bcHeight = 26; bcWidth = 0.98; bcFontSize = 8; }
+  } else if (size === '40x30') {
+    if (bcMode === 'tall') { bcHeight = 42; bcWidth = 1.4; bcFontSize = 10; }
+    else if (bcMode === 'extra_tall') { bcHeight = 50; bcWidth = 1.5; bcFontSize = 10.5; }
+    else { bcHeight = 36; bcWidth = 1.3; bcFontSize = 9; }
+  } else if (size === '50x30') {
+    if (bcMode === 'tall') { bcHeight = 48; bcWidth = 1.6; bcFontSize = 11.5; }
+    else if (bcMode === 'extra_tall') { bcHeight = 56; bcWidth = 1.75; bcFontSize = 12; }
+    else { bcHeight = 40; bcWidth = 1.5; bcFontSize = 11; }
+  } else {
+    if (bcMode === 'tall') { bcHeight = 54; bcWidth = 1.85; bcFontSize = 12; }
+    else if (bcMode === 'extra_tall') { bcHeight = 64; bcWidth = 2.0; bcFontSize = 13; }
+    else { bcHeight = 44; bcWidth = 1.7; bcFontSize = 11; }
+  }
 
   var itemsToPrint = [];
   var totalStickers = 0;
@@ -319,20 +370,34 @@ function executePageBarcodePrint() {
     <title>Print Barcodes - MiniPos</title>
     <script src="${'<?php echo $base_path; ?>assets/js/JsBarcode.all.min.js'}"><\/script>
     <style>
-      @page { margin: 0; size: auto; }
-      body { margin: 0; padding: 6px; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif; background: #fff; color: #000; -webkit-print-color-adjust: exact; }
-      .label-container { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
-      .barcode-label { box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; page-break-inside: avoid; break-inside: avoid; margin-bottom: 6px; }
+      @page {
+        margin: 0;
+        ${size === '3up_105x25' ? 'size: 105mm 25mm;' : (size === '40x30' ? 'size: 40mm 30mm;' : (size === '50x30' ? 'size: 50mm 30mm;' : 'size: auto;'))}
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0 !important; padding: 0 !important; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif; background: #fff; color: #000; -webkit-print-color-adjust: exact; }
+      .label-container { display: flex; flex-wrap: wrap; align-items: flex-start; }
+      .barcode-label { box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; page-break-inside: avoid; break-inside: avoid; }
+      .barcode-wrapper { width: 100%; max-width: 31mm; overflow: hidden; display: flex; justify-content: center; align-items: center; margin: 0 auto; flex-shrink: 0; }
+      .barcode-svg { max-width: 100% !important; height: auto !important; display: block; margin: 0 auto; shape-rendering: crispEdges; image-rendering: pixelated; }
       ${size === '40x30' ? `
-        .barcode-label { width: 40mm; height: 30mm; padding: 1.5mm 1mm; overflow: hidden; }
+        .barcode-label { width: 40mm; height: 30mm; padding: ${showShop ? '2mm' : '4mm'} 1mm 1.5mm 1mm; overflow: hidden; }
         .shop-title { font-size: 8px; font-weight: bold; line-height: 1; max-width: 38mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; }
-        .prod-title { font-size: 9px; font-weight: bold; line-height: 1.1; max-width: 38mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; }
+        .prod-title { font-size: 9px; font-weight: bold; line-height: 1.1; max-width: 38mm; white-space: nowrap; overflow: hidden; margin-top: ${showShop ? '0' : '1mm'}; margin-bottom: 1px; }
         .price-title { font-size: 10px; font-weight: bold; line-height: 1; margin-top: 1px; }
       ` : size === '50x30' ? `
-        .barcode-label { width: 50mm; height: 30mm; padding: 2mm 1.5mm; overflow: hidden; }
+        .barcode-label { width: 50mm; height: 30mm; padding: ${showShop ? '2.5mm' : '4.5mm'} 1.5mm 2mm 1.5mm; overflow: hidden; }
         .shop-title { font-size: 9px; font-weight: bold; line-height: 1; max-width: 47mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; }
-        .prod-title { font-size: 10px; font-weight: bold; line-height: 1.1; max-width: 47mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; }
+        .prod-title { font-size: 10px; font-weight: bold; line-height: 1.1; max-width: 47mm; white-space: nowrap; overflow: hidden; margin-top: ${showShop ? '0' : '1mm'}; margin-bottom: 1px; }
         .price-title { font-size: 11px; font-weight: bold; line-height: 1; margin-top: 1px; }
+      ` : size === '3up_105x25' ? `
+        /* ມ້ວນ "3-up 105x25mm": ຍັບດວງ 1 (ໂຕທາງໜ້າ nth-child(3n+1)) ອອກຈາກຂອບດຶງກະດາດ 3.5mm ປ້ອງກັນຫົວພິມຕັດ/ຈາງ */
+        .label-container { display: grid; grid-template-columns: 32mm 32mm 32mm; justify-content: space-between; width: 105mm; margin: 0 auto; padding: 0 1.5mm; box-sizing: border-box; }
+        .barcode-label { width: 32mm; height: 24.5mm; padding: ${showShop ? '1.5mm' : '3.2mm'} 0.5mm 0.5mm 0.5mm; overflow: hidden; ${rotate180 ? 'transform: rotate(180deg);' : ''} }
+        .barcode-label:nth-child(3n+1) { margin-left: 3.5mm; }
+        .shop-title { font-size: 7px; font-weight: bold; line-height: 1; max-width: 31mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.5px; }
+        .prod-title { font-size: 8px; font-weight: bold; line-height: 1.1; max-width: 31mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: ${showShop ? '0' : '0.6mm'}; margin-bottom: 0.5px; }
+        .price-title { font-size: 8.5px; font-weight: bold; line-height: 1; margin-top: 0.5px; white-space: nowrap; }
       ` : `
         .label-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10mm; }
         .barcode-label { border: 1px dashed #cbd5e1; border-radius: 6px; padding: 4mm 2mm; min-height: 32mm; }
@@ -340,12 +405,12 @@ function executePageBarcodePrint() {
         .prod-title { font-size: 11px; font-weight: bold; line-height: 1.2; margin-bottom: 2px; }
         .price-title { font-size: 12px; font-weight: bold; line-height: 1; margin-top: 2px; }
       `}
-      svg { max-width: 100%; height: auto; }
     </style>
   </head>
   <body>
-    <div class="label-container">
   `;
+
+  printDoc += `<div class="label-container">`;
 
   itemsToPrint.forEach(function(item) {
     var p = item.product;
@@ -360,15 +425,18 @@ function executePageBarcodePrint() {
         <div class="barcode-label">
           ${showShop ? `<div class="shop-title">${SHOP_NAME}</div>` : ''}
           ${showName ? `<div class="prod-title">${prodName}</div>` : ''}
-          <svg class="barcode-svg" data-barcode="${barcodeVal}"></svg>
+          <div class="barcode-wrapper">
+            <svg class="barcode-svg" data-barcode="${barcodeVal}"></svg>
+          </div>
           ${showPrice ? `<div class="price-title">${priceFormatted}</div>` : ''}
         </div>
       `;
     }
   });
 
+  printDoc += `</div>`;
+
   printDoc += `
-    </div>
     <script>
       window.onload = function() {
         var svgs = document.querySelectorAll('.barcode-svg');
@@ -376,13 +444,19 @@ function executePageBarcodePrint() {
           var code = el.getAttribute('data-barcode');
           JsBarcode(el, code, {
             format: "CODE128",
-            width: ${size === '40x30' ? 1.3 : (size === '50x30' ? 1.5 : 1.7)},
-            height: ${size === '40x30' ? 32 : (size === '50x30' ? 36 : 42)},
+            width: ${bcWidth},
+            height: ${bcHeight},
             displayValue: true,
-            fontSize: ${size === '40x30' ? 9 : 11},
+            fontSize: ${bcFontSize},
             font: "monospace",
-            margin: 1,
-            textMargin: 1
+            background: "#ffffff",
+            lineColor: "#000000",
+            margin: 2,
+            marginLeft: 6,
+            marginRight: 6,
+            marginTop: 1,
+            marginBottom: 1,
+            textMargin: 2
           });
         });
         setTimeout(function() {

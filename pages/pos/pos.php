@@ -12,10 +12,33 @@ $stmtSeq = $pdo->prepare("SELECT COUNT(*) FROM tbsale_save WHERE sale_date = ?")
 $stmtSeq->execute([$todayDate]);
 $todaySaleCount = intval($stmtSeq->fetchColumn() ?? 0);
 ?>
+<?php
+  // Multi-currency: base data stays in KIP. These drive the receipt's 4-currency
+  // net-total block and (when not KIP) the POS money display.
+  $posDisplayCurrency = getDisplayCurrency($pdo);
+?>
 <script>
 window.POS_BACKEND_URL = '../../api/pos_backend.php';
 window.CURRENT_USER_NAME = "<?php echo htmlspecialchars($_SESSION['fname'] ?? $_SESSION['username'] ?? 'Admin'); ?>";
 window.POS_TODAY_SALE_COUNT = <?php echo $todaySaleCount; ?>;
+window.POS_EX_RATES = <?php echo json_encode($posDisplayCurrency['rates'], JSON_UNESCAPED_UNICODE); ?>;
+window.POS_CURRENCY_META = <?php echo json_encode(getCurrencyMeta(), JSON_UNESCAPED_UNICODE); ?>;
+window.POS_DISPLAY_CURRENCY = <?php echo json_encode($posDisplayCurrency['code']); ?>;
+
+// Stop SweetAlert2 from reflowing the page when an alert opens: heightAuto:false keeps it
+// from forcing html/body to height:auto, scrollbarPadding:false keeps it from adding a
+// body padding-right. Without this the cart's action buttons jump on every stock warning.
+(function () {
+  if (!window.Swal || !Swal.fire) return;
+  var _fire = Swal.fire.bind(Swal);
+  Swal.fire = function (a) {
+    if (a && typeof a === 'object' && !Array.isArray(a)) {
+      if (a.heightAuto === undefined) a.heightAuto = false;
+      if (a.scrollbarPadding === undefined) a.scrollbarPadding = false;
+    }
+    return _fire.apply(Swal, arguments);
+  };
+})();
 </script>
 <link rel="stylesheet" href="../../themes/pos.css?v=<?php echo time(); ?>">
 
@@ -59,7 +82,7 @@ window.POS_TODAY_SALE_COUNT = <?php echo $todaySaleCount; ?>;
     </button>
 
     <!-- 3. Direct Checkout Button -->
-    <button type="button" class="btn btn-warning font-weight-bold text-dark d-flex align-items-center justify-content-center px-3 py-2 shadow-sm" onclick="openCheckoutModal()" title="<?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?>" style="border-radius: 12px; min-height: 44px; flex-shrink: 0; background: #eab308; border-color: #ca8a04; font-size: 0.92rem; white-space: nowrap;">
+    <button type="button" id="btnCheckoutFloating" class="btn btn-warning font-weight-bold text-dark d-flex align-items-center justify-content-center px-3 py-2 shadow-sm" onclick="openCheckoutModal()" title="<?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?>" style="border-radius: 12px; min-height: 44px; flex-shrink: 0; background: #eab308; border-color: #ca8a04; font-size: 0.92rem; white-space: nowrap;">
       <i class="fas fa-money-bill-wave mr-1"></i> <span><?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?></span>
     </button>
   </div>

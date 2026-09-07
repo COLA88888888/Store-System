@@ -14,6 +14,8 @@ return [
     'print_barcode.sticker_size_label' => '标签尺寸:',
     'print_barcode.size_40x30' => '40mm x 30mm (标准卷)',
     'print_barcode.size_50x30' => '50mm x 30mm (中号卷)',
+    'print_barcode.size_3up' => '105mm x 25mm (3 列)',
+    'print_barcode.opt_rotate_180' => '旋转标签 180°（如果打印出来是倒的）',
     'print_barcode.size_a4' => 'A4 纸张 (表格)',
     'print_barcode.footer_summary_initial' => '已选择: 0 项 (共 0 张)',
     'print_barcode.summary_selected_label' => '已选择',

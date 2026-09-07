@@ -73,6 +73,7 @@ return [
     'price_adjustment.calc_set' => '设置新值',
     'price_adjustment.calc_increase' => '涨价',
     'price_adjustment.calc_decrease' => '降价',
+    'price_adjustment.title_edit' => '编辑',
     'price_adjustment.title_delete' => '删除记录',
 
     'price_adjustment.err_select_product' => '请选择要调价的商品!',

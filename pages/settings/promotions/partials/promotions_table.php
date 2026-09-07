@@ -62,7 +62,7 @@
                       $val = floatval($p['discount_value']);
                       echo number_format($val, floor($val) == $val ? 0 : 2) . '%';
                   } else {
-                      echo number_format(floatval($p['discount_value']), 0) . ' ₭';
+                      echo htmlspecialchars($promoFmtMoney(floatval($p['discount_value'])), ENT_QUOTES);
                   }
                 ?>
               </td>
@@ -80,7 +80,7 @@
                       $conds[] = '<span class="font-weight-bold text-dark">' . number_format($p['min_qty'], 0) . ' ' . htmlspecialchars(t('promotions.unit_pieces', 'ຊິ້ນ')) . '</span>';
                   }
                   if (!empty($p['min_amount']) && $p['min_amount'] > 0) {
-                      $conds[] = '<span class="text-primary font-weight-bold">' . number_format($p['min_amount'], 0) . ' ₭</span>';
+                      $conds[] = '<span class="text-primary font-weight-bold">' . htmlspecialchars($promoFmtMoney(floatval($p['min_amount'])), ENT_QUOTES) . '</span>';
                   }
                   if (!empty($conds)) {
                       echo implode(' , ', $conds);
@@ -92,8 +92,15 @@
 
               <!-- 7. ສິນຄ້າ/ປະເພດ -->
               <td>
+                <?php
+                  $targetDisplay = $p['target_name'] ?? t('promotions.all_products', 'ທຸກສິນຄ້າ');
+                  // If a code was entered as the target, show the matching product name instead
+                  if (($p['target_type'] ?? '') === 'product' && !empty($productNameByCode[trim((string)($p['target_name'] ?? ''))])) {
+                      $targetDisplay = $productNameByCode[trim((string)$p['target_name'])];
+                  }
+                ?>
                 <span class="badge badge-primary font-weight-bold px-2 py-1" style="font-size: 0.76rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
-                  <i class="fas fa-box-open mr-1"></i> <?php echo htmlspecialchars($p['target_name'] ?? t('promotions.all_products', 'ທຸກສິນຄ້າ')); ?>
+                  <i class="fas fa-box-open mr-1"></i> <?php echo htmlspecialchars($targetDisplay); ?>
                 </span>
               </td>
 

@@ -13,6 +13,7 @@ return [
     'layout.categories' => 'ໝວດໝູ່ສິນຄ້າ',
     'layout.units' => 'ຈັດການຫົວໜ່ວຍ',
     'layout.products' => 'ລາຍການສິນຄ້າ',
+    'layout.suppliers' => 'ຈັດການຜູ້ສະໜອງ',
     'layout.import_stock' => 'ນຳເຂົ້າສິນຄ້າ',
     'layout.import_list' => 'ລາຍການສິນຄ້າຮັບເຂົ້າ',
     'layout.stock_transfer' => 'ໂອນສິນຄ້າລະຫວ່າງສາຂາ',

@@ -10,9 +10,9 @@
         <input type="hidden" name="action" value="add_user">
 
         <!-- HEADER -->
-        <div class="modal-header bg-primary text-white py-3 px-4" style="border-radius: 16px 16px 0 0;">
+        <div class="modal-header text-white py-3 px-4" style="border-radius: 16px 16px 0 0; background-color: #244886;">
           <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.2rem;">
-            <i class="fas fa-user-plus mr-2"></i> ເພີ່ມຜູ້ໃຊ້ໃໝ່
+            <i class="fas fa-user-plus mr-2"></i> <?php echo htmlspecialchars(t('users_manage.add_modal_title', 'ເພີ່ມຜູ້ໃຊ້ໃໝ່')); ?>
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
@@ -61,44 +61,44 @@
               <div class="row">
                 <!-- ລະຫັດ & ສະຖານະ -->
                 <div class="col-md-6 form-group mb-3">
-                  <label class="font-weight-bold text-muted mb-1">ລະຫັດຜູ້ນຳໃຊ້: <span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_user_code', 'ລະຫັດຜູ້ນຳໃຊ້:')); ?> <span class="text-danger">*</span></label>
                   <input type="text" name="user_code" id="add_user_code" class="form-control"
-                         placeholder="ກະລຸນາປ້ອນລະຫັດ" required>
+                         placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_user_code', 'ກະລຸນາປ້ອນລະຫັດ')); ?>" required>
                 </div>
                 <div class="col-md-6 form-group mb-3">
-                  <label class="font-weight-bold text-muted mb-1">ຕຳແໜ່ງ: <span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_role', 'ຕຳແໜ່ງ:')); ?> <span class="text-danger">*</span></label>
                   <select name="status" class="form-control" required>
-                    <option value="">-- ເລືອກຕຳແໜ່ງ --</option>
-                    <option value="ຜູ້ບໍລິຫານ">ຜູ້ບໍລິຫານ</option>
-                    <option value="ພະນັກງານ">ພະນັກງານ</option>
+                    <option value=""><?php echo htmlspecialchars(t('users_manage.option_select_role', '-- ເລືອກຕຳແໜ່ງ --')); ?></option>
+                    <option value="ຜູ້ບໍລິຫານ"><?php echo htmlspecialchars(t('users_manage.role_admin', 'ຜູ້ບໍລິຫານ')); ?></option>
+                    <option value="ພະນັກງານ"><?php echo htmlspecialchars(t('users_manage.role_employee', 'ພະນັກງານ')); ?></option>
                   </select>
                 </div>
 
                 <!-- ຊື່ຜູ້ໃຊ້ງານ & ສາຂາ -->
                 <div class="col-md-6 form-group mb-3">
-                  <label class="font-weight-bold text-muted mb-1">ຊື່ຜູ້ນຳໃຊ້: <span class="text-danger">*</span></label>
-                  <input type="text" name="fname" class="form-control" placeholder="ກະລຸນາປ້ອນຊື່" required>
+                  <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_username', 'ຊື່ຜູ້ນຳໃຊ້:')); ?> <span class="text-danger">*</span></label>
+                  <input type="text" name="fname" class="form-control" placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_username', 'ກະລຸນາປ້ອນຊື່')); ?>" required>
                 </div>
                 <div class="col-md-6 form-group mb-3">
-                  <label class="font-weight-bold text-muted mb-1">ປະຈຳສາຂາ: <span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_branch', 'ປະຈຳສາຂາ:')); ?> <span class="text-danger">*</span></label>
                   <select name="store_id" class="form-control" required>
                     <?php if (!empty($storesList)): ?>
                       <?php foreach ($storesList as $st): ?>
                         <option value="<?php echo $st['store_id']; ?>">
-                          <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? '(ສາຂາໃຫຍ່)' : ''; ?>
+                          <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('users_manage.branch_main_suffix', '(ສາຂາໃຫຍ່)')) : ''; ?>
                         </option>
                       <?php endforeach; ?>
                     <?php else: ?>
-                      <option value="1">ສາຂາຫຼັກ</option>
+                      <option value="1"><?php echo htmlspecialchars(t('users_manage.default_store', 'ສາຂາຫຼັກ')); ?></option>
                     <?php endif; ?>
                   </select>
                 </div>
                 <!-- ລະຫັດຜ່ານ -->
                 <div class="col-md-6 form-group mb-3">
-                  <label class="font-weight-bold text-muted mb-1">ລະຫັດຜ່ານ: <span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_password', 'ລະຫັດຜ່ານ:')); ?> <span class="text-danger">*</span></label>
                   <div class="input-group">
                     <input type="password" name="password" id="add_password" class="form-control"
-                           placeholder="ປ້ອນລະຫັດຜ່ານ" required>
+                           placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_password', 'ປ້ອນລະຫັດຜ່ານ')); ?>" required>
                     <div class="input-group-append">
                       <button type="button" class="btn btn-outline-secondary"
                               onclick="togglePassVisibility('add_password', this)">
@@ -110,25 +110,25 @@
 
                 <!-- ເພດ & ຢືນຢັນລະຫັດ -->
                 <div class="col-md-6 form-group mb-3 d-flex align-items-center flex-wrap" style="min-height:45px;">
-                  <label class="font-weight-bold text-muted mb-0 mr-3">ເພດ: <span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-muted mb-0 mr-3"><?php echo htmlspecialchars(t('users_manage.label_gender', 'ເພດ:')); ?> <span class="text-danger">*</span></label>
                   <div class="d-flex align-items-center">
                     <div class="custom-control custom-radio custom-control-inline mr-4 mb-0">
                       <input type="radio" id="add_gender_male" name="gender" value="ຊາຍ"
                              class="custom-control-input" checked>
-                      <label class="custom-control-label font-weight-normal" for="add_gender_male">ຊາຍ</label>
+                      <label class="custom-control-label font-weight-normal" for="add_gender_male"><?php echo htmlspecialchars(t('users_manage.gender_male', 'ຊາຍ')); ?></label>
                     </div>
                     <div class="custom-control custom-radio custom-control-inline mb-0">
                       <input type="radio" id="add_gender_female" name="gender" value="ຍິງ"
                              class="custom-control-input">
-                      <label class="custom-control-label font-weight-normal" for="add_gender_female">ຍິງ</label>
+                      <label class="custom-control-label font-weight-normal" for="add_gender_female"><?php echo htmlspecialchars(t('users_manage.gender_female', 'ຍິງ')); ?></label>
                     </div>
                   </div>
                 </div>
                 <div class="col-md-6 form-group mb-3">
-                  <label class="font-weight-bold text-muted mb-1">ຢືນຢັນລະຫັດ:</label>
+                  <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_confirm_password', 'ຢືນຢັນລະຫັດ:')); ?></label>
                   <div class="input-group">
                     <input type="password" name="confirm_password" id="add_confirm_password"
-                           class="form-control" placeholder="ຢືນຢັນລະຫັດ">
+                           class="form-control" placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_confirm_password', 'ຢືນຢັນລະຫັດ')); ?>">
                     <div class="input-group-append">
                       <button type="button" class="btn btn-outline-secondary"
                               onclick="togglePassVisibility('add_confirm_password', this)">
@@ -140,27 +140,27 @@
 
                 <!-- ວັນເດືອນປີເກີດ & ເບີໂທ -->
                 <div class="col-md-6 form-group mb-3">
-                  <label class="font-weight-bold text-muted mb-1">ວັນເດືອນປີເກີດ: <span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_dob', 'ວັນເດືອນປີເກີດ:')); ?> <span class="text-danger">*</span></label>
                   <input type="date" name="dob" id="add_dob"
                          onclick="this.showPicker ? this.showPicker() : null"
                          class="form-control" style="cursor:pointer;" required>
                 </div>
                 <!-- ເບີໂທ & ທີ່ຢູ່ -->
                 <div class="col-md-6 form-group mb-3">
-                  <label class="font-weight-bold text-muted mb-1">ເບີໂທ: <span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_tel', 'ເບີໂທ:')); ?> <span class="text-danger">*</span></label>
                   <input type="text" name="tel" class="form-control" placeholder="020..." required>
                 </div>
                 <div class="col-md-6 form-group mb-3">
-                  <label class="font-weight-bold text-muted mb-1">ທີ່ຢູ່: <span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_address', 'ທີ່ຢູ່:')); ?> <span class="text-danger">*</span></label>
                   <textarea name="address" class="form-control" rows="1"
-                            placeholder="ບ້ານ, ເມືອງ, ແຂວງ (ບໍ່ບັງຄັບ)"></textarea>
+                            placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_address_optional', 'ບ້ານ, ເມືອງ, ແຂວງ (ບໍ່ບັງຄັບ)')); ?>"></textarea>
                 </div>
 
                 <!-- ໝາຍເຫດ (ດ້ານລຸ່ມ) -->
                 <div class="col-md-12 form-group mb-3">
-                  <label class="font-weight-bold text-muted mb-1">ໝາຍເຫດ:</label>
+                  <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_notes', 'ໝາຍເຫດ:')); ?></label>
                   <textarea name="notes" class="form-control" rows="2"
-                            placeholder="ໝາຍເຫດ (ບໍ່ບັງຄັບ)"></textarea>
+                            placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_notes_optional', 'ໝາຍເຫດ (ບໍ່ບັງຄັບ)')); ?>"></textarea>
                 </div>
               </div>
             </div>
@@ -170,10 +170,10 @@
         <!-- FOOTER -->
         <div class="modal-footer bg-light py-3 px-4" style="border-radius: 0 0 16px 16px;">
           <button type="button" class="btn btn-secondary px-4 font-weight-bold" data-dismiss="modal" style="border-radius:6px;">
-            <i class="fas fa-times mr-1"></i> ຍົກເລີກ
+            <i class="fas fa-times mr-1"></i> <?php echo htmlspecialchars(t('users_manage.btn_cancel', 'ຍົກເລີກ')); ?>
           </button>
           <button type="submit" class="btn btn-primary px-4 font-weight-bold shadow-sm" style="border-radius:6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
-            <i class="fas fa-save mr-1"></i> ບັນທຶກ
+            <i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('users_manage.btn_save', 'ບັນທຶກ')); ?>
           </button>
         </div>
 

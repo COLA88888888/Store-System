@@ -175,6 +175,32 @@ $stmtP = $pdo->prepare("
 $stmtP->execute($params);
 $promos = $stmtP->fetchAll(PDO::FETCH_ASSOC);
 
+// Map barcode / code1 -> product_name so the table can show a real name even when a promo's
+// target was entered as a code. Built before the fetch_table exit so the AJAX reload has it too.
+$productNameByCode = [];
+try {
+    foreach ($pdo->query("SELECT product_name, barcode, code1 FROM products")->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $nm = trim((string)$row['product_name']);
+        if ($nm === '') continue;
+        foreach ([(string)($row['barcode'] ?? ''), (string)($row['code1'] ?? '')] as $code) {
+            $code = trim($code);
+            if ($code !== '') $productNameByCode[$code] = $nm;
+        }
+    }
+} catch (Exception $e) {}
+
+// Active display currency, so the table shows ₭ amounts in whatever currency the shop uses
+$promoDispCur = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo) : ['code' => 'KIP', 'symbol' => '₭', 'decimals' => 0, 'rates' => null];
+$promoFmtMoney = function ($amountKip) use ($promoDispCur) {
+    $code = strtoupper((string)($promoDispCur['code'] ?? 'KIP'));
+    if ($code === 'KIP' || !function_exists('convertFromKip')) {
+        return number_format((float)$amountKip, 0) . ' ₭';
+    }
+    $val = convertFromKip($amountKip, $code, $promoDispCur['rates'] ?? null);
+    $dec = (int)($promoDispCur['decimals'] ?? 2);
+    return number_format((float)$val, $dec, '.', ',') . ' ' . (string)($promoDispCur['symbol'] ?? $code);
+};
+
 if (!empty($_GET['fetch_table'])) {
     require_once __DIR__ . '/partials/promotions_table.php';
     exit();
@@ -190,11 +216,37 @@ try {
     $categories = $cStmt->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) {}
 
-$productsList = [];
+$productsList = [];   // names only — feeds the <datalist>
+$productsLookup = [];  // {code, barcode, name, units[]} — lets the modal resolve a typed code
+                      // to a name AND offer that product's real unit names
 try {
-    $pStmt = $pdo->prepare("SELECT DISTINCT product_name FROM products WHERE store_id = ? OR store_id = 1 ORDER BY product_name ASC");
+    $pStmt = $pdo->prepare("SELECT product_id, product_name, barcode, code1, unit FROM products WHERE store_id = ? OR store_id = 1 ORDER BY product_name ASC");
     $pStmt->execute([$targetProdStore]);
-    $productsList = $pStmt->fetchAll(PDO::FETCH_COLUMN);
+    $prodRows = $pStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Extra units per product
+    $unitsByProduct = [];
+    try {
+        foreach ($pdo->query("SELECT product_id, unit_name FROM product_units")->fetchAll(PDO::FETCH_ASSOC) as $u) {
+            $un = trim((string)$u['unit_name']);
+            if ($un !== '') $unitsByProduct[$u['product_id']][] = $un;
+        }
+    } catch (Exception $e) {}
+
+    foreach ($prodRows as $row) {
+        $productsList[] = $row['product_name'];
+        $units = [];
+        $baseU = trim((string)($row['unit'] ?? ''));
+        if ($baseU !== '') $units[] = $baseU;
+        foreach ($unitsByProduct[$row['product_id']] ?? [] as $eu) $units[] = $eu;
+        $productsLookup[] = [
+            'name'    => $row['product_name'],
+            'barcode' => (string)($row['barcode'] ?? ''),
+            'code'    => (string)($row['code1'] ?? ''),
+            'units'   => array_values(array_unique($units)),
+        ];
+    }
+    $productsList = array_values(array_unique($productsList));
 } catch (Exception $e) {}
 
 require_once __DIR__ . '/../../../layouts/header.php';

@@ -112,7 +112,8 @@ foreach ($items as $pcRow) {
     $bp = floatval($pcRow['buy_price'] ?? 0);
     $pc_total_qty      += $q;
     $pc_total_discount += floatval($pcRow['total_discount'] ?? 0);
-    $pc_total_revenue  += floatval($pcRow['total_revenue'] ?? 0);
+    // Sales figure is net of item-level and prorated bill-level discount, so profit/margin below are too
+    $pc_total_revenue  += max(0, floatval($pcRow['total_revenue'] ?? 0) - floatval($pcRow['total_discount'] ?? 0));
     $pc_total_cost     += $q * $bp;
 }
 $pc_total_profit = $pc_total_revenue - $pc_total_cost;
@@ -248,7 +249,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   $qty      = floatval($row['total_qty_sold']);
                   $buyPrice = floatval($row['buy_price']);
                   $costSum  = $qty * $buyPrice;
-                  $revSum   = floatval($row['total_revenue']);
+                  $revSum   = max(0, floatval($row['total_revenue']) - floatval($row['total_discount']));
                   $profit   = $revSum - $costSum;
                   $margin   = ($revSum > 0) ? round(($profit / $revSum) * 100, 1) : 0;
                   $profitPrefix = ($profit > 0) ? '+' : '';
@@ -260,16 +261,16 @@ require_once __DIR__ . '/../../layouts/header.php';
                   <td class="text-center">
                     <?php if (!empty($row['total_discount']) && floatval($row['total_discount']) > 0): ?>
                       <span class="badge badge-danger font-weight-bold px-2 py-1" style="font-size: 0.76rem; border-radius: 6px;">
-                        -<?php echo number_format($row['total_discount']); ?> ₭
+                        -<?php echo displayMoney($pdo, $row['total_discount']); ?>
                       </span>
                     <?php else: ?>
                       <span class="text-muted">-</span>
                     <?php endif; ?>
                   </td>
-                  <td class="text-right font-weight-bold text-dark"><?php echo number_format($revSum, 0); ?> ₭</td>
-                  <td class="text-right font-weight-bold text-secondary"><?php echo number_format($costSum, 0); ?> ₭</td>
+                  <td class="text-right font-weight-bold text-dark"><?php echo displayMoney($pdo, $revSum); ?></td>
+                  <td class="text-right font-weight-bold text-secondary"><?php echo displayMoney($pdo, $costSum); ?></td>
                   <td class="text-right font-weight-bold <?php echo $profitClass; ?>" style="font-size: 0.95rem;">
-                    <?php echo $profitPrefix . number_format($profit, 0); ?> ₭
+                    <?php echo $profitPrefix . displayMoney($pdo, $profit); ?>
                   </td>
                   <td class="text-center font-weight-bold text-primary">
                     <span class="badge badge-light border text-primary px-2 py-1" style="font-size: 0.82rem; border-radius: 8px;">
@@ -291,14 +292,14 @@ require_once __DIR__ . '/../../layouts/header.php';
                 <td class="text-center text-dark py-3"><?php echo number_format($pc_total_qty); ?></td>
                 <td class="text-center py-3">
                   <?php if ($pc_total_discount > 0): ?>
-                    <span class="badge badge-danger font-weight-bold px-2 py-1" style="font-size: 0.76rem; border-radius: 6px;">-<?php echo number_format($pc_total_discount); ?> ₭</span>
+                    <span class="badge badge-danger font-weight-bold px-2 py-1" style="font-size: 0.76rem; border-radius: 6px;">-<?php echo displayMoney($pdo, $pc_total_discount); ?></span>
                   <?php else: ?>
                     <span class="text-muted">-</span>
                   <?php endif; ?>
                 </td>
-                <td class="text-right text-dark py-3"><?php echo number_format($pc_total_revenue, 0); ?> ₭</td>
-                <td class="text-right text-secondary py-3"><?php echo number_format($pc_total_cost, 0); ?> ₭</td>
-                <td class="text-right py-3 <?php echo $pcFootClass; ?>" style="font-size: 0.98rem;"><?php echo $pcFootPrefix . number_format($pc_total_profit, 0); ?> ₭</td>
+                <td class="text-right text-dark py-3"><?php echo displayMoney($pdo, $pc_total_revenue); ?></td>
+                <td class="text-right text-secondary py-3"><?php echo displayMoney($pdo, $pc_total_cost); ?></td>
+                <td class="text-right py-3 <?php echo $pcFootClass; ?>" style="font-size: 0.98rem;"><?php echo $pcFootPrefix . displayMoney($pdo, $pc_total_profit); ?></td>
                 <td class="text-center py-3">
                   <span class="badge badge-light border text-primary px-2 py-1" style="font-size: 0.82rem; border-radius: 8px;"><?php echo number_format($pc_total_margin, 1); ?>%</span>
                 </td>

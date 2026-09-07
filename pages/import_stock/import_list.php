@@ -584,7 +584,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                         </td>
 
                         <td class="align-middle text-right font-weight-bold text-success" style="font-size: 1rem;">
-                          <?php echo number_format($row['total_cost']); ?> ₭
+                          <?php echo displayMoney($pdo, $row['total_cost']); ?>
                         </td>
 
                         <td class="align-middle text-secondary font-weight-bold" style="font-size: 0.88rem;">
@@ -626,7 +626,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                 <tfoot>
                   <tr style="background:#f8fafc;font-weight:800;border-top:2px solid #cbd5e1;">
                     <td colspan="6" class="text-right"><?php echo htmlspecialchars(t('import_list.grand_total', 'ລວມທັງໝົດ:')); ?></td>
-                    <td class="text-right text-success" style="font-size:1rem;" id="importGrandTotal"><?php echo number_format($grandTotalCost); ?> ₭</td>
+                    <td class="text-right text-success" style="font-size:1rem;" id="importGrandTotal"><?php echo displayMoney($pdo, $grandTotalCost); ?></td>
                     <td colspan="3"></td>
                   </tr>
                 </tfoot>
@@ -730,7 +730,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                         </td>
 
                         <td class="align-middle text-right font-weight-bold text-primary">
-                          <?php echo number_format($row['total_cost']); ?> ₭
+                          <?php echo displayMoney($pdo, $row['total_cost']); ?>
                         </td>
 
                         <td class="align-middle text-center">
@@ -774,7 +774,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                 <tfoot>
                   <tr style="background:#f8fafc;font-weight:800;border-top:2px solid #cbd5e1;">
                     <td colspan="7" class="text-right"><?php echo htmlspecialchars(t('import_list.grand_total', 'ລວມທັງໝົດ:')); ?></td>
-                    <td class="text-right text-primary" style="font-size:1rem;" id="importGrandTotal"><?php echo number_format($grandTotalCost); ?> ₭</td>
+                    <td class="text-right text-primary" style="font-size:1rem;" id="importGrandTotal"><?php echo displayMoney($pdo, $grandTotalCost); ?></td>
                     <td colspan="3"></td>
                   </tr>
                 </tfoot>

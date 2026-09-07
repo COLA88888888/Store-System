@@ -131,7 +131,7 @@
               <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><?php echo htmlspecialchars(t('pos.amount_received_label', 'ຈຳນວນທີ່ຮັບ')); ?> <span class="text-danger">*</span></div>
               <div class="input-group" style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(36,72,134,0.10);">
                 <input type="text" id="cashReceived" class="form-control text-right font-weight-bold"
-                  placeholder="0" oninput="formatPriceInput(this);calculateChange();"
+                  placeholder="0" oninput="formatMoneyInput(this);calculateChange();"
                   style="height:42px;font-size:1.2rem;color:#1a3666;background:#fff;border:2px solid #244886;border-right:none;">
                 <div class="input-group-append">
                   <span class="input-group-text font-weight-bold text-white" style="background:#244886;border:2px solid #244886;border-left:none;padding:0 14px;font-size:1rem;">₭</span>
@@ -159,7 +159,7 @@
                 </div>
                 <div class="input-group" style="border-radius:9px;overflow:hidden;">
                   <input type="text" id="splitCashAmount" class="form-control text-right font-weight-bold"
-                    placeholder="0" oninput="formatPriceInput(this);calcSplitRemaining();"
+                    placeholder="0" oninput="formatMoneyInput(this);calcSplitRemaining();"
                     style="height:40px;font-size:1.1rem;color:#16a34a;border:2px solid #22c55e;border-right:none;background:#f0fdf4;">
                   <div class="input-group-append">
                     <span class="input-group-text font-weight-bold text-white" style="background:#22c55e;border:2px solid #22c55e;border-left:none;padding:0 12px;font-size:0.95rem;">₭</span>
@@ -182,7 +182,7 @@
                 </div>
                 <div class="input-group" style="border-radius:9px;overflow:hidden;">
                   <input type="text" id="splitQrAmount" class="form-control text-right font-weight-bold"
-                    placeholder="0" oninput="formatPriceInput(this);calcSplitRemaining();"
+                    placeholder="0" oninput="formatMoneyInput(this);calcSplitRemaining();"
                     style="height:40px;font-size:1.1rem;color:#7c3aed;border:2px solid #a78bfa;border-right:none;background:#faf5ff;">
                   <div class="input-group-append">
                     <span class="input-group-text font-weight-bold text-white" style="background:#7c3aed;border:2px solid #7c3aed;border-left:none;padding:0 12px;font-size:0.95rem;">₭</span>
@@ -342,6 +342,13 @@
         <div class="d-flex justify-content-between" style="color:#000;font-weight:600;"><span><?php echo htmlspecialchars(t('pos.receipt_discount', 'ສ່ວນຫຼຸດ:')); ?></span><span id="rc_discount">0 ₭</span></div>
         <div class="d-flex justify-content-between" id="rc_vat_row" style="color:#000;font-weight:600;display:none;"><span id="rc_vat_label"><?php echo htmlspecialchars(t('pos.receipt_vat', 'ອມພ (VAT):')); ?></span><span id="rc_vat">0 ₭</span></div>
         <div class="d-flex justify-content-between font-weight-bold" style="font-size:13.5px;color:#000;font-weight:700;"><span><?php echo htmlspecialchars(t('pos.receipt_net_total', 'ຍອດສຸດທິ:')); ?></span><span id="rc_total">0 ₭</span></div>
+        <!-- ຍອດຊຳລະສຸດທິ ໃນ 4 ສະກຸນເງິນ (ຄິດຈາກກີບ × ອັດຕາລ່າສຸດ) -->
+        <div id="rc_multicur" style="color:#000;font-weight:600;font-size:11.5px;margin-top:2px;border-top:1px dotted #000;padding-top:3px;">
+          <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cur_kip', 'ກີບ (LAK):')); ?></span><span id="rc_total_kip">0 ₭</span></div>
+          <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cur_thb', 'ບາດ (THB):')); ?></span><span id="rc_total_thb">-</span></div>
+          <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cur_usd', 'ໂດລາ (USD):')); ?></span><span id="rc_total_usd">-</span></div>
+          <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cur_cny', 'ຢວນ (CNY):')); ?></span><span id="rc_total_cny">-</span></div>
+        </div>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
         <div class="d-flex justify-content-between font-weight-bold" style="color:#000;font-weight:700;"><span><?php echo htmlspecialchars(t('pos.change_label', 'ເງິນທອນ:')); ?></span><span id="rc_change">0 ₭</span></div>
         <div class="d-flex justify-content-between" id="rc_points_row" style="color:#000;font-weight:600;display:none;"><span><?php echo htmlspecialchars(t('pos.receipt_points_earned', 'ຄະແນນທີ່ໄດ້ຮັບ:')); ?></span><span id="rc_points_earned" style="font-weight:700;">0</span></div>
@@ -356,7 +363,22 @@
                onerror="this.onerror=null;this.src='<?php echo $base_path; ?>assets/img/qr_placeholder.png';">
           <div id="rc_bank_name_lbl" style="font-size:12.5px;font-weight:800;color:#000;margin-top:3px;"><?php echo htmlspecialchars(t('pos.scan_qr_to_pay', 'ສະແກນ QR Code ຊຳລະເງິນ')); ?></div>
         </div>
-        <div class="text-center receipt-footer-msg" style="margin-top:10px !important; padding-top:8px; border-top:1px dashed #000; font-size:12.5px; font-weight:700; color:#000; text-align:center;"><?php echo htmlspecialchars(!empty($company['barcode']) ? $company['barcode'] : t('pos.receipt_thank_you', 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!')); ?></div>
+        <?php
+          // The "receipt footer" (tbcompanyinfo.barcode) is seeded with the default thank-you
+          // text. Only honour it verbatim when the shop actually customised it — otherwise use
+          // t() so the line follows the language (and the flag switcher can retranslate it).
+          $footerDefaults = [
+            'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!',
+            'Thank you for your purchase, see you again!',
+            'ขอบคุณที่อุดหนุน แล้วพบกันใหม่!',
+            '感谢惠顾，欢迎下次光临！',
+          ];
+          $footerRaw = trim((string)($company['barcode'] ?? ''));
+          $footerMsg = ($footerRaw === '' || in_array($footerRaw, $footerDefaults, true))
+            ? t('pos.receipt_thank_you', 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!')
+            : $footerRaw;
+        ?>
+        <div class="text-center receipt-footer-msg" style="margin-top:10px !important; padding-top:8px; border-top:1px dashed #000; font-size:12.5px; font-weight:700; color:#000; text-align:center;"><?php echo htmlspecialchars($footerMsg); ?></div>
       </div>
       <div class="modal-footer border-0 p-3 bg-light">
         <button type="button" class="btn btn-secondary btn-sm font-weight-bold" onclick="resetPOS()"><?php echo htmlspecialchars(t('pos.close', 'ປິດ')); ?></button>

@@ -132,6 +132,52 @@ function deletePriceAdjLog(id, btn) {
   });
 }
 
+// Reuse the add modal as an edit form. `d` = row data from the table's edit button.
+function editPriceAdjLog(d) {
+  var $form = $('#priceAdjForm');
+  // switch the form into "update" mode
+  $form.find('input[name="action"]').val('update_log');
+  if (!$form.find('input[name="adjust_id"]').length) {
+    $form.append('<input type="hidden" name="adjust_id">');
+  }
+  $form.find('input[name="adjust_id"]').val(d.adjust_id);
+
+  // lock to product mode, prefill the product + its ORIGINAL prices (the true baseline)
+  $('#target_mode').val('product').prop('disabled', true);
+  onTargetModeChange('product');
+  $('#quick_search_code').closest('#product_scan_wrap').hide();  // no re-scan when editing
+  $('#product_id_hidden').val(d.product_id);
+  $('#product_name_display').val(d.product_name || ('ID: ' + d.product_id));
+  $('#cur_bprice').val(Number(d.old_bprice || 0).toLocaleString() + ' ₭');
+  $('#cur_price').val(Number(d.old_price || 0).toLocaleString() + ' ₭');
+
+  $('#target_price_type').val(d.target_price_type || 'price');
+  $('#calc_type').val(d.calc_type || 'set');
+  $('#adjust_value').val(Number(d.adjust_value || 0).toLocaleString());
+  $form.find('input[name="remark"]').val(d.remark || '');
+
+  $('#priceAdjModalLabel').html('<i class="fas fa-edit mr-1.5"></i> ແກ້ໄຂການປັບລາຄາ');
+  $form.find('button[type="submit"]').html('<i class="fas fa-check-circle mr-1"></i> ບັນທຶກການແກ້ໄຂ');
+
+  $('#priceAdjModal').modal('show');
+}
+
+// Whenever the modal closes, put it back to "add" mode for the next open.
+$(document).on('hidden.bs.modal', '#priceAdjModal', function() {
+  var $form = $('#priceAdjForm');
+  $form[0].reset();
+  $form.find('input[name="action"]').val('adjust_price');
+  $form.find('input[name="adjust_id"]').val('');
+  $('#target_mode').prop('disabled', false);
+  $('#product_scan_wrap').show();
+  $('#product_id_hidden').val('');
+  $('#product_name_display').val('');
+  $('#cur_bprice').val('');
+  $('#cur_price').val('');
+  $('#priceAdjModalLabel').html('<i class="fas fa-edit mr-1.5"></i> <?php echo htmlspecialchars(t('price_adjustment.modal_title', 'ຟອມປັບປຸງລາຄາສິນຄ້າ'), ENT_QUOTES); ?>');
+  $('#priceAdjForm button[type="submit"]').html('<i class="fas fa-check-circle mr-1"></i> <?php echo htmlspecialchars(t('price_adjustment.btn_save', 'ບັນທຶກ'), ENT_QUOTES); ?>');
+});
+
 function refreshPriceAdjTable() {
   var url = 'price_adjustment.php?fetch_table=1';
   var storeVal = $('select[name="store_id"]').val();

@@ -198,9 +198,9 @@ return [
     'reports.chart_daily_net_sales'  => 'ຍອດຂາຍສຸດທິລາຍວັນ',
     'reports.chart_payment_ratio'    => 'ສັດສ່ວນການຊຳລະ',
     'reports.chart_daily_bill_count' => 'ຈຳນວນບິນລາຍວັນ',
-    'reports.chart_legend_net'       => 'ສຸດທິ (₭)',
-    'reports.chart_legend_cash'      => 'ເງິນສົດ (₭)',
-    'reports.chart_legend_transfer'  => 'ໂອນ (₭)',
+    'reports.chart_legend_net'       => 'ສຸດທິ',
+    'reports.chart_legend_cash'      => 'ເງິນສົດ',
+    'reports.chart_legend_transfer'  => 'ໂອນ',
     'reports.chart_legend_bill_count' => 'ຈຳນວນບິນ',
     'reports.chart_tooltip_bill'     => 'ບິນ:',
 ];

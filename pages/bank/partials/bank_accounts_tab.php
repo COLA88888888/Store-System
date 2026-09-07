@@ -1,3 +1,6 @@
+<?php $__bdc = getDisplayCurrency($pdo); $__bsym = $__bdc['symbol']; $__bdec=(int)$__bdc['decimals'];
+if(!function_exists('__bnum')){function __bnum($dc,$k){return number_format(convertFromKip($k,$dc['code'],$dc['rates']),(int)$dc['decimals'],'.','');}}
+?>
 <?php
 // pages/bank/partials/bank_accounts_tab.php
 if (!defined('MINIPOS_APP')) {
@@ -262,7 +265,7 @@ function getBankBrandStyle($bankCode) {
           <div>
             <small style="color: <?php echo $brand['text_sub']; ?>;" class="font-weight-bold"><?php echo htmlspecialchars(t('bank.received_amount', 'ຍອດຮັບເງິນ:')); ?></small>
             <div class="font-weight-bold text-white" style="font-size: 1.02rem;">
-              <span class="counter-num" data-target="<?php echo $receivedAmt; ?>" data-suffix=" ₭"><?php echo number_format($receivedAmt, 0); ?> ₭</span>
+              <span class="counter-num" data-target="<?php echo __bnum($__bdc, $receivedAmt); ?>" data-suffix=" <?php echo htmlspecialchars($__bsym); ?>" data-decimals="<?php echo $__bdec; ?>"><?php echo displayMoney($pdo, $receivedAmt); ?></span>
             </div>
           </div>
           <div class="text-right">
@@ -282,7 +285,7 @@ function getBankBrandStyle($bankCode) {
         <div>
           <small class="text-white-50 font-weight-bold text-uppercase" style="font-size: 0.78rem; letter-spacing: 0.5px;"><?php echo htmlspecialchars(t('bank.total_transfer_received', 'ລວມຍອດຮັບເງິນໂອນທັງໝົດ')); ?></small>
           <h4 class="font-weight-bold text-white mb-0 mt-1">
-            <span class="counter-num" data-target="<?php echo $total_transfer_sum; ?>" data-suffix=" ₭"><?php echo number_format($total_transfer_sum, 0); ?> ₭</span>
+            <span class="counter-num" data-target="<?php echo __bnum($__bdc, $total_transfer_sum); ?>" data-suffix=" <?php echo htmlspecialchars($__bsym); ?>" data-decimals="<?php echo $__bdec; ?>"><?php echo displayMoney($pdo, $total_transfer_sum); ?></span>
           </h4>
           <small class="text-white-50 font-weight-bold mt-1 d-block">
             <i class="fas fa-exchange-alt mr-1"></i> <?php echo htmlspecialchars(sprintf(t('bank.total_items', 'ລວມ %s ລາຍການ'), number_format($total_transfer_count))); ?>
@@ -362,7 +365,7 @@ function getBankBrandStyle($bankCode) {
                 <img src="<?php echo htmlspecialchars($qrSrc); ?>" style="width: 38px; height: 38px; object-fit: contain; border-radius: 6px; border: 1px solid #cbd5e1; padding: 2px; background: #fff;" onerror="this.src='../../assets/img/qr_placeholder.png';">
               </td>
               <td class="py-3 text-right font-weight-bold text-success" style="font-size: 0.95rem;">
-                <?php echo number_format($amt, 0); ?> ₭
+                <?php echo displayMoney($pdo, $amt); ?>
               </td>
               <td class="py-3 text-center font-weight-bold text-primary">
                 <?php echo number_format($tx); ?> <?php echo htmlspecialchars(t('bank.bill_suffix', 'ບິນ')); ?>
@@ -521,11 +524,11 @@ document.addEventListener('DOMContentLoaded', function() {
       var prog = Math.min((ts - startTime) / duration, 1);
       var ease = 1 - Math.pow(1 - prog, 3);
       var val = Math.floor(ease * target);
-      el.textContent = val.toLocaleString('en-US') + suffix;
+      el.textContent = val.toLocaleString('en-US',{maximumFractionDigits:<?php echo $__bdec; ?>}) + suffix;
       if (prog < 1) {
         requestAnimationFrame(step);
       } else {
-        el.textContent = Math.round(target).toLocaleString('en-US') + suffix;
+        el.textContent = target.toLocaleString('en-US',{maximumFractionDigits:<?php echo $__bdec; ?>}) + suffix;
       }
     }
     requestAnimationFrame(step);

@@ -4,7 +4,7 @@
     <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
       <form action="" method="POST">
         <input type="hidden" name="action" value="add_promo">
-        <div class="modal-header bg-primary text-white py-3 px-4">
+        <div class="modal-header text-white py-3 px-4" style="background-color: #244886;">
           <h5 class="modal-title font-weight-bold" style="font-size: 1rem;">
             <i class="fas fa-plus-circle mr-2"></i> <?php echo htmlspecialchars(t('promotions.modal_add_title', 'ສ້າງໂປຣໂມຊັ່ນໃໝ່')); ?>
           </h5>
@@ -84,12 +84,13 @@
               </select>
             </div>
             <div class="col-md-4 mb-3">
-              <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_target_name', 'ຊື່ ສິນຄ້າ/ປະເພດ:')); ?></label>
+              <label id="add_target_name_label" class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_target_name', 'ຊື່ ສິນຄ້າ/ປະເພດ:')); ?></label>
               <input type="text" name="target_name" id="add_target_name" class="form-control" value="<?php echo htmlspecialchars(t('promotions.opt_target_all', 'ທຸກສິນຄ້າ')); ?>" placeholder="<?php echo htmlspecialchars(t('promotions.field_target_name_ph', 'ເຊັ່ນ: ເບຍລາວ...')); ?>" style="height: 42px;">
+              <small id="add_target_name_hint" class="d-block mt-1 font-weight-bold" style="font-size:0.78rem; min-height:1em;"></small>
             </div>
             <div class="col-md-4 mb-3">
               <label class="font-weight-bold text-primary small mb-1"><i class="fas fa-boxes mr-1"></i> <?php echo htmlspecialchars(t('promotions.field_target_unit', 'ສະເພາະ ຫົວໜ່ວຍ:')); ?></label>
-              <input type="text" name="target_unit_name" id="add_target_unit_name" class="form-control border-primary" value="all" placeholder="<?php echo htmlspecialchars(t('promotions.field_target_unit_ph', 'ປ້ອນຫົວໜ່ວຍ (ເຊັ່ນ: ລັງ, ແກ້ວ, ປ໋ອງ, all...)')); ?>" style="height: 42px;">
+              <input type="text" name="target_unit_name" id="add_target_unit_name" list="units_datalist" class="form-control border-primary" value="all" placeholder="<?php echo htmlspecialchars(t('promotions.field_target_unit_ph', 'ປ້ອນຫົວໜ່ວຍ (ເຊັ່ນ: ລັງ, ແກ້ວ, ປ໋ອງ, all...)')); ?>" style="height: 42px;">
             </div>
           </div>
 
@@ -135,7 +136,7 @@
       <form action="" method="POST">
         <input type="hidden" name="action" value="edit_promo">
         <input type="hidden" name="id" id="edit_promo_id" value="">
-        <div class="modal-header bg-primary text-white py-3 px-4">
+        <div class="modal-header text-white py-3 px-4" style="background-color: #244886;">
           <h5 class="modal-title font-weight-bold" style="font-size: 1rem;">
             <i class="fas fa-edit mr-2"></i> <?php echo htmlspecialchars(t('promotions.modal_edit_title', 'ແກ້ໄຂຂໍ້ມູນໂປຣໂມຊັ່ນ')); ?>
           </h5>
@@ -215,12 +216,13 @@
               </select>
             </div>
             <div class="col-md-4 mb-3">
-              <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_target_name', 'ຊື່ ສິນຄ້າ/ປະເພດ:')); ?></label>
+              <label id="edit_target_name_label" class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_target_name', 'ຊື່ ສິນຄ້າ/ປະເພດ:')); ?></label>
               <input type="text" name="target_name" id="edit_target_name" class="form-control" style="height: 42px;">
+              <small id="edit_target_name_hint" class="d-block mt-1 font-weight-bold" style="font-size:0.78rem; min-height:1em;"></small>
             </div>
             <div class="col-md-4 mb-3">
               <label class="font-weight-bold text-primary small mb-1"><i class="fas fa-boxes mr-1"></i> <?php echo htmlspecialchars(t('promotions.field_target_unit', 'ສະເພາະ ຫົວໜ່ວຍ:')); ?></label>
-              <input type="text" name="target_unit_name" id="edit_target_unit_name" class="form-control border-primary" value="all" placeholder="<?php echo htmlspecialchars(t('promotions.field_target_unit_ph', 'ປ້ອນຫົວໜ່ວຍ (ເຊັ່ນ: ລັງ, ແກ້ວ, ປ໋ອງ, all...)')); ?>" style="height: 42px;">
+              <input type="text" name="target_unit_name" id="edit_target_unit_name" list="units_datalist" class="form-control border-primary" value="all" placeholder="<?php echo htmlspecialchars(t('promotions.field_target_unit_ph', 'ປ້ອນຫົວໜ່ວຍ (ເຊັ່ນ: ລັງ, ແກ້ວ, ປ໋ອງ, all...)')); ?>" style="height: 42px;">
             </div>
           </div>
 

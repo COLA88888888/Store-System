@@ -14,6 +14,8 @@ return [
     'print_barcode.sticker_size_label' => 'ຂະໜາດສະຕິກເກີ:',
     'print_barcode.size_40x30' => '40mm x 30mm (ມ້ວນມາດຕະຖານ)',
     'print_barcode.size_50x30' => '50mm x 30mm (ມ້ວນກາງ)',
+    'print_barcode.size_3up' => '105mm x 25mm (3 ຕາລວງນອນ)',
+    'print_barcode.opt_rotate_180' => 'ໝູນປ້າຍ 180° (ຖ້າພິມອອກມາກັບຫົວ)',
     'print_barcode.size_a4' => 'ເຈ້ຍ A4 (ຕາຕະລາງ)',
     'print_barcode.footer_summary_initial' => 'ເລືອກແລ້ວ: 0 ລາຍການ (ລວມ 0 ດວງ)',
     'print_barcode.summary_selected_label' => 'ເລືອກແລ້ວ',

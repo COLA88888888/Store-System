@@ -16,7 +16,8 @@ function broadcastCustomerDisplay(checkoutState, extraData) {
   var payload = {
     cart: (typeof cart !== 'undefined') ? cart : [],
     customer: (typeof selectedCustomer !== 'undefined') ? selectedCustomer : null,
-    discount: $('#cartDiscount').val() || '0',
+    // Customer display works in KIP — send the discount already converted to KIP.
+    discount: String((window.POSCUR ? POSCUR.toKip($('#cartDiscount').val() || '0') : (parseFloat(($('#cartDiscount').val() || '0').replace(/[^\d]/g, '')) || 0))),
     checkoutState: checkoutState || 'shopping',
     ...(extraData || {})
   };
@@ -81,15 +82,19 @@ function updateCartUI() {
         <small class="text-muted"><?php echo htmlspecialchars(t('pos.cart_empty_hint', 'ກະລຸນາເລືອກສິນຄ້າ ຫຼື ສະແກນບາໂຄ້ດ'), ENT_QUOTES); ?></small>
       </div>
     `);
+    window.CART_SUBTOTAL_KIP = 0;
+    window.CART_DISCOUNT_KIP = POSCUR.toKip($('#cartDiscount').val() || '0');
+    window.CART_VAT_KIP = 0;
+    window.CART_NET_KIP = 0;
     $('#cartItemCountBadge').text(cartCountText(0, 0));
-    $('#cartSubtotal').text('0 ₭');
-    $('#cartVat').text('0 ₭');
-    $('#cartTotal').text('0 ₭');
+    $('#cartSubtotal').html(POSCUR.fmt(0));
+    $('#cartVat').html(POSCUR.fmt(0));
+    $('#cartTotal').html(POSCUR.fmt(0));
     $('#mobileCartCountBadge').text('0').hide();
     $('#floatingCartItemCount').text(cartCountText(0, 0));
-    $('#floatingCartTotal').html('0 ₭ <i class="fas fa-chevron-right ml-1"></i>');
+    $('#floatingCartTotal').html(POSCUR.fmt(0) + ' <i class="fas fa-chevron-right ml-1"></i>');
     $('#mobileFloatingCartBar').hide();
-    $('#btnCheckout').prop('disabled', true).addClass('disabled');
+    $('#btnCheckout, #btnCheckoutFloating').prop('disabled', true).addClass('disabled');
     $('#btnClearCart').prop('disabled', true).addClass('disabled');
     $('#btnHoldOrder, #btnHoldCart').prop('disabled', true).addClass('disabled');
     updateProductGridBadges();
@@ -116,9 +121,9 @@ function updateCartUI() {
 
     var isGift = !!item.is_free_gift;
     var giftBadge = isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.78rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i>ແຖມຟຣີ</span>` : '';
-    var priceDisplay = isGift 
-      ? `<span class="text-success font-weight-bold" style="font-size:0.80rem;">0 ₭</span>` 
-      : `${Number(item.unit_price).toLocaleString()} ₭`;
+    var priceDisplay = isGift
+      ? `<span class="text-success font-weight-bold" style="font-size:0.80rem;">${POSCUR.fmt(0)}</span>`
+      : `${POSCUR.fmt(item.unit_price)}`;
 
     var rowHtml = `
       <div class="cart-item-row mb-2 d-flex align-items-center" style="background:${isGift ? '#f0fdf4' : '#ffffff'}; border:1.5px solid ${isGift ? '#86efac' : '#e2e8f0'}; border-radius:12px; padding:8px 10px; gap:8px; min-height:54px;">
@@ -151,7 +156,7 @@ function updateCartUI() {
 
         <!-- 5. ລວມ -->
         <div class="cart-item-total-wrap" style="flex-shrink:0; text-align:right; min-width:65px;">
-          <div style="font-size:0.92rem; font-weight:800; color:${isGift ? '#16a34a' : '#16a34a'}; white-space:nowrap;">${isGift ? '0 ₭' : itemTotal.toLocaleString() + ' ₭'}</div>
+          <div style="font-size:0.92rem; font-weight:800; color:${isGift ? '#16a34a' : '#16a34a'}; white-space:nowrap;">${isGift ? POSCUR.fmt(0) : POSCUR.fmt(itemTotal)}</div>
         </div>
 
         <!-- 6. ປຸ່ມລົບ -->
@@ -171,8 +176,8 @@ function updateCartUI() {
   window.STORE_TAX_TYPE = '<?php echo $storeTaxType; ?>';
   window.STORE_VAT_PERCENT = <?php echo $storeVatPercent; ?>;
   window.STORE_TAX_ID = '<?php echo htmlspecialchars($company['tax_id'] ?? ''); ?>';
-  var discountStr  = $('#cartDiscount').val() || '0';
-  var discountVal  = parseFloat(discountStr.replace(/\D/g, '')) || 0;
+  // Discount is typed in the display currency; convert it to KIP for all math below.
+  var discountVal  = POSCUR.toKip($('#cartDiscount').val() || '0');
   var taxType      = window.STORE_TAX_TYPE;
   var vatPercent   = window.STORE_VAT_PERCENT;
   var amtAfterDisc = Math.max(0, subtotal - discountVal);
@@ -185,13 +190,13 @@ function updateCartUI() {
       netTotal = amtAfterDisc + vatVal;
       $('#cartVatRow').attr('style', 'display: flex !important;');
       $('#cartVatLabel').text('ອມພ (' + vatPercent + '%):');
-      $('#cartVat').text(vatVal.toLocaleString() + ' ₭');
+      $('#cartVat').html(POSCUR.fmt(vatVal));
     } else {
       vatVal = Math.round(amtAfterDisc - (amtAfterDisc / (1 + (vatPercent / 100))));
       netTotal = amtAfterDisc;
       $('#cartVatRow').attr('style', 'display: flex !important;');
       $('#cartVatLabel').text('ລວມ ອມພ (' + vatPercent + '%):');
-      $('#cartVat').text(vatVal.toLocaleString() + ' ₭');
+      $('#cartVat').html(POSCUR.fmt(vatVal));
     }
   } else {
     vatVal = 0;
@@ -202,14 +207,20 @@ function updateCartUI() {
   var lineCount = cart.length;
   var countText = cartCountText(lineCount, totalItemsCount);
 
+  // Source-of-truth totals in KIP for the checkout modal to read (no DOM scraping).
+  window.CART_SUBTOTAL_KIP = subtotal;
+  window.CART_DISCOUNT_KIP = discountVal;
+  window.CART_VAT_KIP = vatVal;
+  window.CART_NET_KIP = netTotal;
+
   $('#cartItemCountBadge').text(countText);
-  $('#cartSubtotal').text(subtotal.toLocaleString() + ' ₭');
-  $('#cartTotal').text(netTotal.toLocaleString() + ' ₭');
+  $('#cartSubtotal').html(POSCUR.fmt(subtotal));
+  $('#cartTotal').html(POSCUR.fmt(netTotal));
 
   if (totalItemsCount > 0) {
     $('#mobileCartCountBadge').text(lineCount).css('display', 'inline-block');
     $('#floatingCartItemCount').text(countText);
-    $('#floatingCartTotal').html(netTotal.toLocaleString() + ' ₭ <i class="fas fa-chevron-right ml-1"></i>');
+    $('#floatingCartTotal').html(POSCUR.fmt(netTotal) + ' <i class="fas fa-chevron-right ml-1"></i>');
     if (window.innerWidth < 992 && $('#mobileTabProductsBtn').hasClass('active')) {
       $('#mobileFloatingCartBar').fadeIn(150);
     }
@@ -218,7 +229,7 @@ function updateCartUI() {
     $('#mobileFloatingCartBar').hide();
   }
 
-  $('#btnCheckout').prop('disabled', false).removeClass('disabled');
+  $('#btnCheckout, #btnCheckoutFloating').prop('disabled', false).removeClass('disabled');
   $('#btnClearCart').prop('disabled', false).removeClass('disabled');
   $('#btnHoldOrder, #btnHoldCart').prop('disabled', false).removeClass('disabled');
 
@@ -298,12 +309,13 @@ function showLowStockToast(productName, remainingQty, unitName) {
   triggerAudioSoundAlert();
 
   var isZero = (remainingQty <= 0);
+  var uName = unitName || posT('pos.unit_generic');
   Swal.fire({
     icon: isZero ? 'error' : 'warning',
-    title: isZero ? '⚠️ ເຕືອນ: ສິນຄ້າໝົດແລ້ວ!' : 'ເຕືອນ: ສິນຄ້າໃກ້ຈະໝົດ!',
-    text: isZero 
-      ? 'ສິນຄ້າ "' + productName + '" ໝົດແລ້ວ! (ເຫຼືອ 0 ' + (unitName || 'ອັນ') + ')'
-      : 'ສິນຄ້າ "' + productName + '" ໃກ້ຈະໝົດແລ້ວ! (ເຫຼືອພຽງ ' + remainingQty.toLocaleString() + ' ' + (unitName || 'ອັນ') + ')',
+    title: isZero ? posT('pos.toast_out_title') : posT('pos.toast_low_title'),
+    text: isZero
+      ? posT('pos.toast_out_body', productName, uName)
+      : posT('pos.toast_low_body', productName, remainingQty.toLocaleString(), uName),
     toast: true,
     position: 'top-end',
     showConfirmButton: false,
@@ -379,7 +391,7 @@ function updateProductGridBadges() {
 
     if (remainingStock <= 0) {
       if (statusBadge.length) {
-        statusBadge.text('ໝົດແລ້ວ').removeClass('low-stock').addClass('out-of-stock').css('display', 'inline-block').show();
+        statusBadge.text(posStockLabel('out')).removeClass('low-stock').addClass('out-of-stock').css('display', 'inline-block').show();
       }
       if (cardEl.length) {
         cardEl.css({'border': '2px solid #ef4444', 'opacity': '0.82', 'background': '#fff5f5'});
@@ -389,7 +401,7 @@ function updateProductGridBadges() {
       }
     } else if (remainingStock <= 10) {
       if (statusBadge.length) {
-        statusBadge.text('ໃກ້ໝົດ').removeClass('out-of-stock').addClass('low-stock').css('display', 'inline-block').show();
+        statusBadge.text(posStockLabel('low')).removeClass('out-of-stock').addClass('low-stock').css('display', 'inline-block').show();
       }
       if (cardEl.length) {
         cardEl.css({'border': '2px solid #f59e0b', 'opacity': '1.0', 'background': '#ffffff'});
@@ -510,6 +522,7 @@ function buildAvailableUnits(product) {
     unit_name: baseUnitName,
     multiplier: 1,
     price: basePrice,
+    original_price: parseFloat(product.original_price) || basePrice,
     bprice: baseBprice
   });
 
@@ -519,6 +532,7 @@ function buildAvailableUnits(product) {
         unit_name: eu.unit_name,
         multiplier: parseInt(eu.multiplier) || 1,
         price: parseFloat(eu.price) || 0,
+        original_price: parseFloat(eu.original_price) || parseFloat(eu.price) || 0,
         bprice: parseFloat(eu.bprice) || 0
       });
     });
@@ -549,11 +563,11 @@ function _doAddToCart(product, unitObj) {
   if (cutQty !== 0 && (currentRemaining <= 0 || parseFloat(product.qty || 0) <= 0)) {
     Swal.fire({
       icon: 'error',
-      title: 'ສິນຄ້າໝົດແລ້ວ!',
-      html: '<div style="font-size:1.05rem; font-weight:700; color:#ef4444; margin-bottom:6px;">ສິນຄ້າ "' + product.product_name + '"</div>' +
-            '<div class="text-dark font-weight-bold" style="font-size:0.92rem;">ບໍ່ສາມາດກົດຂາຍໄດ້ ເນື່ອງຈາກຈຳນວນສິນຄ້າໃນຄັງເປັນ 0</div>' +
-            '<small class="text-muted d-block mt-2">ກະລຸນາເພີ່ມສະຕັອກ ຫຼື ເລືອກສິນຄ້າອື່ນ</small>',
-      confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ',
+      title: posT('pos.alert_out_of_stock_title'),
+      html: '<div style="font-size:1.05rem; font-weight:700; color:#ef4444; margin-bottom:6px;">' + posT('pos.alert_product_quoted', product.product_name) + '</div>' +
+            '<div class="text-dark font-weight-bold" style="font-size:0.92rem;">' + posT('pos.alert_out_of_stock_body') + '</div>' +
+            '<small class="text-muted d-block mt-2">' + posT('pos.alert_out_of_stock_hint') + '</small>',
+      confirmButtonText: '<i class="fas fa-check mr-1"></i> ' + posT('pos.btn_ok'),
       confirmButtonColor: '#ef4444',
       customClass: {
         confirmButton: 'btn btn-danger font-weight-bold px-4'
@@ -566,9 +580,9 @@ function _doAddToCart(product, unitObj) {
   if (currentRemaining < multiplier) {
     Swal.fire({
       icon: 'warning',
-      title: 'ຈຳນວນສິນຄ້າບໍ່ພໍ!',
-      html: '<div style="font-size:1.0rem; font-weight:700; color:#d97706;">ສິນຄ້າ "' + product.product_name + '" ເຫຼືອພຽງ ' + currentRemaining.toLocaleString() + ' ' + (product.unit || 'ອັນ') + '</div><div class="mt-2 text-dark" style="font-size:0.88rem;">ບໍ່ສາມາດຂາຍເກີນຈຳນວນທີ່ມີໃນສາງໄດ້.</div>',
-      confirmButtonText: 'ຕົກລົງ',
+      title: posT('pos.alert_qty_not_enough_title'),
+      html: '<div style="font-size:1.0rem; font-weight:700; color:#d97706;">' + posT('pos.alert_remaining_only', product.product_name, currentRemaining.toLocaleString(), (product.unit || posT('pos.unit_generic'))) + '</div><div class="mt-2 text-dark" style="font-size:0.88rem;">' + posT('pos.alert_cannot_sell_over') + '</div>',
+      confirmButtonText: posT('pos.btn_ok'),
       confirmButtonColor: '#f59e0b'
     });
     return false;
@@ -610,15 +624,15 @@ function _doAddToCart(product, unitObj) {
   }
 
   function checkUnitMatch(u1, u2) {
-    var s1 = trimStr(u1);
-    var s2 = trimStr(u2);
+    // Exact match only (after trimming spaces/case + folding ເເ→ແ). BeerLao's ປ໋ອງຍາວ / ປ໋ອງສັ້ນ
+    // share the "ປ໋ອງ" prefix, so any substring match would wrongly fire the gift on both.
+    var fold = function (s) {
+      return trimStr(s).replace(/\s+/g, '').replace(/ເເ/g, 'ແ').replace(/ເແ/g, 'ແ');
+    };
+    var s1 = fold(u1);
+    var s2 = fold(u2);
     if (s2 === 'all' || s2 === '' || s1 === 'all' || s1 === '') return true;
-    if (s1 === s2) return true;
-    // Normalize Lao spelling variations for crates/cartons (ເຊັ່ນ: ເກັດ vs ເເກັດ, ເເກັດ vs ເເກັດ)
-    var norm1 = s1.replace(/ເເກັດ|ເກັດ|ແກັດ|ແກັດ/g, 'ເກັດ');
-    var norm2 = s2.replace(/ເເກັດ|ເກັດ|ແກັດ|ແກັດ/g, 'ເກັດ');
-    if (norm1 === norm2) return true;
-    return s1.indexOf(s2) !== -1 || s2.indexOf(s1) !== -1;
+    return s1 === s2;
   }
 
   var unitMatches = checkUnitMatch(unitName, targetUnit);

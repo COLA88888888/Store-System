@@ -181,17 +181,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $adjust_id = intval($_POST['adjust_id'] ?? 0);
         if ($adjust_id > 0) {
             try {
-                $stmt = ($isAdmin || $isMain)
-                    ? $pdo->prepare("DELETE FROM price_adjustments WHERE adjust_id = ?")
-                    : $pdo->prepare("DELETE FROM price_adjustments WHERE adjust_id = ? AND branch_id = ?");
-                if ($isAdmin || $isMain) {
-                    $stmt->execute([$adjust_id]);
+                $pdo->beginTransaction();
+
+                $sel = ($isAdmin || $isMain)
+                    ? $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ?")
+                    : $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ? AND branch_id = ?");
+                ($isAdmin || $isMain) ? $sel->execute([$adjust_id]) : $sel->execute([$adjust_id, $userStoreId]);
+                $row = $sel->fetch(PDO::FETCH_ASSOC);
+
+                if (!$row) {
+                    if ($pdo->inTransaction()) $pdo->rollBack();
+                    $message = 'ບໍ່ພົບປະຫວັດການປັບລາຄານີ້!';
+                    $message_type = 'warning';
                 } else {
-                    $stmt->execute([$adjust_id, $userStoreId]);
+                    // Put the product's price(s) back to what they were before this adjustment
+                    if (!empty($row['product_id'])) {
+                        $tpt = $row['target_price_type'] ?? 'price';
+                        if ($tpt === 'price') {
+                            $pdo->prepare("UPDATE products SET price = ? WHERE product_id = ? AND store_id = ?")
+                                ->execute([$row['old_price'], $row['product_id'], $row['branch_id']]);
+                        } elseif ($tpt === 'bprice') {
+                            $pdo->prepare("UPDATE products SET bprice = ? WHERE product_id = ? AND store_id = ?")
+                                ->execute([$row['old_bprice'], $row['product_id'], $row['branch_id']]);
+                        } else { // both
+                            $pdo->prepare("UPDATE products SET price = ?, bprice = ? WHERE product_id = ? AND store_id = ?")
+                                ->execute([$row['old_price'], $row['old_bprice'], $row['product_id'], $row['branch_id']]);
+                        }
+                    }
+                    $pdo->prepare("DELETE FROM price_adjustments WHERE adjust_id = ?")->execute([$adjust_id]);
+                    $pdo->commit();
+                    logActivity($pdo, "ລຶບການປັບລາຄາ", "ຄືນລາຄາເດີມ ສິນຄ້າ ID: " . ($row['product_id'] ?? '-'));
+                    $message = 'ລຶບປະຫວັດ ແລະ ຄືນລາຄາເດີມສຳເລັດ!';
+                    $message_type = 'success';
                 }
-                $message = 'ລຶບປະຫວັດການປັບລາຄາສຳເລັດ!';
-                $message_type = 'success';
             } catch (Exception $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                $message = 'ຜິດພາດ: ' . $e->getMessage();
+                $message_type = 'danger';
+            }
+        }
+    } elseif ($action === 'update_log') {
+        // Edit an existing adjustment: recompute new price(s) from the row's ORIGINAL old_* baseline
+        $adjust_id         = intval($_POST['adjust_id'] ?? 0);
+        $target_price_type = $_POST['target_price_type'] ?? 'price';
+        $calc_type         = $_POST['calc_type'] ?? 'set';
+        $adjust_value      = floatval(str_replace(',', '', $_POST['adjust_value'] ?? '0'));
+        $remark            = trim($_POST['remark'] ?? '');
+
+        if ($adjust_id <= 0) {
+            $message = 'ຂໍ້ມູນບໍ່ຖືກຕ້ອງ!';
+            $message_type = 'danger';
+        } else {
+            try {
+                $pdo->beginTransaction();
+                $sel = ($isAdmin || $isMain)
+                    ? $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ?")
+                    : $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ? AND branch_id = ?");
+                ($isAdmin || $isMain) ? $sel->execute([$adjust_id]) : $sel->execute([$adjust_id, $userStoreId]);
+                $row = $sel->fetch(PDO::FETCH_ASSOC);
+
+                if (!$row || empty($row['product_id'])) {
+                    if ($pdo->inTransaction()) $pdo->rollBack();
+                    $message = 'ບໍ່ພົບປະຫວັດ ຫຼື ບໍ່ແມ່ນລາຍການສິນຄ້າ!';
+                    $message_type = 'warning';
+                } else {
+                    $oldB = floatval($row['old_bprice']);
+                    $oldP = floatval($row['old_price']);
+                    $newB = $oldB;
+                    $newP = $oldP;
+
+                    if ($target_price_type === 'price' || $target_price_type === 'both') {
+                        $newP = ($calc_type === 'increase') ? $oldP + $adjust_value
+                              : (($calc_type === 'decrease') ? max(0, $oldP - $adjust_value) : max(0, $adjust_value));
+                    }
+                    if ($target_price_type === 'bprice' || $target_price_type === 'both') {
+                        $newB = ($calc_type === 'increase') ? $oldB + $adjust_value
+                              : (($calc_type === 'decrease') ? max(0, $oldB - $adjust_value) : max(0, $adjust_value));
+                    }
+                    $diff = ($target_price_type === 'bprice') ? ($newB - $oldB) : ($newP - $oldP);
+
+                    $pdo->prepare("UPDATE products SET bprice = ?, price = ? WHERE product_id = ? AND store_id = ?")
+                        ->execute([$newB, $newP, $row['product_id'], $row['branch_id']]);
+                    $pdo->prepare("UPDATE price_adjustments SET target_price_type = ?, calc_type = ?, adjust_value = ?, new_bprice = ?, new_price = ?, diff_amount = ?, remark = ? WHERE adjust_id = ?")
+                        ->execute([$target_price_type, $calc_type, $adjust_value, $newB, $newP, $diff, $remark, $adjust_id]);
+
+                    $pdo->commit();
+                    logActivity($pdo, "ແກ້ໄຂການປັບລາຄາ", "ສິນຄ້າ ID: " . $row['product_id']);
+                    $message = 'ແກ້ໄຂການປັບລາຄາສຳເລັດ!';
+                    $message_type = 'success';
+                }
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
                 $message = 'ຜິດພາດ: ' . $e->getMessage();
                 $message_type = 'danger';
             }

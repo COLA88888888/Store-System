@@ -146,7 +146,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
                       <input type="hidden" name="action" value="toggle_status">
                       <input type="hidden" name="id" value="<?php echo $pr['id']; ?>">
                       <input type="hidden" name="status" value="<?php echo $pr['status'] ? 0 : 1; ?>">
-                      <button type="submit" class="btn btn-link p-0 border-0 shadow-none align-middle" style="outline: none; text-decoration: none; cursor: pointer; transform: none !important;" title="<?php echo $pr['status'] ? 'ປິດໃຊ້ງານ' : 'ເປີດໃຊ້ງານ'; ?>">
+                      <button type="submit" class="btn btn-link p-0 border-0 shadow-none align-middle" style="outline: none; text-decoration: none; cursor: pointer; transform: none !important;" title="<?php echo htmlspecialchars($pr['status'] ? t('printers.disable', 'ປິດໃຊ້ງານ') : t('printers.enable', 'ເປີດໃຊ້ງານ')); ?>">
                         <div style="width: 48px; height: 20px; background: <?php echo $pr['status'] ? '#10b981' : '#cbd5e1'; ?>; border-radius: 20px; position: relative; transition: background-color 0.2s ease-in-out; display: inline-block; vertical-align: middle;">
                           <div style="width: 14px; height: 14px; background: #ffffff; border-radius: 50%; position: absolute; top: 3px; <?php echo $pr['status'] ? 'right: 3px;' : 'left: 3px;'; ?> transition: all 0.2s ease-in-out; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
                         </div>
@@ -154,7 +154,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
                     </form>
                   <?php else: ?>
                     <span class="badge <?php echo $pr['status'] ? 'badge-success' : 'badge-secondary'; ?> px-2 py-1">
-                      <?php echo $pr['status'] ? 'ເປີດໃຊ້ງານ' : 'ປິດໃຊ້ງານ'; ?>
+                      <?php echo htmlspecialchars($pr['status'] ? t('printers.enable', 'ເປີດໃຊ້ງານ') : t('printers.disable', 'ປິດໃຊ້ງານ')); ?>
                     </span>
                   <?php endif; ?>
                 </td>
@@ -162,21 +162,21 @@ require_once __DIR__ . '/../../../layouts/header.php';
                   <?php if (hasPermission('printers', 'edit') || hasPermission('printers', 'del')): ?>
                     <div class="btn-group btn-group-sm" role="group">
                       <?php if (hasPermission('printers', 'edit')): ?>
-                        <button type="button" class="btn btn-outline-primary btn-sm px-2" title="ແກ້ໄຂ"
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2" title="<?php echo htmlspecialchars(t('printers.edit', 'ແກ້ໄຂ')); ?>"
                                 onclick="editPrinter(<?php echo $pr['id']; ?>, '<?php echo htmlspecialchars(addslashes($pr['name'])); ?>', '<?php echo htmlspecialchars(addslashes($pr['type'])); ?>', '<?php echo htmlspecialchars(addslashes($pr['ip_address'] ?? '')); ?>')">
                           <i class="fas fa-edit"></i>
                         </button>
                       <?php endif; ?>
                       <?php if (hasPermission('printers', 'del')): ?>
-                        <form action="" method="POST" onsubmit="return confirm('ຕ້ອງການລົບເຄື່ອງພິມນີ້ແທ້ຫຼືບໍ່?');" style="display:inline;">
+                        <form action="" method="POST" onsubmit="return confirm('<?php echo htmlspecialchars(t('printers.delete_confirm', 'ຕ້ອງການລົບເຄື່ອງພິມນີ້ແທ້ຫຼືບໍ່?'), ENT_QUOTES); ?>');" style="display:inline;">
                           <input type="hidden" name="action" value="delete_printer">
                           <input type="hidden" name="id" value="<?php echo $pr['id']; ?>">
-                          <button type="submit" class="btn btn-outline-danger btn-sm px-2" title="ລຶບ"><i class="fas fa-trash-alt"></i></button>
+                          <button type="submit" class="btn btn-outline-danger btn-sm px-2" title="<?php echo htmlspecialchars(t('printers.delete', 'ລຶບ')); ?>"><i class="fas fa-trash-alt"></i></button>
                         </form>
                       <?php endif; ?>
                     </div>
                   <?php else: ?>
-                    <span class="badge badge-light text-muted" style="font-size: 0.8rem;">ເບິ່ງຢ່າງດຽວ</span>
+                    <span class="badge badge-light text-muted" style="font-size: 0.8rem;"><?php echo htmlspecialchars(t('printers.view_only', 'ເບິ່ງຢ່າງດຽວ')); ?></span>
                   <?php endif; ?>
                 </td>
               </tr>
@@ -194,35 +194,35 @@ require_once __DIR__ . '/../../../layouts/header.php';
     <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
       <form action="" method="POST">
         <input type="hidden" name="action" value="add_printer">
-        <div class="modal-header bg-primary text-white py-3 px-4">
+        <div class="modal-header text-white py-3 px-4" style="background-color: #244886;">
           <h5 class="modal-title font-weight-bold" style="font-size: 1rem;">
-            <i class="fas fa-plus-circle mr-2"></i> ເພີ່ມເຄື່ອງພິມໃໝ່
+            <i class="fas fa-plus-circle mr-2"></i> <?php echo htmlspecialchars(t('printers.modal_add_title', 'ເພີ່ມເຄື່ອງພິມໃໝ່')); ?>
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
         </div>
         <div class="modal-body p-4">
           <div class="form-group mb-3">
-            <label class="font-weight-bold text-dark small mb-1">ຊື່ເຄື່ອງພິມ: <span class="text-danger">*</span></label>
-            <input type="text" name="name" class="form-control" placeholder="ເຄື່ອງພິມໃບບິນໜ້າຮ້ານ, ເຄື່ອງພິມເຮືອນຄົວ..." required style="height: 42px;">
+            <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_name', 'ຊື່ເຄື່ອງພິມ:')); ?> <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="<?php echo htmlspecialchars(t('printers.field_name_placeholder', 'ເຄື່ອງພິມໃບບິນໜ້າຮ້ານ, ເຄື່ອງພິມເຮືອນຄົວ...')); ?>" required style="height: 42px;">
           </div>
           <div class="form-group mb-3">
-            <label class="font-weight-bold text-dark small mb-1">ປະເພດການເຊື່ອມຕໍ່: <span class="text-danger">*</span></label>
+            <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_type', 'ປະເພດການເຊື່ອມຕໍ່:')); ?> <span class="text-danger">*</span></label>
             <select name="type" class="form-control" style="height: 42px;">
               <option value="browser">Browser / Windows Driver / USB</option>
               <option value="ip">Network LAN / WiFi (IP Address)</option>
             </select>
           </div>
           <div class="form-group mb-3">
-            <label class="font-weight-bold text-dark small mb-1">IP Address ເຄື່ອງພິມ (ຖ້າເປັນ Network IP):</label>
+            <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_ip', 'IP Address ເຄື່ອງພິມ (ຖ້າເປັນ Network IP):')); ?></label>
             <div class="input-group">
               <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-network-wired text-muted"></i></span></div>
-              <input type="text" name="ip_address" class="form-control font-weight-bold text-primary" placeholder="192.168..." style="height: 42px;">
+              <input type="text" name="ip_address" class="form-control font-weight-bold text-primary" placeholder="<?php echo htmlspecialchars(t('printers.field_ip_placeholder', '192.168...')); ?>" style="height: 42px;">
             </div>
           </div>
         </div>
         <div class="modal-footer border-0 pb-4 px-4 pt-0">
-          <button type="button" class="btn btn-light font-weight-bold px-3" data-dismiss="modal">ຍົກເລີກ</button>
-          <button type="submit" class="btn btn-primary text-white font-weight-bold px-4" style="background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">ບັນທຶກ</button>
+          <button type="button" class="btn btn-light font-weight-bold px-3" data-dismiss="modal"><?php echo htmlspecialchars(t('printers.btn_cancel', 'ຍົກເລີກ')); ?></button>
+          <button type="submit" class="btn btn-primary text-white font-weight-bold px-4" style="background: linear-gradient(135deg, #2c5aa0, #244886); border: none;"><?php echo htmlspecialchars(t('printers.btn_save', 'ບັນທຶກ')); ?></button>
         </div>
       </form>
     </div>
@@ -236,35 +236,35 @@ require_once __DIR__ . '/../../../layouts/header.php';
       <form action="" method="POST">
         <input type="hidden" name="action" value="edit_printer">
         <input type="hidden" name="id" id="edit_printer_id" value="">
-        <div class="modal-header bg-primary text-white py-3 px-4">
+        <div class="modal-header text-white py-3 px-4" style="background-color: #244886;">
           <h5 class="modal-title font-weight-bold" style="font-size: 1rem;">
-            <i class="fas fa-edit mr-2"></i> ແກ້ໄຂຂໍ້ມູນເຄື່ອງພິມ
+            <i class="fas fa-edit mr-2"></i> <?php echo htmlspecialchars(t('printers.modal_edit_title', 'ແກ້ໄຂຂໍ້ມູນເຄື່ອງພິມ')); ?>
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
         </div>
         <div class="modal-body p-4">
           <div class="form-group mb-3">
-            <label class="font-weight-bold text-dark small mb-1">ຊື່ເຄື່ອງພິມ: <span class="text-danger">*</span></label>
-            <input type="text" name="name" id="edit_printer_name" class="form-control" placeholder="ເຊັ່ນ: ເຄື່ອງພິມໃບບິນໜ້າຮ້ານ..." required style="height: 42px;">
+            <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_name', 'ຊື່ເຄື່ອງພິມ:')); ?> <span class="text-danger">*</span></label>
+            <input type="text" name="name" id="edit_printer_name" class="form-control" placeholder="<?php echo htmlspecialchars(t('printers.field_name_placeholder_short', 'ເຊັ່ນ: ເຄື່ອງພິມໃບບິນໜ້າຮ້ານ...')); ?>" required style="height: 42px;">
           </div>
           <div class="form-group mb-3">
-            <label class="font-weight-bold text-dark small mb-1">ປະເພດການເຊື່ອມຕໍ່: <span class="text-danger">*</span></label>
+            <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_type', 'ປະເພດການເຊື່ອມຕໍ່:')); ?> <span class="text-danger">*</span></label>
             <select name="type" id="edit_printer_type" class="form-control" style="height: 42px;">
               <option value="browser">Browser / Windows Driver / USB</option>
               <option value="ip">Network LAN / WiFi (IP Address)</option>
             </select>
           </div>
           <div class="form-group mb-3">
-            <label class="font-weight-bold text-dark small mb-1">IP Address ເຄື່ອງພິມ:</label>
+            <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_ip_edit', 'IP Address ເຄື່ອງພິມ:')); ?></label>
             <div class="input-group">
               <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-network-wired text-muted"></i></span></div>
-              <input type="text" name="ip_address" id="edit_printer_ip" class="form-control font-weight-bold text-primary" placeholder="ເຊັ່ນ: 192.168.1.200" style="height: 42px;">
+              <input type="text" name="ip_address" id="edit_printer_ip" class="form-control font-weight-bold text-primary" placeholder="192.168.1.200" style="height: 42px;">
             </div>
           </div>
         </div>
         <div class="modal-footer border-0 pb-4 px-4 pt-0">
-          <button type="button" class="btn btn-light font-weight-bold px-3" data-dismiss="modal">ຍົກເລີກ</button>
-          <button type="submit" class="btn btn-primary font-weight-bold px-4" style="background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">ອັບເດດ</button>
+          <button type="button" class="btn btn-light font-weight-bold px-3" data-dismiss="modal"><?php echo htmlspecialchars(t('printers.btn_cancel', 'ຍົກເລີກ')); ?></button>
+          <button type="submit" class="btn btn-primary font-weight-bold px-4" style="background: linear-gradient(135deg, #2c5aa0, #244886); border: none;"><?php echo htmlspecialchars(t('printers.btn_update', 'ອັບເດດ')); ?></button>
         </div>
       </form>
     </div>

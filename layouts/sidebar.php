@@ -58,7 +58,7 @@
         
         <?php if (hasPermission('dashboard')): ?>
           <!-- Header: Main menu -->
-          <li class="nav-header text-uppercase" style="color: rgba(255,255,255,0.5); font-size: 0.75rem; letter-spacing: 1px;" data-i18n="layout.menu_header"><?php echo htmlspecialchars(t('layout.menu_header', 'ເມນູ')); ?></li>
+          <li class="nav-header text-uppercase" style="color: rgba(255,255,255,0.85); font-size: 0.75rem; letter-spacing: 1px;" data-i18n="layout.menu_header"><?php echo htmlspecialchars(t('layout.menu_header', 'ເມນູ')); ?></li>
 
           <!-- Menu: Dashboard -->
           <li class="nav-item">
@@ -115,7 +115,7 @@
 
         <?php if (hasPermission('stock') || hasPermission('categories') || hasPermission('products') || hasPermission('import_stock') || hasPermission('import_list') || hasPermission('stock_transfer') || hasPermission('transfer_history')): ?>
           <!-- Header: Inventory & Products -->
-          <!-- <li class="nav-header text-uppercase" style="color: rgba(255,255,255,0.5); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;">ການຈັດການສິນຄ້າ</li> -->
+          <!-- <li class="nav-header text-uppercase" style="color: rgba(255,255,255,0.85); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;">ການຈັດການສິນຄ້າ</li> -->
 
           <?php if (hasPermission('categories') || hasPermission('units') || hasPermission('products') || hasPermission('stock')): ?>
           <!-- Dropdown Treeview: ຂໍ້ມູນສິນຄ້າ -->
@@ -155,6 +155,16 @@
                 <a href="<?php echo $bp; ?>pages/products/products.php" target="frame" class="nav-link">
                   <i class="nav-icon fas fa-box text-primary"></i>
                   <p data-i18n="layout.products"><?php echo htmlspecialchars(t('layout.products', 'ລາຍການສິນຄ້າ')); ?></p>
+                </a>
+              </li>
+              <?php endif; ?>
+
+              <?php if (hasPermission('suppliers')): ?>
+              <!-- Sub-menu: ຈັດການຜູ້ສະໜອງ -->
+              <li class="nav-item">
+                <a href="<?php echo $bp; ?>pages/suppliers/suppliers.php" target="frame" class="nav-link">
+                  <i class="nav-icon fas fa-truck text-success"></i>
+                  <p data-i18n="layout.suppliers"><?php echo htmlspecialchars(t('layout.suppliers', 'ຈັດການຜູ້ສະໜອງ')); ?></p>
                 </a>
               </li>
               <?php endif; ?>
@@ -219,7 +229,7 @@
 
         <?php if (hasPermission('accounting')): ?>
           <!-- Header: Reports & Accounting -->
-          <li class="nav-header text-uppercase" style="color: rgba(255,255,255,0.5); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;" data-i18n="layout.reports_header"><?php echo htmlspecialchars(t('layout.reports_header', 'ລາຍງານ & ການເງິນ')); ?></li>
+          <li class="nav-header text-uppercase" style="color: rgba(255,255,255,0.85); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;" data-i18n="layout.reports_header"><?php echo htmlspecialchars(t('layout.reports_header', 'ລາຍງານ & ການເງິນ')); ?></li>
 
           <!-- Menu: Bank Management (ຈັດການທະນາຄານ) -->
           <li class="nav-item">
@@ -316,7 +326,7 @@
 
         <?php if (hasPermission('users') || hasPermission('permissions') || hasPermission('branches') || hasPermission('stores') || hasPermission('print_barcode') || hasPermission('exchange_rate') || hasPermission('promotions') || hasPermission('price_adjustment') || hasPermission('printers') || hasPermission('database')): ?>
           <!-- Header: Administration & Settings -->
-          <li class="nav-header text-uppercase" style="color: rgba(255,255,255,0.5); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;" data-i18n="layout.admin_header"><?php echo htmlspecialchars(t('layout.admin_header', 'ການຈັດການລະບົບ')); ?></li>
+          <li class="nav-header text-uppercase" style="color: rgba(255,255,255,0.85); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;" data-i18n="layout.admin_header"><?php echo htmlspecialchars(t('layout.admin_header', 'ການຈັດການລະບົບ')); ?></li>
 
           <?php if (hasPermission('users')): ?>
             <!-- Menu: Users Management -->

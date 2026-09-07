@@ -1,4 +1,5 @@
 <?php
+
 // Standalone Page: ລາຍງານປະຈຳວັນ (Daily Sales Report)
 session_start();
 
@@ -6,6 +7,12 @@ $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
 $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 
 require_once dirname(__DIR__, 2) . '/config/db.php';
+
+// Multi-currency: reports show the active display currency (data stored in KIP).
+$__dc  = getDisplayCurrency($pdo);
+$__sym = $__dc['symbol'];
+$__dec = (int)$__dc['decimals'];
+if (!function_exists('__cvtArr')) { function __cvtArr($dc, $arr){ return array_map(function($v) use ($dc){ return convertFromKip($v, $dc['code'], $dc['rates']); }, (array)$arr); } }
 
 if (!hasPermission('daily_report') && !hasPermission('report') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ') {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
@@ -343,7 +350,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_gross_total', 'ລວມຍອດ')); ?></div>
         <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-          <span class="counter-num" data-target="<?php echo (int)$daily_gross_sales; ?>" data-suffix=" ₭">0 ₭</span>
+          <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_gross_sales, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
@@ -354,7 +361,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_item_discount', 'ສ່ວນຫຼຸດສິນຄ້າ')); ?></div>
         <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-          <span class="counter-num" data-target="<?php echo (int)$daily_item_discounts; ?>" data-suffix=" ₭">0 ₭</span>
+          <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_item_discounts, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-tag"></i></div>
@@ -365,7 +372,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_bill_discount', 'ສ່ວນຫຼຸດໃບບິນ')); ?></div>
         <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-          <span class="counter-num" data-target="<?php echo (int)$daily_bill_discounts; ?>" data-suffix=" ₭">0 ₭</span>
+          <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_bill_discounts, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-receipt"></i></div>
@@ -376,7 +383,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title text-nowrap" style="white-space: nowrap !important;"><i class="fas fa-bullhorn mr-1"></i> <?php echo htmlspecialchars(t('reports.kpi_promotion', 'ໂປຣໂມຊັ່ນ')); ?> <?php if ($daily_promo_gifts_count > 0): ?><span class="text-warning font-weight-normal ml-1" style="font-size: 0.75rem;">(<?php echo htmlspecialchars(t('reports.gift_label', 'ແຖມ')); ?>: <?php echo number_format($daily_promo_gifts_count); ?>)</span><?php endif; ?></div>
         <div class="font-weight-bold mt-1 text-white kpi-card-val text-nowrap" style="white-space: nowrap !important; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-          <span class="counter-num" data-target="<?php echo (int)$daily_promo_discounts; ?>" data-suffix=" ₭">0 ₭</span>
+          <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_promo_discounts, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-gift"></i></div>
@@ -387,7 +394,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_total_discount', 'ສ່ວນຫຼຸດທັງໝົດ')); ?></div>
         <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-          <span class="counter-num" data-target="<?php echo (int)$daily_total_discounts; ?>" data-suffix=" ₭">0 ₭</span>
+          <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_total_discounts, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-tags"></i></div>
@@ -398,7 +405,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_net_sales', 'ຍອດຂາຍສຸດທິ')); ?></div>
         <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-          <span class="counter-num" data-target="<?php echo (int)$daily_net_sales; ?>" data-suffix=" ₭">0 ₭</span>
+          <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_net_sales, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-coins"></i></div>
@@ -409,7 +416,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.cash_opt', 'ເງິນສົດ')); ?></div>
         <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-          <span class="counter-num" data-target="<?php echo (int)$daily_cash_payments; ?>" data-suffix=" ₭">0 ₭</span>
+          <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_cash_payments, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-money-bill-wave"></i></div>
@@ -420,7 +427,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_transfer', 'ເງິນໂອນ')); ?></div>
         <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-          <span class="counter-num" data-target="<?php echo (int)$daily_qr_payments; ?>" data-suffix=" ₭">0 ₭</span>
+          <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_qr_payments, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-qrcode"></i></div>
@@ -432,7 +439,7 @@ require_once __DIR__ . '/../../layouts/header.php';
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.bills_unit', 'ບິນ')); ?></div>
         <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <?php $u_bills = htmlspecialchars(t('reports.bills_unit', 'ບິນ')); ?>
-          <span class="counter-num" data-target="<?php echo (int)$daily_bills_count; ?>" data-suffix=" <?php echo $u_bills; ?>">0 <?php echo $u_bills; ?></span>
+          <span class="counter-num" data-suffix-key="reports.bills_unit" data-target="<?php echo (int)$daily_bills_count; ?>" data-suffix=" <?php echo $u_bills; ?>">0 <?php echo $u_bills; ?></span>
         </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-file-invoice"></i></div>
@@ -444,7 +451,7 @@ require_once __DIR__ . '/../../layouts/header.php';
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.items_unit', 'ລາຍການ')); ?></div>
         <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <?php $u_pcs = htmlspecialchars(t('reports.unit_pcs', 'ອັນ')); ?>
-          <span class="counter-num" data-target="<?php echo (int)$daily_items_qty; ?>" data-suffix=" <?php echo $u_pcs; ?>">0 <?php echo $u_pcs; ?></span>
+          <span class="counter-num" data-suffix-key="reports.unit_pcs" data-target="<?php echo (int)$daily_items_qty; ?>" data-suffix=" <?php echo $u_pcs; ?>">0 <?php echo $u_pcs; ?></span>
         </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-boxes"></i></div>
@@ -459,7 +466,7 @@ require_once __DIR__ . '/../../layouts/header.php';
           <h6 class="font-weight-bold text-dark mb-0">
             <i class="fas fa-university text-primary mr-1.5"></i> <?php echo htmlspecialchars(t('reports.bank_breakdown_title', 'ຍອດຮັບເງິນໂອນແຍກຕາມທະນາຄານ')); ?>
           </h6>
-          <span class="badge badge-primary font-weight-bold px-2.5 py-1" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('reports.total_label', 'ລວມ:')); ?> <?php echo number_format($daily_qr_payments, 0); ?> ₭</span>
+          <span class="badge badge-primary font-weight-bold px-2.5 py-1" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('reports.total_label', 'ລວມ:')); ?> <?php echo displayMoney($pdo, $daily_qr_payments); ?></span>
         </div>
         <div class="row" style="row-gap: 12px;">
           <?php foreach ($bank_daily_breakdown as $bRow): ?>
@@ -490,7 +497,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   </div>
                 </div>
                 <div class="font-weight-bold text-right pl-1" style="font-size: 0.92rem; color: <?php echo $bColor; ?>;">
-                  <?php echo number_format($bRow['total_received'], 0); ?> ₭
+                  <?php echo displayMoney($pdo, $bRow['total_received']); ?>
                 </div>
               </div>
             </div>
@@ -550,12 +557,12 @@ require_once __DIR__ . '/../../layouts/header.php';
           <div class="d-flex align-items-center" style="gap: 6px; font-size: 0.8rem;">
             <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#6366f1;"></span>
             <span class="font-weight-bold"><?php echo htmlspecialchars(t('reports.cash_opt', 'ເງິນສົດ')); ?></span>
-            <span class="text-muted"><?php echo number_format($totalCash); ?> ₭</span>
+            <span class="text-muted"><?php echo displayMoney($pdo, $totalCash); ?></span>
           </div>
           <div class="d-flex align-items-center" style="gap: 6px; font-size: 0.8rem;">
             <span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#06b6d4;"></span>
             <span class="font-weight-bold"><?php echo htmlspecialchars(t('reports.col_transfer', 'ໂອນ')); ?></span>
-            <span class="text-muted"><?php echo number_format($totalQr); ?> ₭</span>
+            <span class="text-muted"><?php echo displayMoney($pdo, $totalQr); ?></span>
           </div>
         </div>
       </div>
@@ -583,7 +590,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // CountUp Animation
   document.querySelectorAll('.counter-num').forEach(function (el) {
-    var target = parseInt(el.getAttribute('data-target') || '0', 10);
+    var target = parseFloat(el.getAttribute('data-target') || '0');
+    var decs = parseInt(el.getAttribute('data-decimals') || '0', 10);
+    var cfmt = function(v){ return v.toLocaleString('en-US',{minimumFractionDigits:decs,maximumFractionDigits:decs}); };
     var suffix = el.getAttribute('data-suffix') || '';
     if (isNaN(target)) target = 0;
     var startTime = null;
@@ -592,19 +601,44 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!startTime) startTime = ts;
       var prog = Math.min((ts - startTime) / duration, 1);
       var ease = 1 - Math.pow(1 - prog, 3);
-      el.textContent = Math.floor(ease * target).toLocaleString() + suffix;
+      el.textContent = cfmt(ease * target) + suffix;
       if (prog < 1) requestAnimationFrame(step);
-      else el.textContent = target.toLocaleString() + suffix;
+      else el.textContent = cfmt(target) + suffix;
     }
     requestAnimationFrame(step);
   });
 
+  // ຊ່ອງໜ່ວຍ (ບິນ/ອັນ) ຖືກ "ອົບ" ເຂົ້າໃນ text node ດຽວກັນກັບຕົວເລກ (ເຊັ່ນ "16 ບິນ") ຕອນນັບແລ້ວ —
+  // ຄຳແປແບບ reverse-match ຂອງ dashboard ຈັບ text ປະສົມແບບນີ້ບໍ່ໄດ້ ຈຶ່ງບໍ່ປ່ຽນພາສາໃຫ້ອັດຕະໂນມັດ.
+  // ຟັງເຫດການ pos:langchange (dashboard.php dispatch ໃສ່ iframe ນີ້ຕອນສະຫຼັບພາສາ) ແລ້ວແປງຊ່ອງໜ່ວຍ
+  // ໃໝ່ດ້ວຍ dictionary ຂອງ parent window, ຄືນ text ດ້ວຍຄ່າສຸດທ້າຍ (ນັບແລ້ວ) + ຊ່ອງໜ່ວຍພາສາໃໝ່.
+  window.addEventListener('pos:langchange', function(e) {
+    var lang = (e && e.detail && e.detail.lang) || (window.parent && window.parent.CURRENT_ACTIVE_LANG);
+    if (!lang) return;
+    var dict = null;
+    try { dict = window.parent.I18N_ALL_MERGED && window.parent.I18N_ALL_MERGED[lang]; } catch (err) {}
+    if (!dict) return;
+
+    document.querySelectorAll('.counter-num[data-suffix-key]').forEach(function(el) {
+      var key = el.getAttribute('data-suffix-key');
+      if (!dict[key]) return;
+      var newSuffix = ' ' + dict[key];
+      el.setAttribute('data-suffix', newSuffix);
+
+      var target = parseFloat(el.getAttribute('data-target') || '0');
+      var decs = parseInt(el.getAttribute('data-decimals') || '0', 10);
+      if (isNaN(target)) target = 0;
+      var cfmt = function(v){ return v.toLocaleString('en-US', {minimumFractionDigits:decs, maximumFractionDigits:decs}); };
+      el.textContent = cfmt(target) + newSuffix;
+    });
+  });
+
   // Chart data (always defined, 0 when no data)
   var labels   = <?php echo json_encode($chartLabels); ?>;
-  var netData  = <?php echo json_encode($chartNet); ?>;
-  var cashData = <?php echo json_encode($chartCash); ?>;
-  var qrData   = <?php echo json_encode($chartQr); ?>;
-  var tipData  = <?php echo json_encode($chartTip); ?>;
+  var netData  = <?php echo json_encode(__cvtArr($__dc, $chartNet)); ?>;
+  var cashData = <?php echo json_encode(__cvtArr($__dc, $chartCash)); ?>;
+  var qrData   = <?php echo json_encode(__cvtArr($__dc, $chartQr)); ?>;
+  var tipData  = <?php echo json_encode(__cvtArr($__dc, $chartTip)); ?>;
   var billsData = <?php echo json_encode($chartBills); ?>;
 
   // Bar Chart: Daily Net Sales
@@ -613,21 +647,21 @@ document.addEventListener('DOMContentLoaded', function () {
     data: {
       labels: labels,
       datasets: [{
-        label: <?php echo json_encode(t('reports.chart_legend_net', 'ສຸດທິ (₭)'), JSON_UNESCAPED_UNICODE); ?>,
+        label: <?php echo json_encode(t('reports.chart_legend_net', 'ສຸດທິ'), JSON_UNESCAPED_UNICODE); ?> + ' (<?php echo addslashes($__sym); ?>)',
         data: netData,
         backgroundColor: 'rgba(37,99,235,0.75)',
         borderColor: '#1d4ed8',
         borderWidth: 1.5,
         borderRadius: 6,
       }, {
-        label: <?php echo json_encode(t('reports.chart_legend_cash', 'ເງິນສົດ (₭)'), JSON_UNESCAPED_UNICODE); ?>,
+        label: <?php echo json_encode(t('reports.chart_legend_cash', 'ເງິນສົດ'), JSON_UNESCAPED_UNICODE); ?> + ' (<?php echo addslashes($__sym); ?>)',
         data: cashData,
         backgroundColor: 'rgba(99,102,241,0.55)',
         borderColor: '#4338ca',
         borderWidth: 1,
         borderRadius: 4,
       }, {
-        label: <?php echo json_encode(t('reports.chart_legend_transfer', 'ໂອນ (₭)'), JSON_UNESCAPED_UNICODE); ?>,
+        label: <?php echo json_encode(t('reports.chart_legend_transfer', 'ໂອນ'), JSON_UNESCAPED_UNICODE); ?> + ' (<?php echo addslashes($__sym); ?>)',
         data: qrData,
         backgroundColor: 'rgba(6,182,212,0.55)',
         borderColor: '#0e7490',
@@ -642,7 +676,7 @@ document.addEventListener('DOMContentLoaded', function () {
         tooltip: {
           callbacks: {
             label: function(ctx) {
-              return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString() + ' ₭';
+              return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('en-US',{maximumFractionDigits:<?php echo $__dec; ?>}) + ' <?php echo addslashes($__sym); ?>';
             }
           }
         }
@@ -653,7 +687,7 @@ document.addEventListener('DOMContentLoaded', function () {
           grid: { color: 'rgba(0,0,0,0.05)' },
           ticks: {
             font: { size: 10 },
-            callback: function(v) { return (v/1000).toFixed(0) + 'K'; }
+            callback: function(v) { return <?php echo ($__dc['code']==='KIP')?'true':'false'; ?> ? (v/1000).toFixed(0) + 'K' : v.toLocaleString('en-US',{maximumFractionDigits:<?php echo $__dec; ?>}); }
           }
         }
       }
@@ -661,13 +695,13 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Donut Chart: Payment Method
-  var totalPay = <?php echo $totalCash + $totalQr ?: 1; ?>;
+  var totalPay = <?php echo (convertFromKip($totalCash + $totalQr, $__dc['code'], $__dc['rates']) ?: 1); ?>;
   new Chart(document.getElementById('chartPaymentMethod'), {
     type: 'doughnut',
     data: {
       labels: [<?php echo json_encode(t('reports.cash_opt', 'ເງິນສົດ'), JSON_UNESCAPED_UNICODE); ?>, <?php echo json_encode(t('reports.col_transfer', 'ໂອນ'), JSON_UNESCAPED_UNICODE); ?>],
       datasets: [{
-        data: [<?php echo $totalCash; ?>, <?php echo $totalQr; ?>],
+        data: [<?php echo convertFromKip($totalCash, $__dc['code'], $__dc['rates']); ?>, <?php echo convertFromKip($totalQr, $__dc['code'], $__dc['rates']); ?>],
         backgroundColor: ['#6366f1', '#06b6d4'],
         borderColor: ['#4338ca', '#0e7490'],
         borderWidth: 2,
@@ -683,7 +717,7 @@ document.addEventListener('DOMContentLoaded', function () {
           callbacks: {
             label: function(ctx) {
               var pct = ((ctx.parsed / totalPay) * 100).toFixed(1);
-              return ctx.label + ': ' + ctx.parsed.toLocaleString() + ' ₭ (' + pct + '%)';
+              return ctx.label + ': ' + ctx.parsed.toLocaleString('en-US',{maximumFractionDigits:<?php echo $__dec; ?>}) + ' <?php echo addslashes($__sym); ?> (' + pct + '%)';
             }
           }
         }

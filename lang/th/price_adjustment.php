@@ -73,6 +73,7 @@ return [
     'price_adjustment.calc_set' => 'ตั้งใหม่',
     'price_adjustment.calc_increase' => 'เพิ่ม',
     'price_adjustment.calc_decrease' => 'ลด',
+    'price_adjustment.title_edit' => 'แก้ไข',
     'price_adjustment.title_delete' => 'ลบประวัติ',
 
     'price_adjustment.err_select_product' => 'กรุณาเลือกสินค้าที่ต้องการปรับราคา!',

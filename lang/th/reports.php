@@ -198,9 +198,9 @@ return [
     'reports.chart_daily_net_sales'  => 'ยอดขายสุทธิรายวัน',
     'reports.chart_payment_ratio'    => 'สัดส่วนการชำระเงิน',
     'reports.chart_daily_bill_count' => 'จำนวนบิลรายวัน',
-    'reports.chart_legend_net'       => 'สุทธิ (₭)',
-    'reports.chart_legend_cash'      => 'เงินสด (₭)',
-    'reports.chart_legend_transfer'  => 'โอน (₭)',
+    'reports.chart_legend_net'       => 'สุทธิ',
+    'reports.chart_legend_cash'      => 'เงินสด',
+    'reports.chart_legend_transfer'  => 'โอน',
     'reports.chart_legend_bill_count' => 'จำนวนบิล',
     'reports.chart_tooltip_bill'     => 'บิล:',
 ];

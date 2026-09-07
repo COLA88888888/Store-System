@@ -17,6 +17,8 @@ function initActiveBills() {
     cart = [];
     localStorage.removeItem('pos_bill_opened');
     localStorage.removeItem('pos_active_bills');
+    // ບໍ່ມີບິນເປີດຢູ່: ຕ້ອງໃຫ້ ຊຳລະ / ລ້າງ / ພັກບິນ ຂຶ້ນສະຖານະ disabled ຕັ້ງແຕ່ໂຫຼດໜ້າ
+    updateCartUI();
   }
 
   updateActiveBillsUI();
@@ -207,16 +209,16 @@ function renderActiveBills() {
           <span class="text-dark font-weight-bold text-truncate" style="max-width: 180px;">• ${i.product_name}</span>
           <span class="text-nowrap">
             <span class="badge badge-light border text-primary font-weight-bold mr-1" style="font-size: 0.86rem;">x${i.quantity}${unitStr}</span>
-            <strong class="text-dark">${itemTotal.toLocaleString()} ₭</strong>
+            <strong class="text-dark">${window.POSCUR ? POSCUR.fmt(itemTotal) : itemTotal.toLocaleString() + ' ₭'}</strong>
           </span>
         </div>
       `;
     });
     itemsListHtml += '</div>';
 
-    var discountVal = parseFloat((bill.discount || '0').replace(/\D/g, '')) || 0;
+    var discountVal = window.POSCUR ? POSCUR.toKip(bill.discount || '0') : (parseFloat((bill.discount || '0').replace(/\D/g, '')) || 0);
     var netTotal = Math.max(0, totalAmount - discountVal);
-    var cusName = (bill.customer && bill.customer.customer_name) ? bill.customer.customer_name : 'ລູກຄ້າທົ່ວໄປ';
+    var cusName = posCustomerDisplayName(bill.customer && bill.customer.customer_name);
 
     var cardHtml = `
       <div class="held-item-card ${isCurrent ? 'border-primary bg-light' : ''}">
@@ -225,10 +227,10 @@ function renderActiveBills() {
             <span class="badge ${isCurrent ? 'badge-primary' : 'badge-secondary'} font-weight-bold mr-1">${bill.name}</span>
             <span class="small text-muted"><i class="fas fa-clock mr-1"></i>${bill.time}</span>
           </div>
-          <h5 class="font-weight-bold text-success mb-0">${netTotal.toLocaleString()} ₭</h5>
+          <h5 class="font-weight-bold text-success mb-0">${window.POSCUR ? POSCUR.fmt(netTotal) : netTotal.toLocaleString() + ' ₭'}</h5>
         </div>
         <div class="small text-muted mb-1">
-          <i class="fas fa-user mr-1"></i> ລູກຄ້າ: <strong>${cusName}</strong> | 
+          <i class="fas fa-user mr-1"></i> ລູກຄ້າ: <strong>${cusName}</strong> |
           <i class="fas fa-shopping-basket mr-1 ml-1"></i> <strong>${lineCount}</strong> ລາຍການ (${totalQty} ຈຳນວນ)
         </div>
         ${itemsListHtml}
@@ -362,14 +364,14 @@ function renderHeldOrders() {
           <span class="text-dark font-weight-bold text-truncate" style="max-width: 220px;">• ${i.product_name}</span>
           <span class="text-nowrap">
             <span class="badge badge-light border text-primary font-weight-bold mr-1" style="font-size: 0.86rem;">x${i.quantity}${unitStr}</span>
-            <strong class="text-dark">${itemTotal.toLocaleString()} ₭</strong>
+            <strong class="text-dark">${window.POSCUR ? POSCUR.fmt(itemTotal) : itemTotal.toLocaleString() + ' ₭'}</strong>
           </span>
         </div>
       `;
     });
     itemsListHtml += '</div>';
 
-    var discountVal = parseFloat((order.discount || '0').replace(/\D/g, '')) || 0;
+    var discountVal = window.POSCUR ? POSCUR.toKip(order.discount || '0') : (parseFloat((order.discount || '0').replace(/\D/g, '')) || 0);
     var netTotal = Math.max(0, totalAmount - discountVal);
 
     var cardHtml = `
@@ -379,7 +381,7 @@ function renderHeldOrders() {
             <span class="badge badge-warning font-weight-bold mr-1"><?php echo htmlspecialchars(t('pos.held_bill_label', 'ບິນພັກ'), ENT_QUOTES); ?> #${idx + 1}</span>
             <span class="small text-muted"><i class="fas fa-clock mr-1"></i>${order.time}</span>
           </div>
-          <h5 class="font-weight-bold text-success mb-0">${netTotal.toLocaleString()} ₭</h5>
+          <h5 class="font-weight-bold text-success mb-0">${window.POSCUR ? POSCUR.fmt(netTotal) : netTotal.toLocaleString() + ' ₭'}</h5>
         </div>
         <div class="small text-muted mb-1">
           <i class="fas fa-user mr-1"></i> <?php echo htmlspecialchars(t('pos.receipt_customer', 'ລູກຄ້າ:'), ENT_QUOTES); ?> <strong>${order.customer.customer_name}</strong> |

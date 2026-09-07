@@ -1,4 +1,45 @@
 <script>
+// ==========================================
+// MULTI-CURRENCY HELPERS  (base data is always KIP; these only convert for display)
+// ==========================================
+window.POS_EX_RATES = window.POS_EX_RATES || { KIP: 1, THB: 0, USD: 0, CNY: 0 };
+window.POS_CURRENCY_META = window.POS_CURRENCY_META || {
+  KIP: { name: 'ກີບ', symbol: '₭', decimals: 0 },
+  THB: { name: 'ບາດ', symbol: '฿', decimals: 2 },
+  USD: { name: 'ໂດລາ', symbol: '$', decimals: 2 },
+  CNY: { name: 'ຢວນ', symbol: '¥', decimals: 2 }
+};
+window.POS_DISPLAY_CURRENCY = window.POS_DISPLAY_CURRENCY || 'KIP';
+
+// Receipt strings that get injected into the DOM by JS (not present in the server HTML the
+// flag switcher walks). Keyed by "domain.key" so the dashboard's live language switcher
+// re-points the values on a flag click — read from here at render time, never bake t() inline.
+window.POS_RCPT_I18N = window.POS_RCPT_I18N || {};
+window.POS_RCPT_I18N['pos.receipt_scan_transfer'] = <?php echo json_encode(t('pos.receipt_scan_transfer', 'ສະແກນ QR ໂອນຊຳລະ'), JSON_UNESCAPED_UNICODE); ?>;
+
+// Convert a KIP amount into `code`; returns a formatted string ("12.50 $") or '-' when
+// that currency has no configured rate.
+function posMoneyIn(amountKip, code) {
+  code = (code || 'KIP').toUpperCase();
+  var meta = window.POS_CURRENCY_META[code] || window.POS_CURRENCY_META.KIP;
+  if (code === 'KIP') {
+    return Math.round(amountKip || 0).toLocaleString('en-US') + ' <span class="cur-sym">' + meta.symbol + '</span>';
+  }
+  var rate = parseFloat(window.POS_EX_RATES[code]) || 0;
+  if (rate <= 0) return '-';
+  var val = (amountKip || 0) / rate;
+  return val.toLocaleString('en-US', { minimumFractionDigits: meta.decimals, maximumFractionDigits: meta.decimals }) + ' <span class="cur-sym">' + meta.symbol + '</span>';
+}
+
+// Fill the receipt's 4-currency net-total block from a KIP amount.
+function renderReceiptMultiCurrency(totalKip) {
+  totalKip = parseFloat(totalKip) || 0;
+  $('#rc_total_kip').html(posMoneyIn(totalKip, 'KIP'));
+  $('#rc_total_thb').html(posMoneyIn(totalKip, 'THB'));
+  $('#rc_total_usd').html(posMoneyIn(totalKip, 'USD'));
+  $('#rc_total_cny').html(posMoneyIn(totalKip, 'CNY'));
+}
+
 // Show the customer's phone on the receipt only when there is one
 function setReceiptCustomerPhone(phone) {
   phone = (phone || '').toString().trim();
@@ -154,8 +195,7 @@ function setPayMode(mode) {
     $('#singleSummary').hide();
     $('#splitSummary').show();
     $('#singleQrSection').show();
-    var totalVal = parseFloat($('#cartTotal').text().replace(/[^\d]/g, '')) || 0;
-    $('#splitTotal').text(totalVal.toLocaleString() + ' ₭');
+    $('#splitTotal').html(POSCUR.fmt(window.CART_NET_KIP || 0));
     calcSplitRemaining();
     $('#btnSubmitPayment').prop('disabled', true);
   }
@@ -189,32 +229,31 @@ function selectPayTypeTab(type) {
 function setPaymentType(type) { selectPayTypeTab(type); }
 
 function setExactAmount() {
-  var totalVal = parseFloat($('#cartTotal').text().replace(/[^\d]/g, '')) || 0;
-  $('#cashReceived').val(totalVal.toLocaleString('en-US'));
+  $('#cashReceived').val(POSCUR.num(window.CART_NET_KIP || 0));
   calculateChange();
 }
 
-function addCashShortcut(amount) {
-  var cur = parseFloat($('#cashReceived').val().replace(/[^\d]/g, '')) || 0;
-  $('#cashReceived').val((cur + amount).toLocaleString('en-US'));
+function addCashShortcut(amountKip) {
+  var curKip = POSCUR.toKip($('#cashReceived').val());
+  $('#cashReceived').val(POSCUR.num(curKip + amountKip));
   calculateChange();
 }
 
 function calculateChange() {
   if (currentPayMode !== 'single') return;
-  var cash  = parseFloat($('#cashReceived').val().replace(/[^\d]/g, '')) || 0;
-  var total = parseFloat($('#cartTotal').text().replace(/[^\d]/g, '')) || 0;
-  var change = cash - total;
+  var cashKip  = POSCUR.toKip($('#cashReceived').val());
+  var totalKip = window.CART_NET_KIP || 0;
+  var changeKip = cashKip - totalKip;
 
   // update summary labels
-  $('#singleTotalLbl').text(total.toLocaleString() + ' ₭');
-  $('#singleCashLbl').text(cash.toLocaleString() + ' ₭');
+  $('#singleTotalLbl').html(POSCUR.fmt(totalKip));
+  $('#singleCashLbl').html(POSCUR.fmt(cashKip));
 
-  if (change < 0) {
-    $('#changeDisplay').text('ຂາດ ' + Math.abs(change).toLocaleString() + ' ₭').removeClass('text-success').addClass('text-danger').css('color','#ef4444');
+  if (changeKip < 0) {
+    $('#changeDisplay').text('ຂາດ ' + POSCUR.fmt(Math.abs(changeKip))).removeClass('text-success').addClass('text-danger').css('color','#ef4444');
     $('#btnSubmitPayment').prop('disabled', true);
   } else {
-    $('#changeDisplay').text(change.toLocaleString() + ' ₭').removeClass('text-danger').addClass('text-success').css('color','#16a34a');
+    $('#changeDisplay').html(POSCUR.fmt(changeKip)).removeClass('text-danger').addClass('text-success').css('color','#16a34a');
     $('#btnSubmitPayment').prop('disabled', false);
   }
 }
@@ -223,50 +262,48 @@ function calculateChange() {
 // SPLIT PAYMENT FUNCTIONS
 // ============================
 function calcSplitRemaining() {
-  var total   = parseFloat($('#cartTotal').text().replace(/[^\d]/g, '')) || 0;
-  var cash    = parseFloat($('#splitCashAmount').val().replace(/[^\d]/g, '')) || 0;
-  var qr      = parseFloat($('#splitQrAmount').val().replace(/[^\d]/g, '')) || 0;
-  var paid    = cash + qr;
-  var remain  = total - paid;
+  var totalKip = window.CART_NET_KIP || 0;
+  var cashKip  = POSCUR.toKip($('#splitCashAmount').val());
+  var qrKip    = POSCUR.toKip($('#splitQrAmount').val());
+  var remainKip = totalKip - (cashKip + qrKip);
 
-  $('#splitTotal').text(total.toLocaleString() + ' ₭');
-  $('#splitCashDisplay').text(cash.toLocaleString() + ' ₭');
-  $('#splitQrDisplay').text(qr.toLocaleString() + ' ₭');
+  $('#splitTotal').html(POSCUR.fmt(totalKip));
+  $('#splitCashDisplay').html(POSCUR.fmt(cashKip));
+  $('#splitQrDisplay').html(POSCUR.fmt(qrKip));
 
-  if (remain > 0) {
+  if (remainKip > 0) {
     $('#splitStatusLabel').text('ຍັງຄ້າງ:').css('color', '#ef4444');
-    $('#splitRemainingDisplay').text(remain.toLocaleString() + ' ₭').css('color', '#ef4444');
+    $('#splitRemainingDisplay').html(POSCUR.fmt(remainKip)).css('color', '#ef4444');
     $('#btnSubmitPayment').prop('disabled', true);
-  } else if (remain < 0) {
+  } else if (remainKip < 0) {
     // over-paid → show change
     $('#splitStatusLabel').text('ເງິນທອນ:').css('color', '#16a34a');
-    $('#splitRemainingDisplay').text(Math.abs(remain).toLocaleString() + ' ₭').css('color', '#16a34a');
+    $('#splitRemainingDisplay').html(POSCUR.fmt(Math.abs(remainKip))).css('color', '#16a34a');
     $('#btnSubmitPayment').prop('disabled', false);
   } else {
     $('#splitStatusLabel').text('ພໍດີ ✓').css('color', '#16a34a');
-    $('#splitRemainingDisplay').text('0 ₭').css('color', '#16a34a');
+    $('#splitRemainingDisplay').html(POSCUR.fmt(0)).css('color', '#16a34a');
     $('#btnSubmitPayment').prop('disabled', false);
   }
 }
 
 function setSplitCashExact() {
-  var total = parseFloat($('#cartTotal').text().replace(/[^\d]/g, '')) || 0;
-  $('#splitCashAmount').val(total.toLocaleString('en-US'));
+  $('#splitCashAmount').val(POSCUR.num(window.CART_NET_KIP || 0));
   $('#splitQrAmount').val('0');
   calcSplitRemaining();
 }
 
-function addSplitCash(amount) {
-  var cur = parseFloat($('#splitCashAmount').val().replace(/[^\d]/g, '')) || 0;
-  $('#splitCashAmount').val((cur + amount).toLocaleString('en-US'));
+function addSplitCash(amountKip) {
+  var curKip = POSCUR.toKip($('#splitCashAmount').val());
+  $('#splitCashAmount').val(POSCUR.num(curKip + amountKip));
   calcSplitRemaining();
 }
 
 function fillSplitQrRemaining() {
-  var total = parseFloat($('#cartTotal').text().replace(/[^\d]/g, '')) || 0;
-  var cash  = parseFloat($('#splitCashAmount').val().replace(/[^\d]/g, '')) || 0;
-  var rem   = Math.max(0, total - cash);
-  $('#splitQrAmount').val(rem.toLocaleString('en-US'));
+  var totalKip = window.CART_NET_KIP || 0;
+  var cashKip  = POSCUR.toKip($('#splitCashAmount').val());
+  var remKip   = Math.max(0, totalKip - cashKip);
+  $('#splitQrAmount').val(POSCUR.num(remKip));
   calcSplitRemaining();
 }
 
@@ -274,15 +311,8 @@ function fillSplitQrRemaining() {
 // OPEN CHECKOUT MODAL
 // ============================
 function openCheckoutModal() {
-  if (cart.length === 0) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'ແຈ້ງເຕືອນ',
-      text: 'ກະລຸນາເພີ່ມສິນຄ້າລົງກະຕ່າກ່ອນ!',
-      confirmButtonColor: '#244886'
-    });
-    return;
-  }
+  // ກະຕ່າຫວ່າງ: ບໍ່ເປີດ modal ຊຳລະ ແລະ ບໍ່ຕ້ອງມີ popup (ປຸ່ມ ຊຳລະ ຖືກ disable ໄວ້ແລ້ວ)
+  if (cart.length === 0) return;
 
   currentPayMode = 'single';
   $('#singlePaySection').show();
@@ -304,9 +334,9 @@ function openCheckoutModal() {
   $('#posActiveBankNameTitle').text('');
 
   selectPayTypeTab('ເງິນສົດ');
-  var totalText = $('#cartTotal').text();
-  $('#checkoutTotalDisplay').text(totalText);
-  $('#cashReceived').val(totalText.replace(' ₭', ''));
+  var netKip = window.CART_NET_KIP || 0;
+  $('#checkoutTotalDisplay').html(POSCUR.fmt(netKip));
+  $('#cashReceived').val(POSCUR.num(netKip));
   calculateChange();
   $('#checkoutModal').modal('show');
   if (typeof broadcastCustomerDisplay === 'function') {
@@ -319,23 +349,24 @@ function openCheckoutModal() {
 // PROCESS CHECKOUT
 // ============================
 function processCheckout() {
-  var total    = parseFloat($('#cartTotal').text().replace(/[^\d]/g, '')) || 0;
-  var discount = parseFloat(($('#cartDiscount').val() || '0').replace(/[^\d]/g, '')) || 0;
+  // Everything below is KIP — inputs are typed in the display currency and converted here.
+  var total    = window.CART_NET_KIP || 0;
+  var discount = window.CART_DISCOUNT_KIP || 0;
 
   var cashReceived, qrReceived, paymentType, change;
 
   if (currentPayMode === 'split') {
-    cashReceived = parseFloat($('#splitCashAmount').val().replace(/[^\d]/g, '')) || 0;
-    qrReceived   = parseFloat($('#splitQrAmount').val().replace(/[^\d]/g, '')) || 0;
+    cashReceived = POSCUR.toKip($('#splitCashAmount').val());
+    qrReceived   = POSCUR.toKip($('#splitQrAmount').val());
     var totalPaid = cashReceived + qrReceived;
     if (totalPaid < total) {
-      Swal.fire({ icon: 'error', title: 'ຍອດບໍ່ຄົບ!', text: 'ຍັງຂາດ ' + (total - totalPaid).toLocaleString() + ' ₭ ກະລຸນາຕື່ມ', confirmButtonColor: '#ef4444' });
+      Swal.fire({ icon: 'error', title: 'ຍອດບໍ່ຄົບ!', text: 'ຍັງຂາດ ' + POSCUR.fmt(total - totalPaid) + ' ກະລຸນາຕື່ມ', confirmButtonColor: '#ef4444' });
       return;
     }
     paymentType  = 'ເງິນສົດ + ໂອນ';
     change       = Math.max(0, totalPaid - total);
   } else {
-    var rawInput = parseFloat($('#cashReceived').val().replace(/[^\d]/g, '')) || 0;
+    var rawInput = POSCUR.toKip($('#cashReceived').val());
     if (rawInput < total) {
       Swal.fire({ icon: 'error', title: 'ເງິນທີ່ຮັບມາບໍ່ພໍ!', text: 'ກະລຸນາກວດສອບຈຳນວນເງິນທີ່ຮັບມາ', confirmButtonColor: '#ef4444' });
       return;
@@ -395,7 +426,7 @@ function processCheckout() {
     return;
   }
 
-  var offlinePayload = {
+  var payload = {
     cart:            cleanCart,
     cash_received:   cashReceived,
     qr_received:     qrReceived,
@@ -412,11 +443,11 @@ function processCheckout() {
   $.ajax({
     url: (window.POS_BACKEND_URL || '../../api/pos_backend.php'),
     type: 'POST',
-    // offlinePayload.cart is the raw array (kept for the IndexedDB offline-fallback path) — it must
-    // come first so the stringified cart below always wins, or Object.assign lets the raw array
-    // clobber it, jQuery then serializes it as cart[0][product_id]=... instead of one JSON string,
-    // and PHP's json_decode($_POST['cart']) fatal-errors on every single checkout (array given, not string).
-    data: Object.assign({}, offlinePayload, { action: 'checkout', cart: JSON.stringify(cleanCart) }),
+    // payload.cart is the raw array — the stringified cart below must come last so it always wins,
+    // or Object.assign lets the raw array clobber it, jQuery then serializes it as
+    // cart[0][product_id]=... instead of one JSON string, and PHP's json_decode($_POST['cart'])
+    // fatal-errors on every checkout (array given, not string).
+    data: Object.assign({}, payload, { action: 'checkout', cart: JSON.stringify(cleanCart) }),
     dataType: 'json',
     success: function(res) {
       if (res && res.success) {
@@ -448,8 +479,13 @@ function processCheckout() {
         return;
       }
 
-      console.warn('POS Checkout connection blip/error, executing seamless fallback:', status, err);
-      handleOfflineCheckoutFallback(offlinePayload, total, change);
+      console.error('POS Checkout request failed:', status, err);
+      Swal.fire({
+        icon: 'error',
+        title: 'ເຊື່ອມຕໍ່ບໍ່ໄດ້!',
+        text: 'ບໍ່ສາມາດຕິດຕໍ່ເຊີເວີໄດ້ ກະລຸນາກວດສອບອິນເຕີເນັດ/ເຄືອຂ່າຍ ແລ້ວລອງໃໝ່ອີກຄັ້ງ.',
+        confirmButtonColor: '#ef4444'
+      });
     }
   });
 }
@@ -469,23 +505,23 @@ function handleOnlineCheckoutReceiptUI(res) {
   if (typeof recalculateLiveStock === 'function') recalculateLiveStock();
 
   var cashierName = res.cashier || window.CURRENT_USER_NAME || 'Admin';
-  if (!cashierName || cashierName === 'Cashier (Offline)') cashierName = 'Admin';
+  if (!cashierName) cashierName = 'Admin';
 
   $('#rc_bill').text(res.invoice_number);
   $('#rc_date').text(res.date);
   $('#rc_cashier').text(cashierName);
-  $('#rc_customer').text(res.customer_name || 'ລູກຄ້າທົ່ວໄປ');
+  $('#rc_customer').text(posCustomerDisplayName(res.customer_name));
   setReceiptCustomerPhone(res.customer_phone || (selectedCustomer && selectedCustomer.phone) || '');
   window.__deliveryNoteData = {
     bill:     res.invoice_number,
     date:     res.date,
-    customer: res.customer_name || 'ລູກຄ້າທົ່ວໄປ',
+    customer: posCustomerDisplayName(res.customer_name),
     phone:    res.customer_phone || (selectedCustomer && selectedCustomer.phone) || '',
     address:  (selectedCustomer && (selectedCustomer.address || selectedCustomer.notes)) || '',
     items:    (res.details || []).map(function(d) { return { name: d.proname || '', qty: d.qty, unit: d.unit_name || '' }; })
   };
-  $('#rc_subtotal').text(res.subtotal.toLocaleString() + ' ₭');
-  $('#rc_discount').text(res.discount_amount.toLocaleString() + ' ₭');
+  $('#rc_subtotal').html(POSCUR.fmt(res.subtotal));
+  $('#rc_discount').html(POSCUR.fmt(res.discount_amount));
 
   var rTaxType = res.tax_type || window.STORE_TAX_TYPE || 'none';
   var rTaxId   = res.tax_id || window.STORE_TAX_ID || '';
@@ -516,22 +552,25 @@ function handleOnlineCheckoutReceiptUI(res) {
     $('#rc_vat_row').attr('style', 'display: none !important;').hide();
   } else if (rTaxType === 'exclusive' && (rVatAmt > 0 || rVatRate > 0)) {
     $('#rc_vat_label').text('ອມພ (' + rVatRate + '%):');
-    $('#rc_vat').text(rVatAmt.toLocaleString() + ' ₭');
+    $('#rc_vat').html(POSCUR.fmt(rVatAmt));
     $('#rc_vat_row').attr('style', 'color:#000;font-weight:600;display:flex !important;').show();
   } else if (rTaxType === 'inclusive' && (rVatAmt > 0 || rVatRate > 0)) {
     $('#rc_vat_label').text('ລວມ ອມພ (' + rVatRate + '%):');
-    $('#rc_vat').text(rVatAmt.toLocaleString() + ' ₭');
+    $('#rc_vat').html(POSCUR.fmt(rVatAmt));
     $('#rc_vat_row').attr('style', 'color:#000;font-weight:600;display:flex !important;').show();
   } else if (rVatAmt > 0) {
     $('#rc_vat_label').text('ອມພ (' + (rVatRate > 0 ? rVatRate + '%' : '') + '):');
-    $('#rc_vat').text(rVatAmt.toLocaleString() + ' ₭');
+    $('#rc_vat').html(POSCUR.fmt(rVatAmt));
     $('#rc_vat_row').attr('style', 'color:#000;font-weight:600;display:flex !important;').show();
   } else {
     $('#rc_vat_row').attr('style', 'display: none !important;').hide();
   }
 
-  $('#rc_total').text(res.total_amount.toLocaleString() + ' ₭');
-  $('#rc_change').text(res.change.toLocaleString() + ' ₭');
+  $('#rc_total').html(POSCUR.fmt(res.total_amount));
+  $('#rc_change').html(POSCUR.fmt(res.change));
+
+  // Net total in all 4 currencies (data is stored in KIP; convert with latest rates)
+  renderReceiptMultiCurrency(parseFloat(res.total_amount) || 0);
 
   // Customer loyalty points — show only the points earned on this sale (running balance
   // is not printed on the receipt; it's visible on the Customers page instead).
@@ -555,8 +594,8 @@ function handleOnlineCheckoutReceiptUI(res) {
     }
   }
 
-  $('#rc_cash_amt').text(cashAmt.toLocaleString() + ' ₭');
-  $('#rc_qr_amt').text(qrAmt.toLocaleString() + ' ₭');
+  $('#rc_cash_amt').html(POSCUR.fmt(cashAmt));
+  $('#rc_qr_amt').html(POSCUR.fmt(qrAmt));
 
   var bName = res.bank_name || window.currentSelectedBankName || '';
   var bQrImg = res.bank_qr_img || window.currentSelectedBankQrPath || '';
@@ -571,7 +610,7 @@ function handleOnlineCheckoutReceiptUI(res) {
       $('#rc_bank_qr_img').hide();
     }
     var labelBank = bName ? bName : '';
-    var scanTransferLbl = <?php echo json_encode(t('pos.receipt_scan_transfer', 'ສະແກນ QR ໂອນຊຳລະ'), JSON_UNESCAPED_UNICODE); ?>;
+    var scanTransferLbl = (window.POS_RCPT_I18N && POS_RCPT_I18N['pos.receipt_scan_transfer']) || 'ສະແກນ QR ໂອນຊຳລະ';
     $('#rc_bank_name_lbl').text(labelBank ? scanTransferLbl + ' (' + labelBank + ')' : scanTransferLbl);
     $('.receipt-qr-box').attr('style', 'display:block!important; text-align:center; margin:8px 0;').show();
   } else {
@@ -600,12 +639,12 @@ function handleOnlineCheckoutReceiptUI(res) {
         if (!nameHtml.includes('ແຖມ')) {
           nameHtml = `<span style="font-weight:bold; color:#059669;">[ແຖມຟຣີ]</span> ${nameHtml}`;
         }
-        priceHtml = '<span style="font-weight:bold; color:#059669;">0 ₭ (ແຖມຟຣີ)</span>';
+        priceHtml = '<span style="font-weight:bold; color:#059669;">' + POSCUR.fmt(0) + ' (ແຖມຟຣີ)</span>';
       } else if (origUnitPrice > curUnitPrice && curUnitPrice >= 0) {
         var origTotal = origUnitPrice * d.qty;
-        priceHtml = `<del style="color:#64748b; font-size:0.85em;">${origTotal.toLocaleString()} ₭</del><br><span style="font-weight:bold;">${totalAmt.toLocaleString()} ₭</span>`;
+        priceHtml = `<del style="color:#64748b; font-size:0.85em;">${POSCUR.fmt(origTotal)}</del><br><span style="font-weight:bold;">${POSCUR.fmt(totalAmt)}</span>`;
       } else {
-        priceHtml = `${totalAmt.toLocaleString()} ₭`;
+        priceHtml = `${POSCUR.fmt(totalAmt)}`;
       }
 
       tbody.append(`
@@ -857,397 +896,4 @@ function formatPriceInput(input) {
   input.value = val === '' ? '0' : Number(val).toLocaleString('en-US');
 }
 
-// ============================================================
-// INDEXEDDB OFFLINE SALES QUEUE & AUTO-SYNC ENGINE
-// ============================================================
-var dbName = 'minipos_offline_db';
-var dbVersion = 1;
-var dbInstance = null;
-
-function initMiniPosIndexedDB() {
-  if (!('indexedDB' in window)) {
-    console.warn('IndexedDB not supported on this browser.');
-    return;
-  }
-  var request = window.indexedDB.open(dbName, dbVersion);
-  request.onupgradeneeded = function(e) {
-    var db = e.target.result;
-    if (!db.objectStoreNames.contains('offline_sales')) {
-      var store = db.createObjectStore('offline_sales', { keyPath: 'id', autoIncrement: true });
-      store.createIndex('synced', 'synced', { unique: false });
-    }
-  };
-  request.onsuccess = function(e) {
-    dbInstance = e.target.result;
-    updateOfflineQueueCountBadge();
-    setTimeout(function() { syncOfflineSalesToServer(); }, 1500);
-  };
-  request.onerror = function(e) {
-    console.error('IndexedDB open error:', e);
-  };
-}
-
-function updateNetworkStatusUI() {
-  var isOnline = navigator.onLine;
-  var icon = $('#netStatusIcon');
-  var text = $('#netStatusText');
-  var badge = $('#netStatusBadge');
-
-  if (isOnline) {
-    badge.hide();
-    $('#offlineQueueBadge').hide();
-    syncOfflineSalesToServer();
-  } else {
-    icon.attr('class', 'fas fa-exclamation-triangle text-warning mr-1');
-    text.text('ອັອບໄລນ໌ (Offline)');
-    badge.css({'background-color': '#d97706', 'display': 'inline-flex'}).show();
-    updateOfflineQueueCountBadge();
-  }
-}
-
-window.addEventListener('online', updateNetworkStatusUI);
-window.addEventListener('offline', updateNetworkStatusUI);
-$(document).ready(function() {
-  initMiniPosIndexedDB();
-  updateNetworkStatusUI();
-});
-
-function saveOfflineSaleToIndexedDB(saleData, callback) {
-  if (!dbInstance) {
-    if (callback) callback(null);
-    return;
-  }
-  try {
-    var tx = dbInstance.transaction(['offline_sales'], 'readwrite');
-    var store = tx.objectStore('offline_sales');
-    saleData.synced = 0;
-    saleData.created_at = new Date().toISOString();
-    var req = store.add(saleData);
-    req.onsuccess = function(e) {
-      updateOfflineQueueCountBadge();
-      if (callback) callback(e.target.result);
-    };
-    req.onerror = function(e) {
-      console.error('Save offline sale DB error:', e);
-      if (callback) callback(null);
-    };
-  } catch (err) {
-    console.error('IndexedDB Transaction exception:', err);
-    if (callback) callback(null);
-  }
-}
-
-function updateOfflineQueueCountBadge() {
-  var isOnline = navigator.onLine;
-  if (isOnline) {
-    $('#netStatusBadge').hide();
-    $('#offlineQueueBadge').hide();
-    return;
-  }
-  if (!dbInstance) return;
-  try {
-    var tx = dbInstance.transaction(['offline_sales'], 'readonly');
-    var store = tx.objectStore('offline_sales');
-    var req = store.getAll();
-    req.onsuccess = function(e) {
-      var all = e.target.result || [];
-      var unsynced = all.filter(function(item) { return item.synced === 0; });
-      var count = unsynced.length;
-
-      if (!navigator.onLine) {
-        $('#netStatusBadge').css('display', 'inline-flex').show();
-        if (count > 0) {
-          $('#offlineQueueBadge').text(count + ' ຄ້າງ Sync').show();
-        } else {
-          $('#offlineQueueBadge').hide();
-        }
-      } else {
-        $('#netStatusBadge').hide();
-        $('#offlineQueueBadge').hide();
-      }
-    };
-  } catch (err) {}
-}
-
-function handleOfflineCheckoutFallback(saleObj, total, change) {
-  var now = new Date();
-  var dateStr = now.getFullYear().toString() + (now.getMonth() + 1).toString().padStart(2, '0') + now.getDate().toString().padStart(2, '0');
-  window.POS_TODAY_SALE_COUNT = (parseInt(window.POS_TODAY_SALE_COUNT) || 0) + 1;
-  var seqStr = String(window.POS_TODAY_SALE_COUNT).padStart(4, '0');
-  var offlineBillNum = dateStr + '-' + seqStr;
-  var cashierName = window.CURRENT_USER_NAME || 'Admin';
-
-  saveOfflineSaleToIndexedDB(saleObj, function(savedId) {
-    $('#checkoutModal').modal('hide');
-
-    // 1. ຕັດສະຕັອກເຣວທາມໃນ DOM ແລະ memory ສຳລັບບິນອັອບໄລນ໌ທັນທີ (ບໍ່ຕ້ອງຣີເຟສ)
-    var offlineUpdatedStocks = [];
-    if (saleObj.cart && saleObj.cart.length > 0) {
-      saleObj.cart.forEach(function(item) {
-        var pid = item.product_id;
-        var deductQty = (parseFloat(item.quantity) || 1) * (parseInt(item.multiplier) || 1);
-
-        var newStock = 0;
-        var stockValEl = $('.product-stock-val-' + pid);
-        if (stockValEl.length) {
-          var currentStock = parseFloat(stockValEl.attr('data-initial-stock')) || 0;
-          newStock = Math.max(0, currentStock - deductQty);
-          stockValEl.attr('data-initial-stock', newStock);
-          stockValEl.text(newStock.toLocaleString());
-        }
-
-        if (typeof allProducts !== 'undefined' && allProducts && allProducts.length > 0) {
-          var pItem = allProducts.find(function(p) { return String(p.product_id) === String(pid); });
-          if (pItem) {
-            pItem.qty = Math.max(0, (parseFloat(pItem.qty) || 0) - deductQty);
-            newStock = pItem.qty;
-          }
-        }
-
-        offlineUpdatedStocks.push({ product_id: pid, new_qty: newStock });
-      });
-
-      applyStockUpdateFromBroadcast(offlineUpdatedStocks);
-      broadcastStockUpdate(offlineUpdatedStocks);
-    }
-
-    // 2. ເຄຼຍກະຕ່າ ແລະ ຄຳນວນສະຕັອກຄົງເຫຼືອທັນທີ
-    cart = [];
-    if (typeof renderCart === 'function') renderCart();
-    if (typeof recalculateLiveStock === 'function') recalculateLiveStock();
-
-    var offTaxType = window.STORE_TAX_TYPE || 'none';
-    var offVatRate = parseFloat(window.STORE_VAT_PERCENT) || 0;
-    var offSubtotal = total + (saleObj.discount_amount || 0);
-    var offAmtAfterDisc = Math.max(0, offSubtotal - (saleObj.discount_amount || 0));
-    var offVatAmt = 0;
-
-    if (offTaxType === 'exclusive' && offVatRate > 0) {
-      offVatAmt = Math.round(offAmtAfterDisc * (offVatRate / 100));
-    } else if (offTaxType === 'inclusive' && offVatRate > 0) {
-      offVatAmt = Math.round(offAmtAfterDisc - (offAmtAfterDisc / (1 + (offVatRate / 100))));
-    }
-
-    saleObj.tax_type = offTaxType;
-    saleObj.vat_rate = offVatRate;
-    saleObj.vat_amount = offVatAmt;
-
-    // 3. ສະແດງໃບບິນ
-    $('#rc_bill').text(offlineBillNum);
-    $('#rc_date').text(now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
-    $('#rc_cashier').text(cashierName);
-    $('#rc_customer').text(saleObj.customer_name || 'ລູກຄ້າທົ່ວໄປ');
-    setReceiptCustomerPhone(saleObj.customer_phone || saleObj.phone || (selectedCustomer && selectedCustomer.phone) || '');
-    window.__deliveryNoteData = {
-      bill:     offlineBillNum,
-      date:     now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}),
-      customer: saleObj.customer_name || 'ລູກຄ້າທົ່ວໄປ',
-      phone:    saleObj.customer_phone || saleObj.phone || (selectedCustomer && selectedCustomer.phone) || '',
-      address:  saleObj.customer_address || (selectedCustomer && (selectedCustomer.address || selectedCustomer.notes)) || '',
-      items:    (saleObj.cart || []).map(function(item) { return { name: item.product_name || '', qty: item.quantity, unit: item.unit_name || '' }; })
-    };
-    $('#rc_subtotal').text(offSubtotal.toLocaleString() + ' ₭');
-    $('#rc_discount').text(saleObj.discount_amount.toLocaleString() + ' ₭');
-
-    if (offTaxType === 'none' || offVatRate <= 0) {
-      $('#rc_vat_row').hide();
-    } else if (offTaxType === 'exclusive' && (offVatAmt > 0 || offVatRate > 0)) {
-      $('#rc_vat_label').text('ອມພ (' + offVatRate + '%):');
-      $('#rc_vat').text(offVatAmt.toLocaleString() + ' ₭');
-      $('#rc_vat_row').show();
-    } else if (offTaxType === 'inclusive' && (offVatAmt > 0 || offVatRate > 0)) {
-      $('#rc_vat_label').text('ລວມ ອມພ (' + offVatRate + '%):');
-      $('#rc_vat').text(offVatAmt.toLocaleString() + ' ₭');
-      $('#rc_vat_row').show();
-    } else if (offVatAmt > 0) {
-      $('#rc_vat_label').text('ອມພ (' + (offVatRate > 0 ? offVatRate + '%' : '') + '):');
-      $('#rc_vat').text(offVatAmt.toLocaleString() + ' ₭');
-      $('#rc_vat_row').show();
-    } else {
-      $('#rc_vat_row').hide();
-    }
-    $('#rc_total').text(total.toLocaleString() + ' ₭');
-    $('#rc_change').text(change.toLocaleString() + ' ₭');
-    $('#rc_points_row').hide();
-
-    var offCashAmt = parseFloat(saleObj.cash_received) || 0;
-    var offQrAmt   = parseFloat(saleObj.qr_received) || 0;
-
-    if (offCashAmt === 0 && offQrAmt === 0) {
-      var pType = saleObj.payment_type || saleObj.pay_mode || '';
-      if (pType === 'ເງິນສົດ' || pType === 'cash') {
-        offCashAmt = (parseFloat(saleObj.total_amount) || 0) + (parseFloat(saleObj.change) || 0);
-      } else {
-        offQrAmt = parseFloat(saleObj.total_amount) || 0;
-      }
-    }
-
-    $('#rc_cash_amt').text(offCashAmt.toLocaleString() + ' ₭');
-    $('#rc_qr_amt').text(offQrAmt.toLocaleString() + ' ₭');
-
-    var bName = saleObj.bank_name || window.currentSelectedBankName || '';
-    var bQrImg = saleObj.bank_qr_img || window.currentSelectedBankQrPath || '';
-    var pType = saleObj.payment_type || selectedPayType || '';
-
-    var isTransferPayment = (offQrAmt > 0) || (pType && (pType.includes('ໂອນ') || pType.includes('QR')));
-
-    if (isTransferPayment) {
-      if (bQrImg && bQrImg.trim() !== '') {
-        $('#rc_bank_qr_img').attr('src', bQrImg).show();
-      } else {
-        $('#rc_bank_qr_img').hide();
-      }
-      var labelBank = bName ? bName : '';
-      var scanTransferLbl = <?php echo json_encode(t('pos.receipt_scan_transfer', 'ສະແກນ QR ໂອນຊຳລະ'), JSON_UNESCAPED_UNICODE); ?>;
-      $('#rc_bank_name_lbl').text(labelBank ? scanTransferLbl + ' (' + labelBank + ')' : scanTransferLbl);
-      $('.receipt-qr-box').attr('style', 'display:block!important; text-align:center; margin:8px 0;').show();
-    } else {
-      $('.receipt-qr-box').attr('style', 'display:none!important;').hide();
-    }
-
-    var tbody = $('#rc_items');
-    tbody.empty();
-    saleObj.cart.forEach(function(item) {
-      var itemTotal = (item.unit_price * item.quantity);
-      var uName = item.unit_name || '';
-      var displayName = item.product_name || '';
-      if (uName && !displayName.includes('(')) {
-        displayName += ' (' + uName + ')';
-      }
-
-      var isGift = !!item.is_free_gift || item.unit_price === 0 || displayName.includes('(ແຖມ)');
-      var origUnitPrice = parseFloat(item.original_price || item.unit_price) || 0;
-      var curUnitPrice = parseFloat(item.unit_price) || 0;
-
-      var nameHtml = displayName;
-      var priceHtml = '';
-
-      if (isGift) {
-        if (!nameHtml.includes('ແຖມ')) {
-          nameHtml = `<span style="font-weight:bold; color:#059669;">[ແຖມຟຣີ]</span> ${nameHtml}`;
-        }
-        priceHtml = '<span style="font-weight:bold; color:#059669;">0 ₭ (ແຖມຟຣີ)</span>';
-      } else if (origUnitPrice > curUnitPrice && curUnitPrice >= 0) {
-        var origTotal = origUnitPrice * item.quantity;
-        priceHtml = `<del style="color:#64748b; font-size:0.85em;">${origTotal.toLocaleString()} ₭</del><br><span style="font-weight:bold;">${itemTotal.toLocaleString()} ₭</span>`;
-      } else {
-        priceHtml = `${itemTotal.toLocaleString()} ₭`;
-      }
-
-      tbody.append(`
-        <tr>
-          <td>${nameHtml}</td>
-          <td class="text-center">x${item.quantity}</td>
-          <td class="text-right">${priceHtml}</td>
-        </tr>
-      `);
-    });
-
-    if (typeof broadcastCustomerDisplay === 'function') {
-      broadcastCustomerDisplay('payment_success', { cashReceived: saleObj.cash_received, qrReceived: saleObj.qr_received, changeAmount: change });
-    }
-    printReceipt();
-    resetPOS();
-  });
-}
-
-var isSyncingOfflineSales = false;
-function syncOfflineSalesToServer(userClicked) {
-  if (!navigator.onLine || !dbInstance || isSyncingOfflineSales) {
-    if (userClicked && !navigator.onLine) {
-      Swal.fire({ icon: 'warning', title: 'ອັອບໄລນ໌ຢູ່', text: 'ກະລຸນາເຊື່ອມຕໍ່ອິນເຕີເນັດ/ເຄືອຂ່າຍ ກ່ອນກົດ Sync ບິນ!', confirmButtonColor: '#0284c7' });
-    }
-    return;
-  }
-
-  isSyncingOfflineSales = true;
-  try {
-    var tx = dbInstance.transaction(['offline_sales'], 'readonly');
-    var store = tx.objectStore('offline_sales');
-    var req = store.getAll();
-    req.onsuccess = function(e) {
-      var all = e.target.result || [];
-      var unsynced = all.filter(function(item) { return item.synced === 0; });
-      if (unsynced.length === 0) {
-        isSyncingOfflineSales = false;
-        if (userClicked) {
-          Swal.fire({ icon: 'success', title: 'Sync ຄົບຖ້ວນ', text: 'ບໍ່ມີບິນອັອບໄລນ໌ຄ້າງ Sync ແລ້ວ!', confirmButtonColor: '#0284c7' });
-        }
-        return;
-      }
-
-      var syncedSuccessCount = 0;
-      var processChain = Promise.resolve();
-
-      unsynced.forEach(function(item) {
-        processChain = processChain.then(function() {
-          return new Promise(function(resolve) {
-            var cartParam = (typeof item.cart === 'string') ? item.cart : JSON.stringify(item.cart || []);
-            $.ajax({
-              url: '../../api/pos_backend.php',
-              type: 'POST',
-              data: {
-                action:          'checkout',
-                cart:            cartParam,
-                cash_received:   item.cash_received,
-                qr_received:     item.qr_received,
-                payment_type:    item.payment_type,
-                pay_mode:        item.pay_mode,
-                discount_amount: item.discount_amount,
-                bank_account_id: item.bank_account_id,
-                bank_name:       item.bank_name,
-                customer_id:     item.customer_id,
-                customer_name:   item.customer_name
-              },
-              dataType: 'json',
-              success: function(res) {
-                if (res && res.success) {
-                  syncedSuccessCount++;
-                  try {
-                    var delTx = dbInstance.transaction(['offline_sales'], 'readwrite');
-                    delTx.objectStore('offline_sales').delete(item.id);
-                  } catch (ex) {}
-                } else if (res && !res.success) {
-                  // Server responded but rejected item (e.g. empty cart or duplicate), delete to unblock queue
-                  try {
-                    var delTx = dbInstance.transaction(['offline_sales'], 'readwrite');
-                    delTx.objectStore('offline_sales').delete(item.id);
-                  } catch (ex) {}
-                }
-                resolve();
-              },
-              error: function() {
-                // On error, retain bill in IndexedDB for retry on next sync
-                resolve();
-              }
-            });
-          });
-        });
-      });
-
-      processChain.then(function() {
-        isSyncingOfflineSales = false;
-        updateOfflineQueueCountBadge();
-        if (userClicked && syncedSuccessCount > 0) {
-          const Toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3500,
-            timerProgressBar: true
-          });
-          Toast.fire({
-            icon: 'success',
-            title: `Sync ບິນອັອບໄລນ໌ສຳເລັດ ${syncedSuccessCount} ລາຍການ!`
-          });
-        }
-      });
-    };
-    req.onerror = function() {
-      isSyncingOfflineSales = false;
-    };
-  } catch (err) {
-    isSyncingOfflineSales = false;
-  }
-}
 </script>

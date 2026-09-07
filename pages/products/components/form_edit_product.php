@@ -112,6 +112,19 @@
                 <?php endif; ?>
               </div>
 
+              <!-- Row 3b: ຜູ້ສະໜອງ (ບໍ່ບັງຄັບ) -->
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_supplier', 'ຜູ້ສະໜອງ:')); ?></label>
+                  <select name="supplier_id" id="edit_supplier_id" class="form-control" style="border-radius: 6px; height: 40px;">
+                    <option value=""><?php echo htmlspecialchars(t('products.select_supplier_placeholder', '-- ບໍ່ລະບຸ / ເລືອກຜູ້ສະໜອງ --')); ?></option>
+                    <?php foreach (($suppliers ?? []) as $sp): ?>
+                      <option value="<?php echo (int)$sp['supplier_id']; ?>"><?php echo htmlspecialchars($sp['supplier_name']); ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+              </div>
+
               <!-- Row 4: ລາຄາຊື້ & ລາຄາຂາຍຍ່ອຍ -->
               <div class="row">
                 <div class="col-6">

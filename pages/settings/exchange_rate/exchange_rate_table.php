@@ -26,22 +26,22 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
           <th class="text-right" style="width: 150px;">
             <img src="<?php echo $bp; ?>assets/img/flag_img/Flag_of_Laos.webp" alt="LAK" style="width: 24px; height: 16px; margin-right: 6px; vertical-align: -2px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.18);" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
             <span class="flag-icon flag-icon-la mr-1" style="display:none;"></span>
-            <?php echo htmlspecialchars(t('exchange_rate.col_kip', 'ກີບ')); ?> (LAK)
+            <?php echo htmlspecialchars(t('exchange_rate.col_kip', 'ກີບ')); ?>
           </th>
           <th class="text-right" style="width: 170px;">
             <img src="<?php echo $bp; ?>assets/img/flag_img/Flag_of_Thailand.webp" alt="THB" style="width: 24px; height: 16px; margin-right: 6px; vertical-align: -2px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.18);" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
             <span class="flag-icon flag-icon-th mr-1" style="display:none;"></span>
-            <?php echo htmlspecialchars(t('exchange_rate.col_thb', 'ບາດ')); ?> (THB)
+            <?php echo htmlspecialchars(t('exchange_rate.col_thb', 'ບາດ')); ?>
           </th>
           <th class="text-right" style="width: 170px;">
             <img src="<?php echo $bp; ?>assets/img/flag_img/flag-Stars.webp" alt="USD" style="width: 24px; height: 16px; margin-right: 6px; vertical-align: -2px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.18);" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
             <span class="flag-icon flag-icon-us mr-1" style="display:none;"></span>
-            <?php echo htmlspecialchars(t('exchange_rate.col_usd', 'ໂດລາ')); ?> (USD)
+            <?php echo htmlspecialchars(t('exchange_rate.col_usd', 'ໂດລາ')); ?>
           </th>
           <th class="text-right" style="width: 170px;">
             <img src="<?php echo $bp; ?>assets/img/flag_img/Flag-chaina.webp" alt="CNY" style="width: 24px; height: 16px; margin-right: 6px; vertical-align: -2px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.18);" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
             <span class="flag-icon flag-icon-cn mr-1" style="display:none;"></span>
-            <?php echo htmlspecialchars(t('exchange_rate.col_cny', 'ຢວນ')); ?> (CNY)
+            <?php echo htmlspecialchars(t('exchange_rate.col_cny', 'ຢວນ')); ?>
           </th>
           <th class="text-center" style="width: 150px;"><?php echo htmlspecialchars(t('exchange_rate.col_user', 'ຜູ້ບັນທຶກ')); ?></th>
           <th class="text-center" style="width: 130px;"><?php echo htmlspecialchars(t('exchange_rate.col_action', 'ຈັດການ')); ?></th>

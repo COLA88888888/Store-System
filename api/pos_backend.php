@@ -428,7 +428,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 // Auto-deactivate expired promotions & Fetch active promotions for current branch/store
 $activePromos = [];
 try {
-    $currentPosStoreId = intval($_SESSION['store_id'] ?? 1);
+    // Scope promos to the branch the POS is actually operating as (honours ?switch_store_id
+    // for admin/main-branch users), matching how products/categories are scoped below.
+    $currentPosStoreId = getActiveStoreId($pdo);
     $pdo->exec("UPDATE promotions SET status = 0 WHERE status = 1 AND end_date < CURDATE()");
     $stmtActivePromos = $pdo->prepare("
         SELECT * FROM promotions 
@@ -441,140 +443,146 @@ try {
     $activePromos = $stmtActivePromos->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
-function getProductPromotion($product, $activePromos) {
+// Loosen string comparison so a promo's free-typed target still matches the real product/
+// category name despite spacing, casing, zero-width chars or Unicode form differences
+// (common with Lao text entered by hand).
+function promoNormalizeName($s) {
+    $s = (string)$s;
+    if (class_exists('Normalizer')) {
+        $n = Normalizer::normalize($s, Normalizer::FORM_C);
+        if ($n !== false) $s = $n;
+    }
+    // Fold the two ways Lao vowels get typed: ເ+ເ vs ແ, and ເ+ໂ etc. (ແກັດ vs ເເກັດ, ແກ້ວ vs ເເກ້ວ)
+    $s = str_replace(["\u{0EC0}\u{0EC0}", "\u{0EC0}\u{0EC1}"], "\u{0EC1}", $s);
+    // drop zero-width / BOM / all whitespace, then lowercase
+    $s = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}\s]+/u', '', $s);
+    return mb_strtolower(trim($s));
+}
+function promoNameMatches($actual, $target) {
+    $a = promoNormalizeName($actual);
+    $t = promoNormalizeName($target);
+    if ($a === '' || $t === '') return false;
+    return $a === $t || mb_stripos($a, $t) !== false || mb_stripos($t, $a) !== false;
+}
+// Unit matching must be EXACT (after normalising) — never substring. BeerLao's ປ໋ອງຍາວ and
+// ປ໋ອງສັ້ນ share the "ປ໋ອງ" prefix, so a loose match would discount both when a promo names
+// only one. "all"/empty means every unit.
+function promoUnitMatches($actualUnit, $targetUnit) {
+    $t = promoNormalizeName($targetUnit);
+    if ($t === '' || $t === 'all') return true;
+    return promoNormalizeName($actualUnit) === $t;
+}
+
+function getProductPromotion($product, $activePromos, $dispCur = null) {
     if (empty($activePromos)) return null;
-    
+
     $pName = trim($product['product_name'] ?? '');
     $cName = trim($product['category_name'] ?? '');
+    // Codes a promo's target may be entered as instead of the product name
+    $pCodes = array_filter([
+        trim((string)($product['barcode'] ?? '')),
+        trim((string)($product['code1'] ?? '')),
+        trim((string)($product['product_id'] ?? '')),
+    ], 'strlen');
 
     $matchedDiscountPromo = null;
     $matchedGiftPromo = null;
-    
+
     foreach ($activePromos as $promo) {
         $targetType = $promo['target_type'] ?? 'all';
         $targetName = trim($promo['target_name'] ?? '');
-        $targetUnit = mb_strtolower(trim($promo['target_unit_name'] ?? 'all'));
-        $baseUnit   = mb_strtolower(trim($product['unit'] ?? ''));
 
+        // Match the promo to the PRODUCT (or its category, or "all"). Unit scoping is applied
+        // later, per sellable unit — a promo aimed at one unit (e.g. ແກັດ) still "belongs" to
+        // the product; its other units simply stay at full price.
         $isMatch = false;
-        
         if ($targetType === 'all' || empty($targetName) || $targetName === 'ທຸກສິນຄ້າ') {
             $isMatch = true;
         } elseif ($targetType === 'category') {
-            if (!empty($cName) && (mb_strtolower($cName) === mb_strtolower($targetName) || mb_stripos($cName, $targetName) !== false || mb_stripos($targetName, $cName) !== false)) {
-                $isMatch = true;
-            }
+            $isMatch = (!empty($cName) && promoNameMatches($cName, $targetName));
         } elseif ($targetType === 'product') {
-            if (!empty($pName) && (mb_strtolower($pName) === mb_strtolower($targetName) || mb_stripos($pName, $targetName) !== false || mb_stripos($targetName, $pName) !== false)) {
-                $isMatch = true;
-            }
+            $isMatch = (!empty($pName) && promoNameMatches($pName, $targetName))
+                       || in_array($targetName, $pCodes, true);
         }
+        if (!$isMatch) continue;
 
-        // Check if unit matches target_unit_name
-        $isUnitMatch = ($targetUnit === 'all' || empty($targetUnit) || $baseUnit === $targetUnit);
-        if (!$isUnitMatch && !empty($baseUnit) && !empty($targetUnit)) {
-            $n1 = preg_replace('/ເເກັດ|ເກັດ|ແກັດ|ແກັດ/u', 'ເກັດ', $baseUnit);
-            $n2 = preg_replace('/ເເກັດ|ເກັດ|ແກັດ|ແກັດ/u', 'ເກັດ', $targetUnit);
-            if ($n1 === $n2 || mb_stripos($baseUnit, $targetUnit) !== false || mb_stripos($targetUnit, $baseUnit) !== false) {
-                $isUnitMatch = true;
-            }
+        if (floatval($promo['discount_value'] ?? 0) > 0 && !$matchedDiscountPromo) {
+            $matchedDiscountPromo = $promo;
         }
-        
-        if ($isMatch) {
-            $discVal = floatval($promo['discount_value'] ?? 0);
-            $giftName = trim($promo['gift_product_name'] ?? '');
-            
-            // Apply discount if unit matches OR if target_unit_name is all
-            if ($discVal > 0 && !$matchedDiscountPromo && $isUnitMatch) {
-                $matchedDiscountPromo = $promo;
-            }
-            if (!empty($giftName) && !$matchedGiftPromo && $isUnitMatch) {
-                $matchedGiftPromo = $promo;
-            }
-            if ($matchedDiscountPromo && $matchedGiftPromo) {
-                break;
-            }
+        if (trim($promo['gift_product_name'] ?? '') !== '' && !$matchedGiftPromo) {
+            $matchedGiftPromo = $promo;
         }
+        if ($matchedDiscountPromo && $matchedGiftPromo) break;
     }
 
     $promoToUse = $matchedDiscountPromo ?? $matchedGiftPromo;
     if (!$promoToUse) return null;
 
-    $origPrice = floatval($product['price'] ?? 0);
     $promoType = $promoToUse['promo_type'] ?? 'discount';
     $discType  = $promoToUse['discount_type'] ?? 'percentage';
     $discVal   = floatval($promoToUse['discount_value'] ?? 0);
     $giftName  = trim($matchedGiftPromo['gift_product_name'] ?? $promoToUse['gift_product_name'] ?? '');
     $giftQty   = intval($matchedGiftPromo['gift_qty'] ?? $promoToUse['gift_qty'] ?? 1);
     if ($giftQty < 1) $giftQty = 1;
-    
-    $tunit = trim($promoToUse['target_unit_name'] ?? 'all');
-    if (empty($tunit)) $tunit = 'all';
 
+    $tunit = trim($promoToUse['target_unit_name'] ?? 'all');
+    if ($tunit === '') $tunit = 'all';
     $unitSuffix = ($tunit !== 'all') ? ' (ສະເພາະ ' . $tunit . ')' : '';
 
-    $discountAmount = 0;
-    $promoPrice = $origPrice;
-
+    // Discount descriptor (unit-agnostic — the actual amount is computed per selected unit).
+    // A fixed ₭ amount is shown converted into the POS's active display currency.
     $discountText = '';
     if ($discType === 'percentage' && $discVal > 0) {
-        $discountAmount = $origPrice * ($discVal / 100);
-        $promoPrice = max(0, $origPrice - $discountAmount);
-        $discountText = 'ຫຼຸດ: ' . (floor($discVal) == $discVal ? intval($discVal) : number_format($discVal, 1)) . '% (-' . number_format($discountAmount) . '₭)';
+        $discountText = 'ຫຼຸດ ' . (floor($discVal) == $discVal ? intval($discVal) : number_format($discVal, 1)) . '%';
     } elseif ($discVal > 0) {
-        $discountAmount = $discVal;
-        $promoPrice = max(0, $origPrice - $discountAmount);
-        $discountText = 'ຫຼຸດ: ' . number_format($discVal) . '₭';
-    }
-
-    $baseUnit = mb_strtolower(trim($product['unit'] ?? ''));
-    $tunitLower = mb_strtolower($tunit);
-    
-    // Check if base product unit matches target unit
-    $isUnitMatch = ($tunitLower === 'all' || empty($tunitLower) || $baseUnit === $tunitLower);
-    if (!$isUnitMatch) {
-        // Normalize Lao spelling variations (ເຊັ່ນ: ເເກັດ vs ເກັດ vs ແກັດ)
-        $n1 = preg_replace('/ເເກັດ|ເກັດ|ແກັດ|ແກັດ/u', 'ເກັດ', $baseUnit);
-        $n2 = preg_replace('/ເເກັດ|ເກັດ|ແກັດ|ແກັດ/u', 'ເກັດ', $tunitLower);
-        if ($n1 === $n2 || mb_stripos($baseUnit, $tunitLower) !== false || mb_stripos($tunitLower, $baseUnit) !== false) {
-            $isUnitMatch = true;
-        }
-    }
-
-    $giftText = '';
-    // Only show Free Gift text on the product card badge if the product's unit matches the target unit!
-    if (!empty($giftName) && $isUnitMatch) {
-        if ($tunit === 'all' || empty($tunit)) {
-            $giftText = 'ແຖມ: ' . $giftName . ($giftQty > 1 ? ' x' . $giftQty : '');
+        $curCode = strtoupper((string)($dispCur['code'] ?? 'KIP'));
+        if ($curCode !== 'KIP' && function_exists('convertFromKip')) {
+            $amt = convertFromKip($discVal, $curCode, $dispCur['rates'] ?? null);
+            $dec = (int)($dispCur['decimals'] ?? 2);
+            $sym = (string)($dispCur['symbol'] ?? $curCode);
+            $discountText = 'ຫຼຸດ ' . number_format((float)$amt, $dec, '.', ',') . ' ' . $sym;
         } else {
-            $giftText = 'ແຖມ: ' . $giftName . ($giftQty > 1 ? ' x' . $giftQty : '') . ' (ສະເພາະ ' . $tunit . ')';
+            $discountText = 'ຫຼຸດ ' . number_format($discVal) . '₭';
         }
     }
+    $giftText = ($giftName !== '') ? ('ແຖມ ' . $giftName . ($giftQty > 1 ? ' x' . $giftQty : '')) : '';
 
-    if (!empty($discountText) && !empty($giftText)) {
-        $badge = $discountText . ' + ' . $giftText;
-    } elseif (!empty($discountText)) {
-        $badge = $discountText;
-    } elseif (!empty($giftText)) {
-        $badge = $giftText;
-    } else {
-        $badge = $promoToUse['promo_name'];
-    }
+    // Badge always leads with the promo name so the cashier can see which promo is in effect
+    $parts = array_values(array_filter([$discountText, $giftText]));
+    $badge = trim($promoToUse['promo_name'] ?? '') !== '' ? trim($promoToUse['promo_name']) : 'ໂປຣ';
+    if ($parts) $badge .= ' · ' . implode(' + ', $parts);
+    $badge .= $unitSuffix;
 
     return [
-        'promo_name'        => $promoToUse['promo_name'],
+        'promo_name'        => $promoToUse['promo_name'] ?? '',
         'promo_type'        => $promoType,
         'discount_type'     => $discType,
         'discount_value'    => $discVal,
-        'discount_amount'   => $discountAmount,
-        'original_price'    => $origPrice,
-        'promo_price'       => $promoPrice,
         'badge'             => $badge,
         'min_qty'           => intval($promoToUse['min_qty'] ?? 0),
+        'min_amount'        => floatval($promoToUse['min_amount'] ?? 0),
         'gift_product_name' => $giftName,
         'gift_qty'          => $giftQty,
         'target_unit_name'  => $tunit
     ];
+}
+
+// Apply a promo to ONE sellable unit. Returns [originalPrice, effectivePrice, wasDiscounted].
+// The discount only bites when the promo targets "all" units or this unit's name — so a promo
+// scoped to ແກັດ leaves ຫໍ່ (and every other unit) untouched.
+function applyPromoToUnit($promo, $unitName, $unitPrice) {
+    $unitPrice = floatval($unitPrice);
+    $hit = promoUnitMatches($unitName, $promo['target_unit_name'] ?? 'all');
+    if (!$hit || floatval($promo['discount_value'] ?? 0) <= 0) {
+        return [$unitPrice, $unitPrice, false];
+    }
+    $dv = floatval($promo['discount_value']);
+    if (($promo['discount_type'] ?? 'percentage') === 'percentage') {
+        $eff = $unitPrice - ($unitPrice * $dv / 100);
+    } else {
+        $eff = $unitPrice - $dv;
+    }
+    return [$unitPrice, max(0, round($eff)), true];
 }
 
 // Fetch categories, products, and customers list
@@ -604,30 +612,41 @@ foreach ($extraUnits as $u) {
 }
 
 // Map products with complete unit structures and promotions
+$posDisplayCurrency = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo) : ['code' => 'KIP'];
 $products = [];
 foreach ($productsRaw as $p) {
     $pid = $p['product_id'];
     $p['extra_units'] = $unitsMap[$pid] ?? [];
-    
-    $promo = getProductPromotion($p, $activePromos);
+
+    $promo = getProductPromotion($p, $activePromos, $posDisplayCurrency);
     if ($promo) {
-        $p['has_promo']         = true;
-        $p['original_price']    = floatval($p['price']);
-        $p['promo_price']       = $promo['promo_price'];
+        // Price each unit independently so only the promo's target unit is discounted.
+        list($bOrig, $bEff, $anyHit) = applyPromoToUnit($promo, $p['unit'] ?? '', $p['price']);
+        $p['original_price'] = $bOrig;
+        $p['price']          = $bEff;
+
+        if (!empty($p['extra_units'])) {
+            foreach ($p['extra_units'] as &$eu) {
+                list($euOrig, $euEff, $euHit) = applyPromoToUnit($promo, $eu['unit_name'] ?? '', $eu['price']);
+                $eu['original_price'] = $euOrig;
+                $eu['price']          = $euEff;
+                $anyHit = $anyHit || $euHit;
+            }
+            unset($eu);
+        }
+
+        $isGift = (trim($promo['gift_product_name'] ?? '') !== '');
+        $p['has_promo']         = ($anyHit || $isGift);
         $p['promo_badge']       = $promo['badge'];
         $p['promo_name']        = $promo['promo_name'];
         $p['promo_type']        = $promo['promo_type'] ?? 'discount';
+        $p['discount_type']     = $promo['discount_type'] ?? 'percentage';
+        $p['discount_value']    = $promo['discount_value'] ?? 0;
         $p['gift_product_name'] = $promo['gift_product_name'] ?? '';
         $p['gift_qty']          = $promo['gift_qty'] ?? 1;
         $p['target_unit_name']  = $promo['target_unit_name'] ?? 'all';
-        $p['price']             = $promo['promo_price']; // Set active price to promotional price
-        
-        if (!empty($p['extra_units']) && $promo['discount_type'] === 'percentage') {
-            foreach ($p['extra_units'] as &$eu) {
-                $eu['original_price'] = floatval($eu['price']);
-                $eu['price'] = round($eu['price'] * (1 - ($promo['discount_value'] / 100)));
-            }
-        }
+        $p['promo_min_qty']     = $promo['min_qty'] ?? 0;
+        $p['promo_min_amount']  = $promo['min_amount'] ?? 0;
     } else {
         $p['has_promo']       = false;
         $p['original_price']  = floatval($p['price']);

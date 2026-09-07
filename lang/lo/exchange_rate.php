@@ -9,10 +9,13 @@ return [
     'exchange_rate.msg_error_prefix' => 'ຜິດພາດ: ',
 
     // exchange_rate_header.php
-    'exchange_rate.header_title' => 'ອັດຕາແລກປ່ຽນເງິນ (Exchange Rates)',
+    'exchange_rate.header_title' => 'ອັດຕາແລກປ່ຽນເງິນ',
     'exchange_rate.btn_add_new' => 'ອັບເດດອັດຕາໃໝ່',
     'exchange_rate.swal_success_title' => 'ສຳເລັດ',
     'exchange_rate.swal_error_title' => 'ແຈ້ງເຕືອນ',
+    'exchange_rate.display_currency_label' => 'ສະກຸນເງິນສະແດງຜົນຫຼັກ:',
+    'exchange_rate.display_currency_hint' => 'ຂໍ້ມູນຍັງເກັບເປັນກີບ — ນີ້ພຽງປ່ຽນການສະແດງ/ຄິດໄລ່ໜ້າ POS. ໃນບິນສະແດງຄົບ 4 ສະກຸນສະເໝີ.',
+    'exchange_rate.rate_not_set' => 'ຍັງບໍ່ໄດ້ຕັ້ງອັດຕາ',
 
     // exchange_rate_js.php
     'exchange_rate.confirm_delete_title' => 'ຢືນຢັນການລຶບ?',

@@ -13,7 +13,7 @@ if (!defined('MINIPOS_APP')) {
         <input type="hidden" name="action" id="form_bank_action" value="add_bank_account">
         <input type="hidden" name="bank_id" id="form_bank_id" value="0">
         
-        <div class="modal-header bg-primary text-white py-3 px-4">
+        <div class="modal-header text-white py-3 px-4" style="background-color: #244886;">
           <h5 class="modal-title font-weight-bold" id="bankModalTitle">
             <i class="fas fa-university mr-2"></i> <?php echo htmlspecialchars(t('bank.modal_title_add', 'ເພີ່ມບັນຊີທະນາຄານໃໝ່')); ?>
           </h5>
@@ -66,7 +66,7 @@ if (!defined('MINIPOS_APP')) {
 
         <div class="modal-footer bg-light">
           <button type="button" class="btn btn-secondary font-weight-bold" data-dismiss="modal" onclick="resetBankForm()"><?php echo htmlspecialchars(t('bank.cancel', 'ຍົກເລີກ')); ?></button>
-          <button type="submit" class="btn btn-primary font-weight-bold px-4"><i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('bank.btn_save', 'ບັນທຶກ')); ?></button>
+          <button type="submit" class="btn btn-primary font-weight-bold px-4" style="background: linear-gradient(135deg, #2c5aa0, #244886); border: none;"><i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('bank.btn_save', 'ບັນທຶກ')); ?></button>
         </div>
       </form>
     </div>

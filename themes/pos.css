@@ -446,8 +446,8 @@ html, body {
     }
 
     .product-img-wrap {
-        height: 115px !important;
-        max-height: 115px !important;
+        height: 135px !important;
+        max-height: 135px !important;
         padding: 0 !important;
     }
 
@@ -720,8 +720,8 @@ html, body {
 .product-img-wrap {
     position: relative !important;
     width: 100% !important;
-    height: 115px !important;
-    max-height: 115px !important;
+    height: 135px !important;
+    max-height: 135px !important;
     overflow: hidden !important;
     background: #ffffff !important;
     border-bottom: 1px solid #e2e8f0 !important;
@@ -736,7 +736,9 @@ html, body {
     height: 100% !important;
     max-width: 100% !important;
     max-height: 100% !important;
-    object-fit: cover !important;
+    object-fit: contain !important;
+    padding: 2px !important;
+    background: #ffffff !important;
     display: block !important;
     margin: 0 !important;
     border-radius: 9px 9px 0 0 !important;

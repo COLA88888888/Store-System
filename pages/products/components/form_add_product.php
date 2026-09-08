@@ -272,7 +272,10 @@ function onAddCategoryChange() {
   var catId = select ? select.value : '';
   if (catId) {
     LAST_ADD_CATEGORY_ID = catId;
-    try { localStorage.setItem('minipos_last_add_category_id', catId); } catch(e){}
+    try {
+      localStorage.setItem('minipos_last_add_category_id', catId);
+      localStorage.setItem('minipos_product_category_filter', catId);
+    } catch(e){}
     var fullCode = catId + GLOBAL_NEXT_SEQ;
     $('#add_product_id_display').val(fullCode);
     $('#add_product_id').val(fullCode);
@@ -295,8 +298,13 @@ $('#addProductModal').on('show.bs.modal', function() {
     if (res && res.success && res.seq_formatted) {
       GLOBAL_NEXT_SEQ = res.seq_formatted;
 
-      // ຖ້າມີໝວດໝູ່ຫຼ້າສຸດທີ່ເລືອກໄວ້ ໃຫ້ຄົງໝວດໝູ່ນັ້ນໄວ້ (ບໍ່ໃຫ້ເລີ່ມຕົ້ນໃໝ່)
-      if (LAST_ADD_CATEGORY_ID && $('#add_category_id option[value="' + LAST_ADD_CATEGORY_ID + '"]').length > 0) {
+      // ຖ້າກຳລັງກອງຕາຕະລາງໄວ້ດ້ວຍໝວດໝູ່ໃດໜຶ່ງຢູ່ (ຕົວກອງເທິງໜ້າ) ໃຫ້ໃຊ້ໝວດນັ້ນເປັນຄ່າເລີ່ມຕົ້ນ
+      // ກ່ອນ — ຄາດວ່າກຳລັງເພີ່ມສິນຄ້າເຂົ້າໝວດທີ່ກຳລັງເບິ່ງຢູ່. ຖ້າບໍ່ໄດ້ກອງໄວ້ ຄ່ອຍໃຊ້ໝວດຫຼ້າສຸດທີ່ເຄີຍເລືອກ.
+      var activeFilterCatId = $('#categoryFilter').length ? $('#categoryFilter').val() : '';
+      if (activeFilterCatId && $('#add_category_id option[value="' + activeFilterCatId + '"]').length > 0) {
+        $('#add_category_id').val(activeFilterCatId);
+      } else if (LAST_ADD_CATEGORY_ID && $('#add_category_id option[value="' + LAST_ADD_CATEGORY_ID + '"]').length > 0) {
+        // ຖ້າມີໝວດໝູ່ຫຼ້າສຸດທີ່ເລືອກໄວ້ ໃຫ້ຄົງໝວດໝູ່ນັ້ນໄວ້ (ບໍ່ໃຫ້ເລີ່ມຕົ້ນໃໝ່)
         $('#add_category_id').val(LAST_ADD_CATEGORY_ID);
       }
       if (LAST_ADD_UNIT_ID && $('#add_unit option[value="' + LAST_ADD_UNIT_ID + '"]').length > 0) {
@@ -527,6 +535,13 @@ function submitAddProduct(e) {
       confirmButtonText: I18N_ADD_PRODUCT['products.btn_ok']
     });
     return false;
+  }
+
+  if (catId) {
+    try {
+      localStorage.setItem('minipos_product_category_filter', catId);
+      localStorage.setItem('minipos_last_add_category_id', catId);
+    } catch(e) {}
   }
 
   return true;

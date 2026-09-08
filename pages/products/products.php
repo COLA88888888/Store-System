@@ -729,7 +729,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   ?>
                   <?php if ($imgPath): ?>
                     <img src="<?php echo htmlspecialchars($imgPath); ?>"
-                         style="width:50px; height:50px; object-fit:cover; border-radius:10px; border:1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.04);"
+                         style="width:50px; height:50px; object-fit:contain; background:#fff; padding:2px; border-radius:10px; border:1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.04);"
                          alt="<?php echo htmlspecialchars($p['product_name']); ?>"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <div style="width:50px; height:50px; border-radius:10px; background:#f1f5f9; border:1px solid #e2e8f0; display:none; align-items:center; justify-content:center; margin: 0 auto;">
@@ -1061,6 +1061,12 @@ require_once __DIR__ . '/../../layouts/header.php';
   var filteredRows = [];
 
   function initPagination() {
+    try {
+      var savedCat = localStorage.getItem('minipos_product_category_filter');
+      if (savedCat !== null && $('#categoryFilter option[value="' + savedCat + '"]').length > 0) {
+        $('#categoryFilter').val(savedCat);
+      }
+    } catch(e) {}
     filterProducts();
   }
 
@@ -1198,6 +1204,9 @@ require_once __DIR__ . '/../../layouts/header.php';
   function filterProducts() {
     var search   = document.getElementById('productSearch').value.toLowerCase().trim();
     var catId    = document.getElementById('categoryFilter').value;
+    try {
+      localStorage.setItem('minipos_product_category_filter', catId);
+    } catch(e) {}
     var rows     = document.querySelectorAll('.product-row');
     filteredRows = [];
 
@@ -1312,6 +1321,7 @@ require_once __DIR__ . '/../../layouts/header.php';
   // ຕາຕະລາງສິນຄ້າ + ຕົວກອງປະເພດ (ປະເພດຕ່າງກັນລະຫວ່າງສາຂາ) ມາສະຫຼັບໃສ່ໜ້າປັດຈຸບັນ ໂດຍບໍ່ໂຫຼດໜ້າໃໝ່
   function switchStoreFilter(storeId) {
     if (storeId) {
+      try { localStorage.removeItem('minipos_product_category_filter'); } catch(e){}
       window.location.href = 'products.php?store_id=' + storeId;
     }
   }

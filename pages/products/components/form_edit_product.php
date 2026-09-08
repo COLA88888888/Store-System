@@ -381,6 +381,12 @@ function submitEditProduct(e) {
     return false;
   }
 
+  if (catId) {
+    try {
+      localStorage.setItem('minipos_product_category_filter', catId);
+    } catch(e) {}
+  }
+
   return true;
 }
 

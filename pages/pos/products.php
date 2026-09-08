@@ -54,32 +54,14 @@ function saveUploadedProductImage($fileInputKey = 'product_img', &$errorMsg = nu
     }
 
     $img_name = 'prod_' . time() . '_' . mt_rand(1000, 9999) . '.' . $fileExt;
-    
-    // ໂຟນເດີເກັບຮູບພາບ (ຫຼັກແມ່ນ assets/product_img)
-    $dirs = [
-        __DIR__ . '/../../assets/product_img/',
-        __DIR__ . '/../../assets/img/product_img/',
-        __DIR__ . '/../../assets/img/products/',
-        __DIR__ . '/../../assets/img/products_img/'
-    ];
 
-    $saved = false;
-    $masterFile = '';
-    foreach ($dirs as $dir) {
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0777, true);
-        }
-        if (!$saved) {
-            if (@move_uploaded_file($fileTmp, $dir . $img_name)) {
-                $saved = true;
-                $masterFile = $dir . $img_name;
-            }
-        } elseif ($masterFile !== '' && file_exists($masterFile)) {
-            @copy($masterFile, $dir . $img_name);
-        }
+    // ໂຟນເດີເກັບຮູບພາບສິນຄ້າ — ບ່ອນດຽວ (assets/product_img)
+    $dir = __DIR__ . '/../../assets/product_img/';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0777, true);
     }
 
-    if (!$saved) {
+    if (!@move_uploaded_file($fileTmp, $dir . $img_name)) {
         $errorMsg = 'ບໍ່ສາມາດບັນທຶກໄຟລ໌ລົງເຊີເວີໄດ້ ກະລຸນາກວດສອບ Permission';
         return null;
     }
@@ -95,17 +77,9 @@ function deleteProductImageFile($imgFile) {
     if (in_array(strtolower($filename), $protected)) {
         return;
     }
-    $dirs = [
-        __DIR__ . '/../../assets/product_img/',
-        __DIR__ . '/../../assets/img/product_img/',
-        __DIR__ . '/../../assets/img/products/',
-        __DIR__ . '/../../assets/img/products_img/'
-    ];
-    foreach ($dirs as $dir) {
-        $filePath = $dir . $filename;
-        if (file_exists($filePath) && is_file($filePath)) {
-            @unlink($filePath);
-        }
+    $filePath = __DIR__ . '/../../assets/product_img/' . $filename;
+    if (file_exists($filePath) && is_file($filePath)) {
+        @unlink($filePath);
     }
 }
 
@@ -594,7 +568,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   ?>
                   <?php if ($imgPath): ?>
                     <img src="<?php echo htmlspecialchars($imgPath); ?>"
-                         style="width:50px; height:50px; object-fit:cover; border-radius:10px; border:1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.04);"
+                         style="width:50px; height:50px; object-fit:contain; background:#fff; padding:2px; border-radius:10px; border:1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.04);"
                          alt="<?php echo htmlspecialchars($p['product_name']); ?>"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <div style="width:50px; height:50px; border-radius:10px; background:#f1f5f9; border:1px solid #e2e8f0; display:none; align-items:center; justify-content:center; margin: 0 auto;">
@@ -896,7 +870,7 @@ require_once __DIR__ . '/../../layouts/header.php';
     if (imgName) {
       $('#edit_img_preview').attr('src', '<?php echo $base_path; ?>assets/product_img/' + imgName);
       $('#edit_img_preview').off('error').on('error', function() {
-        $(this).attr('src', '<?php echo $base_path; ?>assets/img/products/' + imgName);
+        $(this).off('error').attr('src', DEFAULT_IMG);
       });
       $('#btn_remove_edit_img').css('display', 'flex');
     } else {
@@ -923,6 +897,12 @@ require_once __DIR__ . '/../../layouts/header.php';
   var filteredRows = [];
 
   function initPagination() {
+    try {
+      var savedCat = localStorage.getItem('minipos_product_category_filter');
+      if (savedCat !== null && $('#categoryFilter option[value="' + savedCat + '"]').length > 0) {
+        $('#categoryFilter').val(savedCat);
+      }
+    } catch(e) {}
     filterProducts();
   }
 
@@ -1060,6 +1040,9 @@ require_once __DIR__ . '/../../layouts/header.php';
   function filterProducts() {
     var search   = document.getElementById('productSearch').value.toLowerCase().trim();
     var catId    = document.getElementById('categoryFilter').value;
+    try {
+      localStorage.setItem('minipos_product_category_filter', catId);
+    } catch(e) {}
     var rows     = document.querySelectorAll('.product-row');
     filteredRows = [];
 
@@ -1172,6 +1155,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 
   function switchStoreFilter(storeId) {
     if (storeId) {
+      try { localStorage.removeItem('minipos_product_category_filter'); } catch(e){}
       window.location.href = 'products.php?store_id=' + storeId;
     }
   }

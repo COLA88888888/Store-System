@@ -494,6 +494,47 @@
   </td>
 </tr>
 
+<!-- 7.10 ຄະແນນສະສົມລູກຄ້າ (Loyalty Points) -->
+<tr>
+  <td class="pl-4">
+    <div class="perm-module-info">
+      <div class="perm-module-icon" style="background: #fef3c7; color: #d97706;">
+        <i class="fas fa-star"></i>
+      </div>
+      <div>
+        <div class="perm-module-title"><?php echo htmlspecialchars(t('permissions.module_loyalty_title', 'ຄະແນນສະສົມລູກຄ້າ')); ?></div>
+        <div class="perm-module-desc"><?php echo htmlspecialchars(t('permissions.module_loyalty_desc', 'ຕັ້ງຄ່າກົດເກນ ແລະ ຈັດການຄະແນນສະສົມຂອງລູກຄ້າ')); ?></div>
+      </div>
+    </div>
+  </td>
+  <td class="text-center">
+    <label class="matrix-switch">
+      <input type="checkbox"
+             id="perm_loyalty_view_<?php echo $u['Id']; ?>"
+             data-perm="loyalty"
+             data-user-id="<?php echo $u['Id']; ?>"
+             <?php echo (!empty($u['loyalty']) || !empty($u['setup']) || $isAdmin) ? 'checked' : ''; ?>
+             <?php echo ($isAdmin) ? 'disabled' : ''; ?>
+             onchange="toggleUserPerm(<?php echo $u['Id']; ?>, 'loyalty', this)">
+      <span class="matrix-slider"></span>
+    </label>
+  </td>
+  <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
+  <td class="text-center">
+    <label class="matrix-switch">
+      <input type="checkbox"
+             id="perm_loyalty_edit_<?php echo $u['Id']; ?>"
+             data-perm="loyalty"
+             data-user-id="<?php echo $u['Id']; ?>"
+             <?php echo (!empty($u['loyalty']) || !empty($u['setup']) || $isAdmin) ? 'checked' : ''; ?>
+             <?php echo ($isAdmin) ? 'disabled' : ''; ?>
+             onchange="toggleUserPerm(<?php echo $u['Id']; ?>, 'loyalty', this)">
+      <span class="matrix-slider"></span>
+    </label>
+  </td>
+  <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
+</tr>
+
 <!-- 7.5 ຖານຂໍ້ມູນ (Database Management) -->
 <tr>
   <td class="pl-4">

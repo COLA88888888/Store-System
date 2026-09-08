@@ -4,7 +4,7 @@ $base_path = '../../';
 require_once __DIR__ . '/../../config/db.php';
 
 // Check if logged in and has access to stock
-if (empty($_SESSION['user_id']) || (!hasPermission('products') && !hasPermission('stock') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('products') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
     echo "<script>window.top.location.href = '../../index.php';</script>";
     exit();
 }

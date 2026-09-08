@@ -9,7 +9,7 @@ require_once __DIR__ . '/../config/db.php';
 
 // Units now has its own permission module (wired the same way as categories in
 // pages/permissions), separate from hasPermission('categories', ...).
-if (empty($_SESSION['user_id']) || (!hasPermission('units') && !hasPermission('stock') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('units') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }

@@ -50,7 +50,7 @@ if (!hasPermission('dashboard')) {
         $default_iframe_src = '../pages/customers/customers.php';
     } elseif (hasPermission('categories')) {
         $default_iframe_src = '../pages/categories/categories.php';
-    } elseif (hasPermission('products') || hasPermission('stock')) {
+    } elseif (hasPermission('products')) {
         $default_iframe_src = '../pages/products/products.php';
     } elseif (hasPermission('import_stock')) {
         $default_iframe_src = '../pages/import_stock/import_stock.php';

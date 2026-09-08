@@ -4,7 +4,7 @@ require_once __DIR__ . '/../../config/db.php';
 
 header('Content-Type: application/json');
 
-if (empty($_SESSION['user_id']) || (!hasPermission('categories') && !hasPermission('stock') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('categories') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
     echo json_encode(['success' => false, 'message' => 'אין גישה']);
     exit();
 }

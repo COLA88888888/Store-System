@@ -113,11 +113,11 @@
           </li>
         <?php endif; ?>
 
-        <?php if (hasPermission('stock') || hasPermission('categories') || hasPermission('products') || hasPermission('import_stock') || hasPermission('import_list') || hasPermission('stock_transfer') || hasPermission('transfer_history')): ?>
+        <?php if (hasPermission('categories') || hasPermission('units') || hasPermission('products') || hasPermission('suppliers') || hasPermission('import_stock') || hasPermission('import_list') || hasPermission('stock_transfer') || hasPermission('transfer_history')): ?>
           <!-- Header: Inventory & Products -->
           <!-- <li class="nav-header text-uppercase" style="color: rgba(255,255,255,0.85); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;">ການຈັດການສິນຄ້າ</li> -->
 
-          <?php if (hasPermission('categories') || hasPermission('units') || hasPermission('products') || hasPermission('stock')): ?>
+          <?php if (hasPermission('categories') || hasPermission('units') || hasPermission('products') || hasPermission('suppliers')): ?>
           <!-- Dropdown Treeview: ຂໍ້ມູນສິນຄ້າ -->
           <li class="nav-item has-treeview">
             <a href="#" class="nav-link">

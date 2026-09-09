@@ -47,6 +47,8 @@ return [
     'layout.days_unit' => '天',
     'layout.logout' => '退出登录',
     'layout.lang_switch_title' => '切换语言',
+    'layout.theme_color_title' => '更换背景颜色',
+    'layout.theme_color_reset' => '默认',
 
     'layout.notif_main_title' => '库存不足/缺货提醒',
     'layout.notif_main_header' => '库存不足/缺货提醒',

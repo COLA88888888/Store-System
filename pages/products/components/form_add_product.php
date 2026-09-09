@@ -215,9 +215,13 @@
 
           <div id="bulk_rows_container"></div>
 
-          <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold mt-2" style="border-radius: 6px;" onclick="bulkAddRow()">
-            <i class="fas fa-plus mr-1"></i> <?php echo htmlspecialchars(t('products.bulk_add_row', 'ເພີ່ມແຖວ')); ?>
-          </button>
+          <div class="btn-group btn-group-sm mt-2" role="group">
+            <button type="button" class="btn btn-outline-primary font-weight-bold" style="border-radius: 6px 0 0 6px;" onclick="bulkAddRows(1)">
+              <i class="fas fa-plus mr-1"></i> <?php echo htmlspecialchars(t('products.bulk_add_row', 'ເພີ່ມແຖວ')); ?>
+            </button>
+            <button type="button" class="btn btn-outline-primary font-weight-bold px-3" onclick="bulkAddRows(5)">+5</button>
+            <button type="button" class="btn btn-outline-primary font-weight-bold px-3" style="border-radius: 0 6px 6px 0;" onclick="bulkAddRows(10)">+10</button>
+          </div>
         </div>
 
         <div class="modal-footer border-0 pt-0 pb-4 px-4">
@@ -755,6 +759,16 @@ function bulkAddRow(data) {
   if (data.unit_id) $row.find('.bulk-unit').val(String(data.unit_id));
   $('#bulk_rows_container').append($row);
   bulkRenumber();
+}
+
+// ເພີ່ມຫຼາຍແຖວພ້ອມກັນ (1 / 5 / 10)
+function bulkAddRows(n) {
+  n = parseInt(n, 10) || 1;
+  for (var i = 0; i < n; i++) bulkAddRow();
+  var $last = $('#bulk_rows_container .bulk-row').last();
+  if ($last.length && $last[0].scrollIntoView) {
+    $last[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
 }
 
 function bulkResetRows() {

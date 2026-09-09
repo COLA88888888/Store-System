@@ -646,7 +646,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                     <th class="text-right"><?php echo htmlspecialchars(t('import_list.col_total_cost', 'ມູນຄ່າທຶນລວມ')); ?></th>
                     <th class="text-center"><?php echo htmlspecialchars(t('import_list.col_expiry_date', 'ວັນໝົດອາຍຸ')); ?></th>
                     <th><?php echo htmlspecialchars(t('import_list.col_creator', 'ຜູ້ບັນທຶກ')); ?></th>
-                    <th class="text-center" style="width: 110px;"><?php echo htmlspecialchars(t('import_list.col_actions', 'ຈັດການ')); ?></th>
+                    <th class="text-center" style="width: 150px;"><?php echo htmlspecialchars(t('import_list.col_actions', 'ຈັດການ')); ?></th>
                   </tr>
                 </thead>
                 <tbody id="historyTableBody">
@@ -717,7 +717,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                         <td class="align-middle font-weight-bold text-dark">
                           <?php echo htmlspecialchars($row['product_name']); ?>
                           <?php if (!empty($row['supplier_name'])): ?>
-                            <small class="text-muted d-block font-weight-normal"><i class="fas fa-store mr-1"></i> <?php echo htmlspecialchars($row['supplier_name']); ?></small>
+                            <small class="text-muted font-weight-normal ml-2"><i class="fas fa-store mr-1"></i><?php echo htmlspecialchars($row['supplier_name']); ?></small>
                           <?php endif; ?>
                         </td>
 
@@ -744,20 +744,20 @@ require_once __DIR__ . '/../../layouts/header.php';
                         <td class="text-center align-middle">
                           <?php $rowJson = htmlspecialchars(json_encode($row), ENT_QUOTES, 'UTF-8'); ?>
                           <?php if (hasPermission('import_list', 'edit') || hasPermission('import_stock', 'edit') || hasPermission('import_list', 'del') || hasPermission('import_stock', 'del')): ?>
-                            <div class="btn-group btn-group-sm">
+                            <div class="btn-group">
                               <?php if (hasPermission('import_list', 'edit') || hasPermission('import_stock', 'edit')): ?>
-                                <button type="button" class="btn btn-outline-warning btn-edit-import" title="<?php echo htmlspecialchars(t('import_list.edit_title', 'ແກ້ໄຂ')); ?>" data-id="<?php echo $row['import_detail_id']; ?>" data-json="<?php echo $rowJson; ?>">
-                                  <i class="fas fa-edit"></i>
+                                <button type="button" class="btn btn-outline-warning btn-edit-import px-3" title="<?php echo htmlspecialchars(t('import_list.edit_title', 'ແກ້ໄຂ')); ?>" data-id="<?php echo $row['import_detail_id']; ?>" data-json="<?php echo $rowJson; ?>">
+                                  <i class="fas fa-edit fa-lg"></i>
                                 </button>
                               <?php endif; ?>
                               <?php if (hasPermission('import_list', 'del') || hasPermission('import_stock', 'del')): ?>
                                 <?php if (!$hasMovement): ?>
-                                  <button type="button" class="btn btn-outline-danger btn-delete-import" title="<?php echo htmlspecialchars(t('import_list.cancel_delete_title', 'ຍົກເລີກ/ລົບບິນນີ້')); ?>" data-id="<?php echo $row['import_detail_id']; ?>" data-invoice="<?php echo htmlspecialchars($row['invoice_number']); ?>" data-name="<?php echo htmlspecialchars($row['product_name']); ?>">
-                                    <i class="fas fa-trash-alt"></i>
+                                  <button type="button" class="btn btn-outline-danger btn-delete-import px-3" title="<?php echo htmlspecialchars(t('import_list.cancel_delete_title', 'ຍົກເລີກ/ລົບບິນນີ້')); ?>" data-id="<?php echo $row['import_detail_id']; ?>" data-invoice="<?php echo htmlspecialchars($row['invoice_number']); ?>" data-name="<?php echo htmlspecialchars($row['product_name']); ?>">
+                                    <i class="fas fa-trash fa-lg"></i>
                                   </button>
                                 <?php else: ?>
-                                  <button type="button" class="btn btn-outline-secondary disabled" title="<?php echo htmlspecialchars(t('import_list.cannot_cancel_movement_title', 'ບໍ່ສາມາດຍົກເລີກໄດ້ ເນື່ອງຈາກສິນຄ້າມີການເຄື່ອນໄຫວແລ້ວ')); ?>">
-                                    <i class="fas fa-lock"></i>
+                                  <button type="button" class="btn btn-outline-secondary disabled px-3" title="<?php echo htmlspecialchars(t('import_list.cannot_cancel_movement_title', 'ບໍ່ສາມາດຍົກເລີກໄດ້ ເນື່ອງຈາກສິນຄ້າມີການເຄື່ອນໄຫວແລ້ວ')); ?>">
+                                    <i class="fas fa-lock fa-lg"></i>
                                   </button>
                                 <?php endif; ?>
                               <?php endif; ?>

@@ -47,6 +47,8 @@ return [
     'layout.days_unit' => 'วัน',
     'layout.logout' => 'ออกจากระบบ',
     'layout.lang_switch_title' => 'เปลี่ยนภาษา',
+    'layout.theme_color_title' => 'เปลี่ยนสีพื้นหลัง',
+    'layout.theme_color_reset' => 'ค่าเริ่มต้น',
 
     'layout.notif_main_title' => 'แจ้งเตือนสินค้าใกล้หมด/หมดแล้ว',
     'layout.notif_main_header' => 'แจ้งเตือนสินค้าใกล้หมด/หมด',

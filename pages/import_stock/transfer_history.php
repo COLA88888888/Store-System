@@ -146,9 +146,9 @@ if (!empty($_POST['is_ajax'])) {
 // Fetch all branches for filtering
 $stores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
-// Filters
-$from_date  = trim($_GET['from_date'] ?? '');
-$to_date    = trim($_GET['to_date'] ?? '');
+// Filters — default date range: 1st of the current month → today
+$from_date  = trim($_GET['from_date'] ?? date('Y-m-01'));
+$to_date    = trim($_GET['to_date'] ?? date('Y-m-d'));
 $filter_from_store = isset($_GET['from_store']) && $_GET['from_store'] !== '' ? intval($_GET['from_store']) : 0;
 $filter_to_store   = isset($_GET['to_store']) && $_GET['to_store'] !== '' ? intval($_GET['to_store']) : 0;
 $search     = trim($_GET['search'] ?? '');

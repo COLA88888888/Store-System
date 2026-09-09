@@ -47,6 +47,8 @@ return [
     'layout.days_unit' => 'days',
     'layout.logout' => 'Logout',
     'layout.lang_switch_title' => 'Change language',
+    'layout.theme_color_title' => 'Background colour',
+    'layout.theme_color_reset' => 'Default',
 
     'layout.notif_main_title' => 'Low stock / out of stock alerts',
     'layout.notif_main_header' => 'Stock Alerts',

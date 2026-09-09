@@ -224,10 +224,10 @@ foreach ($yearly_sales_map as $yrKey => $yrSalesVal) {
 }
 
 $month_labels_i18n = [
-    t('home.month_1', 'ມ.ກ'), t('home.month_2', 'ກ.ພ'), t('home.month_3', 'ມີ.ນາ'),
-    t('home.month_4', 'ເມ.ສາ'), t('home.month_5', 'ພຶ.ພາ'), t('home.month_6', 'ມິ.ຖຸ'),
-    t('home.month_7', 'ກໍ.ກົດ'), t('home.month_8', 'ສ.ຫ'), t('home.month_9', 'ກ.ຍ'),
-    t('home.month_10', 'ຕ.ລ'), t('home.month_11', 'ພ.ຈ'), t('home.month_12', 'ທ.ວ'),
+    t('home.month_1', 'ມັງກອນ'), t('home.month_2', 'ກຸມພາ'), t('home.month_3', 'ມີນາ'),
+    t('home.month_4', 'ເມສາ'), t('home.month_5', 'ພຶດສະພາ'), t('home.month_6', 'ມິຖຸນາ'),
+    t('home.month_7', 'ກໍລະກົດ'), t('home.month_8', 'ສິງຫາ'), t('home.month_9', 'ກັນຍາ'),
+    t('home.month_10', 'ຕຸລາ'), t('home.month_11', 'ພະຈິກ'), t('home.month_12', 'ທັນວາ'),
 ];
 
 // 7. Top 10 Best Selling Products Chart
@@ -521,10 +521,10 @@ var I18N_HOME = <?php echo tjson([
     'home.legend_margin' => 'ອັດຕາກຳໄລ (%)',
     'home.legend_qty_sold' => 'ຈຳນວນຂາຍ',
     'home.no_sales_data' => 'ບໍ່ມີຂໍ້ມູນການຂາຍ',
-    'home.month_1' => 'ມ.ກ', 'home.month_2' => 'ກ.ພ', 'home.month_3' => 'ມີ.ນາ',
-    'home.month_4' => 'ເມ.ສາ', 'home.month_5' => 'ພຶ.ພາ', 'home.month_6' => 'ມິ.ຖຸ',
-    'home.month_7' => 'ກໍ.ກົດ', 'home.month_8' => 'ສ.ຫ', 'home.month_9' => 'ກ.ຍ',
-    'home.month_10' => 'ຕ.ລ', 'home.month_11' => 'ພ.ຈ', 'home.month_12' => 'ທ.ວ',
+    'home.month_1' => 'ມັງກອນ', 'home.month_2' => 'ກຸມພາ', 'home.month_3' => 'ມີນາ',
+    'home.month_4' => 'ເມສາ', 'home.month_5' => 'ພຶດສະພາ', 'home.month_6' => 'ມິຖຸນາ',
+    'home.month_7' => 'ກໍລະກົດ', 'home.month_8' => 'ສິງຫາ', 'home.month_9' => 'ກັນຍາ',
+    'home.month_10' => 'ຕຸລາ', 'home.month_11' => 'ພະຈິກ', 'home.month_12' => 'ທັນວາ',
 ]); ?>;
 
 $(document).ready(function() {

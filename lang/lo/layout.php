@@ -47,6 +47,8 @@ return [
     'layout.days_unit' => 'ວັນ',
     'layout.logout' => 'ອອກຈາກລະບົບ',
     'layout.lang_switch_title' => 'ປ່ຽນພາສາ',
+    'layout.theme_color_title' => 'ປ່ຽນສີພື້ນຫຼັງ',
+    'layout.theme_color_reset' => 'ຄ່າເລີ່ມຕົ້ນ',
 
     'layout.notif_main_title' => 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ສິນສຸດ/ສິນຄ້າໝົດ',
     'layout.notif_main_header' => 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ໝົດ/ໝົດ',

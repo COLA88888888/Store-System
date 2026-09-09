@@ -90,14 +90,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 }
 
 // ---------- Data ----------
+// ຄົ້ນຫາເປັນແບບ live (client-side) — ດຶງທັງໝົດມາ ແລ້ວ filter ດ້ວຍ JS
 $search = trim($_GET['search'] ?? '');
 $listSql = "SELECT s.*, (SELECT COUNT(*) FROM products p WHERE p.supplier_id = s.supplier_id) AS product_count
             FROM suppliers s WHERE s.store_id = :store_id";
 $listParams = [':store_id' => $activeStoreId];
-if ($search !== '') {
-    $listSql .= " AND (s.supplier_name LIKE :q OR s.phone LIKE :q OR s.contact_person LIKE :q)";
-    $listParams[':q'] = '%' . $search . '%';
-}
 $listSql .= " ORDER BY s.status ASC, s.supplier_name ASC";
 $suppliers = [];
 try {
@@ -151,22 +148,20 @@ require_once __DIR__ . '/../../layouts/header.php';
     <div class="container-fluid">
       <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
         <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap" style="gap: 12px;">
-          <span class="badge badge-secondary" style="font-size: 0.85rem; padding: 7px 12px;"><?php echo count($suppliers); ?> <?php echo htmlspecialchars(t('suppliers.count_label', 'ລາຍການ')); ?></span>
-          <form method="GET" class="d-flex align-items-center ml-auto flex-grow-1 justify-content-end" style="gap: 8px; max-width: 560px;">
+          <span class="badge badge-secondary" style="font-size: 0.85rem; padding: 7px 12px;"><span id="supplierCountNum"><?php echo count($suppliers); ?></span> <?php echo htmlspecialchars(t('suppliers.count_label', 'ລາຍການ')); ?></span>
+          <div class="d-flex align-items-center ml-auto flex-grow-1 justify-content-end" style="gap: 8px; max-width: 560px;">
             <div class="input-group" style="flex: 1 1 auto;">
-              <input type="text" name="search" class="form-control" placeholder="<?php echo htmlspecialchars(t('suppliers.search_ph', 'ຄົ້ນຫາ ຊື່ / ເບີໂທ / ຜູ້ຕິດຕໍ່...')); ?>" value="<?php echo htmlspecialchars($search); ?>" style="height: 44px; font-size: 0.95rem; border-radius: 8px 0 0 8px;">
-              <div class="input-group-append">
-                <button type="submit" class="btn btn-primary px-3" style="border-radius: 0 8px 8px 0; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;"><i class="fas fa-search"></i></button>
+              <div class="input-group-prepend">
+                <span class="input-group-text bg-white" style="border-radius: 8px 0 0 8px; border-right: none;"><i class="fas fa-search text-muted"></i></span>
               </div>
+              <input type="text" id="supplierSearch" class="form-control border-left-0" placeholder="<?php echo htmlspecialchars(t('suppliers.search_ph', 'ຄົ້ນຫາ ຊື່ / ເບີໂທ / ຜູ້ຕິດຕໍ່...')); ?>" value="<?php echo htmlspecialchars($search); ?>" onkeyup="filterSuppliers()" style="height: 44px; font-size: 0.95rem; border-radius: 0 8px 8px 0; border-left: none;">
             </div>
-            <?php if ($search !== ''): ?>
-              <a href="suppliers.php" class="btn btn-light border d-flex align-items-center justify-content-center" style="border-radius: 8px; height: 44px; width: 44px;" title="<?php echo htmlspecialchars(t('suppliers.clear', 'ລ້າງຄ່າ')); ?>"><i class="fas fa-redo"></i></a>
-            <?php endif; ?>
-          </form>
+            <button type="button" id="supplierSearchClear" class="btn btn-light border d-flex align-items-center justify-content-center" style="border-radius: 8px; height: 44px; width: 44px;" title="<?php echo htmlspecialchars(t('suppliers.clear', 'ລ້າງຄ່າ')); ?>" onclick="document.getElementById('supplierSearch').value='';filterSuppliers();document.getElementById('supplierSearch').focus();"><i class="fas fa-redo"></i></button>
+          </div>
         </div>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
+            <table class="table table-hover align-middle mb-0 text-nowrap" style="font-size: 0.9rem;">
               <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                 <tr>
                   <th class="text-center" style="width: 56px;"><?php echo htmlspecialchars(t('suppliers.col_no', 'ລຳດັບ')); ?></th>
@@ -180,14 +175,21 @@ require_once __DIR__ . '/../../layouts/header.php';
                 </tr>
               </thead>
               <tbody>
+                <tr id="supplierNoResult" style="display: none;">
+                  <td colspan="8" class="text-center text-muted py-4">
+                    <i class="fas fa-search fa-lg mb-2 d-block opacity-50"></i>
+                    <?php echo htmlspecialchars(t('suppliers.no_result', 'ບໍ່ພົບຜູ້ສະໜອງທີ່ຄົ້ນຫາ')); ?>
+                  </td>
+                </tr>
                 <?php if (empty($suppliers)): ?>
                   <tr><td colspan="8" class="text-center text-muted py-5">
                     <i class="fas fa-truck fa-2x mb-2 d-block opacity-50"></i>
                     <?php echo htmlspecialchars(t('suppliers.empty', 'ຍັງບໍ່ມີຜູ້ສະໜອງ')); ?>
                   </td></tr>
                 <?php else: foreach ($suppliers as $i => $s): ?>
-                  <tr>
-                    <td class="text-center text-muted"><?php echo $i + 1; ?></td>
+                  <?php $sRow = strtolower(($s['supplier_name'] ?? '') . ' ' . ($s['phone'] ?? '') . ' ' . ($s['contact_person'] ?? '') . ' ' . ($s['address'] ?? '')); ?>
+                  <tr class="supplier-row" data-s="<?php echo htmlspecialchars($sRow); ?>">
+                    <td class="text-center text-muted row-no"><?php echo $i + 1; ?></td>
                     <td class="font-weight-bold text-dark"><?php echo htmlspecialchars($s['supplier_name']); ?></td>
                     <td><?php echo htmlspecialchars($s['phone'] ?: '-'); ?></td>
                     <td><?php echo htmlspecialchars($s['contact_person'] ?: '-'); ?></td>
@@ -289,6 +291,29 @@ var SUP_I18N = <?php echo tjson([
     'suppliers.validate_name' => 'ກະລຸນາປ້ອນຊື່ຜູ້ສະໜອງ!',
     'suppliers.btn_ok' => 'ຕົກລົງ',
 ]); ?>;
+
+// Live search — filter the rendered rows as you type (no button, instant)
+function filterSuppliers() {
+  var q = (document.getElementById('supplierSearch').value || '').toLowerCase().trim();
+  var rows = document.querySelectorAll('tr.supplier-row');
+  var shown = 0;
+  rows.forEach(function(tr) {
+    var match = q === '' || (tr.getAttribute('data-s') || '').indexOf(q) > -1;
+    tr.style.display = match ? '' : 'none';
+    if (match) {
+      shown++;
+      var no = tr.querySelector('.row-no');
+      if (no) no.textContent = shown;
+    }
+  });
+  var noRes = document.getElementById('supplierNoResult');
+  if (noRes) noRes.style.display = (shown === 0 && rows.length > 0) ? '' : 'none';
+  var num = document.getElementById('supplierCountNum');
+  if (num) num.textContent = shown;
+}
+document.addEventListener('DOMContentLoaded', function() {
+  if ((document.getElementById('supplierSearch') || {}).value) filterSuppliers();
+});
 
 function openSupplierModal(s) {
   var isEdit = !!(s && s.supplier_id);

@@ -28,8 +28,8 @@ return [
     'home.legend_margin' => 'ອັດຕາກຳໄລ (%)',
     'home.legend_qty_sold' => 'ຈຳນວນຂາຍ',
     'home.no_sales_data' => 'ບໍ່ມີຂໍ້ມູນການຂາຍ',
-    'home.month_1' => 'ມ.ກ', 'home.month_2' => 'ກ.ພ', 'home.month_3' => 'ມີ.ນາ',
-    'home.month_4' => 'ເມ.ສາ', 'home.month_5' => 'ພຶ.ພາ', 'home.month_6' => 'ມິ.ຖຸ',
-    'home.month_7' => 'ກໍ.ກົດ', 'home.month_8' => 'ສ.ຫ', 'home.month_9' => 'ກ.ຍ',
-    'home.month_10' => 'ຕ.ລ', 'home.month_11' => 'ພ.ຈ', 'home.month_12' => 'ທ.ວ',
+    'home.month_1' => 'ມັງກອນ', 'home.month_2' => 'ກຸມພາ', 'home.month_3' => 'ມີນາ',
+    'home.month_4' => 'ເມສາ', 'home.month_5' => 'ພຶດສະພາ', 'home.month_6' => 'ມິຖຸນາ',
+    'home.month_7' => 'ກໍລະກົດ', 'home.month_8' => 'ສິງຫາ', 'home.month_9' => 'ກັນຍາ',
+    'home.month_10' => 'ຕຸລາ', 'home.month_11' => 'ພະຈິກ', 'home.month_12' => 'ທັນວາ',
 ];

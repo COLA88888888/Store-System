@@ -344,7 +344,7 @@ div[style*="overflow"]::-webkit-scrollbar-thumb {
 }
 .pagination .page-link {
     border: 1px solid #dee2e6 !important;
-    color: #007bff !important;
+    color: #244886 !important;
     background-color: #fff !important;
     border-radius: 50% !important; /* Make buttons circular */
     width: 32px !important; /* Smaller circular button */
@@ -359,15 +359,15 @@ div[style*="overflow"]::-webkit-scrollbar-thumb {
     padding: 0 !important; /* Reset padding to keep perfectly circular */
 }
 .pagination .page-item.active .page-link {
-    background-color: #007bff !important;
-    border-color: #007bff !important;
+    background-color: #244886 !important;
+    border-color: #244886 !important;
     color: #fff !important;
-    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.25) !important;
+    box-shadow: 0 4px 10px rgba(36, 72, 134, 0.25) !important;
 }
 .pagination .page-item:not(.active):not(.disabled) .page-link:hover {
-    background-color: #e6f0ff !important;
-    border-color: #b3d7ff !important;
-    color: #0056b3 !important;
+    background-color: #e9eef7 !important;
+    border-color: #a9bfe0 !important;
+    color: #1b3869 !important;
     transform: translateY(-1px) !important;
 }
 .pagination .page-item.disabled .page-link {

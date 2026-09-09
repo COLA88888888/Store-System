@@ -213,6 +213,22 @@ if (!hasPermission('dashboard')) {
       padding: 0 !important;
       overflow: hidden !important;
     }
+
+    /* Theme colour picker swatches */
+    .pos-theme-swatch {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.18);
+      padding: 0;
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+    .pos-theme-swatch:hover { transform: scale(1.15); }
+    .pos-theme-swatch.active {
+      box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111827 !important;
+    }
   </style>
 
 
@@ -481,6 +497,36 @@ if (!hasPermission('dashboard')) {
           </span>
         </li>
       <?php endif; ?>
+
+      <!-- Theme Colour Picker (recolours sidebar + navbar, saved per-browser) -->
+      <li class="nav-item dropdown d-flex align-items-center mr-2">
+        <a class="nav-link p-0 d-flex align-items-center justify-content-center text-white"
+           href="#"
+           id="themeColorDropdown"
+           role="button"
+           data-toggle="dropdown"
+           aria-haspopup="true"
+           aria-expanded="false"
+           style="font-size: 1.15rem; cursor: pointer; width: 32px; height: 32px;"
+           data-i18n-title="layout.theme_color_title"
+           title="<?php echo htmlspecialchars(t('layout.theme_color_title', 'ປ່ຽນສີພື້ນຫຼັງ')); ?>">
+          <i class="fas fa-palette"></i>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right shadow-lg p-2"
+             aria-labelledby="themeColorDropdown"
+             style="min-width: 188px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: #ffffff;">
+          <div class="px-1 pb-2 font-weight-bold text-muted" style="font-size: 0.78rem;" data-i18n="layout.theme_color_title"><?php echo htmlspecialchars(t('layout.theme_color_title', 'ປ່ຽນສີພື້ນຫຼັງ')); ?></div>
+          <div class="d-flex flex-wrap" style="gap: 8px;">
+            <?php
+              $posThemeColors = ['#244886','#1d4ed8','#0369a1','#0f766e','#166534','#4d7c0f','#b45309','#c2410c','#be123c','#9f1239','#6d28d9','#7c3aed','#374151','#111827','#0b7285'];
+              foreach ($posThemeColors as $tc):
+            ?>
+              <button type="button" class="pos-theme-swatch" data-color="<?php echo $tc; ?>" title="<?php echo $tc; ?>" style="background: <?php echo $tc; ?>;"></button>
+            <?php endforeach; ?>
+          </div>
+          <button type="button" id="posThemeReset" class="btn btn-sm btn-light border w-100 mt-2 font-weight-bold" style="font-size: 0.78rem; border-radius: 8px;" data-i18n="layout.theme_color_reset"><?php echo htmlspecialchars(t('layout.theme_color_reset', 'ຄ່າເລີ່ມຕົ້ນ')); ?></button>
+        </div>
+      </li>
 
       <!-- Language Switcher Dropdown (Flags Only: Laos / Thailand / China / US) -->
       <?php $currentLangCode = getCurrentLang(); ?>
@@ -1386,7 +1432,206 @@ if (!hasPermission('dashboard')) {
 
   <!-- ແຖບເມນູທາງຊ້າຍ (Unified Dynamic Sidebar) -->
   <?php include __DIR__ . '/../layouts/sidebar.php'; ?>
-  
+
+  <script>
+    // Theme colour: recolour sidebar + navbar chrome from a per-browser saved choice.
+    (function() {
+      var STORE_KEY = 'pos_theme_color';
+      var DEFAULT_COLOR = '#244886';
+
+      // Lighten (percent > 0) or darken (percent < 0) a #rrggbb colour.
+      function shade(hex, percent) {
+        hex = String(hex).replace('#', '');
+        if (hex.length !== 6) return '#' + hex;
+        var r = parseInt(hex.substr(0, 2), 16),
+            g = parseInt(hex.substr(2, 2), 16),
+            b = parseInt(hex.substr(4, 2), 16);
+        var t = percent < 0 ? 0 : 255, p = Math.abs(percent);
+        r = Math.round((t - r) * p) + r;
+        g = Math.round((t - g) * p) + g;
+        b = Math.round((t - b) * p) + b;
+        return '#' + [r, g, b].map(function(x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+      }
+
+      // Recolour the active / clicked sidebar menu highlight to match the theme.
+      function paintActiveHighlight(color) {
+        var css =
+          '.nav-sidebar > .nav-item:not(.has-treeview) > .nav-link.active,' +
+          '.nav-sidebar .nav-treeview .nav-link.active{' +
+          'background:linear-gradient(135deg,' + shade(color, -0.28) + ',' + shade(color, 0.38) + ') !important;}';
+        var tag = document.getElementById('posThemeActiveStyle');
+        if (!tag) {
+          tag = document.createElement('style');
+          tag.id = 'posThemeActiveStyle';
+          document.head.appendChild(tag);
+        }
+        tag.textContent = css;
+      }
+
+      // Override rules for buttons / primary accents — injected into BOTH the shell
+      // and the iframe page so the whole system follows the chosen colour.
+      // includeInline: also retarget the hard-coded blue-gradient inline styles
+      // (safe inside the iframe; skipped in the shell where it would hit chrome).
+      // NOTE: every selector is prefixed with `body ` so it out-specifies the
+      // per-page theme stylesheets (themes/pos.css, themes/reports.css, …) that
+      // are <link>ed inside <body> and would otherwise win on source order.
+      function buttonCSS(color, includeInline) {
+        var d = shade(color, -0.18), l = shade(color, 0.20), gd = shade(color, -0.28);
+        var rules = [
+          'body .btn-primary,body .btn-primary.disabled,body .btn-primary:disabled{background:' + color + '!important;background-image:none!important;border-color:' + d + '!important}',
+          'body .btn-primary:hover,body .btn-primary:focus,body .btn-primary:not(:disabled):not(.disabled):active,body .btn-primary:not(:disabled):not(.disabled).active{background:' + d + '!important;background-image:none!important;border-color:' + d + '!important}',
+          'body .btn-outline-primary{color:' + color + '!important;border-color:' + color + '!important;background:transparent!important}',
+          'body .btn-outline-primary:hover,body .btn-outline-primary:not(:disabled):not(.disabled):active,body .btn-outline-primary:not(:disabled):not(.disabled).active{background:' + color + '!important;border-color:' + color + '!important;color:#fff!important}',
+          'body .btn-info{background:' + color + '!important;background-image:none!important;border-color:' + d + '!important}',
+          'body .btn-info:hover,body .btn-info:focus,body .btn-info:not(:disabled):not(.disabled):active{background:' + d + '!important;background-image:none!important;border-color:' + d + '!important}',
+          'body .badge-primary{background-color:' + color + '!important}',
+          'body .bg-primary{background-color:' + color + '!important}',
+          'body .text-primary{color:' + color + '!important}',
+          'body .btn-link{color:' + color + '!important}',
+          // Pagination — plain .pagination (Bootstrap / global-custom.css / report-pagination).
+          'body .pagination .page-item .page-link{color:' + color + '!important}',
+          'body .pagination .page-item.active .page-link{background:' + color + '!important;background-image:none!important;border-color:' + color + '!important;color:#fff!important;box-shadow:0 4px 10px rgba(0,0,0,0.18)!important}',
+          'body .pagination .page-item:not(.active):not(.disabled) .page-link:hover{background-color:' + l + '!important;border-color:' + color + '!important;color:' + d + '!important}',
+          'body .pagination .page-item.disabled .page-link{color:#6c757d!important}',
+          // .pagination-circle inside modals: themes/import_stock.css uses ".modal .pagination-circle ..." (5 classes) — need matching depth to win.
+          'body .pagination-circle .page-item.active .page-link,body .modal .pagination-circle .page-item.active .page-link{background:' + color + '!important;background-image:none!important;border-color:' + color + '!important;color:#fff!important}',
+          'body .pagination-circle .page-item .page-link:hover,body .modal .pagination-circle .page-item:not(.active):not(.disabled) .page-link:hover{background-color:' + l + '!important;border-color:' + color + '!important;color:' + d + '!important}',
+          'body .custom-control-input:checked~.custom-control-label::before{background-color:' + color + '!important;border-color:' + color + '!important}',
+          'body .nav-pills .nav-link.active{background-color:' + color + '!important}',
+          'body .swal2-styled.swal2-confirm{background-color:' + color + '!important}'
+        ];
+        if (includeInline) {
+          // NOTE: inline hard-coded #2c5aa0/#244886 gradients are handled by paintIframeInline()
+          // (JS) not CSS — an [style*="#hex"] rule stops matching once we've rewritten the style,
+          // which is exactly why a 2nd colour pick used to "stick".
+          // POS page: scan box + search badge use their own hard-coded gradients in themes/pos.css.
+          rules.push('body .pos-search-wrapper{background:linear-gradient(135deg,' + gd + ' 0%,' + color + ' 50%,' + l + ' 100%)!important}');
+          rules.push('body .pos-search-badge{background:linear-gradient(135deg,' + l + ',' + color + ')!important}');
+        }
+        return rules.join('');
+      }
+
+      function injectStyle(doc, id, css) {
+        if (!doc || !doc.head) return;
+        var tag = doc.getElementById(id);
+        if (!tag) {
+          tag = doc.createElement('style');
+          tag.id = id;
+          doc.head.appendChild(tag);
+        }
+        tag.textContent = css;
+      }
+
+      function removeStyle(doc, id) {
+        if (!doc) return;
+        var tag = doc.getElementById(id);
+        if (tag) tag.remove();
+      }
+
+      function iframeDoc() {
+        try {
+          var f = document.querySelector('iframe[name="frame"]');
+          return f ? (f.contentDocument || f.contentWindow.document) : null;
+        } catch (e) { return null; }
+      }
+
+      // Some page elements (modal headers, "add" buttons, section bars) hard-code
+      // `style="background: linear-gradient(135deg,#2c5aa0,#244886) !important"` inline.
+      // Inline !important can only be beaten by JS setting the property directly.
+      // We tag each one with .pos-inline-themed on first touch so a 2nd/3rd colour pick
+      // still finds it — after the first rewrite its style no longer contains the old hex.
+      function paintIframeInline(color) {
+        var idoc = iframeDoc();
+        if (!idoc || !idoc.body) return;
+        var l = shade(color, 0.20), d = shade(color, -0.18);
+        var grad = 'linear-gradient(135deg, ' + l + ', ' + color + ')';
+        idoc.querySelectorAll('[style*="#2c5aa0"],[style*="#244886"],.pos-inline-themed').forEach(function(el) {
+          if (!el.classList.contains('pos-inline-themed')) {
+            var s = el.getAttribute('style') || '';
+            var hasBg = /background(-image)?\s*:/.test(s);
+            var hasBorder = /border(-color)?\s*:/.test(s);
+            if (!hasBg && !hasBorder) return;
+            el.classList.add('pos-inline-themed');
+            el.dataset.posBg = hasBg ? '1' : '';
+            el.dataset.posBorder = hasBorder ? '1' : '';
+          }
+          if (el.dataset.posBg) el.style.setProperty('background', grad, 'important');
+          if (el.dataset.posBorder) el.style.setProperty('border-color', d, 'important');
+        });
+      }
+
+      function paint(color) {
+        var nav = document.querySelector('.main-header.navbar');
+        if (nav) nav.style.setProperty('background-color', color, 'important');
+        var side = document.querySelector('.main-sidebar');
+        if (side) side.style.setProperty('background-color', color, 'important');
+        document.querySelectorAll('.main-sidebar .brand-link').forEach(function(el) {
+          el.style.setProperty('background-color', color, 'important');
+        });
+        // Flat-fill the navbar notification dropdown headers so they track the theme too.
+        document.querySelectorAll('.main-header .dropdown-header').forEach(function(el) {
+          el.style.setProperty('background-color', color, 'important');
+        });
+        paintActiveHighlight(color);
+        injectStyle(document, 'posThemeBtnStyle', buttonCSS(color, false));
+        injectStyle(iframeDoc(), 'posThemeBtnStyle', buttonCSS(color, true));
+        paintIframeInline(color);
+        document.querySelectorAll('.pos-theme-swatch').forEach(function(el) {
+          el.classList.toggle('active', (el.getAttribute('data-color') || '').toLowerCase() === color.toLowerCase());
+        });
+      }
+
+      var currentColor = DEFAULT_COLOR;
+
+      function applyThemeColor(color, save) {
+        currentColor = color;
+        paint(color);
+        if (save) { try { localStorage.setItem(STORE_KEY, color); } catch (e) {} }
+      }
+
+      // Re-inject the button theme into every iframe page as it loads.
+      function reinjectIframe() {
+        if (currentColor && currentColor !== DEFAULT_COLOR) {
+          injectStyle(iframeDoc(), 'posThemeBtnStyle', buttonCSS(currentColor, true));
+          paintIframeInline(currentColor);
+        }
+      }
+      if (window.jQuery) {
+        jQuery(function($) {
+          $('iframe[name="frame"]').on('load', reinjectIframe);
+          reinjectIframe();               // in case the frame already finished loading
+          setTimeout(reinjectIframe, 500); // and once more after first paint settles
+        });
+      }
+
+      // Apply saved choice immediately (elements already exist at this point).
+      var saved = null;
+      try { saved = localStorage.getItem(STORE_KEY); } catch (e) {}
+      if (saved) applyThemeColor(saved, false);
+
+      document.addEventListener('DOMContentLoaded', function() {
+        if (saved) applyThemeColor(saved, false);
+        document.querySelectorAll('.pos-theme-swatch').forEach(function(el) {
+          el.addEventListener('click', function() {
+            applyThemeColor(this.getAttribute('data-color'), true);
+          });
+        });
+        var resetBtn = document.getElementById('posThemeReset');
+        if (resetBtn) {
+          resetBtn.addEventListener('click', function() {
+            try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+            currentColor = DEFAULT_COLOR;
+            applyThemeColor(DEFAULT_COLOR, false);
+            // Drop overrides so the stylesheets' original blues return.
+            removeStyle(document, 'posThemeActiveStyle');
+            removeStyle(document, 'posThemeBtnStyle');
+            removeStyle(iframeDoc(), 'posThemeBtnStyle');
+          });
+        }
+      });
+    })();
+  </script>
+
   <script>
     (function() {
       var defaultSrc = '<?php echo $default_iframe_src; ?>';
@@ -1714,6 +1959,18 @@ if (!hasPermission('dashboard')) {
               }
             }
           });
+
+          // Count activity inside the iframe as activity — otherwise a user filling a long
+          // form gets force-logged-out after 15 min even while working. Throttled to 1×/20s.
+          var _idlePing = 0;
+          $(iframeDoc).off('mousemove.idle keydown.idle click.idle scroll.idle touchstart.idle wheel.idle')
+            .on('mousemove.idle keydown.idle click.idle scroll.idle touchstart.idle wheel.idle', function() {
+              var now = Date.now();
+              if (now - _idlePing > 20000) {
+                _idlePing = now;
+                if (window.resetIdleTimer) window.resetIdleTimer();
+              }
+            });
         }
       } catch(e) {
         // Suppress cross-origin warnings if any
@@ -1925,6 +2182,11 @@ if (!hasPermission('dashboard')) {
     window.onscroll = resetIdleTimer;
     window.addEventListener('scroll', resetIdleTimer, true);
     window.addEventListener('message', resetIdleTimer);
+
+    // Activity INSIDE the iframe (typing in a form, clicking, scrolling a page) does not
+    // bubble to this parent window — without this the user gets logged out mid-task after
+    // 15 min even while actively working. The iframe-load handler calls this on iframe events.
+    window.resetIdleTimer = resetIdleTimer;
 
     setInterval(function() {
       idleTime += 5000; // ກວດສອບທຸກໆ 5 ວິນາທີ

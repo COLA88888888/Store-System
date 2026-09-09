@@ -155,16 +155,16 @@
 }
 
 .report-pagination .page-item.active .page-link {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    background: linear-gradient(135deg, #2c5aa0, #244886) !important;
     color: #ffffff !important;
-    border-color: #2563eb !important;
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4) !important;
+    border-color: #244886 !important;
+    box-shadow: 0 4px 12px rgba(36, 72, 134, 0.4) !important;
 }
 
 .report-pagination .page-link:hover:not(.active) {
-    background: #eff6ff !important;
-    color: #1d4ed8 !important;
-    border-color: #93c5fd !important;
+    background: #e9eef7 !important;
+    color: #1b3869 !important;
+    border-color: #a9bfe0 !important;
 }
 
 .report-pagination .page-item.disabled .page-link {
@@ -447,17 +447,17 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 .report-pagination .page-link:hover {
-    color: #2563eb;
-    background-color: #eff6ff;
-    border-color: #bfdbfe;
+    color: #244886;
+    background-color: #e9eef7;
+    border-color: #a9bfe0;
     transform: translateY(-1px);
-    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 4px 10px rgba(36, 72, 134, 0.15);
 }
 .report-pagination .page-item.active .page-link {
     color: #ffffff !important;
-    background: #2563eb !important;
-    border-color: #2563eb !important;
-    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45) !important;
+    background: #244886 !important;
+    border-color: #244886 !important;
+    box-shadow: 0 6px 16px rgba(36, 72, 134, 0.45) !important;
     transform: scale(1.04);
 }
 .report-pagination .page-item.disabled .page-link {

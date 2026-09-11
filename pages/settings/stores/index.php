@@ -34,6 +34,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $license_expire_date = trim($_POST['license_expire_date'] ?? '2026-12-31');
 
         $branch_id_save = getActiveStoreId($pdo);
+
+        // Daily-resetting queue number on the receipt (coffee-shop style) — one global on/off.
+        // Only the main branch renders (and can submit) this toggle.
+        if (isMainBranch($pdo, $branch_id_save)) {
+            try {
+                $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('queue_enabled', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")
+                    ->execute([!empty($_POST['queue_enabled']) ? '1' : '0']);
+            } catch (Throwable $e) {}
+        }
         $isMainBranchSave = isMainBranch($pdo, $branch_id_save);
 
         // Only the main branch can set the shared name/address/phone/tax/etc — sub-branches only
@@ -435,6 +444,20 @@ require_once __DIR__ . '/../../../layouts/header.php';
                    value="<?php echo htmlspecialchars($company['barcode'] ?? ''); ?>"
                    placeholder="<?php echo htmlspecialchars(t('stores.field_footer_ph', 'ເຊັ່ນ: ຂອບໃຈທີ່ມາອຸດໜູນ, ສິນຄ້າຊື້ແລ້ວບໍ່ຮັບປ່ຽນຄືນ...')); ?>" <?php echo $sharedReadonly; ?>>
           </div>
+
+          <!-- Queue number on receipt (coffee-shop style) -->
+          <?php if ($isMainBranchView): ?>
+          <div class="form-group mb-4">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" id="queue_enabled" name="queue_enabled" value="1"
+                     <?php echo (getSetting($pdo, 'queue_enabled', '0') === '1') ? 'checked' : ''; ?>>
+              <label class="custom-control-label font-weight-bold text-dark small" for="queue_enabled">
+                <?php echo htmlspecialchars(t('stores.field_queue_enabled', 'ສະແດງເລກຄິວເທິງໃບບິນ (ຮ້ານກາເຟ / ຮ້ານທີ່ມີຄິວ)')); ?>
+              </label>
+            </div>
+            <small class="text-muted"><?php echo htmlspecialchars(t('stores.field_queue_hint', 'ເລກຄິວເລີ່ມ 1 ໃໝ່ທຸກມື້ ພິມໂຕໃຫຍ່ຢູ່ເທິງໂລໂກ້. ຮ້ານທົ່ວໄປປິດໄວ້.')); ?></small>
+          </div>
+          <?php endif; ?>
 
           <!-- Submit Button (Aligned to the Right) -->
           <div class="pt-3 border-top text-right d-flex justify-content-end">

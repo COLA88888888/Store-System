@@ -21,10 +21,21 @@
             <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('categories.label_name', 'ຊື່ປະເພດສິນຄ້າ')); ?> <span class="text-danger">*</span></label>
             <input type="text" id="add_cat_name" name="category_name" class="form-control" placeholder="<?php echo htmlspecialchars(t('categories.placeholder_name', 'ປ້ອນຊື່ປະເພດສິນຄ້າ')); ?>" style="border-radius: 8px; height: 42px;">
           </div>
-          <div class="form-group mb-0">
+          <div class="form-group mb-3">
             <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('categories.label_desc', 'ລາຍລະອຽດ')); ?></label>
             <textarea name="description" class="form-control" rows="3" placeholder="<?php echo htmlspecialchars(t('categories.placeholder_desc', 'ປ້ອນລາຍລະອຽດ(ບໍ່ບັງຄັບ)')); ?>" style="border-radius: 8px;"></textarea>
           </div>
+          <?php if (!empty($catPrinters)): ?>
+          <div class="form-group mb-0">
+            <label class="font-weight-bold text-dark mb-1"><i class="fas fa-print text-primary mr-1"></i> <?php echo htmlspecialchars(t('categories.label_printer', 'ເຄື່ອງພິມໃບຍ່ອຍ (kitchen ticket)')); ?></label>
+            <select name="printer_id" id="add_cat_printer" class="form-control" style="border-radius: 8px; height: 42px;">
+              <option value=""><?php echo htmlspecialchars(t('categories.printer_none', '— ບໍ່ພິມໃບຍ່ອຍ —')); ?></option>
+              <?php foreach ($catPrinters as $pr): ?>
+                <option value="<?php echo (int)$pr['id']; ?>"><?php echo htmlspecialchars($pr['name']); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <?php endif; ?>
         </div>
         <div class="modal-footer border-0 pt-0 pb-4 px-4">
           <button type="button" class="btn btn-light font-weight-bold px-4" style="border-radius: 6px;" data-dismiss="modal"><?php echo htmlspecialchars(t('categories.btn_cancel', 'ຍົກເລີກ')); ?></button>

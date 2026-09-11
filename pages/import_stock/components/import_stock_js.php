@@ -509,6 +509,8 @@
   function changeModalPageSize(val) {
     modalPageSize = parseInt(val, 10) || 10;
     modalCurrentPage = 1;
+    // Remember the choice so it survives the page reload after an import/transfer is saved.
+    try { localStorage.setItem('minipos_modal_page_size', modalPageSize); } catch (e) {}
     renderModalProductTable();
   }
 
@@ -599,6 +601,12 @@
   }
 
   $('#productSelectModal').on('shown.bs.modal', function () {
+    var savedSize = null;
+    try { savedSize = localStorage.getItem('minipos_modal_page_size'); } catch (e) {}
+    if (savedSize) {
+      modalPageSize = parseInt(savedSize, 10) || 10;
+      $('#modal_page_size_select').val(String(modalPageSize));
+    }
     filterModalProducts();
     $('#modal_product_search').focus();
   });

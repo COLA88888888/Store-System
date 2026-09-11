@@ -25,10 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name = trim($_POST['category_name'] ?? '');
             $desc = trim($_POST['description'] ?? '');
             $cat_id = isset($_POST['category_id']) && $_POST['category_id'] !== '' ? intval($_POST['category_id']) : null;
+            // Kitchen-ticket printer for this category's items (per branch). Empty = none.
+            $printer_id = !empty($_POST['printer_id']) ? intval($_POST['printer_id']) : null;
             if ($name !== '' && $cat_id !== null && $cat_id > 0) {
                 try {
-                    $stmt = $pdo->prepare("INSERT INTO categories (category_id, category_name, description, store_id) VALUES (?, ?, ?, ?)");
-                    $stmt->execute([$cat_id, $name, $desc, $catActiveStoreId]);
+                    $stmt = $pdo->prepare("INSERT INTO categories (category_id, category_name, description, store_id, printer_id) VALUES (?, ?, ?, ?, ?)");
+                    $stmt->execute([$cat_id, $name, $desc, $catActiveStoreId, $printer_id]);
 
                     // A category added from the main branch is also created in every sub-branch
                     // (own auto-generated category_id per branch, since category_id is a single
@@ -59,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = intval($_POST['category_id'] ?? 0);
             $name = trim($_POST['category_name'] ?? '');
             $desc = trim($_POST['description'] ?? '');
+            $printer_id = !empty($_POST['printer_id']) ? intval($_POST['printer_id']) : null;
             if ($id > 0 && $name !== '') {
                 try {
                     // Grab the pre-edit name so a main-branch edit can find the matching
@@ -68,9 +71,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $oldNameStmt->execute([$id, $catActiveStoreId]);
                     $oldName = $oldNameStmt->fetchColumn();
 
-                    // Scoped to this branch's own category — a sub-branch user can't edit another branch's row
-                    $stmt = $pdo->prepare("UPDATE categories SET category_name = ?, description = ? WHERE category_id = ? AND store_id = ?");
-                    $stmt->execute([$name, $desc, $id, $catActiveStoreId]);
+                    // Scoped to this branch's own category — a sub-branch user can't edit another branch's row.
+                    // printer_id stays branch-local (each branch has its own printers), so it's not propagated below.
+                    $stmt = $pdo->prepare("UPDATE categories SET category_name = ?, description = ?, printer_id = ? WHERE category_id = ? AND store_id = ?");
+                    $stmt->execute([$name, $desc, $printer_id, $id, $catActiveStoreId]);
 
                     // A category edited from the main branch also renames the matching
                     // category in every sub-branch, so products there keep showing the
@@ -132,3 +136,9 @@ $total_records = count($allCategories);
 // Next available ID (MAX + 1 across all branches, or 1 if empty) — category_id is a shared
 // primary key, so this must stay global to avoid two branches generating the same new ID.
 $next_cat_id = (int)$pdo->query("SELECT IFNULL(MAX(category_id), 0) + 1 FROM categories")->fetchColumn();
+
+// Active printers — for the "kitchen ticket printer" dropdown on the add/edit category form.
+$catPrinters = [];
+try {
+    $catPrinters = $pdo->query("SELECT id, name FROM tbl_printer WHERE status = 1 ORDER BY name ASC")->fetchAll();
+} catch (Throwable $e) {}

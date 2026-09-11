@@ -15,8 +15,21 @@
             <i class="fas fa-plus-circle mr-1"></i> <?php echo htmlspecialchars(t('pos.new_bill', 'ເປີດບິນໃໝ່')); ?>
           </button>
         </div>
+        <div id="activeBillsSearchWrap" class="mb-3" style="display:none;">
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text bg-white" style="border-radius:8px 0 0 8px;"><i class="fas fa-search text-muted"></i></span>
+            </div>
+            <input type="text" id="activeBillsSearchInput" class="form-control font-weight-bold" autocomplete="off"
+                   placeholder="<?php echo htmlspecialchars(t('pos.active_bills_search_placeholder', 'ຄົ້ນຫາ: ຊື່ບິນ, ລູກຄ້າ ຫຼື ສິນຄ້າ...')); ?>"
+                   oninput="filterActiveBillsList()" style="border-radius:0 8px 8px 0; height:40px;">
+          </div>
+        </div>
         <div id="activeBillsContainer">
           <!-- Dynamically populated active bills -->
+        </div>
+        <div id="activeBillsNoMatch" class="text-center py-4 text-muted" style="display:none;">
+          <i class="fas fa-search mr-1"></i> <?php echo htmlspecialchars(t('pos.active_bills_no_match', 'ບໍ່ພົບບິນທີ່ກົງກັບການຄົ້ນຫາ')); ?>
         </div>
       </div>
       <div class="modal-footer border-0 bg-light p-3">

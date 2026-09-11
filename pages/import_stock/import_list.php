@@ -5,6 +5,26 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 
 require_once __DIR__ . '/../../config/db.php';
 
+// Multi-currency: import costs are stored in KIP, shown in the active currency. A
+// currency picked here overrides the store's global display_currency setting for this
+// view only — it's a display convenience (see the cost in ฿/$/¥), not a filter on
+// which import bills are counted (imports don't record a "tendered currency").
+$currency_filter = strtoupper(trim($_GET['currency_filter'] ?? ''));
+if ($currency_filter !== '' && isset(getCurrencyMeta()[$currency_filter])) {
+    $__ilRates = getExchangeRates($pdo);
+    $__ilRate  = ($currency_filter === 'KIP') ? 1.0 : (float)($__ilRates[$currency_filter] ?? 0);
+    if ($currency_filter === 'KIP' || $__ilRate > 0) {
+        setDisplayCurrencyOverride(array_merge(
+            ['code' => $currency_filter, 'rate' => $__ilRate, 'rates' => $__ilRates],
+            getCurrencyMeta()[$currency_filter]
+        ));
+    } else {
+        $currency_filter = '';
+    }
+} else {
+    $currency_filter = '';
+}
+
 // Check authorization
 if (empty($_SESSION['user_id']) || (!hasPermission('import_list') && !hasPermission('import_stock') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";

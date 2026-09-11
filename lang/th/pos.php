@@ -58,6 +58,7 @@ return [
     'pos.receipt_tel' => 'โทร:',
     'pos.receipt_tax_id' => 'เลขประจำตัวผู้เสียภาษี:',
     'pos.receipt_bill_no' => 'เลขที่บิล:',
+    'pos.receipt_queue_label' => 'บัตรคิวที่',
     'pos.receipt_date' => 'วันที่:',
     'pos.receipt_cashier' => 'พนักงานขาย:',
     'pos.receipt_customer' => 'ลูกค้า:',

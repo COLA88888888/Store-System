@@ -325,12 +325,25 @@ require_once __DIR__ . '/../../layouts/header.php';
         <?php endif; ?>
       <?php endif; ?>
 
-      <!-- 1. DIRECT ENTRY FORM CARD -->
+      <!-- 1. DIRECT ENTRY FORM CARD — a transfer needs a source AND a destination branch,
+           so there's nothing meaningful to show with fewer than 2 active branches -->
+      <?php if (count($stores) > 1): ?>
       <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
         <div class="card-body p-4">
           <?php require_once __DIR__ . '/components/transfer_form_component.php'; ?>
         </div>
       </div>
+      <?php else: ?>
+      <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
+        <div class="card-body p-5 text-center text-muted">
+          <i class="fas fa-code-branch fa-3x d-block mb-3" style="opacity: 0.35;"></i>
+          <div class="font-weight-bold" style="font-size: 1rem;">
+            <?php echo htmlspecialchars(t('stock_transfer.needs_two_branches', 'ຕ້ອງມີຢ່າງໜ້ອຍ 2 ສາຂາຈຶ່ງຈະໂອນສິນຄ້າລະຫວ່າງສາຂາໄດ້')); ?>
+          </div>
+          <small><?php echo htmlspecialchars(t('stock_transfer.needs_two_branches_hint', 'ກະລຸນາເພີ່ມສາຂາໃໝ່ໃນໜ້າຈັດການສາຂາກ່ອນ')); ?></small>
+        </div>
+      </div>
+      <?php endif; ?>
 
     </div>
   </section>

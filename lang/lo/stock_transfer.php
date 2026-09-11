@@ -6,6 +6,8 @@ return [
     'stock_transfer.err_select_stores' => 'ກະລຸນາເລືອກສາຂາຕົ້ນທາງ ແລະ ສາຂາປາຍທາງ!',
     'stock_transfer.err_same_store' => 'ສາຂາຕົ້ນທາງ ແລະ ປາຍທາງ ຕ້ອງບໍ່ແມ່ນສາຂາດຽວກັນ!',
     'stock_transfer.err_no_items' => 'ກະລຸນາເພີ່ມສິນຄ້າໃສ່ລາຍການໂອນຢ່າງນ້ອຍ 1 ລາຍການ!',
+    'stock_transfer.needs_two_branches' => 'ຕ້ອງມີຢ່າງໜ້ອຍ 2 ສາຂາຈຶ່ງຈະໂອນສິນຄ້າລະຫວ່າງສາຂາໄດ້',
+    'stock_transfer.needs_two_branches_hint' => 'ກະລຸນາເພີ່ມສາຂາໃໝ່ໃນໜ້າຈັດການສາຂາກ່ອນ',
     'stock_transfer.err_product_not_found' => 'ບໍ່ພົບສິນຄ້າ ID %s ໃນສາຂາຕົ້ນທາງ!',
     'stock_transfer.err_insufficient_stock' => 'ສິນຄ້າ "%s" ໃນສາຂາຕົ້ນທາງ ມີພຽງ %s (ບໍ່ພໍໂອນ %s)!',
     'stock_transfer.success_message' => 'ບັນທຶກການໂອນສິນຄ້າເລກທີ %s ສຳເລັດ (ລວມ %s ລາຍການ)!',

@@ -6,6 +6,8 @@ return [
     'stock_transfer.err_select_stores' => 'Please select the source and destination branches!',
     'stock_transfer.err_same_store' => 'The source and destination branches must not be the same!',
     'stock_transfer.err_no_items' => 'Please add at least one item to the transfer!',
+    'stock_transfer.needs_two_branches' => 'You need at least 2 branches to transfer stock between branches',
+    'stock_transfer.needs_two_branches_hint' => 'Please add a new branch in the Branches page first',
     'stock_transfer.err_product_not_found' => 'Product ID %s not found in the source branch!',
     'stock_transfer.err_insufficient_stock' => 'Product "%s" only has %s in the source branch (not enough for %s)!',
     'stock_transfer.success_message' => 'Transfer #%s saved successfully (%s item(s))!',

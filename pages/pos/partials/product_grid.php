@@ -10,6 +10,9 @@
           $imgPath = $base_path . 'assets/img/image.jpg';
       }
       $stock = floatval($p['qty'] ?? 0);
+      // cut_qty = 0 -> ສິນຄ້າ/ບໍລິການ ທີ່ບໍ່ຕັດສະຕັອກ: ບໍ່ຕ້ອງສະແດງ "ໝົດແລ້ວ" ຫຼື ຈຳນວນເຫຼືອ
+      $tracksStock = intval($p['cut_qty'] ?? 1) !== 0;
+      $showOut = $tracksStock && $stock <= 0;
       $hasPromo = !empty($p['has_promo']);
       $isGiftPromo = ($p['promo_type'] ?? '') === 'buy_x_get_y' || !empty($p['gift_product_name']);
       $promoIsGiftStyle = $isGiftPromo && floatval($p['original_price'] ?? 0) <= floatval($p['price'] ?? 0);
@@ -24,7 +27,7 @@
          
       <div class="card product-card product-card-<?php echo $p['product_id']; ?> h-100 shadow-sm" 
            data-id="<?php echo $p['product_id']; ?>"
-           style="border-radius: 12px !important; border: none !important; background: <?php echo $stock <= 0 ? '#fff5f5' : '#ffffff'; ?>; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; <?php echo $stock <= 0 ? 'opacity: 0.82;' : ''; ?>;">
+           style="border-radius: 12px !important; border: none !important; background: <?php echo $showOut ? '#fff5f5' : '#ffffff'; ?>; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; <?php echo $showOut ? 'opacity: 0.82;' : ''; ?>;">
         
         <div class="product-img-wrap" style="position: relative; width: 100%; height: 135px; overflow: hidden; background: #ffffff; padding: 0 !important; display: block; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
           <img src="<?php echo htmlspecialchars($imgPath); ?>" 
@@ -32,8 +35,9 @@
                style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; padding: 2px !important; background: #ffffff !important; display: block !important; border-radius: 9px 9px 0 0;"
                onerror="this.src='<?php echo $base_path; ?>assets/img/image.jpg';">
           
+          <?php if ($tracksStock): ?>
           <!-- Stock Status Badge Top Left -->
-          <span class="stock-status-badge stock-status-badge-<?php echo $p['product_id']; ?> <?php echo $stock <= 0 ? 'out-of-stock' : ($stock <= 10 ? 'low-stock' : ''); ?>" 
+          <span class="stock-status-badge stock-status-badge-<?php echo $p['product_id']; ?> <?php echo $stock <= 0 ? 'out-of-stock' : ($stock <= 10 ? 'low-stock' : ''); ?>"
                 style="display: <?php echo $stock <= 10 ? 'inline-block' : 'none'; ?>; position: absolute; top: 4px; left: 4px; z-index: 10;">
             <?php echo $stock <= 0 ? htmlspecialchars(t('pos.stock_out', 'ໝົດແລ້ວ')) : htmlspecialchars(t('pos.stock_low', 'ໃກ້ໝົດ')); ?>
           </span>
@@ -42,9 +46,14 @@
           <div class="stock-info-wrap stock-info-wrap-<?php echo $p['product_id']; ?> <?php echo $stock <= 0 ? 'out-of-stock' : ($stock <= 10 ? 'low-stock' : 'in-stock'); ?>" style="position: absolute; top: 4px; right: 4px; z-index: 10;">
             <span><span class="stock-remaining-label"><?php echo htmlspecialchars(t('pos.stock_remaining', 'ເຫຼືອ')); ?></span>: <span class="font-weight-bold product-stock-val product-stock-val-<?php echo $p['product_id']; ?>" data-initial-stock="<?php echo $p['qty']; ?>" data-cut-qty="<?php echo intval($p['cut_qty'] ?? 1); ?>"><?php echo number_format($p['qty']); ?></span></span>
           </div>
+          <?php endif; ?>
 
-          <!-- Cart Quantity Badge (quantity currently in cart) Top Left, opposite side from remaining stock -->
-          <span class="cart-qty-badge product-qty-badge-<?php echo $p['product_id']; ?>" style="position: absolute; top: 4px; left: 4px; z-index: 11;">0</span>
+          <!-- Cart Quantity Badge (quantity currently in cart) — Top Right, above the
+               remaining-stock pill (z-index 20 > 10) so it always stays on top of it
+               instead of being hidden behind it when both are shown. Must stay inside
+               this wrap: both this wrap AND the outer .product-card have
+               overflow:hidden, so a negative offset here gets silently clipped. -->
+          <span class="cart-qty-badge product-qty-badge-<?php echo $p['product_id']; ?>" style="position: absolute; top: 4px; right: 4px; z-index: 20; border: 2px solid #ffffff;">0</span>
 
           <!-- Promo name — full-width band along the bottom of the product image, left-aligned -->
           <?php if ($hasPromo): ?>
@@ -88,7 +97,7 @@
   <?php endforeach; ?>
 </div>
 
-<div id="productGridEmpty" class="text-center text-muted py-5" style="display:none; width:100%;">
+<div id="productGridEmpty" class="text-center text-muted py-5" style="<?php echo empty($products) ? '' : 'display:none;'; ?> width:100%;">
   <i class="fas fa-box-open" style="font-size:2.2rem; opacity:0.4;"></i>
   <div class="mt-2" style="font-size:0.95rem; font-weight:600;"><?php echo htmlspecialchars(t('pos.no_products', 'ບໍ່ມີຂໍ້ມູນສິນຄ້າ')); ?></div>
 </div>

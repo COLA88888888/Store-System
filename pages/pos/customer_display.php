@@ -30,6 +30,36 @@ try {
     }
 } catch (Throwable $e) {}
 
+// Active bank accounts — shown as payment QR codes on the customer screen (replaces the
+// old "thank you" card). Only the bank name + QR image are shown; account name / number
+// are deliberately kept off the public-facing screen.
+$cd_bank_accounts = [];
+try {
+    if (isset($pdo)) {
+        $bStmt = $pdo->query("SELECT * FROM bank_accounts WHERE is_active = 1 ORDER BY id ASC");
+        if ($bStmt) {
+            foreach ($bStmt->fetchAll(PDO::FETCH_ASSOC) as $ba) {
+                $qr = resolveBankQr($ba['qr_code_img'] ?? '', $ba['bank_code'] ?? '');
+                if ($qr === '') continue; // no QR uploaded -> nothing to scan, skip
+                $cd_bank_accounts[] = [
+                    'bank_name' => trim($ba['bank_name'] ?? '') ?: strtoupper(trim($ba['bank_code'] ?? '')),
+                    'logo'      => resolveBankLogo($ba['bank_logo'] ?? '', $ba['bank_code'] ?? ''),
+                    'qr'        => $qr,
+                ];
+            }
+        }
+    }
+} catch (Throwable $e) {}
+
+// Fall back to the single company-wide QR if no per-bank QR is configured.
+if (empty($cd_bank_accounts) && !empty($company['qr_img'])) {
+    $cd_bank_accounts[] = [
+        'bank_name' => $company['com_name'],
+        'logo'      => '',
+        'qr'        => $company['qr_img'],
+    ];
+}
+
 $base_path = '../../';
 ?>
 <!DOCTYPE html>
@@ -167,6 +197,10 @@ $base_path = '../../';
       flex-direction: column;
       overflow: hidden;
     }
+    /* Give the left panel more width when 3 payment QR cards sit side by side */
+    .left-store-panel.has-3-qr {
+      flex: 1.15;
+    }
     .store-card {
       flex: 1;
       background: linear-gradient(135deg, #eef2fb 0%, #ffffff 50%, #eef2fb 100%);
@@ -177,12 +211,17 @@ $base_path = '../../';
       justify-content: center;
       align-items: center;
       text-align: center;
-      padding: 36px 28px;
+      padding: 28px 22px;
       box-shadow: 0 10px 28px rgba(2, 99, 255, 0.08);
       position: relative;
       z-index: 0;
-      overflow: hidden;
+      overflow: hidden;   /* customer-facing screen: never show a scrollbar here */
+      scrollbar-width: none !important;
     }
+    /* Defense in case any descendant still scrolls — kill the bar (beats global-custom.css `::-webkit-scrollbar{width:5px!important}`) */
+    .store-card::-webkit-scrollbar,
+    .store-card *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+    .store-card * { scrollbar-width: none !important; }
     .particle-canvas {
       position: absolute;
       inset: 0;
@@ -197,6 +236,8 @@ $base_path = '../../';
       display: flex;
       flex-direction: column;
       align-items: center;
+      width: 100%;
+      margin: auto 0;   /* stays vertically centred, but grows past centre when tall */
     }
 
     .large-logo-box {
@@ -229,9 +270,13 @@ $base_path = '../../';
       font-size: 1.1rem;
       color: #475569;
       font-weight: 600;
-      max-width: 90%;
+      max-width: 100%;
       margin-bottom: 16px;
       line-height: 1.5;
+    }
+    /* Address / phone each stay on a single long line instead of wrapping narrow */
+    .store-info-text > div {
+      white-space: nowrap;
     }
 
     .welcome-banner-box {
@@ -250,12 +295,114 @@ $base_path = '../../';
       animation: pulseHeart 1.4s ease-in-out infinite;
     }
 
+    /* ===== STORE INFO ABOVE THE LOGO ===== */
+    .store-info-block {
+      margin-bottom: 14px;
+    }
+    .store-info-block .store-name-title { margin-bottom: 6px; }
+    .store-info-block .store-info-text { margin-bottom: 0; }
+    /* Logo shrinks once it sits between the info and the QR cards */
+    .large-logo-box.logo-below {
+      width: 150px;
+      height: 150px;
+      margin: 2px 0 10px;
+    }
+
+    /* ===== PAYMENT QR CODES (replaces the old "thank you" card) ===== */
+    .pay-qr-heading {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #244886;
+      margin: 6px 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .pay-qr-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;   /* a single card ends up centred automatically */
+      align-items: stretch;
+      gap: 16px;
+      width: 100%;
+    }
+    .pay-qr-card {
+      background: #ffffff;
+      border: 2px solid #c7d2e8;
+      border-radius: 14px;
+      padding: 14px 16px 16px;
+      box-shadow: 0 6px 20px rgba(36, 72, 134, 0.10);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 0 1 auto;
+    }
+    .pay-qr-card .pqc-bank {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #1e293b;
+    }
+    .pay-qr-card .pqc-bank img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      padding: 2px;
+    }
+    .pay-qr-card .pqc-qr {
+      width: clamp(140px, 15vw, 200px);
+      height: clamp(140px, 15vw, 200px);
+      object-fit: contain;
+      background: #ffffff;
+      border: 2.5px solid #6366f1;
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.18);
+    }
+    /* 3 cards in one row: split the panel width evenly and shrink the pieces so the
+       bank name + QR stay fully on screen. */
+    .pay-qr-wrap.count-3 {
+      flex-wrap: nowrap;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .pay-qr-wrap.count-3 .pay-qr-card {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 10px 8px 12px;
+      gap: 6px;
+    }
+    .pay-qr-wrap.count-3 .pqc-bank {
+      font-size: 0.9rem;
+      max-width: 100%;
+    }
+    .pay-qr-wrap.count-3 .pqc-bank span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pay-qr-wrap.count-3 .pqc-bank img { width: 22px; height: 22px; }
+    .pay-qr-wrap.count-3 .pqc-qr {
+      width: 100%;
+      height: auto;
+      max-width: 190px;
+      aspect-ratio: 1 / 1;
+      padding: 4px;
+    }
+
     /* ===== RIGHT PANEL: ORDER LIST & PAYMENT SUMMARY (60%) ===== */
     .right-order-panel {
       flex: 1.15;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       overflow: hidden;
     }
 
@@ -300,6 +447,8 @@ $base_path = '../../';
     .display-table-body::-webkit-scrollbar {
       display: none;
     }
+    /* Cart empty: keep the header row pinned at the top (same as the populated list);
+       the tall empty-state cell then vertically centres the icon + message below it. */
     .display-empty-state td {
       vertical-align: middle !important;
       height: 56vh;
@@ -352,25 +501,26 @@ $base_path = '../../';
     .grand-total-banner {
       background: linear-gradient(135deg, #059669 0%, #047857 100%);
       border-radius: 12px;
-      padding: 14px 22px 16px;
+      padding: 12px 20px 14px;
       box-sizing: border-box;
       color: #ffffff;
       box-shadow: 0 6px 18px rgba(5, 150, 105, 0.30);
       animation: glowTotal 2.4s ease-in-out infinite;
+      flex-shrink: 0;
     }
     .gt-substats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px 18px;
-      margin-bottom: 14px;
+      gap: 8px 18px;
+      margin-bottom: 10px;
     }
     .gt-substat {
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
     }
     .gt-substat-label {
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       font-weight: 700;
       color: #d1fae5;
       display: flex;
@@ -378,14 +528,14 @@ $base_path = '../../';
       gap: 6px;
     }
     .gt-substat-value {
-      font-size: 1.25rem;
+      font-size: 1.4rem;
       font-weight: 800;
       color: #ffffff;
       line-height: 1.2;
       white-space: nowrap;
     }
     #displayItemCount {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
     }
     .gt-final {
       display: flex;
@@ -403,7 +553,7 @@ $base_path = '../../';
     .gt-final h2 {
       font-weight: 800;
       margin: 3px 0 0;
-      font-size: 2.1rem;
+      font-size: 2.2rem;
       color: #ffffff;
       font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
       text-shadow: 0 2px 5px rgba(0,0,0,0.25);
@@ -413,14 +563,27 @@ $base_path = '../../';
        so the product list keeps enough visible rows instead of being squeezed. */
     @media (max-height: 720px) {
       .display-main { padding: 10px; gap: 10px; }
-      .grand-total-banner { padding: 9px 16px 11px; }
-      .gt-substats { gap: 6px 14px; margin-bottom: 9px; }
-      .gt-substat-label { font-size: 0.85rem; }
-      .gt-substat-value { font-size: 1.05rem; }
-      .gt-final-label { font-size: 0.74rem; }
-      .gt-final h2 { font-size: 1.6rem; }
+      .grand-total-banner { padding: 10px 16px 12px; }
+      .gt-substats { gap: 7px 14px; margin-bottom: 9px; }
+      .gt-substat-label { font-size: 0.88rem; }
+      .gt-substat-value { font-size: 1.25rem; }
+      #displayItemCount { font-size: 1.08rem; }
+      .gt-final-label { font-size: 0.8rem; }
+      .gt-final h2 { font-size: 1.95rem; }
       .display-table-body td { height: 52px; font-size: 0.98rem; padding: 6px 12px; }
       .display-table-head th { padding: 7px 12px; font-size: 0.9rem; }
+
+      .store-card { padding: 18px 16px; }
+      .store-name-title { font-size: 1.7rem; }
+      .store-info-text { font-size: 0.95rem; }
+      .store-info-block { margin-bottom: 10px; }
+      .large-logo-box.logo-below { width: 110px; height: 110px; margin: 2px 0 8px; }
+      .pay-qr-heading { font-size: 1rem; margin: 4px 0 8px; }
+      .pay-qr-wrap { gap: 10px; }
+      .pay-qr-card { padding: 10px 12px 12px; gap: 5px; border-radius: 12px; }
+      .pay-qr-card .pqc-qr { width: clamp(110px, 12vw, 150px); height: clamp(110px, 12vw, 150px); }
+      .pay-qr-card .pqc-bank { font-size: 0.92rem; }
+      .pay-qr-wrap.count-3 .pqc-qr { max-width: 150px; height: auto; }
     }
   </style>
 </head>
@@ -430,6 +593,14 @@ $base_path = '../../';
   <button type="button" class="fullscreen-toggle-btn" id="fullscreenToggleBtn" title="ເຕັມຈໍ / ອອກຈາກເຕັມຈໍ">
     <i class="fas fa-expand" id="fullscreenToggleIcon"></i>
   </button>
+
+  <!-- Queue-number flash (coffee-shop style) — shown briefly on payment success -->
+  <div id="queueFlash" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(15,23,42,0.94);
+       flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;">
+    <div style="font-size:2rem;font-weight:700;letter-spacing:2px;color:#93c5fd;">ບັດຄິວທີ</div>
+    <div id="queueFlashNo" style="font-size:26vh;font-weight:900;line-height:1;text-shadow:0 8px 30px rgba(0,0,0,0.5);">0</div>
+    <div style="font-size:1.6rem;font-weight:700;color:#cbd5e1;margin-top:10px;">ຂອບໃຈທີ່ມາອຸດໜູນ</div>
+  </div>
 
   <!-- 1. TOP HEADER BAR: SYSTEM NAME (CENTERED) + TIME/DATE, SINGLE ROW, NO BOXES -->
   <div class="display-header">
@@ -450,34 +621,58 @@ $base_path = '../../';
   <div class="display-main">
 
     <!-- LEFT PANEL: LARGE STORE LOGO & ADDRESS INFO (40%) -->
-    <div class="left-store-panel">
+    <div class="left-store-panel<?php echo count($cd_bank_accounts) >= 3 ? ' has-3-qr' : ''; ?>">
       <div class="store-card">
         <canvas class="particle-canvas" id="storeCardParticles"></canvas>
         <div class="store-card-content">
-          <!-- Large Store Logo -->
-          <div class="large-logo-box">
+          <!-- Store Name & Info — ABOVE the logo -->
+          <div class="store-info-block">
+            <div class="store-name-title"><?php echo htmlspecialchars($company['com_name']); ?></div>
+            <div class="store-info-text">
+              <?php if(!empty($company['com_address'])): ?>
+                <div class="mb-1"><i class="fas fa-map-marker-alt text-danger mr-2"></i> <?php echo htmlspecialchars($company['com_address']); ?></div>
+              <?php endif; ?>
+              <?php if(!empty($company['com_tel'])): ?>
+                <div><i class="fas fa-phone-alt text-primary mr-2"></i> ເບີໂທ: <strong><?php echo htmlspecialchars($company['com_tel']); ?></strong></div>
+              <?php endif; ?>
+            </div>
+          </div>
+
+          <!-- Large Store Logo — below the info -->
+          <div class="large-logo-box logo-below">
             <img src="<?php echo htmlspecialchars($company['com_logo']); ?>" alt="Store Logo" class="large-logo-img"
                  onerror="this.style.display='none'; document.getElementById('largeFallbackIcon').style.display='block';">
             <i class="fas fa-store large-fallback-icon" id="largeFallbackIcon" style="display:none;"></i>
           </div>
 
-          <!-- Store Name & Info -->
-          <div class="store-name-title"><?php echo htmlspecialchars($company['com_name']); ?></div>
-
-          <div class="store-info-text">
-            <?php if(!empty($company['com_address'])): ?>
-              <div class="mb-1"><i class="fas fa-map-marker-alt text-danger mr-2"></i> <?php echo htmlspecialchars($company['com_address']); ?></div>
-            <?php endif; ?>
-            <?php if(!empty($company['com_tel'])): ?>
-              <div><i class="fas fa-phone-alt text-primary mr-2"></i> ເບີໂທ: <strong><?php echo htmlspecialchars($company['com_tel']); ?></strong></div>
-            <?php endif; ?>
-          </div>
-
-          <div class="welcome-banner-box">
-            <i class="fas fa-heart text-danger fa-2x mb-2"></i>
-            <h4 class="font-weight-bold text-dark mb-1" style="font-size: 1.35rem;">ຂໍຂອບໃຈທີ່ມາອຸດໜູນ</h4>
-            <p class="text-secondary mb-0" style="font-size: 1.02rem; font-weight: 600;">ຍິນດີຕ້ອນຮັບ! ຂໍໃຫ້ທ່ານມີຄວາມສຸກໃນການຊື້ສິນຄ້າ</p>
-          </div>
+          <?php if (!empty($cd_bank_accounts)): ?>
+            <!-- Payment QR codes (per bank account). One card -> centred; 2-3 -> in a row. -->
+            <div class="pay-qr-heading">
+              <i class="fas fa-qrcode"></i> <span>ສະແກນ QR ເພື່ອຊຳລະເງິນ</span>
+            </div>
+            <div class="pay-qr-wrap count-<?php echo count($cd_bank_accounts); ?>">
+              <?php foreach ($cd_bank_accounts as $ba): ?>
+                <div class="pay-qr-card">
+                  <div class="pqc-bank">
+                    <?php if (!empty($ba['logo'])): ?>
+                      <img src="<?php echo htmlspecialchars($ba['logo']); ?>" alt="" onerror="this.style.display='none'">
+                    <?php else: ?>
+                      <i class="fas fa-university text-primary"></i>
+                    <?php endif; ?>
+                    <span><?php echo htmlspecialchars($ba['bank_name']); ?></span>
+                  </div>
+                  <img class="pqc-qr" src="<?php echo htmlspecialchars($ba['qr']); ?>" alt="QR"
+                       onerror="this.style.display='none'">
+                </div>
+              <?php endforeach; ?>
+            </div>
+          <?php else: ?>
+            <div class="welcome-banner-box">
+              <i class="fas fa-heart text-danger fa-2x mb-2"></i>
+              <h4 class="font-weight-bold text-dark mb-1" style="font-size: 1.35rem;">ຂໍຂອບໃຈທີ່ມາອຸດໜູນ</h4>
+              <p class="text-secondary mb-0" style="font-size: 1.02rem; font-weight: 600;">ຍິນດີຕ້ອນຮັບ! ຂໍໃຫ້ທ່ານມີຄວາມສຸກໃນການຊື້ສິນຄ້າ</p>
+            </div>
+          <?php endif; ?>
         </div>
       </div>
     </div>
@@ -700,6 +895,17 @@ function updateClock() {
   $('#liveDate').text(now.toLocaleDateString('lo-LA'));
 }
 setInterval(updateClock, 1000);
+
+// Big queue-number takeover for a few seconds after a sale completes.
+var _queueFlashTimer = null;
+function showQueueFlash(num) {
+  var el = document.getElementById('queueFlash');
+  if (!el) return;
+  document.getElementById('queueFlashNo').textContent = num;
+  el.style.display = 'flex';
+  if (_queueFlashTimer) clearTimeout(_queueFlashTimer);
+  _queueFlashTimer = setTimeout(function () { el.style.display = 'none'; }, 6000);
+}
 updateClock();
 
 // Broadcast Channel & Storage Sync
@@ -731,6 +937,11 @@ loadInitialData();
 
 function renderDisplayData(data) {
   if (!data) return;
+
+  // Queue number flash on payment success (coffee-shop style)
+  if (data.checkoutState === 'payment_success' && data.queueNumber) {
+    showQueueFlash(data.queueNumber);
+  }
 
   // 1. Cart Table (Enlarged Image, Name, Unit, Qty, Price, Total)
   var tbody = $('#displayCartBody');

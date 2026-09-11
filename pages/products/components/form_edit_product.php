@@ -81,9 +81,9 @@
                   <input type="text" name="product_name" id="edit_product_name" class="form-control" placeholder="<?php echo htmlspecialchars(t('products.product_name_placeholder', 'ປ້ອນຊື່ສິນຄ້າ...')); ?>" style="border-radius: 6px; height: 40px;" required>
                 </div>
                 <div class="col-md-5 mb-3">
-                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_barcode', 'ບາໂຄ້ດ:')); ?> <span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_barcode', 'ບາໂຄ້ດ:')); ?></label>
                   <div class="input-group">
-                    <input type="text" name="barcode" id="edit_barcode" class="form-control" placeholder="<?php echo htmlspecialchars(t('products.barcode_edit_placeholder', 'ບາໂຄ້ດ...')); ?>" style="border-radius: 6px 0 0 6px; height: 40px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')" required>
+                    <input type="text" name="barcode" id="edit_barcode" class="form-control" placeholder="<?php echo htmlspecialchars(t('products.barcode_edit_placeholder', 'ບາໂຄ້ດ...')); ?>" style="border-radius: 6px 0 0 6px; height: 40px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     <div class="input-group-append">
                       <button type="button" class="btn btn-outline-primary font-weight-bold" onclick="generateEAN13('edit_barcode')" title="<?php echo htmlspecialchars(t('products.gen_barcode_title', 'ສ້າງບາໂຄ້ດ 13 ຫຼັກ')); ?>" style="border-radius: 0 6px 6px 0; height: 40px; border-color: #cbd5e1;">
                         <i class="fas fa-barcode mr-1"></i> <?php echo htmlspecialchars(t('products.gen_barcode_btn', 'ສ້າງ')); ?>
@@ -128,9 +128,9 @@
               <!-- Row 4: ລາຄາຊື້ & ລາຄາຂາຍຍ່ອຍ -->
               <div class="row">
                 <div class="col-6">
-                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_bprice', 'ລາຄາຊື້:')); ?><span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_bprice', 'ລາຄາຊື້:')); ?></label>
                   <div class="input-group">
-                    <input type="text" name="bprice" id="edit_bprice" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #475569;" oninput="formatPriceInput(this)" required>
+                    <input type="text" name="bprice" id="edit_bprice" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #475569;" oninput="formatPriceInput(this)">
                     <div class="input-group-append"><span class="input-group-text" style="border-radius: 0 6px 6px 0; font-size: 0.85rem;">₭</span></div>
                   </div>
                 </div>
@@ -140,6 +140,19 @@
                     <input type="text" name="price" id="edit_price" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #16a34a;" oninput="formatPriceInput(this)" required>
                     <div class="input-group-append"><span class="input-group-text" style="border-radius: 0 6px 6px 0; font-size: 0.85rem;">₭</span></div>
                   </div>
+                </div>
+              </div>
+
+              <!-- ຕັດສະຕັອກເມື່ອຂາຍ -->
+              <div class="row mt-2">
+                <div class="col-md-12">
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="edit_cut_qty" name="cut_qty" value="1">
+                    <label class="custom-control-label font-weight-bold text-dark" for="edit_cut_qty">
+                      <?php echo htmlspecialchars(t('products.field_cut_qty', 'ຕັດສະຕັອກເມື່ອຂາຍ')); ?>
+                    </label>
+                  </div>
+                  <small class="text-muted"><?php echo htmlspecialchars(t('products.field_cut_qty_hint', 'ປິດໄວ້ສຳລັບ ບໍລິການ / ສິນຄ້າສັ່ງເຮັດ (ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ)')); ?></small>
                 </div>
               </div>
 
@@ -231,20 +244,8 @@ function submitEditProduct(e) {
     });
     return false;
   }
-  if (barcode === '') {
-    if (e) e.preventDefault();
-    Swal.fire({
-      icon: 'warning',
-      title: I18N_EDIT_PRODUCT['products.alert_notice_title'],
-      text: I18N_EDIT_PRODUCT['products.validate_barcode_required'],
-      confirmButtonColor: '#2563eb',
-      confirmButtonText: I18N_EDIT_PRODUCT['products.btn_ok']
-    }).then(function() {
-      $('#edit_barcode').focus();
-    });
-    return false;
-  }
-  if (!/^[0-9]+$/.test(barcode)) {
+  // ບາໂຄ້ດ ບໍ່ບັງຄັບ — ຖ້າປ້ອນ ຕ້ອງເປັນຕົວເລກ; ວ່າງ = ບໍ່ມີບາໂຄ້ດ
+  if (barcode !== '' && !/^[0-9]+$/.test(barcode)) {
     if (e) e.preventDefault();
     Swal.fire({
       icon: 'warning',
@@ -270,19 +271,7 @@ function submitEditProduct(e) {
     });
     return false;
   }
-  if (bprice === '' || bprice === '0') {
-    if (e) e.preventDefault();
-    Swal.fire({
-      icon: 'warning',
-      title: I18N_EDIT_PRODUCT['products.alert_notice_title'],
-      text: I18N_EDIT_PRODUCT['products.validate_bprice'],
-      confirmButtonColor: '#2563eb',
-      confirmButtonText: I18N_EDIT_PRODUCT['products.btn_ok']
-    }).then(function() {
-      $('#edit_bprice').focus();
-    });
-    return false;
-  }
+  // ລາຄາຊື້ (bprice) ບໍ່ບັງຄັບ — ປ້ອນ ຫຼື ບໍ່ປ້ອນກໍໄດ້ (ວ່າງ = 0)
   if (price === '' || price === '0') {
     if (e) e.preventDefault();
     Swal.fire({

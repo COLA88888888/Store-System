@@ -58,6 +58,7 @@ return [
     'pos.receipt_tel' => 'Tel:',
     'pos.receipt_tax_id' => 'Tax ID:',
     'pos.receipt_bill_no' => 'Bill No.:',
+    'pos.receipt_queue_label' => 'Queue No.',
     'pos.receipt_date' => 'Date:',
     'pos.receipt_cashier' => 'Cashier:',
     'pos.receipt_customer' => 'Customer:',

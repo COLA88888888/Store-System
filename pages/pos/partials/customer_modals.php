@@ -56,7 +56,7 @@
 <div class="modal fade" id="addCustomerModal" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
-      <div class="modal-header bg-success text-white py-3 px-4">
+      <div class="modal-header bg-primary text-white py-3 px-4">
         <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <i class="fas fa-user-plus mr-2"></i> <?php echo htmlspecialchars(t('pos.add_customer_title', 'ເພີ່ມຂໍ້ມູນລູກຄ້າໃໝ່')); ?>
         </h5>
@@ -114,7 +114,7 @@
       </div>
       <div class="modal-footer border-0 bg-light p-3">
         <button type="button" class="btn btn-light font-weight-bold px-4" style="border-radius: 6px;" data-dismiss="modal"><?php echo htmlspecialchars(t('pos.cancel', 'ຍົກເລີກ')); ?></button>
-        <button type="button" class="btn btn-success font-weight-bold px-4 shadow-sm" style="border-radius: 6px;" onclick="submitQuickAddCustomer()">
+        <button type="button" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 6px;" onclick="submitQuickAddCustomer()">
           <i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('pos.save', 'ບັນທຶກ')); ?>
         </button>
       </div>

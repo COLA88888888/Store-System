@@ -212,7 +212,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
               <option value="ip">Network LAN / WiFi (IP Address)</option>
             </select>
           </div>
-          <div class="form-group mb-3">
+          <div class="form-group mb-0">
             <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_ip', 'IP Address ເຄື່ອງພິມ (ຖ້າເປັນ Network IP):')); ?></label>
             <div class="input-group">
               <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-network-wired text-muted"></i></span></div>
@@ -254,7 +254,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
               <option value="ip">Network LAN / WiFi (IP Address)</option>
             </select>
           </div>
-          <div class="form-group mb-3">
+          <div class="form-group mb-0">
             <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_ip_edit', 'IP Address ເຄື່ອງພິມ:')); ?></label>
             <div class="input-group">
               <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-network-wired text-muted"></i></span></div>

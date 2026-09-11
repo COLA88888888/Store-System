@@ -133,6 +133,16 @@ function printBill(billNo) {
         var b = res.bill;
         $('#rc_rep_bill').text(b.sale_save_bill || billNo);
         $('#rc_rep_date').text((b.sale_date || '') + ' ' + (b.sale_time || ''));
+
+        // Reprint must show the SAME queue number the bill got at checkout, not a new
+        // or missing one — so this goes off the bill's own saved queue_no, not the
+        // store's current queue_enabled setting (which may have since been toggled off).
+        if (b.queue_no !== undefined && b.queue_no !== null && String(b.queue_no).trim() !== '') {
+          $('#rc_rep_queue_no').text(b.queue_no);
+          $('#rc_rep_queue_wrap').css('display', 'block');
+        } else {
+          $('#rc_rep_queue_wrap').css('display', 'none');
+        }
         $('#rc_rep_cashier').text(b.user_receive || 'Admin');
         $('#rc_rep_customer').text(b.customer_name || 'ລູກຄ້າທົ່ວໄປ');
 

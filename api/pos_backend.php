@@ -63,6 +63,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $customer_id   = !empty($_POST['customer_id']) ? strval($_POST['customer_id']) : '';
     $customer_name = !empty($_POST['customer_name']) ? trim($_POST['customer_name']) : 'ລູກຄ້າທົ່ວໄປ';
     $client_ip     = getClientIP();
+
+    // Tender currency for this bill (chosen at checkout). Base data stays in KIP; these
+    // just record what the customer handed over so the daily report can split by currency.
+    $allowed_currencies = ['KIP', 'THB', 'USD', 'CNY'];
+    $paid_currency = strtoupper(trim((string)($_POST['paid_currency'] ?? 'KIP')));
+    if (!in_array($paid_currency, $allowed_currencies, true)) $paid_currency = 'KIP';
+    $paid_rate = ($paid_currency === 'KIP') ? 1.0 : (float)($_POST['paid_rate'] ?? 0);
+    if ($paid_rate <= 0) { $paid_currency = 'KIP'; $paid_rate = 1.0; }
     
     if (empty($cart)) {
         echo json_encode(['success' => false, 'message' => 'ກະຕ່າສິນຄ້າຫວ່າງເປົ່າ!']);
@@ -107,6 +115,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $total_paid = $cash_received + $qr_received;
         $change = max(0, $total_paid - $net_total);
 
+        // Net bill value expressed in the tendered currency (KIP amount / rate).
+        $paid_amount_foreign = ($paid_currency === 'KIP')
+            ? round($net_total, 2)
+            : round($net_total / $paid_rate, 2);
+
         // Generate daily resetting invoice number starting from 0001 (Format: YYYYMMDD-0001)
         $todayDate = date('Y-m-d');
         $todayStr  = date('Ymd');
@@ -117,6 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $nextSeq = $todayCount + 1;
 
         $invoice_no = $todayStr . '-' . str_pad($nextSeq, 4, '0', STR_PAD_LEFT);
+        // Queue number: same daily-resetting counter, zero-padded to 2 digits (01, 02, ... 10).
+        $queue_display = str_pad((string)$nextSeq, 2, '0', STR_PAD_LEFT);
         $activeStoreId = getActiveStoreId($pdo);
         
         $bank_account_id = isset($_POST['bank_account_id']) && intval($_POST['bank_account_id']) > 0 ? intval($_POST['bank_account_id']) : null;
@@ -144,11 +159,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // Insert into tbsale_save
         $stmtSave = $pdo->prepare("
-            INSERT INTO tbsale_save (sale_save_bill, sale_date, sale_time, user_receive, customer_id, customer_name, ip_address, sale_qty, sale_amount, sale_discount_bill, sale_barlance, sale_pay, sale_return, type_pay, bank_account_id, bank_name, sale_status, store_id)
-            VALUES (:invoice_no, CURDATE(), CURTIME(), :user_id, :customer_id, :customer_name, :ip_address, :sale_qty, :sale_amount, :discount_bill, :net_total, :cash_received, :change, :payment_type, :bank_account_id, :bank_name, 'SUCCESS', :store_id)
+            INSERT INTO tbsale_save (sale_save_bill, sale_date, sale_time, user_receive, customer_id, customer_name, ip_address, sale_qty, sale_amount, sale_discount_bill, sale_barlance, sale_pay, sale_return, type_pay, bank_account_id, bank_name, sale_status, store_id, paid_currency, paid_rate, paid_amount_foreign, queue_no)
+            VALUES (:invoice_no, CURDATE(), CURTIME(), :user_id, :customer_id, :customer_name, :ip_address, :sale_qty, :sale_amount, :discount_bill, :net_total, :cash_received, :change, :payment_type, :bank_account_id, :bank_name, 'SUCCESS', :store_id, :paid_currency, :paid_rate, :paid_amount_foreign, :queue_no)
         ");
         $stmtSave->execute([
             ':invoice_no'      => $invoice_no,
+            ':queue_no'        => $queue_display,
             ':user_id'         => $user_receive_name,
             ':customer_id'     => $customer_id,
             ':customer_name'   => $customer_name,
@@ -162,15 +178,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             ':payment_type'    => $payment_type,
             ':bank_account_id' => $bank_account_id,
             ':bank_name'       => $bank_name,
-            ':store_id'        => $activeStoreId
+            ':store_id'        => $activeStoreId,
+            ':paid_currency'      => $paid_currency,
+            ':paid_rate'         => $paid_rate,
+            ':paid_amount_foreign' => $paid_amount_foreign
         ]);
 
         // Insert into physical sales table with tax details
         try {
             $stmtSalesTable = $pdo->prepare("
-                INSERT INTO sales (invoice_number, sold_by, customer_id, customer_name, subtotal, discount_amount, vat_amount, tax_type, vat_rate, total_amount, cash_received, change_amount, payment_type, bank_account_id, bank_name, status, store_id, created_at)
-                VALUES (:invoice_no, :sold_by_id, :customer_id, :customer_name, :subtotal, :discount_bill, :vat_amount, :tax_type, :vat_rate, :net_total, :cash_received, :change, :payment_type, :bank_account_id, :bank_name, 'SUCCESS', :store_id, NOW())
-                ON DUPLICATE KEY UPDATE subtotal = :subtotal, discount_amount = :discount_bill, vat_amount = :vat_amount, tax_type = :tax_type, vat_rate = :vat_rate, total_amount = :net_total, bank_account_id = :bank_account_id, bank_name = :bank_name, store_id = :store_id
+                INSERT INTO sales (invoice_number, sold_by, customer_id, customer_name, subtotal, discount_amount, vat_amount, tax_type, vat_rate, total_amount, cash_received, change_amount, payment_type, bank_account_id, bank_name, status, store_id, created_at, paid_currency, paid_rate, paid_amount_foreign)
+                VALUES (:invoice_no, :sold_by_id, :customer_id, :customer_name, :subtotal, :discount_bill, :vat_amount, :tax_type, :vat_rate, :net_total, :cash_received, :change, :payment_type, :bank_account_id, :bank_name, 'SUCCESS', :store_id, NOW(), :paid_currency, :paid_rate, :paid_amount_foreign)
+                ON DUPLICATE KEY UPDATE subtotal = :subtotal, discount_amount = :discount_bill, vat_amount = :vat_amount, tax_type = :tax_type, vat_rate = :vat_rate, total_amount = :net_total, bank_account_id = :bank_account_id, bank_name = :bank_name, store_id = :store_id, paid_currency = :paid_currency, paid_rate = :paid_rate, paid_amount_foreign = :paid_amount_foreign
             ");
             $stmtSalesTable->execute([
                 ':invoice_no'      => $invoice_no,
@@ -188,7 +207,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 ':payment_type'    => $payment_type,
                 ':bank_account_id' => $bank_account_id,
                 ':bank_name'       => $bank_name,
-                ':store_id'        => $activeStoreId
+                ':store_id'        => $activeStoreId,
+                ':paid_currency'      => $paid_currency,
+                ':paid_rate'         => $paid_rate,
+                ':paid_amount_foreign' => $paid_amount_foreign
             ]);
         } catch (Throwable $ex) {}
         
@@ -336,6 +358,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'customer_points' => $customer_points_balance,
             'loyalty_active'  => $loyalty_active,
             'invoice_number' => $invoice_no,
+            'queue_number'   => $queue_display,
             'date'           => date('d/m/Y H:i'),
             'cashier'        => $user_receive_name,
             'customer_name'  => $customer_name,
@@ -590,6 +613,26 @@ $activeStoreId = getActiveStoreId($pdo);
 $categoriesStmt = $pdo->prepare("SELECT * FROM categories WHERE store_id = ? ORDER BY category_name ASC");
 $categoriesStmt->execute([$activeStoreId]);
 $categories = $categoriesStmt->fetchAll();
+
+// Kitchen-ticket routing for this branch: category_id => {printer_id, printer_name}.
+// Only categories with an active printer assigned; the POS uses this to split the
+// print by category at checkout (each printer gets a ticket with only its items).
+$posKitchenRoutes = [];
+try {
+    $krStmt = $pdo->prepare("
+        SELECT c.category_id, c.printer_id, p.name AS printer_name
+        FROM categories c
+        JOIN tbl_printer p ON p.id = c.printer_id AND p.status = 1
+        WHERE c.store_id = ? AND c.printer_id IS NOT NULL
+    ");
+    $krStmt->execute([$activeStoreId]);
+    foreach ($krStmt->fetchAll() as $kr) {
+        $posKitchenRoutes[(string)$kr['category_id']] = [
+            'printer_id'   => (int)$kr['printer_id'],
+            'printer_name' => $kr['printer_name'],
+        ];
+    }
+} catch (Throwable $e) {}
 $productsStmt = $pdo->prepare("
     SELECT p.*, c.category_name 
     FROM products p 

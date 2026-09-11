@@ -58,6 +58,7 @@ return [
     'pos.receipt_tel' => 'ໂທ:',
     'pos.receipt_tax_id' => 'ເລກປະຈຳຕົວຜູ້ເສຍອາກອນ:',
     'pos.receipt_bill_no' => 'ເລກບິນ:',
+    'pos.receipt_queue_label' => 'ບັດຄິວທີ',
     'pos.receipt_date' => 'ວັນທີ:',
     'pos.receipt_cashier' => 'ຜູ້ຂາຍ:',
     'pos.receipt_customer' => 'ລູກຄ້າ:',

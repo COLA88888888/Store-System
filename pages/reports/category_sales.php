@@ -26,13 +26,38 @@ try {
     $branchesList = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
-// Check store_id column
-$hasStoreIdCol = false;
+// Check store_id / paid_currency columns
+$hasStoreIdCol  = false;
+$hasCurrencyCol = false;
 try {
     $saleCols = $pdo->query("SHOW COLUMNS FROM tbsale_save")->fetchAll(PDO::FETCH_COLUMN);
-    $hasStoreIdCol = in_array('store_id', $saleCols) || in_array('branch_id', $saleCols);
-    $storeColName = in_array('store_id', $saleCols) ? 'store_id' : 'branch_id';
+    $hasStoreIdCol  = in_array('store_id', $saleCols) || in_array('branch_id', $saleCols);
+    $storeColName   = in_array('store_id', $saleCols) ? 'store_id' : 'branch_id';
+    $hasCurrencyCol = in_array('paid_currency', $saleCols);
 } catch (Exception $e) {}
+
+// Currency Filter — which currency the customer actually tendered on the bill. Once
+// applied, every money figure on the page switches to show in that currency instead
+// of the store's default, via setDisplayCurrencyOverride(). Used both as a plain WHERE
+// condition (items/grand/payment queries) and folded into the main query's LEFT JOIN
+// ON-clause ($currencyJoinSql) so categories/products with no sales in that currency
+// still show up (with zero), instead of disappearing as they would under a WHERE.
+$currency_filter = strtoupper(trim($_GET['currency_filter'] ?? ''));
+$currencyJoinSql = '';
+if ($currency_filter !== '' && $hasCurrencyCol && isset(getCurrencyMeta()[$currency_filter])) {
+    $currencyJoinSql = " AND COALESCE(NULLIF(s.paid_currency, ''), 'KIP') = :currency_filter";
+
+    $__curRates = getExchangeRates($pdo);
+    $__curRate  = ($currency_filter === 'KIP') ? 1.0 : (float)($__curRates[$currency_filter] ?? 0);
+    if ($currency_filter === 'KIP' || $__curRate > 0) {
+        setDisplayCurrencyOverride(array_merge(
+            ['code' => $currency_filter, 'rate' => $__curRate, 'rates' => $__curRates],
+            getCurrencyMeta()[$currency_filter]
+        ));
+    }
+} else {
+    $currency_filter = '';
+}
 
 if ($per_page_raw === 'all') {
     $per_page = 999999;
@@ -77,6 +102,7 @@ $sql = "
         {$storeWhere}
         " . (!empty($from_date) ? " AND s.sale_date >= :from_date" : "") . "
         " . (!empty($to_date) ? " AND s.sale_date <= :to_date" : "") . "
+        {$currencyJoinSql}
     " . ($hasCatFilter ? "WHERE cat.category_name = :category_name_filter" : "") . "
     " . (!empty($search) ? ($hasCatFilter ? "AND" : "WHERE") . " (cat.category_name LIKE :search OR d.save_proname LIKE :search OR p.product_name LIKE :search)" : "") . "
     GROUP BY cat.category_name
@@ -98,6 +124,9 @@ if ($hasCatFilter) {
 }
 if (!empty($search)) {
     $params[':search'] = '%' . $search . '%';
+}
+if ($currency_filter !== '') {
+    $params[':currency_filter'] = $currency_filter;
 }
 
 $stmt = $pdo->prepare($sql);
@@ -127,6 +156,7 @@ $items_sql = "
         " . (!empty($to_date) ? " AND s.sale_date <= :to_date" : "") . "
         " . (($filter_store_id > 0 && $hasStoreIdCol) ? " AND s.{$storeColName} = :items_filter_store_id" : "") . "
         " . (!empty($search) ? " AND (d.save_proname LIKE :search OR d.save_proid LIKE :search OR p.product_name LIKE :search)" : "") . "
+        {$currencyJoinSql}
     GROUP BY COALESCE(cat.category_name, ''), BINARY COALESCE(d.save_proname, p.product_name, 'ບໍ່ລະບຸຊື່ສິນຄ້າ')
     ORDER BY qty_sold DESC
 ";
@@ -136,6 +166,7 @@ if (!empty($from_date)) $item_params[':from_date'] = $from_date;
 if (!empty($to_date)) $item_params[':to_date'] = $to_date;
 if ($filter_store_id > 0 && $hasStoreIdCol) $item_params[':items_filter_store_id'] = $filter_store_id;
 if (!empty($search)) $item_params[':search'] = '%' . $search . '%';
+if ($currency_filter !== '') $item_params[':currency_filter'] = $currency_filter;
 $items_stmt->execute($item_params);
 $raw_items = $items_stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -220,6 +251,10 @@ try {
         $grandWhere[] = "(d.save_proname LIKE :grand_search OR d.save_proid LIKE :grand_search OR p.product_name LIKE :grand_search)";
         $grandParams[':grand_search'] = '%' . $search . '%';
     }
+    if ($currency_filter !== '') {
+        $grandWhere[] = "COALESCE(NULLIF(s.paid_currency, ''), 'KIP') = :currency_filter";
+        $grandParams[':currency_filter'] = $currency_filter;
+    }
     $grandWhereClause = implode(' AND ', $grandWhere);
 
     $grandStmt = $pdo->prepare("
@@ -259,6 +294,10 @@ if (!empty($to_date)) {
 if ($filter_store_id > 0 && $hasStoreIdCol) {
     $payWhere[] = "s.{$storeColName} = :pay_store_id";
     $payParams[':pay_store_id'] = $filter_store_id;
+}
+if ($currency_filter !== '') {
+    $payWhere[] = "COALESCE(NULLIF(s.paid_currency, ''), 'KIP') = :currency_filter";
+    $payParams[':currency_filter'] = $currency_filter;
 }
 $payWhereClause = implode(' AND ', $payWhere);
 
@@ -380,20 +419,37 @@ require_once __DIR__ . '/../../layouts/header.php';
         </select>
       </div>
 
-      <!-- Branch Filter Dropdown (ເລືອກສາຂາ) -->
+      <!-- Branch Filter Dropdown (ເລືອກສາຂາ) — only worth showing once there's more than one branch -->
+      <?php if (count($branchesList) > 1): ?>
       <div style="flex: 1 1 140px; width: 100%;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-store text-info mr-1"></i> <?php echo htmlspecialchars(t('reports.branch_label', 'ສາຂາ:')); ?>
         </label>
         <select name="store_id" class="form-control form-control-sm font-weight-bold" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #cbd5e1; width: 100%;" onchange="this.form.submit()">
           <option value="0"><?php echo htmlspecialchars(t('reports.all_branches_opt', '-- ທຸກສາຂາ --')); ?></option>
-          <?php if (!empty($branchesList)): ?>
-            <?php foreach ($branchesList as $b): ?>
-              <option value="<?php echo $b['store_id']; ?>" <?php echo ($filter_store_id == $b['store_id']) ? 'selected' : ''; ?>>
-                <?php echo htmlspecialchars($b['store_name']); ?> <?php echo !empty($b['is_main']) ? htmlspecialchars(t('reports.main_branch_suffix', '(ສາຂາໃຫຍ່)')) : ''; ?>
-              </option>
-            <?php endforeach; ?>
-          <?php endif; ?>
+          <?php foreach ($branchesList as $b): ?>
+            <option value="<?php echo $b['store_id']; ?>" <?php echo ($filter_store_id == $b['store_id']) ? 'selected' : ''; ?>>
+              <?php echo htmlspecialchars($b['store_name']); ?> <?php echo !empty($b['is_main']) ? htmlspecialchars(t('reports.main_branch_suffix', '(ສາຂາໃຫຍ່)')) : ''; ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <?php else: ?>
+        <input type="hidden" name="store_id" value="0">
+      <?php endif; ?>
+
+      <!-- Currency Filter (ສະກຸນເງິນ) -->
+      <div style="flex: 1 1 150px; width: 100%;">
+        <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
+          <i class="fas fa-coins text-warning mr-1"></i> <?php echo htmlspecialchars(t('reports.currency_label', 'ສະກຸນເງິນ:')); ?>
+        </label>
+        <select name="currency_filter" class="form-control form-control-sm font-weight-bold" onchange="this.form.submit()" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #a16207; color: #854d0e; background: #fefce8; width: 100%;">
+          <option value=""><?php echo htmlspecialchars(t('reports.all_currencies_opt', '-- ທຸກສະກຸນເງິນ --')); ?></option>
+          <?php foreach (getCurrencyMeta() as $__cc => $__ci): ?>
+            <option value="<?php echo htmlspecialchars($__cc); ?>" <?php echo $currency_filter === $__cc ? 'selected' : ''; ?>>
+              <?php echo htmlspecialchars($__ci['name'] . ' (' . $__ci['symbol'] . ')'); ?>
+            </option>
+          <?php endforeach; ?>
         </select>
       </div>
 
@@ -577,7 +633,7 @@ require_once __DIR__ . '/../../layouts/header.php';
         <ul class="pagination report-pagination mb-0">
           <!-- Previous Page -->
           <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-            <a class="page-link" href="category_sales.php?page=<?php echo max(1, $page - 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&category_id=<?php echo urlencode($category_id); ?>&search=<?php echo urlencode($search); ?>&per_page=<?php echo urlencode($per_page_raw); ?>">
+            <a class="page-link" href="category_sales.php?page=<?php echo max(1, $page - 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&category_id=<?php echo urlencode($category_id); ?>&search=<?php echo urlencode($search); ?>&per_page=<?php echo urlencode($per_page_raw); ?>&currency_filter=<?php echo urlencode($currency_filter); ?>">
               <i class="fas fa-chevron-left" style="font-size: 0.76rem;"></i>
             </a>
           </li>
@@ -588,7 +644,7 @@ require_once __DIR__ . '/../../layouts/header.php';
             $endP   = min($total_pages, $page + $range);
 
             if ($startP > 1) {
-                echo '<li class="page-item"><a class="page-link" href="category_sales.php?page=1&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&category_id=' . urlencode($category_id) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '">1</a></li>';
+                echo '<li class="page-item"><a class="page-link" href="category_sales.php?page=1&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&category_id=' . urlencode($category_id) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . '">1</a></li>';
                 if ($startP > 2) {
                     echo '<li class="page-item disabled"><span class="page-link" style="border:none;">...</span></li>';
                 }
@@ -596,20 +652,20 @@ require_once __DIR__ . '/../../layouts/header.php';
 
             for ($p = $startP; $p <= $endP; $p++) {
                 $activeClass = ($p == $page) ? 'active' : '';
-                echo '<li class="page-item ' . $activeClass . '"><a class="page-link" href="category_sales.php?page=' . $p . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&category_id=' . urlencode($category_id) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '">' . $p . '</a></li>';
+                echo '<li class="page-item ' . $activeClass . '"><a class="page-link" href="category_sales.php?page=' . $p . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&category_id=' . urlencode($category_id) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . '">' . $p . '</a></li>';
             }
 
             if ($endP < $total_pages) {
                 if ($endP < $total_pages - 1) {
                     echo '<li class="page-item disabled"><span class="page-link" style="border:none;">...</span></li>';
                 }
-                echo '<li class="page-item"><a class="page-link" href="category_sales.php?page=' . $total_pages . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&category_id=' . urlencode($category_id) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '">' . $total_pages . '</a></li>';
+                echo '<li class="page-item"><a class="page-link" href="category_sales.php?page=' . $total_pages . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&category_id=' . urlencode($category_id) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . '">' . $total_pages . '</a></li>';
             }
           ?>
 
           <!-- Next Page -->
           <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
-            <a class="page-link" href="category_sales.php?page=<?php echo min($total_pages, $page + 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&category_id=<?php echo urlencode($category_id); ?>&search=<?php echo urlencode($search); ?>&per_page=<?php echo urlencode($per_page_raw); ?>">
+            <a class="page-link" href="category_sales.php?page=<?php echo min($total_pages, $page + 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&category_id=<?php echo urlencode($category_id); ?>&search=<?php echo urlencode($search); ?>&per_page=<?php echo urlencode($per_page_raw); ?>&currency_filter=<?php echo urlencode($currency_filter); ?>">
               <i class="fas fa-chevron-right" style="font-size: 0.76rem;"></i>
             </a>
           </li>

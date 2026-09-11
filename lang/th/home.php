@@ -12,6 +12,7 @@ return [
     'home.to_date' => 'ถึงวันที่:',
     'home.search' => 'ค้นหา',
     'home.clear' => 'ล้างค่า',
+    'home.default_currency_opt' => '-- ค่าเริ่มต้นร้าน --',
     'home.card_total_sales' => 'ยอดขายทั้งหมด',
     'home.card_total_cost' => 'ต้นทุนสินค้าทั้งหมด',
     'home.card_cogs' => 'ต้นทุนการขาย',

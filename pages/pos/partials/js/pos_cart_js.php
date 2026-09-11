@@ -344,7 +344,24 @@ function updateProductGridBadges() {
     });
   }
 
-  // 3. Update every product card stock & badges dynamically
+  // 3. Update the cart-quantity badge for EVERY product card, stock-tracked or not —
+  // the stock-value loop below only touches products that render a .product-stock-val
+  // element (cut_qty != 0). Made-to-order items (cut_qty = 0, e.g. drinks) never get
+  // one, so their "in cart" badge needs updating here independently.
+  $('.cart-qty-badge').each(function() {
+    var badgeEl = $(this);
+    var pidMatch = badgeEl.attr('class').match(/product-qty-badge-(\d+)/);
+    if (!pidMatch) return;
+    var pid = pidMatch[1];
+    var totalQtyInCart = productCartQtyMap[pid] || productCartQtyMap[parseInt(pid, 10)] || 0;
+    if (totalQtyInCart > 0) {
+      badgeEl.text(totalQtyInCart).show();
+    } else {
+      badgeEl.hide().text('0');
+    }
+  });
+
+  // 4. Update every stock-tracked product card's remaining-stock figure & status badges
   var localStocks = {};
   try {
     localStocks = JSON.parse(localStorage.getItem('pos_local_stocks') || '{}');
@@ -374,16 +391,6 @@ function updateProductGridBadges() {
     var remainingStock = Math.max(0, initialStock - totalStockDeducted);
 
     stockValEl.text(remainingStock.toLocaleString());
-
-    var totalQtyInCart = productCartQtyMap[pid] || 0;
-    var badge = $('.product-qty-badge-' + pid);
-    if (badge.length) {
-      if (totalQtyInCart > 0) {
-        badge.text(totalQtyInCart).css('display', 'block').show();
-      } else {
-        badge.hide().text('0');
-      }
-    }
 
     var cardEl = $('.product-card-' + pid);
     var statusBadge = $('.stock-status-badge-' + pid);
@@ -603,6 +610,7 @@ function _doAddToCart(product, unitObj) {
       cartKey: cartKey,
       product_id: product.product_id,
       product_name: product.product_name,
+      category_id: (product.category_id != null ? product.category_id : null),
       unit_name: unitName,
       unit_price: unitPrice,
       original_price: origPrice,
@@ -658,6 +666,7 @@ function _doAddToCart(product, unitObj) {
         cartKey: giftCartKey,
         product_id: 'GIFT_' + product.product_id,
         product_name: giftName + ' (ແຖມ' + (targetUnit !== 'all' ? ' ສະເພາະ ' + targetUnit : '') + ')',
+        category_id: (product.category_id != null ? product.category_id : null),
         unit_name: 'ຊິ້ນ',
         unit_price: 0,
         cost_price: 0,

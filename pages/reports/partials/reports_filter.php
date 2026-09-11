@@ -61,25 +61,24 @@
         <input type="text" name="search" id="reportSearchInput" class="form-control form-control-sm" placeholder="<?php echo htmlspecialchars(t('reports.search_placeholder_bill_emp', 'ປ້ອນເລກບິນ ຫຼື ຊື່ພະນັກງານ...')); ?>" value="<?php echo htmlspecialchars($search); ?>" autocomplete="off" style="border-radius: 8px; height: 38px; font-size: 0.85rem; width: 100%;">
       </div>
 
-      <!-- Branch Store Filter Dropdown (Visible ONLY for Main Branch / Admin) -->
-      <?php if ($isMain || $isAdmin): ?>
+      <!-- Branch Store Filter Dropdown (Main branch / Admin / anyone granted the report
+           permission) — only worth showing once there's more than one branch to pick from -->
+      <?php if (!empty($reportsCrossBranch) && count($branchesList) > 1): ?>
         <div style="flex: 1 1 0; min-width: 140px;">
           <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
             <i class="fas fa-store text-info mr-1"></i> <?php echo htmlspecialchars(t('reports.branch_label', 'ສາຂາ:')); ?>
           </label>
           <select name="store_id" class="form-control form-control-sm font-weight-bold" onchange="this.form.submit()" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #059669; color: #047857; background: #ecfdf5; width: 100%;">
             <option value="0"><?php echo htmlspecialchars(t('reports.all_branches_opt', '-- ທຸກສາຂາ --')); ?></option>
-            <?php if (!empty($branchesList)): ?>
-              <?php foreach ($branchesList as $b): ?>
-                <option value="<?php echo $b['store_id']; ?>" <?php echo ($filter_store_id == $b['store_id']) ? 'selected' : ''; ?>>
-                  <?php echo htmlspecialchars($b['store_name']); ?> <?php echo !empty($b['is_main']) ? htmlspecialchars(t('reports.main_branch_suffix', '(ສາຂາໃຫຍ່)')) : ''; ?>
-                </option>
-              <?php endforeach; ?>
-            <?php endif; ?>
+            <?php foreach ($branchesList as $b): ?>
+              <option value="<?php echo $b['store_id']; ?>" <?php echo ($filter_store_id == $b['store_id']) ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($b['store_name']); ?> <?php echo !empty($b['is_main']) ? htmlspecialchars(t('reports.main_branch_suffix', '(ສາຂາໃຫຍ່)')) : ''; ?>
+              </option>
+            <?php endforeach; ?>
           </select>
         </div>
       <?php else: ?>
-        <input type="hidden" name="store_id" value="<?php echo $userStoreId; ?>">
+        <input type="hidden" name="store_id" value="<?php echo $reportsCrossBranch ? 0 : $userStoreId; ?>">
       <?php endif; ?>
 
       <!-- Bank Account Filter Dropdown -->
@@ -100,6 +99,21 @@
               <?php endforeach; ?>
             </optgroup>
           <?php endif; ?>
+        </select>
+      </div>
+
+      <!-- Currency Filter Dropdown -->
+      <div style="flex: 1 1 0; min-width: 140px;">
+        <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
+          <i class="fas fa-coins text-warning mr-1"></i> <?php echo htmlspecialchars(t('reports.currency_label', 'ສະກຸນເງິນ:')); ?>
+        </label>
+        <select name="currency_filter" class="form-control form-control-sm font-weight-bold" onchange="this.form.submit()" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #a16207; color: #854d0e; background: #fefce8; width: 100%;">
+          <option value=""><?php echo htmlspecialchars(t('reports.all_currencies_opt', '-- ທຸກສະກຸນເງິນ --')); ?></option>
+          <?php foreach (getCurrencyMeta() as $__curCode => $__curInfo): ?>
+            <option value="<?php echo htmlspecialchars($__curCode); ?>" <?php echo ($currency_filter ?? '') === $__curCode ? 'selected' : ''; ?>>
+              <?php echo htmlspecialchars($__curInfo['name'] . ' (' . $__curInfo['symbol'] . ')'); ?>
+            </option>
+          <?php endforeach; ?>
         </select>
       </div>
 

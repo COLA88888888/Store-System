@@ -25,12 +25,14 @@ try {
     $branchesList = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
-// Check store_id column
-$hasStoreIdCol = false;
+// Check store_id / paid_currency columns
+$hasStoreIdCol  = false;
+$hasCurrencyCol = false;
 try {
     $saleCols = $pdo->query("SHOW COLUMNS FROM tbsale_save")->fetchAll(PDO::FETCH_COLUMN);
-    $hasStoreIdCol = in_array('store_id', $saleCols) || in_array('branch_id', $saleCols);
-    $storeColName = in_array('store_id', $saleCols) ? 'store_id' : 'branch_id';
+    $hasStoreIdCol  = in_array('store_id', $saleCols) || in_array('branch_id', $saleCols);
+    $storeColName   = in_array('store_id', $saleCols) ? 'store_id' : 'branch_id';
+    $hasCurrencyCol = in_array('paid_currency', $saleCols);
 } catch (Exception $e) {}
 
 if ($per_page_raw === 'all') {
@@ -58,6 +60,26 @@ if (!empty($search)) {
 if ($filter_store_id > 0 && $hasStoreIdCol) {
     $where[] = "s.{$storeColName} = :filter_store_id";
     $params[':filter_store_id'] = $filter_store_id;
+}
+
+// Currency Filter — which currency the customer actually tendered on the bill. Once
+// applied, every money figure on the page switches to show in that currency instead
+// of the store's default, via setDisplayCurrencyOverride().
+$currency_filter = strtoupper(trim($_GET['currency_filter'] ?? ''));
+if ($currency_filter !== '' && $hasCurrencyCol && isset(getCurrencyMeta()[$currency_filter])) {
+    $where[] = "COALESCE(NULLIF(s.paid_currency, ''), 'KIP') = :currency_filter";
+    $params[':currency_filter'] = $currency_filter;
+
+    $__curRates = getExchangeRates($pdo);
+    $__curRate  = ($currency_filter === 'KIP') ? 1.0 : (float)($__curRates[$currency_filter] ?? 0);
+    if ($currency_filter === 'KIP' || $__curRate > 0) {
+        setDisplayCurrencyOverride(array_merge(
+            ['code' => $currency_filter, 'rate' => $__curRate, 'rates' => $__curRates],
+            getCurrencyMeta()[$currency_filter]
+        ));
+    }
+} else {
+    $currency_filter = '';
 }
 
 $whereClause = implode(" AND ", $where);
@@ -169,20 +191,37 @@ require_once __DIR__ . '/../../layouts/header.php';
         <input type="date" name="to_date" class="form-control form-control-sm font-weight-bold" value="<?php echo htmlspecialchars($to_date); ?>" style="border-radius: 8px; height: 38px; width: 100%;">
       </div>
 
-      <!-- Branch Filter (ເລືອກສາຂາ) -->
+      <!-- Branch Filter (ເລືອກສາຂາ) — only worth showing once there's more than one branch -->
+      <?php if (count($branchesList) > 1): ?>
       <div style="flex: 1 1 150px; width: 100%;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-store text-info mr-1"></i> <?php echo htmlspecialchars(t('reports.branch_label', 'ສາຂາ:')); ?>
         </label>
         <select name="store_id" class="form-control form-control-sm font-weight-bold" style="border-radius: 8px; height: 38px; width: 100%;" onchange="this.form.submit()">
           <option value="0"><?php echo htmlspecialchars(t('reports.all_branches_opt', '-- ທຸກສາຂາ --')); ?></option>
-          <?php if (!empty($branchesList)): ?>
-            <?php foreach ($branchesList as $b): ?>
-              <option value="<?php echo $b['store_id']; ?>" <?php echo ($filter_store_id == $b['store_id']) ? 'selected' : ''; ?>>
-                <?php echo htmlspecialchars($b['store_name']); ?> <?php echo !empty($b['is_main']) ? htmlspecialchars(t('reports.main_branch_suffix', '(ສາຂາໃຫຍ່)')) : ''; ?>
-              </option>
-            <?php endforeach; ?>
-          <?php endif; ?>
+          <?php foreach ($branchesList as $b): ?>
+            <option value="<?php echo $b['store_id']; ?>" <?php echo ($filter_store_id == $b['store_id']) ? 'selected' : ''; ?>>
+              <?php echo htmlspecialchars($b['store_name']); ?> <?php echo !empty($b['is_main']) ? htmlspecialchars(t('reports.main_branch_suffix', '(ສາຂາໃຫຍ່)')) : ''; ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <?php else: ?>
+        <input type="hidden" name="store_id" value="0">
+      <?php endif; ?>
+
+      <!-- Currency Filter (ສະກຸນເງິນ) -->
+      <div style="flex: 1 1 150px; width: 100%;">
+        <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
+          <i class="fas fa-coins text-warning mr-1"></i> <?php echo htmlspecialchars(t('reports.currency_label', 'ສະກຸນເງິນ:')); ?>
+        </label>
+        <select name="currency_filter" class="form-control form-control-sm font-weight-bold" onchange="this.form.submit()" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #a16207; color: #854d0e; background: #fefce8; width: 100%;">
+          <option value=""><?php echo htmlspecialchars(t('reports.all_currencies_opt', '-- ທຸກສະກຸນເງິນ --')); ?></option>
+          <?php foreach (getCurrencyMeta() as $__cc => $__ci): ?>
+            <option value="<?php echo htmlspecialchars($__cc); ?>" <?php echo $currency_filter === $__cc ? 'selected' : ''; ?>>
+              <?php echo htmlspecialchars($__ci['name'] . ' (' . $__ci['symbol'] . ')'); ?>
+            </option>
+          <?php endforeach; ?>
         </select>
       </div>
 
@@ -285,7 +324,7 @@ require_once __DIR__ . '/../../layouts/header.php';
         <ul class="pagination report-pagination mb-0">
           <!-- Previous Page -->
           <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-            <a class="page-link" href="best_seller.php?page=<?php echo max(1, $page - 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>">
+            <a class="page-link" href="best_seller.php?page=<?php echo max(1, $page - 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>&currency_filter=<?php echo urlencode($currency_filter); ?>">
               <i class="fas fa-chevron-left" style="font-size: 0.76rem;"></i>
             </a>
           </li>
@@ -296,7 +335,7 @@ require_once __DIR__ . '/../../layouts/header.php';
             $endP   = min($total_pages, $page + $range);
 
             if ($startP > 1) {
-                echo '<li class="page-item"><a class="page-link" href="best_seller.php?page=1&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '">1</a></li>';
+                echo '<li class="page-item"><a class="page-link" href="best_seller.php?page=1&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&currency_filter=' . urlencode($currency_filter) . '">1</a></li>';
                 if ($startP > 2) {
                     echo '<li class="page-item disabled"><span class="page-link" style="border:none;">...</span></li>';
                 }
@@ -304,20 +343,20 @@ require_once __DIR__ . '/../../layouts/header.php';
 
             for ($p = $startP; $p <= $endP; $p++) {
                 $activeClass = ($p == $page) ? 'active' : '';
-                echo '<li class="page-item ' . $activeClass . '"><a class="page-link" href="best_seller.php?page=' . $p . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '">' . $p . '</a></li>';
+                echo '<li class="page-item ' . $activeClass . '"><a class="page-link" href="best_seller.php?page=' . $p . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&currency_filter=' . urlencode($currency_filter) . '">' . $p . '</a></li>';
             }
 
             if ($endP < $total_pages) {
                 if ($endP < $total_pages - 1) {
                     echo '<li class="page-item disabled"><span class="page-link" style="border:none;">...</span></li>';
                 }
-                echo '<li class="page-item"><a class="page-link" href="best_seller.php?page=' . $total_pages . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '">' . $total_pages . '</a></li>';
+                echo '<li class="page-item"><a class="page-link" href="best_seller.php?page=' . $total_pages . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&currency_filter=' . urlencode($currency_filter) . '">' . $total_pages . '</a></li>';
             }
           ?>
 
           <!-- Next Page -->
           <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
-            <a class="page-link" href="best_seller.php?page=<?php echo min($total_pages, $page + 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>">
+            <a class="page-link" href="best_seller.php?page=<?php echo min($total_pages, $page + 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>&currency_filter=<?php echo urlencode($currency_filter); ?>">
               <i class="fas fa-chevron-right" style="font-size: 0.76rem;"></i>
             </a>
           </li>

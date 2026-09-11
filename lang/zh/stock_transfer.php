@@ -6,6 +6,8 @@ return [
     'stock_transfer.err_select_stores' => '请选择调出分店和调入分店！',
     'stock_transfer.err_same_store' => '调出分店和调入分店不能相同！',
     'stock_transfer.err_no_items' => '请至少添加一项调货商品！',
+    'stock_transfer.needs_two_branches' => '至少需要 2 个分店才能进行分店间调货',
+    'stock_transfer.needs_two_branches_hint' => '请先在分店管理页面添加新分店',
     'stock_transfer.err_product_not_found' => '在调出分店未找到商品 ID %s！',
     'stock_transfer.err_insufficient_stock' => '商品 "%s" 在调出分店仅有 %s（不足以调出 %s）！',
     'stock_transfer.success_message' => '调货单号 %s 保存成功（共 %s 项）！',

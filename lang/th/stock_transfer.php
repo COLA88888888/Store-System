@@ -6,6 +6,8 @@ return [
     'stock_transfer.err_select_stores' => 'กรุณาเลือกสาขาต้นทางและสาขาปลายทาง!',
     'stock_transfer.err_same_store' => 'สาขาต้นทางและปลายทางต้องไม่ใช่สาขาเดียวกัน!',
     'stock_transfer.err_no_items' => 'กรุณาเพิ่มสินค้าในรายการโอนอย่างน้อย 1 รายการ!',
+    'stock_transfer.needs_two_branches' => 'ต้องมีอย่างน้อย 2 สาขาจึงจะโอนสินค้าระหว่างสาขาได้',
+    'stock_transfer.needs_two_branches_hint' => 'กรุณาเพิ่มสาขาใหม่ในหน้าจัดการสาขาก่อน',
     'stock_transfer.err_product_not_found' => 'ไม่พบสินค้า ID %s ในสาขาต้นทาง!',
     'stock_transfer.err_insufficient_stock' => 'สินค้า "%s" ในสาขาต้นทาง มีเพียง %s (ไม่พอโอน %s)!',
     'stock_transfer.success_message' => 'บันทึกการโอนสินค้าเลขที่ %s สำเร็จ (รวม %s รายการ)!',

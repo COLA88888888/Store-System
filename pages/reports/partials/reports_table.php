@@ -31,6 +31,7 @@
             <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_cash', 'ເງິນສົດ')); ?></th>
             <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_transfer', 'ໂອນ')); ?></th>
             <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_bank', 'ທະນາຄານ')); ?></th>
+            <th class="text-center" style="width: 100px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_currency', 'ສະກຸນເງິນ')); ?></th>
             <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_change', 'ເງິນທອນ')); ?></th>
             <th class="text-left" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_seller', 'ຜູ້ຂາຍ')); ?></th>
             <th class="text-center no-print" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_manage', 'ຈັດການ')); ?></th>
@@ -40,7 +41,7 @@
       <tbody>
         <?php if (empty($display_data)): ?>
           <tr>
-            <td colspan="<?php echo $view_mode === 'item' ? '10' : '14'; ?>" class="text-center py-5">
+            <td colspan="<?php echo $view_mode === 'item' ? '11' : '15'; ?>" class="text-center py-5">
               <div class="text-muted font-weight-bold" style="font-size: 0.95rem;"><?php echo htmlspecialchars(t('reports.no_sales_data', 'ບໍ່ພົບຂໍ້ມູນລາຍງານການຂາຍ')); ?></div>
               <small class="text-muted"><?php echo htmlspecialchars(t('reports.change_filter_hint', 'ກະລຸນາປ່ຽນເງື່ອນໄຂການຄົ້ນຫາ ຫຼື ເລືອກຊ່ວງວັນທີໃໝ່')); ?></small>
             </td>
@@ -55,9 +56,19 @@
               $dateOnly = explode(' ', $bGroup['date_time'])[0];
             ?>
               <!-- 1. Bill Banner Header Row (#eff6ff / #dbeafe) -->
+              <?php
+                $__curCode = strtoupper($bGroup['currency'] ?? 'KIP') ?: 'KIP';
+                $__curMeta = getCurrencyMeta()[$__curCode] ?? ['name' => $__curCode, 'symbol' => $__curCode];
+                $__curColor = ($__curCode === 'THB') ? '#0369a1' : (($__curCode === 'USD') ? '#047857' : (($__curCode === 'CNY') ? '#b91c1c' : '#a16207'));
+              ?>
               <tr style="background-color: #eff6ff; border-top: 1px solid #bfdbfe; border-bottom: 1px solid #bfdbfe;">
                 <td colspan="11" class="py-2 px-3 font-weight-bold" style="color: #1e40af; font-size: 0.88rem;">
                   <i class="fas fa-receipt mr-1 text-primary"></i> Bill: <strong><?php echo htmlspecialchars($bNo); ?></strong> | Date: <strong><?php echo htmlspecialchars($dateOnly); ?></strong>
+                  <?php if ($__curCode !== 'KIP'): ?>
+                    <span class="badge border font-weight-bold ml-2" style="color: <?php echo $__curColor; ?>; border-color: <?php echo $__curColor; ?> !important; background: #ffffff; font-size: 0.74rem;" title="<?php echo htmlspecialchars($__curMeta['name']); ?>">
+                      <?php echo htmlspecialchars($__curMeta['symbol'] . ' ' . $__curCode); ?>
+                    </span>
+                  <?php endif; ?>
                 </td>
               </tr>
 
@@ -149,6 +160,16 @@
                     <img src="<?php echo htmlspecialchars($logoPath); ?>" style="width: 24px; height: 24px; object-fit: cover; border-radius: 50% !important; background: #ffffff; padding: 1px; border: 1.5px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08);" title="<?php echo htmlspecialchars($bName ?: $code); ?>" onerror="this.src='../../assets/img/banks/default.svg';">
                   <?php endif; ?>
                 </td>
+                <td class="text-center">
+                  <?php
+                    $__curCode = strtoupper($row['currency'] ?? 'KIP') ?: 'KIP';
+                    $__curMeta = getCurrencyMeta()[$__curCode] ?? ['name' => $__curCode, 'symbol' => $__curCode];
+                    $__curColor = ($__curCode === 'THB') ? '#0369a1' : (($__curCode === 'USD') ? '#047857' : (($__curCode === 'CNY') ? '#b91c1c' : '#a16207'));
+                  ?>
+                  <span class="badge border font-weight-bold" style="color: <?php echo $__curColor; ?>; border-color: <?php echo $__curColor; ?> !important; background: #ffffff; font-size: 0.76rem;" title="<?php echo htmlspecialchars($__curMeta['name']); ?>">
+                    <?php echo htmlspecialchars($__curMeta['symbol'] . ' ' . $__curCode); ?>
+                  </span>
+                </td>
                 <td class="text-right font-weight-bold text-info"><?php echo displayMoney($pdo, $row['change'] ?? 0); ?></td>
                 <td class="text-left font-weight-bold text-dark" style="font-size: 0.84rem;"><?php echo htmlspecialchars($row['cashier']); ?></td>
                 <td class="text-center no-print" style="white-space: nowrap !important;">
@@ -198,6 +219,7 @@
               <td class="text-right text-success" style="font-size: 1.0rem; white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_net); ?></td>
               <td class="text-right text-dark" style="white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_cash); ?></td>
               <td class="text-right text-primary" style="white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_qr); ?></td>
+              <td></td>
               <td></td>
               <td class="text-right text-info" style="white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_change ?? 0); ?></td>
               <td colspan="2"></td>

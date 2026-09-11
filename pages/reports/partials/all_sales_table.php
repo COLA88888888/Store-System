@@ -25,6 +25,7 @@
             <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0; vertical-align: middle;"><?php echo htmlspecialchars(t('reports.col_net', 'ສຸດທິ')); ?></th>
             <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0; vertical-align: middle;"><?php echo htmlspecialchars(t('reports.col_cash', 'ເງິນສົດ')); ?></th>
             <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0; vertical-align: middle;"><?php echo htmlspecialchars(t('reports.col_transfer', 'ໂອນ')); ?></th>
+            <th class="text-center" style="width: 100px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0; vertical-align: middle;"><?php echo htmlspecialchars(t('reports.col_currency', 'ສະກຸນເງິນ')); ?></th>
             <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0; vertical-align: middle;"><?php echo htmlspecialchars(t('reports.col_status', 'ສະຖານະ')); ?></th>
             <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0; vertical-align: middle;"><?php echo htmlspecialchars(t('reports.col_seller', 'ຜູ້ຂາຍ')); ?></th>
           </tr>
@@ -33,7 +34,7 @@
       <tbody>
         <?php if (empty($display_data)): ?>
           <tr>
-            <td colspan="<?php echo $view_mode === 'item' ? '7' : '12'; ?>" class="text-center py-5">
+            <td colspan="<?php echo $view_mode === 'item' ? '7' : '13'; ?>" class="text-center py-5">
               <div class="text-muted font-weight-bold" style="font-size: 0.95rem;"><?php echo htmlspecialchars(t('reports.no_sales_data', 'ບໍ່ພົບຂໍ້ມູນລາຍງານການຂາຍ')); ?></div>
               <small class="text-muted"><?php echo htmlspecialchars(t('reports.change_filter_hint', 'ກະລຸນາປ່ຽນເງື່ອນໄຂການຄົ້ນຫາ ຫຼື ເລືອກຊ່ວງວັນທີໃໝ່')); ?></small>
             </td>
@@ -84,6 +85,16 @@
                     <span class="text-muted"><?php echo displayMoney($pdo, 0); ?></span>
                   <?php endif; ?>
                 </td>
+                <td class="text-center">
+                  <?php
+                    $__curCode = strtoupper($row['currency'] ?? 'KIP') ?: 'KIP';
+                    $__curMeta = getCurrencyMeta()[$__curCode] ?? ['name' => $__curCode, 'symbol' => $__curCode];
+                    $__curColor = ($__curCode === 'THB') ? '#0369a1' : (($__curCode === 'USD') ? '#047857' : (($__curCode === 'CNY') ? '#b91c1c' : '#a16207'));
+                  ?>
+                  <span class="badge border font-weight-bold" style="color: <?php echo $__curColor; ?>; border-color: <?php echo $__curColor; ?> !important; background: #ffffff; font-size: 0.76rem;" title="<?php echo htmlspecialchars($__curMeta['name']); ?>">
+                    <?php echo htmlspecialchars($__curMeta['symbol'] . ' ' . $__curCode); ?>
+                  </span>
+                </td>
                 <td class="text-center font-weight-bold">
                   <?php if (($row['status'] ?? 'SUCCESS') === 'CANCEL'): ?>
                     <span class="badge badge-danger px-2 py-1" style="font-size: 0.76rem;"><?php echo htmlspecialchars(t('reports.status_cancel', 'ຍົກເລີກ')); ?></span>
@@ -119,6 +130,7 @@
               <td class="text-right text-success" style="font-size: 1.0rem; white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_net); ?></td>
               <td class="text-right text-dark" style="white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_cash); ?></td>
               <td class="text-right text-primary" style="white-space: nowrap !important;"><?php echo displayMoney($pdo, $total_qr); ?></td>
+              <td></td>
               <td></td>
               <td colspan="2"></td>
             <?php endif; ?>

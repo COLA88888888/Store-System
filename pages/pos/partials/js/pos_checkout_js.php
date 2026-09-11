@@ -241,19 +241,24 @@ function addCashShortcut(amountKip) {
 
 function calculateChange() {
   if (currentPayMode !== 'single') return;
-  var cashKip  = POSCUR.toKip($('#cashReceived').val());
   var totalKip = window.CART_NET_KIP || 0;
-  var changeKip = cashKip - totalKip;
+  // Judge "enough / short / change" in the tender currency's own rounded units — the
+  // amount actually shown to and typed by the cashier — not by converting back to KIP.
+  // A KIP total rarely divides evenly by the exchange rate, so comparing raw KIP would
+  // flag the exact displayed amount as short by a fraction of a unit (e.g. "ຂາດ 0 ฿").
+  var totalUnits  = POSCUR.units(totalKip);
+  var cashUnits   = POSCUR.parseUnits($('#cashReceived').val());
+  var changeUnits = cashUnits - totalUnits;
 
   // update summary labels
-  $('#singleTotalLbl').html(POSCUR.fmt(totalKip));
-  $('#singleCashLbl').html(POSCUR.fmt(cashKip));
+  $('#singleTotalLbl').html(POSCUR.fmtUnits(totalUnits));
+  $('#singleCashLbl').html(POSCUR.fmtUnits(cashUnits));
 
-  if (changeKip < 0) {
-    $('#changeDisplay').text('ຂາດ ' + POSCUR.fmt(Math.abs(changeKip))).removeClass('text-success').addClass('text-danger').css('color','#ef4444');
+  if (changeUnits < 0) {
+    $('#changeDisplay').html('ຂາດ ' + POSCUR.fmtUnits(Math.abs(changeUnits))).removeClass('text-success').addClass('text-danger').css('color','#ef4444');
     $('#btnSubmitPayment').prop('disabled', true);
   } else {
-    $('#changeDisplay').html(POSCUR.fmt(changeKip)).removeClass('text-danger').addClass('text-success').css('color','#16a34a');
+    $('#changeDisplay').html(POSCUR.fmtUnits(changeUnits)).removeClass('text-danger').addClass('text-success').css('color','#16a34a');
     $('#btnSubmitPayment').prop('disabled', false);
   }
 }
@@ -263,26 +268,29 @@ function calculateChange() {
 // ============================
 function calcSplitRemaining() {
   var totalKip = window.CART_NET_KIP || 0;
-  var cashKip  = POSCUR.toKip($('#splitCashAmount').val());
-  var qrKip    = POSCUR.toKip($('#splitQrAmount').val());
-  var remainKip = totalKip - (cashKip + qrKip);
+  // Compare in the tender currency's own rounded units (see calculateChange() above) so
+  // paying the exact displayed total never reads as short by a rounding fraction.
+  var totalUnits = POSCUR.units(totalKip);
+  var cashUnits  = POSCUR.parseUnits($('#splitCashAmount').val());
+  var qrUnits    = POSCUR.parseUnits($('#splitQrAmount').val());
+  var remainUnits = totalUnits - (cashUnits + qrUnits);
 
-  $('#splitTotal').html(POSCUR.fmt(totalKip));
-  $('#splitCashDisplay').html(POSCUR.fmt(cashKip));
-  $('#splitQrDisplay').html(POSCUR.fmt(qrKip));
+  $('#splitTotal').html(POSCUR.fmtUnits(totalUnits));
+  $('#splitCashDisplay').html(POSCUR.fmtUnits(cashUnits));
+  $('#splitQrDisplay').html(POSCUR.fmtUnits(qrUnits));
 
-  if (remainKip > 0) {
+  if (remainUnits > 0) {
     $('#splitStatusLabel').text('ຍັງຄ້າງ:').css('color', '#ef4444');
-    $('#splitRemainingDisplay').html(POSCUR.fmt(remainKip)).css('color', '#ef4444');
+    $('#splitRemainingDisplay').html(POSCUR.fmtUnits(remainUnits)).css('color', '#ef4444');
     $('#btnSubmitPayment').prop('disabled', true);
-  } else if (remainKip < 0) {
+  } else if (remainUnits < 0) {
     // over-paid → show change
     $('#splitStatusLabel').text('ເງິນທອນ:').css('color', '#16a34a');
-    $('#splitRemainingDisplay').html(POSCUR.fmt(Math.abs(remainKip))).css('color', '#16a34a');
+    $('#splitRemainingDisplay').html(POSCUR.fmtUnits(Math.abs(remainUnits))).css('color', '#16a34a');
     $('#btnSubmitPayment').prop('disabled', false);
   } else {
     $('#splitStatusLabel').text('ພໍດີ ✓').css('color', '#16a34a');
-    $('#splitRemainingDisplay').html(POSCUR.fmt(0)).css('color', '#16a34a');
+    $('#splitRemainingDisplay').html(POSCUR.fmtUnits(0)).css('color', '#16a34a');
     $('#btnSubmitPayment').prop('disabled', false);
   }
 }
@@ -333,6 +341,15 @@ function openCheckoutModal() {
   $('#posNoQrMessage').hide();
   $('#posActiveBankNameTitle').text('');
 
+  // Tender currency: reuse the cashier's last pick (a shop that always takes Baht sets it
+  // once), falling back to the POS display currency. Still changeable per bill.
+  var savedTender = '';
+  try { savedTender = localStorage.getItem('pos_tender_currency') || ''; } catch (e) {}
+  var wantTender = (savedTender && $('#checkoutCurrency option[value="' + savedTender + '"]').length)
+    ? savedTender : (window.POS_DISPLAY_CURRENCY || 'KIP');
+  if (window.POSCUR && POSCUR.setCurrency) POSCUR.setCurrency(wantTender);
+  $('#checkoutCurrency').val(POSCUR ? POSCUR.code : 'KIP');
+
   selectPayTypeTab('ເງິນສົດ');
   var netKip = window.CART_NET_KIP || 0;
   $('#checkoutTotalDisplay').html(POSCUR.fmt(netKip));
@@ -355,22 +372,41 @@ function processCheckout() {
 
   var cashReceived, qrReceived, paymentType, change;
 
+  // Both branches judge "enough / short" against the rounded amount actually shown to
+  // and typed by the cashier in the tender currency, not raw KIP — a KIP total rarely
+  // divides evenly by the exchange rate, so comparing raw KIP round-trips would flag
+  // the exact displayed amount as short by a fraction of a unit.
+  var totalUnits = POSCUR.units(total);
+
   if (currentPayMode === 'split') {
-    cashReceived = POSCUR.toKip($('#splitCashAmount').val());
-    qrReceived   = POSCUR.toKip($('#splitQrAmount').val());
-    var totalPaid = cashReceived + qrReceived;
-    if (totalPaid < total) {
-      Swal.fire({ icon: 'error', title: 'ຍອດບໍ່ຄົບ!', text: 'ຍັງຂາດ ' + POSCUR.fmt(total - totalPaid) + ' ກະລຸນາຕື່ມ', confirmButtonColor: '#ef4444' });
+    var splitCashUnits = POSCUR.parseUnits($('#splitCashAmount').val());
+    var splitQrUnits   = POSCUR.parseUnits($('#splitQrAmount').val());
+    var paidUnits      = splitCashUnits + splitQrUnits;
+    if (paidUnits < totalUnits) {
+      Swal.fire({ icon: 'error', title: 'ຍອດບໍ່ຄົບ!', html: 'ຍັງຂາດ ' + POSCUR.fmtUnits(totalUnits - paidUnits) + ' ກະລຸນາຕື່ມ', confirmButtonColor: '#ef4444' });
       return;
     }
+    // Split the recorded KIP total in the same proportion as the units the cashier
+    // entered, then land any rounding remainder on cash so cash+qr always sums to the
+    // true KIP total exactly (no phantom shortfall from the currency round trip).
+    qrReceived   = paidUnits > 0 ? Math.round((splitQrUnits / paidUnits) * total) : 0;
+    cashReceived = total - qrReceived;
     paymentType  = 'ເງິນສົດ + ໂອນ';
-    change       = Math.max(0, totalPaid - total);
+    var changeUnits = paidUnits - totalUnits;
+    change = POSCUR.isKip ? changeUnits : Math.round(changeUnits * POSCUR.rate);
+    cashReceived += change;
   } else {
-    var rawInput = POSCUR.toKip($('#cashReceived').val());
-    if (rawInput < total) {
+    var cashUnits = POSCUR.parseUnits($('#cashReceived').val());
+    if (cashUnits < totalUnits) {
       Swal.fire({ icon: 'error', title: 'ເງິນທີ່ຮັບມາບໍ່ພໍ!', text: 'ກະລຸນາກວດສອບຈຳນວນເງິນທີ່ຮັບມາ', confirmButtonColor: '#ef4444' });
       return;
     }
+    // Convert only the change (the part that matters for what's owed back) through the
+    // exchange rate, then derive cash received as total + change so the stored KIP
+    // figures always add up exactly.
+    var changeUnitsOver = cashUnits - totalUnits;
+    change = POSCUR.isKip ? changeUnitsOver : Math.round(changeUnitsOver * POSCUR.rate);
+    var rawInput = total + change;
     if (selectedPayType === 'ໂອນ' || selectedPayType === 'QR') {
       cashReceived = 0;
       qrReceived   = rawInput;
@@ -379,7 +415,6 @@ function processCheckout() {
       qrReceived   = 0;
     }
     paymentType = selectedPayType;
-    change      = Math.max(0, (cashReceived + qrReceived) - total);
   }
 
   var isTransferTxn = (currentPayMode === 'split' && qrReceived > 0) ||
@@ -426,6 +461,9 @@ function processCheckout() {
     return;
   }
 
+  // Snapshot the per-printer kitchen tickets now — the cart is cleared on checkout success.
+  window.__lastKitchenTickets = buildKitchenTickets(cart);
+
   var payload = {
     cart:            cleanCart,
     cash_received:   cashReceived,
@@ -437,7 +475,10 @@ function processCheckout() {
     bank_name:       activeBankName,
     customer_id:     selectedCustomer ? selectedCustomer.customer_id : null,
     customer_name:   selectedCustomer ? selectedCustomer.customer_name : 'ລູກຄ້າທົ່ວໄປ',
-    customer_phone:  selectedCustomer ? (selectedCustomer.phone || '') : ''
+    customer_phone:  selectedCustomer ? (selectedCustomer.phone || '') : '',
+    // Currency the customer actually tendered on this bill (+ KIP-per-unit rate used).
+    paid_currency:   (window.POSCUR && POSCUR.code) ? POSCUR.code : 'KIP',
+    paid_rate:       (window.POSCUR && POSCUR.rate) ? POSCUR.rate : 1
   };
 
   $.ajax({
@@ -492,6 +533,9 @@ function processCheckout() {
 
 function handleOnlineCheckoutReceiptUI(res) {
   $('#checkoutModal').modal('hide');
+  // Receipt is always rendered in the POS display currency, not the tender currency
+  // the cashier may have just picked. (hidden.bs.modal fires async — reset now.)
+  if (window.POSCUR && POSCUR.setCurrency) POSCUR.setCurrency(window.POS_DISPLAY_CURRENCY || 'KIP');
 
   // ອັບເດດຍອດສະຕັອກຄົງເຫຼືອທີ່ຕັດແລ້ວເຂົ້າໃນ DOM ແລະ memory ທັນທີ
   if (res.updated_stocks && res.updated_stocks.length > 0) {
@@ -510,6 +554,14 @@ function handleOnlineCheckoutReceiptUI(res) {
   $('#rc_bill').text(res.invoice_number);
   $('#rc_date').text(res.date);
   $('#rc_cashier').text(cashierName);
+
+  // Queue number: big block above the logo, only when the shop has it enabled.
+  if (window.POS_QUEUE_ENABLED && res.queue_number) {
+    $('#rc_queue_no').text(res.queue_number);
+    $('#rc_queue_wrap').css('display', 'block');
+  } else {
+    $('#rc_queue_wrap').css('display', 'none');
+  }
   $('#rc_customer').text(posCustomerDisplayName(res.customer_name));
   setReceiptCustomerPhone(res.customer_phone || (selectedCustomer && selectedCustomer.phone) || '');
   window.__deliveryNoteData = {
@@ -658,10 +710,87 @@ function handleOnlineCheckoutReceiptUI(res) {
   }
 
   if (typeof broadcastCustomerDisplay === 'function') {
-    broadcastCustomerDisplay('payment_success', { cashReceived: res.cash_received, qrReceived: res.qr_received, changeAmount: res.change });
+    broadcastCustomerDisplay('payment_success', { cashReceived: res.cash_received, qrReceived: res.qr_received, changeAmount: res.change, queueNumber: (window.POS_QUEUE_ENABLED ? res.queue_number : null) });
   }
   printReceipt();
+  printKitchenTickets(window.__lastKitchenTickets || [], { invoice_number: res.invoice_number, date: res.date });
+  window.__lastKitchenTickets = [];
   resetPOS();
+}
+
+// ============================
+// KITCHEN TICKETS — split the print by product category to a separate printer each
+// ============================
+// Group the cart by the printer assigned to each item's category (window.POS_KITCHEN_ROUTES).
+function buildKitchenTickets(items) {
+  var routes = window.POS_KITCHEN_ROUTES || {};
+  if (!routes || !Object.keys(routes).length) return [];
+  var groups = {};
+  (items || []).forEach(function(it) {
+    if (!it) return;
+    var r = routes[String(it.category_id)];
+    if (!r) return;
+    var g = groups[r.printer_id] || (groups[r.printer_id] = { printer_id: r.printer_id, name: r.printer_name || ('ເຄື່ອງພິມ ' + r.printer_id), items: [] });
+    g.items.push({ name: it.product_name || '', qty: parseFloat(it.quantity) || 1, unit: it.unit_name || '' });
+  });
+  return Object.keys(groups).map(function(k) { return groups[k]; }).filter(function(g) { return g.items.length; });
+}
+
+function kitchenTicketHtml(group, meta) {
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
+  var totalQty = group.items.reduce(function(s, i) { return s + i.qty; }, 0);
+  var rows = group.items.map(function(it) {
+    return '<tr><td style="padding:4px 0;font-size:15px;font-weight:700;line-height:1.25;">' + esc(it.name) +
+      '</td><td style="text-align:right;padding:4px 0;font-size:17px;font-weight:800;white-space:nowrap;vertical-align:top;">x' +
+      it.qty + (it.unit ? ' ' + esc(it.unit) : '') + '</td></tr>';
+  }).join('');
+  return '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+    '<link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/local-font.css">' +
+    '<style>@page{size:80mm auto;margin:0}' +
+    '*{box-sizing:border-box;font-family:\'Noto Sans Lao\',\'Souliyo\',\'Boon\',Arial,sans-serif !important;color:#000 !important}' +
+    'html,body{width:80mm;margin:0 auto;padding:10px 8px}' +
+    'h2{font-size:19px;margin:0 0 2px;text-align:center;font-weight:800}' +
+    '.sub{text-align:center;font-size:12px;font-weight:600;margin-bottom:8px}' +
+    'table{width:100%;border-collapse:collapse}' +
+    'hr{border:none;border-top:1px dashed #000;margin:7px 0}' +
+    '.foot{text-align:right;font-size:13px;font-weight:800;margin-top:4px}</style></head><body>' +
+    '<h2>' + esc(group.name) + '</h2>' +
+    '<div class="sub">' + (window.STORE_NAME ? esc(window.STORE_NAME) + ' — ' : '') +
+      (meta && meta.invoice_number ? '#' + esc(meta.invoice_number) : '') +
+      (meta && meta.date ? '  ' + esc(meta.date) : '') + '</div>' +
+    '<hr><table>' + rows + '</table><hr>' +
+    '<div class="foot">ລວມ ' + totalQty + '</div>' +
+    '</body></html>';
+}
+
+// USB / driver printers: the browser opens one print dialog per ticket; the cashier picks
+// the right printer (Chrome/Edge remember the destination per print after the first setup).
+function printKitchenTickets(groups, meta) {
+  if (!groups || !groups.length) return;
+  var frame = document.getElementById('posKitchenIframe');
+  if (!frame) {
+    frame = document.createElement('iframe');
+    frame.id = 'posKitchenIframe';
+    frame.style.cssText = 'position:fixed;right:-9999px;bottom:-9999px;width:320px;height:320px;border:none;opacity:0;pointer-events:none;';
+    document.body.appendChild(frame);
+  }
+  var idx = 0;
+  function next() {
+    if (idx >= groups.length) return;
+    var g = groups[idx++];
+    var doc = frame.contentWindow.document;
+    doc.open(); doc.write(kitchenTicketHtml(g, meta)); doc.close();
+    var win = frame.contentWindow;
+    var advanced = false;
+    var go = function () { if (advanced) return; advanced = true; setTimeout(next, 500); };
+    win.onafterprint = go;
+    setTimeout(function () {
+      try { win.focus(); win.print(); } catch (e) {}
+      setTimeout(go, 3000); // fallback if onafterprint never fires
+    }, 350);
+  }
+  // Let the customer receipt fire its own dialog first.
+  setTimeout(next, 1600);
 }
 
 // ============================
@@ -689,12 +818,12 @@ function printReceipt() {
       * { box-sizing: border-box; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif !important; color: #000 !important; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
       html, body { width: 80mm; margin: 0 auto; padding: 8px 6px; background: #fff; color: #000 !important; font-size: 13px; font-weight: 600; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .text-center { text-align: center !important; } .text-right { text-align: right !important; }
-      .font-weight-bold { font-weight: 700 !important; color: #000 !important; } 
+      .font-weight-bold { font-weight: 700 !important; color: #000 !important; }
       .small { font-size: 11.5px !important; color: #000 !important; font-weight: 600 !important; }
       .d-flex { display: flex; } .justify-content-between { justify-content: space-between; }
       [style*="display: none"], [style*="display:none"], .d-none { display: none !important; }
       .mb-0{margin-bottom:0!important}.mb-1{margin-bottom:4px!important}.mb-2{margin-bottom:8px!important}
-      .mt-2{margin-top:8px!important} 
+      .mt-2{margin-top:8px!important}
       .text-muted { color: #000 !important; font-weight: 600 !important; }
       .receipt-header-address, .receipt-header-tel { font-size: 12px !important; font-weight: 600 !important; color: #000 !important; line-height: 1.4 !important; }
       .receipt-footer-msg { font-size: 12.5px !important; font-weight: 700 !important; color: #000 !important; border-top: 1px dashed #000 !important; margin-top: 10px !important; padding-top: 8px !important; text-align: center !important; }
@@ -703,8 +832,8 @@ function printReceipt() {
       table { width:100%; border-collapse:collapse; margin:4px 0; font-size:11.5px; color: #000 !important; }
       td,th { padding:3px 0; vertical-align:top; color: #000 !important; font-weight: 600 !important; }
       th { font-weight: 700 !important; }
-      @media print { 
-        html,body { width:100%; margin:0; padding:2mm; color: #000 !important; } 
+      @media print {
+        html,body { width:100%; margin:0; padding:2mm; color: #000 !important; }
         * { color: #000 !important; }
       }
     </style>
@@ -894,6 +1023,35 @@ function selectPosBank(bankId, bankName, qrPath, accNo, accName, el) {
 function formatPriceInput(input) {
   var val = input.value.replace(/\D/g, '');
   input.value = val === '' ? '0' : Number(val).toLocaleString('en-US');
+}
+
+// Tender-currency selector inside the checkout modal (per-bill). Switching it re-bases
+// POSCUR so the amount field, change calc and the checkout payload all use that currency.
+function onCheckoutCurrencyChange(code) {
+  if (!window.POSCUR || !POSCUR.setCurrency) return;
+  POSCUR.setCurrency(code || 'KIP');
+  try { localStorage.setItem('pos_tender_currency', POSCUR.code); } catch (e) {}
+  var netKip = window.CART_NET_KIP || 0;
+  $('#checkoutTotalDisplay').html(POSCUR.fmt(netKip));
+  $('#cashReceived').val(POSCUR.num(netKip));
+  $('#splitCashAmount').val(POSCUR.num(netKip));
+  $('#splitQrAmount').val('0');
+  if (currentPayMode === 'split') {
+    $('#splitTotal').html(POSCUR.fmt(netKip));
+    calcSplitRemaining();
+  } else {
+    calculateChange();
+  }
+}
+
+// Closing the modal (cancel or after a sale) restores the POS-wide display currency so
+// the cart behind it doesn't stay stuck on the last-picked tender currency.
+if (window.jQuery) {
+  jQuery(function ($) {
+    $('#checkoutModal').on('hidden.bs.modal', function () {
+      if (window.POSCUR && POSCUR.setCurrency) POSCUR.setCurrency(window.POS_DISPLAY_CURRENCY || 'KIP');
+    });
+  });
 }
 
 </script>

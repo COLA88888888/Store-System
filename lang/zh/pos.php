@@ -58,6 +58,7 @@ return [
     'pos.receipt_tel' => '电话：',
     'pos.receipt_tax_id' => '纳税人识别号：',
     'pos.receipt_bill_no' => '账单号：',
+    'pos.receipt_queue_label' => '排队号',
     'pos.receipt_date' => '日期：',
     'pos.receipt_cashier' => '收银员：',
     'pos.receipt_customer' => '客户：',

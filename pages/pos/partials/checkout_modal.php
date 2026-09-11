@@ -126,6 +126,24 @@
               </div>
             </div>
 
+            <!-- Tender currency (per bill) — feeds the daily report's "money received by currency" breakdown -->
+            <?php
+              $__coMeta  = function_exists('getCurrencyMeta') ? getCurrencyMeta() : ['KIP' => ['name' => 'ກີບ', 'symbol' => '₭']];
+              $__coRates = function_exists('getExchangeRates') ? getExchangeRates($pdo) : [];
+              $__coCurrencies = ['KIP'];
+              foreach (['THB', 'USD', 'CNY'] as $__cc) {
+                  if (!empty($__coRates[$__cc]) && (float)$__coRates[$__cc] > 0) $__coCurrencies[] = $__cc;
+              }
+            ?>
+            <div id="checkoutCurrencyRow"<?php echo count($__coCurrencies) < 2 ? ' style="display:none;"' : ''; ?>>
+              <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><?php echo htmlspecialchars(t('pos.tender_currency_label', 'ສະກຸນເງິນທີ່ຮັບ')); ?></div>
+              <select id="checkoutCurrency" class="form-control font-weight-bold mb-2" style="height:40px;border:2px solid #244886;border-radius:8px;color:#1a3666;" onchange="onCheckoutCurrencyChange(this.value)">
+                <?php foreach ($__coCurrencies as $__cc): ?>
+                  <option value="<?php echo $__cc; ?>"><?php echo htmlspecialchars(($__coMeta[$__cc]['name'] ?? $__cc) . ' (' . ($__coMeta[$__cc]['symbol'] ?? $__cc) . ')'); ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
             <!-- SINGLE: cash input -->
             <div id="singlePaySection">
               <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><?php echo htmlspecialchars(t('pos.amount_received_label', 'ຈຳນວນທີ່ຮັບ')); ?> <span class="text-danger">*</span></div>
@@ -298,6 +316,10 @@
       </div>
       <div class="modal-body p-3" id="receiptPrintArea" style="font-family:'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif;font-size:13px;font-weight:600;line-height:1.5;color:#000;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;">
         <div class="text-center mb-2">
+          <!-- Queue number (coffee-shop style) — "ຄິວທີ N" on one line, above the logo. Shown only when enabled. -->
+          <div id="rc_queue_wrap" style="display:none;margin:2px 0 8px;font-size:26px;font-weight:900;line-height:1.15;color:#000;">
+            <?php echo htmlspecialchars(t('pos.receipt_queue_label', 'ບັດຄິວທີ')); ?> <span id="rc_queue_no">-</span>
+          </div>
           <?php
             $logoName = !empty($company['img_url']) ? basename($company['img_url']) : 'logo.png';
             $logoPath = $base_path . 'assets/img/logo/' . $logoName;

@@ -195,6 +195,7 @@ require_once __DIR__ . '/components/form_edit_category.php';
     $('#edit_cat_id').val(cat.category_id);
     $('#edit_cat_name').val(cat.category_name);
     $('#edit_cat_desc').val(cat.description);
+    $('#edit_cat_printer').val(cat.printer_id != null ? String(cat.printer_id) : '');
     $('#editCategoryModal').modal('show');
   }
 

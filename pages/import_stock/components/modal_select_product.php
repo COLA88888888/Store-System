@@ -16,10 +16,10 @@
         </button>
       </div>
 
-      <div class="modal-body p-4" style="background-color: #f8fafc; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1 1 auto; min-height: 0;">
+      <div class="modal-body p-4 d-flex flex-column" style="background-color: #f8fafc; overflow: hidden; -webkit-overflow-scrolling: touch; flex: 1 1 auto; min-height: 0;">
         
         <!-- Filter Bar: Page Size + Category Select + Search Input -->
-        <div class="row align-items-center mb-3">
+        <div class="row align-items-center mb-3 flex-shrink-0">
           
           <!-- 1. Page Size Selector (ບັອກໂຊລາຍການ ຢູ່ໜ້າບັອກເລືອກປະເພດສິນຄ້າ) -->
           <div class="col-md-2 col-sm-3 mb-2 mb-md-0">
@@ -28,6 +28,7 @@
             </label> -->
             <select id="modal_page_size_select" class="form-control font-weight-bold shadow-sm" onchange="changeModalPageSize(this.value)" style="height: 42px; border-radius: 8px; border-color: #cbd5e1;">
               <option value="10" selected>10</option>
+              <option value="20">20</option>
               <option value="25">25</option>
               <option value="50">50</option>
               <option value="100">100</option>
@@ -64,7 +65,7 @@
         </div>
 
         <!-- Batch Action Bar: Displayed when items are checked -->
-        <div id="modal_batch_actions_bar" class="alert alert-info py-2 px-3 mb-3 d-none align-items-center justify-content-between border-0 shadow-sm" style="border-radius: 10px; background-color: #eff6ff; color: #1e40af;">
+        <div id="modal_batch_actions_bar" class="alert alert-info py-2 px-3 mb-3 d-none align-items-center justify-content-between border-0 shadow-sm" style="border-radius: 10px; background-color: #eff6ff; color: #1e40af; flex-shrink: 0;">
           <div class="d-flex align-items-center">
             <i class="fas fa-check-circle mr-2 text-primary fa-lg"></i>
             <span class="font-weight-bold" style="font-size: 0.92rem;">
@@ -77,7 +78,7 @@
         </div>
 
         <!-- Products List Table inside Modal -->
-        <div class="table-responsive bg-white rounded border shadow-sm mb-3" style="height: 420px; overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; border-radius: 12px !important;">
+        <div class="table-responsive bg-white rounded border shadow-sm mb-3" style="flex: 1 1 auto; min-height: 220px; overflow-y: auto; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; border-radius: 12px !important;">
           <table class="table table-hover mb-0 align-middle text-nowrap">
             <thead class="text-dark font-weight-bold" style="position: sticky; top: 0; z-index: 10; background-color: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
               <tr>

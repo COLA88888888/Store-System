@@ -2,7 +2,25 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 
-// Multi-currency: dashboard figures stored in KIP, shown in the active currency.
+// Multi-currency: dashboard figures stored in KIP, shown in the active currency. A
+// currency picked here overrides the store's global display_currency setting for this
+// view only (does not filter which bills are counted — just how the totals are shown).
+$currency_filter = strtoupper(trim($_GET['currency_filter'] ?? ''));
+if ($currency_filter !== '' && isset(getCurrencyMeta()[$currency_filter])) {
+    $__hRates = getExchangeRates($pdo);
+    $__hRate  = ($currency_filter === 'KIP') ? 1.0 : (float)($__hRates[$currency_filter] ?? 0);
+    if ($currency_filter === 'KIP' || $__hRate > 0) {
+        setDisplayCurrencyOverride(array_merge(
+            ['code' => $currency_filter, 'rate' => $__hRate, 'rates' => $__hRates],
+            getCurrencyMeta()[$currency_filter]
+        ));
+    } else {
+        $currency_filter = '';
+    }
+} else {
+    $currency_filter = '';
+}
+
 $__hdc = getDisplayCurrency($pdo);
 $__hsym = $__hdc['symbol']; $__hdec = (int)$__hdc['decimals'];
 $__hcvt = function($v) use ($__hdc) { return convertFromKip($v, $__hdc['code'], $__hdc['rates']); };
@@ -275,7 +293,8 @@ require_once __DIR__ . '/../layouts/header.php';
   <!-- Modern Filter Box: Date Range + Dynamic Auto Year Selector -->
   <div class="report-filter-box no-print mb-4" style="padding: 14px 18px; border-radius: 12px; background: #ffffff; border: 1.5px solid #e2e8f0; box-shadow: 0 3px 12px rgba(0,0,0,0.03);">
     <form method="GET" action="home.php" class="d-flex align-items-end flex-wrap" style="gap: 12px;">
-      <!-- Branch / Store Selector -->
+      <!-- Branch / Store Selector — only worth showing once there's more than one branch -->
+      <?php if (count($stores_list) > 1): ?>
       <div style="flex: 1 1 170px; min-width: 150px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-store text-success mr-1"></i> <?php echo htmlspecialchars(t('home.select_branch', 'ເລືອກສາຂາ:')); ?>
@@ -289,6 +308,9 @@ require_once __DIR__ . '/../layouts/header.php';
           <?php endforeach; ?>
         </select>
       </div>
+      <?php else: ?>
+        <input type="hidden" name="store_id" value="0">
+      <?php endif; ?>
 
       <!-- Year Select (Auto-Generated) -->
       <div style="flex: 1 1 140px; min-width: 130px;">
@@ -316,6 +338,21 @@ require_once __DIR__ . '/../layouts/header.php';
           <i class="fas fa-calendar-day text-primary mr-1"></i> <?php echo htmlspecialchars(t('home.to_date', 'ຫາວັນທີ:')); ?>
         </label>
         <input type="date" name="to_date" class="form-control form-control-sm font-weight-bold" value="<?php echo htmlspecialchars($to_date); ?>" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #cbd5e1;">
+      </div>
+
+      <!-- Currency Selector — view the same totals converted into a chosen currency -->
+      <div style="flex: 1 1 160px; min-width: 150px;">
+        <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
+          <i class="fas fa-coins text-warning mr-1"></i> <?php echo htmlspecialchars(t('reports.currency_label', 'ສະກຸນເງິນ:')); ?>
+        </label>
+        <select name="currency_filter" class="form-control form-control-sm font-weight-bold" onchange="this.form.submit();" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #a16207; color: #854d0e; background: #fefce8;">
+          <option value=""><?php echo htmlspecialchars(t('home.default_currency_opt', '-- ຄ່າເລີ່ມຕົ້ນຮ້ານ --')); ?></option>
+          <?php foreach (getCurrencyMeta() as $__cc => $__ci): ?>
+            <option value="<?php echo htmlspecialchars($__cc); ?>" <?php echo $currency_filter === $__cc ? 'selected' : ''; ?>>
+              <?php echo htmlspecialchars($__ci['name'] . ' (' . $__ci['symbol'] . ')'); ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
       </div>
 
       <!-- Action Buttons -->

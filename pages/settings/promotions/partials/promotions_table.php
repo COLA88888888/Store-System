@@ -25,7 +25,12 @@
           <tr><td colspan="10" class="text-center py-5 text-muted"><i class="fas fa-tags fa-2x mb-2 d-block text-secondary opacity-50"></i><?php echo htmlspecialchars(t('promotions.empty', 'ບໍ່ມີລາຍການໂປຣໂມຊັ່ນ')); ?></td></tr>
         <?php else: ?>
           <?php $i = 1; foreach ($promos as $p): ?>
-            <tr style="white-space: nowrap;">
+            <?php
+              // Past its end date? (timezone is forced to Asia/Vientiane globally)
+              $promoEndTs = !empty($p['end_date']) ? strtotime($p['end_date'] . ' 23:59:59') : 0;
+              $isExpired  = $promoEndTs > 0 && $promoEndTs < time();
+            ?>
+            <tr style="white-space: nowrap;<?php echo $isExpired ? ' background:#fef2f2;' : ''; ?>">
               <!-- 1. ລຳດັບ -->
               <td class="text-center font-weight-bold text-muted" style="white-space: nowrap;"><?php echo $i++; ?></td>
 
@@ -69,7 +74,8 @@
 
               <!-- 5. ວັນທີ (Start Date - End Date) -->
               <td class="text-center font-weight-bold text-muted" style="font-size: 0.8rem; font-family: monospace;">
-                <?php echo date('d/m/Y', strtotime($p['start_date'])); ?> - <?php echo date('d/m/Y', strtotime($p['end_date'])); ?>
+                <?php echo date('d/m/Y', strtotime($p['start_date'])); ?> -
+                <span class="<?php echo $isExpired ? 'text-danger font-weight-bold' : ''; ?>"><?php echo date('d/m/Y', strtotime($p['end_date'])); ?></span>
               </td>
 
               <!-- 6. ເງື່ອນໄຂ -->
@@ -99,7 +105,7 @@
                       $targetDisplay = $productNameByCode[trim((string)$p['target_name'])];
                   }
                 ?>
-                <span class="badge badge-primary font-weight-bold px-2 py-1" style="font-size: 0.76rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
+                <span class="badge font-weight-bold px-2 py-1" style="font-size: 0.76rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
                   <i class="fas fa-box-open mr-1"></i> <?php echo htmlspecialchars($targetDisplay); ?>
                 </span>
               </td>
@@ -116,6 +122,13 @@
                   <span class="badge <?php echo $p['status'] ? 'badge-success' : 'badge-secondary'; ?> px-2 py-1">
                     <?php echo $p['status'] ? htmlspecialchars(t('promotions.status_on', 'ເປີດ')) : htmlspecialchars(t('promotions.status_off', 'ປິດ')); ?>
                   </span>
+                <?php endif; ?>
+                <?php if ($isExpired): ?>
+                  <div class="mt-1">
+                    <span class="badge badge-danger px-2 py-1" style="font-size: 0.72rem;">
+                      <i class="fas fa-clock mr-1"></i><?php echo htmlspecialchars(t('promotions.expired_badge', 'ໝົດອາຍຸ')); ?>
+                    </span>
+                  </div>
                 <?php endif; ?>
               </td>
 

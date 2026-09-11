@@ -153,14 +153,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($name !== '' && $category_id > 0) {
             try {
-                // ກວດສອບລະຫັດບາໂຄ້ດ
-                if (empty($barcode)) {
-                    $message = 'ກະລຸນາປ້ອນ ຫຼື ສະແກນລະຫັດບາໂຄ້ດສິນຄ້າ!';
-                    $message_type = 'warning';
-                } elseif (!preg_match('/^[0-9]+$/', $barcode)) {
+                // ບາໂຄ້ດ ບໍ່ບັງຄັບ — ກວດແຕ່ເມື່ອປ້ອນມາ
+                if (!empty($barcode) && !preg_match('/^[0-9]+$/', $barcode)) {
                     $message = 'ລະຫັດບາໂຄ້ດ "' . htmlspecialchars($barcode) . '" ບໍ່ຖືກຕ້ອງ! ຮອງຮັບສະເພາະຕົວເລກ (0-9) ເທົ່ານັ້ນ!';
                     $message_type = 'warning';
-                } else {
+                } elseif (!empty($barcode)) {
                     $store_id = getActiveStoreId($pdo);
                     $chkStmt = $pdo->prepare("
                         SELECT p.product_name, p.product_id FROM products p WHERE p.barcode = ? AND p.store_id = ?
@@ -196,13 +193,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     // active-branch barcode duplicate check above already covers this store.
                     $activeStoreId = getActiveStoreId($pdo);
                     $qty = $isAdmin ? max(0, intval($_POST['qty'] ?? 0)) : 0;
+                    // Deduct stock on sale? Unchecked = service / made-to-order item.
+                    $cut_qty = isset($_POST['cut_qty']) ? 1 : 0;
 
-                    $stmt      = $pdo->prepare("INSERT INTO products (product_id, product_name, barcode, category_id, bprice, price, unit, unit_id, supplier_id, img_url, qty, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt      = $pdo->prepare("INSERT INTO products (product_id, product_name, barcode, category_id, bprice, price, unit, unit_id, supplier_id, img_url, qty, cut_qty, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $existsChk = $pdo->prepare("SELECT 1 FROM products WHERE product_id = ? AND store_id = ? LIMIT 1");
 
                     $existsChk->execute([$product_id, $activeStoreId]);
                     if (!$existsChk->fetchColumn()) {
-                        $stmt->execute([$product_id, $name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $supplier_id, $img_name, $qty, $activeStoreId]);
+                        $stmt->execute([$product_id, $name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $supplier_id, $img_name, $qty, $cut_qty, $activeStoreId]);
                     }
 
                     // ບັນທຶກຫຼາຍລາຄາ/ຫຼາຍຫົວໜ່ວຍ (product_units) ຖ້າມີ
@@ -372,14 +371,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($product_id > 0 && $name !== '' && $category_id > 0) {
             try {
-                // ກວດສອບລະຫັດບາໂຄ້ດ
-                if (empty($barcode)) {
-                    $message = 'ກະລຸນາປ້ອນ ຫຼື ສະແກນລະຫັດບາໂຄ້ດສິນຄ້າ!';
-                    $message_type = 'warning';
-                } elseif (!preg_match('/^[0-9]+$/', $barcode)) {
+                // ບາໂຄ້ດ ບໍ່ບັງຄັບ — ກວດແຕ່ເມື່ອປ້ອນມາ
+                if (!empty($barcode) && !preg_match('/^[0-9]+$/', $barcode)) {
                     $message = 'ລະຫັດບາໂຄ້ດ "' . htmlspecialchars($barcode) . '" ບໍ່ຖືກຕ້ອງ! ຮອງຮັບສະເພາະຕົວເລກ (0-9) ເທົ່ານັ້ນ!';
                     $message_type = 'warning';
-                } else {
+                } elseif (!empty($barcode)) {
                     $store_id = getActiveStoreId($pdo);
                     $chkStmt = $pdo->prepare("
                         SELECT p.product_name, p.product_id FROM products p WHERE p.barcode = ? AND p.product_id != ? AND p.store_id = ?
@@ -441,6 +437,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             $stmt = $pdo->prepare("UPDATE products SET product_name=?, barcode=?, category_id=?, bprice=?, price=?, unit=?, unit_id=?, img_url=? WHERE product_id=? AND store_id=?");
                             $stmt->execute([$name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $img_name, $product_id, $userStoreId]);
                         }
+                    }
+
+                    // Deduct-stock-on-sale flag — separate UPDATE so all the variants above stay simple.
+                    $cut_qty = isset($_POST['cut_qty']) ? 1 : 0;
+                    if ($isAdmin || $isMain) {
+                        $pdo->prepare("UPDATE products SET cut_qty=? WHERE product_id=?")->execute([$cut_qty, $product_id]);
+                    } else {
+                        $pdo->prepare("UPDATE products SET cut_qty=? WHERE product_id=? AND store_id=?")->execute([$cut_qty, $product_id, $userStoreId]);
                     }
 
                     // ຜູ້ສະໜອງ — ອັບເດດແຍກ ເພື່ອບໍ່ຕ້ອງແກ້ SQL UPDATE ທັງ 4 ຕົວຂ້າງເທິງ
@@ -643,8 +647,9 @@ require_once __DIR__ . '/../../layouts/header.php';
 
       <!-- Right Controls: Store Filter + Category Filter + Search (ຂວາ) -->
       <div class="d-flex align-items-center" style="gap: 10px; flex-wrap: wrap;">
-        <!-- Dropdown: ເລືອກສາຂາ — main branch / admin only; a sub-branch user is locked to their own branch -->
-        <?php if ($isAdmin || $isMain): ?>
+        <!-- Dropdown: ເລືອກສາຂາ — main branch / admin only; a sub-branch user is locked to
+             their own branch. Only worth showing once there's more than one branch. -->
+        <?php if (($isAdmin || $isMain) && count($stores) > 1): ?>
         <div class="prod-filter-wrap" style="width: 200px;">
           <select id="storeFilter" class="form-control font-weight-bold" onchange="switchStoreFilter(this.value)">
             <?php foreach ($stores as $st): ?>
@@ -1016,6 +1021,8 @@ require_once __DIR__ . '/../../layouts/header.php';
       editUnitSelect.val('');
     }
     $('#edit_qty').val(p.qty !== undefined && p.qty !== null ? p.qty : 0);
+    // cut_qty: default 1 (deduct) when the field is missing on older rows
+    $('#edit_cut_qty').prop('checked', (p.cut_qty === undefined || p.cut_qty === null) ? true : (parseInt(p.cut_qty) === 1));
 
     // ຜູ້ສະໜອງ (ບໍ່ບັງຄັບ) — ຖ້າຜູ້ສະໜອງເກົ່າຖືກພັກໃຊ້ງານແລ້ວ ຈະບໍ່ມີ option ໃຫ້ ຈຶ່ງວ່າງໄວ້
     $('#edit_supplier_id').val(p.supplier_id ? String(p.supplier_id) : '');
@@ -1067,22 +1074,31 @@ require_once __DIR__ . '/../../layouts/header.php';
         $('#categoryFilter').val(savedCat);
       }
     } catch(e) {}
+
+    // Restore the "show N per page" choice so a page reload (e.g. right after adding a
+    // product) keeps it instead of snapping back to 10.
+    try {
+      var savedPer = localStorage.getItem('minipos_product_per_page');
+      if (savedPer !== null && $('#perPageHeaderSelect option[value="' + savedPer + '"]').length > 0) {
+        applyPerPage(savedPer);
+      }
+    } catch(e) {}
+
     filterProducts();
   }
 
-  function changePerPage(val) {
-    if (val === 'all') {
-      perPage = 999999;
-    } else {
-      perPage = parseInt(val) || 10;
-    }
-
-    // Sync ທັງສອງ Dropdown (Header ແລະ Footer)
+  // Apply a per-page value to the state + both selects, WITHOUT persisting or re-rendering.
+  function applyPerPage(val) {
+    perPage = (val === 'all') ? 999999 : (parseInt(val) || 10);
     var hSelect = document.getElementById('perPageHeaderSelect');
     var fSelect = document.getElementById('perPageSelect');
     if (hSelect) hSelect.value = val;
     if (fSelect) fSelect.value = val;
+  }
 
+  function changePerPage(val) {
+    applyPerPage(val);
+    try { localStorage.setItem('minipos_product_per_page', val); } catch(e) {}
     currentPage = 1;
     applyPagination();
   }

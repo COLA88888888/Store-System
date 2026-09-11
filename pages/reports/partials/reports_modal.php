@@ -106,6 +106,10 @@
       </div>
       <div class="modal-body p-3" id="reportReceiptPrintArea" style="font-family:'Noto Sans Lao', 'Souliyo', 'Boon', monospace, sans-serif;font-size:12px;color:#000;">
         <div class="text-center mb-2">
+          <!-- Queue number (coffee-shop style) — must reprint with the SAME number the bill got at checkout, not a new one. Shown only when it had one. -->
+          <div id="rc_rep_queue_wrap" style="display:none;margin:2px 0 8px;font-size:26px;font-weight:900;line-height:1.15;color:#000;">
+            <?php echo htmlspecialchars(t('pos.receipt_queue_label', 'ບັດຄິວທີ')); ?> <span id="rc_rep_queue_no">-</span>
+          </div>
           <?php
             $base_path = '../../';
             $logoName = !empty($company['img_url']) ? basename($company['img_url']) : 'logo.png';

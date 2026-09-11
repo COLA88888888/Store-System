@@ -8,10 +8,6 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 
 require_once dirname(__DIR__, 2) . '/config/db.php';
 
-// Multi-currency: reports show the active display currency (data stored in KIP).
-$__dc  = getDisplayCurrency($pdo);
-$__sym = $__dc['symbol'];
-$__dec = (int)$__dc['decimals'];
 if (!function_exists('__cvtArr')) { function __cvtArr($dc, $arr){ return array_map(function($v) use ($dc){ return convertFromKip($v, $dc['code'], $dc['rates']); }, (array)$arr); } }
 
 if (!hasPermission('daily_report') && !hasPermission('report') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ') {
@@ -30,13 +26,40 @@ try {
     $branchesList = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
-// Check if tbsale_save has store_id column
-$hasStoreIdCol = false;
+// Check if tbsale_save has store_id / paid_currency columns
+$hasStoreIdCol  = false;
+$hasCurrencyCol = false;
 try {
     $saleCols = $pdo->query("SHOW COLUMNS FROM tbsale_save")->fetchAll(PDO::FETCH_COLUMN);
-    $hasStoreIdCol = in_array('store_id', $saleCols) || in_array('branch_id', $saleCols);
-    $storeColName = in_array('store_id', $saleCols) ? 'store_id' : 'branch_id';
+    $hasStoreIdCol  = in_array('store_id', $saleCols) || in_array('branch_id', $saleCols);
+    $storeColName   = in_array('store_id', $saleCols) ? 'store_id' : 'branch_id';
+    $hasCurrencyCol = in_array('paid_currency', $saleCols);
 } catch (Exception $e) {}
+
+// Currency Filter — which currency the customer actually tendered on the bill
+$currency_filter = strtoupper(trim($_GET['currency_filter'] ?? ''));
+if ($currency_filter === '' || !isset(getCurrencyMeta()[$currency_filter])) {
+    $currency_filter = '';
+}
+
+// Multi-currency: reports normally show the global display currency (data stored in
+// KIP). When the user filters the report down to one tendered currency, switch the
+// whole page's symbol/amounts to match that currency instead, so "ເລືອກສະກຸນເງິນໃດ
+// ໂຊສະເພາະສະກຸນເງິນນັ້ນ" — picking THB shows ฿, not the store's default ₭/$.
+// getDisplayCurrency() (and displayMoney()) both honor this override globally.
+if ($currency_filter !== '') {
+    $__curRates = getExchangeRates($pdo);
+    $__curRate  = ($currency_filter === 'KIP') ? 1.0 : (float)($__curRates[$currency_filter] ?? 0);
+    if ($currency_filter === 'KIP' || $__curRate > 0) {
+        setDisplayCurrencyOverride(array_merge(
+            ['code' => $currency_filter, 'rate' => $__curRate, 'rates' => $__curRates],
+            getCurrencyMeta()[$currency_filter]
+        ));
+    }
+}
+$__dc  = getDisplayCurrency($pdo);
+$__sym = $__dc['symbol'];
+$__dec = (int)$__dc['decimals'];
 
 // Build SQL Query for Daily Report
 $where   = ["(s.sale_status IS NULL OR s.sale_status != 'CANCEL')"];
@@ -57,6 +80,11 @@ if ($filter_store_id > 0 && $hasStoreIdCol) {
     $params[':filter_store_id'] = $filter_store_id;
 }
 
+if ($currency_filter !== '' && $hasCurrencyCol) {
+    $where[] = "COALESCE(NULLIF(s.paid_currency, ''), 'KIP') = :currency_filter";
+    $params[':currency_filter'] = $currency_filter;
+}
+
 $whereClause = implode(" AND ", $where);
 
 // Fetch 10 Daily Metrics
@@ -70,6 +98,7 @@ $daily_qr_payments     = 0;
 $daily_tips_sum        = 0;
 $daily_bills_count     = 0;
 $daily_items_qty       = 0;
+$currency_breakdown    = [];
 
 $hasCashCol = false;
 $hasQrCol   = false;
@@ -268,10 +297,34 @@ try {
         }
     }
 
+    // Money received, broken down by the currency the customer actually tendered per bill.
+    // total_foreign divides each bill's net by ITS OWN saved rate, so a day mixing rates
+    // still totals correctly.
+    $curCols = $pdo->query("SHOW COLUMNS FROM tbsale_save")->fetchAll(PDO::FETCH_COLUMN);
+    if (in_array('paid_currency', $curCols, true)) {
+        $stmtCur = $pdo->prepare("
+            SELECT
+                COALESCE(NULLIF(s.paid_currency, ''), 'KIP')        AS cur,
+                COUNT(*)                                            AS bills,
+                COALESCE(SUM(s.sale_barlance), 0)                   AS total_kip,
+                COALESCE(SUM(
+                    CASE WHEN COALESCE(NULLIF(s.paid_currency, ''), 'KIP') = 'KIP' OR s.paid_rate <= 0
+                         THEN s.sale_barlance
+                         ELSE s.sale_barlance / s.paid_rate END
+                ), 0)                                               AS total_foreign
+            FROM tbsale_save s
+            WHERE {$whereClause}
+            GROUP BY cur
+            ORDER BY total_kip DESC
+        ");
+        $stmtCur->execute($params);
+        $currency_breakdown = $stmtCur->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     // Fetch individual sales bills for transaction list table
     $stmtSalesList = $pdo->prepare("
-        SELECT s.* 
-        FROM tbsale_save s 
+        SELECT s.*
+        FROM tbsale_save s
         WHERE {$whereClause}
         ORDER BY DATE(s.sale_date) DESC, s.sale_time DESC, s.Id DESC
     ");
@@ -314,20 +367,37 @@ require_once __DIR__ . '/../../layouts/header.php';
         <input type="date" name="to_date" class="form-control form-control-sm font-weight-bold" value="<?php echo htmlspecialchars($to_date); ?>" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #cbd5e1;">
       </div>
 
-      <!-- Branch Filter Dropdown -->
+      <!-- Branch Filter Dropdown — only worth showing once there's more than one branch -->
+      <?php if (count($branchesList) > 1): ?>
       <div class="report-filter-date-col" style="min-width: 170px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-store text-info mr-1"></i> <?php echo htmlspecialchars(t('reports.branch_label', 'ສາຂາ:')); ?>
         </label>
-        <select name="store_id" class="form-control form-control-sm font-weight-bold" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #cbd5e1;">
+        <select name="store_id" class="form-control form-control-sm font-weight-bold" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #cbd5e1;" onchange="this.form.submit()">
           <option value="0"><?php echo htmlspecialchars(t('reports.all_branches_opt', '-- ທຸກສາຂາ --')); ?></option>
-          <?php if (!empty($branchesList)): ?>
-            <?php foreach ($branchesList as $b): ?>
-              <option value="<?php echo $b['store_id']; ?>" <?php echo ($filter_store_id == $b['store_id']) ? 'selected' : ''; ?>>
-                <?php echo htmlspecialchars($b['store_name']); ?> <?php echo !empty($b['is_main']) ? htmlspecialchars(t('reports.main_branch_suffix', '(ສາຂາໃຫຍ່)')) : ''; ?>
-              </option>
-            <?php endforeach; ?>
-          <?php endif; ?>
+          <?php foreach ($branchesList as $b): ?>
+            <option value="<?php echo $b['store_id']; ?>" <?php echo ($filter_store_id == $b['store_id']) ? 'selected' : ''; ?>>
+              <?php echo htmlspecialchars($b['store_name']); ?> <?php echo !empty($b['is_main']) ? htmlspecialchars(t('reports.main_branch_suffix', '(ສາຂາໃຫຍ່)')) : ''; ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <?php else: ?>
+        <input type="hidden" name="store_id" value="0">
+      <?php endif; ?>
+
+      <!-- Currency Filter Dropdown -->
+      <div class="report-filter-date-col" style="min-width: 170px;">
+        <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
+          <i class="fas fa-coins text-warning mr-1"></i> <?php echo htmlspecialchars(t('reports.currency_label', 'ສະກຸນເງິນ:')); ?>
+        </label>
+        <select name="currency_filter" class="form-control form-control-sm font-weight-bold" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #a16207; color: #854d0e; background: #fefce8;" onchange="this.form.submit()">
+          <option value=""><?php echo htmlspecialchars(t('reports.all_currencies_opt', '-- ທຸກສະກຸນເງິນ --')); ?></option>
+          <?php foreach (getCurrencyMeta() as $__curCode => $__curInfo): ?>
+            <option value="<?php echo htmlspecialchars($__curCode); ?>" <?php echo $currency_filter === $__curCode ? 'selected' : ''; ?>>
+              <?php echo htmlspecialchars($__curInfo['name'] . ' (' . $__curInfo['symbol'] . ')'); ?>
+            </option>
+          <?php endforeach; ?>
         </select>
       </div>
 
@@ -500,6 +570,44 @@ require_once __DIR__ . '/../../layouts/header.php';
                   <?php echo displayMoney($pdo, $bRow['total_received']); ?>
                 </div>
               </div>
+            </div>
+          <?php endforeach; ?>
+        </div>
+      </div>
+    </div>
+  <?php endif; ?>
+
+  <!-- Money Received by Tender Currency -->
+  <?php if (!empty($currency_breakdown)): ?>
+    <?php $__curMeta = function_exists('getCurrencyMeta') ? getCurrencyMeta() : []; ?>
+    <div class="card border-0 shadow-sm mb-4 w-100" style="border-radius: 12px; background: #f8fafc; border: 1.5px solid #e2e8f0;">
+      <div class="card-body" style="padding: 16px 18px;">
+        <h6 class="font-weight-bold text-dark mb-3">
+          <i class="fas fa-coins text-warning mr-1.5"></i> <?php echo htmlspecialchars(t('reports.currency_breakdown_title', 'ຮັບເງິນແຍກຕາມສະກຸນເງິນ')); ?>
+        </h6>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+          <?php foreach ($currency_breakdown as $cRow): ?>
+            <?php
+              $cCode = strtoupper($cRow['cur'] ?? 'KIP');
+              $cName = $__curMeta[$cCode]['name'] ?? $cCode;
+              $cSym  = $__curMeta[$cCode]['symbol'] ?? $cCode;
+              $cDec  = (int)($__curMeta[$cCode]['decimals'] ?? ($cCode === 'KIP' ? 0 : 2));
+              $cColor = ($cCode === 'THB') ? '#0369a1' : (($cCode === 'USD') ? '#047857' : (($cCode === 'CNY') ? '#b91c1c' : '#a16207'));
+            ?>
+            <div style="flex: 1 1 200px; min-width: 190px; max-width: 300px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px;">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="font-weight-bold text-dark" style="font-size: 0.9rem;">
+                  <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: <?php echo $cColor; ?>; margin-right: 6px; vertical-align: middle;"></span>
+                  <?php echo htmlspecialchars($cName); ?> <span class="text-muted">(<?php echo htmlspecialchars($cSym); ?>)</span>
+                </span>
+                <span class="badge badge-light border text-muted font-weight-bold" style="font-size: 0.7rem;"><?php echo number_format($cRow['bills']); ?> <?php echo htmlspecialchars(t('reports.bills_unit', 'ບິນ')); ?></span>
+              </div>
+              <div class="font-weight-bold" style="font-size: 1.15rem; line-height: 1.2; color: <?php echo $cColor; ?>;">
+                <?php echo number_format((float)$cRow['total_foreign'], $cDec); ?> <?php echo htmlspecialchars($cSym); ?>
+              </div>
+              <?php if ($cCode !== $__dc['code']): ?>
+                <div class="text-muted font-weight-bold" style="font-size: 0.76rem; margin-top: 3px;">≈ <?php echo displayMoney($pdo, $cRow['total_kip']); ?></div>
+              <?php endif; ?>
             </div>
           <?php endforeach; ?>
         </div>

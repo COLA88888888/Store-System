@@ -24,6 +24,11 @@ window.POS_TODAY_SALE_COUNT = <?php echo $todaySaleCount; ?>;
 window.POS_EX_RATES = <?php echo json_encode($posDisplayCurrency['rates'], JSON_UNESCAPED_UNICODE); ?>;
 window.POS_CURRENCY_META = <?php echo json_encode(getCurrencyMeta(), JSON_UNESCAPED_UNICODE); ?>;
 window.POS_DISPLAY_CURRENCY = <?php echo json_encode($posDisplayCurrency['code']); ?>;
+// category_id -> { printer_id, printer_name }. Empty = no kitchen-ticket splitting configured.
+window.POS_KITCHEN_ROUTES = <?php echo json_encode($posKitchenRoutes ?? [], JSON_UNESCAPED_UNICODE); ?>;
+window.STORE_NAME = <?php echo json_encode($company['com_name_la'] ?? ($company['com_name'] ?? 'POS'), JSON_UNESCAPED_UNICODE); ?>;
+// Show a daily-resetting queue number on the receipt (coffee-shop style). Off for general retail.
+window.POS_QUEUE_ENABLED = <?php echo getSetting($pdo, 'queue_enabled', '0') === '1' ? 'true' : 'false'; ?>;
 
 // Stop SweetAlert2 from reflowing the page when an alert opens: heightAuto:false keeps it
 // from forcing html/body to height:auto, scrollbarPadding:false keeps it from adding a

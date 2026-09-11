@@ -12,6 +12,7 @@ return [
     'home.to_date' => '结束日期:',
     'home.search' => '搜索',
     'home.clear' => '重置',
+    'home.default_currency_opt' => '-- 商店默认 --',
     'home.card_total_sales' => '总销售额',
     'home.card_total_cost' => '商品总成本',
     'home.card_cogs' => '销售成本',

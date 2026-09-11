@@ -1484,8 +1484,10 @@ if (!hasPermission('dashboard')) {
           'body .btn-outline-primary:hover,body .btn-outline-primary:not(:disabled):not(.disabled):active,body .btn-outline-primary:not(:disabled):not(.disabled).active{background:' + color + '!important;border-color:' + color + '!important;color:#fff!important}',
           'body .btn-info{background:' + color + '!important;background-image:none!important;border-color:' + d + '!important}',
           'body .btn-info:hover,body .btn-info:focus,body .btn-info:not(:disabled):not(.disabled):active{background:' + d + '!important;background-image:none!important;border-color:' + d + '!important}',
-          'body .badge-primary{background-color:' + color + '!important}',
-          'body .bg-primary{background-color:' + color + '!important}',
+          'body .badge-primary{background:' + color + '!important;background-image:none!important}',
+          // themes/pos.css sets `.bg-primary{background:linear-gradient(...)!important}` — a
+          // background-color-only override leaves that gradient IMAGE on top, so clear it too.
+          'body .bg-primary{background:' + color + '!important;background-image:none!important}',
           'body .text-primary{color:' + color + '!important}',
           'body .btn-link{color:' + color + '!important}',
           // Pagination — plain .pagination (Bootstrap / global-custom.css / report-pagination).
@@ -1545,11 +1547,23 @@ if (!hasPermission('dashboard')) {
         if (!idoc || !idoc.body) return;
         var l = shade(color, 0.20), d = shade(color, -0.18);
         var grad = 'linear-gradient(135deg, ' + l + ', ' + color + ')';
+        var BRAND = /#2c5aa0|#244886/i;
         idoc.querySelectorAll('[style*="#2c5aa0"],[style*="#244886"],.pos-inline-themed').forEach(function(el) {
+          // Form fields keep a neutral fill — only their border may follow the theme.
+          var isField = (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
           if (!el.classList.contains('pos-inline-themed')) {
             var s = el.getAttribute('style') || '';
-            var hasBg = /background(-image)?\s*:/.test(s);
-            var hasBorder = /border(-color)?\s*:/.test(s);
+            // Only recolour a property whose VALUE actually carries the brand hex — a
+            // white `background:#fff` sitting next to a `border:...#244886` must stay white.
+            var hasBg = false, hasBorder = false;
+            s.split(';').forEach(function(decl) {
+              var i = decl.indexOf(':');
+              if (i < 0 || !BRAND.test(decl.slice(i + 1))) return;
+              var prop = decl.slice(0, i).trim().toLowerCase();
+              if (prop === 'background' || prop === 'background-color' || prop === 'background-image') hasBg = true;
+              else if (prop === 'border' || prop === 'border-color') hasBorder = true;
+            });
+            if (isField) hasBg = false;
             if (!hasBg && !hasBorder) return;
             el.classList.add('pos-inline-themed');
             el.dataset.posBg = hasBg ? '1' : '';
@@ -1568,6 +1582,11 @@ if (!hasPermission('dashboard')) {
         document.querySelectorAll('.main-sidebar .brand-link').forEach(function(el) {
           el.style.setProperty('background-color', color, 'important');
         });
+        // The .wrapper::before "shield" (fixed block behind the logo that hides the white
+        // gap while the sidebar slides) is a pseudo-element — recolour it via an injected
+        // rule so it stays invisible against the theme instead of flashing the old blue
+        // during the collapse/expand animation.
+        injectStyle(document, 'posThemeShieldStyle', '.wrapper::before{background:' + color + ' !important;background-color:' + color + ' !important}');
         // Flat-fill the navbar notification dropdown headers so they track the theme too.
         document.querySelectorAll('.main-header .dropdown-header').forEach(function(el) {
           el.style.setProperty('background-color', color, 'important');
@@ -1625,6 +1644,7 @@ if (!hasPermission('dashboard')) {
             // Drop overrides so the stylesheets' original blues return.
             removeStyle(document, 'posThemeActiveStyle');
             removeStyle(document, 'posThemeBtnStyle');
+            removeStyle(document, 'posThemeShieldStyle');
             removeStyle(iframeDoc(), 'posThemeBtnStyle');
           });
         }

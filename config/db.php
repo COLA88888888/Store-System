@@ -167,18 +167,8 @@ if ($conn && !empty($_SESSION['user_id'])) {
             }
         }
 
-        // Multi-Branch Store Switcher Handler for Executive / Admin Users
-        if (isset($_GET['switch_store_id'])) {
-            $switchId = intval($_GET['switch_store_id']);
-            if ($isAdmin || isMainBranch($pdo, $_SESSION['store_id'] ?? 1)) {
-                $_SESSION['active_store_id'] = $switchId;
-            }
-        } elseif (isset($_GET['store_id'])) {
-            $switchId = intval($_GET['store_id']);
-            if ($isAdmin || isMainBranch($pdo, $_SESSION['store_id'] ?? 1)) {
-                $_SESSION['active_store_id'] = $switchId;
-            }
-        }
+        // Multi-Branch Store Switcher Handler runs at the very bottom of this file —
+        // it needs isMainBranch() and $pdo, both of which are defined further down.
     }
 }
 
@@ -199,7 +189,9 @@ if (!$pdo) {
 if ($pdo) {
 
     // Migration for database tables & schema (runs once per installation or when flag is missing for extreme performance)
-    $schemaFlagFile = __DIR__ . '/.db_schema_v1';
+    // Bump the version suffix whenever a new guarded ALTER is added below so every install re-runs the block once.
+    // v2: paid_currency / paid_rate / paid_amount_foreign on tbsale_save + sales (multi-currency receipts).
+    $schemaFlagFile = __DIR__ . '/.db_schema_v4';
     if (!file_exists($schemaFlagFile)) {
         try {
 
@@ -294,6 +286,34 @@ if ($pdo) {
                 // fall back to a plain ADD if AFTER-column resolution failed
                 $pdo->exec("ALTER TABLE `tbexchange` ADD COLUMN `ex_kip_cn` VARCHAR(255) NULL");
             }
+        }
+    } catch (Throwable $ex) {}
+
+    // Multi-currency receipts: record which currency the customer actually tendered on
+    // each sale (chosen per bill at checkout) plus the KIP-per-unit rate used at that
+    // moment, so the daily report can break "money received today" down by currency.
+    // Own try/catch — never let this stall the checkout insert if it can't run.
+    try {
+        foreach (['tbsale_save', 'sales'] as $__ccTbl) {
+            $__ccCols = $pdo->query("SHOW COLUMNS FROM `{$__ccTbl}`")->fetchAll(PDO::FETCH_COLUMN);
+            if (!in_array('paid_currency', $__ccCols, true)) {
+                $pdo->exec("ALTER TABLE `{$__ccTbl}` ADD COLUMN `paid_currency` VARCHAR(8) NOT NULL DEFAULT 'KIP'");
+            }
+            if (!in_array('paid_rate', $__ccCols, true)) {
+                $pdo->exec("ALTER TABLE `{$__ccTbl}` ADD COLUMN `paid_rate` DECIMAL(18,6) NOT NULL DEFAULT 1");
+            }
+            if (!in_array('paid_amount_foreign', $__ccCols, true)) {
+                $pdo->exec("ALTER TABLE `{$__ccTbl}` ADD COLUMN `paid_amount_foreign` DECIMAL(18,2) NULL");
+            }
+        }
+    } catch (Throwable $ex) {}
+
+    // Kitchen-ticket routing: which printer a product category's items print to at the POS.
+    // NULL = that category prints on no separate ticket (only the customer receipt).
+    try {
+        $catCols = $pdo->query("SHOW COLUMNS FROM `categories`")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('printer_id', $catCols, true)) {
+            $pdo->exec("ALTER TABLE `categories` ADD COLUMN `printer_id` INT NULL");
         }
     } catch (Throwable $ex) {}
 
@@ -771,6 +791,8 @@ if ($pdo) {
             ('loyalty_points_earned', '1')");
         // Active display currency for POS/receipt (KIP | THB | USD | CNY). KIP = base, no conversion.
         $pdo->exec("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('display_currency', 'KIP')");
+        // Show a daily-resetting queue number on the receipt (coffee-shop style). '0' = off.
+        $pdo->exec("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('queue_enabled', '0')");
     } catch (Throwable $ex) {}
 
     // Auto Migration for tbsale_save, tbsale_save_detail & sales view
@@ -960,6 +982,12 @@ if (!function_exists('getDisplayCurrency')) {
      */
     function getDisplayCurrency($pdo)
     {
+        // A report that lets the user filter down to one tendered currency (e.g. the
+        // currency_filter dropdown on reports/daily_report) overrides the global
+        // display currency for the rest of the request — see setDisplayCurrencyOverride().
+        if (!empty($GLOBALS['__display_currency_override'])) {
+            return $GLOBALS['__display_currency_override'];
+        }
         $code  = strtoupper(trim((string) getSetting($pdo, 'display_currency', 'KIP')));
         $meta  = getCurrencyMeta();
         $rates = getExchangeRates($pdo);
@@ -1001,6 +1029,19 @@ if (!function_exists('formatMoneyIn')) {
     }
 }
 
+if (!function_exists('setDisplayCurrencyOverride')) {
+    /**
+     * Force displayMoney() to render in one specific currency for the rest of this
+     * request, instead of the global system_settings 'display_currency'. Used when a
+     * report page lets the user filter down to one tendered currency (e.g. the daily
+     * report's currency_filter) — the amounts on screen should switch to match.
+     */
+    function setDisplayCurrencyOverride($dc)
+    {
+        $GLOBALS['__display_currency_override'] = $dc;
+    }
+}
+
 if (!function_exists('displayMoney')) {
     /**
      * Format a KIP amount in the request's active display currency, with the
@@ -1010,7 +1051,9 @@ if (!function_exists('displayMoney')) {
     function displayMoney($pdo, $amountKip, $withSymbol = true)
     {
         static $dc = null;
-        if ($dc === null) {
+        if (!empty($GLOBALS['__display_currency_override'])) {
+            $dc = $GLOBALS['__display_currency_override'];
+        } elseif ($dc === null) {
             $dc = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo)
                 : ['code' => 'KIP', 'rates' => ['KIP' => 1]];
         }
@@ -1312,15 +1355,31 @@ if (!function_exists('getCompanyInfoForBranch')) {
         }
         $mainStoreId = intval($pdo->query("SELECT store_id FROM tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1")->fetchColumn() ?: 1);
 
-        $stmt = $pdo->prepare("SELECT * FROM tbcompanyinfo WHERE branch_id = ? LIMIT 1");
-        $stmt->execute([$mainStoreId]);
-        $company = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$company) {
-            $stmt = $pdo->prepare("SELECT store_name as com_name_la, address as com_address, tel as com_tel, 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!' as barcode, logo_path as img_url FROM tbstore WHERE store_id = ? LIMIT 1");
+        $company = [];
+        try {
+            $stmt = $pdo->prepare("SELECT * FROM tbcompanyinfo WHERE branch_id = ? LIMIT 1");
             $stmt->execute([$mainStoreId]);
             $company = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+        } catch (Throwable $e) {}
+
+        if (!$company) {
+            try {
+                // `tbstore.logo_path` doesn't exist on every install — only SELECT it when present.
+                $stCols = $pdo->query("SHOW COLUMNS FROM `tbstore`")->fetchAll(PDO::FETCH_COLUMN);
+                $logoExpr = in_array('logo_path', $stCols, true) ? '`logo_path`' : "'logo.png'";
+                $stmt = $pdo->prepare("SELECT store_name as com_name_la, address as com_address, tel as com_tel, 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!' as barcode, {$logoExpr} as img_url FROM tbstore WHERE store_id = ? LIMIT 1");
+                $stmt->execute([$mainStoreId]);
+                $company = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+            } catch (Throwable $e) { $company = []; }
         }
+
+        // Empty DB (fresh / restored / wiped): return a safe shape so callers never hit
+        // "undefined array key" on every field.
+        $company = array_merge([
+            'com_name_la' => '', 'com_address' => '', 'com_tel' => '', 'com_email' => '',
+            'tax_id' => '', 'barcode' => '', 'img_url' => 'logo.png', 'qr_img' => '',
+            'vat_percent' => 0, 'tax_type' => 'none',
+        ], $company);
 
         if (intval($storeId) !== $mainStoreId) {
             $logoStmt = $pdo->prepare("SELECT img_url FROM tbcompanyinfo WHERE branch_id = ? LIMIT 1");
@@ -1456,6 +1515,29 @@ if (!function_exists('getSubBranchStockImportsForMain')) {
             return $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         } catch (Exception $e) {
             return [];
+        }
+    }
+}
+
+// ============================================================
+// Multi-Branch Store Switcher Handler
+// Kept at the very bottom: it depends on isMainBranch() and $pdo, both defined above.
+// A URL carrying ?switch_store_id=N (explicit switcher) or ?store_id=N (report branch
+// filter) parks the choice in $_SESSION['active_store_id'], which getActiveStoreId()
+// reads on the next request. Admins and main-branch users may switch; sub-branch users
+// are ignored here and stay locked to their own store.
+// ============================================================
+if (!empty($_SESSION['user_id'])) {
+    $switchStoreParam = null;
+    if (isset($_GET['switch_store_id'])) {
+        $switchStoreParam = intval($_GET['switch_store_id']);
+    } elseif (isset($_GET['store_id']) && $_GET['store_id'] !== '') {
+        $switchStoreParam = intval($_GET['store_id']);
+    }
+    if ($switchStoreParam !== null && $switchStoreParam > 0) {
+        $canSwitchStore = !empty($isAdmin) || isMainBranch($pdo, $_SESSION['store_id'] ?? 1);
+        if ($canSwitchStore) {
+            $_SESSION['active_store_id'] = $switchStoreParam;
         }
     }
 }

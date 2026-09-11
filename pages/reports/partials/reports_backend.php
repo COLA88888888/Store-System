@@ -344,15 +344,17 @@ $report_meta = [
 
 $current_meta = $report_meta[$type] ?? $report_meta['all_sales'];
 
-// Inspect columns in tbsale_save to handle cash, qr, and tip columns dynamically
-$hasCashCol = false;
-$hasQrCol   = false;
-$hasTipCol  = false;
+// Inspect columns in tbsale_save to handle cash, qr, tip, and currency columns dynamically
+$hasCashCol     = false;
+$hasQrCol       = false;
+$hasTipCol      = false;
+$hasCurrencyCol = false;
 try {
     $cols = $pdo->query("SHOW COLUMNS FROM tbsale_save")->fetchAll(PDO::FETCH_COLUMN);
-    $hasCashCol = in_array('cash_received', $cols);
-    $hasQrCol   = in_array('qr_received', $cols);
-    $hasTipCol  = in_array('tip_amount', $cols) || in_array('tip', $cols);
+    $hasCashCol     = in_array('cash_received', $cols);
+    $hasQrCol       = in_array('qr_received', $cols);
+    $hasTipCol      = in_array('tip_amount', $cols) || in_array('tip', $cols);
+    $hasCurrencyCol = in_array('paid_currency', $cols);
 } catch (Exception $e) {}
 
 // Build SQL Query & Fetch Data
@@ -436,14 +438,42 @@ if (!empty($bank_filter)) {
     }
 }
 
+// Currency Filter — which currency the customer actually tendered on the bill
+// (paid_currency, saved per sale at checkout; 'KIP' = base currency, no conversion).
+$currency_filter = strtoupper(trim($_GET['currency_filter'] ?? ''));
+if ($currency_filter !== '' && $hasCurrencyCol && isset(getCurrencyMeta()[$currency_filter])) {
+    $where[] = "COALESCE(NULLIF(s.paid_currency, ''), 'KIP') = :currency_filter";
+    $params[':currency_filter'] = $currency_filter;
+
+    // Reports normally show money in the global display-currency setting; once the
+    // user filters down to one tendered currency, every amount on the page should
+    // switch to match it instead (KPI cards, table cells, totals) — not stay stuck
+    // showing ₭ while the filter says THB.
+    $__curRates = getExchangeRates($pdo);
+    $__curRate  = ($currency_filter === 'KIP') ? 1.0 : (float)($__curRates[$currency_filter] ?? 0);
+    if ($currency_filter === 'KIP' || $__curRate > 0) {
+        setDisplayCurrencyOverride(array_merge(
+            ['code' => $currency_filter, 'rate' => $__curRate, 'rates' => $__curRates],
+            getCurrencyMeta()[$currency_filter]
+        ));
+    }
+} else {
+    $currency_filter = '';
+}
+
 // Branch Store Filter
 $userStoreId = intval($_SESSION['store_id'] ?? 1);
 $isAdmin = ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' || strtolower($_SESSION['status'] ?? '') === 'admin' || ($_SESSION['user_id'] ?? 0) == 1;
 $isMain = isMainBranch($pdo, $userStoreId);
 
+// A user explicitly granted the "report" permission may view every branch's figures,
+// just like an admin / main-branch user. Staff who only reach reports via 'sale'/'pos'
+// permission stay locked to their own branch.
+$reportsCrossBranch = $isMain || $isAdmin || hasPermission('report');
+
 $filter_store_id = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : 0;
-// If user is sub-branch (non-main, non-admin), strictly lock reports to their assigned store_id
-if (!$isMain && !$isAdmin) {
+// Sub-branch users without report permission: strictly lock reports to their assigned store_id
+if (!$reportsCrossBranch) {
     $filter_store_id = $userStoreId;
 }
 
@@ -576,6 +606,7 @@ if ($view_mode === 'item') {
                s.sale_pay, s.sale_return,
                " . ($hasCashCol ? "s.cash_received," : "") . "
                " . ($hasQrCol ? "s.qr_received," : "") . "
+               " . ($hasCurrencyCol ? "s.paid_currency, s.paid_rate, s.paid_amount_foreign," : "") . "
                p.product_name, cat.category_name, COALESCE(st.store_name, 'ສາຂາ') AS store_name
         FROM tbsale_save_detail d
         INNER JOIN tbsale_save s ON d.save_bill = s.sale_save_bill
@@ -651,7 +682,8 @@ if ($view_mode === 'item') {
             'qr'        => $itemQr,
             'tip'       => $itemTip,
             'status'    => $r['sale_status'] ?? 'SUCCESS',
-            'cashier'   => $r['user_receive'] ?? 'Admin'
+            'cashier'   => $r['user_receive'] ?? 'Admin',
+            'currency'  => strtoupper($r['paid_currency'] ?? 'KIP') ?: 'KIP'
         ];
 
         $total_qty    += $qty;
@@ -768,7 +800,8 @@ if ($view_mode === 'item') {
             'bank_code'       => $bCode,
             'bank_logo'       => $bLogo,
             'cashier'         => $r['user_receive'] ?? 'Admin',
-            'customer'        => $r['customer_name'] ?? 'ລູກຄ້າທົ່ວໄປ'
+            'customer'        => $r['customer_name'] ?? 'ລູກຄ້າທົ່ວໄປ',
+            'currency'        => strtoupper($r['paid_currency'] ?? 'KIP') ?: 'KIP'
         ];
 
         $total_qty    += $qty;
@@ -812,6 +845,7 @@ if ($view_mode === 'item') {
                 'bill_no'   => $bno,
                 'date_time' => $row['date_time'],
                 'cashier'   => $row['cashier'],
+                'currency'  => $row['currency'] ?? 'KIP',
                 'items'     => [],
                 'bill_net'  => 0,
             ];

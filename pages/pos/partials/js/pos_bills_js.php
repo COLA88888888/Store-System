@@ -179,13 +179,30 @@ function updateActiveBillsUI() {
 function openActiveBillsModal() {
   if ($('#btnActiveBills').is(':disabled')) return;
   saveCurrentBillState();
+  $('#activeBillsSearchInput').val('');
+  $('#activeBillsNoMatch').hide();
   renderActiveBills();
   $('#activeBillsModal').modal('show');
+}
+
+// Filter the rendered bill cards by name / customer / product text.
+function filterActiveBillsList() {
+  var q = ($('#activeBillsSearchInput').val() || '').trim().toLowerCase();
+  var anyVisible = false;
+  $('#activeBillsContainer .held-item-card').each(function() {
+    var hit = !q || ($(this).attr('data-bill-search') || '').indexOf(q) !== -1;
+    $(this).toggle(hit);
+    if (hit) anyVisible = true;
+  });
+  $('#activeBillsNoMatch').toggle(!anyVisible && q.length > 0);
 }
 
 function renderActiveBills() {
   var container = $('#activeBillsContainer');
   container.empty();
+  $('#activeBillsNoMatch').hide();
+  // Search box only earns its place once there's more than one open bill.
+  $('#activeBillsSearchWrap').toggle(activeBills.length > 1);
 
   if (activeBills.length === 0) {
     container.html(`<div class="text-center py-4 text-muted">ບໍ່ມີບິນທີ່ເປີດຢູ່</div>`);
@@ -249,7 +266,13 @@ function renderActiveBills() {
       </div>
     `;
     container.append(cardHtml);
+    // Haystack for the modal's search box: bill name + customer + every product name.
+    var searchStr = (bill.name + ' ' + cusName + ' ' +
+      (bill.cart || []).map(function(i) { return i.product_name || ''; }).join(' ')).toLowerCase();
+    container.children().last().attr('data-bill-search', searchStr);
   });
+
+  filterActiveBillsList();
 }
 
 function selectActiveBill(billId) {
@@ -444,7 +467,7 @@ function clearAllHeldOrders() {
     confirmButtonColor: '#ef4444',
     cancelButtonColor: '#64748b',
     confirmButtonText: 'ລ້າງທັງໝົດ',
-    cancelButtonText: 'ຍົກເລີກ'
+    cancelButtonText: 'ຍົກເລີກ' 
   }).then(function(result) {
     if (!result.isConfirmed) return;
     heldOrders = [];

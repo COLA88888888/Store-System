@@ -65,24 +65,42 @@ window.POSCUR = (function () {
     USD: { name: 'ໂດລາ', symbol: '$', decimals: 2 },
     CNY: { name: 'ຢວນ', symbol: '¥', decimals: 2 }
   };
-  var code = (window.POS_DISPLAY_CURRENCY || 'KIP').toUpperCase();
-  if (!metaAll[code]) code = 'KIP';
-  var rate = (code === 'KIP') ? 1 : (parseFloat(rates[code]) || 0);
-  if (code !== 'KIP' && rate <= 0) { code = 'KIP'; rate = 1; }   // rate not set -> fall back to KIP
-  var meta = metaAll[code];
-  var isKip = (code === 'KIP');
+  // Mutable so the checkout modal can switch the tender currency per bill via
+  // POSCUR.setCurrency(); every helper below reads these at call time.
+  var code, rate, meta, isKip;
+
+  function setCurrency(next) {
+    next = String(next || 'KIP').toUpperCase();
+    if (!metaAll[next]) next = 'KIP';
+    var r = (next === 'KIP') ? 1 : (parseFloat(rates[next]) || 0);
+    if (next !== 'KIP' && r <= 0) { next = 'KIP'; r = 1; }   // rate not set -> fall back to KIP
+    code = next; rate = r; meta = metaAll[code]; isKip = (code === 'KIP');
+    // keep the exposed snapshot properties in sync for callers that read them directly
+    if (window.POSCUR) {
+      POSCUR.code = code; POSCUR.symbol = meta.symbol; POSCUR.name = meta.name;
+      POSCUR.decimals = meta.decimals; POSCUR.rate = rate; POSCUR.isKip = isKip;
+    }
+    return code;
+  }
+  setCurrency(window.POS_DISPLAY_CURRENCY || 'KIP');
 
   function fromKip(kip) {
     kip = parseFloat(kip) || 0;
     return isKip ? Math.round(kip) : (kip / rate);
   }
+  // A typed/displayed amount, parsed to a plain number in the display currency
+  // (no symbol, no thousands separators), rounded to this currency's own decimals.
+  function parseUnits(str) {
+    var p = Math.pow(10, meta.decimals);
+    if (typeof str === 'number') return Math.round(str * p) / p;
+    str = String(str == null ? '' : str);
+    var n = isKip ? (parseFloat(str.replace(/[^\d]/g, '')) || 0) : (parseFloat(str.replace(/[^0-9.]/g, '')) || 0);
+    return Math.round(n * p) / p;
+  }
   // Parse a user-typed amount (already in the display currency) back to whole KIP.
   function toKip(str) {
-    if (typeof str === 'number') return isKip ? Math.round(str) : Math.round(str * rate);
-    str = String(str == null ? '' : str);
-    if (isKip) return Math.round(parseFloat(str.replace(/[^\d]/g, '')) || 0);
-    var n = parseFloat(str.replace(/[^0-9.]/g, '')) || 0;
-    return Math.round(n * rate);
+    var n = parseUnits(str);
+    return isKip ? n : Math.round(n * rate);
   }
   // Numeric string in the display currency (no symbol) — for pre-filling inputs.
   function num(kip) {
@@ -91,13 +109,28 @@ window.POSCUR = (function () {
       ? Math.round(v).toLocaleString('en-US')
       : v.toLocaleString('en-US', { minimumFractionDigits: meta.decimals, maximumFractionDigits: meta.decimals });
   }
+  // The amount as the cashier actually sees it: display-currency units rounded to this
+  // currency's decimals. "Is the payment enough?" MUST be judged on these, not on raw
+  // KIP — a KIP total rarely divides evenly by the rate, so tendering the exact shown
+  // amount lands a few KIP short and would read as an impossible "ຂາດ 0 ฿".
+  function units(kip) {
+    var p = Math.pow(10, meta.decimals);
+    return Math.round(fromKip(kip) * p) / p;
+  }
   // Full display string with symbol.
   function fmt(kip) { return num(kip) + ' <span class="cur-sym">' + meta.symbol + '</span>'; }
+  // Format an amount that is ALREADY in display-currency units (see units()/parseUnits()).
+  function fmtUnits(u) {
+    u = parseFloat(u) || 0;
+    return u.toLocaleString('en-US', { minimumFractionDigits: meta.decimals, maximumFractionDigits: meta.decimals })
+      + ' <span class="cur-sym">' + meta.symbol + '</span>';
+  }
 
   return {
     code: code, symbol: meta.symbol, name: meta.name, decimals: meta.decimals,
     rate: rate, isKip: isKip, rates: rates,
-    fromKip: fromKip, toKip: toKip, num: num, fmt: fmt
+    fromKip: fromKip, toKip: toKip, num: num, fmt: fmt, units: units,
+    parseUnits: parseUnits, fmtUnits: fmtUnits, setCurrency: setCurrency
   };
 })();
 

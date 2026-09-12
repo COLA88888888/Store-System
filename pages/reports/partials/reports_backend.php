@@ -507,6 +507,7 @@ $total_qr          = 0;
 $total_change      = 0;
 $total_tip         = 0;
 $total_profit      = 0;
+$has_cost_data     = false;
 $total_bills_count = 0;
 
 // Daily Report 10 Metrics Variables
@@ -607,7 +608,7 @@ if ($view_mode === 'item') {
                " . ($hasCashCol ? "s.cash_received," : "") . "
                " . ($hasQrCol ? "s.qr_received," : "") . "
                " . ($hasCurrencyCol ? "s.paid_currency, s.paid_rate, s.paid_amount_foreign," : "") . "
-               p.product_name, cat.category_name, COALESCE(st.store_name, 'ສາຂາ') AS store_name
+               p.product_name, p.bprice, cat.category_name, COALESCE(st.store_name, 'ສາຂາ') AS store_name
         FROM tbsale_save_detail d
         INNER JOIN tbsale_save s ON d.save_bill = s.sale_save_bill
         LEFT JOIN products p ON (d.save_proid = p.product_id AND (p.store_id = s.store_id OR s.store_id IS NULL OR s.store_id <= 1))
@@ -662,9 +663,21 @@ if ($view_mode === 'item') {
         $itemQr   = round($billQr * $ratio, 2);
         $itemTip  = round($billTip * $ratio, 2);
 
-        $buyPrice = floatval($r['price_buy'] ?? ($price * 0.7));
+        // Real cost only — d.cost_price (recorded at checkout time) falling back to the
+        // product's current bprice for older sales. NEVER a guessed margin: a non-stock/
+        // service item (cut_qty = 0) typically has no purchase cost at all, and fabricating
+        // one (e.g. 70% of the sale price) would misreport its profit. When no real cost is
+        // on file, $profit is left null so the KPI card can hide instead of showing a guess.
+        $realCostPrice = floatval($r['cost_price'] ?? 0);
+        $fallbackBprice = floatval($r['bprice'] ?? 0);
+        $hasCost  = $realCostPrice > 0 || $fallbackBprice > 0;
+        $buyPrice = $realCostPrice > 0 ? $realCostPrice : $fallbackBprice;
         $itemCost = $qty * $buyPrice;
-        $profit   = max(0, $net - $itemCost);
+        $profit   = $hasCost ? max(0, $net - $itemCost) : null;
+
+        if ($hasCost) {
+            $has_cost_data = true;
+        }
 
         $sales_data[] = [
             'bill_no'   => $r['save_bill'],
@@ -690,7 +703,9 @@ if ($view_mode === 'item') {
         $total_gross  += $gross;
         $total_disc   += $itemDisc;
         $total_net    += $net;
-        $total_profit += $profit;
+        if ($hasCost) {
+            $total_profit += $profit;
+        }
         $total_cash  += $itemCash;
         $total_qr    += $itemQr;
         $total_tip   += $itemTip;
@@ -815,6 +830,28 @@ if ($view_mode === 'item') {
     }
 
     $total_bills_count = count($sales_data);
+
+    // Invoice view has no per-item rows to derive cost from, so pull real cost (d.cost_price,
+    // falling back to the product's current bprice) straight from the sale details for the
+    // same filtered bills. Never assume a margin — if nothing here has a recorded cost,
+    // $has_cost_data stays false and reports_kpi.php hides the ກຳໄລ card instead of guessing.
+    try {
+        $costStmt = $pdo->prepare("
+            SELECT
+                COALESCE(SUM(d.save_qty * (CASE WHEN d.cost_price > 0 THEN d.cost_price ELSE COALESCE(p.bprice, 0) END)), 0) AS known_cost,
+                MAX(CASE WHEN d.cost_price > 0 OR COALESCE(p.bprice, 0) > 0 THEN 1 ELSE 0 END) AS has_cost
+            FROM tbsale_save_detail d
+            INNER JOIN tbsale_save s ON d.save_bill = s.sale_save_bill
+            LEFT JOIN products p ON (d.save_proid = p.product_id AND (p.store_id = s.store_id OR s.store_id IS NULL OR s.store_id <= 1))
+            WHERE {$whereClause}
+        ");
+        $costStmt->execute($params);
+        $costRow = $costStmt->fetch(PDO::FETCH_ASSOC);
+        $has_cost_data = !empty($costRow['has_cost']);
+        if ($has_cost_data) {
+            $total_profit = max(0, $total_net - floatval($costRow['known_cost'] ?? 0));
+        }
+    } catch (Exception $e) {}
 }
 
 // Slice $sales_data into $display_data for pagination

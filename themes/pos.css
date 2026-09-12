@@ -736,8 +736,8 @@ html, body {
     height: 100% !important;
     max-width: 100% !important;
     max-height: 100% !important;
-    object-fit: contain !important;
-    padding: 2px !important;
+    object-fit: cover !important;
+    padding: 0 !important;
     background: #ffffff !important;
     display: block !important;
     margin: 0 !important;

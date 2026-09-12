@@ -54,32 +54,14 @@ function saveUploadedProductImage($fileInputKey = 'product_img', &$errorMsg = nu
     }
 
     $img_name = 'prod_' . time() . '_' . mt_rand(1000, 9999) . '.' . $fileExt;
-    
-    // ໂຟນເດີເກັບຮູບພາບ (ຫຼັກແມ່ນ assets/product_img)
-    $dirs = [
-        __DIR__ . '/../../assets/product_img/',
-        __DIR__ . '/../../assets/img/product_img/',
-        __DIR__ . '/../../assets/img/products/',
-        __DIR__ . '/../../assets/img/products_img/'
-    ];
 
-    $saved = false;
-    $masterFile = '';
-    foreach ($dirs as $dir) {
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0777, true);
-        }
-        if (!$saved) {
-            if (@move_uploaded_file($fileTmp, $dir . $img_name)) {
-                $saved = true;
-                $masterFile = $dir . $img_name;
-            }
-        } elseif ($masterFile !== '' && file_exists($masterFile)) {
-            @copy($masterFile, $dir . $img_name);
-        }
+    // ໂຟນເດີເກັບຮູບພາບ — ບ່ອນດຽວ (assets/product_img). ບໍ່ຕ້ອງກັອບປີ້ໄປໂຟນເດີອື່ນອີກຕໍ່ໄປ.
+    $dir = __DIR__ . '/../../assets/product_img/';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0777, true);
     }
 
-    if (!$saved) {
+    if (!@move_uploaded_file($fileTmp, $dir . $img_name)) {
         $errorMsg = 'ບໍ່ສາມາດບັນທຶກໄຟລ໌ລົງເຊີເວີໄດ້ ກະລຸນາກວດສອບ Permission';
         return null;
     }
@@ -95,17 +77,9 @@ function deleteProductImageFile($imgFile) {
     if (in_array(strtolower($filename), $protected)) {
         return;
     }
-    $dirs = [
-        __DIR__ . '/../../assets/product_img/',
-        __DIR__ . '/../../assets/img/product_img/',
-        __DIR__ . '/../../assets/img/products/',
-        __DIR__ . '/../../assets/img/products_img/'
-    ];
-    foreach ($dirs as $dir) {
-        $filePath = $dir . $filename;
-        if (file_exists($filePath) && is_file($filePath)) {
-            @unlink($filePath);
-        }
+    $filePath = __DIR__ . '/../../assets/product_img/' . $filename;
+    if (file_exists($filePath) && is_file($filePath)) {
+        @unlink($filePath);
     }
 }
 
@@ -244,6 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $bUnits  = $_POST['b_unit_id'] ?? [];
         $bBprice = $_POST['b_bprice'] ?? [];
         $bPrice  = $_POST['b_price'] ?? [];
+        $bSupplierId = $_POST['b_supplier_id'] ?? [];
 
         if (!is_array($bNames) || count($bNames) === 0) {
             $message = 'ບໍ່ພົບຂໍ້ມູນລາຍການສິນຄ້າ!';
@@ -252,6 +227,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $activeStoreId = getActiveStoreId($pdo);
             $added = 0; $skipped = 0; $errors = [];
             $batchBarcodes = [];
+            // One checkbox applies to the WHOLE batch — either every row in this bulk-add
+            // deducts stock on sale, or none of them do. (Per-row control can still be set
+            // later via the normal edit form's cut_qty checkbox.)
+            $batchCutQty = isset($_POST['bulk_no_cut_qty']) ? 0 : 1;
 
             // unit_id -> unit_name (keeps the plain-text `unit` column in sync, like single-add)
             $unitNames = [];
@@ -261,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
             } catch (Throwable $e) {}
 
-            $insStmt   = $pdo->prepare("INSERT INTO products (product_id, product_name, barcode, category_id, bprice, price, unit, unit_id, img_url, qty, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, 0, ?)");
+            $insStmt   = $pdo->prepare("INSERT INTO products (product_id, product_name, barcode, category_id, bprice, price, unit, unit_id, supplier_id, img_url, qty, store_id, cut_qty) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, 0, ?, ?)");
             $dupStmt   = $pdo->prepare("
                 SELECT p.product_name FROM products p WHERE p.barcode = ? AND p.store_id = ?
                 UNION ALL
@@ -278,6 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $unit_id     = intval($bUnits[$i] ?? 0) ?: null;
                 $bprice      = floatval(str_replace(',', '', $bBprice[$i] ?? '0'));
                 $price       = floatval(str_replace(',', '', $bPrice[$i] ?? '0'));
+                $supplier_id = intval($bSupplierId[$i] ?? 0) ?: null;
 
                 // Fully-blank row -> skip without complaint
                 if ($name === '' && $category_id <= 0 && $barcode === '' && $unit_id === null && $bprice <= 0 && $price <= 0) {
@@ -286,28 +266,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 $label = $name !== '' ? $name : ('#' . ($i + 1));
 
-                // ລາຄາຊື້ (bprice) ບໍ່ບັງຄັບ — ວ່າງ = 0
+                // ລາຄາຊື້ (bprice) ບໍ່ບັງຄັບ — ວ່າງ = 0. ບາໂຄ້ດກໍ່ບໍ່ບັງຄັບຄືກັນ (ຄືກັບເພີ່ມທີລະລາຍການ),
+                // ແຕ່ຖ້າໃສ່ມາຕ້ອງເປັນຕົວເລກ ແລະ ບໍ່ຊ້ຳກັບລາຍການອື່ນ.
                 if ($name === '' || $category_id <= 0 || $unit_id === null || $price <= 0) {
                     $errors[] = $label . ': ຂໍ້ມູນບໍ່ຄົບ';
                     $skipped++;
                     continue;
                 }
-                if ($barcode === '' || !preg_match('/^[0-9]+$/', $barcode)) {
-                    $errors[] = $label . ': ບາໂຄ້ດບໍ່ຖືກຕ້ອງ';
-                    $skipped++;
-                    continue;
-                }
-                if (isset($batchBarcodes[$barcode])) {
-                    $errors[] = $label . ': ບາໂຄ້ດ "' . $barcode . '" ຊ້ຳໃນຟອມ';
-                    $skipped++;
-                    continue;
-                }
-                $dupStmt->execute([$barcode, $activeStoreId, $barcode, $activeStoreId]);
-                $dupName = $dupStmt->fetchColumn();
-                if ($dupName !== false) {
-                    $errors[] = $label . ': ບາໂຄ້ດ "' . $barcode . '" ມີແລ້ວ (' . $dupName . ')';
-                    $skipped++;
-                    continue;
+                if ($barcode !== '') {
+                    if (!preg_match('/^[0-9]+$/', $barcode)) {
+                        $errors[] = $label . ': ບາໂຄ້ດບໍ່ຖືກຕ້ອງ';
+                        $skipped++;
+                        continue;
+                    }
+                    if (isset($batchBarcodes[$barcode])) {
+                        $errors[] = $label . ': ບາໂຄ້ດ "' . $barcode . '" ຊ້ຳໃນຟອມ';
+                        $skipped++;
+                        continue;
+                    }
+                    $dupStmt->execute([$barcode, $activeStoreId, $barcode, $activeStoreId]);
+                    $dupName = $dupStmt->fetchColumn();
+                    if ($dupName !== false) {
+                        $errors[] = $label . ': ບາໂຄ້ດ "' . $barcode . '" ມີແລ້ວ (' . $dupName . ')';
+                        $skipped++;
+                        continue;
+                    }
                 }
 
                 // product_id = Category ID + running 4-digit sequence, re-counted each row so
@@ -326,8 +309,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $unitName = $unit_id !== null ? ($unitNames[$unit_id] ?? '') : '';
 
                 try {
-                    $insStmt->execute([$product_id, $name, $barcode, $category_id, $bprice, $price, $unitName, $unit_id, $activeStoreId]);
-                    $batchBarcodes[$barcode] = true;
+                    $insStmt->execute([$product_id, $name, $barcode, $category_id, $bprice, $price, $unitName, $unit_id, $supplier_id, $activeStoreId, $batchCutQty]);
+                    if ($barcode !== '') {
+                        $batchBarcodes[$barcode] = true;
+                    }
                     $added++;
                 } catch (Throwable $e) {
                     $errors[] = $label . ': ' . $e->getMessage();
@@ -734,7 +719,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   ?>
                   <?php if ($imgPath): ?>
                     <img src="<?php echo htmlspecialchars($imgPath); ?>"
-                         style="width:50px; height:50px; object-fit:contain; background:#fff; padding:2px; border-radius:10px; border:1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.04);"
+                         style="width:50px; height:50px; object-fit:cover; background:#fff; padding:0; border-radius:10px; border:1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.04);"
                          alt="<?php echo htmlspecialchars($p['product_name']); ?>"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <div style="width:50px; height:50px; border-radius:10px; background:#f1f5f9; border:1px solid #e2e8f0; display:none; align-items:center; justify-content:center; margin: 0 auto;">
@@ -779,9 +764,14 @@ require_once __DIR__ . '/../../layouts/header.php';
                   <?php endif; ?>
                 </td>
 
-                <!-- ລາຄາຊື້ -->
+                <!-- ລາຄາຊື້ — ເຊື່ອງໄວ້ສຳລັບສິນຄ້າ/ບໍລິການທີ່ "ບໍ່ຕັດສະຕັອກ" (cut_qty = 0) ຖ້າຍັງບໍ່ໄດ້ຕັ້ງຕົ້ນທຶນ
+                     (ບໍ່ຢາກໃຫ້ສະແດງ "0" ຄືກັບວ່າຕົ້ນທຶນແມ່ນ 0 ແທ້ໆ) — ແຕ່ຖ້າມີການຕັ້ງຕົ້ນທຶນໄວ້ ກໍ່ໃຫ້ສະແດງປົກກະຕິ -->
                 <td class="text-right" style="color: #64748b; font-size: 0.9rem; white-space: nowrap;">
-                  <?php echo displayMoney($pdo, $p['bprice']); ?>
+                  <?php if (intval($p['cut_qty'] ?? 1) === 0 && floatval($p['bprice'] ?? 0) <= 0): ?>
+                    <span class="text-muted">-</span>
+                  <?php else: ?>
+                    <?php echo displayMoney($pdo, $p['bprice']); ?>
+                  <?php endif; ?>
                 </td>
 
                 <!-- ລາຄາຂາຍ -->
@@ -790,16 +780,21 @@ require_once __DIR__ . '/../../layouts/header.php';
                 </td>
 
                 <?php if ($isAdmin): ?>
-                  <!-- ຈຳນວນ (ສະແດງສະເພາະແອັດມິນ) -->
+                  <!-- ຈຳນວນ (ສະແດງສະເພາະແອັດມິນ) — ເຊື່ອງໄວ້ສຳລັບສິນຄ້າທີ່ຕັ້ງ "ບໍ່ຕັດສະຕັອກ"
+                       (cut_qty = 0) ເພາະຈຳນວນບໍ່ມີຄວາມໝາຍສຳລັບສິນຄ້າ/ບໍລິການແບບນີ້ -->
                   <td class="text-center" style="white-space: nowrap;">
-                    <?php
-                      $qty = floatval($p['qty'] ?? 0);
-                      $qtyClass = $qty <= 0 ? 'badge-danger' : ($qty <= 10 ? 'badge-warning text-dark' : 'badge-success');
-                      $qtyLabel = $qty <= 0 ? t('products.qty_out_of_stock', 'ໝົດແລ້ວ (0)') : (number_format($qty) . ' ' . (!empty($p['unit']) ? htmlspecialchars($p['unit']) : ''));
-                    ?>
-                    <span class="badge <?php echo $qtyClass; ?> px-2 py-1" style="border-radius: 6px; font-size: 0.82rem; min-width: 36px;">
-                      <?php echo $qtyLabel; ?>
-                    </span>
+                    <?php if (intval($p['cut_qty'] ?? 1) === 0): ?>
+                      <span class="text-muted">-</span>
+                    <?php else: ?>
+                      <?php
+                        $qty = floatval($p['qty'] ?? 0);
+                        $qtyClass = $qty <= 0 ? 'badge-danger' : ($qty <= 10 ? 'badge-warning text-dark' : 'badge-success');
+                        $qtyLabel = $qty <= 0 ? t('products.qty_out_of_stock', 'ໝົດແລ້ວ (0)') : (number_format($qty) . ' ' . (!empty($p['unit']) ? htmlspecialchars($p['unit']) : ''));
+                      ?>
+                      <span class="badge <?php echo $qtyClass; ?> px-2 py-1" style="border-radius: 6px; font-size: 0.82rem; min-width: 36px;">
+                        <?php echo $qtyLabel; ?>
+                      </span>
+                    <?php endif; ?>
                   </td>
                 <?php endif; ?>
 
@@ -1041,7 +1036,7 @@ require_once __DIR__ . '/../../layouts/header.php';
     if (imgName) {
       $('#edit_img_preview').attr('src', '<?php echo $base_path; ?>assets/product_img/' + imgName);
       $('#edit_img_preview').off('error').on('error', function() {
-        $(this).attr('src', '<?php echo $base_path; ?>assets/img/products/' + imgName);
+        $(this).off('error').attr('src', DEFAULT_IMG);
       });
       $('#btn_remove_edit_img').css('display', 'flex');
     } else {

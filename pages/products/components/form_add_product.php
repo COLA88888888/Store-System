@@ -226,6 +226,14 @@
             <span class="badge badge-primary" style="font-size: 0.8rem;" id="bulkRowCounter">0</span>
           </div>
 
+          <div class="custom-control custom-switch mb-3">
+            <input type="checkbox" class="custom-control-input" id="bulk_no_cut_qty" name="bulk_no_cut_qty" value="1">
+            <label class="custom-control-label font-weight-bold text-dark" for="bulk_no_cut_qty">
+              <?php echo htmlspecialchars(t('products.bulk_no_cut_qty', 'ບໍ່ຕັດສະຕັອກ ສຳລັບທຸກລາຍການໃນຊຸດນີ້')); ?>
+            </label>
+            <br><small class="text-muted"><?php echo htmlspecialchars(t('products.bulk_no_cut_qty_hint', 'ໃຊ້ສຳລັບບໍລິການ / ສິນຄ້າສັ່ງເຮັດ — ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ. ຕັ້ງທີ່ນີ້ຄັ້ງດຽວ ແທນທີ່ຈະໄປແກ້ໄຂເອົາທີລະລາຍການພາຍຫຼັງ')); ?></small>
+          </div>
+
           <div id="bulk_rows_container"></div>
 
           <div class="btn-group btn-group-sm mt-2" role="group">
@@ -664,8 +672,10 @@ var __bulkT = <?php echo tjson([
     'products.bulk_col_unit'           => 'ຫົວໜ່ວຍ',
     'products.bulk_col_bprice'         => 'ລາຄາຊື້',
     'products.bulk_col_price'          => 'ລາຄາຂາຍ',
+    'products.bulk_col_supplier'       => 'ຜູ້ສະໜອງ',
     'products.select_category_placeholder' => '-- ເລືອກປະເພດ --',
     'products.select_unit_placeholder' => '-- ເລືອກຫົວໜ່ວຍ --',
+    'products.select_supplier_placeholder' => '-- ບໍ່ລະບຸ / ເລືອກຜູ້ສະໜອງ --',
     'products.product_name_placeholder' => 'ປ້ອນຊື່ສິນຄ້າ...',
     'products.barcode_placeholder'     => 'ສະແກນ ຫຼື ປ້ອນຕົວເລກ...',
     'products.gen_barcode_title'       => 'ສ້າງບາໂຄ້ດ 13 ຫຼັກ',
@@ -687,6 +697,7 @@ var I18N_BULK = {
   barcode: __bulkT['products.bulk_col_barcode'], barcode_ph: __bulkT['products.barcode_placeholder'],
   unit: __bulkT['products.bulk_col_unit'], unit_ph: __bulkT['products.select_unit_placeholder'],
   bprice: __bulkT['products.bulk_col_bprice'], price: __bulkT['products.bulk_col_price'],
+  supplier: __bulkT['products.bulk_col_supplier'], supplier_ph: __bulkT['products.select_supplier_placeholder'],
   gen: __bulkT['products.gen_barcode_title'], del: __bulkT['products.unit_row_delete_title'],
   e_name: __bulkT['products.validate_name'], e_cat: __bulkT['products.validate_category'],
   e_bc: __bulkT['products.validate_barcode_required'], e_bc_num: __bulkT['products.validate_barcode_numeric'],
@@ -702,6 +713,10 @@ var BULK_CAT_OPTIONS = <?php echo json_encode(implode('', array_map(function ($c
 var BULK_UNIT_OPTIONS = <?php echo json_encode(implode('', array_map(function ($u) {
     return '<option value="' . (int)$u['unit_id'] . '">' . htmlspecialchars($u['unit_name']) . '</option>';
 }, $units)), JSON_UNESCAPED_UNICODE); ?>;
+
+var BULK_SUPPLIER_OPTIONS = <?php echo json_encode(implode('', array_map(function ($sp) {
+    return '<option value="' . (int)$sp['supplier_id'] . '">' . htmlspecialchars($sp['supplier_name']) . '</option>';
+}, $suppliers ?? [])), JSON_UNESCAPED_UNICODE); ?>;
 
 var BULK_DEFAULT_ROWS = 10;
 
@@ -729,7 +744,7 @@ function bulkAddRow(data) {
           <input type="text" name="b_name[]" class="form-control form-control-sm bulk-name" placeholder="${I18N_BULK.name_ph}">
         </div>
         <div class="col-md col-8">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.barcode} <span class="text-danger">*</span></label>
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.barcode}</label>
           <div class="input-group input-group-sm">
             <input type="text" name="b_barcode[]" class="form-control form-control-sm bulk-barcode" placeholder="${I18N_BULK.barcode_ph}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             <div class="input-group-append">
@@ -749,6 +764,10 @@ function bulkAddRow(data) {
           <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.price} <span class="text-danger">*</span></label>
           <input type="text" name="b_price[]" class="form-control form-control-sm text-right font-weight-bold text-success price-input bulk-price" placeholder="0" oninput="formatPriceInput(this)">
         </div>
+        <div class="col-md col-8">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.supplier}</label>
+          <select name="b_supplier_id[]" class="form-control form-control-sm bulk-supplier"><option value="">${I18N_BULK.supplier_ph}</option>${BULK_SUPPLIER_OPTIONS}</select>
+        </div>
         <div class="col-auto text-right" style="padding-bottom: 4px;">
           <button type="button" class="btn btn-sm btn-outline-danger border-0 bulk-row-del" title="${I18N_BULK.del}"><i class="fas fa-trash-alt"></i></button>
         </div>
@@ -758,6 +777,7 @@ function bulkAddRow(data) {
   var $row = $(html);
   if (data.category_id) $row.find('.bulk-cat').val(String(data.category_id));
   if (data.unit_id) $row.find('.bulk-unit').val(String(data.unit_id));
+  if (data.supplier_id) $row.find('.bulk-supplier').val(String(data.supplier_id));
   $('#bulk_rows_container').append($row);
   bulkRenumber();
 }
@@ -837,13 +857,15 @@ function submitBulkAddProduct(e) {
 
     if (name === '')            { err = [$r.find('.bulk-name'), I18N_BULK.e_name]; return false; }
     if (!cat)                   { err = [$r.find('.bulk-cat'), I18N_BULK.e_cat]; return false; }
-    if (bc === '')              { err = [$r.find('.bulk-barcode'), I18N_BULK.e_bc]; return false; }
-    if (!/^[0-9]+$/.test(bc))   { err = [$r.find('.bulk-barcode'), I18N_BULK.e_bc_num]; return false; }
+    // ບາໂຄ້ດ ບໍ່ບັງຄັບ — ກວດຮູບແບບ/ຊ້ຳ ສະເພາະເມື່ອປ້ອນມາ
+    if (bc !== '') {
+      if (!/^[0-9]+$/.test(bc))    { err = [$r.find('.bulk-barcode'), I18N_BULK.e_bc_num]; return false; }
+      if (seen.indexOf(bc) !== -1) { err = [$r.find('.bulk-barcode'), I18N_BULK.e_bc_dup.replace('{value}', bc)]; return false; }
+      seen.push(bc);
+    }
     if (!unit)                  { err = [$r.find('.bulk-unit'), I18N_BULK.e_unit]; return false; }
     // ລາຄາຊື້ (bp) ບໍ່ບັງຄັບ — ປ້ອນ ຫຼື ບໍ່ປ້ອນກໍໄດ້ (ວ່າງ = 0)
     if (pr === '' || pr === '0') { err = [$r.find('.bulk-price'), I18N_BULK.e_pr]; return false; }
-    if (seen.indexOf(bc) !== -1) { err = [$r.find('.bulk-barcode'), I18N_BULK.e_bc_dup.replace('{value}', bc)]; return false; }
-    seen.push(bc);
     validCount++;
   });
 

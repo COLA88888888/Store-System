@@ -159,7 +159,11 @@
     <?php
       $net_val = (float)$total_net;
       $disc_val = (float)$total_disc;
-      $profit_val = (float)($total_profit > 0 ? $total_profit : max(0, $total_net - ($total_gross * 0.7)));
+      // Only ever a real figure (from actual recorded cost_price / product bprice) — never a
+      // guessed margin. When nothing in this filtered result has a real cost on file
+      // ($has_cost_data is false, e.g. all non-stock/service items), the card below is hidden
+      // instead of showing a fabricated number.
+      $profit_val = (float)$total_profit;
     ?>
 
     <!-- REGULAR SUMMARY KPI CARDS (5 CARDS) -->
@@ -221,8 +225,10 @@
         </div>
       </div>
 
-      <!-- 5. ກຳໄລ -->
-      <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" 
+      <!-- 5. ກຳໄລ — ເຊື່ອງໄວ້ຖ້າຂໍ້ມູນທີ່ກອງໄວ້ບໍ່ມີຕົ້ນທຶນແທ້ບັນທຶກໄວ້ເລີຍ (ເຊັ່ນ ມີແຕ່ລາຍການ
+           ບໍລິການ/ບໍ່ຕັດສະຕັອກ ທີ່ບໍ່ມີລາຄາຊື້) ເພື່ອບໍ່ໃຫ້ສະແດງກຳໄລແບບເດົາ -->
+      <?php if (!empty($has_cost_data)): ?>
+      <div class="kpi-card-item d-flex align-items-center justify-content-between text-white"
            style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);">
         <div style="z-index: 2; min-width: 0;">
           <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_profit', 'ກຳໄລ')); ?></div>
@@ -234,6 +240,7 @@
           <i class="fas fa-chart-line"></i>
         </div>
       </div>
+      <?php endif; ?>
 
     </div>
   <?php endif; ?>

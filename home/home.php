@@ -110,6 +110,7 @@ $total_cost   = 0.00;   // ຕົ້ນທຶນນຳເຂົ້າສິນ�
 $cogs         = 0.00;   // ຕົ້ນທຶນການຊື້ສິນຄ້າ = ຕົ້ນທຶນຂອງລາຍການທີ່ຂາຍອອກຈິງ (SUM save_qty * cost_price)
 $total_profit = 0.00;
 $profit_pct   = 0.00;
+$has_product_cost_data = false;
 
 try {
     $stmtSales = $pdo->prepare("
@@ -131,6 +132,17 @@ try {
     $stmtCost = $pdo->prepare("SELECT COALESCE(SUM(i.total_cost), 0) FROM imports i WHERE {$importWhereClause}");
     $stmtCost->execute($importParams);
     $total_cost = floatval($stmtCost->fetchColumn() ?? 0);
+
+    // "ຕົ້ນທຶນສິນຄ້າທັງໝົດ" card is only meaningful once at least one product actually has a
+    // ລາຄາຊື້ (bprice) on file — otherwise it's just a shop that never records cost, and
+    // showing "0 ₭" would look like a real (zero) cost rather than "unknown".
+    if ($selected_store > 0) {
+        $stmtHasCost = $pdo->prepare("SELECT 1 FROM products WHERE store_id = :sid AND bprice > 0 LIMIT 1");
+        $stmtHasCost->execute([':sid' => $selected_store]);
+    } else {
+        $stmtHasCost = $pdo->query("SELECT 1 FROM products WHERE bprice > 0 LIMIT 1");
+    }
+    $has_product_cost_data = (bool)$stmtHasCost->fetchColumn();
 
     // ຕົ້ນທຶນການຊື້ສິນຄ້າ (COGS) = ຕົ້ນທຶນຂອງລາຍການສິນຄ້າທີ່ຂາຍອອກຈິງ ຈາກ tbsale_save_detail
     // (save_qty ຄູນ cost_price ຕໍ່ຫົວໜ່ວຍທີ່ຂາຍ — ຄືກັບທີ່ພ້ອມຄິດຕອນ checkout ໃນ pos_backend.php)
@@ -386,7 +398,9 @@ require_once __DIR__ . '/../layouts/header.php';
       </div>
     </div>
 
-    <!-- Card 2: Total Cost -->
+    <!-- Card 2: Total Cost — ເຊື່ອງໄວ້ຖ້າຍັງບໍ່ມີສິນຄ້າໃດຕັ້ງລາຄາຊື້ (bprice) ໄວ້ເລີຍ, ເພື່ອບໍ່ໃຫ້
+         ເບິ່ງຄືວ່າຕົ້ນທຶນແມ່ນ 0 ແທ້ໆ ທັງທີ່ຄວາມຈິງແມ່ນຍັງບໍ່ໄດ້ບັນທຶກ -->
+    <?php if ($has_product_cost_data): ?>
     <div class="col-lg col-md-4 col-6 mb-3 mb-lg-0">
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%); color: #ffffff;">
         <div class="card-body p-3 p-lg-3.5 position-relative overflow-hidden">
@@ -402,6 +416,7 @@ require_once __DIR__ . '/../layouts/header.php';
         </div>
       </div>
     </div>
+    <?php endif; ?>
 
     <!-- Card 3: Cost of Goods Sold — ຕົ້ນທຶນການຊື້ສິນຄ້າ (ຕົ້ນທຶນຂອງລາຍການທີ່ຂາຍອອກຈິງ) -->
     <div class="col-lg col-md-4 col-6 mb-3 mb-lg-0">
@@ -651,6 +666,7 @@ $(document).ready(function() {
   var monthlyCost   = <?php echo json_encode(array_map($__hcvt, array_values($monthly_cost))); ?>;
   var monthlyProfit = <?php echo json_encode(array_map($__hcvt, array_values($monthly_profit))); ?>;
   var monthlyMargin = <?php echo json_encode(array_values($monthly_margin)); ?>;
+  var hasProductCostData = <?php echo json_encode($has_product_cost_data); ?>;
 
   var yearlyLabels  = <?php echo json_encode($yearly_labels); ?>;
   var yearlySales   = <?php echo json_encode(array_map($__hcvt, $yearly_sales)); ?>;
@@ -679,29 +695,20 @@ $(document).ready(function() {
       type: 'bar',
       data: {
         labels: monthLabels,
-        datasets: [
-          {
-            label: curLabel(I18N_HOME['home.legend_sales']),
-            backgroundColor: '#2563eb',
-            borderColor: '#1d4ed8',
-            data: monthlySales,
-            borderRadius: 6
-          },
-          {
-            label: curLabel(I18N_HOME['home.legend_cost']),
-            backgroundColor: '#38bdf8',
-            borderColor: '#0284c7',
-            data: monthlyCost,
-            borderRadius: 6
-          },
-          {
-            label: curLabel(I18N_HOME['home.legend_profit']),
-            backgroundColor: '#22c55e',
-            borderColor: '#16a34a',
-            data: monthlyProfit,
-            borderRadius: 6
+        datasets: (function() {
+          // The "ຕົ້ນທຶນ" series is only meaningful once real product cost data exists —
+          // otherwise every bar would just be a flat 0, which reads as "cost is zero" rather
+          // than "cost is unknown". Tagged with _key so refreshChartLangs() can find it by
+          // name after a language switch instead of relying on a fixed array index.
+          var mds = [
+            { _key: 'sales', label: curLabel(I18N_HOME['home.legend_sales']), backgroundColor: '#2563eb', borderColor: '#1d4ed8', data: monthlySales, borderRadius: 6 }
+          ];
+          if (hasProductCostData) {
+            mds.push({ _key: 'cost', label: curLabel(I18N_HOME['home.legend_cost']), backgroundColor: '#38bdf8', borderColor: '#0284c7', data: monthlyCost, borderRadius: 6 });
           }
-        ]
+          mds.push({ _key: 'profit', label: curLabel(I18N_HOME['home.legend_profit']), backgroundColor: '#22c55e', borderColor: '#16a34a', data: monthlyProfit, borderRadius: 6 });
+          return mds;
+        })()
       },
       options: {
         responsive: true,
@@ -876,10 +883,10 @@ $(document).ready(function() {
 
     if (monthlyRevenueChartObj) {
       monthlyRevenueChartObj.data.labels = monthLabels;
-      var mds = monthlyRevenueChartObj.data.datasets;
-      if (mds[0]) mds[0].label = curLabel(I18N_HOME['home.legend_sales']);
-      if (mds[1]) mds[1].label = curLabel(I18N_HOME['home.legend_cost']);
-      if (mds[2]) mds[2].label = curLabel(I18N_HOME['home.legend_profit']);
+      var mdsByKey = { sales: 'home.legend_sales', cost: 'home.legend_cost', profit: 'home.legend_profit' };
+      monthlyRevenueChartObj.data.datasets.forEach(function(ds) {
+        if (ds._key && mdsByKey[ds._key]) ds.label = curLabel(I18N_HOME[mdsByKey[ds._key]]);
+      });
       monthlyRevenueChartObj.update();
     }
     if (profitMarginChartObj) {

@@ -27,12 +27,12 @@
          
       <div class="card product-card product-card-<?php echo $p['product_id']; ?> h-100 shadow-sm" 
            data-id="<?php echo $p['product_id']; ?>"
-           style="border-radius: 12px !important; border: none !important; background: <?php echo $showOut ? '#fff5f5' : '#ffffff'; ?>; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; <?php echo $showOut ? 'opacity: 0.82;' : ''; ?>;">
+           style="border-radius: 12px !important; border: none !important; background: <?php echo $showOut ? '#fff5f5' : '#ffffff'; ?>; transition: transform 0.15s ease, box-shadow 0.15s ease; <?php echo $showOut ? 'opacity: 0.82;' : ''; ?>;">
         
         <div class="product-img-wrap" style="position: relative; width: 100%; height: 135px; overflow: hidden; background: #ffffff; padding: 0 !important; display: block; border-radius: 9px 9px 0 0; border-bottom: 1px solid #e2e8f0;">
           <img src="<?php echo htmlspecialchars($imgPath); ?>" 
                class="product-img-full"
-               style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; padding: 2px !important; background: #ffffff !important; display: block !important; border-radius: 9px 9px 0 0;"
+               style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: cover !important; padding: 0 !important; background: #ffffff !important; display: block !important; border-radius: 9px 9px 0 0;"
                onerror="this.src='<?php echo $base_path; ?>assets/img/image.jpg';">
           
           <?php if ($tracksStock): ?>
@@ -71,25 +71,28 @@
 
           </div>
 
-          <div class="mt-auto pt-1 border-top text-left">
-            <?php
-              $pgCurCode  = $posDisplayCurrency['code'] ?? 'KIP';
-              $pgCurRates = $posDisplayCurrency['rates'] ?? null;
-            ?>
-            <?php if ($hasPromo && floatval($p['original_price'] ?? 0) > floatval($p['price'] ?? 0)): ?>
-              <div class="d-flex align-items-baseline flex-wrap justify-content-start" style="gap: 3px;">
-                <small class="font-weight-bold text-muted" style="font-size: 0.80rem; text-decoration: line-through; color: #94a3b8 !important;">
-                  <?php echo formatMoneyIn($p['original_price'], $pgCurCode, $pgCurRates); ?>
-                </small>
-                <span class="font-weight-bold text-danger" style="font-size: 0.94rem; color: #ef4444 !important;">
+          <div class="mt-auto pt-1 border-top d-flex align-items-center justify-content-between">
+            <div class="text-left" style="white-space:nowrap; overflow:hidden; min-width:0;">
+              <?php
+                $pgCurCode  = $posDisplayCurrency['code'] ?? 'KIP';
+                $pgCurRates = $posDisplayCurrency['rates'] ?? null;
+              ?>
+              <?php if ($hasPromo && floatval($p['original_price'] ?? 0) > floatval($p['price'] ?? 0)): ?>
+                <div class="d-flex align-items-baseline flex-wrap justify-content-start" style="gap: 3px;">
+                  <small class="font-weight-bold text-muted" style="font-size: 0.80rem; text-decoration: line-through; color: #94a3b8 !important;">
+                    <?php echo formatMoneyIn($p['original_price'], $pgCurCode, $pgCurRates); ?>
+                  </small>
+                  <span class="font-weight-bold text-danger" style="font-size: 0.94rem; color: #ef4444 !important;">
+                    <?php echo formatMoneyIn($p['price'], $pgCurCode, $pgCurRates); ?>
+                  </span>
+                </div>
+              <?php else: ?>
+                <span class="font-weight-bold" style="font-size: 0.96rem; color: #16a34a;">
                   <?php echo formatMoneyIn($p['price'], $pgCurCode, $pgCurRates); ?>
                 </span>
-              </div>
-            <?php else: ?>
-              <span class="font-weight-bold" style="font-size: 0.96rem; color: #16a34a;">
-                <?php echo formatMoneyIn($p['price'], $pgCurCode, $pgCurRates); ?>
-              </span>
-            <?php endif; ?>
+              <?php endif; ?>
+            </div>
+
           </div>
         </div>
       </div>

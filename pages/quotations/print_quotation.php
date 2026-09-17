@@ -41,9 +41,10 @@ $logoPath = $base_path . 'assets/img/logo/' . basename($companyLogo);
 function getLaoNumber($number) {
     $number = strval(floor((float)$number));
     if ($number === '0') return 'ສູນ';
-    $lao_digits = ['ສູນ', 'ໜຶ່ງ', 'ສອງ', 'ສາມ', 'ສີ່', 'ຫ້າ', 'ຫົກ', 'ເຈັດ', 'ແປດ', 'ເກົ້າ'];
-    $lao_places = ['', 'ສິບ', 'ຮ້ອຍ', 'ພັນ', 'ໝື່ນ', 'ແສນ'];
     
+    $lao_digits = ['ສູນ', 'ໜຶ່ງ', 'ສອງ', 'ສາມ', 'ສີ່', 'ຫ້າ', 'ຫົກ', 'ເຈັດ', 'ແປດ', 'ເກົ້າ'];
+    
+    // Process in blocks of 6 (millions)
     $parts = [];
     while (strlen($number) > 0) {
         $parts[] = substr($number, -6);
@@ -53,23 +54,45 @@ function getLaoNumber($number) {
     $result = [];
     foreach ($parts as $p => $part) {
         if ((int)$part == 0) continue;
-        $strlen = strlen($part);
+        
+        $part = str_pad($part, 6, '0', STR_PAD_LEFT);
         $text = '';
-        for ($i=0; $i<$strlen; $i++) {
-            $tmp = (int)substr($part, $i, 1);
-            if ($tmp != 0) {
-                $pos = $strlen - $i - 1;
-                if ($pos == 1 && $tmp == 1) {
-                    $text .= 'ສິບ';
-                } elseif ($pos == 1 && $tmp == 2) {
-                    $text .= 'ຊາວ';
-                } elseif ($pos == 0 && $tmp == 1 && $strlen > 1 && substr($part, $i-1, 1) != '0') {
-                    $text .= 'ເອັດ';
-                } else {
-                    $text .= $lao_digits[$tmp] . $lao_places[$pos];
-                }
-            }
+        
+        // 10^5 (ແສນ)
+        $d5 = (int)$part[0];
+        if ($d5 > 0) $text .= $lao_digits[$d5] . 'ແສນ';
+        
+        // Thousands (10^4 and 10^3) => treated as 00 to 99 followed by ພັນ
+        $thousands = (int)substr($part, 1, 2);
+        if ($thousands > 0) {
+            $t_tens = (int)$part[1];
+            $t_ones = (int)$part[2];
+            
+            if ($t_tens == 1) $text .= 'ສິບ';
+            elseif ($t_tens == 2) $text .= 'ຊາວ';
+            elseif ($t_tens > 2) $text .= $lao_digits[$t_tens] . 'ສິບ';
+            
+            if ($t_ones == 1 && $t_tens > 0) $text .= 'ເອັດ';
+            elseif ($t_ones > 0) $text .= $lao_digits[$t_ones];
+            
+            $text .= 'ພັນ';
         }
+        
+        // Hundreds (10^2)
+        $d2 = (int)$part[3];
+        if ($d2 > 0) $text .= $lao_digits[$d2] . 'ຮ້ອຍ';
+        
+        // Tens and Ones (10^1 and 10^0)
+        $tens = (int)$part[4];
+        $ones = (int)$part[5];
+        
+        if ($tens == 1) $text .= 'ສິບ';
+        elseif ($tens == 2) $text .= 'ຊາວ';
+        elseif ($tens > 2) $text .= $lao_digits[$tens] . 'ສິບ';
+        
+        if ($ones == 1 && $tens > 0) $text .= 'ເອັດ';
+        elseif ($ones > 0) $text .= $lao_digits[$ones];
+        
         if ($p > 0) {
             $text .= str_repeat('ລ້ານ', $p);
         }

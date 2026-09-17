@@ -133,13 +133,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $message_type = 'warning';
                 } else {
                     $store_id = getActiveStoreId($pdo);
-                    // Check duplicate name
-                    $nameChkStmt = $pdo->prepare("SELECT product_id FROM products WHERE product_name = ? AND store_id = ? LIMIT 1");
-                    $nameChkStmt->execute([$name, $store_id]);
+                    // Check duplicate name in same category
+                    $nameChkStmt = $pdo->prepare("SELECT product_id FROM products WHERE product_name = ? AND category_id = ? AND store_id = ? LIMIT 1");
+                    $nameChkStmt->execute([$name, $category_id, $store_id]);
                     $dupName = $nameChkStmt->fetch();
                     
                     if ($dupName) {
-                        $message = 'ຊື່ສິນຄ້າ "' . htmlspecialchars($name) . '" ນີ້ມີແລ້ວໃນລະບົບ (ID: ' . $dupName['product_id'] . ')';
+                        $message = 'ຊື່ສິນຄ້າ "' . htmlspecialchars($name) . '" ນີ້ມີແລ້ວໃນໝວດໝູ່ດຽວກັນ (ID: ' . $dupName['product_id'] . ')';
                         $message_type = 'warning';
                     } elseif (!empty($barcode)) {
                         $chkStmt = $pdo->prepare("
@@ -257,7 +257,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 SELECT p.product_name FROM product_units u JOIN products p ON u.product_id = p.product_id WHERE u.barcode = ? AND p.store_id = ?
                 LIMIT 1
             ");
-            $dupNameStmt = $pdo->prepare("SELECT product_id FROM products WHERE product_name = ? AND store_id = ? LIMIT 1");
+            $dupNameStmt = $pdo->prepare("SELECT product_id FROM products WHERE product_name = ? AND category_id = ? AND store_id = ? LIMIT 1");
             $existsChk = $pdo->prepare("SELECT 1 FROM products WHERE product_id = ? LIMIT 1");
 
             $rowCount = count($bNames);
@@ -277,10 +277,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 $label = $name !== '' ? $name : ('#' . ($i + 1));
                 
-                // Check duplicate name
-                $dupNameStmt->execute([$name, $activeStoreId]);
+                // Check duplicate name in same category
+                $dupNameStmt->execute([$name, $category_id, $activeStoreId]);
                 if ($dupNameStmt->fetch()) {
-                    $errors[] = $label . ': ຊື່ສິນຄ້ານີ້ມີແລ້ວໃນລະບົບ';
+                    $errors[] = $label . ': ຊື່ສິນຄ້ານີ້ມີແລ້ວໃນໝວດໝູ່ດຽວກັນ';
                     $skipped++;
                     continue;
                 }
@@ -381,13 +381,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $message_type = 'warning';
                 } else {
                     $store_id = getActiveStoreId($pdo);
-                    // Check duplicate name
-                    $nameChkStmt = $pdo->prepare("SELECT product_id FROM products WHERE product_name = ? AND product_id != ? AND store_id = ? LIMIT 1");
-                    $nameChkStmt->execute([$name, $product_id, $store_id]);
+                    // Check duplicate name in same category
+                    $nameChkStmt = $pdo->prepare("SELECT product_id FROM products WHERE product_name = ? AND category_id = ? AND product_id != ? AND store_id = ? LIMIT 1");
+                    $nameChkStmt->execute([$name, $category_id, $product_id, $store_id]);
                     $dupName = $nameChkStmt->fetch();
                     
                     if ($dupName) {
-                        $message = 'ຊື່ສິນຄ້າ "' . htmlspecialchars($name) . '" ນີ້ມີແລ້ວໃນລະບົບ (ID: ' . $dupName['product_id'] . ')';
+                        $message = 'ຊື່ສິນຄ້າ "' . htmlspecialchars($name) . '" ນີ້ມີແລ້ວໃນໝວດໝູ່ດຽວກັນ (ID: ' . $dupName['product_id'] . ')';
                         $message_type = 'warning';
                     } elseif (!empty($barcode)) {
                         $chkStmt = $pdo->prepare("

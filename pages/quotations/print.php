@@ -177,8 +177,7 @@ function getLaoNumber($number) {
                     <th>ເນື້ອໃນລາຍການ<br>Descriptions</th>
                     <th style="width: 70px;">ໜ່ວຍ<br>Unit</th>
                     <th style="width: 70px;">ຈ/ນ<br>Qty</th>
-                    <th style="width: 110px;">ລາຄາ<br>Price (LAK)</th>
-                    <th style="width: 100px;">ສ່ວນຫຼຸດ<br>Discount</th>
+                    <th style="width: 120px;">ລາຄາ<br>Price (LAK)</th>
                     <th style="width: 130px;">ມູນຄ່າ<br>Amount (LAK)</th>
                 </tr>
             </thead>
@@ -193,7 +192,6 @@ function getLaoNumber($number) {
                     <td class="td-center"><?php echo htmlspecialchars($d['unit'] ?? 'ອັນ'); ?></td>
                     <td class="td-center"><?php echo (float)$d['qty']; ?></td>
                     <td class="td-right"><?php echo number_format($d['price']); ?></td>
-                    <td class="td-right"><?php echo number_format($d['discount']); ?></td>
                     <td class="td-right"><?php echo number_format($d['line_total']); ?></td>
                 </tr>
                 <?php endforeach; ?>
@@ -210,34 +208,33 @@ function getLaoNumber($number) {
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
-                    <td>&nbsp;</td>
                 </tr>
                 <?php endfor; ?>
             </tbody>
             <tfoot>
                 <?php if ($q['discount_amount'] > 0 || $q['vat_amount'] > 0): ?>
                 <tr>
-                    <td colspan="5" class="td-center" style="border-bottom: none;">&nbsp;</td>
+                    <td colspan="4" class="td-center" style="background-color: white !important; border: none; border-left: 1px solid #000; border-right: 1px solid #000;">&nbsp;</td>
                     <td class="td-right">ມູນຄ່າ / Subtotal</td>
                     <td class="td-right" style="background-color: white !important;"><?php echo number_format($q['subtotal']); ?></td>
                 </tr>
                 <?php if ($q['discount_amount'] > 0): ?>
                 <tr>
-                    <td colspan="5" class="td-center" style="border-bottom: none; border-top: none;">&nbsp;</td>
+                    <td colspan="4" class="td-center" style="background-color: white !important; border: none; border-left: 1px solid #000; border-right: 1px solid #000;">&nbsp;</td>
                     <td class="td-right">ສ່ວນຫຼຸດ / Discount</td>
                     <td class="td-right" style="background-color: white !important;"><?php echo number_format($q['discount_amount']); ?></td>
                 </tr>
                 <?php endif; ?>
                 <?php if ($q['vat_amount'] > 0): ?>
                 <tr>
-                    <td colspan="5" class="td-center" style="border-bottom: none; border-top: none;">&nbsp;</td>
+                    <td colspan="4" class="td-center" style="background-color: white !important; border: none; border-left: 1px solid #000; border-right: 1px solid #000;">&nbsp;</td>
                     <td class="td-right">ອາກອນ / VAT</td>
                     <td class="td-right" style="background-color: white !important;"><?php echo number_format($q['vat_amount']); ?></td>
                 </tr>
                 <?php endif; ?>
                 <?php endif; ?>
                 <tr>
-                    <td colspan="5" class="td-center">(<?php echo getLaoNumber($q['total_amount']); ?>)</td>
+                    <td colspan="4" class="td-center">(<?php echo getLaoNumber($q['total_amount']); ?>)</td>
                     <td class="td-right">ລວມ / Total</td>
                     <td class="td-right" style="background-color: white !important;"><?php echo number_format($q['total_amount']); ?></td>
                 </tr>

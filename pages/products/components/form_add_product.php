@@ -323,19 +323,13 @@ $('#addProductModal').on('show.bs.modal', function() {
     if (res && res.success && res.seq_formatted) {
       GLOBAL_NEXT_SEQ = res.seq_formatted;
 
-      // ຖ້າກຳລັງກອງຕາຕະລາງໄວ້ດ້ວຍໝວດໝູ່ໃດໜຶ່ງຢູ່ (ຕົວກອງເທິງໜ້າ) ໃຫ້ໃຊ້ໝວດນັ້ນເປັນຄ່າເລີ່ມຕົ້ນ
-      // ກ່ອນ — ຄາດວ່າກຳລັງເພີ່ມສິນຄ້າເຂົ້າໝວດທີ່ກຳລັງເບິ່ງຢູ່. ຖ້າບໍ່ໄດ້ກອງໄວ້ ຄ່ອຍໃຊ້ໝວດຫຼ້າສຸດທີ່ເຄີຍເລືອກ.
-      var activeFilterCatId = $('#categoryFilter').length ? $('#categoryFilter').val() : '';
-      if (activeFilterCatId && $('#add_category_id option[value="' + activeFilterCatId + '"]').length > 0) {
-        $('#add_category_id').val(activeFilterCatId);
-      } else if (LAST_ADD_CATEGORY_ID && $('#add_category_id option[value="' + LAST_ADD_CATEGORY_ID + '"]').length > 0) {
-        // ຖ້າມີໝວດໝູ່ຫຼ້າສຸດທີ່ເລືອກໄວ້ ໃຫ້ຄົງໝວດໝູ່ນັ້ນໄວ້ (ບໍ່ໃຫ້ເລີ່ມຕົ້ນໃໝ່)
-        $('#add_category_id').val(LAST_ADD_CATEGORY_ID);
-      }
-      if (LAST_ADD_UNIT_ID && $('#add_unit option[value="' + LAST_ADD_UNIT_ID + '"]').length > 0) {
-        $('#add_unit').val(LAST_ADD_UNIT_ID);
-      }
-      onAddCategoryChange();
+      // ບັງຄັບໃຫ້ຜູ້ໃຊ້ເລືອກໝວດໝູ່ໃໝ່ທຸກຄັ້ງທີ່ເປີດໜ້າເພີ່ມສິນຄ້າ
+        $('#add_category_id').val('');
+        
+        if (LAST_ADD_UNIT_ID && $('#add_unit option[value="' + LAST_ADD_UNIT_ID + '"]').length > 0) {
+          $('#add_unit').val(LAST_ADD_UNIT_ID);
+        }
+        onAddCategoryChange();
     }
   });
 });
@@ -608,25 +602,23 @@ $(document).on('change blur', '#addProductForm input[name="extra_unit_barcode[]"
 
 // Reset add modal on close (ລ້າງສະເພາະຂໍ້ມູນສິນຄ້າ, ຄົງໝວດໝູ່ ແລະ ຫົວໜ່ວຍຫຼ້າສຸດໄວ້ ເພື່ອໃຫ້ເພີ່ມສິນຄ້າໄວขึ้น)
 $('#addProductModal').on('hidden.bs.modal', function() {
-  var savedCat  = $('#add_category_id').val() || LAST_ADD_CATEGORY_ID;
-  var savedUnit = $('#add_unit').val() || LAST_ADD_UNIT_ID;
+    // ບໍ່ບັນທຶກໝວດໝູ່ເກົ່າໄວ້ ເພື່ອໃຫ້ຜູ້ໃຊ້ຕ້ອງເລືອກໃໝ່ທຸກຄັ້ງ
+    var savedUnit = $('#add_unit').val() || LAST_ADD_UNIT_ID;
 
-  $('#add_product_name').val('');
-  $('#add_barcode').val('');
-  $('#add_bprice').val('');
-  $('#add_price').val('');
-  $('#add_qty').val('0');
-  $('#add_supplier_id').val('');
-  $('#add_multi_units_container').empty();
-  removeProductImg('add');
+    $('#add_product_name').val('');
+    $('#add_barcode').val('');
+    $('#add_bprice').val('');
+    $('#add_price').val('');
+    $('#add_qty').val('0');
+    $('#add_supplier_id').val('');
+    $('#add_category_id').val('');
+    $('#add_multi_units_container').empty();
+    removeProductImg('add');
+    onAddCategoryChange(); // ອັບເດດລະຫັດສິນຄ້າໃຫ້ກາຍເປັນຄ່າວ່າງ
 
-  if (savedCat && $('#add_category_id option[value="' + savedCat + '"]').length > 0) {
-    $('#add_category_id').val(savedCat);
-    onAddCategoryChange();
-  }
-  if (savedUnit && $('#add_unit option[value="' + savedUnit + '"]').length > 0) {
-    $('#add_unit').val(savedUnit);
-  }
+    if (savedUnit && $('#add_unit option[value="' + savedUnit + '"]').length > 0) {
+      $('#add_unit').val(savedUnit);
+    }
 });
 
 // Prevent Enter key in barcode inputs from prematurely submitting form

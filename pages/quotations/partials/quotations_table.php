@@ -65,21 +65,21 @@
               <td class="text-muted small"><?php echo htmlspecialchars($q['creator_name'] ?? '-'); ?></td>
               <td class="text-center">
                 <div class="btn-group btn-group-sm">
-                  <a href="print_quotation.php?quotation_id=<?php echo (int)$q['quotation_id']; ?>" target="_blank" class="btn btn-outline-secondary" title="<?php echo htmlspecialchars(t('quotations.title_print', 'ພິມ / ເບິ່ງ')); ?>">
+                  <a href="print_quotation.php?quotation_id=<?php echo (int)$q['quotation_id']; ?>" target="_blank" class="btn text-primary" style="font-size: 18px;" title="<?php echo htmlspecialchars(t('quotations.title_print', 'ພິມ / ເບິ່ງ')); ?>">
                     <i class="fas fa-print"></i>
                   </a>
                   <?php if (hasPermission('quotations', 'edit') && !$isConverted): ?>
-                    <button type="button" class="btn btn-outline-primary" title="<?php echo htmlspecialchars(t('quotations.title_edit', 'ແກ້ໄຂ')); ?>" onclick='openQuotationModal(<?php echo $qJson; ?>)'>
+                    <button type="button" class="btn text-warning" style="font-size: 18px;" title="<?php echo htmlspecialchars(t('quotations.title_edit', 'ແກ້ໄຂ')); ?>" onclick='openQuotationModal(<?php echo $qJson; ?>)'>
                       <i class="fas fa-edit"></i>
                     </button>
                   <?php endif; ?>
                   <?php if (hasPermission('quotations', 'edit') && !$isConverted): ?>
-                    <button type="button" class="btn btn-outline-success" title="<?php echo htmlspecialchars(t('quotations.title_sell', 'ຂາຍ (ລູກຄ້າຮັບແລ້ວ)')); ?>" onclick="confirmConvertToSale(<?php echo (int)$q['quotation_id']; ?>, '<?php echo htmlspecialchars(addslashes($q['quotation_no']), ENT_QUOTES); ?>')">
+                    <button type="button" class="btn text-success" style="font-size: 18px;" title="<?php echo htmlspecialchars(t('quotations.title_sell', 'ຂາຍ (ສ້າງບິນຂາຍ)')); ?>" onclick="confirmConvertToSale(<?php echo (int)$q['quotation_id']; ?>, '<?php echo htmlspecialchars(addslashes($q['quotation_no']), ENT_QUOTES); ?>')">
                       <i class="fas fa-cash-register"></i>
                     </button>
                   <?php endif; ?>
                   <?php if (hasPermission('quotations', 'del')): ?>
-                    <button type="button" class="btn btn-outline-danger" title="<?php echo htmlspecialchars(t('quotations.title_delete', 'ລົບ')); ?>" onclick="deleteQuotation(<?php echo (int)$q['quotation_id']; ?>, '<?php echo htmlspecialchars(addslashes($q['quotation_no']), ENT_QUOTES); ?>')">
+                    <button type="button" class="btn text-danger" style="font-size: 18px;" title="<?php echo htmlspecialchars(t('quotations.title_delete', 'ລຶບ')); ?>" onclick="deleteQuotation(<?php echo (int)$q['quotation_id']; ?>, '<?php echo htmlspecialchars(addslashes($q['quotation_no']), ENT_QUOTES); ?>')">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   <?php endif; ?>

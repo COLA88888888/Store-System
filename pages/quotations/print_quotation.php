@@ -232,27 +232,27 @@ function getLaoNumber($number) {
                 <?php if ($quote['discount_amount'] > 0 || $quote['vat_amount'] > 0): ?>
                 <tr>
                     <td colspan="4" class="td-center" style="background-color: white !important; border: none; border-left: 1px solid #000; border-right: 1px solid #000;">&nbsp;</td>
-                    <td class="td-right">ມູນຄ່າ / Subtotal</td>
+                    <td class="td-right" style="font-size: 13px; white-space: nowrap;">ມູນຄ່າ / Subtotal</td>
                     <td class="td-right" style="background-color: white !important;"><?php echo number_format($quote['subtotal']); ?></td>
                 </tr>
                 <?php if ($quote['discount_amount'] > 0): ?>
                 <tr>
                     <td colspan="4" class="td-center" style="background-color: white !important; border: none; border-left: 1px solid #000; border-right: 1px solid #000;">&nbsp;</td>
-                    <td class="td-right">ສ່ວນຫຼຸດ / Discount</td>
+                    <td class="td-right" style="font-size: 13px; white-space: nowrap;">ສ່ວນຫຼຸດ / Discount</td>
                     <td class="td-right" style="background-color: white !important;"><?php echo number_format($quote['discount_amount']); ?></td>
                 </tr>
                 <?php endif; ?>
                 <?php if ($quote['vat_amount'] > 0): ?>
                 <tr>
                     <td colspan="4" class="td-center" style="background-color: white !important; border: none; border-left: 1px solid #000; border-right: 1px solid #000;">&nbsp;</td>
-                    <td class="td-right">ອາກອນ / VAT</td>
+                    <td class="td-right" style="font-size: 13px; white-space: nowrap;">ອາກອນ / VAT</td>
                     <td class="td-right" style="background-color: white !important;"><?php echo number_format($quote['vat_amount']); ?></td>
                 </tr>
                 <?php endif; ?>
                 <?php endif; ?>
                 <tr>
                     <td colspan="4" class="td-center">(<?php echo getLaoNumber($quote['total_amount']); ?>)</td>
-                    <td class="td-right">ລວມ / Total</td>
+                    <td class="td-right" style="font-size: 13px; white-space: nowrap;">ລວມ / Total</td>
                     <td class="td-right" style="background-color: white !important;"><?php echo number_format($quote['total_amount']); ?></td>
                 </tr>
             </tfoot>

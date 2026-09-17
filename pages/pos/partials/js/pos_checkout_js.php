@@ -1121,18 +1121,14 @@ function printReceiptLan() {
 }
 
 // Called after the receipt DOM is fully populated. When a LAN receipt printer is configured,
-// it attempts to print via the local server. If it fails (e.g. because the server is remote 
-// and cannot reach the local IP), it falls back to the browser print dialog so Silent Print 
-// Agents (like --kiosk-printing) can pick it up.
+// the shop has deliberately opted out of the browser dialog — a failed LAN attempt shows an
+// error toast (see printReceiptLan) but must NOT pop the OS print dialog as a "fallback": that
+// dialog lists the cashier's own local/USB printers, which isn't a fix and just gets in the
+// way of the next sale. The browser dialog is only used when no LAN receipt printer is set.
 function printReceiptAuto() {
   var rp = window.POS_RECEIPT_PRINTER;
   if (rp && rp.printer_type === 'ip') {
-    printReceiptLan().then(function(success) {
-      if (!success) {
-        console.warn('LAN print failed, falling back to browser print.');
-        printReceipt();
-      }
-    });
+    printReceiptLan();
     return;
   }
   printReceipt();

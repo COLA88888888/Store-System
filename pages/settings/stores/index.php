@@ -8,7 +8,7 @@ $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
 // Check authorization
-if (empty($_SESSION['user_id']) || (!hasPermission('stores') && !hasPermission('setup') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('stores') && !hasPermission('setup'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -30,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $receipt_footer      = trim($_POST['receipt_footer'] ?? '');
         $tax_type            = trim($_POST['tax_type'] ?? 'none');
         $vat_percent         = ($tax_type === 'none') ? 0.00 : floatval($_POST['vat_percent'] ?? 0);
-        $license_start_date  = trim($_POST['license_start_date'] ?? '2026-01-01');
-        $license_expire_date = trim($_POST['license_expire_date'] ?? '2026-12-31');
+        $license_start_date  = trim($_POST['license_start_date'] ?? '2026-09-15');
+        $license_expire_date = trim($_POST['license_expire_date'] ?? '2027-09-15');
 
         $branch_id_save = getActiveStoreId($pdo);
 

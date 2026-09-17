@@ -15,4 +15,5 @@ return [
     'login.err_username_required' => '请输入用户名!',
     'login.err_password_required' => '请输入密码!',
     'login.err_invalid' => '账号或密码错误,请重试',
+    'login.err_db_connection' => '无法连接数据库',
 ];

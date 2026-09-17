@@ -14,6 +14,41 @@ window.REP_CUR = {
   meta: <?php echo json_encode(getCurrencyMeta(), JSON_UNESCAPED_UNICODE); ?>
 };
 
+// Bill window / reprint / delete strings injected by JS. Keyed "domain.key" so the dashboard's
+// language switcher re-points the values live; always read them at render time through repT().
+window.REPORTS_JS_I18N = <?php echo tjson([
+  'reports.js_error_prefix'           => 'ເກີດຂໍ້ຜິດພາດ:',
+  'reports.js_confirm_delete_plain'   => 'ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລົບບິນເລກທີ %s ?\nສະຕັອກສິນຄ້າທັງໝົດໃນບິນນີ້ຈະຖືກຄືນເຂົ້າຄັງອັດໂຕໂນມັດ!',
+  'reports.js_connecting'             => 'ກຳລັງເຊື່ອມຕໍ່ເຊີບເວີ...',
+  'reports.js_no_items'               => 'ບໍ່ມີລາຍການສິນຄ້າ',
+  'reports.js_load_fail'              => 'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນບິນໄດ້!',
+  'reports.js_connect_error'          => 'ເກີດຂໍ້ຜິດພາດໃນການເຊື່ອມຕໍ່!',
+  'reports.js_connect_fail_alert'     => 'ບໍ່ສາມາດເຊື່ອມຕໍ່ກັບເຊີເວີໄດ້!',
+  'reports.js_delete_success_title'   => 'ລົບບິນສຳເລັດ!',
+  'reports.js_error_title'            => 'ເກີດຂໍ້ຜິດພາດ!',
+  'reports.js_delete_confirm_title'   => 'ຢືນຢັນການລົບບິນຂາຍ?',
+  'reports.js_delete_confirm_part1'   => 'ທ່ານຕ້ອງການລົບບິນເລກທີ',
+  'reports.js_delete_confirm_part2'   => 'ແທ້ບໍ?',
+  'reports.js_delete_confirm_note'    => 'ສະຕັອກສິນຄ້າທັງໝົດໃນບິນນີ້ຈະຖືກຄືນເຂົ້າຄັງອັດໂຕໂນມັດ!',
+  'reports.js_confirm_delete_btn'     => 'ຢືນຢັນລົບ',
+  'reports.js_cancel_btn'             => 'ຍົກເລີກ',
+  'reports.export_title_all_sales'    => 'ລາຍງານການຂາຍທັງໝົດ',
+  'reports.receipt_print_title'       => 'ໃບບິນຮັບເງິນ (POS)',
+  'reports.no_search_match'           => 'ບໍ່ພົບຂໍ້ມູນທີ່ຕົງກັບຄຳຄົ້ນຫາ',
+  'reports.default_customer'          => 'ລູກຄ້າທົ່ວໄປ',
+  'reports.modal_cash_received_label' => 'ຮັບເງິນສົດ:',
+  'reports.modal_qr_received_label'   => 'ຮັບເງິນໂອນ:',
+  'reports.js_item_fallback'          => 'ສິນຄ້າ',
+  'reports.js_vat_exclusive'          => 'ອມພ (%s):',
+  'reports.js_vat_inclusive'          => 'ລວມ ອມພ (%s):',
+  'reports.js_scan_transfer'          => 'ສະແກນ QR ໂອນຊຳລະ',
+]); ?>;
+function repT(key) {
+  var s = (window.REPORTS_JS_I18N && REPORTS_JS_I18N[key]) || key;
+  var args = Array.prototype.slice.call(arguments, 1);
+  return String(s).replace(/%s/g, function () { return args.length ? args.shift() : ''; });
+}
+
 // A KIP amount formatted into currency `code` (KIP|THB|USD|CNY); '-' if no rate set.
 function repMoneyInCode(kip, code) {
   kip = parseFloat(kip) || 0;
@@ -51,7 +86,7 @@ function viewBillDetails(billNo) {
 
   // Smart Slow Network Fallback: Only show loading if server takes > 600ms
   var slowNetTimer = setTimeout(function() {
-    $('#modal_items_body').html('<tr><td colspan="4" class="text-center py-3 text-muted" style="font-size:0.9rem;"><i class="fas fa-wifi text-warning mr-1"></i> ກຳລັງເຊື່ອມຕໍ່ເຊີບເວີ...</td></tr>');
+    $('#modal_items_body').html('<tr><td colspan="4" class="text-center py-3 text-muted" style="font-size:0.9rem;"><i class="fas fa-wifi text-warning mr-1"></i> ' + repT('reports.js_connecting') + '</td></tr>');
   }, 600);
 
   $.ajax({
@@ -65,7 +100,7 @@ function viewBillDetails(billNo) {
         var b = res.bill;
         $('#modal_date').text((b.sale_date || '') + ' ' + (b.sale_time || ''));
         $('#modal_cashier').text(b.cashier_display_name || b.user_receive || 'Admin');
-        $('#modal_customer').text(b.customer_display_name || b.customer_name || 'ລູກຄ້າທົ່ວໄປ');
+        $('#modal_customer').text(b.customer_display_name || b.customer_name || repT('reports.default_customer'));
 
         if (b.bank_name) {
           $('#modal_bank_wrapper').show();
@@ -99,7 +134,7 @@ function viewBillDetails(billNo) {
 
             tbody.append(`
               <tr>
-                <td class="text-left font-weight-bold">${item.save_proname || item.product_name || 'ສິນຄ້າ'}</td>
+                <td class="text-left font-weight-bold">${item.save_proname || item.product_name || repT('reports.js_item_fallback')}</td>
                 <td class="text-center">${q.toLocaleString()}</td>
                 <td class="text-right">${repMoneyFromKip(p)}</td>
                 <td class="text-right font-weight-bold">${repMoneyFromKip(total)}</td>
@@ -107,15 +142,15 @@ function viewBillDetails(billNo) {
             `);
           });
         } else {
-          tbody.html('<tr><td colspan="4" class="text-center text-muted">ບໍ່ມີລາຍການສິນຄ້າ</td></tr>');
+          tbody.html('<tr><td colspan="4" class="text-center text-muted">' + repT('reports.js_no_items') + '</td></tr>');
         }
       } else {
-        $('#modal_items_body').html('<tr><td colspan="4" class="text-center text-danger">ບໍ່ສາມາດໂຫຼດຂໍ້ມູນບິນໄດ້!</td></tr>');
+        $('#modal_items_body').html('<tr><td colspan="4" class="text-center text-danger">' + repT('reports.js_load_fail') + '</td></tr>');
       }
     },
     error: function() {
       clearTimeout(slowNetTimer);
-      $('#modal_items_body').html('<tr><td colspan="4" class="text-center text-danger">ເກີດຂໍ້ຜິດພາດໃນການເຊື່ອມຕໍ່!</td></tr>');
+      $('#modal_items_body').html('<tr><td colspan="4" class="text-center text-danger">' + repT('reports.js_connect_error') + '</td></tr>');
     }
   });
 }
@@ -144,7 +179,7 @@ function printBill(billNo) {
           $('#rc_rep_queue_wrap').css('display', 'none');
         }
         $('#rc_rep_cashier').text(b.user_receive || 'Admin');
-        $('#rc_rep_customer').text(b.customer_name || 'ລູກຄ້າທົ່ວໄປ');
+        $('#rc_rep_customer').text(b.customer_name || repT('reports.default_customer'));
 
         var subtotal = parseFloat(b.sale_amount || 0);
         var discount = parseFloat(b.sale_discount_bill || 0);
@@ -192,15 +227,15 @@ function printBill(billNo) {
         if (bTaxType === 'none' || bVatRate <= 0) {
           $('#rc_rep_vat_row').hide();
         } else if (bTaxType === 'exclusive' && (bVatAmt > 0 || bVatRate > 0)) {
-          $('#rc_rep_vat_label').text('ອມພ (' + bVatRate + '%):');
+          $('#rc_rep_vat_label').text(repT('reports.js_vat_exclusive', bVatRate + '%'));
           $('#rc_rep_vat').html(repMoneyFromKip(bVatAmt));
           $('#rc_rep_vat_row').show();
         } else if (bTaxType === 'inclusive' && (bVatAmt > 0 || bVatRate > 0)) {
-          $('#rc_rep_vat_label').text('ລວມ ອມພ (' + bVatRate + '%):');
+          $('#rc_rep_vat_label').text(repT('reports.js_vat_inclusive', bVatRate + '%'));
           $('#rc_rep_vat').html(repMoneyFromKip(bVatAmt));
           $('#rc_rep_vat_row').show();
         } else if (bVatAmt > 0) {
-          $('#rc_rep_vat_label').text('ອມພ (' + (bVatRate > 0 ? bVatRate + '%' : '') + '):');
+          $('#rc_rep_vat_label').text(repT('reports.js_vat_exclusive', bVatRate > 0 ? bVatRate + '%' : ''));
           $('#rc_rep_vat').html(repMoneyFromKip(bVatAmt));
           $('#rc_rep_vat_row').show();
         } else {
@@ -212,8 +247,8 @@ function printBill(billNo) {
         fillReprintMultiCurrency(net);   // net total in all 4 currencies
 
         var payHtml = '';
-        payHtml += '<div class="d-flex justify-content-between"><span>ຮັບເງິນສົດ:</span><span>' + repMoneyFromKip(cash) + '</span></div>';
-        payHtml += '<div class="d-flex justify-content-between"><span>ຮັບເງິນໂອນ:</span><span>' + repMoneyFromKip(qr) + '</span></div>';
+        payHtml += '<div class="d-flex justify-content-between"><span>' + repT('reports.modal_cash_received_label') + '</span><span>' + repMoneyFromKip(cash) + '</span></div>';
+        payHtml += '<div class="d-flex justify-content-between"><span>' + repT('reports.modal_qr_received_label') + '</span><span>' + repMoneyFromKip(qr) + '</span></div>';
         $('#rc_rep_payment_rows').html(payHtml);
 
         // Bank QR box — must show the exact bank/QR/account used for this sale, same as the
@@ -228,7 +263,7 @@ function printBill(billNo) {
           }
           // Reprinted bill: show the bank name only — no account name, no account number.
           var labelBank = b.bank_name || '';
-          $('#rc_rep_bank_name_lbl').text(labelBank ? 'ສະແກນ QR ໂອນຊຳລະ (' + labelBank + ')' : 'ສະແກນ QR ໂອນຊຳລະ');
+          $('#rc_rep_bank_name_lbl').text(labelBank ? repT('reports.js_scan_transfer') + ' (' + labelBank + ')' : repT('reports.js_scan_transfer'));
           $('#rc_rep_bank_acc_lbl').text('').hide();
           $('.receipt-qr-box').show();
         } else {
@@ -246,7 +281,7 @@ function printBill(billNo) {
 
             tbody.append(`
               <tr>
-                <td style="text-align:left;padding:3px 0;">${item.save_proname || item.product_name || 'ສິນຄ້າ'}</td>
+                <td style="text-align:left;padding:3px 0;">${item.save_proname || item.product_name || repT('reports.js_item_fallback')}</td>
                 <td style="text-align:center;padding:3px 0;">${q.toLocaleString()}</td>
                 <td style="text-align:right;padding:3px 0;">${repMoneyFromKip(total)}</td>
               </tr>
@@ -256,11 +291,11 @@ function printBill(billNo) {
 
         doPrintReportReceipt();
       } else {
-        alert('ບໍ່ສາມາດໂຫຼດຂໍ້ມູນບິນໄດ້!');
+        alert(repT('reports.js_load_fail'));
       }
     },
     error: function() {
-      alert('ເກີດຂໍ້ຜິດພາດໃນການເຊື່ອມຕໍ່!');
+      alert(repT('reports.js_connect_error'));
     }
   });
 }
@@ -280,7 +315,7 @@ function doPrintReportReceipt() {
   iframeDoc.open();
   iframeDoc.write(`<!DOCTYPE html><html><head>
     <meta charset="utf-8">
-    <title>ໃບບິນຮັບເງິນ (POS)</title>
+    <title>${repT('reports.receipt_print_title')}</title>
     <link rel="stylesheet" href="../../assets/css/local-font.css">
     <style>
       @page { size: 80mm auto; margin: 0mm; }
@@ -376,7 +411,7 @@ function printDeliveryNote(billNo) {
 
       var rows = '';
       $.each(res.details || [], function(i, item) {
-        var name = item.save_proname || item.product_name || 'ສິນຄ້າ';
+        var name = item.save_proname || item.product_name || repT('reports.js_item_fallback');
         var q = floatval(item.save_qty);
         var unit = item.unit_name ? (' ' + item.unit_name) : '';
         rows += '<tr>'
@@ -459,7 +494,7 @@ function deleteBill(billNo) {
           if (typeof Swal !== 'undefined') {
             Swal.fire({
               icon: 'success',
-              title: 'ລົບບິນສຳເລັດ!',
+              title: repT('reports.js_delete_success_title'),
               text: res.message,
               timer: 1800,
               showConfirmButton: false
@@ -472,17 +507,17 @@ function deleteBill(billNo) {
           }
         } else {
           if (typeof Swal !== 'undefined') {
-            Swal.fire({ icon: 'error', title: 'ເກີດຂໍ້ຜິດພາດ!', text: res.message });
+            Swal.fire({ icon: 'error', title: repT('reports.js_error_title'), text: res.message });
           } else {
-            alert('ເກີດຂໍ້ຜິດພາດ: ' + res.message);
+            alert(repT('reports.js_error_prefix') + ' ' + res.message);
           }
         }
       },
       error: function() {
         if (typeof Swal !== 'undefined') {
-          Swal.fire({ icon: 'error', title: 'ເກີດຂໍ້ຜິດພາດ!', text: 'ບໍ່ສາມາດເຊື່ອມຕໍ່ກັບເຊີເວີໄດ້!' });
+          Swal.fire({ icon: 'error', title: repT('reports.js_error_title'), text: repT('reports.js_connect_fail_alert') });
         } else {
-          alert('ບໍ່ສາມາດເຊື່ອມຕໍ່ກັບເຊີເວີໄດ້!');
+          alert(repT('reports.js_connect_fail_alert'));
         }
       }
     });
@@ -490,21 +525,21 @@ function deleteBill(billNo) {
 
   if (typeof Swal !== 'undefined') {
     Swal.fire({
-      title: 'ຢືນຢັນການລົບບິນຂາຍ?',
-      html: 'ທ່ານຕ້ອງການລົບບິນເລກທີ <strong class="text-danger">' + billNo + '</strong> ແທ້ບໍ?<br><small class="text-muted">ສະຕັອກສິນຄ້າທັງໝົດໃນບິນນີ້ຈະຖືກຄືນເຂົ້າຄັງອັດໂຕໂນມັດ!</small>',
+      title: repT('reports.js_delete_confirm_title'),
+      html: repT('reports.js_delete_confirm_part1') + ' <strong class="text-danger">' + billNo + '</strong> ' + repT('reports.js_delete_confirm_part2') + '<br><small class="text-muted">' + repT('reports.js_delete_confirm_note') + '</small>',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc2626',
       cancelButtonColor: '#64748b',
-      confirmButtonText: '<i class="fas fa-trash-alt mr-1"></i> ຢືນຢັນລົບ',
-      cancelButtonText: 'ຍົກເລີກ'
+      confirmButtonText: '<i class="fas fa-trash-alt mr-1"></i> ' + repT('reports.js_confirm_delete_btn'),
+      cancelButtonText: repT('reports.js_cancel_btn')
     }).then(function(result) {
       if (result.isConfirmed) {
         doDelete();
       }
     });
   } else {
-    if (confirm('ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລົບບິນເລກທີ ' + billNo + ' ?\nສະຕັອກສິນຄ້າທັງໝົດໃນບິນນີ້ຈະຖືກຄືນເຂົ້າຄັງອັດໂຕໂນມັດ!')) {
+    if (confirm(repT('reports.js_confirm_delete_plain', billNo))) {
       doDelete();
     }
   }
@@ -536,7 +571,7 @@ $(document).ready(function() {
     if (visibleCount === 0 && $rows.length > 0) {
       var colCount = $('.report-table thead th').length || 12;
       $('.report-table tbody').append(
-        '<tr id="noSearchResultRow"><td colspan="' + colCount + '" class="text-center py-4 text-muted font-weight-bold">ບໍ່ພົບຂໍ້ມູນທີ່ຕົງກັບຄຳຄົ້ນຫາ "' + $('<div>').text(val).html() + '"</td></tr>'
+        '<tr id="noSearchResultRow"><td colspan="' + colCount + '" class="text-center py-4 text-muted font-weight-bold">' + repT('reports.no_search_match') + ' "' + $('<div>').text(val).html() + '"</td></tr>'
       );
     }
   });
@@ -624,7 +659,7 @@ function doExportExcel() {
   html += '.text-left { text-align: left !important; }';
   html += 'h2 { text-align: center !important; font-family: "Noto Sans Lao", "Souliyo", "Boon", sans-serif; font-size: 18px; margin: 15px 0; }';
   html += '</style></head><body>';
-  html += '<h2>ລາຍງານການຂາຍທັງໝົດ</h2>';
+  html += '<h2>' + repT('reports.export_title_all_sales') + '</h2>';
   html += cloneTable.outerHTML;
   html += '</body></html>';
 
@@ -662,7 +697,7 @@ function doExportPDF() {
     wrapper.style.fontFamily = "'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif";
     
     var title = document.createElement('h3');
-    title.innerText = 'ລາຍງານການຂາຍທັງໝົດ';
+    title.innerText = repT('reports.export_title_all_sales');
     title.style.textAlign = 'center';
     title.style.marginBottom = '15px';
     title.style.fontFamily = "'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif";

@@ -100,4 +100,14 @@ return [
     'promotions.msg_expired_pre'  => 'This promotion has expired (',
     'promotions.msg_expired_post' => ')! Please click "Edit" to change the end date before enabling it.',
     'promotions.err_prefix'       => 'Error:',
+
+    // Previously untranslated labels
+    'promotions.expired_badge' => 'Expired',
+
+    // Pagination
+    'promotions.page_showing' => 'Showing',
+    'promotions.page_of' => 'of',
+    'promotions.page_page' => 'page',
+    'promotions.page_all' => 'All',
+    'promotions.page_items' => 'items',
 ];

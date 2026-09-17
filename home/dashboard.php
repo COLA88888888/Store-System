@@ -17,15 +17,33 @@ $base_path = '../';
 $site_name = 'Wlaodev POS';
 $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
 
+// Own-account access expiry (owner-only field, set from Users Management). Two flavors:
+// - $myAccessDaysLeft: unbounded, used to make the "ແພັກເກັດ" badge show THIS user's own
+//   remaining days instead of the shop-wide license days, whenever they have a personal limit.
+// - $myAccessDaysLeftForWarning: only set when <=10 days away, drives the notification-bell
+//   warning item so the user can ask the owner to extend it before auth/access_expired.php locks them out.
+$myAccessDaysLeft = null;
+$myAccessDaysLeftForWarning = null;
+
 if (!empty($_SESSION['user_id'])) {
     try {
-        $uFetch = $pdo->prepare("SELECT profile_img, fname, lname, username, status FROM tbuser WHERE Id = ? LIMIT 1");
+        $uFetch = $pdo->prepare("SELECT profile_img, fname, lname, username, status, access_expire_date FROM tbuser WHERE Id = ? LIMIT 1");
         $uFetch->execute([$_SESSION['user_id']]);
         if ($userRow = $uFetch->fetch(PDO::FETCH_ASSOC)) {
             if (!empty($userRow['profile_img'])) $_SESSION['profile_img'] = $userRow['profile_img'];
             if (isset($userRow['fname'])) $_SESSION['fname'] = $userRow['fname'];
             if (isset($userRow['lname'])) $_SESSION['lname'] = $userRow['lname'];
             if (isset($userRow['status'])) $_SESSION['status'] = $userRow['status'];
+
+            if (intval($_SESSION['user_id']) !== 1 && !empty($userRow['access_expire_date'])) {
+                $daysLeft = (int)ceil((strtotime($userRow['access_expire_date']) - strtotime(date('Y-m-d'))) / 86400);
+                if ($daysLeft > 0) {
+                    $myAccessDaysLeft = $daysLeft;
+                    if ($daysLeft <= 10) {
+                        $myAccessDaysLeftForWarning = $daysLeft;
+                    }
+                }
+            }
         }
     } catch (Exception $e) {}
 }
@@ -259,6 +277,7 @@ if (!hasPermission('dashboard')) {
         $userStoreId = intval($_SESSION['store_id'] ?? 1);
         $userIsAdmin = ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' || strtolower($_SESSION['status'] ?? '') === 'admin' || ($_SESSION['user_id'] ?? 0) == 1;
         $userIsMain = isMainBranch($pdo, $userStoreId);
+        $userCanAllBranches = canViewAllBranches($pdo);
         $allStores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
         $activeStoreId = getActiveStoreId($pdo);
         $currentStoreName = '';
@@ -295,6 +314,11 @@ if (!hasPermission('dashboard')) {
       $formattedStart = date('d/m/Y', strtotime($license_start));
       $formattedExpire = date('d/m/Y', strtotime($license_expire));
 
+      // The "ແພັກເກັດ" badge is about THIS user's own personal access limit only (not the
+      // shop-wide license, which caused confusion before) — shows their remaining days when
+      // the owner has set one, or "ບໍ່ມີກຳນົດ" (unlimited) when no personal limit applies.
+      $displayDaysRemaining = $myAccessDaysLeft;
+
       // Low Stock & Out of Stock Alerts for Main Branch & All Branches (Grouped by store)
       $lowStockList = getLowStockAlerts($pdo);
       $lowStockCount = count($lowStockList);
@@ -318,7 +342,7 @@ if (!hasPermission('dashboard')) {
     <ul class="navbar-nav ml-auto align-items-center" style="gap: 12px; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
       
       <!-- Notifications Dropdown (Low Stock & Out of Stock Warning Grouped by Branch - Only for Main Branch / Admin) -->
-      <?php if ($userIsMain || $userIsAdmin): ?>
+      <?php if ($userCanAllBranches): ?>
         <li class="nav-item dropdown">
           <a class="nav-link text-white position-relative px-2 d-flex align-items-center" data-toggle="dropdown" href="#" onclick="markNotifAsRead('mainNotifBadge')" data-i18n-title="layout.notif_main_title" title="<?php echo htmlspecialchars(t('layout.notif_main_title', 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ສິນສຸດ/ສິນຄ້າໝົດ')); ?>" style="font-size: 1.25rem; cursor: pointer;">
             <i id="mainNotifBellIcon" class="fas fa-bell text-white"></i>
@@ -379,7 +403,7 @@ if (!hasPermission('dashboard')) {
       <?php endif; ?>
 
       <!-- Sub-Branch Notifications Dropdown (Incoming Transfers + Own Low Stock + New Products) -->
-      <?php if (!$userIsMain && !$userIsAdmin): ?>
+      <?php if (!$userCanAllBranches): ?>
         <?php
           $subStoreId = intval($_SESSION['store_id'] ?? 1);
           $incomingTransfers = getIncomingTransfersForStore($pdo, $subStoreId);
@@ -489,14 +513,13 @@ if (!hasPermission('dashboard')) {
         </li>
       <?php endif; ?>
 
-      <!-- Subscription info (Only for Main Branch / Admin) -->
-      <?php if ($userIsMain || $userIsAdmin): ?>
-        <li class="nav-item d-none d-md-flex align-items-center text-white mr-1" style="font-size: 0.85rem; font-weight: 600;">
-          <span class="d-inline-flex align-items-center">
-            <span data-i18n="layout.package_label"><?php echo htmlspecialchars(t('layout.package_label', 'ແພັກເກັດ')); ?></span>:<span class="mx-1 text-white" style="font-size: 0.95rem; font-weight: 800"><?php echo $daysRemaining; ?></span> <span data-i18n="layout.days_unit"><?php echo htmlspecialchars(t('layout.days_unit', 'ວັນ')); ?></span>
-          </span>
-        </li>
-      <?php endif; ?>
+      <!-- Subscription info — shown to everyone (not just main-branch/admin), since a
+           sub-branch employee with a personal access limit needs to see their own countdown too. -->
+      <li class="nav-item d-none d-md-flex align-items-center text-white mr-1" style="font-size: 0.85rem; font-weight: 600;">
+        <span class="d-inline-flex align-items-center">
+          <span data-i18n="layout.package_label"><?php echo htmlspecialchars(t('layout.package_label', 'ແພັກເກັດ')); ?></span>:<?php if ($displayDaysRemaining !== null): ?><span class="mx-1 text-white" style="font-size: 0.95rem; font-weight: 800"><?php echo $displayDaysRemaining; ?></span> <span data-i18n="layout.days_unit"><?php echo htmlspecialchars(t('layout.days_unit', 'ວັນ')); ?></span><?php else: ?><span class="mx-1 text-white" style="font-size: 0.95rem; font-weight: 800" data-i18n="layout.package_unlimited"><?php echo htmlspecialchars(t('layout.package_unlimited', 'ບໍ່ມີກຳນົດ')); ?></span><?php endif; ?>
+        </span>
+      </li>
 
       <!-- Theme Colour Picker (recolours sidebar + navbar, saved per-browser) -->
       <li class="nav-item dropdown d-flex align-items-center mr-2">
@@ -578,6 +601,10 @@ if (!hasPermission('dashboard')) {
     var I18N_LAYOUT = <?php echo tjson([
         'layout.package_label' => 'ແພັກເກັດ',
         'layout.days_unit' => 'ວັນ',
+        'layout.package_unlimited' => 'ບໍ່ມີກຳນົດ',
+        'layout.access_expiry_warning_title' => 'ອາຍຸການນຳໃຊ້ໃກ້ໝົດ',
+        'layout.access_expiry_warning_text' => 'ບັນຊີຂອງທ່ານຈະໝົດອາຍຸໃນອີກ %d ມື້. ກະລຸນາຕິດຕໍ່ຜູ້ບໍລິຫານເພື່ອຕໍ່ອາຍຸການນຳໃຊ້.',
+        'layout.access_expiry_warning_text_today' => 'ບັນຊີຂອງທ່ານຈະໝົດອາຍຸໃນມື້ນີ້! ກະລຸນາຕິດຕໍ່ຜູ້ບໍລິຫານເພື່ອຕໍ່ອາຍຸການນຳໃຊ້.',
         'layout.branch_main_suffix' => '(ສາງຫຼັກ)',
         'layout.items_unit' => 'ລາຍການ',
         'layout.out_of_stock' => 'ໝົດແລ້ວ (0)',
@@ -603,6 +630,11 @@ if (!hasPermission('dashboard')) {
         'layout.logout_confirm_text' => 'ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ຫຼືບໍ່?',
         'layout.cancel' => 'ຍົກເລີກ',
     ]); ?>;
+
+    // Own account's remaining access days (owner-only field, Users Management) — null when
+    // unlimited, not applicable (owner account), or more than 10 days away. Folded into
+    // whichever notification bell (main/sub) this session sees — see pollLiveNotifications().
+    var MY_ACCESS_DAYS_LEFT = <?php echo ($myAccessDaysLeftForWarning === null) ? 'null' : intval($myAccessDaysLeftForWarning); ?>;
 
     // I18N_ALL_LAYOUT: sidebar/navbar strings for EVERY supported language (not just the
     // current one), embedded once so a flag click can repaint the chrome instantly, client-side,
@@ -1166,6 +1198,23 @@ if (!hasPermission('dashboard')) {
     var lastUnreadCount = { mainNotifBadge: -1, subNotifBadge: -1 };
 
     // Real-Time Notification Polling (Every 1.5 seconds)
+    // Own account's access-expiry warning row, prepended into whichever notification bell
+    // (main/sub) this session sees. Not clickable/dismissible like the other items — it stays
+    // until the owner extends the account or it expires.
+    function buildAccessWarningNotifHtml() {
+      if (typeof MY_ACCESS_DAYS_LEFT !== 'number') return '';
+      var text = MY_ACCESS_DAYS_LEFT > 0
+        ? I18N_LAYOUT['layout.access_expiry_warning_text'].replace('%d', MY_ACCESS_DAYS_LEFT)
+        : I18N_LAYOUT['layout.access_expiry_warning_text_today'];
+      var html = '<div class="dropdown-item py-2 px-3 border-bottom" style="background-color: #fffbeb; white-space: normal; cursor: default;">';
+      html += '<div class="d-flex align-items-center text-dark font-weight-bold mb-1" style="font-size: 0.82rem;">';
+      html += '<i class="fas fa-user-clock text-warning mr-2"></i> ' + I18N_LAYOUT['layout.access_expiry_warning_title'];
+      html += '</div>';
+      html += '<div class="text-muted" style="font-size: 0.78rem;">' + text + '</div>';
+      html += '</div>';
+      return html;
+    }
+
     function pollLiveNotifications() {
       $.ajax({
         url: '../api/stock_transfer_backend.php?action=poll_notifications',
@@ -1178,6 +1227,12 @@ if (!hasPermission('dashboard')) {
           var badgeId = res.is_main ? 'mainNotifBadge' : 'subNotifBadge';
           var badge = $('#' + badgeId);
           var totalServerCount = res.total_count || 0;
+
+          // Own account's access-expiry warning (see MY_ACCESS_DAYS_LEFT above) is folded into
+          // whichever bell this session actually sees — it isn't tracked server-side by
+          // poll_notifications, so it's added here on every poll cycle instead.
+          var hasAccessWarning = (typeof MY_ACCESS_DAYS_LEFT === 'number');
+          if (hasAccessWarning) totalServerCount += 1;
 
           var readKeys = [];
           try {
@@ -1205,6 +1260,7 @@ if (!hasPermission('dashboard')) {
               if (!readKeys.includes('np_' + p.product_id)) unreadCount++;
             });
           }
+          if (hasAccessWarning) unreadCount++; // persistent, like a low-stock alert
 
           if (lastUnreadCount[badgeId] !== -1 && unreadCount > lastUnreadCount[badgeId]) {
             playNotificationSound();
@@ -1232,7 +1288,7 @@ if (!hasPermission('dashboard')) {
           if (res.is_main) {
             var bodyEl = $('#mainNotifDropdownBody');
             if (bodyEl.length > 0) {
-              var html = '';
+              var html = buildAccessWarningNotifHtml();
 
               // 1. Sub-Branch Stock Additions Section
               if (res.sub_branch_imports && res.sub_branch_imports.length > 0) {
@@ -1295,8 +1351,8 @@ if (!hasPermission('dashboard')) {
             var bodyEl = $('#subNotifDropdownBody');
             if (bodyEl.length > 0) {
               var currentStoreId = <?php echo intval($_SESSION['store_id'] ?? 1); ?>;
-              var html = '';
-              
+              var html = buildAccessWarningNotifHtml();
+
               if (res.incoming_transfers && res.incoming_transfers.length > 0) {
                 html += '<div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #eff6ff; font-size: 0.82rem; white-space: nowrap;">';
                 html += '<span class="text-primary text-truncate"><i class="fas fa-exchange-alt mr-1"></i> ' + I18N_LAYOUT['layout.transfer_list'] + '</span>';
@@ -1737,8 +1793,8 @@ if (!hasPermission('dashboard')) {
         <div></div><div></div><div></div><div></div>
         <div></div><div></div><div></div><div></div>
       </div>
-      <div style="margin-top: 18px; font-weight: 700; color: #1e293b; font-size: 1.05rem; letter-spacing: 0.5px;">
-        ກຳລັງໂຫຼດຂໍ້ມູນ...
+      <div style="margin-top: 18px; font-weight: 700; color: #1e293b; font-size: 1.05rem; letter-spacing: 0.5px;" data-i18n="layout.loading_data">
+        <?php echo htmlspecialchars(t('layout.loading_data', 'ກຳລັງໂຫຼດຂໍ້ມູນ...')); ?>
       </div>
     </div>
 

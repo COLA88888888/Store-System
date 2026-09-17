@@ -10,7 +10,7 @@ if (!isset($base_path)) {
 require_once __DIR__ . '/../config/db.php';
 
 // Check authorization (Executive, Accountant, or users with accounting/bank permission)
-if (empty($_SESSION['user_id']) || (!hasPermission('accounting') && !hasPermission('report') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ' && ($_SESSION['status'] ?? '') !== 'ນັກບັນຊີ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('accounting') && !hasPermission('report') && ($_SESSION['status'] ?? '') !== 'ນັກບັນຊີ')) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -166,6 +166,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 $start_date = $_GET['start_date'] ?? '2000-01-01';
 $end_date   = $_GET['end_date'] ?? date('Y-m-d');
 $filter_store_id = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : (isset($_GET['branch_id']) && $_GET['branch_id'] !== '' ? intval($_GET['branch_id']) : 0);
+if (!canViewAllBranches($pdo)) {
+    $filter_store_id = intval($_SESSION['store_id'] ?? 1);
+}
 
 // Fetch active branches for store filter dropdown
 $branches_list = [];

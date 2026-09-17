@@ -6,7 +6,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 require_once __DIR__ . '/../../config/db.php';
 
 // Check authorization
-if (empty($_SESSION['user_id']) || (!hasPermission('import_list') && !hasPermission('import_stock') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('import_list') && !hasPermission('import_stock'))) {
     exit("Access Denied");
 }
 

@@ -8,7 +8,7 @@ $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
 // Check authorization
-if (empty($_SESSION['user_id']) || (!hasPermission('stores') && !hasPermission('setup') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('stores') && !hasPermission('setup'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }

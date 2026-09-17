@@ -100,4 +100,14 @@ return [
     'promotions.msg_expired_pre'  => '此促销已过期 (',
     'promotions.msg_expired_post' => ')！请先点击“编辑”修改结束日期再启用。',
     'promotions.err_prefix'       => '错误：',
+
+    // Previously untranslated labels
+    'promotions.expired_badge' => '已过期',
+
+    // Pagination
+    'promotions.page_showing' => '显示',
+    'promotions.page_of' => '共',
+    'promotions.page_page' => '页',
+    'promotions.page_all' => '全部',
+    'promotions.page_items' => '项',
 ];

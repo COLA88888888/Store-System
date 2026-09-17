@@ -208,4 +208,18 @@ return [
     'reports.chart_legend_transfer'  => 'ໂອນ',
     'reports.chart_legend_bill_count' => 'ຈຳນວນບິນ',
     'reports.chart_tooltip_bill'     => 'ບິນ:',
+
+    // Previously untranslated labels
+    'reports.receipt_cur_kip' => 'ກີບ (LAK):',
+    'reports.receipt_cur_thb' => 'ບາດ (THB):',
+    'reports.receipt_cur_usd' => 'ໂດລາ (USD):',
+    'reports.receipt_cur_cny' => 'ຢວນ (CNY):',
+
+    // Receipt / checkout / delete-bill JS strings
+    'reports.js_item_fallback' => 'ສິນຄ້າ',
+    'reports.js_vat_exclusive' => 'ອມພ (%s):',
+    'reports.js_vat_inclusive' => 'ລວມ ອມພ (%s):',
+    'reports.js_scan_transfer' => 'ສະແກນ QR ໂອນຊຳລະ',
+    'reports.js_error_prefix' => 'ເກີດຂໍ້ຜິດພາດ:',
+    'reports.js_confirm_delete_plain' => 'ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລົບບິນເລກທີ %s ?\nສະຕັອກສິນຄ້າທັງໝົດໃນບິນນີ້ຈະຖືກຄືນເຂົ້າຄັງອັດໂຕໂນມັດ!',
 ];

@@ -58,4 +58,11 @@ return [
     'branches.msg_not_found' => 'This branch was not found!',
     'branches.msg_cannot_delete_main' => 'The main branch cannot be deleted!',
     'branches.msg_delete_success' => 'Branch "{name}" deleted successfully!',
+
+    // Pagination
+    'branches.page_showing' => 'Showing',
+    'branches.page_of' => 'of',
+    'branches.page_page' => 'page',
+    'branches.page_all' => 'All',
+    'branches.page_items' => 'items',
 ];

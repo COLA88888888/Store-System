@@ -11,7 +11,7 @@ if (!defined('MINIPOS_APP')) {
       <i class="fas fa-network-wired text-primary mr-2"></i> <?php echo htmlspecialchars(t('branches.page_title', 'ຈັດການສາຂາທັງໝົດ')); ?>
     </h5>
   </div>
-  <?php if (hasPermission('branches', 'add')): ?>
+  <?php if (!empty($canManageBranches) && hasPermission('branches', 'add')): ?>
     <button type="button" class="btn btn-sm btn-primary font-weight-bold shadow-sm" data-toggle="modal" data-target="#addBranchModal" style="border-radius: 6px; font-size: 0.84rem; padding: 5px 12px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
       <i class="fas fa-plus-circle mr-1"></i> <?php echo htmlspecialchars(t('branches.btn_add', 'ເພີ່ມສາຂາໃໝ່')); ?>
     </button>

@@ -7,14 +7,17 @@ function pollLiveUserStatuses() {
     dataType: 'json',
     success: function(res) {
       if (res.status === 'success' && Array.isArray(res.users)) {
+        var i18n = typeof I18N_USERS !== 'undefined' ? I18N_USERS : {};
+        var onlineText = i18n['users_manage.status_online'] || 'ໃຊ້ງານຢູ່';
+        var offlineText = i18n['users_manage.status_offline'] || 'ບໍ່ໄດ້ໃຊ້ງານ';
         res.users.forEach(function(u) {
           var statusTd = $('td.user-online-status-td[data-user-id="' + u.id + '"]');
           if (statusTd.length > 0) {
             var html = '';
             if (u.is_online) {
-              html = '<span class="badge badge-success px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ໃຊ້ງານຢູ່</span>';
+              html = '<span class="badge badge-success px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + onlineText + '</span>';
             } else {
-              html = '<span class="badge badge-danger px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ບໍ່ໄດ້ໃຊ້ງານ</span>';
+              html = '<span class="badge badge-danger px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + offlineText + '</span>';
             }
             if (statusTd.html().trim() !== html) {
               statusTd.html(html);
@@ -232,19 +235,20 @@ function openViewModal(user) {
   var st = (user.status || user.userstatus || 'ພະນັກງານ').trim();
   var isOnline = !!user.is_online;
   var badgeHtml = '';
-  
+  var i18n = typeof I18N_USERS !== 'undefined' ? I18N_USERS : {};
+
   // Online/Offline status badge
   if (isOnline) {
-    badgeHtml += '<span class="badge badge-success px-3 py-1 mr-1 shadow-sm" style="border-radius: 6px;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ໃຊ້ງານຢູ່</span> ';
+    badgeHtml += '<span class="badge badge-success px-3 py-1 mr-1 shadow-sm" style="border-radius: 6px;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + (i18n['users_manage.status_online'] || 'ໃຊ້ງານຢູ່') + '</span> ';
   } else {
-    badgeHtml += '<span class="badge badge-danger px-3 py-1 mr-1 shadow-sm" style="border-radius: 6px;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ບໍ່ໄດ້ໃຊ້ງານ</span> ';
+    badgeHtml += '<span class="badge badge-danger px-3 py-1 mr-1 shadow-sm" style="border-radius: 6px;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + (i18n['users_manage.status_offline'] || 'ບໍ່ໄດ້ໃຊ້ງານ') + '</span> ';
   }
 
   // Role badge (ຜູ້ບໍລິຫານ / ພະນັກງານ)
   if (st === 'ຜູ້ບໍລິຫານ' || st.toLowerCase() === 'admin') {
-    badgeHtml += '<span class="badge badge-primary px-3 py-1" style="border-radius: 6px;"><i class="fas fa-user-shield mr-1"></i> ຜູ້ບໍລິຫານ</span>';
+    badgeHtml += '<span class="badge badge-primary px-3 py-1" style="border-radius: 6px;"><i class="fas fa-user-shield mr-1"></i> ' + (i18n['users_manage.role_admin'] || 'ຜູ້ບໍລິຫານ') + '</span>';
   } else {
-    badgeHtml += '<span class="badge badge-secondary px-3 py-1" style="border-radius: 6px;"><i class="fas fa-user mr-1"></i> ພະນັກງານ</span>';
+    badgeHtml += '<span class="badge badge-secondary px-3 py-1" style="border-radius: 6px;"><i class="fas fa-user mr-1"></i> ' + (i18n['users_manage.role_employee'] || 'ພະນັກງານ') + '</span>';
   }
   
   var statusBadgeEl = document.getElementById('view_status_badge');
@@ -252,14 +256,33 @@ function openViewModal(user) {
     statusBadgeEl.innerHTML = badgeHtml;
   }
 
-  document.getElementById('btn_edit_from_view').onclick = function() {
-    var savedUser = user;
-    // ລໍຖ້າ viewUserModal ປິດສຳເລັດກ່ອນ ຈຶ່ງເປີດ editUserModal
-    $('#viewUserModal').one('hidden.bs.modal', function() {
-      openEditModal(savedUser);
-    });
-    $('#viewUserModal').modal('hide');
-  };
+  // ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດ (Id 1) ເທົ່ານັ້ນທີ່ແກ້ໄຂບັນຊີຜູ້ບໍລິຫານຄົນອື່ນໄດ້ — ແຕ່ຜູ້ບໍລິຫານ
+  // ຄົນອື່ນຍັງແກ້ໄຂຂໍ້ມູນຂອງຕົນເອງໄດ້ (self-service). ຄືກົດເກນດຽວກັນກັບຕາຕະລາງ
+  // (users_manage.php: $canEditRow) ແລະ ຝັ່ງ server (api_user.php).
+  var isOwnerUserOnly = typeof IS_OWNER_USER !== 'undefined' ? IS_OWNER_USER : false;
+  var canEditUsersPerm = typeof CAN_EDIT_USERS !== 'undefined' ? CAN_EDIT_USERS : false;
+  var currentSessionUserId = typeof CURRENT_SESSION_USER_ID !== 'undefined' ? CURRENT_SESSION_USER_ID : 0;
+  var isEditingSelf = (parseInt(user.Id, 10) === currentSessionUserId);
+  var rowIsAdmin = (parseInt(user.Id, 10) === 1 || st === 'ຜູ້ບໍລິຫານ' || st.toLowerCase() === 'admin' || st.toLowerCase() === 'super admin');
+  var canEditThisUser = canEditUsersPerm && (isOwnerUserOnly || !rowIsAdmin || isEditingSelf);
+
+  var btnEditFromView = document.getElementById('btn_edit_from_view');
+  if (btnEditFromView) {
+    if (canEditThisUser) {
+      btnEditFromView.style.display = '';
+      btnEditFromView.onclick = function() {
+        var savedUser = user;
+        // ລໍຖ້າ viewUserModal ປິດສຳເລັດກ່ອນ ຈຶ່ງເປີດ editUserModal
+        $('#viewUserModal').one('hidden.bs.modal', function() {
+          openEditModal(savedUser);
+        });
+        $('#viewUserModal').modal('hide');
+      };
+    } else {
+      btnEditFromView.style.display = 'none';
+      btnEditFromView.onclick = null;
+    }
+  }
 
   $('#viewUserModal').modal('show');
 }
@@ -323,6 +346,25 @@ function openEditModal(user) {
 
   if (!selectEl.value) {
     selectEl.selectedIndex = 0;
+  }
+
+  // ຈຳນວນມື້ອະນຸຍາດໃຫ້ໃຊ້ງານ (ສະເພາະຜູ້ບໍລິຫານຄົນທຳອິດເຫັນ/ແກ້ໄຂ) — ID 1 ບໍ່ມີວັນໝົດອາຍຸ
+  var accessDaysGroup = document.getElementById('edit_access_days_group');
+  var accessDaysInput = document.getElementById('edit_access_days');
+  if (accessDaysGroup && accessDaysInput) {
+    if (parseInt(user.Id, 10) === 1) {
+      accessDaysGroup.style.display = 'none';
+      accessDaysInput.value = '';
+    } else {
+      accessDaysGroup.style.display = '';
+      if (user.access_expire_date) {
+        var msLeft = new Date(user.access_expire_date + 'T00:00:00') - new Date(new Date().toDateString());
+        var daysLeft = Math.ceil(msLeft / 86400000);
+        accessDaysInput.value = daysLeft > 0 ? daysLeft : 0;
+      } else {
+        accessDaysInput.value = '';
+      }
+    }
   }
 
   $('#editUserModal').modal('show');

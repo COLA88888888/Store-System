@@ -39,4 +39,21 @@ return [
     'printers.msg_toggle_success' => 'อัปเดตสถานะเครื่องพิมพ์สำเร็จ!',
     'printers.msg_delete_success' => 'ลบเครื่องพิมพ์สำเร็จ!',
     'printers.msg_error' => 'ผิดพลาด: %s',
+
+    // LAN printing
+    'printers.field_paper_width' => 'ความกว้างกระดาษ:',
+    'printers.lan_hint' => 'เครื่องพิมพ์ Network LAN จะได้รับใบย่อยโดยตรง ไม่ต้องกดพิมพ์ ใส่ IP ของเครื่องพิมพ์ (พอร์ต 9100 เป็นค่าเริ่มต้น หรือ IP:พอร์ต)',
+    'printers.btn_test' => 'ทดสอบพิมพ์',
+    'printers.test_ok' => 'ส่งหน้าทดสอบไปที่ %s แล้ว',
+    'printers.test_fail' => 'เชื่อมต่อเครื่องพิมพ์ที่ %s ไม่ได้: %s',
+    'printers.test_not_lan' => 'ทดสอบได้เฉพาะเครื่องพิมพ์ Network LAN ที่มี IP Address',
+
+    // LAN receipt printer designation
+    'printers.receipt_badge' => 'เครื่องพิมพ์ใบเสร็จหลัก',
+    'printers.set_receipt' => 'ตั้งเป็นเครื่องพิมพ์ใบเสร็จหลัก',
+    'printers.unset_receipt' => 'ยกเลิกเครื่องพิมพ์ใบเสร็จหลัก',
+    'printers.receipt_needs_lan' => 'เลือกได้เฉพาะเครื่องพิมพ์ Network LAN ที่เปิดใช้งานอยู่เท่านั้น!',
+    'printers.receipt_set_success' => 'ตั้งเป็นเครื่องพิมพ์ใบเสร็จหลักสำเร็จ!',
+    'printers.receipt_unset_success' => 'ยกเลิกเครื่องพิมพ์ใบเสร็จหลักแล้ว — ใบเสร็จจะพิมพ์ผ่านเบราว์เซอร์เหมือนเดิม',
+    'printers.receipt_hint' => 'หมายเหตุ: ถ้าตั้งเครื่องพิมพ์ใบเสร็จหลักไว้ (ไอคอนใบเสร็จสีเขียว) ใบเสร็จลูกค้าจะพิมพ์ผ่าน LAN โดยตรง ไม่ขึ้นป๊อปอัปพิมพ์ของเบราว์เซอร์ ถ้าไม่ได้ตั้ง ใบเสร็จจะพิมพ์ผ่านเบราว์เซอร์เหมือนเดิม',
 ];

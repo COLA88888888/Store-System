@@ -30,9 +30,11 @@
       </label>
       <select name="from_store_id" id="from_store_id" class="form-control font-weight-bold" style="height: 42px; border-radius: 8px;">
         <?php foreach ($stores as $st): ?>
+          <?php if (!empty($canAllBranches) || $st['store_id'] == $sourceStoreId): ?>
           <option value="<?php echo $st['store_id']; ?>" <?php echo ($sourceStoreId == $st['store_id']) ? 'selected' : ''; ?>>
             <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('stock_transfer.main_warehouse_suffix', '(ສາງຫຼັກ)')) : ''; ?>
           </option>
+          <?php endif; ?>
         <?php endforeach; ?>
       </select>
     </div>

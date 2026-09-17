@@ -58,4 +58,11 @@ return [
     'branches.msg_not_found' => '未找到该分店数据！',
     'branches.msg_cannot_delete_main' => '无法删除总店！',
     'branches.msg_delete_success' => '删除分店 "{name}" 成功！',
+
+    // Pagination
+    'branches.page_showing' => '显示',
+    'branches.page_of' => '共',
+    'branches.page_page' => '页',
+    'branches.page_all' => '全部',
+    'branches.page_items' => '项',
 ];

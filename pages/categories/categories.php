@@ -66,10 +66,17 @@ require_once __DIR__ . '/../../layouts/header.php';
       <!-- MAIN CATEGORY TABLE CARD -->
       <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; background: #ffffff;">
 
-        <div class="card-header bg-white py-3 border-0">
-          <h6 class="card-title m-0 font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon'; color: #0f172a; font-size: 1rem;">
-            <?php echo htmlspecialchars(t('categories.table_card_title', 'ລາຍງານປະເພດສິນຄ້າທັງໝົດ')); ?>
-          </h6>
+        <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap py-3 border-0" style="gap: 12px;">
+          <span class="badge badge-secondary" style="font-size: 0.85rem; padding: 7px 12px;"><span id="catCountNum"><?php echo count($allCategories); ?></span> <?php echo htmlspecialchars(t('categories.count_label', 'ລາຍການ')); ?></span>
+          <div class="d-flex align-items-center ml-auto flex-grow-1 justify-content-end" style="gap: 8px; max-width: 420px;">
+            <div class="input-group" style="flex: 1 1 auto;">
+              <div class="input-group-prepend">
+                <span class="input-group-text bg-white" style="border-radius: 8px 0 0 8px; border-right: none;"><i class="fas fa-search text-muted"></i></span>
+              </div>
+              <input type="text" id="catSearch" class="form-control border-left-0" placeholder="<?php echo htmlspecialchars(t('categories.search_ph', 'ຄົ້ນຫາຊື່ໝວດໝູ່...')); ?>" onkeyup="filterCategories()" style="height: 44px; font-size: 0.95rem; border-radius: 0 8px 8px 0; border-left: none;">
+            </div>
+            <button type="button" id="catSearchClear" class="btn btn-light border d-flex align-items-center justify-content-center" style="border-radius: 8px; height: 44px; width: 44px;" title="<?php echo htmlspecialchars(t('categories.clear', 'ລ້າງຄ່າ')); ?>" onclick="document.getElementById('catSearch').value='';filterCategories();document.getElementById('catSearch').focus();"><i class="fas fa-redo"></i></button>
+          </div>
         </div>
 
         <div class="card-body p-0">
@@ -86,14 +93,21 @@ require_once __DIR__ . '/../../layouts/header.php';
                 </tr>
               </thead>
               <tbody style="font-size: 0.95rem;">
+                <tr id="catNoResult" style="display: none;">
+                  <td colspan="6" class="text-center text-muted py-4">
+                    <i class="fas fa-search fa-lg mb-2 d-block opacity-50"></i>
+                    <?php echo htmlspecialchars(t('categories.no_result', 'ບໍ່ພົບໝວດໝູ່ທີ່ຄົ້ນຫາ')); ?>
+                  </td>
+                </tr>
                 <?php if (!empty($allCategories)): ?>
                   <?php $idx = 1; foreach ($allCategories as $cat):
                     $catJson = htmlspecialchars(json_encode($cat), ENT_QUOTES, 'UTF-8');
                     $createdAt = !empty($cat['created_at']) ? date('d/m/Y H:i', strtotime($cat['created_at'])) : '-';
                     $productCount = intval($cat['product_count'] ?? 0);
+                    $catSearchAttr = strtolower(($cat['category_name'] ?? '') . ' ' . ($cat['description'] ?? ''));
                   ?>
-                    <tr class="cat-row">
-                      <td class="align-middle text-center text-muted font-weight-bold"><?php echo $idx++; ?></td>
+                    <tr class="cat-row" data-s="<?php echo htmlspecialchars($catSearchAttr); ?>">
+                      <td class="align-middle text-center text-muted font-weight-bold row-no"><?php echo $idx++; ?></td>
 
                       <td class="align-middle text-center font-weight-bold">
                         <span class="badge badge-light border px-2 py-1" style="font-size: 0.85rem; color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe !important;"><?php echo $cat['category_id']; ?></span>
@@ -151,12 +165,39 @@ require_once __DIR__ . '/../../layouts/header.php';
           </div>
         </div>
 
-        <!-- FOOTER INFO -->
-        <!-- <div class="card-footer bg-white py-3 px-4 border-top">
-          <small class="text-muted font-weight-bold" style="font-size: 0.85rem;">
-            <i class="fas fa-file-alt text-primary mr-1"></i> <?php echo htmlspecialchars(sprintf(t('categories.footer_total', 'ຂໍ້ມູນປະເພດສິນຄ້າທັງໝົດ %d ໝວດໝູ່'), $total_records)); ?>
-          </small>
-        </div> -->
+        <!-- Pagination Footer -->
+        <div id="catPagFooter" class="card-footer bg-white border-top d-flex align-items-center justify-content-between py-3 px-3 px-md-4" style="border-radius: 0 0 12px 12px; gap: 10px; flex-wrap: wrap;">
+          <div class="d-flex align-items-center text-muted" style="gap: 8px; font-size: 0.85rem;">
+            <span class="text-muted font-weight-bold">
+              <?php echo htmlspecialchars(t('categories.page_showing', 'ສະແດງ')); ?>
+              <span id="cat_page_info_start">0</span>-<span id="cat_page_info_end">0</span>
+              <?php echo htmlspecialchars(t('categories.page_items', 'ລາຍການ')); ?>
+            </span>
+            <select id="catPageSizeSelect" class="form-control form-control-sm font-weight-bold" style="width: auto; border-radius: 6px;" onchange="changeCatPageSize()">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="all"><?php echo htmlspecialchars(t('categories.page_all', 'ທັງໝົດ')); ?></option>
+            </select>
+          </div>
+          <nav aria-label="Category Pagination" class="ml-auto">
+            <ul class="pagination pagination-circle mb-0 justify-content-end" id="catPagination"></ul>
+          </nav>
+        </div>
+
+        <style>
+          /* themes/users.css forces .card-footer into a centered column on mobile (for a
+             different page's pagination) — this ID-scoped override always wins over that
+             class-only rule regardless of viewport width, keeping this footer's nav pinned
+             to the right as requested. */
+          #catPagFooter {
+            flex-direction: row !important;
+            text-align: left !important;
+          }
+          #catPagFooter > nav {
+            margin-left: auto !important;
+          }
+        </style>
 
       </div>
 
@@ -245,4 +286,135 @@ require_once __DIR__ . '/components/form_edit_category.php';
       }
     });
   }
+
+  // ====== Pagination (client-side, all rows already rendered) ======
+  var catCurrentPage = 1;
+  var catPageSize = 10;
+  var catFilteredRows = [];
+
+  function initCatPagination() {
+    filterCategories();
+  }
+
+  // Live search — filters which rows are eligible, then pagination decides what's shown
+  function filterCategories() {
+    var searchEl = document.getElementById('catSearch');
+    var q = searchEl ? (searchEl.value || '').toLowerCase().trim() : '';
+    var rows = Array.from(document.querySelectorAll('#catTable tbody tr.cat-row'));
+    catFilteredRows = rows.filter(function(tr) {
+      return q === '' || (tr.getAttribute('data-s') || '').indexOf(q) > -1;
+    });
+
+    var noRes = document.getElementById('catNoResult');
+    if (noRes) noRes.style.display = (catFilteredRows.length === 0 && rows.length > 0) ? '' : 'none';
+
+    catCurrentPage = 1;
+    applyCatPagination();
+  }
+
+  function changeCatPageSize() {
+    var val = document.getElementById('catPageSizeSelect').value;
+    catPageSize = (val === 'all') ? (catFilteredRows.length || 99999) : parseInt(val, 10);
+    catCurrentPage = 1;
+    applyCatPagination();
+  }
+
+  function goToCatPage(page) {
+    var totalPages = Math.ceil(catFilteredRows.length / catPageSize) || 1;
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
+    catCurrentPage = page;
+    applyCatPagination();
+  }
+
+  function applyCatPagination() {
+    var allRows = document.querySelectorAll('#catTable tbody tr.cat-row');
+    allRows.forEach(function(r) { r.style.display = 'none'; });
+
+    var total = catFilteredRows.length;
+    var totalPages = Math.ceil(total / catPageSize) || 1;
+    if (catCurrentPage > totalPages) catCurrentPage = totalPages;
+
+    var startIdx = (catCurrentPage - 1) * catPageSize;
+    var endIdx = (catPageSize >= 99999) ? total : startIdx + catPageSize;
+
+    var shown = 0;
+    for (var i = startIdx; i < endIdx && i < total; i++) {
+      if (catFilteredRows[i]) {
+        catFilteredRows[i].style.display = '';
+        shown++;
+        var no = catFilteredRows[i].querySelector('.row-no');
+        if (no) no.textContent = startIdx + shown;
+      }
+    }
+
+    var startEl = document.getElementById('cat_page_info_start');
+    var endEl = document.getElementById('cat_page_info_end');
+    var totalEl = document.getElementById('cat_page_info_total');
+    if (startEl) startEl.textContent = total === 0 ? 0 : startIdx + 1;
+    if (endEl) endEl.textContent = Math.min(endIdx, total);
+    if (totalEl) totalEl.textContent = total;
+
+    var countNum = document.getElementById('catCountNum');
+    if (countNum) countNum.textContent = total;
+
+    renderCatPaginationControls(totalPages);
+  }
+
+  function renderCatPaginationControls(totalPages) {
+    var ul = document.getElementById('catPagination');
+    if (!ul) return;
+    ul.innerHTML = '';
+    if (totalPages < 1) totalPages = 1;
+
+    var prevLi = document.createElement('li');
+    prevLi.className = 'page-item ' + (catCurrentPage <= 1 ? 'disabled' : '');
+    prevLi.innerHTML = '<a class="page-link" href="javascript:void(0)" ' + (catCurrentPage > 1 ? 'onclick="goToCatPage(' + (catCurrentPage - 1) + ')"' : '') + '><i class="fas fa-chevron-left"></i></a>';
+    ul.appendChild(prevLi);
+
+    var maxButtons = 5;
+    var startPage = Math.max(1, catCurrentPage - 2);
+    var endPage = Math.min(totalPages, startPage + maxButtons - 1);
+    if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
+
+    if (startPage > 1) {
+      var firstLi = document.createElement('li');
+      firstLi.className = 'page-item';
+      firstLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToCatPage(1)">1</a>';
+      ul.appendChild(firstLi);
+      if (startPage > 2) {
+        var dotLi = document.createElement('li');
+        dotLi.className = 'page-item disabled';
+        dotLi.innerHTML = '<span class="page-link" style="border:none; background:transparent;">...</span>';
+        ul.appendChild(dotLi);
+      }
+    }
+
+    for (var p = startPage; p <= endPage; p++) {
+      var pageLi = document.createElement('li');
+      pageLi.className = 'page-item ' + (p === catCurrentPage ? 'active' : '');
+      pageLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToCatPage(' + p + ')">' + p + '</a>';
+      ul.appendChild(pageLi);
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        var dotLi2 = document.createElement('li');
+        dotLi2.className = 'page-item disabled';
+        dotLi2.innerHTML = '<span class="page-link" style="border:none; background:transparent;">...</span>';
+        ul.appendChild(dotLi2);
+      }
+      var lastLi = document.createElement('li');
+      lastLi.className = 'page-item';
+      lastLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToCatPage(' + totalPages + ')">' + totalPages + '</a>';
+      ul.appendChild(lastLi);
+    }
+
+    var nextLi = document.createElement('li');
+    nextLi.className = 'page-item ' + (catCurrentPage >= totalPages ? 'disabled' : '');
+    nextLi.innerHTML = '<a class="page-link" href="javascript:void(0)" ' + (catCurrentPage < totalPages ? 'onclick="goToCatPage(' + (catCurrentPage + 1) + ')"' : '') + '><i class="fas fa-chevron-right"></i></a>';
+    ul.appendChild(nextLi);
+  }
+
+  document.addEventListener('DOMContentLoaded', initCatPagination);
 </script>

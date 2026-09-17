@@ -17,7 +17,7 @@
         <?php echo $displayName; ?>
         <?php if ($u['Id'] == 1): ?>
           <span class="badge badge-danger ml-2 px-2 py-1" style="font-size: 0.75rem; border-radius: 6px;"><i class="fas fa-shield-alt"></i><?php echo htmlspecialchars(t('permissions.badge_super_admin', 'Admin')); ?></span>
-        <?php elseif ($isAdmin): ?>
+        <?php elseif ($isRoleAdmin): ?>
           <span class="badge badge-primary ml-2 px-2 py-1" style="font-size: 0.75rem; border-radius: 6px;"> <?php echo htmlspecialchars(t('permissions.role_admin_badge', 'ຜູ້ບໍລິຫານ')); ?></span>
         <?php else: ?>
           <span class="badge badge-secondary ml-2 px-2 py-1" style="font-size: 0.75rem; border-radius: 6px;"><?php echo htmlspecialchars($uStatus ?: t('permissions.role_employee_default', 'ພະນັກງານ')); ?></span>
@@ -66,9 +66,13 @@
             </a>
           </div>
         </div>
-      <?php else: ?>
+      <?php elseif (($u['Id'] ?? 0) == 1): ?>
         <span class="badge badge-success px-3 py-2" style="border-radius: 8px; font-size: 0.82rem;">
           <i class="fas fa-check-double mr-1"></i> <?php echo htmlspecialchars(t('permissions.admin_full_badge', 'ເປີດສິດ 100% (ຜູ້ບໍລິຫານ)')); ?>
+        </span>
+      <?php else: ?>
+        <span class="badge badge-warning text-dark px-3 py-2" style="border-radius: 8px; font-size: 0.82rem;">
+          <i class="fas fa-lock mr-1"></i> <?php echo htmlspecialchars(t('permissions.admin_locked_badge', 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ແກ້ໄຂໄດ້')); ?>
         </span>
       <?php endif; ?>
     </div>

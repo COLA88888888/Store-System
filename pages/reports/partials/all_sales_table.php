@@ -64,6 +64,9 @@
                   <a href="javascript:void(0)" onclick="viewBillDetails('<?php echo htmlspecialchars($row['bill_no']); ?>')" class="text-primary" title="<?php echo htmlspecialchars(t('reports.view_detail_title', 'ເບິ່ງລາຍລະອຽດບິນ')); ?>">
                     <?php echo htmlspecialchars($row['bill_no']); ?>
                   </a>
+                  <?php if (strpos($row['sale_remark'] ?? '', 'Quotation To Sale') !== false): ?>
+                    <span class="badge badge-warning text-dark ml-1" style="font-size: 0.65rem;"><i class="fas fa-file-invoice mr-1"></i> ໃບສະເໜີລາຄາ</span>
+                  <?php endif; ?>
                 </td>
                 <td class="text-left" style="font-size: 0.84rem; color: #475569;"><?php echo htmlspecialchars($row['date_time']); ?></td>
                 <td class="text-center font-weight-bold text-dark"><?php echo number_format($row['qty']); ?></td>

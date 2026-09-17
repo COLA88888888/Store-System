@@ -15,4 +15,5 @@ return [
     'login.err_username_required' => 'กรุณากรอกชื่อผู้ใช้งาน!',
     'login.err_password_required' => 'กรุณากรอกรหัสผ่าน!',
     'login.err_invalid' => 'รหัสไม่ถูกต้อง กรุณาลองใหม่',
+    'login.err_db_connection' => 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้',
 ];

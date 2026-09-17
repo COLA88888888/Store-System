@@ -59,4 +59,21 @@ return [
     // pages/categories/api_category.php messages
     'categories.access_denied' => 'You do not have permission to access this data!',
     'categories.invalid_action' => 'Invalid action',
+
+    // Previously untranslated labels
+    'categories.label_printer' => 'Kitchen ticket printer',
+    'categories.printer_none' => '— No kitchen ticket —',
+
+    // Pagination
+    'categories.page_showing' => 'Showing',
+    'categories.page_of' => 'of',
+    'categories.page_page' => 'page',
+    'categories.page_all' => 'All',
+    'categories.page_items' => 'items',
+
+    // Search
+    'categories.count_label' => 'items',
+    'categories.search_ph' => 'Search category name...',
+    'categories.clear' => 'Clear',
+    'categories.no_result' => 'No matching categories found',
 ];

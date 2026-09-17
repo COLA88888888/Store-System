@@ -58,4 +58,11 @@ return [
     'branches.msg_not_found' => 'ไม่พบข้อมูลสาขานี้!',
     'branches.msg_cannot_delete_main' => 'ไม่สามารถลบสาขาใหญ่ได้!',
     'branches.msg_delete_success' => 'ลบสาขา "{name}" สำเร็จแล้ว!',
+
+    // Pagination
+    'branches.page_showing' => 'แสดง',
+    'branches.page_of' => 'จาก',
+    'branches.page_page' => 'หน้า',
+    'branches.page_all' => 'ทั้งหมด',
+    'branches.page_items' => 'รายการ',
 ];

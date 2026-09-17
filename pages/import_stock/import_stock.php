@@ -6,7 +6,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 require_once __DIR__ . '/../../config/db.php';
 
 // Check authorization
-if (empty($_SESSION['user_id']) || (!hasPermission('import_stock') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ' && intval($_SESSION['user_id'] ?? 0) !== 1)) {
+if (empty($_SESSION['user_id']) || (!hasPermission('import_stock') && intval($_SESSION['user_id'] ?? 0) !== 1)) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -307,8 +307,9 @@ foreach ($uRows as $u) {
 $userStoreId = intval($_SESSION['store_id'] ?? 1);
 $isAdmin = ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' || strtolower($_SESSION['status'] ?? '') === 'admin' || ($_SESSION['user_id'] ?? 0) == 1;
 $isMain = isMainBranch($pdo, $userStoreId);
+$canAllBranches = canViewAllBranches($pdo);
 
-$historyWhere = (!$isAdmin && !$isMain) ? " WHERE p.store_id = :store_id " : "";
+$historyWhere = (!$canAllBranches) ? " WHERE p.store_id = :store_id " : "";
 $historyQuery = "
     SELECT 
         id.import_detail_id,
@@ -342,7 +343,7 @@ $historyQuery = "
     ORDER BY id.import_detail_id DESC
 ";
 $histStmt = $pdo->prepare($historyQuery);
-if (!$isAdmin && !$isMain) {
+if (!$canAllBranches) {
     $histStmt->execute([':store_id' => $activeStoreId]);
 } else {
     $histStmt->execute();

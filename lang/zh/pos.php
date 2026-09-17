@@ -141,4 +141,33 @@ return [
     'pos.no_products' => '暂无商品数据',
     'pos.search_placeholder' => '扫描条码或输入商品名称...',
     'pos.category_all' => '全部',
+
+    // Previously untranslated labels
+    'pos.active_bills_no_match' => '未找到符合搜索条件的账单',
+    'pos.active_bills_search_placeholder' => '搜索：账单名称、客户或商品...',
+    'pos.tender_currency_label' => '收款币种',
+
+    // LAN printing
+    'pos.lan_print_failed' => 'LAN 厨房小票打印失败：%s',
+    'pos.lan_print_not_lan' => '该打印机已停用或未设置为网络 LAN。',
+    'pos.lan_print_bad_ip' => '打印机 IP 地址无效。',
+    'pos.lan_print_bad_request' => '打印数据无效。',
+
+    // Receipt / checkout / delete-bill JS strings
+    'pos.receipt_vat_exclusive' => '增值税 (%s)：',
+    'pos.receipt_vat_inclusive' => '含增值税 (%s)：',
+    'pos.receipt_free_gift' => '免费赠品',
+    'pos.receipt_doc_title' => '收据',
+    'pos.change_short' => '还差 %s',
+    'pos.checkout_split_short_title' => '金额不足！',
+    'pos.checkout_split_short_body' => '还差 %s，请补足',
+    'pos.checkout_cash_short_title' => '收款金额不足！',
+    'pos.checkout_cash_short_body' => '请检查收款金额',
+    'pos.checkout_bad_cart_title' => '商品数据错误！',
+    'pos.checkout_bad_cart_body' => '购物车中没有有效的商品 ID，请清空购物车后重新选择商品！',
+    'pos.checkout_error_title' => '错误',
+    'pos.checkout_failed' => '无法完成付款！',
+    'pos.checkout_offline_title' => '连接失败！',
+    'pos.checkout_offline_body' => '无法连接服务器，请检查网络连接后重试。',
+    'pos.kitchen_total' => '合计 %s',
 ];

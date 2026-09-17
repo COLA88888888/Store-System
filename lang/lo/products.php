@@ -146,4 +146,27 @@ return [
     'products.no_match_title' => 'ບໍ່ພົບລາຍການສິນຄ້າທີ່ກົງກັບຄຳຄົ້ນຫາ',
     'products.print_none_selected_title' => 'ບໍ່ມີລາຍການຖືກເລືອກ',
     'products.print_none_selected_text' => 'ກະລຸນາເລືອກລາຍການສິນຄ້າ ແລະ ກຳນົດຈຳນວນດວງທີ່ຈະພິມຢ່າງນ້ອຍ 1 ດວງ!',
+
+    // Add modal tabs + stock-deduction switch
+    'products.tab_add_single' => 'ເພີ່ມດ່ຽວ',
+    'products.tab_add_bulk' => 'ເພີ່ມຫຼາຍລາຍການ',
+    'products.field_cut_qty' => 'ຕັດສະຕັອກເມື່ອຂາຍ',
+    'products.field_cut_qty_hint' => 'ປິດໄວ້ສຳລັບ ບໍລິການ / ສິນຄ້າສັ່ງເຮັດ (ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ)',
+
+    // Bulk add (multiple products at once)
+    'products.bulk_hint' => 'ປ້ອນໄດ້ຫຼາຍລາຍການພ້ອມກັນ — ບັອກທີ່ວ່າງຈະຖືກຂ້າມ. ຈຳນວນສະຕັອກເລີ່ມຕົ້ນ = 0',
+    'products.bulk_cut_qty' => 'ຕັດສະຕັອກ ສຳລັບທຸກລາຍການໃນຊຸດນີ້',
+    'products.bulk_cut_qty_hint' => 'ປິດໄວ້ສຳລັບ ບໍລິການ / ສິນຄ້າສັ່ງເຮັດ — ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ. ຕັ້ງທີ່ນີ້ຄັ້ງດຽວ ແທນທີ່ຈະໄປແກ້ໄຂເອົາທີລະລາຍການພາຍຫຼັງ',
+    'products.bulk_apply_supplier_label' => 'ຜູ້ສະໜອງ ສຳລັບທຸກລາຍການໃນຊຸດນີ້',
+    'products.bulk_apply_supplier_hint' => 'ໃຊ້ເມື່ອສິນຄ້າທຸກລາຍການມາຈາກຜູ້ສະໜອງດຽວກັນ — ເລືອກເທື່ອດຽວ ຈະຂຶ້ນໃຫ້ທຸກແຖວ (ລວມແຖວທີ່ເພີ່ມໃໝ່)',
+    'products.bulk_add_row' => 'ເພີ່ມແຖວ',
+    'products.bulk_btn_save' => 'ບັນທຶກທັງໝົດ',
+    'products.bulk_col_cat' => 'ໝວດໝູ່',
+    'products.bulk_col_name' => 'ຊື່ສິນຄ້າ',
+    'products.bulk_col_barcode' => 'ບາໂຄ້ດ',
+    'products.bulk_col_unit' => 'ຫົວໜ່ວຍ',
+    'products.bulk_col_bprice' => 'ລາຄາຊື້',
+    'products.bulk_col_price' => 'ລາຄາຂາຍ',
+    'products.bulk_col_supplier' => 'ຜູ້ສະໜອງ',
+    'products.bulk_validate_none' => 'ກະລຸນາປ້ອນຢ່າງໜ້ອຍ 1 ລາຍການ!',
 ];

@@ -82,4 +82,11 @@ return [
     'price_adjustment.msg_adjust_success' => '商品调价成功, 共 %d 项!',
     'price_adjustment.msg_error_prefix' => '错误: ',
     'price_adjustment.msg_delete_success2' => '删除调价记录成功!',
+
+    // Pagination
+    'price_adjustment.page_showing' => '显示',
+    'price_adjustment.page_of' => '共',
+    'price_adjustment.page_page' => '页',
+    'price_adjustment.page_all' => '全部',
+    'price_adjustment.page_items' => '项',
 ];

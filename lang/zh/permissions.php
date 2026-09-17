@@ -55,6 +55,11 @@ return [
     'permissions.module_customers_title' => '客户管理',
     'permissions.module_customers_desc' => '添加、编辑和管理客户/会员信息',
 
+    // section_quotations.php
+    'permissions.section_quotations' => '报价单',
+    'permissions.module_quotations_title' => '报价单',
+    'permissions.module_quotations_desc' => '为客户创建、编辑和管理报价单',
+
     // section_inventory.php
     'permissions.section_inventory' => '4. 商品与库存',
     'permissions.module_categories_title' => '商品分类',
@@ -158,4 +163,13 @@ return [
     'permissions.perm_name_setup' => '系统设置权限',
     'permissions.perm_name_edit' => '编辑与删除数据权限',
     'permissions.perm_name_database' => '数据库管理权限',
+
+    // Previously untranslated labels
+    'permissions.module_loyalty_title' => '客户积分',
+    'permissions.module_loyalty_desc' => '设置规则并管理客户积分',
+    'permissions.module_suppliers_title' => '供应商管理',
+    'permissions.module_suppliers_desc' => '添加、编辑和管理商品供应商信息',
+
+    // Admin-account edit lock
+    'permissions.admin_locked_badge' => '只有第一位管理员可以编辑此账号',
 ];

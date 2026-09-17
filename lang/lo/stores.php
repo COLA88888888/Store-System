@@ -35,6 +35,10 @@ return [
     'stores.field_footer'        => 'ຂໍ້ຄວາມທ້າຍໃບບິນ:',
     'stores.field_footer_ph'     => 'ເຊັ່ນ: ຂອບໃຈທີ່ມາອຸດໜູນ, ສິນຄ້າຊື້ແລ້ວບໍ່ຮັບປ່ຽນຄືນ...',
 
+    // Queue number on receipt
+    'stores.field_queue_enabled' => 'ສະແດງເລກຄິວເທິງໃບບິນ (ຮ້ານກາເຟ / ຮ້ານທີ່ມີຄິວ)',
+    'stores.field_queue_hint'    => 'ເລກຄິວເລີ່ມ 1 ໃໝ່ທຸກມື້ ພິມໂຕໃຫຍ່ຢູ່ເທິງໂລໂກ້. ຮ້ານທົ່ວໄປປິດໄວ້.',
+
     // Buttons
     'stores.btn_save_info'       => 'ບັນທຶກຂໍ້ມູນຮ້ານຄ້າ',
     'stores.btn_save_logo'       => 'ບັນທຶກໂລໂກ້',

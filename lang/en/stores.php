@@ -35,6 +35,10 @@ return [
     'stores.field_footer'        => 'Receipt footer message:',
     'stores.field_footer_ph'     => 'e.g. Thank you for your purchase, goods sold are non-refundable...',
 
+    // Queue number on receipt
+    'stores.field_queue_enabled' => 'Show queue number on receipt (cafés / shops with a queue)',
+    'stores.field_queue_hint'    => 'Queue numbers restart at 1 every day and print large above the logo. Leave this off for regular shops.',
+
     // Buttons
     'stores.btn_save_info'       => 'Save store information',
     'stores.btn_save_logo'       => 'Save logo',

@@ -7,7 +7,7 @@ session_start();
 $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
-if (empty($_SESSION['user_id']) || (!hasPermission('loyalty') && !hasPermission('setup') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('loyalty') && !hasPermission('setup'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -16,7 +16,7 @@ $message = '';
 $message_type = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'save_loyalty') {
-    if (!hasPermission('loyalty', 'edit') && !hasPermission('setup') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ') {
+    if (!hasPermission('loyalty', 'edit') && !hasPermission('setup')) {
         $message = t('loyalty.err_no_permission', 'ທ່ານບໍ່ມີສິດແກ້ໄຂການຕັ້ງຄ່ານີ້!');
         $message_type = 'warning';
     } else {

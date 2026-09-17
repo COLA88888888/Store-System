@@ -166,6 +166,16 @@
                   <textarea name="notes" id="edit_notes" class="form-control" rows="2"
                             placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_notes_optional', 'ໝາຍເຫດ (ບໍ່ບັງຄັບ)')); ?>"></textarea>
                 </div>
+
+                <?php if (isOwnerUser()): ?>
+                <!-- ຈຳນວນມື້ອະນຸຍາດໃຫ້ໃຊ້ງານ (ສະເພາະຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ກຳນົດໄດ້; ຊ່ອນສຳລັບ ID 1 ດ້ວຍ JS) -->
+                <div class="col-md-6 form-group mb-3" id="edit_access_days_group">
+                  <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_access_days', 'ຈຳນວນມື້ອະນຸຍາດໃຫ້ໃຊ້ງານ:')); ?></label>
+                  <input type="number" name="access_days" id="edit_access_days" min="1" class="form-control"
+                         placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_access_days', 'ຫວ່າງໄວ້ = ບໍ່ຈຳກັດ')); ?>">
+                  <small class="text-muted"><?php echo htmlspecialchars(t('users_manage.hint_access_days', 'ນັບຈາກມື້ນີ້ ຫາກຫວ່າງໄວ້ຈະໃຊ້ງານໄດ້ບໍ່ຈຳກັດ')); ?></small>
+                </div>
+                <?php endif; ?>
               </div>
             </div>
           </div>

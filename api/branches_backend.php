@@ -9,7 +9,7 @@ if (!isset($base_path)) {
 require_once __DIR__ . '/../config/db.php';
 
 // Check authorization
-if (empty($_SESSION['user_id']) || (!hasPermission('branches') && !hasPermission('setup') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('branches') && !hasPermission('setup'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -17,8 +17,12 @@ if (empty($_SESSION['user_id']) || (!hasPermission('branches') && !hasPermission
 $message = '';
 $message_type = '';
 
+// Creating, editing, opening/closing, deleting or switching branches spans more than one
+// branch, so it's reserved for users who can see every branch.
+$canManageBranches = canViewAllBranches($pdo);
+
 // Handle POST switch_branch
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'switch_branch') {
+if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'switch_branch') {
     $store_id = intval($_POST['store_id'] ?? 1);
     $_SESSION['active_store_id'] = $store_id;
     header('Content-Type: application/json');
@@ -31,7 +35,7 @@ $max_id = (int)$pdo->query("SELECT COALESCE(MAX(store_id), 0) FROM tbstore")->fe
 $next_store_code = (string)($max_id + 1);
 
 // Handle POST Add Branch Store
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_branch') {
+if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_branch') {
     $store_code = trim($_POST['store_code'] ?? '');
     if ($store_code === '') {
         $store_code = $next_store_code;
@@ -62,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // Handle POST Edit Branch Store
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit_branch') {
+if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'edit_branch') {
     $store_id   = intval($_POST['store_id'] ?? 0);
     $store_code = trim($_POST['store_code'] ?? '');
     $store_name = trim($_POST['store_name'] ?? '');
@@ -89,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // Handle GET Toggle Branch Status (Open / Close Branch)
-if (isset($_GET['toggle_status_id'])) {
+if ($canManageBranches && isset($_GET['toggle_status_id'])) {
     $toggle_id = intval($_GET['toggle_status_id']);
     if ($toggle_id > 0) {
         try {
@@ -112,7 +116,7 @@ if (isset($_GET['toggle_status_id'])) {
 }
 
 // Handle GET Delete Branch
-if (isset($_GET['delete_branch_id'])) {
+if ($canManageBranches && isset($_GET['delete_branch_id'])) {
     $del_id = intval($_GET['delete_branch_id']);
     if ($del_id > 0) {
         try {
@@ -124,10 +128,33 @@ if (isset($_GET['delete_branch_id'])) {
                 $message = 'ບໍ່ສາມາດລົບສາຂາໃຫຍ່ໄດ້!';
                 $message_type = 'warning';
             } else {
-                $pdo->prepare("DELETE FROM tbstore WHERE store_id = ?")->execute([$del_id]);
-                $message = "ລົບສາຂາ \"{$branch['store_name']}\" ສຳເລັດແລ້ວ!";
-                $message_type = 'success';
-                logActivity($pdo, "ລົບສາຂາ", $branch['store_name']);
+                // A branch that used to be "main" can be re-flagged non-main by adding/editing
+                // another branch as main, which would otherwise make it pass the is_main check
+                // above and get deleted while products/users/sales still reference its store_id
+                // — orphaning them permanently. Block deletion while any such row still exists.
+                $linkedCounts = [
+                    'ສິນຄ້າ'      => $pdo->prepare("SELECT COUNT(*) FROM products WHERE store_id = ?"),
+                    'ຜູ້ໃຊ້ງານ'    => $pdo->prepare("SELECT COUNT(*) FROM tbuser WHERE store_id = ?"),
+                    'ລູກຄ້າ'      => $pdo->prepare("SELECT COUNT(*) FROM customers WHERE store_id = ?"),
+                    'ການຂາຍ'      => $pdo->prepare("SELECT COUNT(*) FROM tbsale_save WHERE store_id = ?"),
+                ];
+                $blockedBy = null;
+                foreach ($linkedCounts as $label => $stmtCount) {
+                    $stmtCount->execute([$del_id]);
+                    if ((int)$stmtCount->fetchColumn() > 0) {
+                        $blockedBy = $label;
+                        break;
+                    }
+                }
+                if ($blockedBy !== null) {
+                    $message = "ບໍ່ສາມາດລົບສາຂາໄດ້ ເນື່ອງຈາກຍັງມີຂໍ້ມູນ{$blockedBy}ຢູ່ໃນສາຂານີ້! ກະລຸນາຍ້າຍຂໍ້ມູນອອກກ່ອນ.";
+                    $message_type = 'warning';
+                } else {
+                    $pdo->prepare("DELETE FROM tbstore WHERE store_id = ?")->execute([$del_id]);
+                    $message = "ລົບສາຂາ \"{$branch['store_name']}\" ສຳເລັດແລ້ວ!";
+                    $message_type = 'success';
+                    logActivity($pdo, "ລົບສາຂາ", $branch['store_name']);
+                }
             }
         } catch (Exception $e) {
             $message = 'ຜິດພາດ: ' . $e->getMessage();
@@ -137,5 +164,11 @@ if (isset($_GET['delete_branch_id'])) {
 }
 
 // Fetch all branch stores
-$all_branches = $pdo->query("SELECT * FROM tbstore ORDER BY is_main DESC, store_id ASC")->fetchAll();
+if ($canManageBranches) {
+    $all_branches = $pdo->query("SELECT * FROM tbstore ORDER BY is_main DESC, store_id ASC")->fetchAll();
+} else {
+    $ownBranchStmt = $pdo->prepare("SELECT * FROM tbstore WHERE store_id = ?");
+    $ownBranchStmt->execute([intval($_SESSION['store_id'] ?? 0)]);
+    $all_branches = $ownBranchStmt->fetchAll();
+}
 $branches = $all_branches;

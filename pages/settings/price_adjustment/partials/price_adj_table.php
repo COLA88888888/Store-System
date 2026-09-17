@@ -6,7 +6,7 @@
     <span class="badge badge-light border font-weight-bold text-muted px-2.5 py-1"><?php echo htmlspecialchars(sprintf(t('price_adjustment.total_records', '%d ລາຍການ'), count($adjustments))); ?></span>
   </div>
   <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0" style="font-size: 0.86rem;">
+    <table class="table table-hover align-middle mb-0" id="priceAdjTable" style="font-size: 0.86rem;">
       <thead style="background: #f8fafc; color: #475569; font-size: 0.80rem;" class="font-weight-bold">
         <tr style="white-space: nowrap;">
           <th class="text-center" style="width: 50px; white-space: nowrap;"><?php echo htmlspecialchars(t('price_adjustment.col_no', 'ລ/ດ')); ?></th>
@@ -44,7 +44,7 @@
               $prodIdCode = $adj['product_id'] ? ('P-' . str_pad($adj['product_id'], 4, '0', STR_PAD_LEFT)) : '-';
               $barcodeVal = !empty($adj['prod_barcode']) ? $adj['prod_barcode'] : '-';
             ?>
-            <tr>
+            <tr class="price-adj-row">
               <!-- 1. ລຳດັບ -->
               <td class="text-center font-weight-bold text-muted"><?php echo $i++; ?></td>
 
@@ -169,5 +169,25 @@
         <?php endif; ?>
       </tbody>
     </table>
+  </div>
+
+  <!-- Pagination Footer -->
+  <div class="card-footer bg-white border-top d-flex align-items-center justify-content-between py-3 px-3 px-md-4" style="gap: 10px; flex-wrap: wrap; flex-direction: row;">
+    <div class="d-flex align-items-center" style="gap: 8px; font-size: 0.85rem;">
+      <span class="text-muted font-weight-bold">
+        <?php echo htmlspecialchars(t('price_adjustment.page_showing', 'ສະແດງ')); ?>
+        <span id="padj_page_info_start">0</span>-<span id="padj_page_info_end">0</span>
+        <?php echo htmlspecialchars(t('price_adjustment.page_items', 'ລາຍການ')); ?>
+      </span>
+      <select id="padjPageSizeSelect" class="form-control form-control-sm font-weight-bold" style="width: auto; border-radius: 6px;" onchange="changePadjPageSize()">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="all"><?php echo htmlspecialchars(t('price_adjustment.page_all', 'ທັງໝົດ')); ?></option>
+      </select>
+    </div>
+    <nav aria-label="Price Adjustment Pagination" style="margin-left: auto;">
+      <ul class="pagination pagination-circle mb-0 justify-content-end" id="padjPagination"></ul>
+    </nav>
   </div>
 </div>

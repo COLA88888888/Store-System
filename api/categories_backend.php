@@ -8,7 +8,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 require_once __DIR__ . '/../config/db.php';
 
 // Check permissions
-if (empty($_SESSION['user_id']) || (!hasPermission('categories') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('categories'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }

@@ -115,7 +115,7 @@ function deletePriceAdjLog(id, btn) {
     if (r.isConfirmed) {
       $.post('price_adjustment.php', { action: 'delete_log', adjust_id: id, is_ajax: 1 }, function(res) {
         if (res.success) {
-          $(btn).closest('tr').fadeOut(300, function() { $(this).remove(); });
+          $(btn).closest('tr').fadeOut(300, function() { $(this).remove(); initPadjPagination(); });
           Swal.fire({
             toast: true,
             position: 'top-end',
@@ -188,6 +188,7 @@ function refreshPriceAdjTable() {
     var $tableCard = $('.card.border-0.shadow-sm');
     if ($tableCard.length) {
       $tableCard.replaceWith($newContent);
+      initPadjPagination();
     }
   });
 }
@@ -216,4 +217,112 @@ $(document).ready(function() {
     }, 'json');
   });
 });
+
+// ====== Pagination (client-side; re-init after any AJAX table swap or row removal) ======
+var padjCurrentPage = 1;
+var padjPageSize = 10;
+var padjFilteredRows = [];
+
+function initPadjPagination() {
+  padjFilteredRows = Array.from(document.querySelectorAll('#priceAdjTable tbody tr.price-adj-row'));
+  padjCurrentPage = 1;
+  applyPadjPagination();
+}
+
+function changePadjPageSize() {
+  var val = document.getElementById('padjPageSizeSelect').value;
+  padjPageSize = (val === 'all') ? (padjFilteredRows.length || 99999) : parseInt(val, 10);
+  padjCurrentPage = 1;
+  applyPadjPagination();
+}
+
+function goToPadjPage(page) {
+  var totalPages = Math.ceil(padjFilteredRows.length / padjPageSize) || 1;
+  if (page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
+  padjCurrentPage = page;
+  applyPadjPagination();
+}
+
+function applyPadjPagination() {
+  var allRows = document.querySelectorAll('#priceAdjTable tbody tr.price-adj-row');
+  allRows.forEach(function(r) { r.style.display = 'none'; });
+
+  var total = padjFilteredRows.length;
+  var totalPages = Math.ceil(total / padjPageSize) || 1;
+  if (padjCurrentPage > totalPages) padjCurrentPage = totalPages;
+
+  var startIdx = (padjCurrentPage - 1) * padjPageSize;
+  var endIdx = (padjPageSize >= 99999) ? total : startIdx + padjPageSize;
+
+  for (var i = startIdx; i < endIdx && i < total; i++) {
+    if (padjFilteredRows[i]) padjFilteredRows[i].style.display = '';
+  }
+
+  var startEl = document.getElementById('padj_page_info_start');
+  var endEl = document.getElementById('padj_page_info_end');
+  var totalEl = document.getElementById('padj_page_info_total');
+  if (startEl) startEl.textContent = total === 0 ? 0 : startIdx + 1;
+  if (endEl) endEl.textContent = Math.min(endIdx, total);
+  if (totalEl) totalEl.textContent = total;
+
+  renderPadjPaginationControls(totalPages);
+}
+
+function renderPadjPaginationControls(totalPages) {
+  var ul = document.getElementById('padjPagination');
+  if (!ul) return;
+  ul.innerHTML = '';
+  if (totalPages < 1) totalPages = 1;
+
+  var prevLi = document.createElement('li');
+  prevLi.className = 'page-item ' + (padjCurrentPage <= 1 ? 'disabled' : '');
+  prevLi.innerHTML = '<a class="page-link" href="javascript:void(0)" ' + (padjCurrentPage > 1 ? 'onclick="goToPadjPage(' + (padjCurrentPage - 1) + ')"' : '') + '><i class="fas fa-chevron-left"></i></a>';
+  ul.appendChild(prevLi);
+
+  var maxButtons = 5;
+  var startPage = Math.max(1, padjCurrentPage - 2);
+  var endPage = Math.min(totalPages, startPage + maxButtons - 1);
+  if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
+
+  if (startPage > 1) {
+    var firstLi = document.createElement('li');
+    firstLi.className = 'page-item';
+    firstLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToPadjPage(1)">1</a>';
+    ul.appendChild(firstLi);
+    if (startPage > 2) {
+      var dotLi = document.createElement('li');
+      dotLi.className = 'page-item disabled';
+      dotLi.innerHTML = '<span class="page-link" style="border:none; background:transparent;">...</span>';
+      ul.appendChild(dotLi);
+    }
+  }
+
+  for (var p = startPage; p <= endPage; p++) {
+    var pageLi = document.createElement('li');
+    pageLi.className = 'page-item ' + (p === padjCurrentPage ? 'active' : '');
+    pageLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToPadjPage(' + p + ')">' + p + '</a>';
+    ul.appendChild(pageLi);
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      var dotLi2 = document.createElement('li');
+      dotLi2.className = 'page-item disabled';
+      dotLi2.innerHTML = '<span class="page-link" style="border:none; background:transparent;">...</span>';
+      ul.appendChild(dotLi2);
+    }
+    var lastLi = document.createElement('li');
+    lastLi.className = 'page-item';
+    lastLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToPadjPage(' + totalPages + ')">' + totalPages + '</a>';
+    ul.appendChild(lastLi);
+  }
+
+  var nextLi = document.createElement('li');
+  nextLi.className = 'page-item ' + (padjCurrentPage >= totalPages ? 'disabled' : '');
+  nextLi.innerHTML = '<a class="page-link" href="javascript:void(0)" ' + (padjCurrentPage < totalPages ? 'onclick="goToPadjPage(' + (padjCurrentPage + 1) + ')"' : '') + '><i class="fas fa-chevron-right"></i></a>';
+  ul.appendChild(nextLi);
+}
+
+document.addEventListener('DOMContentLoaded', initPadjPagination);
 </script>

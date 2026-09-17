@@ -191,7 +191,8 @@ if ($pdo) {
     // Migration for database tables & schema (runs once per installation or when flag is missing for extreme performance)
     // Bump the version suffix whenever a new guarded ALTER is added below so every install re-runs the block once.
     // v2: paid_currency / paid_rate / paid_amount_foreign on tbsale_save + sales (multi-currency receipts).
-    $schemaFlagFile = __DIR__ . '/.db_schema_v4';
+    // v5: tbl_printer created here (it only existed in old dumps) + paper_width for LAN kitchen tickets.
+    $schemaFlagFile = __DIR__ . '/.db_schema_v5';
     if (!file_exists($schemaFlagFile)) {
         try {
 
@@ -314,6 +315,23 @@ if ($pdo) {
         $catCols = $pdo->query("SHOW COLUMNS FROM `categories`")->fetchAll(PDO::FETCH_COLUMN);
         if (!in_array('printer_id', $catCols, true)) {
             $pdo->exec("ALTER TABLE `categories` ADD COLUMN `printer_id` INT NULL");
+        }
+    } catch (Throwable $ex) {}
+
+    // Printers. type 'ip' printers get kitchen tickets straight over the LAN (api/lan_printer.php);
+    // paper_width (58 / 80 mm) sets the raster width those tickets are drawn at.
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `tbl_printer` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `name` VARCHAR(100) DEFAULT NULL,
+            `ip_address` VARCHAR(100) DEFAULT NULL,
+            `type` ENUM('ip','browser') DEFAULT 'ip',
+            `status` TINYINT(1) DEFAULT 1,
+            `branch_id` INT DEFAULT 1
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $printerCols = $pdo->query("SHOW COLUMNS FROM `tbl_printer`")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('paper_width', $printerCols, true)) {
+            $pdo->exec("ALTER TABLE `tbl_printer` ADD COLUMN `paper_width` TINYINT UNSIGNED NOT NULL DEFAULT 80");
         }
     } catch (Throwable $ex) {}
 
@@ -793,6 +811,37 @@ if ($pdo) {
         $pdo->exec("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('display_currency', 'KIP')");
         // Show a daily-resetting queue number on the receipt (coffee-shop style). '0' = off.
         $pdo->exec("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES ('queue_enabled', '0')");
+    } catch (Throwable $ex) {}
+
+    // Auto Migration for quotations & quotation_details
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `quotations` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `quotation_number` varchar(50) NOT NULL,
+          `customer_id` int(11) DEFAULT NULL,
+          `customer_name` varchar(255) DEFAULT NULL,
+          `subtotal` decimal(15,2) DEFAULT '0.00',
+          `discount_amount` decimal(15,2) DEFAULT '0.00',
+          `vat_amount` decimal(15,2) DEFAULT '0.00',
+          `total_amount` decimal(15,2) DEFAULT '0.00',
+          `status` varchar(50) DEFAULT 'pending',
+          `store_id` int(11) DEFAULT '1',
+          `created_by` varchar(100) DEFAULT NULL,
+          `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `quotation_details` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `quotation_id` int(11) NOT NULL,
+          `product_id` int(11) NOT NULL,
+          `product_name` varchar(255) NOT NULL,
+          `quantity` decimal(15,2) NOT NULL,
+          `price` decimal(15,2) NOT NULL,
+          `total` decimal(15,2) NOT NULL,
+          PRIMARY KEY (`id`),
+          KEY `fk_quotation_id` (`quotation_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
     } catch (Throwable $ex) {}
 
     // Auto Migration for tbsale_save, tbsale_save_detail & sales view
@@ -1312,22 +1361,40 @@ if (!function_exists('isMainBranch')) {
     }
 }
 
+if (!function_exists('canViewAllBranches')) {
+    // Seeing or switching between every branch is decided by the user's own branch, not their
+    // role: the owner account (Id 1) and any user assigned to the main branch see every branch;
+    // any user assigned to a sub-branch (admin or staff) is locked to their own store_id.
+    function canViewAllBranches($pdo) {
+        if (intval($_SESSION['user_id'] ?? 0) === 1) {
+            return true;
+        }
+        if (!$pdo) {
+            return false;
+        }
+        static $mainByStore = [];
+        $storeId = intval($_SESSION['store_id'] ?? 0);
+        if (!array_key_exists($storeId, $mainByStore)) {
+            try {
+                $stmt = $pdo->prepare("SELECT is_main FROM tbstore WHERE store_id = ? LIMIT 1");
+                $stmt->execute([$storeId]);
+                $mainByStore[$storeId] = (bool)$stmt->fetchColumn();
+            } catch (Throwable $e) {
+                $mainByStore[$storeId] = false;
+            }
+        }
+        return $mainByStore[$storeId];
+    }
+}
+
 if (!function_exists('getActiveStoreId')) {
     function getActiveStoreId($pdo) {
         $userStoreId = intval($_SESSION['store_id'] ?? 1);
-        $isAdmin = (
-            ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' ||
-            strtolower($_SESSION['status'] ?? '') === 'admin' ||
-            ($_SESSION['user_id'] ?? 0) == 1
-        );
-        $isMain = isMainBranch($pdo, $userStoreId);
-        
-        // If logged-in user belongs to a sub-branch (not main, not admin), enforce strict branch lock
-        if (!$isMain && !$isAdmin) {
+        if (!canViewAllBranches($pdo)) {
             return $userStoreId;
         }
 
-        // If main branch / admin, check if active_store_id is set in session
+        // May see every branch: honour a branch picked via the switcher, if any
         if (isset($_SESSION['active_store_id']) && $_SESSION['active_store_id'] !== '') {
             return intval($_SESSION['active_store_id']);
         }
@@ -1398,22 +1465,26 @@ if (!function_exists('getLowStockAlerts')) {
     function getLowStockAlerts($pdo, $store_id = null) {
         if (!$pdo) return [];
         try {
+            // cut_qty = 0 = service / made-to-order item that never deducts stock — its qty
+            // column isn't meaningful inventory, so it must never trigger a low/out-of-stock alert.
             if ($store_id !== null && intval($store_id) > 0) {
-                $sql = "SELECT p.*, s.store_name, s.is_main 
-                        FROM products p 
-                        JOIN tbstore s ON p.store_id = s.store_id 
-                        WHERE (p.qty <= 10 OR (p.min_qty IS NOT NULL AND p.min_qty > 0 AND p.qty <= p.min_qty) OR p.qty <= 0) 
-                          AND s.status = 'active' 
+                $sql = "SELECT p.*, s.store_name, s.is_main
+                        FROM products p
+                        JOIN tbstore s ON p.store_id = s.store_id
+                        WHERE (p.qty <= 10 OR (p.min_qty IS NOT NULL AND p.min_qty > 0 AND p.qty <= p.min_qty) OR p.qty <= 0)
+                          AND p.cut_qty != 0
+                          AND s.status = 'active'
                           AND p.store_id = ?
                         ORDER BY p.qty ASC";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([intval($store_id)]);
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);
             } else {
-                $sql = "SELECT p.*, s.store_name, s.is_main 
-                        FROM products p 
-                        JOIN tbstore s ON p.store_id = s.store_id 
-                        WHERE (p.qty <= 10 OR (p.min_qty IS NOT NULL AND p.min_qty > 0 AND p.qty <= p.min_qty) OR p.qty <= 0) 
+                $sql = "SELECT p.*, s.store_name, s.is_main
+                        FROM products p
+                        JOIN tbstore s ON p.store_id = s.store_id
+                        WHERE (p.qty <= 10 OR (p.min_qty IS NOT NULL AND p.min_qty > 0 AND p.qty <= p.min_qty) OR p.qty <= 0)
+                          AND p.cut_qty != 0
                           AND s.status = 'active'
                         ORDER BY s.is_main ASC, p.qty ASC";
                 return $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
@@ -1524,8 +1595,8 @@ if (!function_exists('getSubBranchStockImportsForMain')) {
 // Kept at the very bottom: it depends on isMainBranch() and $pdo, both defined above.
 // A URL carrying ?switch_store_id=N (explicit switcher) or ?store_id=N (report branch
 // filter) parks the choice in $_SESSION['active_store_id'], which getActiveStoreId()
-// reads on the next request. Admins and main-branch users may switch; sub-branch users
-// are ignored here and stay locked to their own store.
+// reads on the next request. Only users who pass canViewAllBranches() may switch; everyone
+// else is ignored here and stays locked to their own store.
 // ============================================================
 if (!empty($_SESSION['user_id'])) {
     $switchStoreParam = null;
@@ -1535,7 +1606,7 @@ if (!empty($_SESSION['user_id'])) {
         $switchStoreParam = intval($_GET['store_id']);
     }
     if ($switchStoreParam !== null && $switchStoreParam > 0) {
-        $canSwitchStore = !empty($isAdmin) || isMainBranch($pdo, $_SESSION['store_id'] ?? 1);
+        $canSwitchStore = canViewAllBranches($pdo);
         if ($canSwitchStore) {
             $_SESSION['active_store_id'] = $switchStoreParam;
         }

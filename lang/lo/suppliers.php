@@ -46,4 +46,14 @@ return [
     'suppliers.del_yes'           => 'ລົບ',
     'suppliers.del_no'            => 'ຍົກເລີກ',
     'suppliers.validate_name'     => 'ກະລຸນາປ້ອນຊື່ຜູ້ສະໜອງ!',
+
+    // Previously untranslated labels
+    'suppliers.no_result' => 'ບໍ່ພົບຜູ້ສະໜອງທີ່ຄົ້ນຫາ',
+
+    // Pagination
+    'suppliers.page_showing' => 'ສະແດງ',
+    'suppliers.page_of' => 'ຈາກ',
+    'suppliers.page_page' => 'ໜ້າ',
+    'suppliers.page_all' => 'ທັງໝົດ',
+    'suppliers.page_items' => 'ລາຍການ',
 ];

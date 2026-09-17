@@ -43,4 +43,7 @@ return [
     'exchange_rate.title_edit' => 'Edit',
     'exchange_rate.title_delete' => 'Delete',
     'exchange_rate.view_only' => 'View Only',
+
+    // Previously untranslated labels
+    'exchange_rate.msg_currency_saved' => 'Display currency saved successfully!',
 ];

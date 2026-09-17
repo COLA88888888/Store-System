@@ -5,7 +5,7 @@
     <span class="badge badge-light border font-weight-bold text-muted px-2.5 py-1"><?php echo count($promos); ?> <?php echo htmlspecialchars(t('promotions.items_unit', 'ລາຍການ')); ?></span>
   </div>
   <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+    <table class="table table-hover align-middle mb-0" id="promoTable" style="font-size: 0.88rem;">
       <thead style="background: #f8fafc; color: #475569; font-size: 0.82rem;" class="font-weight-bold">
         <tr style="white-space: nowrap;">
           <th class="text-center" style="width: 55px; white-space: nowrap;"><?php echo htmlspecialchars(t('promotions.col_no', 'ລຳດັບ')); ?></th>
@@ -30,7 +30,7 @@
               $promoEndTs = !empty($p['end_date']) ? strtotime($p['end_date'] . ' 23:59:59') : 0;
               $isExpired  = $promoEndTs > 0 && $promoEndTs < time();
             ?>
-            <tr style="white-space: nowrap;<?php echo $isExpired ? ' background:#fef2f2;' : ''; ?>">
+            <tr class="promo-row" style="white-space: nowrap;<?php echo $isExpired ? ' background:#fef2f2;' : ''; ?>">
               <!-- 1. ລຳດັບ -->
               <td class="text-center font-weight-bold text-muted" style="white-space: nowrap;"><?php echo $i++; ?></td>
 
@@ -157,5 +157,25 @@
         <?php endif; ?>
       </tbody>
     </table>
+  </div>
+
+  <!-- Pagination Footer -->
+  <div class="card-footer bg-white border-top d-flex align-items-center justify-content-between py-3 px-3 px-md-4" style="gap: 10px; flex-wrap: wrap; flex-direction: row;">
+    <div class="d-flex align-items-center" style="gap: 8px; font-size: 0.85rem;">
+      <span class="text-muted font-weight-bold">
+        <?php echo htmlspecialchars(t('promotions.page_showing', 'ສະແດງ')); ?>
+        <span id="promo_page_info_start">0</span>-<span id="promo_page_info_end">0</span>
+        <?php echo htmlspecialchars(t('promotions.page_items', 'ລາຍການ')); ?>
+      </span>
+      <select id="promoPageSizeSelect" class="form-control form-control-sm font-weight-bold" style="width: auto; border-radius: 6px;" onchange="changePromoPageSize()">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="all"><?php echo htmlspecialchars(t('promotions.page_all', 'ທັງໝົດ')); ?></option>
+      </select>
+    </div>
+    <nav aria-label="Promotion Pagination" style="margin-left: auto;">
+      <ul class="pagination pagination-circle mb-0 justify-content-end" id="promoPagination"></ul>
+    </nav>
   </div>
 </div>

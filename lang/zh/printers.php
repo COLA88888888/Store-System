@@ -39,4 +39,21 @@ return [
     'printers.msg_toggle_success' => '打印机状态更新成功！',
     'printers.msg_delete_success' => '删除打印机成功！',
     'printers.msg_error' => '错误：%s',
+
+    // LAN printing
+    'printers.field_paper_width' => '纸张宽度：',
+    'printers.lan_hint' => '网络 LAN 打印机直接接收厨房小票，无需打印对话框。请填写打印机 IP（默认端口 9100，或 IP:端口）。',
+    'printers.btn_test' => '测试打印',
+    'printers.test_ok' => '测试页已发送到 %s',
+    'printers.test_fail' => '无法连接 %s 的打印机：%s',
+    'printers.test_not_lan' => '仅可测试已填写 IP 地址的网络 LAN 打印机。',
+
+    // LAN receipt printer designation
+    'printers.receipt_badge' => '主收据打印机',
+    'printers.set_receipt' => '设为主收据打印机',
+    'printers.unset_receipt' => '取消主收据打印机',
+    'printers.receipt_needs_lan' => '只能选择已启用的网络 LAN 打印机！',
+    'printers.receipt_set_success' => '已成功设为主收据打印机！',
+    'printers.receipt_unset_success' => '已取消主收据打印机 — 收据将恢复通过浏览器打印',
+    'printers.receipt_hint' => '提示：若已设置主收据打印机（绿色收据图标），顾客收据将直接通过 LAN 打印，不会弹出浏览器打印对话框。若未设置，收据仍照旧通过浏览器打印。',
 ];

@@ -65,6 +65,9 @@ try {
 } catch (Exception $e) {}
 
 $selected_store = isset($_GET['store_id']) && is_numeric($_GET['store_id']) ? (int)$_GET['store_id'] : 0;
+if (!canViewAllBranches($pdo)) {
+    $selected_store = intval($_SESSION['store_id'] ?? 1);
+}
 $selected_year  = isset($_GET['year']) && is_numeric($_GET['year']) ? (int)$_GET['year'] : $current_year_real;
 
 if (isset($_GET['year']) || isset($_GET['store_id'])) {
@@ -306,7 +309,7 @@ require_once __DIR__ . '/../layouts/header.php';
   <div class="report-filter-box no-print mb-4" style="padding: 14px 18px; border-radius: 12px; background: #ffffff; border: 1.5px solid #e2e8f0; box-shadow: 0 3px 12px rgba(0,0,0,0.03);">
     <form method="GET" action="home.php" class="d-flex align-items-end flex-wrap" style="gap: 12px;">
       <!-- Branch / Store Selector — only worth showing once there's more than one branch -->
-      <?php if (count($stores_list) > 1): ?>
+      <?php if (canViewAllBranches($pdo) && count($stores_list) > 1): ?>
       <div style="flex: 1 1 170px; min-width: 150px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-store text-success mr-1"></i> <?php echo htmlspecialchars(t('home.select_branch', 'ເລືອກສາຂາ:')); ?>

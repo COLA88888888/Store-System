@@ -16,6 +16,24 @@ window.POS_DISPLAY_CURRENCY = window.POS_DISPLAY_CURRENCY || 'KIP';
 // re-points the values on a flag click — read from here at render time, never bake t() inline.
 window.POS_RCPT_I18N = window.POS_RCPT_I18N || {};
 window.POS_RCPT_I18N['pos.receipt_scan_transfer'] = <?php echo json_encode(t('pos.receipt_scan_transfer', 'ສະແກນ QR ໂອນຊຳລະ'), JSON_UNESCAPED_UNICODE); ?>;
+Object.assign(window.POS_RCPT_I18N, <?php echo tjson([
+  'pos.receipt_vat_exclusive'        => 'ອມພ (%s):',
+  'pos.receipt_vat_inclusive'        => 'ລວມ ອມພ (%s):',
+  'pos.receipt_free_gift'            => 'ແຖມຟຣີ',
+  'pos.receipt_doc_title'            => 'ໃບບິນຮັບເງິນ',
+  'pos.change_short'                 => 'ຂາດ %s',
+  'pos.checkout_split_short_title'   => 'ຍອດບໍ່ຄົບ!',
+  'pos.checkout_split_short_body'    => 'ຍັງຂາດ %s ກະລຸນາຕື່ມ',
+  'pos.checkout_cash_short_title'    => 'ເງິນທີ່ຮັບມາບໍ່ພໍ!',
+  'pos.checkout_cash_short_body'     => 'ກະລຸນາກວດສອບຈຳນວນເງິນທີ່ຮັບມາ',
+  'pos.checkout_bad_cart_title'      => 'ຂໍ້ມູນສິນຄ້າຜິດພາດ!',
+  'pos.checkout_bad_cart_body'       => 'ບໍ່ພົບ ID ສິນຄ້າທີ່ຖືກຕ້ອງໃນກະຕ່າ ກະລຸນາລ້າງກະຕ່າແລ້ວເລືອກສິນຄ້າໃໝ່!',
+  'pos.checkout_error_title'         => 'ຜິດພາດ',
+  'pos.checkout_failed'              => 'ບໍ່ສາມາດຊຳລະເງິນໄດ້!',
+  'pos.checkout_offline_title'       => 'ເຊື່ອມຕໍ່ບໍ່ໄດ້!',
+  'pos.checkout_offline_body'        => 'ບໍ່ສາມາດຕິດຕໍ່ເຊີເວີໄດ້ ກະລຸນາກວດສອບອິນເຕີເນັດ/ເຄືອຂ່າຍ ແລ້ວລອງໃໝ່ອີກຄັ້ງ.',
+  'pos.kitchen_total'                => 'ລວມ %s',
+]); ?>);
 
 // Convert a KIP amount into `code`; returns a formatted string ("12.50 $") or '-' when
 // that currency has no configured rate.
@@ -255,7 +273,7 @@ function calculateChange() {
   $('#singleCashLbl').html(POSCUR.fmtUnits(cashUnits));
 
   if (changeUnits < 0) {
-    $('#changeDisplay').html('ຂາດ ' + POSCUR.fmtUnits(Math.abs(changeUnits))).removeClass('text-success').addClass('text-danger').css('color','#ef4444');
+    $('#changeDisplay').html(posT('pos.change_short', POSCUR.fmtUnits(Math.abs(changeUnits)))).removeClass('text-success').addClass('text-danger').css('color','#ef4444');
     $('#btnSubmitPayment').prop('disabled', true);
   } else {
     $('#changeDisplay').html(POSCUR.fmtUnits(changeUnits)).removeClass('text-danger').addClass('text-success').css('color','#16a34a');
@@ -383,7 +401,7 @@ function processCheckout() {
     var splitQrUnits   = POSCUR.parseUnits($('#splitQrAmount').val());
     var paidUnits      = splitCashUnits + splitQrUnits;
     if (paidUnits < totalUnits) {
-      Swal.fire({ icon: 'error', title: 'ຍອດບໍ່ຄົບ!', html: 'ຍັງຂາດ ' + POSCUR.fmtUnits(totalUnits - paidUnits) + ' ກະລຸນາຕື່ມ', confirmButtonColor: '#ef4444' });
+      Swal.fire({ icon: 'error', title: posT('pos.checkout_split_short_title'), html: posT('pos.checkout_split_short_body', POSCUR.fmtUnits(totalUnits - paidUnits)), confirmButtonColor: '#ef4444' });
       return;
     }
     // Split the recorded KIP total in the same proportion as the units the cashier
@@ -398,7 +416,7 @@ function processCheckout() {
   } else {
     var cashUnits = POSCUR.parseUnits($('#cashReceived').val());
     if (cashUnits < totalUnits) {
-      Swal.fire({ icon: 'error', title: 'ເງິນທີ່ຮັບມາບໍ່ພໍ!', text: 'ກະລຸນາກວດສອບຈຳນວນເງິນທີ່ຮັບມາ', confirmButtonColor: '#ef4444' });
+      Swal.fire({ icon: 'error', title: posT('pos.checkout_cash_short_title'), text: posT('pos.checkout_cash_short_body'), confirmButtonColor: '#ef4444' });
       return;
     }
     // Convert only the change (the part that matters for what's owed back) through the
@@ -454,8 +472,8 @@ function processCheckout() {
   if (cleanCart.length === 0) {
     Swal.fire({
       icon: 'error',
-      title: 'ຂໍ້ມູນສິນຄ້າຜິດພາດ!',
-      text: 'ບໍ່ພົບ ID ສິນຄ້າທີ່ຖືກຕ້ອງໃນກະຕ່າ ກະລຸນາລ້າງກະຕ່າແລ້ວເລືອກສິນຄ້າໃໝ່!',
+      title: posT('pos.checkout_bad_cart_title'),
+      text: posT('pos.checkout_bad_cart_body'),
       confirmButtonColor: '#ef4444'
     });
     return;
@@ -494,7 +512,7 @@ function processCheckout() {
       if (res && res.success) {
         handleOnlineCheckoutReceiptUI(res);
       } else {
-        Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: (res && res.message) ? res.message : 'ບໍ່ສາມາດຊຳລະເງິນໄດ້!' });
+        Swal.fire({ icon: 'error', title: posT('pos.checkout_error_title'), text: (res && res.message) ? res.message : posT('pos.checkout_failed') });
       }
     },
     error: function(xhr, status, err) {
@@ -516,15 +534,15 @@ function processCheckout() {
       }
 
       if (parsedRes && !parsedRes.success && parsedRes.message) {
-        Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: parsedRes.message, confirmButtonColor: '#ef4444' });
+        Swal.fire({ icon: 'error', title: posT('pos.checkout_error_title'), text: parsedRes.message, confirmButtonColor: '#ef4444' });
         return;
       }
 
       console.error('POS Checkout request failed:', status, err);
       Swal.fire({
         icon: 'error',
-        title: 'ເຊື່ອມຕໍ່ບໍ່ໄດ້!',
-        text: 'ບໍ່ສາມາດຕິດຕໍ່ເຊີເວີໄດ້ ກະລຸນາກວດສອບອິນເຕີເນັດ/ເຄືອຂ່າຍ ແລ້ວລອງໃໝ່ອີກຄັ້ງ.',
+        title: posT('pos.checkout_offline_title'),
+        text: posT('pos.checkout_offline_body'),
         confirmButtonColor: '#ef4444'
       });
     }
@@ -603,15 +621,15 @@ function handleOnlineCheckoutReceiptUI(res) {
   if (rTaxType === 'none' || rVatRate <= 0 || rVatAmt <= 0) {
     $('#rc_vat_row').attr('style', 'display: none !important;').hide();
   } else if (rTaxType === 'exclusive' && (rVatAmt > 0 || rVatRate > 0)) {
-    $('#rc_vat_label').text('ອມພ (' + rVatRate + '%):');
+    $('#rc_vat_label').text(posT('pos.receipt_vat_exclusive', rVatRate + '%'));
     $('#rc_vat').html(POSCUR.fmt(rVatAmt));
     $('#rc_vat_row').attr('style', 'color:#000;font-weight:600;display:flex !important;').show();
   } else if (rTaxType === 'inclusive' && (rVatAmt > 0 || rVatRate > 0)) {
-    $('#rc_vat_label').text('ລວມ ອມພ (' + rVatRate + '%):');
+    $('#rc_vat_label').text(posT('pos.receipt_vat_inclusive', rVatRate + '%'));
     $('#rc_vat').html(POSCUR.fmt(rVatAmt));
     $('#rc_vat_row').attr('style', 'color:#000;font-weight:600;display:flex !important;').show();
   } else if (rVatAmt > 0) {
-    $('#rc_vat_label').text('ອມພ (' + (rVatRate > 0 ? rVatRate + '%' : '') + '):');
+    $('#rc_vat_label').text(posT('pos.receipt_vat_exclusive', rVatRate > 0 ? rVatRate + '%' : ''));
     $('#rc_vat').html(POSCUR.fmt(rVatAmt));
     $('#rc_vat_row').attr('style', 'color:#000;font-weight:600;display:flex !important;').show();
   } else {
@@ -689,9 +707,9 @@ function handleOnlineCheckoutReceiptUI(res) {
 
       if (isGift) {
         if (!nameHtml.includes('ແຖມ')) {
-          nameHtml = `<span style="font-weight:bold; color:#059669;">[ແຖມຟຣີ]</span> ${nameHtml}`;
+          nameHtml = `<span style="font-weight:bold; color:#059669;">[${posT('pos.receipt_free_gift')}]</span> ${nameHtml}`;
         }
-        priceHtml = '<span style="font-weight:bold; color:#059669;">' + POSCUR.fmt(0) + ' (ແຖມຟຣີ)</span>';
+        priceHtml = '<span style="font-weight:bold; color:#059669;">' + POSCUR.fmt(0) + ' (' + posT('pos.receipt_free_gift') + ')</span>';
       } else if (origUnitPrice > curUnitPrice && curUnitPrice >= 0) {
         var origTotal = origUnitPrice * d.qty;
         priceHtml = `<del style="color:#64748b; font-size:0.85em;">${POSCUR.fmt(origTotal)}</del><br><span style="font-weight:bold;">${POSCUR.fmt(totalAmt)}</span>`;
@@ -712,7 +730,7 @@ function handleOnlineCheckoutReceiptUI(res) {
   if (typeof broadcastCustomerDisplay === 'function') {
     broadcastCustomerDisplay('payment_success', { cashReceived: res.cash_received, qrReceived: res.qr_received, changeAmount: res.change, queueNumber: (window.POS_QUEUE_ENABLED ? res.queue_number : null) });
   }
-  printReceipt();
+  printReceiptAuto();
   printKitchenTickets(window.__lastKitchenTickets || [], { invoice_number: res.invoice_number, date: res.date });
   window.__lastKitchenTickets = [];
   resetPOS();
@@ -730,7 +748,7 @@ function buildKitchenTickets(items) {
     if (!it) return;
     var r = routes[String(it.category_id)];
     if (!r) return;
-    var g = groups[r.printer_id] || (groups[r.printer_id] = { printer_id: r.printer_id, name: r.printer_name || ('ເຄື່ອງພິມ ' + r.printer_id), items: [] });
+    var g = groups[r.printer_id] || (groups[r.printer_id] = { printer_id: r.printer_id, name: r.printer_name || ('ເຄື່ອງພິມ ' + r.printer_id), type: r.printer_type || 'browser', paper: parseInt(r.paper_width, 10) || 80, items: [] });
     g.items.push({ name: it.product_name || '', qty: parseFloat(it.quantity) || 1, unit: it.unit_name || '' });
   });
   return Object.keys(groups).map(function(k) { return groups[k]; }).filter(function(g) { return g.items.length; });
@@ -759,14 +777,18 @@ function kitchenTicketHtml(group, meta) {
       (meta && meta.invoice_number ? '#' + esc(meta.invoice_number) : '') +
       (meta && meta.date ? '  ' + esc(meta.date) : '') + '</div>' +
     '<hr><table>' + rows + '</table><hr>' +
-    '<div class="foot">ລວມ ' + totalQty + '</div>' +
+    '<div class="foot">' + esc(posT('pos.kitchen_total', totalQty)) + '</div>' +
     '</body></html>';
 }
 
-// USB / driver printers: the browser opens one print dialog per ticket; the cashier picks
-// the right printer (Chrome/Edge remember the destination per print after the first setup).
-function printKitchenTickets(groups, meta) {
-  if (!groups || !groups.length) return;
+// Network LAN printers get their ticket straight from the server (no dialog). USB / driver
+// printers still go through the browser, one print dialog per ticket; the cashier picks the
+// right printer (Chrome/Edge remember the destination per print after the first setup).
+function printKitchenTickets(allGroups, meta) {
+  if (!allGroups || !allGroups.length) return;
+  sendKitchenTicketsLan(allGroups.filter(function (g) { return g.type === 'ip'; }), meta);
+  var groups = allGroups.filter(function (g) { return g.type !== 'ip'; });
+  if (!groups.length) return;
   var frame = document.getElementById('posKitchenIframe');
   if (!frame) {
     frame = document.createElement('iframe');
@@ -793,6 +815,325 @@ function printKitchenTickets(groups, meta) {
   setTimeout(next, 1600);
 }
 
+// ---- LAN kitchen tickets: drawn on a canvas (so the browser shapes the Lao text), sent as PNG ----
+var LAN_TICKET_FONT = '"Noto Sans Lao Local", "Noto Sans Lao", Arial, sans-serif';
+
+function ensureLanTicketFont() {
+  if (!document.fonts || !document.fonts.load) return Promise.resolve();
+  var loads = Promise.all([
+    document.fonts.load('400 24px "Noto Sans Lao Local"', 'ກ'),
+    document.fonts.load('700 24px "Noto Sans Lao Local"', 'ກ')
+  ]).catch(function () {});
+  return Promise.race([loads, new Promise(function (resolve) { setTimeout(resolve, 1500); })]);
+}
+
+function lanTicketSegments(text, granularity) {
+  text = String(text == null ? '' : text);
+  if (window.Intl && Intl.Segmenter) {
+    return Array.from(new Intl.Segmenter('lo', { granularity: granularity }).segment(text), function (seg) { return seg.segment; });
+  }
+  if (granularity === 'word') {
+    return text.split(' ').map(function (w, i, arr) { return i < arr.length - 1 ? w + ' ' : w; });
+  }
+  return Array.from(text);
+}
+
+// Draw one kitchen ticket at the printer's native width (576 dots = 80 mm, 384 = 58 mm).
+function kitchenTicketCanvas(group, meta, widthPx) {
+  var W = widthPx;
+  var s = W / 576;
+  var pad = Math.round(14 * s);
+  var sizes = { title: Math.round(40 * s), sub: Math.round(24 * s), item: Math.round(32 * s), qty: Math.round(34 * s), foot: Math.round(30 * s) };
+  var measure = document.createElement('canvas').getContext('2d');
+  function font(px, bold) { return (bold ? '700 ' : '400 ') + px + 'px ' + LAN_TICKET_FONT; }
+  function wrap(str, px, bold, maxW) {
+    measure.font = font(px, bold);
+    var lines = [];
+    var cur = '';
+    lanTicketSegments(str, 'word').forEach(function (part) {
+      if (measure.measureText(cur + part).width <= maxW) { cur += part; return; }
+      if (cur.trim() !== '') { lines.push(cur); cur = ''; }
+      if (measure.measureText(part).width <= maxW) { cur = part.trimStart(); return; }
+      lanTicketSegments(part, 'grapheme').forEach(function (gr) {
+        if (cur !== '' && measure.measureText(cur + gr).width > maxW) { lines.push(cur); cur = gr; } else { cur += gr; }
+      });
+    });
+    if (cur.trim() !== '') lines.push(cur);
+    return lines.length ? lines : [''];
+  }
+
+  var ops = [];
+  var y = pad;
+  function text(str, px, bold, align) {
+    wrap(str, px, bold, W - pad * 2).forEach(function (ln) {
+      ops.push({ kind: 'text', str: ln, px: px, bold: bold, align: align, y: y });
+      y += Math.round(px * 1.4);
+    });
+  }
+  function rule() {
+    y += Math.round(6 * s);
+    ops.push({ kind: 'rule', y: y });
+    y += Math.round(14 * s);
+  }
+
+  text(group.name, sizes.title, true, 'center');
+  var sub = (window.STORE_NAME ? window.STORE_NAME + ' — ' : '') +
+    (meta && meta.invoice_number ? '#' + meta.invoice_number : '') +
+    (meta && meta.date ? '  ' + meta.date : '');
+  if (sub.trim() !== '') text(sub, sizes.sub, false, 'center');
+  rule();
+
+  var totalQty = 0;
+  group.items.forEach(function (it) {
+    totalQty += it.qty;
+    var qtyStr = 'x' + it.qty + (it.unit ? ' ' + it.unit : '');
+    measure.font = font(sizes.qty, true);
+    var qtyW = Math.ceil(measure.measureText(qtyStr).width);
+    ops.push({ kind: 'text', str: qtyStr, px: sizes.qty, bold: true, align: 'right', y: y });
+    wrap(it.name, sizes.item, true, W - pad * 2 - qtyW - Math.round(16 * s)).forEach(function (ln) {
+      ops.push({ kind: 'text', str: ln, px: sizes.item, bold: true, align: 'left', y: y });
+      y += Math.round(sizes.item * 1.4);
+    });
+    y += Math.round(4 * s);
+  });
+  rule();
+  text(posT('pos.kitchen_total', totalQty), sizes.foot, true, 'right');
+  y += pad * 3;
+
+  var canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = y;
+  var c = canvas.getContext('2d');
+  c.fillStyle = '#ffffff';
+  c.fillRect(0, 0, W, y);
+  c.fillStyle = '#000000';
+  c.strokeStyle = '#000000';
+  c.textBaseline = 'top';
+  ops.forEach(function (op) {
+    if (op.kind === 'rule') {
+      c.setLineDash([Math.round(10 * s), Math.round(6 * s)]);
+      c.lineWidth = Math.max(2, Math.round(2 * s));
+      c.beginPath();
+      c.moveTo(pad, op.y);
+      c.lineTo(W - pad, op.y);
+      c.stroke();
+      c.setLineDash([]);
+      return;
+    }
+    c.font = font(op.px, op.bold);
+    c.textAlign = op.align;
+    var x = op.align === 'center' ? W / 2 : (op.align === 'right' ? W - pad : pad);
+    c.fillText(op.str, x, op.y);
+  });
+  return canvas;
+}
+
+function sendKitchenTicketsLan(groups, meta) {
+  if (!groups || !groups.length) return;
+  ensureLanTicketFont().then(function () {
+    groups.forEach(function (g) {
+      var canvas = kitchenTicketCanvas(g, meta, g.paper === 58 ? 384 : 576);
+      $.ajax({
+        url: window.POS_BACKEND_URL || '../../api/pos_backend.php',
+        type: 'POST',
+        dataType: 'json',
+        data: { action: 'print_lan_ticket', printer_id: g.printer_id, image: canvas.toDataURL('image/png') }
+      }).done(function (res) {
+        if (!res || !res.success) lanTicketFailed(g, res && res.message);
+      }).fail(function () {
+        lanTicketFailed(g, '');
+      });
+    });
+  });
+}
+
+function lanTicketFailed(group, message) {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'error',
+    title: posT('pos.lan_print_failed', group.name),
+    text: message || '',
+    showConfirmButton: false,
+    timer: 7000,
+    timerProgressBar: true
+  });
+}
+
+// ============================
+// LAN RECEIPT PRINTING — send the already-rendered #receiptPrintArea straight to the
+// designated receipt printer (Settings > Printers) instead of opening a browser print
+// dialog. Renders the real DOM (same markup the browser-print path uses) to an image via
+// an SVG <foreignObject>, so every business rule already applied to that DOM — VAT mode,
+// promo strike-through, gifts, multi-currency, bank QR — comes along for free instead of
+// being re-implemented here.
+// ============================
+
+// Local Lao font files, base64-encoded once and cached — embedded directly into the SVG's
+// own <style> so the foreignObject document (which loads with no access to the parent
+// page's document.fonts or external stylesheets) can still shape Lao text correctly.
+function receiptFontFaces() {
+  if (window.__receiptFontFacesCache) return Promise.resolve(window.__receiptFontFacesCache);
+  var base = (window.POS_BACKEND_URL ? window.POS_BACKEND_URL.replace(/api\/pos_backend\.php$/, '') : '../../');
+  function toBase64(url) {
+    return fetch(url).then(function (r) { return r.arrayBuffer(); }).then(function (buf) {
+      var bin = '', bytes = new Uint8Array(buf);
+      for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin);
+    });
+  }
+  return Promise.all([
+    toBase64(base + 'assets/fonts/NotoSansLaoLooped-Regular.ttf'),
+    toBase64(base + 'assets/fonts/NotoSansLaoLooped-Bold.ttf')
+  ]).then(function (b64) {
+    var css = '@font-face{font-family:"Receipt Lao";src:url(data:font/truetype;base64,' + b64[0] + ') format("truetype");font-weight:400;}' +
+      '@font-face{font-family:"Receipt Lao";src:url(data:font/truetype;base64,' + b64[1] + ') format("truetype");font-weight:700;}';
+    window.__receiptFontFacesCache = css;
+    return css;
+  });
+}
+
+// Same-origin <img> -> data: URI, drawn through a throwaway canvas. Every image referenced
+// inside an SVG <foreignObject> must already be a data: URI or Chrome treats the whole
+// canvas as tainted and refuses toDataURL() on it later, even for same-origin sources.
+function imageToDataUri(src) {
+  return new Promise(function (resolve) {
+    if (!src || src.indexOf('data:') === 0) { resolve(src || ''); return; }
+    var img = new Image();
+    img.onload = function () {
+      try {
+        var c = document.createElement('canvas');
+        c.width = img.naturalWidth || 1;
+        c.height = img.naturalHeight || 1;
+        c.getContext('2d').drawImage(img, 0, 0);
+        resolve(c.toDataURL('image/png'));
+      } catch (e) { resolve(''); }
+    };
+    img.onerror = function () { resolve(''); };
+    img.src = src;
+  });
+}
+
+// Render #receiptPrintArea to a PNG data URI at `widthPx` CSS pixels wide. The final print
+// DPI/width is handled server-side (escposRasterFromPng resizes to the printer's dot width),
+// so this just needs a reasonable, consistent base width.
+function receiptAreaToImage(widthPx) {
+  var source = document.getElementById('receiptPrintArea');
+  if (!source) return Promise.reject(new Error('no receiptPrintArea'));
+
+  var clone = source.cloneNode(true);
+  clone.style.cssText = 'position:fixed;left:-99999px;top:0;width:' + widthPx + 'px;background:#fff;margin:0;padding:8px 6px;box-sizing:border-box;';
+  document.body.appendChild(clone);
+
+  var imgs = clone.querySelectorAll('img');
+  var swaps = Array.prototype.map.call(imgs, function (img) {
+    return imageToDataUri(img.getAttribute('src')).then(function (uri) {
+      if (uri) img.setAttribute('src', uri); else img.removeAttribute('src');
+    });
+  });
+
+  return Promise.all(swaps).then(receiptFontFaces).then(function (fontCss) {
+    var h = Math.max(clone.scrollHeight, 80);
+    var html = clone.outerHTML;
+    document.body.removeChild(clone);
+
+    // The foreignObject document has no access to the page's Bootstrap stylesheet, so every
+    // utility class the receipt markup relies on (.d-flex, .text-center, .font-weight-bold...)
+    // has to be redefined here too — this is the exact same minimal CSS printReceipt() below
+    // already writes into its print iframe for the identical reason.
+    var receiptCss = fontCss +
+      ' *{box-sizing:border-box;font-family:"Receipt Lao",Arial,sans-serif !important;color:#000 !important;}' +
+      ' body{margin:0;font-size:13px;font-weight:600;line-height:1.5;background:#fff;}' +
+      ' .text-center{text-align:center !important;} .text-right{text-align:right !important;}' +
+      ' .font-weight-bold{font-weight:700 !important;color:#000 !important;}' +
+      ' .small{font-size:11.5px !important;color:#000 !important;font-weight:600 !important;}' +
+      ' .d-flex{display:flex;} .justify-content-between{justify-content:space-between;}' +
+      ' [style*="display: none"],[style*="display:none"],.d-none{display:none !important;}' +
+      ' .mb-0{margin-bottom:0 !important;} .mb-1{margin-bottom:4px !important;} .mb-2{margin-bottom:8px !important;}' +
+      ' .mt-2{margin-top:8px !important;}' +
+      ' .text-muted{color:#000 !important;font-weight:600 !important;}' +
+      ' .receipt-header-address,.receipt-header-tel{font-size:12px !important;font-weight:600 !important;color:#000 !important;line-height:1.4 !important;}' +
+      ' .receipt-footer-msg{font-size:12.5px !important;font-weight:700 !important;color:#000 !important;border-top:1px dashed #000 !important;margin-top:10px !important;padding-top:8px !important;text-align:center !important;}' +
+      ' img.receipt-logo{max-width:80px !important;max-height:80px !important;height:auto !important;display:block !important;margin:10px auto 2px auto !important;object-fit:contain !important;}' +
+      ' img.receipt-qr-img{max-width:130px !important;max-height:130px !important;height:auto !important;display:block !important;margin:6px auto 2px auto !important;object-fit:contain !important;}' +
+      ' table{width:100%;border-collapse:collapse;margin:4px 0;font-size:11.5px;color:#000 !important;}' +
+      ' td,th{padding:3px 0;vertical-align:top;color:#000 !important;font-weight:600 !important;}' +
+      ' th{font-weight:700 !important;}';
+
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + widthPx + '" height="' + h + '">' +
+      '<foreignObject width="100%" height="100%">' +
+      '<div xmlns="http://www.w3.org/1999/xhtml">' +
+      '<style>' + receiptCss + '</style>' +
+      html +
+      '</div></foreignObject></svg>';
+    var svgUri = 'data:image/svg+xml;charset=utf-8;base64,' + btoa(unescape(encodeURIComponent(svg)));
+
+    return new Promise(function (resolve, reject) {
+      var svgImg = new Image();
+      svgImg.onload = function () {
+        try {
+          var scale = 2; // sharper source raster before the server resamples to printer dots
+          var canvas = document.createElement('canvas');
+          canvas.width = widthPx * scale;
+          canvas.height = h * scale;
+          var ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.scale(scale, scale);
+          ctx.drawImage(svgImg, 0, 0, widthPx, h);
+          resolve(canvas.toDataURL('image/png'));
+        } catch (e) { reject(e); }
+      };
+      svgImg.onerror = function () { reject(new Error('svg image failed to load')); };
+      svgImg.src = svgUri;
+    });
+  }).catch(function (err) {
+    if (clone.parentNode) document.body.removeChild(clone);
+    throw err;
+  });
+}
+
+// Send the receipt to its LAN printer. Resolves true only when the printer actually accepted
+// it — false in every other case (no LAN receipt printer configured, rendering broke, the
+// printer didn't respond) so the caller falls back to the browser dialog. A sale must never
+// end with no receipt at all just because the network printer had a bad moment; a failure
+// still surfaces as a toast so staff know the printer needs attention.
+function printReceiptLan() {
+  var rp = window.POS_RECEIPT_PRINTER;
+  if (!rp || rp.printer_type !== 'ip') return Promise.resolve(false);
+
+  var widthPx = (parseInt(rp.paper_width, 10) === 58) ? 240 : 320;
+  return receiptAreaToImage(widthPx).then(function (dataUri) {
+    return $.ajax({
+      url: window.POS_BACKEND_URL || '../../api/pos_backend.php',
+      type: 'POST',
+      dataType: 'json',
+      data: { action: 'print_lan_ticket', printer_id: rp.printer_id, image: dataUri }
+    });
+  }).then(function (res) {
+    if (res && res.success) return true;
+    lanTicketFailed({ name: rp.printer_name || 'Receipt' }, res && res.message);
+    return false;
+  }).catch(function (err) {
+    lanTicketFailed({ name: rp.printer_name || 'Receipt' }, err && (err.message || err.statusText));
+    return false;
+  });
+}
+
+// Called after the receipt DOM is fully populated. When a LAN receipt printer is configured,
+// the shop has deliberately opted out of the browser dialog — a failed LAN attempt shows an
+// error toast (see printReceiptLan) but must NOT pop the OS print dialog as a "fallback": that
+// dialog lists the cashier's own local/USB printers, which isn't a fix and just gets in the
+// way of the next sale. The browser dialog is only used when no LAN receipt printer is set.
+function printReceiptAuto() {
+  var rp = window.POS_RECEIPT_PRINTER;
+  if (rp && rp.printer_type === 'ip') {
+    printReceiptLan();
+    return;
+  }
+  printReceipt();
+}
+
 // ============================
 // PRINT RECEIPT
 // ============================
@@ -811,7 +1152,7 @@ function printReceipt() {
   iframeDoc.open();
   iframeDoc.write(`<!DOCTYPE html><html><head>
     <meta charset="utf-8">
-    <title>ໃບບິນຮັບເງິນ</title>
+    <title>${posT('pos.receipt_doc_title')}</title>
     <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/local-font.css">
     <style>
       @page { size: 80mm auto; margin: 0mm; }

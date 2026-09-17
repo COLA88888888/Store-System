@@ -19,14 +19,14 @@
           <div class="row">
             <div class="col-md-6 mb-3">
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('price_adjustment.label_branch', 'ສາຂາ:')); ?></label>
-              <select name="store_id" id="modal_store_id" class="form-control" style="height: 42px;" <?php echo (!$isAdmin && !$isMain) ? 'disabled' : ''; ?>>
+              <select name="store_id" id="modal_store_id" class="form-control" style="height: 42px;" <?php echo (!$canAllBranches) ? 'disabled' : ''; ?>>
                 <?php foreach ($stores as $st): ?>
                   <option value="<?php echo $st['store_id']; ?>" <?php echo (($filter_store > 0 ? $filter_store : $userStoreId) == $st['store_id']) ? 'selected' : ''; ?>>
                     <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('price_adjustment.badge_main_branch', '(ສາງຫຼັກ)')) : ''; ?>
                   </option>
                 <?php endforeach; ?>
               </select>
-              <?php if (!$isAdmin && !$isMain): ?>
+              <?php if (!$canAllBranches): ?>
                 <input type="hidden" name="store_id" value="<?php echo $userStoreId; ?>">
               <?php endif; ?>
             </div>

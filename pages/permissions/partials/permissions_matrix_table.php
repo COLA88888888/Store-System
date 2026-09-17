@@ -22,9 +22,14 @@
       </div>
     <?php else: ?>
       <?php foreach ($users as $index => $u): ?>
-        <?php 
+        <?php
           $uStatus = $u['status'] ?? $u['userstatus'] ?? '';
-          $isAdmin = (($u['Id'] ?? 0) == 1 || strtolower($uStatus) === 'admin' || strtolower($uStatus) === 'super admin' || $uStatus === 'ຜູ້ບໍລິຫານ');
+          // Cosmetic role check — also used below to decide switch editability.
+          $isRoleAdmin = (strtolower($uStatus) === 'admin' || strtolower($uStatus) === 'super admin' || $uStatus === 'ຜູ້ບໍລິຫານ');
+          // Id 1 is the untouchable super-admin: switches always disabled, for everyone. Any
+          // OTHER admin-labeled account can only be edited by the owner (Id 1) — a non-owner
+          // viewer gets disabled switches here too, even though they can still see this user.
+          $isAdmin = (($u['Id'] ?? 0) == 1) || (!isOwnerUser() && $isRoleAdmin);
           $displayName = htmlspecialchars($u['username'] ?? 'User');
           $isActiveFirst = ($index === 0);
         ?>
@@ -55,6 +60,7 @@
                     require __DIR__ . '/sections/section_main_menu.php';
                     require __DIR__ . '/sections/section_pos_sales.php';
                     require __DIR__ . '/sections/section_customers.php';
+                    require __DIR__ . '/sections/section_quotations.php';
                     require __DIR__ . '/sections/section_inventory.php';
                     require __DIR__ . '/sections/section_accounting.php';
                     require __DIR__ . '/sections/section_reports.php';

@@ -43,4 +43,7 @@ return [
     'exchange_rate.title_edit' => '编辑',
     'exchange_rate.title_delete' => '删除',
     'exchange_rate.view_only' => '仅查看',
+
+    // Previously untranslated labels
+    'exchange_rate.msg_currency_saved' => '显示货币设置成功！',
 ];

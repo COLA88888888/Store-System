@@ -43,4 +43,7 @@ return [
     'exchange_rate.title_edit' => 'แก้ไข',
     'exchange_rate.title_delete' => 'ลบ',
     'exchange_rate.view_only' => 'ดูอย่างเดียว',
+
+    // Previously untranslated labels
+    'exchange_rate.msg_currency_saved' => 'ตั้งค่าสกุลเงินที่แสดงผลสำเร็จ!',
 ];

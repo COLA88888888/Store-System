@@ -100,4 +100,14 @@ return [
     'promotions.msg_expired_pre'  => 'โปรโมชั่นนี้หมดอายุแล้ว (',
     'promotions.msg_expired_post' => ')! กรุณากด "แก้ไข" เพื่อเปลี่ยนวันที่สิ้นสุดก่อนเปิดใช้งาน',
     'promotions.err_prefix'       => 'ผิดพลาด:',
+
+    // Previously untranslated labels
+    'promotions.expired_badge' => 'หมดอายุ',
+
+    // Pagination
+    'promotions.page_showing' => 'แสดง',
+    'promotions.page_of' => 'จาก',
+    'promotions.page_page' => 'หน้า',
+    'promotions.page_all' => 'ทั้งหมด',
+    'promotions.page_items' => 'รายการ',
 ];

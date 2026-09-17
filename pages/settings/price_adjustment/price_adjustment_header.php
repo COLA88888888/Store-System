@@ -6,7 +6,7 @@
     </h5>
   </div>
   <div class="col-sm-6 col-md-7 text-right d-flex align-items-center justify-content-end" style="gap: 10px;">
-    <?php if ($isAdmin || $isMain): ?>
+    <?php if ($canAllBranches): ?>
       <form method="GET" action="" class="m-0 d-inline-block">
         <select name="store_id" class="form-control form-control-sm font-weight-bold border-warning text-warning" style="height: 38px; border-radius: 8px; background-color: #fffbeb; min-width: 170px;" onchange="this.form.submit()">
           <option value="0"><?php echo htmlspecialchars(t('price_adjustment.opt_all_branches', '-- ທຸກສາຂາ --')); ?></option>

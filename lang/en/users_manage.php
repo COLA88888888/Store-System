@@ -82,4 +82,12 @@ return [
     'users_manage.msg_update_success' => 'User information updated successfully!',
     'users_manage.msg_delete_success' => 'User deleted successfully!',
     'users_manage.err_invalid_action' => 'Invalid action',
+
+    'users_manage.label_access_days' => 'Days of access allowed:',
+    'users_manage.placeholder_access_days' => 'Leave blank = unlimited',
+    'users_manage.hint_access_days' => 'Counted from today; leave blank for unlimited access',
+    'users_manage.access_expired' => 'Expired',
+    'users_manage.access_days_left' => '%d days left',
+    'users_manage.th_access_expiry' => 'Access Expiry',
+    'users_manage.access_unlimited' => 'Unlimited',
 ];

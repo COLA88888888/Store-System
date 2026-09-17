@@ -14,7 +14,7 @@
         <input type="date" name="to_date" class="form-control form-control-sm" value="<?php echo htmlspecialchars($to_date); ?>" style="border-radius: 6px; height: 36px;">
       </div>
 
-      <?php if ($isMain || $isAdmin): ?>
+      <?php if ($canAllBranches): ?>
         <!-- Origin Branch -->
         <div class="col-md-2 mb-2 mb-md-0">
           <label class="font-weight-bold text-dark mb-1" style="font-size: 0.82rem;"><i class="fas fa-store text-info mr-1"></i> <?php echo htmlspecialchars(t('transfer_history.from_store', 'ສາຂາຕົ້ນທາງ:')); ?></label>

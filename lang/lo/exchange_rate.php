@@ -48,4 +48,7 @@ return [
     'exchange_rate.title_edit' => 'ແກ້ໄຂ',
     'exchange_rate.title_delete' => 'ລຶບ',
     'exchange_rate.view_only' => 'ເບິ່ງຢ່າງດຽວ',
+
+    // Previously untranslated labels
+    'exchange_rate.msg_currency_saved' => 'ຕັ້ງຄ່າສະກຸນເງິນສະແດງຜົນສຳເລັດ!',
 ];

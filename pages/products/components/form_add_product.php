@@ -157,9 +157,9 @@
                   </div>
                 </div>
                 <div class="col-6">
-                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_price', 'ລາຄາຂາຍ:')); ?> <span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_price', 'ລາຄາຂາຍ:')); ?></label>
                   <div class="input-group">
-                    <input type="text" id="add_price" name="price" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #16a34a;" oninput="formatPriceInput(this)" required>
+                    <input type="text" id="add_price" name="price" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #16a34a;" oninput="formatPriceInput(this)">
                     <div class="input-group-append"><span class="input-group-text" style="border-radius: 0 6px 6px 0; font-size: 0.85rem;">₭</span></div>
                   </div>
                 </div>
@@ -227,11 +227,24 @@
           </div>
 
           <div class="custom-control custom-switch mb-3">
-            <input type="checkbox" class="custom-control-input" id="bulk_no_cut_qty" name="bulk_no_cut_qty" value="1">
-            <label class="custom-control-label font-weight-bold text-dark" for="bulk_no_cut_qty">
-              <?php echo htmlspecialchars(t('products.bulk_no_cut_qty', 'ບໍ່ຕັດສະຕັອກ ສຳລັບທຸກລາຍການໃນຊຸດນີ້')); ?>
+            <input type="checkbox" class="custom-control-input" id="bulk_cut_qty" name="bulk_cut_qty" value="1" checked>
+            <label class="custom-control-label font-weight-bold text-dark" for="bulk_cut_qty">
+              <?php echo htmlspecialchars(t('products.bulk_cut_qty', 'ຕັດສະຕັອກ ສຳລັບທຸກລາຍການໃນຊຸດນີ້')); ?>
             </label>
-            <br><small class="text-muted"><?php echo htmlspecialchars(t('products.bulk_no_cut_qty_hint', 'ໃຊ້ສຳລັບບໍລິການ / ສິນຄ້າສັ່ງເຮັດ — ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ. ຕັ້ງທີ່ນີ້ຄັ້ງດຽວ ແທນທີ່ຈະໄປແກ້ໄຂເອົາທີລະລາຍການພາຍຫຼັງ')); ?></small>
+            <br><small class="text-muted"><?php echo htmlspecialchars(t('products.bulk_cut_qty_hint', 'ປິດໄວ້ສຳລັບ ບໍລິການ / ສິນຄ້າສັ່ງເຮັດ — ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ. ຕັ້ງທີ່ນີ້ຄັ້ງດຽວ ແທນທີ່ຈະໄປແກ້ໄຂເອົາທີລະລາຍການພາຍຫຼັງ')); ?></small>
+          </div>
+
+          <div class="d-flex align-items-center flex-wrap mb-3" style="gap: 10px;">
+            <label class="font-weight-bold text-dark mb-0" style="font-size: 0.85rem;" for="bulk_apply_supplier">
+              <i class="fas fa-truck mr-1"></i> <?php echo htmlspecialchars(t('products.bulk_apply_supplier_label', 'ຜູ້ສະໜອງ ສຳລັບທຸກລາຍການໃນຊຸດນີ້')); ?>
+            </label>
+            <select id="bulk_apply_supplier" class="form-control form-control-sm" style="max-width: 260px;" onchange="applySupplierToAllBulkRows(this.value)">
+              <option value=""><?php echo htmlspecialchars(t('products.select_supplier_placeholder', '-- ບໍ່ລະບຸ / ເລືອກຜູ້ສະໜອງ --')); ?></option>
+              <?php foreach ($suppliers ?? [] as $sp): ?>
+                <option value="<?php echo (int)$sp['supplier_id']; ?>"><?php echo htmlspecialchars($sp['supplier_name']); ?></option>
+              <?php endforeach; ?>
+            </select>
+            <small class="text-muted"><?php echo htmlspecialchars(t('products.bulk_apply_supplier_hint', 'ໃຊ້ເມື່ອສິນຄ້າທຸກລາຍການມາຈາກຜູ້ສະໜອງດຽວກັນ — ເລືອກເທື່ອດຽວ ຈະຂຶ້ນໃຫ້ທຸກແຖວ (ລວມແຖວທີ່ເພີ່ມໃໝ່)')); ?></small>
           </div>
 
           <div id="bulk_rows_container"></div>
@@ -365,8 +378,8 @@ function addUnitRow(mode, data) {
           <input type="text" name="extra_unit_bprice[]" class="form-control form-control-sm text-right price-input" placeholder="0" value="${bprice}" oninput="formatPriceInput(this)">
         </div>
         <div class="col-md-2 col-6 mb-2 mb-md-0">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_ADD_PRODUCT['products.unit_row_price_label']} <span class="text-danger">*</span></label>
-          <input type="text" name="extra_unit_price[]" class="form-control form-control-sm text-right font-weight-bold text-success price-input" placeholder="0" value="${price}" oninput="formatPriceInput(this)" required>
+          <label class="small text-muted font-weight-bold mb-1">${I18N_ADD_PRODUCT['products.unit_row_price_label']}</label>
+          <input type="text" name="extra_unit_price[]" class="form-control form-control-sm text-right font-weight-bold text-success price-input" placeholder="0" value="${price}" oninput="formatPriceInput(this)">
         </div>
         <div class="col-md-2 col-10 mb-2 mb-md-0">
           <label class="small text-muted font-weight-bold mb-1">${I18N_ADD_PRODUCT['products.unit_row_barcode_label']}</label>
@@ -452,19 +465,7 @@ function submitAddProduct(e) {
     return false;
   }
   // ລາຄາຊື້ (bprice) ບໍ່ບັງຄັບ — ປ້ອນ ຫຼື ບໍ່ປ້ອນກໍໄດ້ (ວ່າງ = 0)
-  if (price === '' || price === '0') {
-    if (e) e.preventDefault();
-    Swal.fire({
-      icon: 'warning',
-      title: I18N_ADD_PRODUCT['products.alert_notice_title'],
-      text: I18N_ADD_PRODUCT['products.validate_price'],
-      confirmButtonColor: '#2563eb',
-      confirmButtonText: I18N_ADD_PRODUCT['products.btn_ok']
-    }).then(function() {
-      $('#add_price').focus();
-    });
-    return false;
-  }
+  // Price is optional
 
   // Dynamic multi-unit validation
   var validExtra = true;
@@ -503,37 +504,7 @@ function submitAddProduct(e) {
       validExtra = false;
       return false;
     }
-    if (uPrice === '' || uPrice === '0') {
-      if (e) e.preventDefault();
-      var inputEl = $(this).find('input[name="extra_unit_price[]"]');
-      Swal.fire({
-        icon: 'warning',
-        title: I18N_ADD_PRODUCT['products.alert_notice_title'],
-        text: I18N_ADD_PRODUCT['products.validate_unit_price'],
-        confirmButtonColor: '#2563eb',
-        confirmButtonText: I18N_ADD_PRODUCT['products.btn_ok']
-      }).then(function() {
-        inputEl.focus();
-      });
-      validExtra = false;
-      return false;
-    }
-  });
-
-  if (!validExtra) return false;
-
-  // Check form internal duplicate barcodes
-  var formBarcodes = [];
-  var hasDuplicate = false;
-  var dupValue = '';
-  $('#addProductForm').find('#add_barcode, input[name="extra_unit_barcode[]"]').each(function() {
-    var val = $(this).val().trim();
-    if (val !== '') {
-      if (formBarcodes.indexOf(val) !== -1) {
-        hasDuplicate = true;
-        dupValue = val;
-        return false;
-      }
+    // uPrice is optional
       formBarcodes.push(val);
     }
   });
@@ -761,7 +732,7 @@ function bulkAddRow(data) {
           <input type="text" name="b_bprice[]" class="form-control form-control-sm text-right price-input bulk-bprice" placeholder="0" oninput="formatPriceInput(this)">
         </div>
         <div class="col-md col-6">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.price} <span class="text-danger">*</span></label>
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.price}</label>
           <input type="text" name="b_price[]" class="form-control form-control-sm text-right font-weight-bold text-success price-input bulk-price" placeholder="0" oninput="formatPriceInput(this)">
         </div>
         <div class="col-md col-8">
@@ -777,9 +748,19 @@ function bulkAddRow(data) {
   var $row = $(html);
   if (data.category_id) $row.find('.bulk-cat').val(String(data.category_id));
   if (data.unit_id) $row.find('.bulk-unit').val(String(data.unit_id));
+  // A quick-apply supplier picked above the rows (see applySupplierToAllBulkRows) becomes
+  // the default for every new row too, so it doesn't have to be re-picked per row when a
+  // whole batch comes from the same supplier. An explicit data.supplier_id still wins.
+  var quickSupplier = $('#bulk_apply_supplier').val();
+  if (quickSupplier) $row.find('.bulk-supplier').val(String(quickSupplier));
   if (data.supplier_id) $row.find('.bulk-supplier').val(String(data.supplier_id));
   $('#bulk_rows_container').append($row);
   bulkRenumber();
+}
+
+// ເລືອກຜູ້ສະໜອງເທື່ອດຽວ ແລ້ວນຳໃຊ້ກັບທຸກແຖວ (ທັງແຖວທີ່ມີຢູ່ ແລະ ແຖວທີ່ຈະເພີ່ມໃໝ່)
+function applySupplierToAllBulkRows(supplierId) {
+  $('#bulk_rows_container .bulk-supplier').val(supplierId || '');
 }
 
 // ເພີ່ມຫຼາຍແຖວພ້ອມກັນ (1 / 5 / 10)
@@ -864,8 +845,7 @@ function submitBulkAddProduct(e) {
       seen.push(bc);
     }
     if (!unit)                  { err = [$r.find('.bulk-unit'), I18N_BULK.e_unit]; return false; }
-    // ລາຄາຊື້ (bp) ບໍ່ບັງຄັບ — ປ້ອນ ຫຼື ບໍ່ປ້ອນກໍໄດ້ (ວ່າງ = 0)
-    if (pr === '' || pr === '0') { err = [$r.find('.bulk-price'), I18N_BULK.e_pr]; return false; }
+    // ລາຄາຂາຍ (pr) ບໍ່ບັງຄັບ
     validCount++;
   });
 

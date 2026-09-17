@@ -26,7 +26,7 @@ if ($currency_filter !== '' && isset(getCurrencyMeta()[$currency_filter])) {
 }
 
 // Check authorization
-if (empty($_SESSION['user_id']) || (!hasPermission('import_list') && !hasPermission('import_stock') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('import_list') && !hasPermission('import_stock'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -272,13 +272,14 @@ $activeStoreId = getActiveStoreId($pdo);
 $userStoreId = intval($_SESSION['store_id'] ?? 1);
 $isAdmin = ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' || strtolower($_SESSION['status'] ?? '') === 'admin' || ($_SESSION['user_id'] ?? 0) == 1;
 $isMain = isMainBranch($pdo, $userStoreId);
+$canAllBranches = canViewAllBranches($pdo);
 
 // Fetch stores list for branch filter dropdown
 $stores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // GET filter_store parameter
 $filter_store = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : 0;
-if (!$isAdmin && !$isMain) {
+if (!$canAllBranches) {
     $filter_store = $userStoreId;
 }
 

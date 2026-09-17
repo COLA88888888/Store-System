@@ -59,4 +59,21 @@ return [
     // pages/categories/api_category.php messages
     'categories.access_denied' => 'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງຂໍ້ມູນນີ້!',
     'categories.invalid_action' => 'ຄຳສັ່ງບໍ່ຖືກຕ້ອງ',
+
+    // Previously untranslated labels
+    'categories.label_printer' => 'ເຄື່ອງພິມໃບຍ່ອຍ (kitchen ticket)',
+    'categories.printer_none' => '— ບໍ່ພິມໃບຍ່ອຍ —',
+
+    // Pagination
+    'categories.page_showing' => 'ສະແດງ',
+    'categories.page_of' => 'ຈາກ',
+    'categories.page_page' => 'ໜ້າ',
+    'categories.page_all' => 'ທັງໝົດ',
+    'categories.page_items' => 'ລາຍການ',
+
+    // Search
+    'categories.count_label' => 'ລາຍການ',
+    'categories.search_ph' => 'ຄົ້ນຫາຊື່ໝວດໝູ່...',
+    'categories.clear' => 'ລ້າງຄ່າ',
+    'categories.no_result' => 'ບໍ່ພົບໝວດໝູ່ທີ່ຄົ້ນຫາ',
 ];

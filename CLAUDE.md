@@ -72,7 +72,7 @@ Every request includes it, and it:
 
 `tbstore` holds branches; `store_id` is carried on `products`, `sales`, `tbsale_save`, `customers`, `imports`, `accounting_records`, `tbuser`.
 
-Always scope queries with `getActiveStoreId($pdo)` — never `$_SESSION['store_id']` directly. A sub-branch user is hard-locked to their own branch; an admin or main-branch user can switch via `?switch_store_id=N`, which parks the choice in `$_SESSION['active_store_id']`.
+Always scope queries with `getActiveStoreId($pdo)` — never `$_SESSION['store_id']` directly. Cross-branch visibility is decided by `canViewAllBranches($pdo)`: user Id 1 and any user (admin or staff) whose own branch is `is_main` pass it, and only they can switch via `?switch_store_id=N` (parked in `$_SESSION['active_store_id']`). Every user assigned to a sub-branch, admins included, is hard-locked to their own `store_id`. Gate branch dropdowns and "all branches" queries on that helper, not on `$isAdmin || $isMain`.
 
 ### Page composition
 

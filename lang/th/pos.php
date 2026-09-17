@@ -141,4 +141,33 @@ return [
     'pos.no_products' => 'ไม่มีข้อมูลสินค้า',
     'pos.search_placeholder' => 'สแกนบาร์โค้ด หรือ พิมพ์ชื่อสินค้า...',
     'pos.category_all' => 'ทั้งหมด',
+
+    // Previously untranslated labels
+    'pos.active_bills_no_match' => 'ไม่พบบิลที่ตรงกับการค้นหา',
+    'pos.active_bills_search_placeholder' => 'ค้นหา: ชื่อบิล ลูกค้า หรือสินค้า...',
+    'pos.tender_currency_label' => 'สกุลเงินที่รับ',
+
+    // LAN printing
+    'pos.lan_print_failed' => 'พิมพ์ใบย่อยผ่าน LAN ไม่สำเร็จ: %s',
+    'pos.lan_print_not_lan' => 'เครื่องพิมพ์นี้ปิดใช้งานหรือไม่ได้ตั้งเป็น Network LAN',
+    'pos.lan_print_bad_ip' => 'IP Address ของเครื่องพิมพ์ไม่ถูกต้อง',
+    'pos.lan_print_bad_request' => 'ข้อมูลการพิมพ์ไม่ถูกต้อง',
+
+    // Receipt / checkout / delete-bill JS strings
+    'pos.receipt_vat_exclusive' => 'ภาษีมูลค่าเพิ่ม (%s):',
+    'pos.receipt_vat_inclusive' => 'รวมภาษีมูลค่าเพิ่ม (%s):',
+    'pos.receipt_free_gift' => 'ของแถมฟรี',
+    'pos.receipt_doc_title' => 'ใบเสร็จรับเงิน',
+    'pos.change_short' => 'ขาด %s',
+    'pos.checkout_split_short_title' => 'ยอดไม่ครบ!',
+    'pos.checkout_split_short_body' => 'ยังขาด %s กรุณาเติมเพิ่ม',
+    'pos.checkout_cash_short_title' => 'จำนวนเงินที่รับมาไม่พอ!',
+    'pos.checkout_cash_short_body' => 'กรุณาตรวจสอบจำนวนเงินที่รับมา',
+    'pos.checkout_bad_cart_title' => 'ข้อมูลสินค้าผิดพลาด!',
+    'pos.checkout_bad_cart_body' => 'ไม่พบ ID สินค้าที่ถูกต้องในตะกร้า กรุณาล้างตะกร้าแล้วเลือกสินค้าใหม่!',
+    'pos.checkout_error_title' => 'ผิดพลาด',
+    'pos.checkout_failed' => 'ไม่สามารถชำระเงินได้!',
+    'pos.checkout_offline_title' => 'เชื่อมต่อไม่ได้!',
+    'pos.checkout_offline_body' => 'ไม่สามารถติดต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต/เครือข่าย แล้วลองใหม่อีกครั้ง',
+    'pos.kitchen_total' => 'รวม %s',
 ];

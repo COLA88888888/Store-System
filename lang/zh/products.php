@@ -146,4 +146,27 @@ return [
     'products.no_match_title' => '未找到符合搜索条件的商品',
     'products.print_none_selected_title' => '未选择任何项目',
     'products.print_none_selected_text' => '请选择商品并设置至少打印 1 张标签！',
+
+    // Add modal tabs + stock-deduction switch
+    'products.tab_add_single' => '单个添加',
+    'products.tab_add_bulk' => '批量添加',
+    'products.field_cut_qty' => '销售时扣减库存',
+    'products.field_cut_qty_hint' => '服务 / 定制商品请关闭（销售时不扣减库存）',
+
+    // Bulk add (multiple products at once)
+    'products.bulk_hint' => '可一次输入多个商品 — 空白行将被跳过。初始库存 = 0',
+    'products.bulk_cut_qty' => '本批所有商品扣减库存',
+    'products.bulk_cut_qty_hint' => '服务 / 定制商品请关闭 — 销售时不扣减库存。在此设置一次，无需之后逐个修改',
+    'products.bulk_apply_supplier_label' => '本批所有商品的供应商',
+    'products.bulk_apply_supplier_hint' => '所有商品来自同一供应商时使用 — 选择一次即填入所有行（包括之后新增的行）',
+    'products.bulk_add_row' => '添加行',
+    'products.bulk_btn_save' => '全部保存',
+    'products.bulk_col_cat' => '分类',
+    'products.bulk_col_name' => '商品名称',
+    'products.bulk_col_barcode' => '条码',
+    'products.bulk_col_unit' => '单位',
+    'products.bulk_col_bprice' => '进货价',
+    'products.bulk_col_price' => '销售价',
+    'products.bulk_col_supplier' => '供应商',
+    'products.bulk_validate_none' => '请至少输入 1 个商品！',
 ];

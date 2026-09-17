@@ -100,4 +100,14 @@ return [
     'promotions.msg_expired_pre'  => 'ໂປຣໂມຊັ່ນນີ້ໝົດອາຍຸແລ້ວ (',
     'promotions.msg_expired_post' => ')! ກະລຸນາກົດ "ແກ້ໄຂ" ເພື່ອປ່ຽນວັນທີສິ້ນສຸດກ່ອນເປີດໃຊ້ງານ.',
     'promotions.err_prefix'       => 'ຜິດພາດ:',
+
+    // Previously untranslated labels
+    'promotions.expired_badge' => 'ໝົດອາຍຸ',
+
+    // Pagination
+    'promotions.page_showing' => 'ສະແດງ',
+    'promotions.page_of' => 'ຈາກ',
+    'promotions.page_page' => 'ໜ້າ',
+    'promotions.page_all' => 'ທັງໝົດ',
+    'promotions.page_items' => 'ລາຍການ',
 ];

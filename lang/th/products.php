@@ -146,4 +146,27 @@ return [
     'products.no_match_title' => 'ไม่พบรายการสินค้าที่ตรงกับคำค้นหา',
     'products.print_none_selected_title' => 'ไม่มีรายการที่เลือก',
     'products.print_none_selected_text' => 'กรุณาเลือกรายการสินค้าและกำหนดจำนวนดวงที่จะพิมพ์อย่างน้อย 1 ดวง!',
+
+    // Add modal tabs + stock-deduction switch
+    'products.tab_add_single' => 'เพิ่มทีละรายการ',
+    'products.tab_add_bulk' => 'เพิ่มหลายรายการ',
+    'products.field_cut_qty' => 'ตัดสต็อกเมื่อขาย',
+    'products.field_cut_qty_hint' => 'ปิดไว้สำหรับบริการ / สินค้าสั่งทำ (ขายได้โดยไม่ตัดจำนวนคลัง)',
+
+    // Bulk add (multiple products at once)
+    'products.bulk_hint' => 'ป้อนได้หลายรายการพร้อมกัน — ช่องที่ว่างจะถูกข้าม จำนวนสต็อกเริ่มต้น = 0',
+    'products.bulk_cut_qty' => 'ตัดสต็อกสำหรับทุกรายการในชุดนี้',
+    'products.bulk_cut_qty_hint' => 'ปิดไว้สำหรับบริการ / สินค้าสั่งทำ — ขายได้โดยไม่ตัดจำนวนคลัง ตั้งค่าที่นี่ครั้งเดียว แทนการไปแก้ไขทีละรายการภายหลัง',
+    'products.bulk_apply_supplier_label' => 'ผู้จัดจำหน่ายสำหรับทุกรายการในชุดนี้',
+    'products.bulk_apply_supplier_hint' => 'ใช้เมื่อสินค้าทุกรายการมาจากผู้จัดจำหน่ายเดียวกัน — เลือกครั้งเดียว จะใส่ให้ทุกแถว (รวมแถวที่เพิ่มใหม่)',
+    'products.bulk_add_row' => 'เพิ่มแถว',
+    'products.bulk_btn_save' => 'บันทึกทั้งหมด',
+    'products.bulk_col_cat' => 'หมวดหมู่',
+    'products.bulk_col_name' => 'ชื่อสินค้า',
+    'products.bulk_col_barcode' => 'บาร์โค้ด',
+    'products.bulk_col_unit' => 'หน่วย',
+    'products.bulk_col_bprice' => 'ราคาซื้อ',
+    'products.bulk_col_price' => 'ราคาขาย',
+    'products.bulk_col_supplier' => 'ผู้จัดจำหน่าย',
+    'products.bulk_validate_none' => 'กรุณาป้อนอย่างน้อย 1 รายการ!',
 ];

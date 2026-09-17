@@ -1,24 +1,40 @@
 <?php
+// Buffer everything from here on: config/db.php below runs a large block of schema
+// migrations + session refresh on every request, and on a production PHP setup that's
+// stricter/differently configured than dev, so much as one stray Notice/Warning/Deprecated
+// line printed ahead of our JSON breaks jQuery's dataType:'json' parse entirely — the
+// request then falls into the AJAX error handler, which shows a generic "wrong password"
+// text regardless of what this file actually computed (e.g. a correct expired-account
+// redirect). respond_json() below discards any such leaked output so only real JSON ever
+// reaches the client.
+ob_start();
 header('Content-Type: application/json');
 session_start();
 require_once __DIR__ . '/../config/db.php';
 
+if (!function_exists('respond_json')) {
+    function respond_json($data) {
+        if (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        echo json_encode($data);
+        exit();
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
-    exit();
+    respond_json(['success' => false, 'message' => 'Invalid request method']);
 }
 
 $username = trim($_POST['username'] ?? '');
 $password = $_POST['password'] ?? '';
 
 if (empty($username) || empty($password)) {
-    echo json_encode(['success' => false, 'message' => 'ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້ ແລະ ລະຫັດຜ່ານ']);
-    exit();
+    respond_json(['success' => false, 'message' => t('login.err_both_required', 'ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້ ແລະ ລະຫັດຜ່ານ')]);
 }
 
 if (!$pdo) {
-    echo json_encode(['success' => false, 'message' => 'ບໍ່ສາມາດເຊື່ອມຕໍ່ຖານຂໍ້ມູນໄດ້ (Database connection failed)']);
-    exit();
+    respond_json(['success' => false, 'message' => t('login.err_db_connection', 'ບໍ່ສາມາດເຊື່ອມຕໍ່ຖານຂໍ້ມູນໄດ້ (Database connection failed)')]);
 }
 
 try {
@@ -59,6 +75,23 @@ try {
         }
 
         if ($password_matches) {
+            // Package/license expiry is checked before a session is ever created — an expired
+            // shop can't log in at all, admin included, until the vendor is contacted to renew.
+            try {
+                $licExpire = $pdo->query("SELECT license_expire_date FROM tbcompanyinfo LIMIT 1")->fetchColumn();
+            } catch (Throwable $ex) {
+                $licExpire = null;
+            }
+            if (!empty($licExpire) && strtotime($licExpire) < strtotime(date('Y-m-d'))) {
+                respond_json(['success' => false, 'expired' => true, 'redirect' => 'license_expired.php']);
+            }
+
+            // Per-user access expiry — owner-only field, never set on Id 1 itself.
+            $userAccessExpire = $user['access_expire_date'] ?? null;
+            if (($user['Id'] ?? 0) != 1 && !empty($userAccessExpire) && strtotime($userAccessExpire) <= strtotime(date('Y-m-d'))) {
+                respond_json(['success' => false, 'expired' => true, 'redirect' => 'access_expired.php']);
+            }
+
             $userStatusVal = $user['status'] ?? $user['userstatus'] ?? '';
             $isAdmin = (
                 ($user['Id'] ?? 0) == 1 ||
@@ -127,7 +160,8 @@ try {
                 'customers' => $isAdmin ? 1 : (int)($user['customers'] ?? 0),
                 'database' => $isAdmin ? 1 : (int)($user['database'] ?? 0),
                 'stock_transfer' => $isAdmin ? 1 : (int)($user['stock_transfer'] ?? 0),
-                'transfer_history' => $isAdmin ? 1 : (int)($user['transfer_history'] ?? 0)
+                'transfer_history' => $isAdmin ? 1 : (int)($user['transfer_history'] ?? 0),
+                'quotations' => $isAdmin ? 1 : (int)($user['quotations'] ?? 0)
             ];
             
             $_SESSION['profile_img'] = 'default.png';
@@ -137,16 +171,20 @@ try {
             
             logActivity($pdo, "ເຂົ້າສູ່ລະບົບ", "ຊື່ຜູ້ໃຊ້: " . $user['username']);
 
-            echo json_encode([
-                'success' => true, 
+            respond_json([
+                'success' => true,
                 'redirect' => $redirect
             ]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'ລະຫັດບໍ່ຖືກຕ້ອງ ກະລຸນາລອງໃໝ່']);
+            respond_json(['success' => false, 'message' => t('login.err_invalid', 'ລະຫັດບໍ່ຖືກຕ້ອງ ກະລຸນາລອງໃໝ່')]);
         }
     } else {
-        echo json_encode(['success' => false, 'message' => 'ລະຫັດບໍ່ຖືກຕ້ອງ ກະລຸນາລອງໃໝ່']);
+        respond_json(['success' => false, 'message' => t('login.err_invalid', 'ລະຫັດບໍ່ຖືກຕ້ອງ ກະລຸນາລອງໃໝ່')]);
     }
 } catch (Throwable $e) {
-    echo json_encode(['success' => false, 'message' => 'ລະຫັດບໍ່ຖືກຕ້ອງ ກະລຸນາລອງໃໝ່']);
+    // Anything unexpected in the block above (a missing column after a failed auto-migration,
+    // a stricter SQL mode on the live server, etc.) used to be silently reported as "wrong
+    // password", which hid the real cause. Log it so it shows up in the server's PHP error log.
+    error_log('check_user.php login error: ' . $e->getMessage());
+    respond_json(['success' => false, 'message' => t('login.err_invalid', 'ລະຫັດບໍ່ຖືກຕ້ອງ ກະລຸນາລອງໃໝ່')]);
 }

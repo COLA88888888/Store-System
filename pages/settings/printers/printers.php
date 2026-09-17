@@ -3,7 +3,7 @@ session_start();
 $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
-if (empty($_SESSION['user_id']) || (!hasPermission('printers') && !hasPermission('setup') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('printers') && !hasPermission('setup'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }

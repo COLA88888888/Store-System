@@ -262,6 +262,8 @@ $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
                             sessionStorage.setItem('pos_tab_active', tabToken);
                             sessionStorage.setItem('isSessionActive', 'true');
                             window.location.href = response.redirect;
+                        } else if (response.expired) {
+                            window.location.href = response.redirect;
                         } else {
                             btn.prop('disabled', false).html('<i class="fas fa-user-check mr-1"></i> ' + I18N_LOGIN['login.btn_login']);
                             $('#loginForm')[0].reset();

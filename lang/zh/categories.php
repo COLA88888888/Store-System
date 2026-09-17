@@ -59,4 +59,21 @@ return [
     // pages/categories/api_category.php messages
     'categories.access_denied' => '您无权访问此数据！',
     'categories.invalid_action' => '无效的操作',
+
+    // Previously untranslated labels
+    'categories.label_printer' => '厨房小票打印机',
+    'categories.printer_none' => '— 不打印厨房小票 —',
+
+    // Pagination
+    'categories.page_showing' => '显示',
+    'categories.page_of' => '共',
+    'categories.page_page' => '页',
+    'categories.page_all' => '全部',
+    'categories.page_items' => '项',
+
+    // Search
+    'categories.count_label' => '项',
+    'categories.search_ph' => '搜索分类名称...',
+    'categories.clear' => '清除',
+    'categories.no_result' => '未找到符合搜索条件的分类',
 ];

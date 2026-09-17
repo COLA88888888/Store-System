@@ -82,4 +82,12 @@ return [
     'users_manage.msg_update_success' => 'อัปเดตข้อมูลผู้ใช้สำเร็จ!',
     'users_manage.msg_delete_success' => 'ลบผู้ใช้งานสำเร็จแล้ว!',
     'users_manage.err_invalid_action' => 'การดำเนินการไม่ถูกต้อง',
+
+    'users_manage.label_access_days' => 'จำนวนวันที่อนุญาตให้ใช้งาน:',
+    'users_manage.placeholder_access_days' => 'เว้นว่าง = ไม่จำกัด',
+    'users_manage.hint_access_days' => 'นับจากวันนี้ หากเว้นว่างจะใช้งานได้ไม่จำกัด',
+    'users_manage.access_expired' => 'หมดอายุแล้ว',
+    'users_manage.access_days_left' => 'เหลือ %d วัน',
+    'users_manage.th_access_expiry' => 'วันหมดอายุการใช้งาน',
+    'users_manage.access_unlimited' => 'ไม่จำกัด',
 ];

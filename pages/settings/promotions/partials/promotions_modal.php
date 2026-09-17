@@ -97,8 +97,8 @@
           <div class="row">
             <div class="col-md-6 mb-3">
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_branch', 'ສາຂາ:')); ?></label>
-              <select name="branch_id" id="add_branch_id" class="form-control" style="height: 42px;" <?php echo (!$isAdmin && !$isMain) ? 'disabled' : ''; ?>>
-                <?php if ($isAdmin || $isMain): ?>
+              <select name="branch_id" id="add_branch_id" class="form-control" style="height: 42px;" <?php echo (!$canAllBranches) ? 'disabled' : ''; ?>>
+                <?php if ($canAllBranches): ?>
                   <option value="0"><?php echo htmlspecialchars(t('promotions.opt_global', '-- ທຸກສາຂາ (Global) --')); ?></option>
                 <?php endif; ?>
                 <?php foreach ($stores as $st): ?>
@@ -107,7 +107,7 @@
                   </option>
                 <?php endforeach; ?>
               </select>
-              <?php if (!$isAdmin && !$isMain): ?>
+              <?php if (!$canAllBranches): ?>
                 <input type="hidden" name="branch_id" value="<?php echo $userStoreId; ?>">
               <?php endif; ?>
             </div>
@@ -228,8 +228,8 @@
 
           <div class="form-group mb-0">
             <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_branch', 'ສາຂາ:')); ?></label>
-            <select name="branch_id" id="edit_branch_id" class="form-control" style="height: 42px;" <?php echo (!$isAdmin && !$isMain) ? 'disabled' : ''; ?>>
-              <?php if ($isAdmin || $isMain): ?>
+            <select name="branch_id" id="edit_branch_id" class="form-control" style="height: 42px;" <?php echo (!$canAllBranches) ? 'disabled' : ''; ?>>
+              <?php if ($canAllBranches): ?>
                 <option value="0"><?php echo htmlspecialchars(t('promotions.opt_global', '-- ທຸກສາຂາ (Global) --')); ?></option>
               <?php endif; ?>
               <?php foreach ($stores as $st): ?>
@@ -238,7 +238,7 @@
                 </option>
               <?php endforeach; ?>
             </select>
-            <?php if (!$isAdmin && !$isMain): ?>
+            <?php if (!$canAllBranches): ?>
               <input type="hidden" name="branch_id" value="<?php echo $userStoreId; ?>">
             <?php endif; ?>
           </div>

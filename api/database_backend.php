@@ -10,7 +10,7 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../config/db.php';
 
 // 2. Check Permissions
-if (empty($_SESSION['user_id']) || (!hasPermission('database') && !hasPermission('setup') && !hasPermission('permissions') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('database') && !hasPermission('setup') && !hasPermission('permissions'))) {
     header('Content-Type: application/json');
     echo json_encode(['success' => false, 'message' => 'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງການຈັດການຖານຂໍ້ມູນ!']);
     exit();

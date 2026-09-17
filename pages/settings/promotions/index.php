@@ -7,7 +7,7 @@ session_start();
 $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
-if (empty($_SESSION['user_id']) || (!hasPermission('promotions') && !hasPermission('setup') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('promotions') && !hasPermission('setup'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -18,13 +18,14 @@ $message_type = '';
 $userStoreId = intval($_SESSION['store_id'] ?? 1);
 $isAdmin = ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' || strtolower($_SESSION['status'] ?? '') === 'admin' || ($_SESSION['user_id'] ?? 0) == 1;
 $isMain = isMainBranch($pdo, $userStoreId);
+$canAllBranches = canViewAllBranches($pdo);
 
 // Fetch stores list for branch selection/filter
 $stores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // GET filter_branch parameter
 $filter_branch = isset($_GET['branch_id']) && $_GET['branch_id'] !== '' ? intval($_GET['branch_id']) : 0;
-if (!$isAdmin && !$isMain) {
+if (!$canAllBranches) {
     $filter_branch = $userStoreId;
 }
 
@@ -50,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $status            = intval($_POST['status'] ?? 1);
 
         $branch_id         = isset($_POST['branch_id']) ? intval($_POST['branch_id']) : $userStoreId;
-        if (!$isAdmin && !$isMain) {
+        if (!$canAllBranches) {
             $branch_id = $userStoreId;
         }
 
@@ -88,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if (empty($target_unit_name)) $target_unit_name = 'all';
 
         $branch_id         = isset($_POST['branch_id']) ? intval($_POST['branch_id']) : $userStoreId;
-        if (!$isAdmin && !$isMain) {
+        if (!$canAllBranches) {
             $branch_id = $userStoreId;
         }
 
@@ -251,6 +252,20 @@ try {
 
 require_once __DIR__ . '/../../../layouts/header.php';
 ?>
+
+<style>
+.pagination-circle { display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.pagination-circle .page-item { margin: 0; }
+.pagination-circle .page-link {
+  width: 38px; height: 38px; border-radius: 50% !important; display: flex; align-items: center; justify-content: center;
+  padding: 0; font-size: 0.95rem; font-weight: 700; color: #94a3b8; background-color: #f8fafc; border: 1px solid #edf2f7;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; cursor: pointer;
+}
+.pagination-circle .page-link:hover { color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15); }
+.pagination-circle .page-item.active .page-link { color: #fff !important; background: #2563eb !important; border-color: #2563eb !important; box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45) !important; transform: scale(1.04); }
+.pagination-circle .page-item.disabled .page-link { color: #cbd5e1 !important; background-color: #f8fafc !important; border-color: #f1f5f9 !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; opacity: 0.9; }
+.pagination-circle .page-link i { font-size: 0.85rem; font-weight: 900; }
+</style>
 
 <div class="container-fluid p-4">
   <?php require_once __DIR__ . '/partials/promotions_header.php'; ?>

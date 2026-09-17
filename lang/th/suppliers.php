@@ -46,4 +46,14 @@ return [
     'suppliers.del_yes'           => 'ลบ',
     'suppliers.del_no'            => 'ยกเลิก',
     'suppliers.validate_name'     => 'กรุณากรอกชื่อผู้จัดจำหน่าย!',
+
+    // Previously untranslated labels
+    'suppliers.no_result' => 'ไม่พบผู้จัดจำหน่ายที่ค้นหา',
+
+    // Pagination
+    'suppliers.page_showing' => 'แสดง',
+    'suppliers.page_of' => 'จาก',
+    'suppliers.page_page' => 'หน้า',
+    'suppliers.page_all' => 'ทั้งหมด',
+    'suppliers.page_items' => 'รายการ',
 ];

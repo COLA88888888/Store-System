@@ -7,7 +7,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 
 require_once dirname(__DIR__, 2) . '/config/db.php';
 
-if (!hasPermission('financial') && !hasPermission('report') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ') {
+if (!hasPermission('financial') && !hasPermission('report')) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -16,6 +16,9 @@ $from_date    = trim($_GET['from_date'] ?? date('Y-m-01'));
 $to_date      = trim($_GET['to_date'] ?? date('Y-m-d'));
 $search       = trim($_GET['search'] ?? '');
 $filter_store_id = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : 0;
+if (!canViewAllBranches($pdo)) {
+    $filter_store_id = intval($_SESSION['store_id'] ?? 1);
+}
 $page         = max(1, intval($_GET['page'] ?? 1));
 $per_page_raw = trim($_GET['per_page'] ?? '10');
 
@@ -173,7 +176,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       </div>
 
       <!-- Branch Filter (ເລືອກສາຂາ) — only worth showing once there's more than one branch -->
-      <?php if (count($branchesList) > 1): ?>
+      <?php if (canViewAllBranches($pdo) && count($branchesList) > 1): ?>
       <div style="flex: 1 1 150px; width: 100%;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-store text-info mr-1"></i> <?php echo htmlspecialchars(t('reports.branch_label', 'ສາຂາ:')); ?>

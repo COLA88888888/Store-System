@@ -135,9 +135,9 @@
                   </div>
                 </div>
                 <div class="col-6">
-                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_price_retail', 'ລາຄາຂາຍຍ່ອຍ')); ?> <span class="text-danger">*</span></label>
+                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_price_retail', 'ລາຄາຂາຍຍ່ອຍ')); ?></label>
                   <div class="input-group">
-                    <input type="text" name="price" id="edit_price" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #16a34a;" oninput="formatPriceInput(this)" required>
+                    <input type="text" name="price" id="edit_price" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #16a34a;" oninput="formatPriceInput(this)">
                     <div class="input-group-append"><span class="input-group-text" style="border-radius: 0 6px 6px 0; font-size: 0.85rem;">₭</span></div>
                   </div>
                 </div>
@@ -272,19 +272,7 @@ function submitEditProduct(e) {
     return false;
   }
   // ລາຄາຊື້ (bprice) ບໍ່ບັງຄັບ — ປ້ອນ ຫຼື ບໍ່ປ້ອນກໍໄດ້ (ວ່າງ = 0)
-  if (price === '' || price === '0') {
-    if (e) e.preventDefault();
-    Swal.fire({
-      icon: 'warning',
-      title: I18N_EDIT_PRODUCT['products.alert_notice_title'],
-      text: I18N_EDIT_PRODUCT['products.validate_price'],
-      confirmButtonColor: '#2563eb',
-      confirmButtonText: I18N_EDIT_PRODUCT['products.btn_ok']
-    }).then(function() {
-      $('#edit_price').focus();
-    });
-    return false;
-  }
+  // Price is optional
 
   // Dynamic multi-unit validation
   var validExtra = true;
@@ -323,21 +311,7 @@ function submitEditProduct(e) {
       validExtra = false;
       return false;
     }
-    if (uPrice === '' || uPrice === '0') {
-      if (e) e.preventDefault();
-      var inputEl = $(this).find('input[name="extra_unit_price[]"]');
-      Swal.fire({
-        icon: 'warning',
-        title: I18N_EDIT_PRODUCT['products.alert_notice_title'],
-        text: I18N_EDIT_PRODUCT['products.validate_unit_price'],
-        confirmButtonColor: '#2563eb',
-        confirmButtonText: I18N_EDIT_PRODUCT['products.btn_ok']
-      }).then(function() {
-        inputEl.focus();
-      });
-      validExtra = false;
-      return false;
-    }
+    // uPrice is optional
   });
 
   if (!validExtra) return false;

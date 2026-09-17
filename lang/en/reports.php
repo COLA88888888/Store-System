@@ -208,4 +208,18 @@ return [
     'reports.chart_legend_transfer'  => 'Transfer',
     'reports.chart_legend_bill_count' => 'Bill Count',
     'reports.chart_tooltip_bill'     => 'Bills:',
+
+    // Previously untranslated labels
+    'reports.receipt_cur_kip' => 'Kip (LAK):',
+    'reports.receipt_cur_thb' => 'Baht (THB):',
+    'reports.receipt_cur_usd' => 'Dollar (USD):',
+    'reports.receipt_cur_cny' => 'Yuan (CNY):',
+
+    // Receipt / checkout / delete-bill JS strings
+    'reports.js_item_fallback' => 'Product',
+    'reports.js_vat_exclusive' => 'VAT (%s):',
+    'reports.js_vat_inclusive' => 'VAT included (%s):',
+    'reports.js_scan_transfer' => 'Scan QR to pay by transfer',
+    'reports.js_error_prefix' => 'Error:',
+    'reports.js_confirm_delete_plain' => 'Are you sure you want to delete bill #%s?\nAll stock on this bill will be automatically returned!',
 ];

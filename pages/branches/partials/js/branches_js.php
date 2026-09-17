@@ -68,4 +68,112 @@ function confirmDeleteBranch(id, name) {
     }
   });
 }
+
+// ====== Pagination (client-side, all rows already rendered) ======
+var branchCurrentPage = 1;
+var branchPageSize = 10;
+var branchFilteredRows = [];
+
+function initBranchPagination() {
+  branchFilteredRows = Array.from(document.querySelectorAll('#branchTable tbody tr.branch-row'));
+  branchCurrentPage = 1;
+  applyBranchPagination();
+}
+
+function changeBranchPageSize() {
+  var val = document.getElementById('branchPageSizeSelect').value;
+  branchPageSize = (val === 'all') ? (branchFilteredRows.length || 99999) : parseInt(val, 10);
+  branchCurrentPage = 1;
+  applyBranchPagination();
+}
+
+function goToBranchPage(page) {
+  var totalPages = Math.ceil(branchFilteredRows.length / branchPageSize) || 1;
+  if (page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
+  branchCurrentPage = page;
+  applyBranchPagination();
+}
+
+function applyBranchPagination() {
+  var allRows = document.querySelectorAll('#branchTable tbody tr.branch-row');
+  allRows.forEach(function(r) { r.style.display = 'none'; });
+
+  var total = branchFilteredRows.length;
+  var totalPages = Math.ceil(total / branchPageSize) || 1;
+  if (branchCurrentPage > totalPages) branchCurrentPage = totalPages;
+
+  var startIdx = (branchCurrentPage - 1) * branchPageSize;
+  var endIdx = (branchPageSize >= 99999) ? total : startIdx + branchPageSize;
+
+  for (var i = startIdx; i < endIdx && i < total; i++) {
+    if (branchFilteredRows[i]) branchFilteredRows[i].style.display = '';
+  }
+
+  var startEl = document.getElementById('branch_page_info_start');
+  var endEl = document.getElementById('branch_page_info_end');
+  var totalEl = document.getElementById('branch_page_info_total');
+  if (startEl) startEl.textContent = total === 0 ? 0 : startIdx + 1;
+  if (endEl) endEl.textContent = Math.min(endIdx, total);
+  if (totalEl) totalEl.textContent = total;
+
+  renderBranchPaginationControls(totalPages);
+}
+
+function renderBranchPaginationControls(totalPages) {
+  var ul = document.getElementById('branchPagination');
+  if (!ul) return;
+  ul.innerHTML = '';
+  if (totalPages < 1) totalPages = 1;
+
+  var prevLi = document.createElement('li');
+  prevLi.className = 'page-item ' + (branchCurrentPage <= 1 ? 'disabled' : '');
+  prevLi.innerHTML = '<a class="page-link" href="javascript:void(0)" ' + (branchCurrentPage > 1 ? 'onclick="goToBranchPage(' + (branchCurrentPage - 1) + ')"' : '') + '><i class="fas fa-chevron-left"></i></a>';
+  ul.appendChild(prevLi);
+
+  var maxButtons = 5;
+  var startPage = Math.max(1, branchCurrentPage - 2);
+  var endPage = Math.min(totalPages, startPage + maxButtons - 1);
+  if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
+
+  if (startPage > 1) {
+    var firstLi = document.createElement('li');
+    firstLi.className = 'page-item';
+    firstLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToBranchPage(1)">1</a>';
+    ul.appendChild(firstLi);
+    if (startPage > 2) {
+      var dotLi = document.createElement('li');
+      dotLi.className = 'page-item disabled';
+      dotLi.innerHTML = '<span class="page-link" style="border:none; background:transparent;">...</span>';
+      ul.appendChild(dotLi);
+    }
+  }
+
+  for (var p = startPage; p <= endPage; p++) {
+    var pageLi = document.createElement('li');
+    pageLi.className = 'page-item ' + (p === branchCurrentPage ? 'active' : '');
+    pageLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToBranchPage(' + p + ')">' + p + '</a>';
+    ul.appendChild(pageLi);
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      var dotLi2 = document.createElement('li');
+      dotLi2.className = 'page-item disabled';
+      dotLi2.innerHTML = '<span class="page-link" style="border:none; background:transparent;">...</span>';
+      ul.appendChild(dotLi2);
+    }
+    var lastLi = document.createElement('li');
+    lastLi.className = 'page-item';
+    lastLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToBranchPage(' + totalPages + ')">' + totalPages + '</a>';
+    ul.appendChild(lastLi);
+  }
+
+  var nextLi = document.createElement('li');
+  nextLi.className = 'page-item ' + (branchCurrentPage >= totalPages ? 'disabled' : '');
+  nextLi.innerHTML = '<a class="page-link" href="javascript:void(0)" ' + (branchCurrentPage < totalPages ? 'onclick="goToBranchPage(' + (branchCurrentPage + 1) + ')"' : '') + '><i class="fas fa-chevron-right"></i></a>';
+  ul.appendChild(nextLi);
+}
+
+document.addEventListener('DOMContentLoaded', initBranchPagination);
 </script>

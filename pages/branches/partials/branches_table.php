@@ -10,7 +10,7 @@ if (!defined('MINIPOS_APP')) {
     <span><i class="fas fa-store-alt text-info mr-2"></i> <?php echo htmlspecialchars(t('branches.table_card_title', 'ລາຍຊື່ສາຂາທັງໝົດໃນລະບົບ')); ?> (<?php echo count($all_branches); ?> <?php echo htmlspecialchars(t('branches.unit_branch', 'ສາຂາ')); ?>)</span>
   </div>
   <div class="card-body p-0 table-responsive">
-    <table class="table table-hover align-middle mb-0">
+    <table class="table table-hover align-middle mb-0" id="branchTable">
       <thead class="bg-light">
         <tr style="white-space: nowrap;">
           <th class="text-center" style="width: 60px;">ID</th>
@@ -26,7 +26,7 @@ if (!defined('MINIPOS_APP')) {
       <tbody>
         <?php if (!empty($all_branches)): ?>
           <?php foreach ($all_branches as $b): ?>
-            <tr style="white-space: nowrap;">
+            <tr class="branch-row" style="white-space: nowrap;">
               <td class="text-center font-weight-bold" style="white-space: nowrap;"><?php echo $b['store_id']; ?></td>
               <td style="white-space: nowrap;"><span class="badge badge-secondary px-2 py-1"><?php echo htmlspecialchars($b['store_code']); ?></span></td>
               <td class="font-weight-bold text-dark" style="white-space: nowrap;">
@@ -49,7 +49,7 @@ if (!defined('MINIPOS_APP')) {
                 <?php endif; ?>
               </td>
               <td class="text-center" style="white-space: nowrap;">
-                <?php if (hasPermission('branches', 'edit') || hasPermission('branches', 'del')): ?>
+                <?php if (!empty($canManageBranches) && (hasPermission('branches', 'edit') || hasPermission('branches', 'del'))): ?>
                   <div class="btn-group btn-group-sm">
                     <?php if (hasPermission('branches', 'edit')): ?>
                       <button type="button" class="btn btn-sm btn-warning text-dark font-weight-bold rounded-circle mr-1"
@@ -84,4 +84,38 @@ if (!defined('MINIPOS_APP')) {
       </tbody>
     </table>
   </div>
+
+  <!-- Pagination Footer -->
+  <div class="card-footer bg-white border-top d-flex align-items-center justify-content-between py-3 px-3 px-md-4" style="gap: 10px; flex-wrap: wrap; flex-direction: row;">
+    <div class="d-flex align-items-center" style="gap: 8px; font-size: 0.85rem;">
+      <span class="text-muted font-weight-bold">
+        <?php echo htmlspecialchars(t('branches.page_showing', 'ສະແດງ')); ?>
+        <span id="branch_page_info_start">0</span>-<span id="branch_page_info_end">0</span>
+        <?php echo htmlspecialchars(t('branches.page_items', 'ລາຍການ')); ?>
+      </span>
+      <select id="branchPageSizeSelect" class="form-control form-control-sm font-weight-bold" style="width: auto; border-radius: 6px;" onchange="changeBranchPageSize()">
+        <option value="10">10</option>
+        <option value="25">25</option>
+        <option value="50">50</option>
+        <option value="all"><?php echo htmlspecialchars(t('branches.page_all', 'ທັງໝົດ')); ?></option>
+      </select>
+    </div>
+    <nav aria-label="Branch Pagination" style="margin-left: auto;">
+      <ul class="pagination pagination-circle mb-0 justify-content-end" id="branchPagination"></ul>
+    </nav>
+  </div>
 </div>
+
+<style>
+.pagination-circle { display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.pagination-circle .page-item { margin: 0; }
+.pagination-circle .page-link {
+  width: 38px; height: 38px; border-radius: 50% !important; display: flex; align-items: center; justify-content: center;
+  padding: 0; font-size: 0.95rem; font-weight: 700; color: #94a3b8; background-color: #f8fafc; border: 1px solid #edf2f7;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; cursor: pointer;
+}
+.pagination-circle .page-link:hover { color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15); }
+.pagination-circle .page-item.active .page-link { color: #fff !important; background: #2563eb !important; border-color: #2563eb !important; box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45) !important; transform: scale(1.04); }
+.pagination-circle .page-item.disabled .page-link { color: #cbd5e1 !important; background-color: #f8fafc !important; border-color: #f1f5f9 !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; opacity: 0.9; }
+.pagination-circle .page-link i { font-size: 0.85rem; font-weight: 900; }
+</style>

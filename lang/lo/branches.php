@@ -58,4 +58,11 @@ return [
     'branches.msg_not_found' => 'ບໍ່ພົບຂໍ້ມູນສາຂານີ້!',
     'branches.msg_cannot_delete_main' => 'ບໍ່ສາມາດລົບສາຂາໃຫຍ່ໄດ້!',
     'branches.msg_delete_success' => 'ລົບສາຂາ "{name}" ສຳເລັດແລ້ວ!',
+
+    // Pagination
+    'branches.page_showing' => 'ສະແດງ',
+    'branches.page_of' => 'ຈາກ',
+    'branches.page_page' => 'ໜ້າ',
+    'branches.page_all' => 'ທັງໝົດ',
+    'branches.page_items' => 'ລາຍການ',
 ];

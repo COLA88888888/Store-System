@@ -82,4 +82,11 @@ return [
     'price_adjustment.msg_adjust_success' => 'ปรับราคาสินค้าสำเร็จแล้ว ทั้งหมด %d รายการ!',
     'price_adjustment.msg_error_prefix' => 'ผิดพลาด: ',
     'price_adjustment.msg_delete_success2' => 'ลบประวัติการปรับราคาสำเร็จ!',
+
+    // Pagination
+    'price_adjustment.page_showing' => 'แสดง',
+    'price_adjustment.page_of' => 'จาก',
+    'price_adjustment.page_page' => 'หน้า',
+    'price_adjustment.page_all' => 'ทั้งหมด',
+    'price_adjustment.page_items' => 'รายการ',
 ];

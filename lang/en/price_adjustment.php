@@ -82,4 +82,11 @@ return [
     'price_adjustment.msg_adjust_success' => 'Price adjustment completed for %d item(s)!',
     'price_adjustment.msg_error_prefix' => 'Error: ',
     'price_adjustment.msg_delete_success2' => 'Price adjustment history deleted successfully!',
+
+    // Pagination
+    'price_adjustment.page_showing' => 'Showing',
+    'price_adjustment.page_of' => 'of',
+    'price_adjustment.page_page' => 'page',
+    'price_adjustment.page_all' => 'All',
+    'price_adjustment.page_items' => 'items',
 ];

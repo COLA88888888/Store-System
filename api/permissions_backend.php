@@ -23,7 +23,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 require_once __DIR__ . '/../config/db.php';
 
 // 4. ກວດເຊັກສິດການເຂົ້າເຖິງ (ສະເພາະ ຜູ້ບໍລິຫານ ຫຼື ຜູ້ທີ່ມີສິດ permissions/users ເທົ່ານັ້ນ)
-if (empty($_SESSION['user_id']) || (!hasPermission('permissions') && !hasPermission('users') && $_SESSION['status'] !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('permissions') && !hasPermission('users'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -34,6 +34,17 @@ if (empty($_SESSION['user_id']) || (!hasPermission('permissions') && !hasPermiss
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
     header('Content-Type: application/json');
     $action = $_POST['ajax_action'];
+
+    // Users who can't see every branch may only change permissions of accounts in their own branch.
+    $targetUserId = intval($_POST['user_id'] ?? 0);
+    if ($targetUserId > 0 && !canViewAllBranches($pdo)) {
+        $targetStoreStmt = $pdo->prepare("SELECT store_id FROM tbuser WHERE Id = ?");
+        $targetStoreStmt->execute([$targetUserId]);
+        if (intval($targetStoreStmt->fetchColumn()) !== intval($_SESSION['store_id'] ?? 0)) {
+            echo json_encode(['success' => false, 'message' => 'ທ່ານບໍ່ມີສິດຈັດການຜູ້ໃຊ້ຂອງສາຂາອື່ນ!']);
+            exit();
+        }
+    }
 
     $pdo->exec("CREATE TABLE IF NOT EXISTS user_permission_switch_states (
         user_id INT NOT NULL,
@@ -69,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             'stock_transfer', 'transfer_history',
             'report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales', 'delete_bills',
             'accounting', 'setup', 'stores', 'print_barcode', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty',
-            'users', 'permissions', 'branches', 'edit', 'customers', 'database'
+            'users', 'permissions', 'branches', 'edit', 'customers', 'database', 'quotations'
         ];
 
         $switchKeyPattern = '/^perm_[a-z0-9_]+_' . preg_quote((string)$user_id, '/') . '$/i';
@@ -78,12 +89,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             exit();
         }
 
-        // ປ້ອງກັນບໍ່ໃຫ້ປິດສິດຂອງຜູ້ບໍລິຫານ (Admin / ຜູ້ບໍລິຫານ / Super Admin ID: 1)
-        $uRoleStmt = $pdo->prepare("SELECT status FROM tbuser WHERE Id = ?");
-        $uRoleStmt->execute([$user_id]);
-        $uRole = $uRoleStmt->fetchColumn();
-        if ($user_id === 1 || strtolower(strval($uRole)) === 'admin' || strtolower(strval($uRole)) === 'super admin' || $uRole === 'ຜູ້ບໍລິຫານ') {
-            echo json_encode(['success' => false, 'message' => 'ຜູ້ບໍລິຫານ ມີສິດເຕັມ 100% ໃນລະບົບຢູ່ແລ້ວ ບໍ່ສາມາດປັບປ່ຽນສິດໄດ້!']);
+        // Id 1 is permanently locked. Any OTHER admin-labeled account can only be touched by
+        // the owner (Id 1) — a non-owner user must not be able to change another admin's
+        // permissions even though they can see that admin in the list.
+        if ($user_id === 1) {
+            echo json_encode(['success' => false, 'message' => 'ຜູ້ບໍລິຫານຄົນທຳອິດ (ID: 1) ມີສິດເຕັມ 100% ໃນລະບົບຢູ່ແລ້ວ ບໍ່ສາມາດປັບປ່ຽນສິດໄດ້!']);
+            exit();
+        }
+        if (!isOwnerUser() && isAdminAccount($pdo, $user_id)) {
+            echo json_encode(['success' => false, 'message' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດປັບປ່ຽນສິດຂອງຜູ້ບໍລິຫານຄົນອື່ນໄດ້!']);
             exit();
         }
 
@@ -208,11 +222,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             exit();
         }
 
-        $uRoleStmt = $pdo->prepare("SELECT status FROM tbuser WHERE Id = ?");
-        $uRoleStmt->execute([$user_id]);
-        $uRole = $uRoleStmt->fetchColumn();
-        if ($user_id === 1 || strtolower(strval($uRole)) === 'admin' || $uRole === 'ຜູ້ບໍລິຫານ') {
-            echo json_encode(['success' => false, 'message' => 'ຜູ້ບໍລິຫານ (Admin) ບໍ່ສາມາດປັບປ່ຽນສິດໄດ້!']);
+        if ($user_id === 1) {
+            echo json_encode(['success' => false, 'message' => 'ຜູ້ບໍລິຫານຄົນທຳອິດ (ID: 1) ບໍ່ສາມາດປັບປ່ຽນສິດໄດ້!']);
+            exit();
+        }
+        if (!isOwnerUser() && isAdminAccount($pdo, $user_id)) {
+            echo json_encode(['success' => false, 'message' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດປັບປ່ຽນສິດຂອງຜູ້ບໍລິຫານຄົນອື່ນໄດ້!']);
             exit();
         }
 
@@ -264,7 +279,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
 // =========================================================================
 // 6. ດຶງຂໍ້ມູນຜູ້ນຳໃຊ້ທັງໝົດ ພ້ອມ Join ຊື່ສາຂາ (tbstore)
 // =========================================================================
-$stmtUsers = $pdo->query("SELECT u.*, s.store_name FROM tbuser u LEFT JOIN tbstore s ON u.store_id = s.store_id ORDER BY u.Id ASC");
+if (canViewAllBranches($pdo)) {
+    $stmtUsers = $pdo->query("SELECT u.*, s.store_name FROM tbuser u LEFT JOIN tbstore s ON u.store_id = s.store_id ORDER BY u.Id ASC");
+} else {
+    $stmtUsers = $pdo->prepare("SELECT u.*, s.store_name FROM tbuser u LEFT JOIN tbstore s ON u.store_id = s.store_id WHERE u.store_id = ? ORDER BY u.Id ASC");
+    $stmtUsers->execute([intval($_SESSION['store_id'] ?? 0)]);
+}
 $users = $stmtUsers->fetchAll();
 
 $totalUsers = count($users);

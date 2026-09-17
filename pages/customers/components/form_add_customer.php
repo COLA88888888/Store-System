@@ -38,7 +38,7 @@
             </div>
           </div>
 
-          <?php if ($isAdmin || $isMain): ?>
+          <?php if ($canAllBranches): ?>
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('customers.field_branch', 'ສາຂາ')); ?></label>
             <select name="store_id" id="add_store_id" class="form-control" style="border-radius: 8px; height: 42px;">

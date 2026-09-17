@@ -208,4 +208,18 @@ return [
     'reports.chart_legend_transfer'  => '转账',
     'reports.chart_legend_bill_count' => '账单数量',
     'reports.chart_tooltip_bill'     => '账单:',
+
+    // Previously untranslated labels
+    'reports.receipt_cur_kip' => '基普 (LAK)：',
+    'reports.receipt_cur_thb' => '泰铢 (THB)：',
+    'reports.receipt_cur_usd' => '美元 (USD)：',
+    'reports.receipt_cur_cny' => '人民币 (CNY)：',
+
+    // Receipt / checkout / delete-bill JS strings
+    'reports.js_item_fallback' => '商品',
+    'reports.js_vat_exclusive' => '增值税 (%s)：',
+    'reports.js_vat_inclusive' => '含增值税 (%s)：',
+    'reports.js_scan_transfer' => '扫码转账付款',
+    'reports.js_error_prefix' => '发生错误：',
+    'reports.js_confirm_delete_plain' => '确定要删除单号 %s 的账单吗？\n此单的所有库存将自动返还！',
 ];

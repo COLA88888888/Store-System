@@ -141,4 +141,33 @@ return [
     'pos.no_products' => 'No products found',
     'pos.search_placeholder' => 'Scan a barcode or type a product name...',
     'pos.category_all' => 'All',
+
+    // Previously untranslated labels
+    'pos.active_bills_no_match' => 'No bills match your search',
+    'pos.active_bills_search_placeholder' => 'Search: bill name, customer or product...',
+    'pos.tender_currency_label' => 'Currency received',
+
+    // LAN printing
+    'pos.lan_print_failed' => 'LAN kitchen ticket failed: %s',
+    'pos.lan_print_not_lan' => 'This printer is disabled or not set to Network LAN.',
+    'pos.lan_print_bad_ip' => 'The printer IP address is invalid.',
+    'pos.lan_print_bad_request' => 'Invalid print data.',
+
+    // Receipt / checkout / delete-bill JS strings
+    'pos.receipt_vat_exclusive' => 'VAT (%s):',
+    'pos.receipt_vat_inclusive' => 'VAT included (%s):',
+    'pos.receipt_free_gift' => 'Free gift',
+    'pos.receipt_doc_title' => 'Receipt',
+    'pos.change_short' => 'Short %s',
+    'pos.checkout_split_short_title' => 'Amount incomplete!',
+    'pos.checkout_split_short_body' => 'Still short %s — please add more',
+    'pos.checkout_cash_short_title' => 'Amount received is not enough!',
+    'pos.checkout_cash_short_body' => 'Please check the amount received',
+    'pos.checkout_bad_cart_title' => 'Invalid product data!',
+    'pos.checkout_bad_cart_body' => 'No valid product ID found in the cart — please clear the cart and pick products again!',
+    'pos.checkout_error_title' => 'Error',
+    'pos.checkout_failed' => 'Payment could not be completed!',
+    'pos.checkout_offline_title' => 'Could not connect!',
+    'pos.checkout_offline_body' => 'Could not reach the server. Please check your internet/network connection and try again.',
+    'pos.kitchen_total' => 'Total %s',
 ];

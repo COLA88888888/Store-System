@@ -36,24 +36,19 @@
                onerror="this.src='<?php echo $base_path; ?>assets/img/image.jpg';">
           
           <?php if ($tracksStock): ?>
-          <!-- Stock Status Badge Top Left -->
-          <span class="stock-status-badge stock-status-badge-<?php echo $p['product_id']; ?> <?php echo $stock <= 0 ? 'out-of-stock' : ($stock <= 10 ? 'low-stock' : ''); ?>"
-                style="display: <?php echo $stock <= 10 ? 'inline-block' : 'none'; ?>; position: absolute; top: 4px; left: 4px; z-index: 10;">
-            <?php echo $stock <= 0 ? htmlspecialchars(t('pos.stock_out', 'ໝົດແລ້ວ')) : htmlspecialchars(t('pos.stock_low', 'ໃກ້ໝົດ')); ?>
-          </span>
-
-          <!-- Remaining Stock Badge Top Right -->
+          <!-- Remaining Stock Badge Top Right — its color (blue/orange/red) already carries the
+               in-stock/low/out-of-stock signal, so there's no separate top-left text badge
+               anymore: on narrow cards the two used to collide and overlap each other. -->
           <div class="stock-info-wrap stock-info-wrap-<?php echo $p['product_id']; ?> <?php echo $stock <= 0 ? 'out-of-stock' : ($stock <= 10 ? 'low-stock' : 'in-stock'); ?>" style="position: absolute; top: 4px; right: 4px; z-index: 10;">
             <span><span class="stock-remaining-label"><?php echo htmlspecialchars(t('pos.stock_remaining', 'ເຫຼືອ')); ?></span>: <span class="font-weight-bold product-stock-val product-stock-val-<?php echo $p['product_id']; ?>" data-initial-stock="<?php echo $p['qty']; ?>" data-cut-qty="<?php echo intval($p['cut_qty'] ?? 1); ?>"><?php echo number_format($p['qty']); ?></span></span>
           </div>
           <?php endif; ?>
 
-          <!-- Cart Quantity Badge (quantity currently in cart) — Top Right, above the
-               remaining-stock pill (z-index 20 > 10) so it always stays on top of it
-               instead of being hidden behind it when both are shown. Must stay inside
-               this wrap: both this wrap AND the outer .product-card have
-               overflow:hidden, so a negative offset here gets silently clipped. -->
-          <span class="cart-qty-badge product-qty-badge-<?php echo $p['product_id']; ?>" style="position: absolute; top: 4px; right: 4px; z-index: 20; border: 2px solid #ffffff;">0</span>
+          <!-- Cart Quantity Badge (quantity currently in cart) — Top Left, the only badge in
+               that corner now. Must stay inside this wrap: both this wrap AND the outer
+               .product-card have overflow:hidden, so a negative offset here gets silently
+               clipped. -->
+          <span class="cart-qty-badge product-qty-badge-<?php echo $p['product_id']; ?>" style="position: absolute; top: 4px; left: 4px; z-index: 20; border: 2px solid #ffffff;">0</span>
 
           <!-- Promo name — full-width band along the bottom of the product image, left-aligned -->
           <?php if ($hasPromo): ?>

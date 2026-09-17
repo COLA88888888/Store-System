@@ -15,4 +15,5 @@ return [
     'login.err_username_required' => 'Please enter your username!',
     'login.err_password_required' => 'Please enter your password!',
     'login.err_invalid' => 'Incorrect credentials, please try again',
+    'login.err_db_connection' => 'Could not connect to the database',
 ];

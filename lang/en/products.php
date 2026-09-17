@@ -146,4 +146,27 @@ return [
     'products.no_match_title' => 'No products match your search',
     'products.print_none_selected_title' => 'No Items Selected',
     'products.print_none_selected_text' => 'Please select products and set at least 1 sticker to print!',
+
+    // Add modal tabs + stock-deduction switch
+    'products.tab_add_single' => 'Add Single',
+    'products.tab_add_bulk' => 'Add Multiple',
+    'products.field_cut_qty' => 'Deduct stock on sale',
+    'products.field_cut_qty_hint' => 'Turn off for services / made-to-order items (sold without deducting stock)',
+
+    // Bulk add (multiple products at once)
+    'products.bulk_hint' => 'Enter several products at once — empty boxes are skipped. Starting stock = 0',
+    'products.bulk_cut_qty' => 'Deduct stock for every item in this batch',
+    'products.bulk_cut_qty_hint' => 'Turn off for services / made-to-order items — they sell without deducting stock. Set it here once instead of editing each item later',
+    'products.bulk_apply_supplier_label' => 'Supplier for every item in this batch',
+    'products.bulk_apply_supplier_hint' => 'Use when every item comes from the same supplier — pick it once and it fills every row (including rows added later)',
+    'products.bulk_add_row' => 'Add Row',
+    'products.bulk_btn_save' => 'Save All',
+    'products.bulk_col_cat' => 'Category',
+    'products.bulk_col_name' => 'Product Name',
+    'products.bulk_col_barcode' => 'Barcode',
+    'products.bulk_col_unit' => 'Unit',
+    'products.bulk_col_bprice' => 'Cost Price',
+    'products.bulk_col_price' => 'Sale Price',
+    'products.bulk_col_supplier' => 'Supplier',
+    'products.bulk_validate_none' => 'Please enter at least 1 item!',
 ];

@@ -189,6 +189,7 @@ function refreshPromotionsTable() {
     var $tableCard = $('.card.border-0.shadow-sm');
     if ($tableCard.length) {
       $tableCard.replaceWith($newContent);
+      initPromoPagination();
     } else {
       location.reload();
     }
@@ -243,7 +244,7 @@ function deletePromo(id, btn) {
     if (r.isConfirmed) {
       $.post('index.php', { action: 'delete_promo', id: id, is_ajax: 1 }, function(res) {
         if (res.success) {
-          $(btn).closest('tr').fadeOut(300, function() { $(this).remove(); });
+          $(btn).closest('tr').fadeOut(300, function() { $(this).remove(); initPromoPagination(); });
           Swal.fire({
             toast: true,
             position: 'top-end',
@@ -283,4 +284,112 @@ $(document).ready(function() {
     }, 'json');
   });
 });
+
+// ====== Pagination (client-side; re-init after any AJAX table swap or row removal) ======
+var promoCurrentPage = 1;
+var promoPageSize = 10;
+var promoFilteredRows = [];
+
+function initPromoPagination() {
+  promoFilteredRows = Array.from(document.querySelectorAll('#promoTable tbody tr.promo-row'));
+  promoCurrentPage = 1;
+  applyPromoPagination();
+}
+
+function changePromoPageSize() {
+  var val = document.getElementById('promoPageSizeSelect').value;
+  promoPageSize = (val === 'all') ? (promoFilteredRows.length || 99999) : parseInt(val, 10);
+  promoCurrentPage = 1;
+  applyPromoPagination();
+}
+
+function goToPromoPage(page) {
+  var totalPages = Math.ceil(promoFilteredRows.length / promoPageSize) || 1;
+  if (page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
+  promoCurrentPage = page;
+  applyPromoPagination();
+}
+
+function applyPromoPagination() {
+  var allRows = document.querySelectorAll('#promoTable tbody tr.promo-row');
+  allRows.forEach(function(r) { r.style.display = 'none'; });
+
+  var total = promoFilteredRows.length;
+  var totalPages = Math.ceil(total / promoPageSize) || 1;
+  if (promoCurrentPage > totalPages) promoCurrentPage = totalPages;
+
+  var startIdx = (promoCurrentPage - 1) * promoPageSize;
+  var endIdx = (promoPageSize >= 99999) ? total : startIdx + promoPageSize;
+
+  for (var i = startIdx; i < endIdx && i < total; i++) {
+    if (promoFilteredRows[i]) promoFilteredRows[i].style.display = '';
+  }
+
+  var startEl = document.getElementById('promo_page_info_start');
+  var endEl = document.getElementById('promo_page_info_end');
+  var totalEl = document.getElementById('promo_page_info_total');
+  if (startEl) startEl.textContent = total === 0 ? 0 : startIdx + 1;
+  if (endEl) endEl.textContent = Math.min(endIdx, total);
+  if (totalEl) totalEl.textContent = total;
+
+  renderPromoPaginationControls(totalPages);
+}
+
+function renderPromoPaginationControls(totalPages) {
+  var ul = document.getElementById('promoPagination');
+  if (!ul) return;
+  ul.innerHTML = '';
+  if (totalPages < 1) totalPages = 1;
+
+  var prevLi = document.createElement('li');
+  prevLi.className = 'page-item ' + (promoCurrentPage <= 1 ? 'disabled' : '');
+  prevLi.innerHTML = '<a class="page-link" href="javascript:void(0)" ' + (promoCurrentPage > 1 ? 'onclick="goToPromoPage(' + (promoCurrentPage - 1) + ')"' : '') + '><i class="fas fa-chevron-left"></i></a>';
+  ul.appendChild(prevLi);
+
+  var maxButtons = 5;
+  var startPage = Math.max(1, promoCurrentPage - 2);
+  var endPage = Math.min(totalPages, startPage + maxButtons - 1);
+  if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
+
+  if (startPage > 1) {
+    var firstLi = document.createElement('li');
+    firstLi.className = 'page-item';
+    firstLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToPromoPage(1)">1</a>';
+    ul.appendChild(firstLi);
+    if (startPage > 2) {
+      var dotLi = document.createElement('li');
+      dotLi.className = 'page-item disabled';
+      dotLi.innerHTML = '<span class="page-link" style="border:none; background:transparent;">...</span>';
+      ul.appendChild(dotLi);
+    }
+  }
+
+  for (var p = startPage; p <= endPage; p++) {
+    var pageLi = document.createElement('li');
+    pageLi.className = 'page-item ' + (p === promoCurrentPage ? 'active' : '');
+    pageLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToPromoPage(' + p + ')">' + p + '</a>';
+    ul.appendChild(pageLi);
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      var dotLi2 = document.createElement('li');
+      dotLi2.className = 'page-item disabled';
+      dotLi2.innerHTML = '<span class="page-link" style="border:none; background:transparent;">...</span>';
+      ul.appendChild(dotLi2);
+    }
+    var lastLi = document.createElement('li');
+    lastLi.className = 'page-item';
+    lastLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToPromoPage(' + totalPages + ')">' + totalPages + '</a>';
+    ul.appendChild(lastLi);
+  }
+
+  var nextLi = document.createElement('li');
+  nextLi.className = 'page-item ' + (promoCurrentPage >= totalPages ? 'disabled' : '');
+  nextLi.innerHTML = '<a class="page-link" href="javascript:void(0)" ' + (promoCurrentPage < totalPages ? 'onclick="goToPromoPage(' + (promoCurrentPage + 1) + ')"' : '') + '><i class="fas fa-chevron-right"></i></a>';
+  ul.appendChild(nextLi);
+}
+
+document.addEventListener('DOMContentLoaded', initPromoPagination);
 </script>

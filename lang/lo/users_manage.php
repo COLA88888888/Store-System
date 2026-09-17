@@ -82,4 +82,12 @@ return [
     'users_manage.msg_update_success' => 'ອັບເດດຂໍ້ມູນຜູ້ໃຊ້ສຳເລັດ!',
     'users_manage.msg_delete_success' => 'ລົບຜູ້ໃຊ້ງານສຳເລັດແລ້ວ!',
     'users_manage.err_invalid_action' => 'Action ບໍ່ຖືກຕ້ອງ',
+
+    'users_manage.label_access_days' => 'ຈຳນວນມື້ອະນຸຍາດໃຫ້ໃຊ້ງານ:',
+    'users_manage.placeholder_access_days' => 'ຫວ່າງໄວ້ = ບໍ່ຈຳກັດ',
+    'users_manage.hint_access_days' => 'ນັບຈາກມື້ນີ້ ຫາກຫວ່າງໄວ້ຈະໃຊ້ງານໄດ້ບໍ່ຈຳກັດ',
+    'users_manage.access_expired' => 'ໝົດອາຍຸແລ້ວ',
+    'users_manage.access_days_left' => 'ເຫຼືອ %d ມື້',
+    'users_manage.th_access_expiry' => 'ວັນໝົດອາຍຸການໃຊ້ງານ',
+    'users_manage.access_unlimited' => 'ບໍ່ຈຳກັດ',
 ];

@@ -141,4 +141,33 @@ return [
     'pos.no_products' => 'ບໍ່ມີຂໍ້ມູນສິນຄ້າ',
     'pos.search_placeholder' => 'ສະແກນບາໂຄ້ດ ຫຼື ພິມຊື່ສິນຄ້າ...',
     'pos.category_all' => 'ທັງໝົດ',
+
+    // Previously untranslated labels
+    'pos.active_bills_no_match' => 'ບໍ່ພົບບິນທີ່ກົງກັບການຄົ້ນຫາ',
+    'pos.active_bills_search_placeholder' => 'ຄົ້ນຫາ: ຊື່ບິນ, ລູກຄ້າ ຫຼື ສິນຄ້າ...',
+    'pos.tender_currency_label' => 'ສະກຸນເງິນທີ່ຮັບ',
+
+    // LAN printing
+    'pos.lan_print_failed' => 'ພິມໃບຍ່ອຍຜ່ານ LAN ບໍ່ສຳເລັດ: %s',
+    'pos.lan_print_not_lan' => 'ເຄື່ອງພິມນີ້ປິດໃຊ້ງານ ຫຼື ບໍ່ໄດ້ຕັ້ງເປັນ Network LAN',
+    'pos.lan_print_bad_ip' => 'IP Address ຂອງເຄື່ອງພິມບໍ່ຖືກຕ້ອງ',
+    'pos.lan_print_bad_request' => 'ຂໍ້ມູນການພິມບໍ່ຖືກຕ້ອງ',
+
+    // Receipt / checkout / delete-bill JS strings
+    'pos.receipt_vat_exclusive' => 'ອມພ (%s):',
+    'pos.receipt_vat_inclusive' => 'ລວມ ອມພ (%s):',
+    'pos.receipt_free_gift' => 'ແຖມຟຣີ',
+    'pos.receipt_doc_title' => 'ໃບບິນຮັບເງິນ',
+    'pos.change_short' => 'ຂາດ %s',
+    'pos.checkout_split_short_title' => 'ຍອດບໍ່ຄົບ!',
+    'pos.checkout_split_short_body' => 'ຍັງຂາດ %s ກະລຸນາຕື່ມ',
+    'pos.checkout_cash_short_title' => 'ເງິນທີ່ຮັບມາບໍ່ພໍ!',
+    'pos.checkout_cash_short_body' => 'ກະລຸນາກວດສອບຈຳນວນເງິນທີ່ຮັບມາ',
+    'pos.checkout_bad_cart_title' => 'ຂໍ້ມູນສິນຄ້າຜິດພາດ!',
+    'pos.checkout_bad_cart_body' => 'ບໍ່ພົບ ID ສິນຄ້າທີ່ຖືກຕ້ອງໃນກະຕ່າ ກະລຸນາລ້າງກະຕ່າແລ້ວເລືອກສິນຄ້າໃໝ່!',
+    'pos.checkout_error_title' => 'ຜິດພາດ',
+    'pos.checkout_failed' => 'ບໍ່ສາມາດຊຳລະເງິນໄດ້!',
+    'pos.checkout_offline_title' => 'ເຊື່ອມຕໍ່ບໍ່ໄດ້!',
+    'pos.checkout_offline_body' => 'ບໍ່ສາມາດຕິດຕໍ່ເຊີເວີໄດ້ ກະລຸນາກວດສອບອິນເຕີເນັດ/ເຄືອຂ່າຍ ແລ້ວລອງໃໝ່ອີກຄັ້ງ.',
+    'pos.kitchen_total' => 'ລວມ %s',
 ];

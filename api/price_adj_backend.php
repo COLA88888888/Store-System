@@ -43,13 +43,14 @@ try {
 $userStoreId = intval($_SESSION['store_id'] ?? 1);
 $isAdmin = ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' || strtolower($_SESSION['status'] ?? '') === 'admin' || ($_SESSION['user_id'] ?? 0) == 1;
 $isMain = isMainBranch($pdo, $userStoreId);
+$canAllBranches = canViewAllBranches($pdo);
 
 // Fetch stores list for branch selection/filter
 $stores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // GET filter_store parameter
 $filter_store = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : 0;
-if (!$isAdmin && !$isMain) {
+if (!$canAllBranches) {
     $filter_store = $userStoreId;
 }
 
@@ -72,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $user_id           = $_SESSION['user_id'] ?? 1;
 
         $targetStoreId     = isset($_POST['store_id']) && intval($_POST['store_id']) > 0 ? intval($_POST['store_id']) : ($filter_store > 0 ? $filter_store : $userStoreId);
-        if (!$isAdmin && !$isMain) {
+        if (!$canAllBranches) {
             $targetStoreId = $userStoreId;
         }
 
@@ -183,10 +184,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             try {
                 $pdo->beginTransaction();
 
-                $sel = ($isAdmin || $isMain)
+                $sel = ($canAllBranches)
                     ? $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ?")
                     : $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ? AND branch_id = ?");
-                ($isAdmin || $isMain) ? $sel->execute([$adjust_id]) : $sel->execute([$adjust_id, $userStoreId]);
+                ($canAllBranches) ? $sel->execute([$adjust_id]) : $sel->execute([$adjust_id, $userStoreId]);
                 $row = $sel->fetch(PDO::FETCH_ASSOC);
 
                 if (!$row) {
@@ -234,10 +235,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } else {
             try {
                 $pdo->beginTransaction();
-                $sel = ($isAdmin || $isMain)
+                $sel = ($canAllBranches)
                     ? $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ?")
                     : $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ? AND branch_id = ?");
-                ($isAdmin || $isMain) ? $sel->execute([$adjust_id]) : $sel->execute([$adjust_id, $userStoreId]);
+                ($canAllBranches) ? $sel->execute([$adjust_id]) : $sel->execute([$adjust_id, $userStoreId]);
                 $row = $sel->fetch(PDO::FETCH_ASSOC);
 
                 if (!$row || empty($row['product_id'])) {

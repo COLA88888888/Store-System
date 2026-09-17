@@ -17,26 +17,17 @@ var I18N_PRINT_BARCODE = <?php echo tjson([
     'print_barcode.ok_button' => 'ຕົກລົງ',
 ]); ?>;
 
-// State Structure: { [productId]: { selected: boolean, copies: number } }
 var pageBarcodeState = {};
 
-// 1. ຟັງຊັ້ນເລີ່ມຕົ້ນ State
 function initPageBarcodeState() {
   ALL_PRODUCTS_PAGE.forEach(function(p) {
     if (!pageBarcodeState[p.product_id]) {
-      pageBarcodeState[p.product_id] = {
-        selected: false,
-        copies: 1
-      };
+      pageBarcodeState[p.product_id] = { selected: false, copies: 1 };
     }
   });
 }
 
-// 2. ຟັງຊັ້ນ Render ບັອກສິນຄ້າ ແລະ Barcode SVG Preview
 function renderPageBarcodeBlocks() {
-  // ຊ່ອງ "ໝູນປ້າຍ 180°" ໃຫ້ຂຶ້ນສະເພາະຂະໜາດ 3-up (ຂະໜາດອື່ນບໍ່ຕ້ອງການ)
-  $('#rotateLabelWrap').toggle($('#print_size').val() === '3up_105x25');
-
   var container = $('#pageBarcodeBlocksContainer');
   container.empty();
 
@@ -45,6 +36,9 @@ function renderPageBarcodeBlocks() {
   var showShop  = $('#opt_show_shop').is(':checked');
   var showName  = $('#opt_show_name').is(':checked');
   var showPrice = $('#opt_show_price').is(':checked');
+  var showCode  = $('#opt_show_code').is(':checked');
+  var barcodeHeightMm = parseFloat($('#barcode_height_mm').val()) || 8.5;
+  var previewBarcodeHeightPx = Math.max(10, Math.round(barcodeHeightMm * 3.78));
 
   var visibleCount = 0;
 
@@ -58,31 +52,23 @@ function renderPageBarcodeBlocks() {
     var pUnit    = p.unit || '';
     var pCatId   = String(p.category_id || '');
 
-    // ກັ່ນຕອງປະເພດສິນຄ້າ
-    if (catFilter !== '' && pCatId !== String(catFilter)) {
-      return;
-    }
+    if (catFilter !== '' && pCatId !== String(catFilter)) return;
 
-    // ກັ່ນຕອງຄຳຄົ້ນຫາ (ຊື່, ບາໂຄ້ດ, ID)
     if (searchVal !== '') {
       var matchName = pName.toLowerCase().includes(searchVal);
       var matchBar  = pBarcode.toLowerCase().includes(searchVal);
       var matchId   = String(pId).includes(searchVal);
-      if (!matchName && !matchBar && !matchId) {
-        return;
-      }
+      if (!matchName && !matchBar && !matchId) return;
     }
 
     visibleCount++;
-
     var isSelected = st.selected;
     var copies = st.copies || 1;
 
     var blockHtml = `
-      <div class="col-md-4 col-sm-6 col-12 mb-4">
+      <div class="col-xl-3 col-lg-4 col-md-6 col-12 mb-4">
         <div class="barcode-block-card p-3 ${isSelected ? 'selected' : ''}" id="page_block_card_${pId}">
           
-          <!-- Block Header: Checkbox & Product Title -->
           <div class="d-flex align-items-center justify-content-between mb-2">
             <div class="d-flex align-items-center text-truncate" style="gap: 8px;">
               <input type="checkbox" class="barcode-block-checkbox" id="page_chk_${pId}" 
@@ -94,10 +80,7 @@ function renderPageBarcodeBlocks() {
             ${pUnit ? `<span class="badge badge-light border text-secondary ml-1" style="font-size: 0.76rem;">${pUnit}</span>` : ''}
           </div>
 
-          <!-- Block Body: Image + Live Barcode Preview -->
           <div class="row align-items-center no-gutters my-2">
-            
-            <!-- Left: Product Image & Price -->
             <div class="col-4 text-center pr-2">
               <img src="${p.img_path}" class="img-fluid rounded border shadow-sm mb-1" 
                    style="max-height: 55px; object-fit: cover;" 
@@ -105,7 +88,6 @@ function renderPageBarcodeBlocks() {
               ${showPrice ? `<div class="font-weight-bold text-success" style="font-size: 0.82rem;">${pPrice}</div>` : ''}
             </div>
 
-            <!-- Right: Barcode Preview SVG -->
             <div class="col-8 text-center pl-1">
               <div class="barcode-preview-box">
                 ${showShop ? `<div class="text-secondary font-weight-bold text-truncate" style="font-size: 0.72rem; line-height: 1;">${SHOP_NAME}</div>` : ''}
@@ -118,10 +100,8 @@ function renderPageBarcodeBlocks() {
                 ${showPrice ? `<div class="font-weight-bold text-dark" style="font-size: 0.8rem; line-height: 1;">${pPrice}</div>` : ''}
               </div>
             </div>
-
           </div>
 
-          <!-- Block Footer: Quantity Control -->
           <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-2">
             <small class="font-weight-bold text-dark" style="font-size: 0.82rem;">
               <i class="fas fa-copy text-primary mr-1"></i> ${I18N_PRINT_BARCODE['print_barcode.qty_label']}
@@ -141,7 +121,6 @@ function renderPageBarcodeBlocks() {
               </button>
             </div>
 
-            <!-- Quick Copies Shortcuts -->
             <div class="d-flex" style="gap: 2px;">
               <button type="button" class="btn btn-xs btn-light border py-0 px-1 font-weight-bold" style="font-size:0.7rem;" onclick="setPageBlockCopies(${pId}, 1)">1</button>
               <button type="button" class="btn btn-xs btn-light border py-0 px-1 font-weight-bold" style="font-size:0.7rem;" onclick="setPageBlockCopies(${pId}, 5)">5</button>
@@ -155,41 +134,16 @@ function renderPageBarcodeBlocks() {
 
     container.append(blockHtml);
 
-  // ວາດ Barcode SVG ດ້ວຍ JsBarcode
-    var bcMode = $('#barcode_height').val() || 'auto';
-    var printSize = $('#print_size').val() || '3up_105x25';
-    var bcWidth = 1.0;
-    var bcHeight = 26;
-    var bcFontSize = 8.5;
-
-    if (printSize === '3up_105x25') {
-      if (bcMode === 'tall') { bcHeight = 32; bcWidth = 1.1; bcFontSize = 9; }
-      else if (bcMode === 'extra_tall') { bcHeight = 38; bcWidth = 1.2; bcFontSize = 9.5; }
-      else { bcHeight = 26; bcWidth = 1.0; bcFontSize = 8.5; }
-    } else if (printSize === '40x30') {
-      if (bcMode === 'tall') { bcHeight = 40; bcWidth = 1.4; bcFontSize = 10; }
-      else if (bcMode === 'extra_tall') { bcHeight = 48; bcWidth = 1.5; bcFontSize = 10.5; }
-      else { bcHeight = 34; bcWidth = 1.3; bcFontSize = 9; }
-    } else if (printSize === '50x30') {
-      if (bcMode === 'tall') { bcHeight = 46; bcWidth = 1.6; bcFontSize = 11.5; }
-      else if (bcMode === 'extra_tall') { bcHeight = 54; bcWidth = 1.75; bcFontSize = 12; }
-      else { bcHeight = 38; bcWidth = 1.5; bcFontSize = 11; }
-    } else {
-      if (bcMode === 'tall') { bcHeight = 52; bcWidth = 1.85; bcFontSize = 12; }
-      else if (bcMode === 'extra_tall') { bcHeight = 62; bcWidth = 2.0; bcFontSize = 13; }
-      else { bcHeight = 42; bcWidth = 1.7; bcFontSize = 11; }
-    }
-
     try {
       JsBarcode(`#page_svg_${pId}`, pBarcode, {
         format: "CODE128",
-        width: bcWidth,
-        height: bcHeight,
-        displayValue: true,
-        fontSize: bcFontSize,
+        width: 1.3,
+        height: previewBarcodeHeightPx,
+        displayValue: showCode,
+        fontSize: 10,
         font: "monospace",
-        margin: 0,
-        textMargin: 0
+        margin: 1,
+        textMargin: 1
       });
     } catch (e) {
       console.error("Barcode render error for product " + pId, e);
@@ -208,22 +162,17 @@ function renderPageBarcodeBlocks() {
   updatePageBarcodeSummary();
 }
 
-// 3. ຟັງຊັ້ນປ່ຽນສະຖານະເລືອກສິນຄ້າ
 function togglePageBlockSelect(pId, isChecked) {
   if (!pageBarcodeState[pId]) pageBarcodeState[pId] = { selected: false, copies: 1 };
   pageBarcodeState[pId].selected = isChecked;
 
   var card = $(`#page_block_card_${pId}`);
-  if (isChecked) {
-    card.addClass('selected');
-  } else {
-    card.removeClass('selected');
-  }
+  if (isChecked) card.addClass('selected');
+  else card.removeClass('selected');
 
   updatePageBarcodeSummary();
 }
 
-// 4. ຟັງຊັ້ນເລືອກທັງໝົດ / ຍົກເລີກທັງໝົດ
 function selectAllPageProducts(isSelected) {
   ALL_PRODUCTS_PAGE.forEach(function(p) {
     var pId = p.product_id;
@@ -233,7 +182,6 @@ function selectAllPageProducts(isSelected) {
   renderPageBarcodeBlocks();
 }
 
-// 5. ຟັງຊັ້ນເພີ່ມ/ຫຼຸດ ຈຳນວນດວງ
 function changePageBlockCopies(pId, delta) {
   if (!pageBarcodeState[pId]) pageBarcodeState[pId] = { selected: true, copies: 1 };
   var current = pageBarcodeState[pId].copies || 1;
@@ -250,7 +198,6 @@ function changePageBlockCopies(pId, delta) {
   updatePageBarcodeSummary();
 }
 
-// 6. ຟັງຊັ້ນຕັ້ງຄ່າຈຳນວນດວງດ່ວນ
 function setPageBlockCopies(pId, num) {
   if (!pageBarcodeState[pId]) pageBarcodeState[pId] = { selected: true, copies: 1 };
   pageBarcodeState[pId].copies = num;
@@ -286,7 +233,6 @@ function setAllPageCopies(num) {
   updatePageBarcodeSummary();
 }
 
-// 7. ຟັງຊັ້ນອັບເດດຂໍ້ຄວາມສະຫຼຸບຈຳນວນເລືອກ ແລະ ຈຳນວນດວງລວມ
 function updatePageBarcodeSummary() {
   var selectedCount = 0;
   var totalStickers = 0;
@@ -306,36 +252,88 @@ function updatePageBarcodeSummary() {
   );
 }
 
-// 8. ຟັງຊັ້ນປະມວນຜົນ ແລະ ສັ່ງພິມບາໂຄ້ດຜ່ານ Iframe
-function executePageBarcodePrint() {
-  var size      = $('#print_size').val();
-  var bcMode    = $('#barcode_height').val() || 'auto';
-  var showShop  = $('#opt_show_shop').is(':checked');
-  var showName  = $('#opt_show_name').is(':checked');
-  var showPrice = $('#opt_show_price').is(':checked');
-  var rotate180 = $('#opt_rotate_180').is(':checked');
-
-  var bcWidth = 1.0;
-  var bcHeight = 26;
-  var bcFontSize = 8.5;
-
-  if (size === '3up_105x25') {
-    if (bcMode === 'tall') { bcHeight = 32; bcWidth = 1.05; bcFontSize = 8.5; }
-    else if (bcMode === 'extra_tall') { bcHeight = 38; bcWidth = 1.15; bcFontSize = 9; }
-    else { bcHeight = 26; bcWidth = 0.98; bcFontSize = 8; }
-  } else if (size === '40x30') {
-    if (bcMode === 'tall') { bcHeight = 42; bcWidth = 1.4; bcFontSize = 10; }
-    else if (bcMode === 'extra_tall') { bcHeight = 50; bcWidth = 1.5; bcFontSize = 10.5; }
-    else { bcHeight = 36; bcWidth = 1.3; bcFontSize = 9; }
-  } else if (size === '50x30') {
-    if (bcMode === 'tall') { bcHeight = 48; bcWidth = 1.6; bcFontSize = 11.5; }
-    else if (bcMode === 'extra_tall') { bcHeight = 56; bcWidth = 1.75; bcFontSize = 12; }
-    else { bcHeight = 40; bcWidth = 1.5; bcFontSize = 11; }
-  } else {
-    if (bcMode === 'tall') { bcHeight = 54; bcWidth = 1.85; bcFontSize = 12; }
-    else if (bcMode === 'extra_tall') { bcHeight = 64; bcWidth = 2.0; bcFontSize = 13; }
-    else { bcHeight = 44; bcWidth = 1.7; bcFontSize = 11; }
+var BARCODE_SIZE_CONFIGS = {
+  '40x30_vert': {
+    pageCss: '@page { size: 40mm 30mm; margin: 0; }',
+    pageBoxCss: 'width: 40mm; height: 30mm; max-width: 40mm; max-height: 30mm; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; overflow: hidden; margin: 0 auto; padding: 0; display: block;',
+    labelCss: 'width: 100%; height: 100%; padding: 1mm 1.5mm; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;',
+    shopTitleCss: 'font-size: 8px; font-weight: bold; line-height: 1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
+    prodTitleCss: 'font-size: 10.5px; font-weight: bold; line-height: 1.1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
+    priceTitleCss: 'font-size: 12.5px; font-weight: 800; line-height: 1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center;',
+    maxBarcodeMm: 36,
+    mode: 'single_roll'
+  },
+  '40x30_horiz': {
+    pageCss: '@page { size: 40mm 30mm; margin: 0; }',
+    pageBoxCss: 'width: 40mm; height: 30mm; max-width: 40mm; max-height: 30mm; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; overflow: hidden; margin: 0 auto; padding: 0; display: block;',
+    labelCss: 'width: 100%; height: 100%; padding: 1mm 1.5mm; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;',
+    shopTitleCss: 'font-size: 8px; font-weight: bold; line-height: 1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
+    prodTitleCss: 'font-size: 10.5px; font-weight: bold; line-height: 1.1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
+    priceTitleCss: 'font-size: 12.5px; font-weight: 800; line-height: 1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center;',
+    maxBarcodeMm: 36,
+    mode: 'single_roll'
+  },
+  '105x25_3up': {
+    pageCss: '@page { size: 105mm 25mm; margin: 0; }',
+    pageBoxCss: 'width: 105mm; height: 25mm;',
+    labelCss: 'padding: 0.5mm 1mm; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;',
+    shopTitleCss: 'font-size: 8px; font-weight: bold; line-height: 1; max-width: 32mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
+    prodTitleCss: 'font-size: 9.5px; font-weight: bold; line-height: 1.05; max-width: 32mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
+    priceTitleCss: 'font-size: 11px; font-weight: 800; line-height: 1; max-width: 32mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center;',
+    maxBarcodeMm: 31,
+    mode: '3up_roll'
+  },
+  '50x30': {
+    pageCss: '@page { size: 50mm 30mm; margin: 0; }',
+    pageBoxCss: 'width: 50mm; height: 30mm; max-width: 50mm; max-height: 30mm; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; overflow: hidden; margin: 0 auto; padding: 0; display: block;',
+    labelCss: 'width: 100%; height: 100%; padding: 1mm 1.5mm; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;',
+    shopTitleCss: 'font-size: 9px; font-weight: bold; line-height: 1; max-width: 47mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
+    prodTitleCss: 'font-size: 11.5px; font-weight: bold; line-height: 1.1; max-width: 47mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
+    priceTitleCss: 'font-size: 13.5px; font-weight: 800; line-height: 1; max-width: 47mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center;',
+    maxBarcodeMm: 46,
+    mode: 'single_roll'
+  },
+  '30x20': {
+    pageCss: '@page { size: 30mm 20mm; margin: 0; }',
+    pageBoxCss: 'width: 30mm; height: 20mm; max-width: 30mm; max-height: 20mm; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; overflow: hidden; margin: 0 auto; padding: 0; display: block;',
+    labelCss: 'width: 100%; height: 100%; padding: 0.5mm 0.8mm; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;',
+    shopTitleCss: 'font-size: 7px; font-weight: bold; line-height: 1; max-width: 28mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
+    prodTitleCss: 'font-size: 8.5px; font-weight: bold; line-height: 1.05; max-width: 28mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
+    priceTitleCss: 'font-size: 9.5px; font-weight: 800; line-height: 1; max-width: 28mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center;',
+    maxBarcodeMm: 27,
+    mode: 'single_roll'
+  },
+  '50x40': {
+    pageCss: '@page { size: 50mm 40mm; margin: 0; }',
+    pageBoxCss: 'width: 50mm; height: 40mm; max-width: 50mm; max-height: 40mm; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; overflow: hidden; margin: 0 auto; padding: 0; display: block;',
+    labelCss: 'width: 100%; height: 100%; padding: 1.5mm 2mm; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;',
+    shopTitleCss: 'font-size: 10px; font-weight: bold; line-height: 1; max-width: 46mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
+    prodTitleCss: 'font-size: 12px; font-weight: bold; line-height: 1.1; max-width: 46mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 2px 0; text-align: center;',
+    priceTitleCss: 'font-size: 14px; font-weight: 800; line-height: 1; max-width: 46mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px 0 0 0; text-align: center;',
+    maxBarcodeMm: 46,
+    mode: 'single_roll'
+  },
+  'a4': {
+    pageCss: '@page { size: A4; margin: 8mm; }',
+    pageBoxCss: '',
+    labelCss: 'border: 1px dashed #cbd5e1; border-radius: 6px; padding: 2.5mm 2mm; min-height: 28mm; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;',
+    shopTitleCss: 'font-size: 10px; font-weight: bold; line-height: 1.1; margin: 0 0 2px 0; text-align: center;',
+    prodTitleCss: 'font-size: 12px; font-weight: bold; line-height: 1.15; margin: 0 0 2px 0; text-align: center;',
+    priceTitleCss: 'font-size: 14px; font-weight: 800; line-height: 1; margin: 2px 0 0 0; text-align: center;',
+    maxBarcodeMm: 50,
+    mode: 'grid_a4'
   }
+};
+
+function executePageBarcodePrint() {
+  var size       = $('#print_size').val();
+  var showShop   = $('#opt_show_shop').is(':checked');
+  var showName   = $('#opt_show_name').is(':checked');
+  var showPrice  = $('#opt_show_price').is(':checked');
+  var showCode   = $('#opt_show_code').is(':checked');
+  var barcodeWidthMm  = parseFloat($('#barcode_width_mm').val()) || 36;
+  var barcodeHeightMm = parseFloat($('#barcode_height_mm').val()) || 8.5;
+  var verticalOffsetMm = parseFloat($('#label_vertical_offset_mm').val()) || 0;
 
   var itemsToPrint = [];
   var totalStickers = 0;
@@ -343,10 +341,7 @@ function executePageBarcodePrint() {
   ALL_PRODUCTS_PAGE.forEach(function(p) {
     var st = pageBarcodeState[p.product_id];
     if (st && st.selected && st.copies > 0) {
-      itemsToPrint.push({
-        product: p,
-        copies: st.copies
-      });
+      itemsToPrint.push({ product: p, copies: st.copies });
       totalStickers += st.copies;
     }
   });
@@ -362,56 +357,64 @@ function executePageBarcodePrint() {
     return;
   }
 
-  var printDoc = `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Print Barcodes - MiniPos</title>
-    <script src="${'<?php echo $base_path; ?>assets/js/JsBarcode.all.min.js'}"><\/script>
-    <style>
-      @page {
-        margin: 0;
-        ${size === '3up_105x25' ? 'size: 105mm 25mm;' : (size === '40x30' ? 'size: 40mm 30mm;' : (size === '50x30' ? 'size: 50mm 30mm;' : 'size: auto;'))}
-      }
-      * { box-sizing: border-box; }
-      body { margin: 0 !important; padding: 0 !important; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif; background: #fff; color: #000; -webkit-print-color-adjust: exact; }
-      .label-container { display: flex; flex-wrap: wrap; align-items: flex-start; }
-      .barcode-label { box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; page-break-inside: avoid; break-inside: avoid; }
-      .barcode-wrapper { width: 100%; max-width: 31mm; overflow: hidden; display: flex; justify-content: center; align-items: center; margin: 0 auto; flex-shrink: 0; }
-      .barcode-svg { max-width: 100% !important; height: auto !important; display: block; margin: 0 auto; shape-rendering: crispEdges; image-rendering: pixelated; }
-      ${size === '40x30' ? `
-        .barcode-label { width: 40mm; height: 30mm; padding: ${showShop ? '2mm' : '4mm'} 1mm 1.5mm 1mm; overflow: hidden; }
-        .shop-title { font-size: 8px; font-weight: bold; line-height: 1; max-width: 38mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; }
-        .prod-title { font-size: 9px; font-weight: bold; line-height: 1.1; max-width: 38mm; white-space: nowrap; overflow: hidden; margin-top: ${showShop ? '0' : '1mm'}; margin-bottom: 1px; }
-        .price-title { font-size: 10px; font-weight: bold; line-height: 1; margin-top: 1px; }
-      ` : size === '50x30' ? `
-        .barcode-label { width: 50mm; height: 30mm; padding: ${showShop ? '2.5mm' : '4.5mm'} 1.5mm 2mm 1.5mm; overflow: hidden; }
-        .shop-title { font-size: 9px; font-weight: bold; line-height: 1; max-width: 47mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; }
-        .prod-title { font-size: 10px; font-weight: bold; line-height: 1.1; max-width: 47mm; white-space: nowrap; overflow: hidden; margin-top: ${showShop ? '0' : '1mm'}; margin-bottom: 1px; }
-        .price-title { font-size: 11px; font-weight: bold; line-height: 1; margin-top: 1px; }
-      ` : size === '3up_105x25' ? `
-        /* ມ້ວນ "3-up 105x25mm": ຍັບດວງ 1 (ໂຕທາງໜ້າ nth-child(3n+1)) ອອກຈາກຂອບດຶງກະດາດ 3.5mm ປ້ອງກັນຫົວພິມຕັດ/ຈາງ */
-        .label-container { display: grid; grid-template-columns: 32mm 32mm 32mm; justify-content: space-between; width: 105mm; margin: 0 auto; padding: 0 1.5mm; box-sizing: border-box; }
-        .barcode-label { width: 32mm; height: 24.5mm; padding: ${showShop ? '1.5mm' : '3.2mm'} 0.5mm 0.5mm 0.5mm; overflow: hidden; ${rotate180 ? 'transform: rotate(180deg);' : ''} }
-        .barcode-label:nth-child(3n+1) { margin-left: 3.5mm; }
-        .shop-title { font-size: 7px; font-weight: bold; line-height: 1; max-width: 31mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 0.5px; }
-        .prod-title { font-size: 8px; font-weight: bold; line-height: 1.1; max-width: 31mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: ${showShop ? '0' : '0.6mm'}; margin-bottom: 0.5px; }
-        .price-title { font-size: 8.5px; font-weight: bold; line-height: 1; margin-top: 0.5px; white-space: nowrap; }
-      ` : `
-        .label-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10mm; }
-        .barcode-label { border: 1px dashed #cbd5e1; border-radius: 6px; padding: 4mm 2mm; min-height: 32mm; }
-        .shop-title { font-size: 10px; font-weight: bold; line-height: 1.1; margin-bottom: 2px; }
-        .prod-title { font-size: 11px; font-weight: bold; line-height: 1.2; margin-bottom: 2px; }
-        .price-title { font-size: 12px; font-weight: bold; line-height: 1; margin-top: 2px; }
-      `}
-    </style>
-  </head>
-  <body>
-  `;
+  var cfg = BARCODE_SIZE_CONFIGS[size] || BARCODE_SIZE_CONFIGS['40x30_vert'];
+  var basePath = '<?php echo $base_path; ?>';
 
-  printDoc += `<div class="label-container">`;
+  // ຄວາມສູງໜ້າຕ້ອງເທົ່າກັບ "ໄລຍະຕໍ່ 1 ດວງ" ຂອງມ້ວນແທ້ (ສະຕິກເກີ + ຮ່ອງ) ບໍ່ດັ່ງນັ້ນທຸກໆດວງ
+  // ຈະຄາດເຄື່ອນສະສົມໄປເລື່ອຍໆ. ສ່ວນເນື້ອຫາຍັງຕ້ອງຈັດເຄິ່ງກາງໃນ "ເນື້ອທີ່ສະຕິກເກີ" ເທົ່ານັ້ນ
+  // (ຮ່ອງທີ່ເຫຼືອປະໄວ້ຫວ່າງ) — ຖ້າຈັດເຄິ່ງກາງທັງໜ້າ ເນື້ອຫາຈະຕ່ຳໄປເຄິ່ງໜຶ່ງຂອງຮ່ອງ.
+  var labelPitchMm = parseFloat($('#label_pitch_mm').val());
+  var sizeMatch = /size:\s*([\d.]+)mm\s+([\d.]+)mm/.exec(cfg.pageCss || '');
+  if (!isNaN(labelPitchMm) && labelPitchMm > 0 && sizeMatch) {
+    var stickerHeightMm = parseFloat(sizeMatch[2]);
+    cfg = Object.assign({}, cfg);
+    cfg.pageCss = '@page { size: ' + sizeMatch[1] + 'mm ' + labelPitchMm + 'mm; margin: 0; }';
+    cfg.pageBoxCss = (cfg.pageBoxCss || '')
+      .replace(/(^|[^-])height:\s*[\d.]+mm/, '$1height: ' + labelPitchMm + 'mm')
+      .replace(/max-height:\s*[\d.]+mm/, 'max-height: ' + labelPitchMm + 'mm');
+    if (labelPitchMm > stickerHeightMm) {
+      cfg.labelCss = (cfg.labelCss || '').replace(/height:\s*100%/, 'height: ' + stickerHeightMm + 'mm');
+    }
+  }
 
+  var printDoc = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print Barcodes - MiniPos</title>';
+  printDoc += '<script src="' + basePath + 'assets/js/JsBarcode.all.min.js"><\/script>';
+  printDoc += '<style>';
+  printDoc += cfg.pageCss + ' ';
+  printDoc += '@media print { @page { ' + (cfg.pageCss.replace('@page {', '').replace('}', '')) + ' } html, body { margin: 0 !important; padding: 0 !important; } } ';
+  printDoc += '* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; } ';
+  printDoc += 'html, body { margin: 0 !important; padding: 0 !important; width: 100%; background: #ffffff; color: #000000; font-family: "Noto Sans Lao", "Souliyo", "Boon", Arial, sans-serif; } ';
+
+  if (cfg.mode === 'single_roll') {
+    printDoc += '.label-page { ' + cfg.pageBoxCss + ' } ';
+    printDoc += '.label-page:last-child { page-break-after: auto !important; break-after: auto !important; } ';
+    printDoc += '.barcode-label { ' + cfg.labelCss + ' } ';
+  } else if (cfg.mode === '3up_roll') {
+    printDoc += '.row-container { display: grid; grid-template-columns: repeat(3, 1fr); width: 105mm; height: 25mm; gap: 2mm; padding: 0.5mm; box-sizing: border-box; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; } ';
+    printDoc += '.row-container:last-child { page-break-after: auto !important; break-after: auto !important; } ';
+    printDoc += '.barcode-label { ' + cfg.labelCss + ' } ';
+  } else {
+    printDoc += '.label-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; padding: 4mm; } ';
+    printDoc += '.barcode-label { ' + cfg.labelCss + ' page-break-inside: avoid; break-inside: avoid; } ';
+  }
+
+  if (verticalOffsetMm) {
+    printDoc += '.barcode-label { transform: translateY(' + verticalOffsetMm + 'mm); } ';
+  }
+
+  printDoc += '.shop-title { ' + cfg.shopTitleCss + ' } ';
+  printDoc += '.prod-title { ' + cfg.prodTitleCss + ' } ';
+  printDoc += '.barcode-svg-wrap { width: 100%; display: flex; justify-content: center; align-items: center; margin: 0; padding: 0; overflow: hidden; } ';
+  printDoc += '.barcode-svg { max-width: ' + barcodeWidthMm + 'mm; max-height: ' + barcodeHeightMm + 'mm; height: auto; display: block; margin: 0 auto; } ';
+  printDoc += '.barcode-num-text { font-family: monospace, "Courier New", Courier, sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 1px; line-height: 1.1; max-width: ' + barcodeWidthMm + 'mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center; color: #000000; } ';
+  printDoc += '.price-title { ' + cfg.priceTitleCss + ' } ';
+  printDoc += '</style></head><body>';
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  var allStickerElements = [];
   itemsToPrint.forEach(function(item) {
     var p = item.product;
     var copies = item.copies;
@@ -421,52 +424,66 @@ function executePageBarcodePrint() {
     var priceFormatted = Number(p.price || 0).toLocaleString('en-US') + ' ₭';
 
     for (var i = 0; i < copies; i++) {
-      printDoc += `
-        <div class="barcode-label">
-          ${showShop ? `<div class="shop-title">${SHOP_NAME}</div>` : ''}
-          ${showName ? `<div class="prod-title">${prodName}</div>` : ''}
-          <div class="barcode-wrapper">
-            <svg class="barcode-svg" data-barcode="${barcodeVal}"></svg>
-          </div>
-          ${showPrice ? `<div class="price-title">${priceFormatted}</div>` : ''}
-        </div>
-      `;
+      var contentHtml = '';
+      if (showShop) contentHtml += '<div class="shop-title">' + escapeHtml(SHOP_NAME) + '</div>';
+      if (showName) contentHtml += '<div class="prod-title">' + escapeHtml(prodName) + '</div>';
+      contentHtml += '<div class="barcode-svg-wrap"><svg class="barcode-svg" data-barcode="' + escapeHtml(barcodeVal) + '"></svg></div>';
+      if (showCode) contentHtml += '<div class="barcode-num-text">' + escapeHtml(barcodeVal) + '</div>';
+      if (showPrice) contentHtml += '<div class="price-title">' + escapeHtml(priceFormatted) + '</div>';
+
+      if (cfg.mode === 'single_roll') {
+        allStickerElements.push('<div class="label-page"><div class="barcode-label">' + contentHtml + '</div></div>');
+      } else {
+        allStickerElements.push('<div class="barcode-label">' + contentHtml + '</div>');
+      }
     }
   });
 
-  printDoc += `</div>`;
+  if (cfg.mode === '3up_roll') {
+    for (var k = 0; k < allStickerElements.length; k += 3) {
+      printDoc += '<div class="row-container">';
+      printDoc += allStickerElements[k] || '<div class="barcode-label" style="visibility:hidden;"></div>';
+      printDoc += allStickerElements[k + 1] || '<div class="barcode-label" style="visibility:hidden;"></div>';
+      printDoc += allStickerElements[k + 2] || '<div class="barcode-label" style="visibility:hidden;"></div>';
+      printDoc += '</div>';
+    }
+  } else if (cfg.mode === 'grid_a4') {
+    printDoc += '<div class="label-container">' + allStickerElements.join('') + '</div>';
+  } else {
+    printDoc += allStickerElements.join('');
+  }
 
-  printDoc += `
-    <script>
-      window.onload = function() {
-        var svgs = document.querySelectorAll('.barcode-svg');
-        svgs.forEach(function(el) {
-          var code = el.getAttribute('data-barcode');
-          JsBarcode(el, code, {
-            format: "CODE128",
-            width: ${bcWidth},
-            height: ${bcHeight},
-            displayValue: true,
-            fontSize: ${bcFontSize},
-            font: "monospace",
-            background: "#ffffff",
-            lineColor: "#000000",
-            margin: 2,
-            marginLeft: 6,
-            marginRight: 6,
-            marginTop: 1,
-            marginBottom: 1,
-            textMargin: 2
-          });
-        });
-        setTimeout(function() {
-          window.print();
-        }, 300);
-      };
-    <\/script>
-  </body>
-  </html>
-  `;
+  printDoc += '<script>';
+  printDoc += 'function calcBarcodeWidth(code, maxMm) {';
+  printDoc += '  var len = String(code || "").length;';
+  printDoc += '  var modules = 35 + 11 * Math.max(len, 1);';
+  printDoc += '  var targetPx = ((maxMm || 36) / 25.4) * 96;';
+  printDoc += '  var w = targetPx / modules;';
+  printDoc += '  if (w > 1.7) w = 1.7;';
+  printDoc += '  if (w < 0.75) w = 0.75;';
+  printDoc += '  return Math.round(w * 100) / 100;';
+  printDoc += '}';
+  printDoc += 'function doPrint() {';
+  printDoc += '  var svgs = document.querySelectorAll(".barcode-svg");';
+  printDoc += '  var maxMm = ' + barcodeWidthMm + ';';
+  printDoc += '  var heightPx = ' + Math.round(barcodeHeightMm * 3.78) + ';';
+  printDoc += '  svgs.forEach(function(el) {';
+  printDoc += '    var code = el.getAttribute("data-barcode");';
+  printDoc += '    var bWidth = calcBarcodeWidth(code, maxMm);';
+  printDoc += '    try {';
+  printDoc += '      JsBarcode(el, code, {';
+  printDoc += '        format: "CODE128",';
+  printDoc += '        width: bWidth,';
+  printDoc += '        height: heightPx,';
+  printDoc += '        displayValue: false,';
+  printDoc += '        margin: 0';
+  printDoc += '      });';
+  printDoc += '    } catch (e) { console.error(e); }';
+  printDoc += '  });';
+  printDoc += '  setTimeout(function() { window.focus(); window.print(); }, 250);';
+  printDoc += '}';
+  printDoc += 'if (document.readyState === "complete") { doPrint(); } else { window.onload = doPrint; }';
+  printDoc += '<\/script></body></html>';
 
   var iframe = document.getElementById('pageBarcodePrintIframe');
   var ifrDoc = iframe.contentWindow || iframe.contentDocument;

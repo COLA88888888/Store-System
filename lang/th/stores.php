@@ -35,6 +35,10 @@ return [
     'stores.field_footer'        => 'ข้อความท้ายใบเสร็จ:',
     'stores.field_footer_ph'     => 'เช่น: ขอบคุณที่มาอุดหนุน, สินค้าซื้อแล้วไม่รับเปลี่ยนคืน...',
 
+    // Queue number on receipt
+    'stores.field_queue_enabled' => 'แสดงเลขคิวบนใบเสร็จ (ร้านกาแฟ / ร้านที่มีคิว)',
+    'stores.field_queue_hint'    => 'เลขคิวเริ่มที่ 1 ใหม่ทุกวัน พิมพ์ตัวใหญ่อยู่เหนือโลโก้ ร้านทั่วไปให้ปิดไว้',
+
     // Buttons
     'stores.btn_save_info'       => 'บันทึกข้อมูลร้านค้า',
     'stores.btn_save_logo'       => 'บันทึกโลโก้',

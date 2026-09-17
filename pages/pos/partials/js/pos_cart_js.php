@@ -393,13 +393,9 @@ function updateProductGridBadges() {
     stockValEl.text(remainingStock.toLocaleString());
 
     var cardEl = $('.product-card-' + pid);
-    var statusBadge = $('.stock-status-badge-' + pid);
     var infoWrap = $('.stock-info-wrap-' + pid);
 
     if (remainingStock <= 0) {
-      if (statusBadge.length) {
-        statusBadge.text(posStockLabel('out')).removeClass('low-stock').addClass('out-of-stock').css('display', 'inline-block').show();
-      }
       if (cardEl.length) {
         cardEl.css({'border': '2px solid #ef4444', 'opacity': '0.82', 'background': '#fff5f5'});
       }
@@ -407,9 +403,6 @@ function updateProductGridBadges() {
         infoWrap.removeClass('in-stock low-stock').addClass('out-of-stock');
       }
     } else if (remainingStock <= 10) {
-      if (statusBadge.length) {
-        statusBadge.text(posStockLabel('low')).removeClass('out-of-stock').addClass('low-stock').css('display', 'inline-block').show();
-      }
       if (cardEl.length) {
         cardEl.css({'border': '2px solid #f59e0b', 'opacity': '1.0', 'background': '#ffffff'});
       }
@@ -417,9 +410,6 @@ function updateProductGridBadges() {
         infoWrap.removeClass('in-stock out-of-stock').addClass('low-stock');
       }
     } else {
-      if (statusBadge.length) {
-        statusBadge.hide().removeClass('out-of-stock low-stock');
-      }
       if (cardEl.length) {
         cardEl.css({'border': '1.5px solid #244886', 'opacity': '1.0', 'background': '#ffffff'});
       }
@@ -595,7 +585,11 @@ function _doAddToCart(product, unitObj) {
     return false;
   }
 
-  var cartKey = product.product_id + '_' + unitName;
+  // Include price in the key: a product can have two unit rows sharing the same
+  // unit_name but different price (e.g. "ຖົງ" at 70 and at 60) — those must stay as
+  // separate cart/receipt lines, not merge their quantity under whichever price was
+  // added first.
+  var cartKey = product.product_id + '_' + unitName + '_' + unitPrice;
   var existing = cart.find(function(i) { return i.cartKey === cartKey; });
 
   // Monotonic "last touched" stamp so the customer display can float the most

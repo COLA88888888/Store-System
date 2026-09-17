@@ -46,4 +46,14 @@ return [
     'suppliers.del_yes'           => '删除',
     'suppliers.del_no'            => '取消',
     'suppliers.validate_name'     => '请输入供应商名称！',
+
+    // Previously untranslated labels
+    'suppliers.no_result' => '未找到符合搜索条件的供应商',
+
+    // Pagination
+    'suppliers.page_showing' => '显示',
+    'suppliers.page_of' => '共',
+    'suppliers.page_page' => '页',
+    'suppliers.page_all' => '全部',
+    'suppliers.page_items' => '项',
 ];

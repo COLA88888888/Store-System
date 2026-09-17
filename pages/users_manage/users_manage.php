@@ -66,6 +66,9 @@ require_once __DIR__ . '/../../layouts/header.php';
                   <th class="py-3"><?php echo htmlspecialchars(t('users_manage.th_tel', 'ເບີໂທລະສັບ')); ?></th>
                   <th class="text-center py-3"><?php echo htmlspecialchars(t('users_manage.th_status', 'ສະຖານະ')); ?></th>
                   <th class="text-center py-3"><?php echo htmlspecialchars(t('users_manage.th_role', 'ຕຳແໜ່ງ')); ?></th>
+                  <?php if (isOwnerUser()): ?>
+                    <th class="text-center py-3"><?php echo htmlspecialchars(t('users_manage.th_access_expiry', 'ວັນໝົດອາຍຸການໃຊ້ງານ')); ?></th>
+                  <?php endif; ?>
                   <th class="text-center py-3" style="width: 140px;"><?php echo htmlspecialchars(t('users_manage.th_actions', 'ຈັດການ')); ?></th>
                 </tr>
               </thead>
@@ -88,6 +91,14 @@ require_once __DIR__ . '/../../layouts/header.php';
                     $u['is_online'] = $isOnline;
                     $userJson = htmlspecialchars(json_encode($u), ENT_QUOTES, 'UTF-8');
                     $userStatus = trim($u['status'] ?? $u['userstatus'] ?? 'ພະນັກງານ');
+                    // Anyone can see an admin-labeled row here; only the owner (Id 1) may edit or
+                    // delete ANOTHER admin's row — same rule enforced server-side in api_user.php.
+                    $rowIsAdmin = (intval($u['Id']) === 1 || $userStatus === 'ຜູ້ບໍລິຫານ' || strtolower($userStatus) === 'admin' || strtolower($userStatus) === 'super admin');
+                    // Nobody — admin or not — may delete the account they're logged in as.
+                    $isOwnRow = (intval($u['Id']) === intval($_SESSION['user_id'] ?? 0));
+                    // An admin may still edit their OWN row (self-service), just never someone else's.
+                    $canEditRow = isOwnerUser() || !$rowIsAdmin || $isOwnRow;
+                    $canDeleteRow = isOwnerUser() || !$rowIsAdmin;
                   ?>
                     <tr>
                       <td class="text-center align-middle font-weight-bold text-muted"><?php echo $idx++; ?></td>
@@ -126,20 +137,39 @@ require_once __DIR__ . '/../../layouts/header.php';
                           <span class="badge badge-secondary px-2.5 py-1.5" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-user mr-1"></i> <?php echo htmlspecialchars(t('users_manage.role_employee', 'ພະນັກງານ')); ?></span>
                         <?php endif; ?>
                       </td>
-                      
+
+                      <?php if (isOwnerUser()): ?>
+                        <!-- ວັນໝົດອາຍຸການໃຊ້ງານ (ສະເພາະຜູ້ບໍລິຫານຄົນທຳອິດເຫັນ ແລະ ກຳນົດໄດ້; ແຍກອອກຈາກສະຖານະອອນລາຍ/ຕຳແໜ່ງ) -->
+                        <td class="text-center align-middle">
+                          <?php if (intval($u['Id']) === 1): ?>
+                            <span class="text-muted">—</span>
+                          <?php elseif (!empty($u['access_expire_date'])):
+                            $daysLeft = (int)ceil((strtotime($u['access_expire_date']) - strtotime(date('Y-m-d'))) / 86400);
+                          ?>
+                            <?php if ($daysLeft <= 0): ?>
+                              <span class="badge badge-danger" style="font-size: 0.78rem;"><i class="fas fa-hourglass-end mr-1"></i><?php echo htmlspecialchars(t('users_manage.access_expired', 'ໝົດອາຍຸແລ້ວ')); ?></span>
+                            <?php else: ?>
+                              <span class="badge badge-warning" style="font-size: 0.78rem;"><i class="fas fa-hourglass-half mr-1"></i><?php echo htmlspecialchars(sprintf(t('users_manage.access_days_left', 'ເຫຼືອ %d ມື້'), $daysLeft)); ?></span>
+                            <?php endif; ?>
+                          <?php else: ?>
+                            <span class="badge badge-light border text-muted" style="font-size: 0.78rem;"><?php echo htmlspecialchars(t('users_manage.access_unlimited', 'ບໍ່ຈຳກັດ')); ?></span>
+                          <?php endif; ?>
+                        </td>
+                      <?php endif; ?>
+
                       <td class="text-center align-middle">
                         <div class="btn-group btn-group-sm">
                           <!-- View Details Button -->
                           <button type="button" class="btn btn-outline-info" title="<?php echo htmlspecialchars(t('users_manage.btn_view_title', 'ເບິ່ງລາຍລະອຽດ')); ?>" onclick='openViewModal(<?php echo $userJson; ?>)'>
                             <i class="fas fa-eye"></i>
                           </button>
-                          <?php if (hasPermission('users', 'edit')): ?>
+                          <?php if (hasPermission('users', 'edit') && $canEditRow): ?>
                             <!-- Edit Button -->
                             <button type="button" class="btn btn-outline-warning" title="<?php echo htmlspecialchars(t('users_manage.btn_edit_title', 'ແກ້ໄຂ')); ?>" onclick='openEditModal(<?php echo $userJson; ?>)'>
                               <i class="fas fa-edit"></i>
                             </button>
                           <?php endif; ?>
-                          <?php if (hasPermission('users', 'del')): ?>
+                          <?php if (hasPermission('users', 'del') && intval($u['Id']) !== 1 && $canDeleteRow && !$isOwnRow): ?>
                             <!-- Delete Button -->
                             <button type="button" class="btn btn-outline-danger" title="<?php echo htmlspecialchars(t('users_manage.btn_delete_title', 'ລົບ')); ?>" onclick="confirmDeleteUser(<?php echo $u['Id']; ?>, '<?php echo htmlspecialchars(addslashes($u['username'])); ?>')">
                               <i class="fas fa-trash-alt"></i>
@@ -151,7 +181,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   <?php endforeach; ?>
                 <?php else: ?>
                   <tr>
-                    <td colspan="9" class="text-center py-5 text-muted">
+                    <td colspan="<?php echo isOwnerUser() ? 10 : 9; ?>" class="text-center py-5 text-muted">
                       <i class="fas fa-users-slash fa-3x mb-3 text-secondary d-block"></i>
                       <?php echo htmlspecialchars(t('users_manage.empty_state', 'ບໍ່ພົບຂໍ້ມູນຜູ້ໃຊ້ງານໃນລະບົບ')); ?>
                     </td>
@@ -203,6 +233,17 @@ require_once __DIR__ . '/components/form_edit_user.php';
 <script>
   var BASE_PATH = '<?php echo $base_path; ?>';
   var API_URL   = '<?php echo $base_path; ?>pages/users_manage/api_user.php';
+  var I18N_USERS = <?php echo tjson([
+    'users_manage.status_online' => 'ໃຊ້ງານຢູ່',
+    'users_manage.status_offline' => 'ບໍ່ໄດ້ໃຊ້ງານ',
+    'users_manage.role_admin' => 'ຜູ້ບໍລິຫານ',
+    'users_manage.role_employee' => 'ພະນັກງານ',
+  ]); ?>;
+  // ອີງກົດເກນດຽວກັນກັບປຸ່ມແກ້ໄຂໃນຕາຕະລາງ: ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດ (Id 1) ເທົ່ານັ້ນທີ່ແກ້ໄຂ
+  // ບັນຊີທີ່ມີສະຖານະຜູ້ບໍລິຫານຄົນອື່ນໄດ້ — ໃຊ້ຄວບຄຸມປຸ່ມ "ແກ້ໄຂ" ໃນ modal ເບິ່ງລາຍລະອຽດນຳ.
+  var IS_OWNER_USER = <?php echo isOwnerUser() ? 'true' : 'false'; ?>;
+  var CAN_EDIT_USERS = <?php echo hasPermission('users', 'edit') ? 'true' : 'false'; ?>;
+  var CURRENT_SESSION_USER_ID = <?php echo intval($_SESSION['user_id'] ?? 0); ?>;
 </script>
 <script src="js/users.js?v=<?php echo filemtime(__DIR__ . '/js/users.js'); ?>"></script>
 

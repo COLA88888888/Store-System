@@ -5,10 +5,14 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../../config/db.php';
 
 // Check authorization
-if (empty($_SESSION['user_id']) || (!hasPermission('users') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('users'))) {
     echo json_encode(['status' => 'error', 'message' => 'ທ່ານບໍ່ມີສິດໃນການດຳເນີນການນີ້!']);
     exit();
 }
+
+// Users who can't see every branch may only list, create, edit or delete accounts in their own branch.
+$canAllBranches = canViewAllBranches($pdo);
+$userStoreId = intval($_SESSION['store_id'] ?? 1);
 
 function handleUserProfileUpload($fileInputName, $existingImg = 'default.png') {
     if (isset($_FILES[$fileInputName]) && $_FILES[$fileInputName]['error'] === UPLOAD_ERR_OK) {
@@ -49,12 +53,30 @@ function parseLaoDateToSql($rawDate) {
     return $rawDate;
 }
 
+// Only the owner (Id 1) may grant or change how many days an account is allowed to use the
+// system. $rawDays is the "days from today" value posted by the (owner-only) form field;
+// returns [changed, value] — changed=false means "leave the column exactly as it is".
+function resolveAccessExpireDate($rawDays) {
+    if (!isOwnerUser()) {
+        return [false, null];
+    }
+    $rawDays = trim((string)($rawDays ?? ''));
+    if ($rawDays === '') {
+        return [true, null]; // owner cleared the field -> unlimited
+    }
+    $days = intval($rawDays);
+    if ($days <= 0) {
+        return [false, null];
+    }
+    return [true, date('Y-m-d', strtotime("+{$days} days"))];
+}
+
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
 // === 0. GET LIVE USER STATUSES (Real-time Polling) ===
 if ($action === 'get_live_user_statuses') {
     try {
-        $stmt = $pdo->query("SELECT Id, status, last_activity FROM tbuser");
+        $stmt = $pdo->query("SELECT Id, status, last_activity FROM tbuser" . ($canAllBranches ? '' : ' WHERE store_id = ' . $userStoreId));
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $result = [];
         $now = time();
@@ -146,11 +168,12 @@ if ($action === 'add_user') {
             $sale = 1; $stock = 1; $edit = 1;
         }
 
-        $store_id = intval($_POST['store_id'] ?? 1);
+        $store_id = $canAllBranches ? intval($_POST['store_id'] ?? 1) : $userStoreId;
         $profile_img = handleUserProfileUpload('profile_img', 'default.png');
+        [, $accessExpireDate] = resolveAccessExpireDate($_POST['access_days'] ?? '');
 
-        $stmt = $pdo->prepare("INSERT INTO tbuser (user_code, fname, lname, gender, dob, tel, status, username, password, address, notes, profile_img, sale, stock, report, accounting, setup, users, edit, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, $password, $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id]);
+        $stmt = $pdo->prepare("INSERT INTO tbuser (user_code, fname, lname, gender, dob, tel, status, username, password, address, notes, profile_img, sale, stock, report, accounting, setup, users, edit, store_id, access_expire_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, password_hash($password, PASSWORD_DEFAULT), $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $accessExpireDate]);
 
         logActivity($pdo, "ເພີ່ມຜູ້ໃຊ້", "ຊື່: $username, ຕຳແໜ່ງ: $userstatus");
         echo json_encode(['status' => 'success', 'message' => 'ເພີ່ມຜູ້ໃຊ້ງານໃໝ່ສຳເລັດແລ້ວ!']);
@@ -182,6 +205,13 @@ if ($action === 'edit_user') {
         echo json_encode(['status' => 'error', 'message' => 'ຂໍ້ມູນບໍ່ຖືກຕ້ອງ!']);
         exit();
     }
+    // Only the owner (Id 1) may edit ANOTHER admin-labeled account — but any admin may still
+    // edit their own record (change their own password, phone, etc.), just never someone else's.
+    $isEditingSelf = ($user_id === intval($_SESSION['user_id'] ?? 0));
+    if (!isOwnerUser() && !$isEditingSelf && isAdminAccount($pdo, $user_id)) {
+        echo json_encode(['status' => 'error', 'message' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດແກ້ໄຂຜູ້ບໍລິຫານຄົນອື່ນໄດ້!']);
+        exit();
+    }
 
     if (!empty($password) && $password !== $confirm_password) {
         echo json_encode(['status' => 'error', 'message' => 'ລະຫັດຜ່ານ ແລະ ຢືນຢັນລະຫັດຜ່ານ ບໍ່ກົງກັນ!']);
@@ -196,10 +226,10 @@ if ($action === 'edit_user') {
             exit();
         }
 
-        $cStmt = $pdo->prepare("SELECT profile_img, sale, stock, report, accounting, setup, users, edit FROM tbuser WHERE Id = ?");
+        $cStmt = $pdo->prepare("SELECT profile_img, sale, stock, report, accounting, setup, users, edit, store_id, access_expire_date FROM tbuser WHERE Id = ?");
         $cStmt->execute([$user_id]);
         $currUser = $cStmt->fetch();
-        if (!$currUser) {
+        if (!$currUser || (!$canAllBranches && intval($currUser['store_id']) !== $userStoreId)) {
             echo json_encode(['status' => 'error', 'message' => 'ບໍ່ພົບຜູ້ໃຊ້ງານນີ້!']);
             exit();
         }
@@ -227,13 +257,23 @@ if ($action === 'edit_user') {
             $profile_img = handleUserProfileUpload('profile_img', $currImg);
         }
 
-        $store_id = intval($_POST['store_id'] ?? 1);
-        if ($password !== '') {
-            $stmt = $pdo->prepare("UPDATE tbuser SET user_code = ?, fname = ?, lname = ?, gender = ?, dob = ?, tel = ?, status = ?, username = ?, password = ?, address = ?, notes = ?, profile_img = ?, sale = ?, stock = ?, report = ?, accounting = ?, setup = ?, users = ?, edit = ?, store_id = ? WHERE Id = ?");
-            $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, $password, $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $user_id]);
+        $store_id = $canAllBranches ? intval($_POST['store_id'] ?? 1) : $userStoreId;
+
+        // Id 1 can never be given an expiry; anyone else's is only touched when the current
+        // user is the owner and actually posted the (owner-only) access_days field.
+        if ($user_id === 1) {
+            $accessExpireDate = null;
         } else {
-            $stmt = $pdo->prepare("UPDATE tbuser SET user_code = ?, fname = ?, lname = ?, gender = ?, dob = ?, tel = ?, status = ?, username = ?, address = ?, notes = ?, profile_img = ?, sale = ?, stock = ?, report = ?, accounting = ?, setup = ?, users = ?, edit = ?, store_id = ? WHERE Id = ?");
-            $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $user_id]);
+            [$expireChanged, $newExpireDate] = resolveAccessExpireDate($_POST['access_days'] ?? null);
+            $accessExpireDate = $expireChanged ? $newExpireDate : $currUser['access_expire_date'];
+        }
+
+        if ($password !== '') {
+            $stmt = $pdo->prepare("UPDATE tbuser SET user_code = ?, fname = ?, lname = ?, gender = ?, dob = ?, tel = ?, status = ?, username = ?, password = ?, address = ?, notes = ?, profile_img = ?, sale = ?, stock = ?, report = ?, accounting = ?, setup = ?, users = ?, edit = ?, store_id = ?, access_expire_date = ? WHERE Id = ?");
+            $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, password_hash($password, PASSWORD_DEFAULT), $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $accessExpireDate, $user_id]);
+        } else {
+            $stmt = $pdo->prepare("UPDATE tbuser SET user_code = ?, fname = ?, lname = ?, gender = ?, dob = ?, tel = ?, status = ?, username = ?, address = ?, notes = ?, profile_img = ?, sale = ?, stock = ?, report = ?, accounting = ?, setup = ?, users = ?, edit = ?, store_id = ?, access_expire_date = ? WHERE Id = ?");
+            $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $accessExpireDate, $user_id]);
         }
 
         logActivity($pdo, "ແກ້ໄຂຜູ້ໃຊ້", "ID: $user_id, ຊື່: $username");
@@ -252,11 +292,29 @@ if ($action === 'delete_user') {
         echo json_encode(['status' => 'error', 'message' => 'ຂໍ້ມູນບໍ່ຖືກຕ້ອງ!']);
         exit();
     }
+    // Nobody — admin or not — may delete the account they're currently logged in as.
+    if ($user_id === intval($_SESSION['user_id'] ?? 0)) {
+        echo json_encode(['status' => 'error', 'message' => 'ບໍ່ສາມາດລົບບັນຊີຂອງຕົນເອງໄດ້!']);
+        exit();
+    }
+    if ($user_id === 1) {
+        echo json_encode(['status' => 'error', 'message' => 'ບໍ່ສາມາດລົບຜູ້ບໍລິຫານຄົນທຳອິດ (ID: 1) ໄດ້!']);
+        exit();
+    }
+    if (!isOwnerUser() && isAdminAccount($pdo, $user_id)) {
+        echo json_encode(['status' => 'error', 'message' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດລົບຜູ້ບໍລິຫານຄົນອື່ນໄດ້!']);
+        exit();
+    }
 
     try {
-        $uStmt = $pdo->prepare("SELECT profile_img FROM tbuser WHERE Id = ?");
+        $uStmt = $pdo->prepare("SELECT profile_img, store_id FROM tbuser WHERE Id = ?");
         $uStmt->execute([$user_id]);
-        $uImg = $uStmt->fetchColumn();
+        $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
+        if (!$uRow || (!$canAllBranches && intval($uRow['store_id']) !== $userStoreId)) {
+            echo json_encode(['status' => 'error', 'message' => 'ບໍ່ພົບຜູ້ໃຊ້ງານນີ້!']);
+            exit();
+        }
+        $uImg = $uRow['profile_img'];
         if ($uImg && $uImg !== 'default.png') {
             $uPath = __DIR__ . '/../../assets/img/users/' . $uImg;
             if (file_exists($uPath)) {

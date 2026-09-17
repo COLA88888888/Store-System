@@ -82,4 +82,12 @@ return [
     'users_manage.msg_update_success' => '用户信息更新成功！',
     'users_manage.msg_delete_success' => '用户删除成功！',
     'users_manage.err_invalid_action' => '操作无效',
+
+    'users_manage.label_access_days' => '允许使用的天数：',
+    'users_manage.placeholder_access_days' => '留空 = 不限制',
+    'users_manage.hint_access_days' => '从今天开始计算，留空则不限制使用',
+    'users_manage.access_expired' => '已过期',
+    'users_manage.access_days_left' => '剩余 %d 天',
+    'users_manage.th_access_expiry' => '使用到期日',
+    'users_manage.access_unlimited' => '不限制',
 ];

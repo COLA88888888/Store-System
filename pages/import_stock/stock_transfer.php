@@ -6,7 +6,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 require_once __DIR__ . '/../../config/db.php';
 
 // Authorization check
-if (empty($_SESSION['user_id']) || (!hasPermission('stock_transfer') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ' && intval($_SESSION['user_id'] ?? 0) !== 1)) {
+if (empty($_SESSION['user_id']) || (!hasPermission('stock_transfer') && intval($_SESSION['user_id'] ?? 0) !== 1)) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -14,6 +14,7 @@ if (empty($_SESSION['user_id']) || (!hasPermission('stock_transfer') && ($_SESSI
 $userStoreId = intval($_SESSION['store_id'] ?? 1);
 $isAdmin = ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' || strtolower($_SESSION['status'] ?? '') === 'admin' || ($_SESSION['user_id'] ?? 0) == 1;
 $isMain = isMainBranch($pdo, $userStoreId);
+$canAllBranches = canViewAllBranches($pdo);
 
 $message = '';
 $message_type = '';
@@ -21,7 +22,7 @@ $message_type = '';
 // Handle POST Transfer Execution
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'execute_transfer') {
     $from_store_id = intval($_POST['from_store_id'] ?? 1);
-    if (!$isAdmin && !$isMain) {
+    if (!$canAllBranches) {
         $from_store_id = $userStoreId;
     }
     $to_store_id   = intval($_POST['to_store_id'] ?? 0);
@@ -232,8 +233,8 @@ $preSearch = trim($_GET['search'] ?? '');
 $preProductId = intval($_GET['product_id'] ?? 0);
 $autoAdd = intval($_GET['auto_add'] ?? 0);
 
-$sourceStoreId = 1;
-if (!$isMain && !$isAdmin) {
+$sourceStoreId = getActiveStoreId($pdo);
+if (!$canAllBranches) {
     $sourceStoreId = $userStoreId;
 }
 

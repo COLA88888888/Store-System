@@ -208,4 +208,18 @@ return [
     'reports.chart_legend_transfer'  => 'โอน',
     'reports.chart_legend_bill_count' => 'จำนวนบิล',
     'reports.chart_tooltip_bill'     => 'บิล:',
+
+    // Previously untranslated labels
+    'reports.receipt_cur_kip' => 'กีบ (LAK):',
+    'reports.receipt_cur_thb' => 'บาท (THB):',
+    'reports.receipt_cur_usd' => 'ดอลลาร์ (USD):',
+    'reports.receipt_cur_cny' => 'หยวน (CNY):',
+
+    // Receipt / checkout / delete-bill JS strings
+    'reports.js_item_fallback' => 'สินค้า',
+    'reports.js_vat_exclusive' => 'ภาษีมูลค่าเพิ่ม (%s):',
+    'reports.js_vat_inclusive' => 'รวมภาษีมูลค่าเพิ่ม (%s):',
+    'reports.js_scan_transfer' => 'สแกน QR โอนชำระ',
+    'reports.js_error_prefix' => 'เกิดข้อผิดพลาด:',
+    'reports.js_confirm_delete_plain' => 'คุณแน่ใจหรือไม่ว่าต้องการลบบิลเลขที่ %s ?\nสต็อกสินค้าทั้งหมดในบิลนี้จะถูกคืนเข้าคลังอัตโนมัติ!',
 ];

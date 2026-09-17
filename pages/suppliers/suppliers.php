@@ -7,7 +7,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 
 require_once __DIR__ . '/../../config/db.php';
 
-if (empty($_SESSION['user_id']) || (!hasPermission('suppliers') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('suppliers'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -220,10 +220,43 @@ require_once __DIR__ . '/../../layouts/header.php';
             </table>
           </div>
         </div>
+        <!-- Pagination Footer -->
+        <div class="card-footer bg-white border-top d-flex align-items-center justify-content-between py-3 px-3 px-md-4" style="gap: 10px; flex-wrap: wrap; flex-direction: row;">
+          <div class="d-flex align-items-center" style="gap: 8px; font-size: 0.85rem;">
+            <span class="text-muted font-weight-bold">
+              <?php echo htmlspecialchars(t('suppliers.page_showing', 'ສະແດງ')); ?>
+              <span id="sup_page_info_start">0</span>-<span id="sup_page_info_end">0</span>
+              <?php echo htmlspecialchars(t('suppliers.page_items', 'ລາຍການ')); ?>
+            </span>
+            <select id="supPageSizeSelect" class="form-control form-control-sm font-weight-bold" style="width: auto; border-radius: 6px;" onchange="changeSupplierPageSize()">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="all"><?php echo htmlspecialchars(t('suppliers.page_all', 'ທັງໝົດ')); ?></option>
+            </select>
+          </div>
+          <nav aria-label="Supplier Pagination" style="margin-left: auto;">
+            <ul class="pagination pagination-circle mb-0 justify-content-end" id="supplierPagination"></ul>
+          </nav>
+        </div>
       </div>
     </div>
   </section>
 </div>
+
+<style>
+.pagination-circle { display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; }
+.pagination-circle .page-item { margin: 0; }
+.pagination-circle .page-link {
+  width: 38px; height: 38px; border-radius: 50% !important; display: flex; align-items: center; justify-content: center;
+  padding: 0; font-size: 0.95rem; font-weight: 700; color: #94a3b8; background-color: #f8fafc; border: 1px solid #edf2f7;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; cursor: pointer;
+}
+.pagination-circle .page-link:hover { color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15); }
+.pagination-circle .page-item.active .page-link { color: #fff !important; background: #2563eb !important; border-color: #2563eb !important; box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45) !important; transform: scale(1.04); }
+.pagination-circle .page-item.disabled .page-link { color: #cbd5e1 !important; background-color: #f8fafc !important; border-color: #f1f5f9 !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; opacity: 0.9; }
+.pagination-circle .page-link i { font-size: 0.85rem; font-weight: 900; }
+</style>
 
 <!-- Add / Edit Supplier Modal -->
 <div class="modal fade" id="supplierModal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -292,28 +325,134 @@ var SUP_I18N = <?php echo tjson([
     'suppliers.btn_ok' => 'ຕົກລົງ',
 ]); ?>;
 
-// Live search — filter the rendered rows as you type (no button, instant)
+// Live search — filters which rows are eligible, then pagination decides what's actually shown
+var supCurrentPage = 1;
+var supPageSize = 10;
+var supFilteredRows = [];
+
 function filterSuppliers() {
   var q = (document.getElementById('supplierSearch').value || '').toLowerCase().trim();
-  var rows = document.querySelectorAll('tr.supplier-row');
-  var shown = 0;
-  rows.forEach(function(tr) {
-    var match = q === '' || (tr.getAttribute('data-s') || '').indexOf(q) > -1;
-    tr.style.display = match ? '' : 'none';
-    if (match) {
-      shown++;
-      var no = tr.querySelector('.row-no');
-      if (no) no.textContent = shown;
-    }
+  var rows = Array.from(document.querySelectorAll('tr.supplier-row'));
+  supFilteredRows = rows.filter(function(tr) {
+    return q === '' || (tr.getAttribute('data-s') || '').indexOf(q) > -1;
   });
+
   var noRes = document.getElementById('supplierNoResult');
-  if (noRes) noRes.style.display = (shown === 0 && rows.length > 0) ? '' : 'none';
-  var num = document.getElementById('supplierCountNum');
-  if (num) num.textContent = shown;
+  if (noRes) noRes.style.display = (supFilteredRows.length === 0 && rows.length > 0) ? '' : 'none';
+
+  supCurrentPage = 1;
+  applySupplierPagination();
 }
-document.addEventListener('DOMContentLoaded', function() {
-  if ((document.getElementById('supplierSearch') || {}).value) filterSuppliers();
-});
+
+function initSupplierPagination() {
+  filterSuppliers();
+}
+
+function changeSupplierPageSize() {
+  var val = document.getElementById('supPageSizeSelect').value;
+  supPageSize = (val === 'all') ? (supFilteredRows.length || 99999) : parseInt(val, 10);
+  supCurrentPage = 1;
+  applySupplierPagination();
+}
+
+function goToSupplierPage(page) {
+  var totalPages = Math.ceil(supFilteredRows.length / supPageSize) || 1;
+  if (page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
+  supCurrentPage = page;
+  applySupplierPagination();
+}
+
+function applySupplierPagination() {
+  var allRows = document.querySelectorAll('tr.supplier-row');
+  allRows.forEach(function(r) { r.style.display = 'none'; });
+
+  var total = supFilteredRows.length;
+  var totalPages = Math.ceil(total / supPageSize) || 1;
+  if (supCurrentPage > totalPages) supCurrentPage = totalPages;
+
+  var startIdx = (supCurrentPage - 1) * supPageSize;
+  var endIdx = (supPageSize >= 99999) ? total : startIdx + supPageSize;
+
+  var shown = 0;
+  for (var i = startIdx; i < endIdx && i < total; i++) {
+    if (supFilteredRows[i]) {
+      supFilteredRows[i].style.display = '';
+      shown++;
+      var no = supFilteredRows[i].querySelector('.row-no');
+      if (no) no.textContent = startIdx + shown;
+    }
+  }
+
+  var startEl = document.getElementById('sup_page_info_start');
+  var endEl = document.getElementById('sup_page_info_end');
+  var totalEl = document.getElementById('sup_page_info_total');
+  if (startEl) startEl.textContent = total === 0 ? 0 : startIdx + 1;
+  if (endEl) endEl.textContent = Math.min(endIdx, total);
+  if (totalEl) totalEl.textContent = total;
+
+  var num = document.getElementById('supplierCountNum');
+  if (num) num.textContent = total;
+
+  renderSupplierPaginationControls(totalPages);
+}
+
+function renderSupplierPaginationControls(totalPages) {
+  var ul = document.getElementById('supplierPagination');
+  if (!ul) return;
+  ul.innerHTML = '';
+  if (totalPages < 1) totalPages = 1;
+
+  var prevLi = document.createElement('li');
+  prevLi.className = 'page-item ' + (supCurrentPage <= 1 ? 'disabled' : '');
+  prevLi.innerHTML = '<a class="page-link" href="javascript:void(0)" ' + (supCurrentPage > 1 ? 'onclick="goToSupplierPage(' + (supCurrentPage - 1) + ')"' : '') + '><i class="fas fa-chevron-left"></i></a>';
+  ul.appendChild(prevLi);
+
+  var maxButtons = 5;
+  var startPage = Math.max(1, supCurrentPage - 2);
+  var endPage = Math.min(totalPages, startPage + maxButtons - 1);
+  if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
+
+  if (startPage > 1) {
+    var firstLi = document.createElement('li');
+    firstLi.className = 'page-item';
+    firstLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToSupplierPage(1)">1</a>';
+    ul.appendChild(firstLi);
+    if (startPage > 2) {
+      var dotLi = document.createElement('li');
+      dotLi.className = 'page-item disabled';
+      dotLi.innerHTML = '<span class="page-link" style="border:none; background:transparent;">...</span>';
+      ul.appendChild(dotLi);
+    }
+  }
+
+  for (var p = startPage; p <= endPage; p++) {
+    var pageLi = document.createElement('li');
+    pageLi.className = 'page-item ' + (p === supCurrentPage ? 'active' : '');
+    pageLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToSupplierPage(' + p + ')">' + p + '</a>';
+    ul.appendChild(pageLi);
+  }
+
+  if (endPage < totalPages) {
+    if (endPage < totalPages - 1) {
+      var dotLi2 = document.createElement('li');
+      dotLi2.className = 'page-item disabled';
+      dotLi2.innerHTML = '<span class="page-link" style="border:none; background:transparent;">...</span>';
+      ul.appendChild(dotLi2);
+    }
+    var lastLi = document.createElement('li');
+    lastLi.className = 'page-item';
+    lastLi.innerHTML = '<a class="page-link" href="javascript:void(0)" onclick="goToSupplierPage(' + totalPages + ')">' + totalPages + '</a>';
+    ul.appendChild(lastLi);
+  }
+
+  var nextLi = document.createElement('li');
+  nextLi.className = 'page-item ' + (supCurrentPage >= totalPages ? 'disabled' : '');
+  nextLi.innerHTML = '<a class="page-link" href="javascript:void(0)" ' + (supCurrentPage < totalPages ? 'onclick="goToSupplierPage(' + (supCurrentPage + 1) + ')"' : '') + '><i class="fas fa-chevron-right"></i></a>';
+  ul.appendChild(nextLi);
+}
+
+document.addEventListener('DOMContentLoaded', initSupplierPagination);
 
 function openSupplierModal(s) {
   var isEdit = !!(s && s.supplier_id);

@@ -46,4 +46,14 @@ return [
     'suppliers.del_yes'           => 'Delete',
     'suppliers.del_no'            => 'Cancel',
     'suppliers.validate_name'     => 'Please enter the supplier name!',
+
+    // Previously untranslated labels
+    'suppliers.no_result' => 'No suppliers match your search',
+
+    // Pagination
+    'suppliers.page_showing' => 'Showing',
+    'suppliers.page_of' => 'of',
+    'suppliers.page_page' => 'page',
+    'suppliers.page_all' => 'All',
+    'suppliers.page_items' => 'items',
 ];

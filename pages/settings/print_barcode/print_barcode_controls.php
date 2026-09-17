@@ -3,7 +3,7 @@
      ============================================================ -->
 <div class="barcode-page-card p-3 mb-4">
   <div class="row align-items-center gy-2">
-    <!-- 1. ຊ່ອງຄົ້ນຫາຊື່ສິນຄ້າ ຫຼື ບາໂຄ້ດ -->
+    <!-- ຊ່ອງຄົ້ນຫາຊື່ສິນຄ້າ ຫຼື ບາໂຄ້ດ -->
     <div class="col-md-4 col-sm-6 mb-2 mb-md-0">
       <div class="input-group">
         <div class="input-group-prepend">
@@ -18,7 +18,7 @@
       </div>
     </div>
 
-    <!-- 2. ຕົວເລືອກ Filter ປະເພດສິນຄ້າ -->
+    <!-- ຕົວເລືອກ Filter ປະເພດສິນຄ້າ -->
     <div class="col-md-3 col-sm-6 mb-2 mb-md-0">
       <select id="pageCategoryFilter" class="form-control" style="border-radius: 8px; font-size: 0.9rem;" onchange="renderPageBarcodeBlocks()">
         <option value=""><?php echo htmlspecialchars(t('print_barcode.category_all_option', '-- ເລືອກປະເພດສິນຄ້າທັງໝົດ --')); ?></option>
@@ -28,7 +28,7 @@
       </select>
     </div>
 
-    <!-- 3. ປຸ່ມເລືອກທັງໝົດ/ຍົກເລີກ ແລະ ປຸ່ມຕັ້ງຈຳນວນດວງດ່ວນ (Quick Setters) -->
+    <!-- ປຸ່ມເລືອກທັງໝົດ/ຍົກເລີກ ແລະ ປຸ່ມຕັ້ງຈຳນວນດວງດ່ວນ -->
     <div class="col-md-5 col-12 d-flex flex-wrap align-items-center justify-content-md-end" style="gap: 6px;">
       <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold" style="border-radius: 6px;" onclick="selectAllPageProducts(true)">
         <i class="fas fa-check-square mr-1"></i> <?php echo htmlspecialchars(t('print_barcode.select_all', 'ເລືອກທັງໝົດ')); ?>
@@ -47,7 +47,7 @@
     </div>
   </div>
 
-  <!-- 4. ຕົວເລືອກສະແດງຜົນ (ຊື່ຮ້ານ, ຊື່ສິນຄ້າ, ລາຄາ) ແລະ ເລືອກຂະໜາດສະຕິກເກີ (40x30, 50x30, A4) -->
+  <!-- ຕົວເລືອກສະແດງຜົນ ແລະ ຂະໜາດສະຕິກເກີ / ຂະໜາດບາໂຄ້ດ -->
   <div class="d-flex flex-wrap align-items-center justify-content-between mt-3 pt-2 border-top" style="gap: 12px;">
     
     <div class="d-flex flex-wrap align-items-center" style="gap: 16px;">
@@ -70,35 +70,58 @@
           <?php echo htmlspecialchars(t('print_barcode.opt_sale_price', 'ລາຄາຂາຍ')); ?>
         </label>
       </div>
-    </div>
-
-    <div class="d-flex align-items-center" style="gap: 8px;">
-      <small class="font-weight-bold text-secondary"><i class="fas fa-expand mr-1"></i> <?php echo htmlspecialchars(t('print_barcode.sticker_size_label', 'ຂະໜາດສະຕິກເກີ:')); ?></small>
-      <select id="print_size" class="form-control form-control-sm font-weight-bold text-dark" style="border-radius: 6px; width: 210px;" onchange="renderPageBarcodeBlocks()">
-        <option value="3up_105x25" selected><?php echo htmlspecialchars(t('print_barcode.size_3up', '105mm x 25mm (3 ຕາລວງນອນ)')); ?></option>
-        <option value="40x30"><?php echo htmlspecialchars(t('print_barcode.size_40x30', '40mm x 30mm (ມ້ວນມາດຕະຖານ)')); ?></option>
-        <option value="50x30"><?php echo htmlspecialchars(t('print_barcode.size_50x30', '50mm x 30mm (ມ້ວນກາງ)')); ?></option>
-        <option value="a4"><?php echo htmlspecialchars(t('print_barcode.size_a4', 'ເຈ້ຍ A4 (ຕາຕະລາງ)')); ?></option>
-      </select>
-    </div>
-
-    <div class="d-flex align-items-center" style="gap: 8px;">
-      <small class="font-weight-bold text-secondary"><i class="fas fa-arrows-alt-v mr-1"></i> ຄວາມສູງບາໂຄ້ດ:</small>
-      <select id="barcode_height" class="form-control form-control-sm font-weight-bold text-dark" style="border-radius: 6px; width: 170px;" onchange="renderPageBarcodeBlocks()">
-        <option value="auto" selected>ຄວາມສູງ: ພໍດີ (Auto)</option>
-        <option value="tall">ຄວາມສູງ: ສູງ (Tall)</option>
-        <option value="extra_tall">ຄວາມສູງ: ສູງຫຼາຍ (Extra)</option>
-      </select>
-    </div>
-
-    <div class="d-flex align-items-center" id="rotateLabelWrap" style="gap: 6px; display: none;">
-      <div class="custom-control custom-checkbox">
-        <input type="checkbox" class="custom-control-input" id="opt_rotate_180">
-        <label class="custom-control-label font-weight-bold text-secondary" for="opt_rotate_180" style="font-size: 0.86rem;">
-          <?php echo htmlspecialchars(t('print_barcode.opt_rotate_180', 'ໝູນປ້າຍ 180° (ຖ້າພິມອອກມາກັບຫົວ)')); ?>
+      <div class="custom-control custom-checkbox custom-control-inline mb-0">
+        <input type="checkbox" class="custom-control-input" id="opt_show_code" onchange="renderPageBarcodeBlocks()">
+        <label class="custom-control-label font-weight-bold text-dark" for="opt_show_code" style="font-size: 0.85rem; cursor: pointer;">
+          <?php echo htmlspecialchars(t('print_barcode.opt_show_code', 'ເລກລະຫັດໃຕ້ບາໂຄ້ດ')); ?>
         </label>
       </div>
     </div>
 
+    <!-- ຕັ້ງຄ່າຂະໜາດບາໂຄ້ດ ແລະ ຄວາມສູງດວງຈິງ -->
+    <div class="d-flex flex-wrap align-items-center" style="gap: 16px;">
+      <small class="font-weight-bold text-secondary"><i class="fas fa-ruler-combined mr-1"></i> <?php echo htmlspecialchars(t('print_barcode.barcode_size_label', 'ຂະໜາດບາໂຄ້ດ:')); ?></small>
+      <div class="d-flex align-items-center" style="gap: 4px;">
+        <label for="barcode_width_mm" class="mb-0 font-weight-bold text-dark" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('print_barcode.barcode_width', 'ກວ້າງ')); ?></label>
+        <input type="number" id="barcode_width_mm" class="form-control form-control-sm" style="width: 70px; border-radius: 6px;" value="36" min="10" max="100" step="0.5" onchange="renderPageBarcodeBlocks()">
+        <span class="text-muted" style="font-size: 0.78rem;">mm</span>
+      </div>
+      <div class="d-flex align-items-center" style="gap: 4px;">
+        <label for="barcode_height_mm" class="mb-0 font-weight-bold text-dark" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('print_barcode.barcode_height', 'ສູງ')); ?></label>
+        <input type="number" id="barcode_height_mm" class="form-control form-control-sm" style="width: 70px; border-radius: 6px;" value="8.5" min="3" max="40" step="0.5" onchange="renderPageBarcodeBlocks()">
+        <span class="text-muted" style="font-size: 0.78rem;">mm</span>
+      </div>
+      <div class="d-flex align-items-center" style="gap: 4px;">
+        <label for="label_vertical_offset_mm" class="mb-0 font-weight-bold text-dark" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('print_barcode.vertical_offset', 'ຍັບຂຶ້ນ/ລົງ')); ?></label>
+        <input type="number" id="label_vertical_offset_mm" class="form-control form-control-sm" style="width: 70px; border-radius: 6px;" value="0" min="-15" max="15" step="0.5" onchange="renderPageBarcodeBlocks()">
+        <span class="text-muted" style="font-size: 0.78rem;">mm</span>
+      </div>
+      <div class="d-flex align-items-center" style="gap: 4px;" title="<?php echo htmlspecialchars(t('print_barcode.label_pitch_hint', 'ວັດຈາກຂອບເທິງຂອງດວງໜຶ່ງ ຫາ ຂອບເທິງຂອງດວງຖັດໄປ (ສະຕິກເກີ + ຮ່ອງ) — ແກ້ອາການພິມຫຼາຍດວງແລ້ວເລື່ອນສະສົມ')); ?>">
+        <label for="label_pitch_mm" class="mb-0 font-weight-bold text-dark" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('print_barcode.label_pitch', 'ໄລຍະຕໍ່ດວງ')); ?></label>
+        <input type="number" id="label_pitch_mm" class="form-control form-control-sm" style="width: 80px; border-radius: 6px;" value="30" min="10" max="120" step="0.1" placeholder="<?php echo htmlspecialchars(t('print_barcode.auto', 'ອັດຕະໂນມັດ')); ?>">
+        <span class="text-muted" style="font-size: 0.78rem;">mm</span>
+        <i class="fas fa-question-circle text-info" style="font-size: 0.75rem; cursor: help;"></i>
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center" style="gap: 8px;">
+      <small class="font-weight-bold text-secondary"><i class="fas fa-expand mr-1"></i> <?php echo htmlspecialchars(t('print_barcode.sticker_size_label', 'ຂະໜາດສະຕິກເກີ:')); ?></small>
+      <select id="print_size" class="form-control form-control-sm font-weight-bold text-dark" style="border-radius: 6px; width: 260px;" onchange="renderPageBarcodeBlocks()">
+        <option value="40x30_vert" selected><?php echo htmlspecialchars(t('print_barcode.size_40x30_vert', '40mm x 30mm (ລວງຕັ້ງ - ດວງດ່ຽວ)')); ?></option>
+        <option value="40x30_horiz"><?php echo htmlspecialchars(t('print_barcode.size_40x30_horiz', '40mm x 30mm (ລວງນອນ - ດວງດ່ຽວ)')); ?></option>
+        <option value="105x25_3up"><?php echo htmlspecialchars(t('print_barcode.size_105x25_3up', '105mm x 25mm (3 ຕາລວງນອນ)')); ?></option>
+        <option value="50x30"><?php echo htmlspecialchars(t('print_barcode.size_50x30', '50mm x 30mm (ມ້ວນກາງ)')); ?></option>
+        <option value="30x20"><?php echo htmlspecialchars(t('print_barcode.size_30x20', '30mm x 20mm (ມ້ວນນ້ອຍ)')); ?></option>
+        <option value="50x40"><?php echo htmlspecialchars(t('print_barcode.size_50x40', '50mm x 40mm (ມ້ວນໃຫຍ່)')); ?></option>
+        <option value="a4"><?php echo htmlspecialchars(t('print_barcode.size_a4', 'ເຈ້ຍ A4 (ຕາຕະລາງ)')); ?></option>
+      </select>
+    </div>
+
   </div>
 </div>
+
+<!-- ບ່ອນສະແດງລາຍການສິນຄ້າ -->
+<div class="row" id="pageBarcodeBlocksContainer"></div>
+
+<!-- Hidden Iframe ສຳລັບສັ່ງພິມ -->
+<iframe id="pageBarcodePrintIframe" style="display:none;"></iframe>

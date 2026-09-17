@@ -59,4 +59,21 @@ return [
     // pages/categories/api_category.php messages
     'categories.access_denied' => 'ท่านไม่มีสิทธิ์เข้าถึงข้อมูลนี้!',
     'categories.invalid_action' => 'คำสั่งไม่ถูกต้อง',
+
+    // Previously untranslated labels
+    'categories.label_printer' => 'เครื่องพิมพ์ใบย่อย (ใบสั่งครัว)',
+    'categories.printer_none' => '— ไม่พิมพ์ใบย่อย —',
+
+    // Pagination
+    'categories.page_showing' => 'แสดง',
+    'categories.page_of' => 'จาก',
+    'categories.page_page' => 'หน้า',
+    'categories.page_all' => 'ทั้งหมด',
+    'categories.page_items' => 'รายการ',
+
+    // Search
+    'categories.count_label' => 'รายการ',
+    'categories.search_ph' => 'ค้นหาชื่อหมวดหมู่...',
+    'categories.clear' => 'ล้างค่า',
+    'categories.no_result' => 'ไม่พบหมวดหมู่ที่ค้นหา',
 ];

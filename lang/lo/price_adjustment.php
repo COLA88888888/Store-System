@@ -87,4 +87,11 @@ return [
     'price_adjustment.msg_adjust_success' => 'ປັບລາຄາສິນຄ້າສຳເລັດແລ້ວ ທັງໝົດ %d ລາຍການ!',
     'price_adjustment.msg_error_prefix' => 'ຜິດພາດ: ',
     'price_adjustment.msg_delete_success2' => 'ລຶບປະຫວັດການປັບລາຄາສຳເລັດ!',
+
+    // Pagination
+    'price_adjustment.page_showing' => 'ສະແດງ',
+    'price_adjustment.page_of' => 'ຈາກ',
+    'price_adjustment.page_page' => 'ໜ້າ',
+    'price_adjustment.page_all' => 'ທັງໝົດ',
+    'price_adjustment.page_items' => 'ລາຍການ',
 ];

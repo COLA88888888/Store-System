@@ -55,6 +55,11 @@ return [
     'permissions.module_customers_title' => 'จัดการลูกค้า',
     'permissions.module_customers_desc' => 'เพิ่ม แก้ไข และจัดการข้อมูลลูกค้า/สมาชิก',
 
+    // section_quotations.php
+    'permissions.section_quotations' => 'ใบเสนอราคา',
+    'permissions.module_quotations_title' => 'ใบเสนอราคา',
+    'permissions.module_quotations_desc' => 'สร้าง แก้ไข และจัดการใบเสนอราคาให้ลูกค้า',
+
     // section_inventory.php
     'permissions.section_inventory' => '4. ข้อมูลสินค้า & คลังสินค้า',
     'permissions.module_categories_title' => 'หมวดหมู่สินค้า',
@@ -158,4 +163,13 @@ return [
     'permissions.perm_name_setup' => 'สิทธิ์ ตั้งค่าระบบ',
     'permissions.perm_name_edit' => 'สิทธิ์ แก้ไข & ลบข้อมูล',
     'permissions.perm_name_database' => 'สิทธิ์ จัดการฐานข้อมูล',
+
+    // Previously untranslated labels
+    'permissions.module_loyalty_title' => 'คะแนนสะสมลูกค้า',
+    'permissions.module_loyalty_desc' => 'ตั้งค่ากฎเกณฑ์และจัดการคะแนนสะสมของลูกค้า',
+    'permissions.module_suppliers_title' => 'จัดการผู้จัดจำหน่าย',
+    'permissions.module_suppliers_desc' => 'เพิ่ม แก้ไข และจัดการข้อมูลผู้จัดจำหน่ายสินค้า',
+
+    // Admin-account edit lock
+    'permissions.admin_locked_badge' => 'มีเฉพาะผู้บริหารคนแรกเท่านั้นที่แก้ไขได้',
 ];

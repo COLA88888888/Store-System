@@ -50,6 +50,50 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_live_stocks') {
     exit();
 }
 
+// LAN kitchen ticket: the POS draws the ticket as a PNG (the browser shapes the Lao text,
+// which printer fonts can't) and this relays it to the category's network printer.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'print_lan_ticket') {
+    header('Content-Type: application/json');
+    require_once __DIR__ . '/lan_printer.php';
+    // Don't hold the session lock while waiting on the printer socket.
+    session_write_close();
+
+    $printerId = intval($_POST['printer_id'] ?? 0);
+    $image     = (string)($_POST['image'] ?? '');
+    $pngPrefix = 'data:image/png;base64,';
+    if ($printerId <= 0 || strpos($image, $pngPrefix) !== 0 || strlen($image) > 4000000) {
+        echo json_encode(['success' => false, 'message' => t('pos.lan_print_bad_request', 'ຂໍ້ມູນການພິມບໍ່ຖືກຕ້ອງ')], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+
+    $prStmt = $pdo->prepare("SELECT * FROM tbl_printer WHERE id = ? AND status = 1 LIMIT 1");
+    $prStmt->execute([$printerId]);
+    $printer = $prStmt->fetch();
+    if (!$printer || ($printer['type'] ?? '') !== 'ip') {
+        echo json_encode(['success' => false, 'message' => t('pos.lan_print_not_lan', 'ເຄື່ອງພິມນີ້ປິດໃຊ້ງານ ຫຼື ບໍ່ໄດ້ຕັ້ງເປັນ Network LAN')], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+    $addr = lanPrinterAddress($printer['ip_address'] ?? '');
+    if ($addr === null) {
+        echo json_encode(['success' => false, 'message' => t('pos.lan_print_bad_ip', 'IP Address ຂອງເຄື່ອງພິມບໍ່ຖືກຕ້ອງ')], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+
+    $png   = base64_decode(substr($image, strlen($pngPrefix)), true);
+    $bytes = ($png !== false) ? escposRasterFromPng($png, lanPrinterDots($printer['paper_width'] ?? 80)) : null;
+    if ($bytes === null) {
+        echo json_encode(['success' => false, 'message' => t('pos.lan_print_bad_request', 'ຂໍ້ມູນການພິມບໍ່ຖືກຕ້ອງ')], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+
+    [$ok, $err] = lanPrinterSend($addr[0], $addr[1], $bytes);
+    echo json_encode([
+        'success' => $ok,
+        'message' => $ok ? '' : ($printer['name'] . ' (' . $addr[0] . ':' . $addr[1] . ') — ' . $err),
+    ], JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
 // 1. AJAX handler for Checkout
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'checkout') {
     ob_start();
@@ -614,13 +658,14 @@ $categoriesStmt = $pdo->prepare("SELECT * FROM categories WHERE store_id = ? ORD
 $categoriesStmt->execute([$activeStoreId]);
 $categories = $categoriesStmt->fetchAll();
 
-// Kitchen-ticket routing for this branch: category_id => {printer_id, printer_name}.
-// Only categories with an active printer assigned; the POS uses this to split the
-// print by category at checkout (each printer gets a ticket with only its items).
+// Kitchen-ticket routing for this branch: category_id => {printer_id, printer_name, printer_type,
+// paper_width}. Only categories with an active printer assigned; the POS uses this to split the
+// print by category at checkout (each printer gets a ticket with only its items). printer_type
+// 'ip' tickets go straight over the LAN; 'browser' tickets open a print dialog.
 $posKitchenRoutes = [];
 try {
     $krStmt = $pdo->prepare("
-        SELECT c.category_id, c.printer_id, p.name AS printer_name
+        SELECT p.*, c.category_id, c.printer_id, p.name AS printer_name
         FROM categories c
         JOIN tbl_printer p ON p.id = c.printer_id AND p.status = 1
         WHERE c.store_id = ? AND c.printer_id IS NOT NULL
@@ -630,6 +675,24 @@ try {
         $posKitchenRoutes[(string)$kr['category_id']] = [
             'printer_id'   => (int)$kr['printer_id'],
             'printer_name' => $kr['printer_name'],
+            'printer_type' => ($kr['type'] ?? '') === 'ip' ? 'ip' : 'browser',
+            'paper_width'  => intval($kr['paper_width'] ?? 80) === 58 ? 58 : 80,
+        ];
+    }
+} catch (Throwable $e) {}
+
+// The customer receipt's own LAN printer, if the shop designated one (Settings > Printers).
+// Not branch-scoped, same as kitchen routing above — one receipt printer for the whole install.
+$posReceiptPrinter = null;
+try {
+    $rpStmt = $pdo->query("SELECT id, name, type, paper_width FROM tbl_printer WHERE is_receipt_printer = 1 AND status = 1 LIMIT 1");
+    $rpRow = $rpStmt ? $rpStmt->fetch() : null;
+    if ($rpRow) {
+        $posReceiptPrinter = [
+            'printer_id'   => (int)$rpRow['id'],
+            'printer_name' => $rpRow['name'],
+            'printer_type' => ($rpRow['type'] ?? '') === 'ip' ? 'ip' : 'browser',
+            'paper_width'  => intval($rpRow['paper_width'] ?? 80) === 58 ? 58 : 80,
         ];
     }
 } catch (Throwable $e) {}

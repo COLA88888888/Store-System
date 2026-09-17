@@ -34,6 +34,7 @@ Object.assign(window.POS_RCPT_I18N, <?php echo tjson([
   'pos.toast_low_body'            => 'ສິນຄ້າ "%s" ໃກ້ຈະໝົດແລ້ວ! (ເຫຼືອພຽງ %s %s)',
   'pos.btn_ok'                    => 'ຕົກລົງ',
   'pos.unit_generic'              => 'ອັນ',
+  'pos.lan_print_failed'          => 'ພິມໃບຍ່ອຍຜ່ານ LAN ບໍ່ສຳເລັດ: %s',
 ]); ?>);
 window.posT = function (key) {
   var s = (window.POS_RCPT_I18N && POS_RCPT_I18N[key]) || key;

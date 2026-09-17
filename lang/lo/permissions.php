@@ -55,6 +55,11 @@ return [
     'permissions.module_customers_title' => 'ຈັດການລູກຄ້າ',
     'permissions.module_customers_desc' => 'ເພີ່ມ, ແກ້ໄຂ ແລະ ຈັດການຂໍ້ມູນລູກຄ້າ/ສະມາຊິກ',
 
+    // section_quotations.php
+    'permissions.section_quotations' => 'ໃບສະເໜີລາຄາ',
+    'permissions.module_quotations_title' => 'ໃບສະເໜີລາຄາ',
+    'permissions.module_quotations_desc' => 'ສ້າງ, ແກ້ໄຂ ແລະ ຈັດການໃບສະເໜີລາຄາໃຫ້ລູກຄ້າ',
+
     // section_inventory.php
     'permissions.section_inventory' => '4. ຂໍ້ມູນສິນຄ້າ & ຄັງສິນຄ້າ',
     'permissions.module_categories_title' => 'ໝວດໝູ່ສິນຄ້າ',
@@ -158,4 +163,13 @@ return [
     'permissions.perm_name_setup' => 'ສິດ ຕັ້ງຄ່າລະບົບ',
     'permissions.perm_name_edit' => 'ສິດ ແກ້ໄຂ & ລົບຂໍ້ມູນ',
     'permissions.perm_name_database' => 'ສິດ ຈັດການຖານຂໍ້ມູນ',
+
+    // Previously untranslated labels
+    'permissions.module_loyalty_title' => 'ຄະແນນສະສົມລູກຄ້າ',
+    'permissions.module_loyalty_desc' => 'ຕັ້ງຄ່າກົດເກນ ແລະ ຈັດການຄະແນນສະສົມຂອງລູກຄ້າ',
+    'permissions.module_suppliers_title' => 'ຈັດການຜູ້ສະໜອງ',
+    'permissions.module_suppliers_desc' => 'ເພີ່ມ, ແກ້ໄຂ ແລະ ຈັດການຂໍ້ມູນຜູ້ສະໜອງສິນຄ້າ',
+
+    // Admin-account edit lock
+    'permissions.admin_locked_badge' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ແກ້ໄຂໄດ້',
 ];

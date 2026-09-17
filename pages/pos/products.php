@@ -4,7 +4,7 @@ $base_path = '../../';
 require_once __DIR__ . '/../../config/db.php';
 
 // Check if logged in and has access to stock
-if (empty($_SESSION['user_id']) || (!hasPermission('products') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('products'))) {
     echo "<script>window.top.location.href = '../../index.php';</script>";
     exit();
 }
@@ -280,9 +280,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                     $userStoreId = intval($_SESSION['store_id'] ?? 1);
                     $isMain = isMainBranch($pdo, $userStoreId);
+                    $canAllBranches = canViewAllBranches($pdo);
                     if ($isAdmin && isset($_POST['qty'])) {
                         $qty = max(0, intval($_POST['qty']));
-                        if ($isAdmin || $isMain) {
+                        if ($canAllBranches) {
                             $stmt = $pdo->prepare("UPDATE products SET product_name=?, barcode=?, category_id=?, bprice=?, price=?, unit=?, unit_id=?, img_url=?, qty=? WHERE product_id=?");
                             $stmt->execute([$name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $img_name, $qty, $product_id]);
                         } else {
@@ -290,7 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             $stmt->execute([$name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $img_name, $qty, $product_id, $userStoreId]);
                         }
                     } else {
-                        if ($isAdmin || $isMain) {
+                        if ($canAllBranches) {
                             $stmt = $pdo->prepare("UPDATE products SET product_name=?, barcode=?, category_id=?, bprice=?, price=?, unit=?, unit_id=?, img_url=? WHERE product_id=?");
                             $stmt->execute([$name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $img_name, $product_id]);
                         } else {
@@ -335,12 +336,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             try {
                 $userStoreId = intval($_SESSION['store_id'] ?? 1);
                 $isMain = isMainBranch($pdo, $userStoreId);
+                $canAllBranches = canViewAllBranches($pdo);
 
                 // Delete associated image file
-                $curStmt = ($isAdmin || $isMain)
+                $curStmt = ($canAllBranches)
                     ? $pdo->prepare("SELECT img_url FROM products WHERE product_id = ?")
                     : $pdo->prepare("SELECT img_url FROM products WHERE product_id = ? AND store_id = ?");
-                if ($isAdmin || $isMain) {
+                if ($canAllBranches) {
                     $curStmt->execute([$id]);
                 } else {
                     $curStmt->execute([$id, $userStoreId]);
@@ -354,10 +356,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $delUnitsStmt = $pdo->prepare("DELETE FROM product_units WHERE product_id = ?");
                 $delUnitsStmt->execute([$id]);
 
-                $stmt = ($isAdmin || $isMain)
+                $stmt = ($canAllBranches)
                     ? $pdo->prepare("DELETE FROM products WHERE product_id = ?")
                     : $pdo->prepare("DELETE FROM products WHERE product_id = ? AND store_id = ?");
-                if ($isAdmin || $isMain) {
+                if ($canAllBranches) {
                     $stmt->execute([$id]);
                 } else {
                     $stmt->execute([$id, $userStoreId]);
@@ -376,15 +378,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 // ====== Fetch data ======
 $userStoreId = intval($_SESSION['store_id'] ?? 1);
 $isMain = isMainBranch($pdo, $userStoreId);
+$canAllBranches = canViewAllBranches($pdo);
 
-if (isset($_GET['store_id']) && ($isAdmin || $isMain)) {
+if (isset($_GET['store_id']) && ($canAllBranches)) {
     $_SESSION['active_store_id'] = intval($_GET['store_id']);
 }
 
 $currentStoreId = getActiveStoreId($pdo);
 
 // Sub-branch users are strictly restricted to their own branch
-if (!$isAdmin && !$isMain) {
+if (!$canAllBranches) {
     $selectedStoreId = $userStoreId;
 } else {
     $selectedStoreId = isset($_GET['store_id']) ? intval($_GET['store_id']) : $currentStoreId;
@@ -483,7 +486,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <!-- Right Controls: Store Filter + Category Filter + Search (ຂວາ) -->
       <div class="d-flex align-items-center" style="gap: 10px; flex-wrap: wrap;">
         <!-- Dropdown: ເລືອກສາຂາ — main branch / admin only; a sub-branch user is locked to their own branch -->
-        <?php if ($isAdmin || $isMain): ?>
+        <?php if ($canAllBranches): ?>
         <div class="prod-filter-wrap" style="width: 200px;">
           <select id="storeFilter" class="form-control font-weight-bold" onchange="switchStoreFilter(this.value)">
             <?php foreach ($stores as $st): ?>

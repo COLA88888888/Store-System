@@ -13,12 +13,12 @@ $reqAction = $_REQUEST['action'] ?? '';
 
 if ($reqAction !== 'get_bill_details') {
     if ($currentReportType === 'item_sales') {
-        if (!hasPermission('item_sales') && !hasPermission('sale') && !hasPermission('report') && !hasPermission('pos') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ') {
+        if (!hasPermission('item_sales') && !hasPermission('sale') && !hasPermission('report') && !hasPermission('pos')) {
             echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
             exit();
         }
     } else {
-        if (!hasPermission($currentReportType) && !hasPermission('all_sales') && !hasPermission('report') && !hasPermission('sale') && !hasPermission('pos') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ') {
+        if (!hasPermission($currentReportType) && !hasPermission('all_sales') && !hasPermission('report') && !hasPermission('sale') && !hasPermission('pos')) {
             echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
             exit();
         }
@@ -465,14 +465,14 @@ if ($currency_filter !== '' && $hasCurrencyCol && isset(getCurrencyMeta()[$curre
 $userStoreId = intval($_SESSION['store_id'] ?? 1);
 $isAdmin = ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' || strtolower($_SESSION['status'] ?? '') === 'admin' || ($_SESSION['user_id'] ?? 0) == 1;
 $isMain = isMainBranch($pdo, $userStoreId);
+$canAllBranches = canViewAllBranches($pdo);
 
-// A user explicitly granted the "report" permission may view every branch's figures,
-// just like an admin / main-branch user. Staff who only reach reports via 'sale'/'pos'
-// permission stay locked to their own branch.
-$reportsCrossBranch = $isMain || $isAdmin || hasPermission('report');
+// Only users who pass canViewAllBranches() see every branch's figures; everyone else,
+// including staff granted the "report" permission, is locked to their own branch.
+$reportsCrossBranch = $canAllBranches;
 
 $filter_store_id = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : 0;
-// Sub-branch users without report permission: strictly lock reports to their assigned store_id
+// Users who can't see every branch are locked to their own store_id
 if (!$reportsCrossBranch) {
     $filter_store_id = $userStoreId;
 }
@@ -602,7 +602,7 @@ if ($type === 'daily') {
 if ($view_mode === 'item') {
     // VIEW MODE 2: ສະແດງຕາມລາຍການສິນຄ້າ (ITEM DETAIL VIEW)
     $sql = "
-        SELECT d.*, s.sale_date, s.sale_time, s.user_receive, s.customer_name, s.type_pay, s.sale_status,
+        SELECT d.*, s.sale_date, s.sale_time, s.user_receive, s.customer_name, s.type_pay, s.sale_status, s.sale_remark,
                s.sale_amount AS bill_gross, s.sale_discount_bill AS bill_discount, s.sale_barlance AS bill_net,
                s.sale_pay, s.sale_return,
                " . ($hasCashCol ? "s.cash_received," : "") . "
@@ -696,7 +696,8 @@ if ($view_mode === 'item') {
             'tip'       => $itemTip,
             'status'    => $r['sale_status'] ?? 'SUCCESS',
             'cashier'   => $r['user_receive'] ?? 'Admin',
-            'currency'  => strtoupper($r['paid_currency'] ?? 'KIP') ?: 'KIP'
+            'currency'  => strtoupper($r['paid_currency'] ?? 'KIP') ?: 'KIP',
+            'sale_remark' => $r['sale_remark'] ?? ''
         ];
 
         $total_qty    += $qty;
@@ -816,7 +817,8 @@ if ($view_mode === 'item') {
             'bank_logo'       => $bLogo,
             'cashier'         => $r['user_receive'] ?? 'Admin',
             'customer'        => $r['customer_name'] ?? 'ລູກຄ້າທົ່ວໄປ',
-            'currency'        => strtoupper($r['paid_currency'] ?? 'KIP') ?: 'KIP'
+            'currency'        => strtoupper($r['paid_currency'] ?? 'KIP') ?: 'KIP',
+            'sale_remark'     => $r['sale_remark'] ?? ''
         ];
 
         $total_qty    += $qty;

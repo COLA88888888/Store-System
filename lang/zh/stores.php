@@ -35,6 +35,10 @@ return [
     'stores.field_footer'        => '小票底部文字：',
     'stores.field_footer_ph'     => '例如：谢谢惠顾，商品售出概不退换……',
 
+    // Queue number on receipt
+    'stores.field_queue_enabled' => '在小票上显示排队号（咖啡店 / 需要排队的店铺）',
+    'stores.field_queue_hint'    => '排队号每天从 1 重新开始，以大号字体打印在logo上方。普通店铺请保持关闭。',
+
     // Buttons
     'stores.btn_save_info'       => '保存店铺信息',
     'stores.btn_save_logo'       => '保存logo',

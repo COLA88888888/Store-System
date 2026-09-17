@@ -15,4 +15,5 @@ return [
     'login.err_username_required' => 'ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້ງານ!',
     'login.err_password_required' => 'ກະລຸນາປ້ອນລະຫັດຜ່ານ!',
     'login.err_invalid' => 'ລະຫັດບໍ່ຖືກຕ້ອງ ກະລຸນາລອງໃໝ່',
+    'login.err_db_connection' => 'ບໍ່ສາມາດເຊື່ອມຕໍ່ຖານຂໍ້ມູນໄດ້ (Database connection failed)',
 ];

@@ -39,4 +39,21 @@ return [
     'printers.msg_toggle_success' => 'Printer status updated successfully!',
     'printers.msg_delete_success' => 'Printer deleted successfully!',
     'printers.msg_error' => 'Error: %s',
+
+    // LAN printing
+    'printers.field_paper_width' => 'Paper width:',
+    'printers.lan_hint' => 'Network LAN printers receive kitchen tickets directly — no print dialog. Enter the printer IP (port 9100 by default, or IP:port).',
+    'printers.btn_test' => 'Test print',
+    'printers.test_ok' => 'Test page sent to %s',
+    'printers.test_fail' => 'Could not reach the printer at %s: %s',
+    'printers.test_not_lan' => 'Only Network LAN printers with an IP address can be tested.',
+
+    // LAN receipt printer designation
+    'printers.receipt_badge' => 'Receipt printer',
+    'printers.set_receipt' => 'Set as the receipt printer',
+    'printers.unset_receipt' => 'Unset as the receipt printer',
+    'printers.receipt_needs_lan' => 'Only an enabled Network LAN printer can be chosen!',
+    'printers.receipt_set_success' => 'Set as the receipt printer successfully!',
+    'printers.receipt_unset_success' => 'Receipt printer unset — receipts will print through the browser again',
+    'printers.receipt_hint' => 'Note: if a receipt printer is set (green receipt icon), the customer receipt prints straight over LAN with no browser print dialog. If none is set, receipts print through the browser as before.',
 ];

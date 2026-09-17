@@ -9,7 +9,7 @@ if (!isset($base_path)) {
 require_once __DIR__ . '/../config/db.php';
 
 // Check permissions
-if (empty($_SESSION['user_id']) || (!hasPermission('customers') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('customers'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -20,13 +20,14 @@ $message_type = '';
 $userStoreId = intval($_SESSION['store_id'] ?? 1);
 $isAdmin = ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' || strtolower($_SESSION['status'] ?? '') === 'admin' || ($_SESSION['user_id'] ?? 0) == 1;
 $isMain = isMainBranch($pdo, $userStoreId);
+$canAllBranches = canViewAllBranches($pdo);
 
 // Fetch stores list for branch selection/filter
 $stores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // GET filter_store parameter
 $filter_store = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : 0;
-if (!$isAdmin && !$isMain) {
+if (!$canAllBranches) {
     $filter_store = $userStoreId;
 }
 
@@ -49,7 +50,7 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         $targetStoreId = isset($_POST['store_id']) && intval($_POST['store_id']) > 0 ? intval($_POST['store_id']) : $targetCodeStore;
-        if (!$isAdmin && !$isMain) {
+        if (!$canAllBranches) {
             $targetStoreId = $userStoreId;
         }
 
@@ -96,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($id > 0 && $name !== '') {
                 try {
-                    if ($isAdmin || $isMain) {
+                    if ($canAllBranches) {
                         $stmt = $pdo->prepare("UPDATE customers SET customer_name = ?, phone = ?, member_card = ?, email = ?, address = ?, notes = ?, store_id = ? WHERE customer_id = ?");
                         $stmt->execute([$name, $phone, $member_card, $email, $address, $notes, $targetStoreId, $id]);
                     } else {
@@ -119,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = intval($_POST['customer_id'] ?? 0);
             if ($id > 0) {
                 try {
-                    if ($isAdmin || $isMain) {
+                    if ($canAllBranches) {
                         $stmt = $pdo->prepare("DELETE FROM customers WHERE customer_id = ?");
                         $stmt->execute([$id]);
                     } else {

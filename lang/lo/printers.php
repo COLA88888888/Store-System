@@ -39,4 +39,21 @@ return [
     'printers.msg_toggle_success' => 'ອັບເດດສະຖານະເຄື່ອງພິມສຳເລັດ!',
     'printers.msg_delete_success' => 'ລົບເຄື່ອງພິມສຳເລັດ!',
     'printers.msg_error' => 'ຜິດພາດ: %s',
+
+    // LAN printing
+    'printers.field_paper_width' => 'ຂະໜາດເຈ້ຍ:',
+    'printers.lan_hint' => 'ເຄື່ອງພິມ Network LAN ຈະໄດ້ຮັບໃບຍ່ອຍໂດຍກົງ ບໍ່ຕ້ອງກົດພິມ. ໃສ່ IP ຂອງເຄື່ອງພິມ (ພອດ 9100 ເປັນຄ່າເລີ່ມຕົ້ນ ຫຼື IP:ພອດ)',
+    'printers.btn_test' => 'ທົດສອບພິມ',
+    'printers.test_ok' => 'ສົ່ງໜ້າທົດສອບໄປທີ່ %s ແລ້ວ',
+    'printers.test_fail' => 'ເຊື່ອມຕໍ່ເຄື່ອງພິມທີ່ %s ບໍ່ໄດ້: %s',
+    'printers.test_not_lan' => 'ທົດສອບໄດ້ສະເພາະເຄື່ອງພິມ Network LAN ທີ່ມີ IP Address',
+
+    // LAN receipt printer designation
+    'printers.receipt_badge' => 'ໃບບິນຫຼັກ',
+    'printers.set_receipt' => 'ຕັ້ງເປັນເຄື່ອງພິມໃບບິນຫຼັກ',
+    'printers.unset_receipt' => 'ຍົກເລີກເປັນເຄື່ອງພິມໃບບິນຫຼັກ',
+    'printers.receipt_needs_lan' => 'ເລືອກໄດ້ສະເພາະເຄື່ອງພິມ Network LAN ທີ່ເປີດໃຊ້ງານຢູ່ເທົ່ານັ້ນ!',
+    'printers.receipt_set_success' => 'ຕັ້ງເປັນເຄື່ອງພິມໃບບິນຫຼັກສຳເລັດ!',
+    'printers.receipt_unset_success' => 'ຍົກເລີກເຄື່ອງພິມໃບບິນຫຼັກແລ້ວ — ໃບບິນຈະພິມຜ່ານບຣາວເຊີຄືເກົ່າ',
+    'printers.receipt_hint' => 'ໝາຍເຫດ: ຖ້າຕັ້ງເຄື່ອງພິມໃບບິນຫຼັກໄວ້ (ໄອຄອນໃບບິນສີຂຽວ), ໃບບິນລູກຄ້າຈະພິມຜ່ານ LAN ໂດຍກົງ ບໍ່ຂຶ້ນປັອບອັບພິມຂອງບຣາວເຊີ. ຖ້າບໍ່ຕັ້ງ, ໃບບິນຈະພິມຜ່ານບຣາວເຊີຄືເກົ່າ.',
 ];

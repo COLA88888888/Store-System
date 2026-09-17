@@ -113,6 +113,16 @@
           </li>
         <?php endif; ?>
 
+        <?php if (hasPermission('quotations')): ?>
+          <!-- Menu: Quotations (ໃບສະເໜີລາຄາ) — standalone top-level item, own module -->
+          <li class="nav-item">
+            <a href="<?php echo $bp; ?>pages/quotations/quotations.php" target="frame" class="nav-link">
+              <i class="nav-icon fas fa-file-invoice-dollar text-warning"></i>
+              <p data-i18n="layout.quotations"><?php echo htmlspecialchars(t('layout.quotations', 'ໃບສະເໜີລາຄາ')); ?></p>
+            </a>
+          </li>
+        <?php endif; ?>
+
         <?php if (hasPermission('categories') || hasPermission('units') || hasPermission('products') || hasPermission('suppliers') || hasPermission('import_stock') || hasPermission('import_list') || hasPermission('stock_transfer') || hasPermission('transfer_history')): ?>
           <!-- Header: Inventory & Products -->
           <!-- <li class="nav-header text-uppercase" style="color: rgba(255,255,255,0.85); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;">ການຈັດການສິນຄ້າ</li> -->

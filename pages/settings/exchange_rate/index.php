@@ -8,7 +8,7 @@ $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
 // ກວດສອບສິດທິການເຂົ້າເຖິງ
-if (empty($_SESSION['user_id']) || (!hasPermission('exchange_rate') && !hasPermission('setup') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('exchange_rate') && !hasPermission('setup'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }

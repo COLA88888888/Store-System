@@ -73,8 +73,9 @@ if ($action === 'get_transfer_details') {
         $userStoreId = intval($_SESSION['store_id'] ?? 1);
         $userIsAdmin = ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' || strtolower($_SESSION['status'] ?? '') === 'admin' || ($_SESSION['user_id'] ?? 0) == 1;
         $userIsMain = isMainBranch($pdo, $userStoreId);
+        $userCanAllBranches = canViewAllBranches($pdo);
 
-        if (!$userIsMain && !$userIsAdmin) {
+        if (!$userCanAllBranches) {
             // Sub-branch notification poll
             $incomingTransfers = getIncomingTransfersForStore($pdo, $userStoreId);
             $subLowStock = getLowStockAlerts($pdo, $userStoreId);

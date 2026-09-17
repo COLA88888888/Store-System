@@ -23,7 +23,7 @@
 
       <!-- 3. Branch / Store Selector — main branch / admin only, and only worth showing
            once there's more than one branch to pick from -->
-      <?php if (($isAdmin || $isMain) && count($stores) > 1): ?>
+      <?php if (($canAllBranches) && count($stores) > 1): ?>
       <div style="flex: 1 1 170px; min-width: 150px;">
         <label class="form-label font-weight-bold text-dark mb-1" style="font-size: 0.88rem; white-space: nowrap;">
           <i class="fas fa-store text-info mr-1"></i> <?php echo htmlspecialchars(t('import_list.filter_select_branch', 'ເລືອກສາຂາ:')); ?>

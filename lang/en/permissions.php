@@ -55,6 +55,11 @@ return [
     'permissions.module_customers_title' => 'Customer Management',
     'permissions.module_customers_desc' => 'Add, edit, and manage customer/member data',
 
+    // section_quotations.php
+    'permissions.section_quotations' => 'Quotations',
+    'permissions.module_quotations_title' => 'Quotations',
+    'permissions.module_quotations_desc' => 'Create, edit, and manage price quotations for customers',
+
     // section_inventory.php
     'permissions.section_inventory' => '4. Products & Inventory',
     'permissions.module_categories_title' => 'Product Categories',
@@ -158,4 +163,13 @@ return [
     'permissions.perm_name_setup' => 'System Settings permission',
     'permissions.perm_name_edit' => 'Edit & Delete Data permission',
     'permissions.perm_name_database' => 'Database Management permission',
+
+    // Previously untranslated labels
+    'permissions.module_loyalty_title' => 'Customer Loyalty Points',
+    'permissions.module_loyalty_desc' => 'Configure rules and manage customer loyalty points',
+    'permissions.module_suppliers_title' => 'Manage Suppliers',
+    'permissions.module_suppliers_desc' => 'Add, edit and manage product supplier information',
+
+    // Admin-account edit lock
+    'permissions.admin_locked_badge' => 'Only the first admin can edit this',
 ];

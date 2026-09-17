@@ -77,8 +77,8 @@
               <!-- Row 2: ຊື່ສິນຄ້າ & ບາໂຄ້ດຫຼັກ -->
               <div class="row">
                 <div class="col-md-7 mb-3">
-                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_product_name', 'ຊື່ສິນຄ້າ:')); ?> <span class="text-danger">*</span></label>
-                  <input type="text" name="product_name" id="edit_product_name" class="form-control" placeholder="<?php echo htmlspecialchars(t('products.product_name_placeholder', 'ປ້ອນຊື່ສິນຄ້າ...')); ?>" style="border-radius: 6px; height: 40px;" required>
+                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_product_name', 'ຊື່ສິນຄ້າ:')); ?> </label>
+<input type="text" name="product_name" id="edit_product_name" class="form-control" placeholder="<?php echo htmlspecialchars(t('products.product_name_placeholder', 'ປ້ອນຊື່ສິນຄ້າ...')); ?>" style="border-radius: 6px; height: 40px;" required>
                 </div>
                 <div class="col-md-5 mb-3">
                   <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_barcode', 'ບາໂຄ້ດ:')); ?></label>
@@ -135,9 +135,9 @@
                   </div>
                 </div>
                 <div class="col-6">
-                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_price_retail', 'ລາຄາຂາຍຍ່ອຍ')); ?></label>
+                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_price_retail', 'ລາຄາຂາຍຍ່ອຍ')); ?> <span class="text-danger">*</span></label>
                   <div class="input-group">
-                    <input type="text" name="price" id="edit_price" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #16a34a;" oninput="formatPriceInput(this)">
+                    <input type="text" name="price" id="edit_price" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #16a34a;" oninput="formatPriceInput(this)" >
                     <div class="input-group-append"><span class="input-group-text" style="border-radius: 0 6px 6px 0; font-size: 0.85rem;">₭</span></div>
                   </div>
                 </div>
@@ -272,7 +272,7 @@ function submitEditProduct(e) {
     return false;
   }
   // ລາຄາຊື້ (bprice) ບໍ່ບັງຄັບ — ປ້ອນ ຫຼື ບໍ່ປ້ອນກໍໄດ້ (ວ່າງ = 0)
-  // Price is optional
+  // ລາຄາຂາຍບໍ່ບັງຄັບ
 
   // Dynamic multi-unit validation
   var validExtra = true;
@@ -311,7 +311,7 @@ function submitEditProduct(e) {
       validExtra = false;
       return false;
     }
-    // uPrice is optional
+    // uPrice optional
   });
 
   if (!validExtra) return false;

@@ -87,12 +87,12 @@ function getLaoNumber($number) {
       @page { size: A4; margin: 0; }
       * { box-sizing: border-box; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif !important; color: #000 !important; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
       html, body { width: 100%; margin: 0; padding: 0; background: #fff; font-size: 15px; font-weight: 400; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .container { max-width: 210mm; margin: 0 auto; padding: 2.5cm 2cm 2.5cm 3cm; }
+      .container { max-width: 210mm; margin: 0 auto; padding: 1.5cm 2cm 2.5cm 3cm; }
       
-      .top-header { text-align: center; margin-bottom: 25px; line-height: 1.6; }
+      .top-header { text-align: center; margin-bottom: 15px; line-height: 1.6; }
       .top-header .rep { font-weight: normal; }
       
-      .doc-title { text-align: center; margin-bottom: 30px; }
+      .doc-title { text-align: center; margin-bottom: 15px; }
       .doc-title h2 { margin: 0; font-size: 22px; font-weight: bold; }
       .doc-title p { margin: 0; font-size: 18px; font-weight: bold; }
       
@@ -101,7 +101,7 @@ function getLaoNumber($number) {
       .info-left img { max-width: 250px; max-height: 90px; object-fit: contain; margin-bottom: 10px; }
       .info-left p { margin: 2px 0; }
       
-      .info-right { width: 35%; text-align: right; margin-top: 30px; }
+      .info-right { width: 35%; text-align: right; margin-top: 0; }
       .info-right p { margin: 2px 0; }
       
       table { width: 100%; border-collapse: collapse; margin-bottom: 30px; border: 1px solid #000; }
@@ -120,7 +120,7 @@ function getLaoNumber($number) {
       .signature-box { text-align: center; width: 200px; font-weight: bold; }
       
       @media print {
-        .container { padding: 2.5cm 2cm 2.5cm 3cm; margin: 0; width: 100%; max-width: 100%; }
+        .container { padding: 1.5cm 2cm 2.5cm 3cm; margin: 0; width: 100%; max-width: 100%; }
         .no-print { display: none !important; }
       }
     </style>

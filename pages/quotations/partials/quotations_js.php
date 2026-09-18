@@ -452,7 +452,11 @@ function confirmConvertToSale(id, no) {
       $.post('quotations.php', { action: 'convert_to_sale', id: id, payment_type: res.value, is_ajax: 1 }, function (r) {
         if (r.success) {
           refreshQuotationsTable();
-          Swal.fire({ icon: 'success', title: QUOTE_I18N['quotations.js_done'], text: r.message, timer: 2200 });
+          Swal.fire({ icon: 'success', title: QUOTE_I18N['quotations.js_done'], text: r.message, timer: 2200 }).then(function() {
+            if (r.id) {
+              window.open('print_quotation.php?quotation_id=' + r.id, '_blank');
+            }
+          });
         } else {
           Swal.fire({ icon: 'error', title: QUOTE_I18N['quotations.js_error_title'], text: r.message || QUOTE_I18N['quotations.js_generic_error'] });
         }

@@ -299,7 +299,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     if (!empty($_POST['is_ajax'])) {
         header('Content-Type: application/json');
-        echo json_encode(['success' => ($message_type === 'success'), 'message' => $message]);
+        echo json_encode([
+            'success' => ($message_type === 'success'),
+            'message' => $message,
+            'id' => isset($id) ? $id : 0
+        ]);
         exit();
     }
 }

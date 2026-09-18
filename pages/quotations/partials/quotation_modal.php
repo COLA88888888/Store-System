@@ -168,14 +168,14 @@
         <div class="d-flex justify-content-between align-items-center mb-2 px-1">
             <div class="custom-control custom-checkbox">
                 <input type="checkbox" class="custom-control-input" id="pickerSelectAll" onchange="quoteToggleSelectAllPicker(this.checked)">
-                <label class="custom-control-label font-weight-bold" for="pickerSelectAll" style="cursor: pointer;">ເລືອກທັງໝົດ</label>
+                <label class="custom-control-label font-weight-bold" for="pickerSelectAll" style="cursor: pointer;"><?php echo htmlspecialchars(t('quotations.picker_select_all', 'ເລືອກທັງໝົດ')); ?></label>
             </div>
             <div class="text-muted small"><span id="productPickerCheckedCount" class="font-weight-bold text-primary">0</span> <?php echo htmlspecialchars(t('quotations.picker_product_selected', 'ລາຍການທີ່ເລືອກ')); ?></div>
         </div>
         <div id="productPickerList" style="height: 320px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;"></div>
         
         <div class="d-flex align-items-center justify-content-between mt-2 px-1">
-            <div class="text-muted small" id="pickerPageInfo">ໜ້າ 1 / 1</div>
+            <div class="text-muted small" id="pickerPageInfo"><?php echo htmlspecialchars(t('quotations.picker_page_label', 'ໜ້າ')); ?> 1 / 1</div>
             <ul class="pagination pagination-sm mb-0" id="pickerPagination"></ul>
         </div>
       </div>

@@ -356,8 +356,8 @@
         </table>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
         <div id="rc_payment_rows" style="color:#000;font-weight:600;">
-          <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cash_received', 'ຮັບເງິນສົດ:')); ?></span><span id="rc_cash_amt">0 ₭</span></div>
-          <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_transfer_received', 'ຮັບເງິນໂອນ:')); ?></span><span id="rc_qr_amt">0 ₭</span></div>
+          <div class="d-flex justify-content-between" id="rc_cash_row"><span><?php echo htmlspecialchars(t('pos.receipt_cash_received', 'ຮັບເງິນສົດ:')); ?></span><span id="rc_cash_amt">0 ₭</span></div>
+          <div class="d-flex justify-content-between" id="rc_qr_row"><span><?php echo htmlspecialchars(t('pos.receipt_transfer_received', 'ຮັບເງິນໂອນ:')); ?></span><span id="rc_qr_amt">0 ₭</span></div>
         </div>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
         <div class="d-flex justify-content-between" style="color:#000;font-weight:600;"><span><?php echo htmlspecialchars(t('pos.total_label', 'ລວມ:')); ?></span><span id="rc_subtotal">0 ₭</span></div>

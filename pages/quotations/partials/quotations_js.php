@@ -15,6 +15,12 @@ var QUOTE_I18N = <?php echo tjson([
     'quotations.js_confirm_sell_text'  => 'ລູກຄ້າຮັບໃບສະເໜີລາຄາ "{no}" ແລ້ວແມ່ນບໍ່? ລະບົບຈະຕັດສະຕັອກ ແລະ ບັນທຶກເປັນລາຍການຂາຍທັນທີ.',
     'quotations.js_confirm_sell_yes'   => 'ແມ່ນ, ຂາຍເລີຍ',
     'quotations.js_payment_type_label' => 'ຮັບເງິນແບບໃດ?',
+    'quotations.picker_page_label'     => 'ໜ້າ',
+    'quotations.payment_cash'          => 'ເງິນສົດ',
+    'quotations.payment_transfer'      => 'ໂອນຈ່າຍ',
+    'quotations.js_out_of_stock'       => 'ສິນຄ້າ "{name}" ໝົດແລ້ວໃນສາງ! (ຍັງສາມາດເລືອກໃສ່ໃບສະເໜີລາຄາໄດ້)',
+    'quotations.js_out_of_stock_block_title' => 'ບໍ່ສາມາດບັນທຶກໄດ້!',
+    'quotations.js_out_of_stock_block_text'  => 'ສິນຄ້າຕໍ່ໄປນີ້ໝົດແລ້ວໃນສາງ: {names}. ກະລຸນາລຶບອອກ ຫຼື ລໍຖ້າຈົນກວ່າສິນຄ້າຈະມີສະຕັອກ ກ່ອນບັນທຶກ.',
 ]); ?>;
 
 var QUOTE_CUSTOMERS  = <?php echo json_encode($customersList, JSON_UNESCAPED_UNICODE); ?>;
@@ -156,7 +162,7 @@ function renderProductPickerList() {
   document.getElementById('productPickerList').innerHTML = html;
   
   // Render Pagination
-  document.getElementById('pickerPageInfo').textContent = 'ໜ້າ ' + quotePickerCurrentPage + ' / ' + totalPages;
+  document.getElementById('pickerPageInfo').textContent = QUOTE_I18N['quotations.picker_page_label'] + ' ' + quotePickerCurrentPage + ' / ' + totalPages;
   var ul = document.getElementById('pickerPagination');
   var phtml = '';
   
@@ -189,6 +195,14 @@ function quoteGoToPickerPage(page) {
 function quoteTogglePickerItem(id, checked) {
     if (checked) {
         quotePickerSelectedIds.add(id);
+        var p = QUOTE_PRODUCTS.find(function (x) { return String(x.id) === String(id); });
+        if (p && p.cut_qty != 0 && Number(p.qty) <= 0) {
+            Swal.fire({
+                toast: true, position: 'top-end', icon: 'warning',
+                title: QUOTE_I18N['quotations.js_out_of_stock'].replace('{name}', p.name),
+                showConfirmButton: false, timer: 2500
+            });
+        }
     } else {
         quotePickerSelectedIds.delete(id);
     }
@@ -359,33 +373,56 @@ $(document).ready(function () {
       return;
     }
 
-    document.getElementById('quote_items_json').value = JSON.stringify(items);
+    function doSaveQuotation() {
+      document.getElementById('quote_items_json').value = JSON.stringify(items);
 
-    var payload = {
-      action: document.getElementById('quote_action').value,
-      quotation_id: document.getElementById('quote_id').value,
-      customer_id: document.getElementById('quote_customer_id').value,
-      customer_name: document.getElementById('quote_customer_name').value,
-      customer_tel: document.getElementById('quote_customer_tel').value,
-      customer_address: document.getElementById('quote_customer_address').value,
-      quote_date: document.getElementById('quote_date').value,
-      valid_until: document.getElementById('quote_valid_until').value,
-      discount_amount: quoteNum(document.getElementById('quote_discount_amount').value),
-      vat_amount: quoteNum(document.getElementById('quote_vat_amount').value),
-      notes: document.getElementById('quote_notes').value,
-      items: document.getElementById('quote_items_json').value,
-      is_ajax: 1,
-    };
+      var payload = {
+        action: document.getElementById('quote_action').value,
+        quotation_id: document.getElementById('quote_id').value,
+        customer_id: document.getElementById('quote_customer_id').value,
+        customer_name: document.getElementById('quote_customer_name').value,
+        customer_tel: document.getElementById('quote_customer_tel').value,
+        customer_address: document.getElementById('quote_customer_address').value,
+        quote_date: document.getElementById('quote_date').value,
+        valid_until: document.getElementById('quote_valid_until').value,
+        discount_amount: quoteNum(document.getElementById('quote_discount_amount').value),
+        vat_amount: quoteNum(document.getElementById('quote_vat_amount').value),
+        notes: document.getElementById('quote_notes').value,
+        items: document.getElementById('quote_items_json').value,
+        is_ajax: 1,
+      };
 
-    $.post('quotations.php', payload, function (res) {
-      if (res.success) {
-        $('#quotationModal').modal('hide');
-        refreshQuotationsTable();
-        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: res.message || QUOTE_I18N['quotations.js_done'], showConfirmButton: false, timer: 1600 });
-      } else {
-        Swal.fire({ icon: 'error', title: QUOTE_I18N['quotations.js_error_title'], text: res.message || QUOTE_I18N['quotations.js_generic_error'] });
-      }
-    }, 'json');
+      $.post('quotations.php', payload, function (res) {
+        if (res.success) {
+          $('#quotationModal').modal('hide');
+          refreshQuotationsTable();
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: res.message || QUOTE_I18N['quotations.js_done'], showConfirmButton: false, timer: 1600 });
+        } else {
+          Swal.fire({ icon: 'error', title: QUOTE_I18N['quotations.js_error_title'], text: res.message || QUOTE_I18N['quotations.js_generic_error'] });
+        }
+      }, 'json');
+    }
+
+    // Block saving outright when the quote still contains items that are currently out of
+    // stock (checked against the picker's product list, fetched on page load).
+    var outOfStockNames = [];
+    document.querySelectorAll('#quoteItemsBody tr:not(#quoteItemsEmptyRow)').forEach(function (tr) {
+      var pid = tr.getAttribute('data-product-id');
+      if (!pid) return;
+      var p = QUOTE_PRODUCTS.find(function (x) { return String(x.id) === String(pid); });
+      if (p && p.cut_qty != 0 && Number(p.qty) <= 0) outOfStockNames.push(p.name);
+    });
+
+    if (outOfStockNames.length > 0) {
+      Swal.fire({
+        icon: 'error',
+        title: QUOTE_I18N['quotations.js_out_of_stock_block_title'],
+        text: QUOTE_I18N['quotations.js_out_of_stock_block_text'].replace('{names}', outOfStockNames.join(', ')),
+      });
+      return;
+    }
+
+    doSaveQuotation();
   });
 });
 
@@ -436,8 +473,8 @@ function confirmConvertToSale(id, no) {
     html: '<p>' + QUOTE_I18N['quotations.js_confirm_sell_text'].replace('{no}', '<b>' + no + '</b>') + '</p>' +
           '<label class="font-weight-bold d-block text-left mt-2 mb-1">' + QUOTE_I18N['quotations.js_payment_type_label'] + '</label>' +
           '<select id="quoteSellPaymentType" class="swal2-input" style="margin:0; width:100%;">' +
-          '<option value="ເງິນສົດ">ເງິນສົດ</option>' +
-          '<option value="ໂອນຈ່າຍ">ໂອນຈ່າຍ</option>' +
+          '<option value="ເງິນສົດ">' + QUOTE_I18N['quotations.payment_cash'] + '</option>' +
+          '<option value="ໂອນຈ່າຍ">' + QUOTE_I18N['quotations.payment_transfer'] + '</option>' +
           '</select>',
     showCancelButton: true,
     confirmButtonColor: '#16a34a',

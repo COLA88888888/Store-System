@@ -32,6 +32,7 @@ Object.assign(window.POS_RCPT_I18N, <?php echo tjson([
   'pos.checkout_failed'              => 'ບໍ່ສາມາດຊຳລະເງິນໄດ້!',
   'pos.checkout_offline_title'       => 'ເຊື່ອມຕໍ່ບໍ່ໄດ້!',
   'pos.checkout_offline_body'        => 'ບໍ່ສາມາດຕິດຕໍ່ເຊີເວີໄດ້ ກະລຸນາກວດສອບອິນເຕີເນັດ/ເຄືອຂ່າຍ ແລ້ວລອງໃໝ່ອີກຄັ້ງ.',
+  'pos.kitchen_cashier_label'        => 'ຜູ້ຂາຍ:',
   'pos.kitchen_total'                => 'ລວມ %s',
 ]); ?>);
 
@@ -425,12 +426,17 @@ function processCheckout() {
     var changeUnitsOver = cashUnits - totalUnits;
     change = POSCUR.isKip ? changeUnitsOver : Math.round(changeUnitsOver * POSCUR.rate);
     var rawInput = total + change;
-    if (selectedPayType === 'ໂອນ' || selectedPayType === 'QR') {
-      cashReceived = 0;
-      qrReceived   = rawInput;
-    } else {
+    // The QR/transfer tab's actual value is 'ໂອນເງິນ / QR' (see selectPayTypeTab's button in
+    // checkout_modal.php) — comparing against 'ໂອນ' / 'QR' here never matched it, so every
+    // single-payment sale got recorded and printed as cash received even when paid by
+    // transfer. 'ເງິນສົດ' is the one fixed cash value; anything else is a transfer/QR method,
+    // same rule selectPayTypeTab() itself already uses.
+    if (selectedPayType === 'ເງິນສົດ') {
       cashReceived = rawInput;
       qrReceived   = 0;
+    } else {
+      cashReceived = 0;
+      qrReceived   = rawInput;
     }
     paymentType = selectedPayType;
   }
@@ -666,6 +672,13 @@ function handleOnlineCheckoutReceiptUI(res) {
 
   $('#rc_cash_amt').html(POSCUR.fmt(cashAmt));
   $('#rc_qr_amt').html(POSCUR.fmt(qrAmt));
+  // Only print the row(s) actually used — a straight cash sale showed a confusing
+  // "ຮັບເງິນໂອນ: 0 ₭" line too (and a transfer sale showed "ຮັບເງິນສົດ: 0 ₭"). A split
+  // payment genuinely used both, so both stay visible in that case. If neither amount
+  // came through, fall back to showing cash so the receipt never prints with this
+  // section blank.
+  $('#rc_cash_row').toggle(cashAmt > 0 || (cashAmt === 0 && qrAmt === 0));
+  $('#rc_qr_row').toggle(qrAmt > 0);
 
   var bName = res.bank_name || window.currentSelectedBankName || '';
   var bQrImg = res.bank_qr_img || window.currentSelectedBankQrPath || '';
@@ -730,9 +743,15 @@ function handleOnlineCheckoutReceiptUI(res) {
   if (typeof broadcastCustomerDisplay === 'function') {
     broadcastCustomerDisplay('payment_success', { cashReceived: res.cash_received, qrReceived: res.qr_received, changeAmount: res.change, queueNumber: (window.POS_QUEUE_ENABLED ? res.queue_number : null) });
   }
-  printReceiptAuto();
-  printKitchenTickets(window.__lastKitchenTickets || [], { invoice_number: res.invoice_number, date: res.date });
+  // The customer's payment receipt always goes to the printer first. Kitchen / counter tickets
+  // only go out once it has been sent — rendering the receipt to an image takes a moment, and
+  // firing both at once let the (instant) kitchen tickets jump ahead of it on the roll.
+  var pendingTickets = window.__lastKitchenTickets || [];
+  var ticketMeta = { invoice_number: res.invoice_number, date: res.date, cashier: cashierName };
   window.__lastKitchenTickets = [];
+  printReceiptAuto().then(function () {
+    printKitchenTickets(pendingTickets, ticketMeta);
+  });
   resetPOS();
 }
 
@@ -771,13 +790,17 @@ function kitchenTicketHtml(group, meta) {
     '.sub{text-align:center;font-size:12px;font-weight:600;margin-bottom:8px}' +
     'table{width:100%;border-collapse:collapse}' +
     'hr{border:none;border-top:1px dashed #000;margin:7px 0}' +
-    '.foot{text-align:right;font-size:13px;font-weight:800;margin-top:4px}</style></head><body>' +
+    '.foot{text-align:right;font-size:13px;font-weight:800;margin-top:4px}' +
+    '.meta-bottom{text-align:center;font-size:11.5px;font-weight:600;margin-top:8px;padding-top:6px;border-top:1px dashed #000}</style></head><body>' +
     '<h2>' + esc(group.name) + '</h2>' +
     '<div class="sub">' + (window.STORE_NAME ? esc(window.STORE_NAME) + ' — ' : '') +
-      (meta && meta.invoice_number ? '#' + esc(meta.invoice_number) : '') +
-      (meta && meta.date ? '  ' + esc(meta.date) : '') + '</div>' +
+      (meta && meta.invoice_number ? '#' + esc(meta.invoice_number) : '') + '</div>' +
     '<hr><table>' + rows + '</table><hr>' +
     '<div class="foot">' + esc(posT('pos.kitchen_total', totalQty)) + '</div>' +
+    '<div class="meta-bottom">' +
+      (meta && meta.date ? esc(meta.date) : '') +
+      (meta && meta.cashier ? '<br>' + esc(posT('pos.kitchen_cashier_label')) + ' ' + esc(meta.cashier) : '') +
+    '</div>' +
     '</body></html>';
 }
 
@@ -843,7 +866,7 @@ function kitchenTicketCanvas(group, meta, widthPx) {
   var W = widthPx;
   var s = W / 576;
   var pad = Math.round(14 * s);
-  var sizes = { title: Math.round(40 * s), sub: Math.round(24 * s), item: Math.round(32 * s), qty: Math.round(34 * s), foot: Math.round(30 * s) };
+  var sizes = { title: Math.round(40 * s), sub: Math.round(24 * s), item: Math.round(32 * s), qty: Math.round(34 * s), foot: Math.round(30 * s), meta: Math.round(22 * s) };
   var measure = document.createElement('canvas').getContext('2d');
   function font(px, bold) { return (bold ? '700 ' : '400 ') + px + 'px ' + LAN_TICKET_FONT; }
   function wrap(str, px, bold, maxW) {
@@ -878,8 +901,7 @@ function kitchenTicketCanvas(group, meta, widthPx) {
 
   text(group.name, sizes.title, true, 'center');
   var sub = (window.STORE_NAME ? window.STORE_NAME + ' — ' : '') +
-    (meta && meta.invoice_number ? '#' + meta.invoice_number : '') +
-    (meta && meta.date ? '  ' + meta.date : '');
+    (meta && meta.invoice_number ? '#' + meta.invoice_number : '');
   if (sub.trim() !== '') text(sub, sizes.sub, false, 'center');
   rule();
 
@@ -898,6 +920,11 @@ function kitchenTicketCanvas(group, meta, widthPx) {
   });
   rule();
   text(posT('pos.kitchen_total', totalQty), sizes.foot, true, 'right');
+  if ((meta && meta.date) || (meta && meta.cashier)) {
+    rule();
+    if (meta.date) text(meta.date, sizes.meta, false, 'center');
+    if (meta.cashier) text(posT('pos.kitchen_cashier_label') + ' ' + meta.cashier, sizes.meta, false, 'center');
+  }
   y += pad * 3;
 
   var canvas = document.createElement('canvas');
@@ -969,25 +996,52 @@ function lanTicketFailed(group, message) {
 // being re-implemented here.
 // ============================
 
-// Local Lao font files, base64-encoded once and cached — embedded directly into the SVG's
-// own <style> so the foreignObject document (which loads with no access to the parent
-// page's document.fonts or external stylesheets) can still shape Lao text correctly.
+// Which Lao font the printed receipt is set in, best first. It has to be base64-embedded into
+// the SVG's own <style>, because the foreignObject document loads with no access to the page's
+// fonts or stylesheets. The screen uses Noto Sans Lao (pulled from Google by
+// assets/css/local-font.css) but only the *Looped* face ships with the app — a visibly
+// different typeface — so the print never matched the screen. Drop NotoSansLao-Regular.ttf /
+// -Bold.ttf into assets/fonts/ and the receipt picks them up instead.
+var RECEIPT_FONT_FILES = [
+  ['NotoSansLao-Regular.ttf', 'NotoSansLao-Bold.ttf'],
+  ['NotoSansLaoLooped-Regular.ttf', 'NotoSansLaoLooped-Bold.ttf']
+];
+
 function receiptFontFaces() {
   if (window.__receiptFontFacesCache) return Promise.resolve(window.__receiptFontFacesCache);
   var base = (window.POS_BACKEND_URL ? window.POS_BACKEND_URL.replace(/api\/pos_backend\.php$/, '') : '../../');
   function toBase64(url) {
-    return fetch(url).then(function (r) { return r.arrayBuffer(); }).then(function (buf) {
+    return fetch(url).then(function (r) {
+      // fetch only rejects on network failure — without this a 404 page would sail through
+      // and get embedded as "font" bytes, silently dropping the receipt to a fallback face.
+      if (!r.ok) throw new Error(url + ' → HTTP ' + r.status);
+      return r.arrayBuffer();
+    }).then(function (buf) {
       var bin = '', bytes = new Uint8Array(buf);
       for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
       return btoa(bin);
     });
   }
-  return Promise.all([
-    toBase64(base + 'assets/fonts/NotoSansLaoLooped-Regular.ttf'),
-    toBase64(base + 'assets/fonts/NotoSansLaoLooped-Bold.ttf')
-  ]).then(function (b64) {
-    var css = '@font-face{font-family:"Receipt Lao";src:url(data:font/truetype;base64,' + b64[0] + ') format("truetype");font-weight:400;}' +
-      '@font-face{font-family:"Receipt Lao";src:url(data:font/truetype;base64,' + b64[1] + ') format("truetype");font-weight:700;}';
+  function face(b64, weight) {
+    return '@font-face{font-family:"Receipt Lao";src:url(data:font/ttf;base64,' + b64 +
+      ') format("truetype");font-weight:' + weight + ';font-style:normal;}';
+  }
+  // Walk the list until a family is actually installed; a missing bold is fine on its own.
+  function loadPair(i) {
+    if (i >= RECEIPT_FONT_FILES.length) return Promise.reject(new Error('no receipt Lao font found in assets/fonts/'));
+    var names = RECEIPT_FONT_FILES[i];
+    return toBase64(base + 'assets/fonts/' + names[0]).then(function (regular) {
+      return toBase64(base + 'assets/fonts/' + names[1])
+        .catch(function () { return ''; })
+        .then(function (bold) { return [regular, bold]; });
+    }).catch(function () { return loadPair(i + 1); });
+  }
+  return loadPair(0).then(function (b64) {
+    // The app ships the same file under both the Regular and Bold names. Declaring that copy
+    // as the 700 face tells the browser "this IS the bold", so every bold line on the receipt
+    // printed at regular weight. Leaving the 700 face out lets the browser synthesize one.
+    var css = face(b64[0], 400);
+    if (b64[1] && b64[1] !== b64[0]) css += face(b64[1], 700);
     window.__receiptFontFacesCache = css;
     return css;
   });
@@ -1014,6 +1068,17 @@ function imageToDataUri(src) {
   });
 }
 
+// An SVG that fails to parse just leaves the <img> "broken" with no reason attached. Re-parse
+// it here so the failure toast names the actual problem (stray entity, unclosed tag, ...)
+// instead of a generic browser message that says nothing about the receipt.
+function svgParseError(svgText) {
+  try {
+    var doc = new DOMParser().parseFromString(svgText, 'image/svg+xml');
+    var err = doc.getElementsByTagName('parsererror')[0];
+    return err ? err.textContent.replace(/\s+/g, ' ').trim().slice(0, 300) : '';
+  } catch (e) { return ''; }
+}
+
 // Render #receiptPrintArea to a PNG data URI at `widthPx` CSS pixels wide. The final print
 // DPI/width is handled server-side (escposRasterFromPng resizes to the printer's dot width),
 // so this just needs a reasonable, consistent base width.
@@ -1021,8 +1086,13 @@ function receiptAreaToImage(widthPx) {
   var source = document.getElementById('receiptPrintArea');
   if (!source) return Promise.reject(new Error('no receiptPrintArea'));
 
+  // The clone needs two different styles. While it sits in the page (to be measured) it must
+  // be parked off-screen so the cashier never sees it — but the copy serialized into the
+  // foreignObject must sit at the origin: the SVG honours left:-99999px just like the page
+  // does, pushing the receipt outside the viewBox and rasterizing a blank white ticket.
+  var renderCss = 'width:' + widthPx + 'px;background:#fff;margin:0;padding:8px 6px;box-sizing:border-box;';
   var clone = source.cloneNode(true);
-  clone.style.cssText = 'position:fixed;left:-99999px;top:0;width:' + widthPx + 'px;background:#fff;margin:0;padding:8px 6px;box-sizing:border-box;';
+  clone.style.cssText = 'position:fixed;left:-99999px;top:0;' + renderCss;
   document.body.appendChild(clone);
 
   var imgs = clone.querySelectorAll('img');
@@ -1034,7 +1104,27 @@ function receiptAreaToImage(widthPx) {
 
   return Promise.all(swaps).then(receiptFontFaces).then(function (fontCss) {
     var h = Math.max(clone.scrollHeight, 80);
-    var html = clone.outerHTML;
+    clone.style.cssText = renderCss; // drop the off-screen offset before it's serialized
+    // The SVG data: URI built below is parsed as XML, so the receipt markup inside the
+    // foreignObject has to be well-formed XHTML. clone.outerHTML is *HTML* serialization:
+    // void elements come out unclosed (<img src="...">, <br>) and U+00A0 comes out as
+    // &nbsp; — both are fatal XML parse errors, and a failed parse leaves the <img> loading
+    // the SVG permanently "broken", so the receipt silently never prints. XMLSerializer
+    // emits proper XHTML instead; the regex is only a fallback if it's unavailable.
+    var html;
+    try {
+      html = new XMLSerializer().serializeToString(clone);
+    } catch (e) {
+      html = clone.outerHTML.replace(
+        /<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)((?:[^>"']|"[^"]*"|'[^']*')*?)\/?>/gi,
+        function (m, tag, attrs) { return '<' + tag + attrs + ' />'; }
+      );
+    }
+    // XML knows only &amp; &lt; &gt; &quot; &apos; — any other named entity that slipped in
+    // (from shop name / product names / footer text saved with a non-breaking space) would
+    // abort the parse.
+    html = html.replace(/&nbsp;/g, '&#160;')
+               .replace(/&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/g, '&amp;');
     document.body.removeChild(clone);
 
     // The foreignObject document has no access to the page's Bootstrap stylesheet, so every
@@ -1043,21 +1133,24 @@ function receiptAreaToImage(widthPx) {
     // already writes into its print iframe for the identical reason.
     var receiptCss = fontCss +
       ' *{box-sizing:border-box;font-family:"Receipt Lao",Arial,sans-serif !important;color:#000 !important;}' +
-      ' body{margin:0;font-size:13px;font-weight:600;line-height:1.5;background:#fff;}' +
+      ' body{margin:0;font-size:15px;font-weight:600;line-height:1.5;background:#fff;}' +
+      // No Bootstrap in here, so headings keep the browser default ~2.33em top margin, which
+      // opened a big gap between the logo and the shop name on the printed receipt.
+      ' h1,h2,h3,h4,h5,h6{margin:0 !important;} h6{font-size:18px !important;}' +
       ' .text-center{text-align:center !important;} .text-right{text-align:right !important;}' +
       ' .font-weight-bold{font-weight:700 !important;color:#000 !important;}' +
-      ' .small{font-size:11.5px !important;color:#000 !important;font-weight:600 !important;}' +
+      ' .small{font-size:12.5px !important;color:#000 !important;font-weight:600 !important;}' +
       ' .d-flex{display:flex;} .justify-content-between{justify-content:space-between;}' +
       ' [style*="display: none"],[style*="display:none"],.d-none{display:none !important;}' +
       ' .mb-0{margin-bottom:0 !important;} .mb-1{margin-bottom:4px !important;} .mb-2{margin-bottom:8px !important;}' +
       ' .mt-2{margin-top:8px !important;}' +
       ' .text-muted{color:#000 !important;font-weight:600 !important;}' +
-      ' .receipt-header-address,.receipt-header-tel{font-size:12px !important;font-weight:600 !important;color:#000 !important;line-height:1.4 !important;}' +
-      ' .receipt-footer-msg{font-size:12.5px !important;font-weight:700 !important;color:#000 !important;border-top:1px dashed #000 !important;margin-top:10px !important;padding-top:8px !important;text-align:center !important;}' +
-      ' img.receipt-logo{max-width:80px !important;max-height:80px !important;height:auto !important;display:block !important;margin:10px auto 2px auto !important;object-fit:contain !important;}' +
+      ' .receipt-header-address,.receipt-header-tel{font-size:13px !important;font-weight:600 !important;color:#000 !important;line-height:1.4 !important;}' +
+      ' .receipt-footer-msg{font-size:13.5px !important;font-weight:700 !important;color:#000 !important;border-top:1px dashed #000 !important;margin-top:10px !important;padding-top:8px !important;text-align:center !important;}' +
+      ' img.receipt-logo{max-width:80px !important;max-height:80px !important;height:auto !important;display:block !important;margin:2px auto 2px auto !important;object-fit:contain !important;}' +
       ' img.receipt-qr-img{max-width:130px !important;max-height:130px !important;height:auto !important;display:block !important;margin:6px auto 2px auto !important;object-fit:contain !important;}' +
-      ' table{width:100%;border-collapse:collapse;margin:4px 0;font-size:11.5px;color:#000 !important;}' +
-      ' td,th{padding:3px 0;vertical-align:top;color:#000 !important;font-weight:600 !important;}' +
+      ' table{width:100%;border-collapse:collapse;margin:4px 0;font-size:17px;color:#000 !important;}' +
+      ' td,th{padding:4px 0;vertical-align:top;color:#000 !important;font-weight:600 !important;}' +
       ' th{font-weight:700 !important;}';
 
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + widthPx + '" height="' + h + '">' +
@@ -1070,7 +1163,7 @@ function receiptAreaToImage(widthPx) {
 
     return new Promise(function (resolve, reject) {
       var svgImg = new Image();
-      svgImg.onload = function () {
+      function rasterize() {
         try {
           var scale = 2; // sharper source raster before the server resamples to printer dots
           var canvas = document.createElement('canvas');
@@ -1083,9 +1176,20 @@ function receiptAreaToImage(widthPx) {
           ctx.drawImage(svgImg, 0, 0, widthPx, h);
           resolve(canvas.toDataURL('image/png'));
         } catch (e) { reject(e); }
-      };
-      svgImg.onerror = function () { reject(new Error('svg image failed to load')); };
+      }
+      svgImg.onerror = function () { reject(new Error(svgParseError(svg) || 'svg image failed to load')); };
       svgImg.src = svgUri;
+      // img.decode() waits for the image to be fully decoded before resolving — more reliable
+      // here than onload for a data: SVG with embedded fonts. If it rejects, the image never
+      // loaded at all (e.g. malformed SVG XML), so surface that error directly rather than
+      // retrying the draw, which would just fail again with a less useful message.
+      if (svgImg.decode) {
+        svgImg.decode().then(rasterize, function (e) {
+          reject(new Error(svgParseError(svg) || (e && e.message) || 'svg decode failed'));
+        });
+      } else {
+        svgImg.onload = rasterize;
+      }
     });
   }).catch(function (err) {
     if (clone.parentNode) document.body.removeChild(clone);
@@ -1123,15 +1227,18 @@ function printReceiptLan() {
 // Called after the receipt DOM is fully populated. When a LAN receipt printer is configured,
 // the shop has deliberately opted out of the browser dialog — a failed LAN attempt shows an
 // error toast (see printReceiptLan) but must NOT pop the OS print dialog as a "fallback": that
-// dialog lists the cashier's own local/USB printers, which isn't a fix and just gets in the
-// way of the next sale. The browser dialog is only used when no LAN receipt printer is set.
+// dialog lists the cashier's own local/USB printers and interrupts every sale waiting on it,
+// which is worse than a rare failed LAN print. The browser dialog is only used when no LAN
+// receipt printer is set.
+// Resolves once the receipt has actually been handed off to the printer, so the caller can
+// hold the kitchen tickets back until then and keep the money bill first on the roll.
 function printReceiptAuto() {
   var rp = window.POS_RECEIPT_PRINTER;
   if (rp && rp.printer_type === 'ip') {
-    printReceiptLan();
-    return;
+    return printReceiptLan();
   }
   printReceipt();
+  return Promise.resolve(true);
 }
 
 // ============================
@@ -1157,21 +1264,24 @@ function printReceipt() {
     <style>
       @page { size: 80mm auto; margin: 0mm; }
       * { box-sizing: border-box; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif !important; color: #000 !important; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-      html, body { width: 80mm; margin: 0 auto; padding: 8px 6px; background: #fff; color: #000 !important; font-size: 13px; font-weight: 600; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      html, body { width: 80mm; margin: 0 auto; padding: 8px 6px; background: #fff; color: #000 !important; font-size: 15px; font-weight: 600; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      /* No Bootstrap in this iframe — without this, headings keep the browser's default
+         ~2.33em top margin and push the shop name far below the logo. */
+      h1,h2,h3,h4,h5,h6 { margin: 0 !important; } h6 { font-size: 18px !important; }
       .text-center { text-align: center !important; } .text-right { text-align: right !important; }
       .font-weight-bold { font-weight: 700 !important; color: #000 !important; }
-      .small { font-size: 11.5px !important; color: #000 !important; font-weight: 600 !important; }
+      .small { font-size: 12.5px !important; color: #000 !important; font-weight: 600 !important; }
       .d-flex { display: flex; } .justify-content-between { justify-content: space-between; }
       [style*="display: none"], [style*="display:none"], .d-none { display: none !important; }
       .mb-0{margin-bottom:0!important}.mb-1{margin-bottom:4px!important}.mb-2{margin-bottom:8px!important}
       .mt-2{margin-top:8px!important}
       .text-muted { color: #000 !important; font-weight: 600 !important; }
-      .receipt-header-address, .receipt-header-tel { font-size: 12px !important; font-weight: 600 !important; color: #000 !important; line-height: 1.4 !important; }
-      .receipt-footer-msg { font-size: 12.5px !important; font-weight: 700 !important; color: #000 !important; border-top: 1px dashed #000 !important; margin-top: 10px !important; padding-top: 8px !important; text-align: center !important; }
-      img.receipt-logo { max-width:80px!important; max-height:80px!important; height:auto!important; display:block!important; margin:10px auto 2px auto!important; object-fit:contain!important; }
+      .receipt-header-address, .receipt-header-tel { font-size: 13px !important; font-weight: 600 !important; color: #000 !important; line-height: 1.4 !important; }
+      .receipt-footer-msg { font-size: 13.5px !important; font-weight: 700 !important; color: #000 !important; border-top: 1px dashed #000 !important; margin-top: 10px !important; padding-top: 8px !important; text-align: center !important; }
+      img.receipt-logo { max-width:80px!important; max-height:80px!important; height:auto!important; display:block!important; margin:2px auto 2px auto!important; object-fit:contain!important; }
       img.receipt-qr-img { max-width:130px!important; max-height:130px!important; height:auto!important; display:block!important; margin:6px auto 2px auto!important; object-fit:contain!important; image-rendering:-webkit-optimize-contrast; image-rendering:crisp-edges; image-rendering:pixelated; }
-      table { width:100%; border-collapse:collapse; margin:4px 0; font-size:11.5px; color: #000 !important; }
-      td,th { padding:3px 0; vertical-align:top; color: #000 !important; font-weight: 600 !important; }
+      table { width:100%; border-collapse:collapse; margin:4px 0; font-size:17px; color: #000 !important; }
+      td,th { padding:4px 0; vertical-align:top; color: #000 !important; font-weight: 600 !important; }
       th { font-weight: 700 !important; }
       @media print {
         html,body { width:100%; margin:0; padding:2mm; color: #000 !important; }

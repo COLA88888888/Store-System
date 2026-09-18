@@ -1298,6 +1298,39 @@ if (!function_exists('hasPermission')) {
     }
 }
 
+// The system owner is user Id 1. A plain admin still has full module access, but only the
+// owner may act on ANOTHER admin's account — edit or delete their row in Users Management and
+// change their permissions — and only the owner sees the access-expiry column there.
+if (!function_exists('isOwnerUser')) {
+    function isOwnerUser() {
+        return intval($_SESSION['user_id'] ?? 0) === 1;
+    }
+}
+
+// Whether the TARGET account (not the logged-in one) counts as an admin, by the same rule used
+// everywhere else: Id 1, or a status of admin / super admin / ຜູ້ບໍລິຫານ. Callers use it as
+// `!isOwnerUser() && isAdminAccount(...)` to deny, so a failed lookup answers "yes, admin" —
+// denying the action is the safe way to be wrong here.
+if (!function_exists('isAdminAccount')) {
+    function isAdminAccount($pdo, $userId) {
+        $userId = intval($userId);
+        if ($userId <= 0) return false;
+        if ($userId === 1) return true;
+        try {
+            $stmt = $pdo->prepare("SELECT * FROM tbuser WHERE Id = ? LIMIT 1");
+            $stmt->execute([$userId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return true;
+        }
+        if (!$row) return false;
+        $status = trim((string)($row['status'] ?? $row['userstatus'] ?? ''));
+        return $status === 'ຜູ້ບໍລິຫານ'
+            || strtolower($status) === 'admin'
+            || strtolower($status) === 'super admin';
+    }
+}
+
 if (!function_exists('getPermissionLimit')) {
     function getPermissionLimit($module) {
         return 0; // Visibility limit feature removed, always return 0 (no limit)

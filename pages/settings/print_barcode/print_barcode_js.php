@@ -174,8 +174,25 @@ function togglePageBlockSelect(pId, isChecked) {
 }
 
 function selectAllPageProducts(isSelected) {
+  // Only touch products that currently match the category filter + search box —
+  // "select all" should mean "select all of what I'm looking at", not every product in the shop.
+  var searchVal = ($('#pageBarcodeSearch').val() || '').toLowerCase().trim();
+  var catFilter = $('#pageCategoryFilter').val();
+
   ALL_PRODUCTS_PAGE.forEach(function(p) {
     var pId = p.product_id;
+    var pCatId = String(p.category_id || '');
+    if (catFilter !== '' && pCatId !== String(catFilter)) return;
+
+    if (searchVal !== '') {
+      var pName    = (p.product_name || '').toLowerCase();
+      var pBarcode = (p.barcode && p.barcode.trim() !== '') ? p.barcode.trim().toLowerCase() : String(pId);
+      var matchName = pName.includes(searchVal);
+      var matchBar  = pBarcode.includes(searchVal);
+      var matchId   = String(pId).includes(searchVal);
+      if (!matchName && !matchBar && !matchId) return;
+    }
+
     if (!pageBarcodeState[pId]) pageBarcodeState[pId] = { selected: false, copies: 1 };
     pageBarcodeState[pId].selected = isSelected;
   });
@@ -275,11 +292,11 @@ var BARCODE_SIZE_CONFIGS = {
   },
   '105x25_3up': {
     pageCss: '@page { size: 105mm 25mm; margin: 0; }',
-    pageBoxCss: 'width: 105mm; height: 25mm;',
-    labelCss: 'padding: 0.5mm 1mm; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;',
-    shopTitleCss: 'font-size: 8px; font-weight: bold; line-height: 1; max-width: 32mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
-    prodTitleCss: 'font-size: 9.5px; font-weight: bold; line-height: 1.05; max-width: 32mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
-    priceTitleCss: 'font-size: 11px; font-weight: 800; line-height: 1; max-width: 32mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center;',
+    pageBoxCss: 'width: 32mm; height: 24.5mm;',
+    labelCss: 'width: 32mm; height: 24.5mm; padding: 1.5mm 0.5mm 0.5mm 0.5mm; box-sizing: border-box; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;',
+    shopTitleCss: 'font-size: 7px; font-weight: bold; line-height: 1; max-width: 31mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.5px 0; text-align: center;',
+    prodTitleCss: 'font-size: 8px; font-weight: bold; line-height: 1.1; max-width: 31mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.5px 0; text-align: center;',
+    priceTitleCss: 'font-size: 8.5px; font-weight: 800; line-height: 1; max-width: 31mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0.5px 0 0 0; text-align: center;',
     maxBarcodeMm: 31,
     mode: '3up_roll'
   },
@@ -360,12 +377,23 @@ function executePageBarcodePrint() {
   var cfg = BARCODE_SIZE_CONFIGS[size] || BARCODE_SIZE_CONFIGS['40x30_vert'];
   var basePath = '<?php echo $base_path; ?>';
 
+  // Clamp the barcode to what actually fits this label format — the width/height fields above
+  // are shared across every sticker size, and their default (36mm) is wider than a 3-up cell
+  // (~31mm), which overflowed the cell and got clipped by the printer.
+  if (cfg.maxBarcodeMm && barcodeWidthMm > cfg.maxBarcodeMm) {
+    barcodeWidthMm = cfg.maxBarcodeMm;
+  }
+
   // ຄວາມສູງໜ້າຕ້ອງເທົ່າກັບ "ໄລຍະຕໍ່ 1 ດວງ" ຂອງມ້ວນແທ້ (ສະຕິກເກີ + ຮ່ອງ) ບໍ່ດັ່ງນັ້ນທຸກໆດວງ
   // ຈະຄາດເຄື່ອນສະສົມໄປເລື່ອຍໆ. ສ່ວນເນື້ອຫາຍັງຕ້ອງຈັດເຄິ່ງກາງໃນ "ເນື້ອທີ່ສະຕິກເກີ" ເທົ່ານັ້ນ
   // (ຮ່ອງທີ່ເຫຼືອປະໄວ້ຫວ່າງ) — ຖ້າຈັດເຄິ່ງກາງທັງໜ້າ ເນື້ອຫາຈະຕ່ຳໄປເຄິ່ງໜຶ່ງຂອງຮ່ອງ.
   var labelPitchMm = parseFloat($('#label_pitch_mm').val());
   var sizeMatch = /size:\s*([\d.]+)mm\s+([\d.]+)mm/.exec(cfg.pageCss || '');
-  if (!isNaN(labelPitchMm) && labelPitchMm > 0 && sizeMatch) {
+  // Label pitch only makes sense for a single-column roll (one sticker per physical page).
+  // The 3-up layout prints 3 stickers per row inside a fixed 105x25mm page — its row-container
+  // CSS is a fixed grid, not a per-label page, so overriding the page height here (defaults to
+  // 30mm) desyncs @page from the hardcoded 25mm row-container and breaks the print.
+  if (cfg.mode === 'single_roll' && !isNaN(labelPitchMm) && labelPitchMm > 0 && sizeMatch) {
     var stickerHeightMm = parseFloat(sizeMatch[2]);
     cfg = Object.assign({}, cfg);
     cfg.pageCss = '@page { size: ' + sizeMatch[1] + 'mm ' + labelPitchMm + 'mm; margin: 0; }';
@@ -390,7 +418,10 @@ function executePageBarcodePrint() {
     printDoc += '.label-page:last-child { page-break-after: auto !important; break-after: auto !important; } ';
     printDoc += '.barcode-label { ' + cfg.labelCss + ' } ';
   } else if (cfg.mode === '3up_roll') {
-    printDoc += '.row-container { display: grid; grid-template-columns: repeat(3, 1fr); width: 105mm; height: 25mm; gap: 2mm; padding: 0.5mm; box-sizing: border-box; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; } ';
+    // Each row of 3 is its own explicit block with page-break-after — letting the browser
+    // auto-paginate one continuous multi-row grid across print pages is unreliable in Chrome
+    // (rows can end up isolated on their own page with the rest blank).
+    printDoc += '.row-container { display: grid; grid-template-columns: 32mm 32mm 32mm; justify-content: space-between; width: 105mm; padding: 0 1.5mm; box-sizing: border-box; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; } ';
     printDoc += '.row-container:last-child { page-break-after: auto !important; break-after: auto !important; } ';
     printDoc += '.barcode-label { ' + cfg.labelCss + ' } ';
   } else {
@@ -442,9 +473,9 @@ function executePageBarcodePrint() {
   if (cfg.mode === '3up_roll') {
     for (var k = 0; k < allStickerElements.length; k += 3) {
       printDoc += '<div class="row-container">';
-      printDoc += allStickerElements[k] || '<div class="barcode-label" style="visibility:hidden;"></div>';
-      printDoc += allStickerElements[k + 1] || '<div class="barcode-label" style="visibility:hidden;"></div>';
-      printDoc += allStickerElements[k + 2] || '<div class="barcode-label" style="visibility:hidden;"></div>';
+      printDoc += allStickerElements[k] || '';
+      printDoc += allStickerElements[k + 1] || '';
+      printDoc += allStickerElements[k + 2] || '';
       printDoc += '</div>';
     }
   } else if (cfg.mode === 'grid_a4') {

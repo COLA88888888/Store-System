@@ -353,7 +353,7 @@ try {
 // user can still edit qty/price/discount per line after picking.
 $productsLookup = [];
 try {
-    $prodStmt = $pdo->prepare("SELECT product_id, product_name, barcode, code1, price, unit, category_id FROM products WHERE store_id = ? ORDER BY product_name ASC");
+    $prodStmt = $pdo->prepare("SELECT product_id, product_name, barcode, code1, price, unit, category_id, qty, cut_qty FROM products WHERE store_id = ? ORDER BY product_name ASC");
     $prodStmt->execute([$activeStoreId]);
     foreach ($prodStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $productsLookup[] = [
@@ -364,6 +364,8 @@ try {
             'category_id' => (int)($row['category_id'] ?? 0),
             'price'       => (float)$row['price'],
             'unit'        => (string)($row['unit'] ?? ''),
+            'qty'         => (float)($row['qty'] ?? 0),
+            'cut_qty'     => (int)($row['cut_qty'] ?? 1),
         ];
     }
 } catch (Throwable $e) {}

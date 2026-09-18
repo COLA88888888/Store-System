@@ -21,10 +21,14 @@ html, body, *,
   font-family: "Font Awesome 5 Brands" !important;
 }
 
-/* Fallback local font-face mapping for offline environments */
+/* Fallback local font-face mapping for offline environments. This has to be the real Noto
+   Sans Lao, not the Looped variant (a visibly different typeface) — kitchen/counter tickets
+   load this family FIRST regardless of network status (see LAN_TICKET_FONT in
+   pos_checkout_js.php), so pointing it at Looped here made every kitchen ticket print in the
+   wrong font even when online. */
 @font-face {
   font-family: 'Noto Sans Lao Local';
-  src: url('../fonts/NotoSansLaoLooped-Regular.ttf') format('truetype');
+  src: url('../fonts/NotoSansLao-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -32,7 +36,7 @@ html, body, *,
 
 @font-face {
   font-family: 'Noto Sans Lao Local';
-  src: url('../fonts/NotoSansLaoLooped-Bold.ttf') format('truetype');
+  src: url('../fonts/NotoSansLao-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;

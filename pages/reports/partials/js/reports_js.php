@@ -215,8 +215,8 @@ function printBill(billNo) {
 
         if (isNaN(bVatAmt) || (bVatAmt === 0 && bVatRate > 0 && bTaxType !== 'none')) {
           var amtAfterDisc = Math.max(0, subtotal - discount);
-          if (bTaxType === 'exclusive' && bVatRate > 0) {
-            bVatAmt = Math.round(amtAfterDisc * (bVatRate / 100));
+          if (bTaxType === 'exclusive' && bVatRate > 0 && bVatRate < 100) {
+            bVatAmt = Math.round(amtAfterDisc * (bVatRate / (100 - bVatRate)));
           } else if (bTaxType === 'inclusive' && bVatRate > 0) {
             bVatAmt = Math.round(amtAfterDisc - (amtAfterDisc / (1 + (bVatRate / 100))));
           } else {

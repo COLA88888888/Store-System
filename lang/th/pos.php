@@ -152,6 +152,7 @@ return [
     'pos.lan_print_not_lan' => 'เครื่องพิมพ์นี้ปิดใช้งานหรือไม่ได้ตั้งเป็น Network LAN',
     'pos.lan_print_bad_ip' => 'IP Address ของเครื่องพิมพ์ไม่ถูกต้อง',
     'pos.lan_print_bad_request' => 'ข้อมูลการพิมพ์ไม่ถูกต้อง',
+    'pos.lan_print_no_gd' => 'เซิร์ฟเวอร์ไม่ได้เปิดใช้งาน GD extension — พิมพ์ผ่าน LAN ไม่ได้',
 
     // Receipt / checkout / delete-bill JS strings
     'pos.receipt_vat_exclusive' => 'ภาษีมูลค่าเพิ่ม (%s):',

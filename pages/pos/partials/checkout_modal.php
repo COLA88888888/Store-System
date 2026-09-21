@@ -314,10 +314,10 @@
         <h6 class="modal-title font-weight-bold"><i class="fas fa-receipt mr-1"></i> <?php echo htmlspecialchars(t('pos.receipt_success_title', 'ໃບບິນຮັບເງິນສຳເລັດ')); ?></h6>
         <button type="button" class="close text-white" onclick="resetPOS()"><span>&times;</span></button>
       </div>
-      <div class="modal-body p-3" id="receiptPrintArea" style="font-family:'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif;font-size:13px;font-weight:600;line-height:1.5;color:#000;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;">
+      <div class="modal-body p-3" id="receiptPrintArea" style="font-family:'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif;font-size:17px;font-weight:600;line-height:1.5;color:#000;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;">
         <div class="text-center mb-2">
           <!-- Queue number (coffee-shop style) — "ຄິວທີ N" on one line, above the logo. Shown only when enabled. -->
-          <div id="rc_queue_wrap" style="display:none;margin:2px 0 8px;font-size:26px;font-weight:900;line-height:1.15;color:#000;">
+          <div id="rc_queue_wrap" style="display:none;margin:2px 0 8px;font-size:34px;font-weight:900;line-height:1.15;color:#000;">
             <?php echo htmlspecialchars(t('pos.receipt_queue_label', 'ບັດຄິວທີ')); ?> <span id="rc_queue_no">-</span>
           </div>
           <?php
@@ -327,9 +327,9 @@
           <img src="<?php echo htmlspecialchars($logoPath); ?>" alt="Logo" class="receipt-logo"
             style="max-width:80px;height:auto;max-height:80px;object-fit:contain;margin:10px auto 2px auto;display:block;"
             onerror="this.onerror=null;this.src='<?php echo $base_path; ?>assets/img/logo/logo.png';">
-          <h6 class="font-weight-bold mb-0" style="font-size:15px;color:#000;font-weight:700;"><?php echo htmlspecialchars($company['com_name_la']); ?></h6>
-          <div class="receipt-header-address" style="font-size:12px;font-weight:600;color:#000;line-height:1.4;margin-top:2px;"><?php echo htmlspecialchars($company['com_address']); ?></div>
-          <div class="receipt-header-tel" style="font-size:12px;font-weight:600;color:#000;line-height:1.4;"><?php echo htmlspecialchars(t('pos.receipt_tel', 'ໂທ:')); ?> <?php echo htmlspecialchars($company['com_tel']); ?></div>
+          <h6 class="font-weight-bold mb-0" style="font-size:20px;color:#000;font-weight:700;"><?php echo htmlspecialchars($company['com_name_la']); ?></h6>
+          <div class="receipt-header-address" style="font-size:15px;font-weight:600;color:#000;line-height:1.4;margin-top:2px;"><?php echo htmlspecialchars($company['com_address']); ?></div>
+          <div class="receipt-header-tel" style="font-size:15px;font-weight:600;color:#000;line-height:1.4;"><?php echo htmlspecialchars(t('pos.receipt_tel', 'ໂທ:')); ?> <?php echo htmlspecialchars($company['com_tel']); ?></div>
         </div>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
         <?php
@@ -344,7 +344,7 @@
         <div class="d-flex justify-content-between" style="color:#000;font-weight:600;"><span><?php echo htmlspecialchars(t('pos.receipt_customer', 'ລູກຄ້າ:')); ?></span><span id="rc_customer"><?php echo htmlspecialchars(t('pos.customer_default', 'ລູກຄ້າທົ່ວໄປ')); ?></span></div>
         <div class="d-flex justify-content-between" id="rc_customer_phone_row" style="color:#000;font-weight:600;display:none;"><span><?php echo htmlspecialchars(t('pos.receipt_customer_phone', 'ເບີໂທ:')); ?></span><span id="rc_customer_phone">-</span></div>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-        <table style="width:100%;font-size:11.5px;color:#000;">
+        <table style="width:100%;font-size:15px;color:#000;">
           <thead>
             <tr style="border-bottom:1px dashed #000;">
               <th style="text-align:left;padding-bottom:3px;font-weight:700;color:#000;"><?php echo htmlspecialchars(t('pos.receipt_col_item', 'ລາຍການ')); ?></th>
@@ -363,9 +363,9 @@
         <div class="d-flex justify-content-between" style="color:#000;font-weight:600;"><span><?php echo htmlspecialchars(t('pos.total_label', 'ລວມ:')); ?></span><span id="rc_subtotal">0 ₭</span></div>
         <div class="d-flex justify-content-between" style="color:#000;font-weight:600;"><span><?php echo htmlspecialchars(t('pos.receipt_discount', 'ສ່ວນຫຼຸດ:')); ?></span><span id="rc_discount">0 ₭</span></div>
         <div class="d-flex justify-content-between" id="rc_vat_row" style="color:#000;font-weight:600;display:none;"><span id="rc_vat_label"><?php echo htmlspecialchars(t('pos.receipt_vat', 'ອມພ (VAT):')); ?></span><span id="rc_vat">0 ₭</span></div>
-        <div class="d-flex justify-content-between font-weight-bold" style="font-size:13.5px;color:#000;font-weight:700;"><span><?php echo htmlspecialchars(t('pos.receipt_net_total', 'ຍອດສຸດທິ:')); ?></span><span id="rc_total">0 ₭</span></div>
+        <div class="d-flex justify-content-between font-weight-bold" style="font-size:19px;color:#000;font-weight:700;"><span><?php echo htmlspecialchars(t('pos.receipt_net_total', 'ຍອດສຸດທິ:')); ?></span><span id="rc_total">0 ₭</span></div>
         <!-- ຍອດຊຳລະສຸດທິ ໃນ 4 ສະກຸນເງິນ (ຄິດຈາກກີບ × ອັດຕາລ່າສຸດ) -->
-        <div id="rc_multicur" style="color:#000;font-weight:600;font-size:11.5px;margin-top:2px;border-top:1px dotted #000;padding-top:3px;">
+        <div id="rc_multicur" style="color:#000;font-weight:600;font-size:14.5px;margin-top:4px;border-top:1px dotted #000;padding-top:4px;">
           <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cur_kip', 'ກີບ (LAK):')); ?></span><span id="rc_total_kip">0 ₭</span></div>
           <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cur_thb', 'ບາດ (THB):')); ?></span><span id="rc_total_thb">-</span></div>
           <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cur_usd', 'ໂດລາ (USD):')); ?></span><span id="rc_total_usd">-</span></div>
@@ -383,7 +383,7 @@
           <img id="rc_bank_qr_img" src="<?php echo htmlspecialchars($storeQrPath); ?>" alt="QR Code" class="receipt-qr-img"
                style="max-width:130px;max-height:130px;width:130px;height:auto;object-fit:contain;margin:4px auto 2px auto;display:block;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;image-rendering:pixelated;"
                onerror="this.onerror=null;this.src='<?php echo $base_path; ?>assets/img/qr_placeholder.png';">
-          <div id="rc_bank_name_lbl" style="font-size:12.5px;font-weight:800;color:#000;margin-top:3px;"><?php echo htmlspecialchars(t('pos.scan_qr_to_pay', 'ສະແກນ QR Code ຊຳລະເງິນ')); ?></div>
+          <div id="rc_bank_name_lbl" style="font-size:15px;font-weight:800;color:#000;margin-top:3px;"><?php echo htmlspecialchars(t('pos.scan_qr_to_pay', 'ສະແກນ QR Code ຊຳລະເງິນ')); ?></div>
         </div>
         <?php
           // The "receipt footer" (tbcompanyinfo.barcode) is seeded with the default thank-you
@@ -400,12 +400,12 @@
             ? t('pos.receipt_thank_you', 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!')
             : $footerRaw;
         ?>
-        <div class="text-center receipt-footer-msg" style="margin-top:10px !important; padding-top:8px; border-top:1px dashed #000; font-size:12.5px; font-weight:700; color:#000; text-align:center;"><?php echo htmlspecialchars($footerMsg); ?></div>
+        <div class="text-center receipt-footer-msg" style="margin-top:10px !important; padding-top:8px; border-top:1px dashed #000; font-size:15px; font-weight:700; color:#000; text-align:center;"><?php echo htmlspecialchars($footerMsg); ?></div>
       </div>
       <div class="modal-footer border-0 p-3 bg-light">
         <button type="button" class="btn btn-secondary btn-sm font-weight-bold" onclick="resetPOS()"><?php echo htmlspecialchars(t('pos.close', 'ປິດ')); ?></button>
         <button type="button" class="btn btn-outline-primary btn-sm font-weight-bold px-3" onclick="printDeliveryNote()"><i class="fas fa-truck mr-1"></i> <?php echo htmlspecialchars(t('pos.delivery_note', 'ບິນສົ່ງເຄື່ອງ')); ?></button>
-        <button type="button" class="btn btn-primary btn-sm font-weight-bold px-3" onclick="printReceipt()"><i class="fas fa-print mr-1"></i> <?php echo htmlspecialchars(t('pos.print_receipt', 'ພິມໃບບິນ')); ?></button>
+        <button type="button" class="btn btn-primary btn-sm font-weight-bold px-3" onclick="printReceiptAuto()"><i class="fas fa-print mr-1"></i> <?php echo htmlspecialchars(t('pos.print_receipt', 'ພິມໃບບິນ')); ?></button>
       </div>
     </div>
   </div>

@@ -119,10 +119,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $message = t('printers.msg_delete_success', 'ລົບເຄື່ອງພິມສຳເລັດ!');
             $message_type = 'success';
         }
+    } elseif ($action === 'set_print_mode') {
+        // direct = this server sits on the shop LAN and can reach printer IPs itself.
+        // agent  = the server is hosted off-site, so LAN print jobs queue in print_jobs for
+        //          the shop's own print agent (tools/print-agent.php, running on a shop PC
+        //          that IS on that LAN) to collect and print.
+        $mode = ($_POST['print_mode'] ?? 'direct') === 'agent' ? 'agent' : 'direct';
+        try {
+            $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('print_mode', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")
+                ->execute([$mode]);
+            $message = t('printers.msg_mode_saved', 'ບັນທຶກຮູບແບບການພິມແລ້ວ!');
+            $message_type = 'success';
+        } catch (Throwable $e) {
+            $message = sprintf(t('printers.msg_error', 'ຜິດພາດ: %s'), $e->getMessage());
+            $message_type = 'danger';
+        }
+    } elseif ($action === 'regen_agent_token') {
+        try {
+            $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('print_agent_token', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")
+                ->execute([bin2hex(random_bytes(24))]);
+            $message = t('printers.msg_token_new', 'ສ້າງລະຫັດຕົວແທນພິມໃໝ່ແລ້ວ! ຢ່າລືມອັບເດດໃສ່ຄອມຮ້ານ.');
+            $message_type = 'success';
+        } catch (Throwable $e) {
+            $message = sprintf(t('printers.msg_error', 'ຜິດພາດ: %s'), $e->getMessage());
+            $message_type = 'danger';
+        }
     }
 }
 
 $printers = $pdo->query("SELECT * FROM tbl_printer ORDER BY id ASC")->fetchAll();
+$printMode = getSetting($pdo, 'print_mode', 'direct') === 'agent' ? 'agent' : 'direct';
+$printAgentToken = trim((string)getSetting($pdo, 'print_agent_token', ''));
+// The agent can't authenticate without one, so mint it on first view rather than making
+// the shop hunt for a button.
+if ($printAgentToken === '') {
+    try {
+        $printAgentToken = bin2hex(random_bytes(24));
+        $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('print_agent_token', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")
+            ->execute([$printAgentToken]);
+    } catch (Throwable $e) { $printAgentToken = ''; }
+}
+$pendingPrintJobs = 0;
+try {
+    $pendingPrintJobs = (int)$pdo->query("SELECT COUNT(*) FROM print_jobs WHERE status = 'pending'")->fetchColumn();
+} catch (Throwable $e) {}
 
 require_once __DIR__ . '/../../../layouts/header.php';
 ?>
@@ -163,6 +203,45 @@ require_once __DIR__ . '/../../../layouts/header.php';
     <i class="fas fa-info-circle text-primary mr-2 mt-1"></i>
     <div><?php echo htmlspecialchars(t('printers.receipt_hint', 'ໝາຍເຫດ: ຖ້າຕັ້ງເຄື່ອງພິມໃບບິນຫຼັກໄວ້ (ໄອຄອນໃບບິນສີຂຽວ), ໃບບິນລູກຄ້າຈະພິມຜ່ານ LAN ໂດຍກົງ ບໍ່ຂຶ້ນປັອບອັບພິມຂອງບຣາວເຊີ. ຖ້າບໍ່ຕັ້ງ, ໃບບິນຈະພິມຜ່ານບຣາວເຊີຄືເກົ່າ.')); ?></div>
   </div>
+
+  <?php if (hasPermission('printers', 'edit')): ?>
+  <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; border: 1.5px solid #e2e8f0; background: #ffffff;">
+    <div class="card-header bg-white py-3 px-4 border-bottom">
+      <h6 class="m-0 font-weight-bold text-dark"><i class="fas fa-server mr-2 text-primary"></i> <?php echo htmlspecialchars(t('printers.mode_title', 'ຮູບແບບການພິມ')); ?></h6>
+    </div>
+    <div class="card-body px-4 py-3">
+      <form action="" method="POST" class="form-inline mb-2">
+        <input type="hidden" name="action" value="set_print_mode">
+        <select name="print_mode" class="form-control mr-2" style="height: 42px; min-width: 320px;">
+          <option value="direct" <?php echo $printMode === 'direct' ? 'selected' : ''; ?>>
+            <?php echo htmlspecialchars(t('printers.mode_direct', 'ພິມໂດຍກົງ — ລະບົບແລ່ນຢູ່ຄອມໃນຮ້ານ')); ?>
+          </option>
+          <option value="agent" <?php echo $printMode === 'agent' ? 'selected' : ''; ?>>
+            <?php echo htmlspecialchars(t('printers.mode_agent', 'ຜ່ານຕົວແທນພິມ — ລະບົບຢູ່ເຊີບເວີນອກ')); ?>
+          </option>
+        </select>
+        <button type="submit" class="btn btn-primary font-weight-bold px-3" style="height: 42px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;"><?php echo htmlspecialchars(t('printers.btn_save', 'ບັນທຶກ')); ?></button>
+      </form>
+      <small class="text-muted d-block"><?php echo htmlspecialchars(t('printers.mode_hint', 'ເຊີບເວີນອກຮ້ານຕໍ່ຫາປິ່ນເຕີ 192.168.x.x ບໍ່ໄດ້ — ກໍລະນີນັ້ນຕ້ອງໃຊ້ຕົວແທນພິມ')); ?></small>
+
+      <?php // Shown in both modes on purpose: the token has to be copied into the shop PC
+            // BEFORE the agent can work, and hiding it until agent mode is picked sends people
+            // hunting for something that isn't on screen yet. ?>
+      <hr>
+        <div class="mb-2">
+          <span class="font-weight-bold text-dark small"><?php echo htmlspecialchars(t('printers.agent_token', 'ລະຫັດຕົວແທນພິມ (ໃສ່ໃນ tools/print-agent.bat):')); ?></span>
+          <code class="d-block mt-1 p-2" style="background:#f1f5f9; border-radius:6px; word-break:break-all; font-size:0.85rem;"><?php echo htmlspecialchars($printAgentToken); ?></code>
+        </div>
+        <form action="" method="POST" style="display:inline;" onsubmit="return confirm('<?php echo htmlspecialchars(t('printers.agent_token_confirm', 'ສ້າງລະຫັດໃໝ່? ຕົວແທນພິມເກົ່າຈະໃຊ້ບໍ່ໄດ້ຈົນກວ່າຈະອັບເດດລະຫັດ.'), ENT_QUOTES); ?>');">
+          <input type="hidden" name="action" value="regen_agent_token">
+          <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="fas fa-sync-alt mr-1"></i><?php echo htmlspecialchars(t('printers.agent_token_new', 'ສ້າງລະຫັດໃໝ່')); ?></button>
+        </form>
+        <span class="badge <?php echo $pendingPrintJobs > 0 ? 'badge-warning' : 'badge-light border text-muted'; ?> ml-2 px-2 py-1">
+          <?php echo htmlspecialchars(t('printers.agent_pending', 'ງານພິມຄ້າງ')); ?>: <?php echo $pendingPrintJobs; ?>
+        </span>
+    </div>
+  </div>
+  <?php endif; ?>
 
   <div class="card border-0 shadow-sm" style="border-radius: 12px; border: 1.5px solid #e2e8f0; background: #ffffff;">
     <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">

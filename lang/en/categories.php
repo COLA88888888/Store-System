@@ -64,6 +64,14 @@ return [
     'categories.label_printer' => 'Kitchen ticket printer',
     'categories.printer_none' => '— No kitchen ticket —',
 
+    // Bulk-set printer modal
+    'categories.btn_bulk_printer' => 'Set printer for all',
+    'categories.bulk_printer_title' => 'Set Printer for All Categories',
+    'categories.bulk_printer_hint' => 'Pick a printer and confirm — every category in this branch will be set to print its kitchen ticket on this printer (overwrites the current setting).',
+    'categories.bulk_printer_confirm_title' => 'Set printer for all categories?',
+    'categories.bulk_printer_confirm_body' => 'This will overwrite the current printer of every category in this branch.',
+    'categories.btn_confirm' => 'Confirm',
+
     // Pagination
     'categories.page_showing' => 'Showing',
     'categories.page_of' => 'of',

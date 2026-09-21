@@ -3,7 +3,7 @@ session_start();
 $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
-if (empty($_SESSION['user_id']) || (!hasPermission('printers') && !hasPermission('setup'))) {
+if (empty($_SESSION['user_id']) || (!hasPermission('printers') && !hasPermission('setup') && ($_SESSION['status'] ?? '') !== 'ຜູ້ບໍລິຫານ')) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($name !== '') {
             try {
-                $stmt = $pdo->prepare("INSERT INTO tbl_printer (name, ip_address, type, status, branch_id) VALUES (?, ?, ?, 1, 1)");
+                $stmt = $pdo->prepare("INSERT INTO printer (name, ip_address, type, status, branch_id) VALUES (?, ?, ?, 1, 1)");
                 $stmt->execute([$name, $ip_address, $type]);
                 $message = 'ເພີ່ມເຄື່ອງພິມໃໝ່ສຳເລັດ!';
                 $message_type = 'success';
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($id > 0 && $name !== '') {
             try {
-                $stmt = $pdo->prepare("UPDATE tbl_printer SET name = ?, ip_address = ?, type = ? WHERE id = ?");
+                $stmt = $pdo->prepare("UPDATE printer SET name = ?, ip_address = ?, type = ? WHERE id = ?");
                 $stmt->execute([$name, $ip_address, $type, $id]);
                 $message = 'ອັບເດດຂໍ້ມູນເຄື່ອງພິມສຳເລັດແລ້ວ!';
                 $message_type = 'success';
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $id = intval($_POST['id'] ?? 0);
         $status = intval($_POST['status'] ?? 0);
         if ($id > 0) {
-            $stmt = $pdo->prepare("UPDATE tbl_printer SET status = ? WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE printer SET status = ? WHERE id = ?");
             $stmt->execute([$status, $id]);
             $message = 'ອັບເດດສະຖານະເຄື່ອງພິມສຳເລັດ!';
             $message_type = 'success';
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } elseif ($action === 'delete_printer') {
         $id = intval($_POST['id'] ?? 0);
         if ($id > 0) {
-            $stmt = $pdo->prepare("DELETE FROM tbl_printer WHERE id = ?");
+            $stmt = $pdo->prepare("DELETE FROM printer WHERE id = ?");
             $stmt->execute([$id]);
             $message = 'ລົບເຄື່ອງພິມສຳເລັດ!';
             $message_type = 'success';
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-$printers = $pdo->query("SELECT * FROM tbl_printer ORDER BY id ASC")->fetchAll();
+$printers = $pdo->query("SELECT * FROM printer ORDER BY id ASC")->fetchAll();
 
 require_once __DIR__ . '/../../../layouts/header.php';
 ?>
@@ -163,7 +163,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
                     <div class="btn-group btn-group-sm" role="group">
                       <?php if (hasPermission('printers', 'edit')): ?>
                         <button type="button" class="btn btn-outline-primary btn-sm px-2" title="ແກ້ໄຂ"
-                                onclick="editPrinter(<?php echo $pr['id']; ?>, '<?php echo htmlspecialchars(addslashes($pr['name'])); ?>', '<?php echo htmlspecialchars(addslashes($pr['type'])); ?>', '<?php echo htmlspecialchars(addslashes($pr['ip_address'] ?? '')); ?>')">
+                                onclick="editPrinter(<?php echo $pr['id']; ?>, '<?php echo htmlspecialchars(addslashes($pr['name'])); ?>', '<?php echo htmlspecialchars(addslashes($pr['type'])); ?>', '<?php echo htmlspecialchars(addslashes($pr['ip_address'] ?? '')); ?>', '<?php echo htmlspecialchars(addslashes($pr['windows_name'] ?? '')); ?>')">
                           <i class="fas fa-edit"></i>
                         </button>
                       <?php endif; ?>
@@ -219,6 +219,14 @@ require_once __DIR__ . '/../../../layouts/header.php';
               <input type="text" name="ip_address" class="form-control font-weight-bold text-primary" placeholder="192.168...." style="height: 42px;">
             </div>
           </div>
+          <div class="form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">ຊື່ເຄື່ອງພິມໃນ Windows (ຖ້າເປັນ USB ທີ່ແຊຣ໌ໄວ້):</label>
+            <div class="input-group">
+              <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-print text-muted"></i></span></div>
+              <input type="text" name="windows_name" class="form-control font-weight-bold text-primary" placeholder="Printer_Cashier" style="height: 42px;">
+            </div>
+            <small class="text-muted">ໃຊ້ສຳລັບພິມງຽບຜ່ານ USB (ຕ້ອງ Share ເຄື່ອງພິມໃນ Windows ກ່ອນ)</small>
+          </div>
         </div>
         <div class="modal-footer border-0 pb-4 px-4 pt-0">
           <button type="button" class="btn btn-light font-weight-bold px-3" data-dismiss="modal">ຍົກເລີກ</button>
@@ -261,6 +269,14 @@ require_once __DIR__ . '/../../../layouts/header.php';
               <input type="text" name="ip_address" id="edit_printer_ip" class="form-control font-weight-bold text-primary" placeholder="ເຊັ່ນ: 192.168.1.200" style="height: 42px;">
             </div>
           </div>
+          <div class="form-group mb-3">
+            <label class="font-weight-bold text-dark small mb-1">ຊື່ເຄື່ອງພິມໃນ Windows (ຖ້າເປັນ USB ທີ່ແຊຣ໌ໄວ້):</label>
+            <div class="input-group">
+              <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-print text-muted"></i></span></div>
+              <input type="text" name="windows_name" id="edit_printer_windows_name" class="form-control font-weight-bold text-primary" placeholder="Printer_Cashier" style="height: 42px;">
+            </div>
+            <small class="text-muted">ໃຊ້ສຳລັບພິມງຽບຜ່ານ USB (ຕ້ອງ Share ເຄື່ອງພິມໃນ Windows ກ່ອນ)</small>
+          </div>
         </div>
         <div class="modal-footer border-0 pb-4 px-4 pt-0">
           <button type="button" class="btn btn-light font-weight-bold px-3" data-dismiss="modal">ຍົກເລີກ</button>
@@ -272,11 +288,12 @@ require_once __DIR__ . '/../../../layouts/header.php';
 </div>
 
 <script>
-function editPrinter(id, name, type, ip) {
+function editPrinter(id, name, type, ip, windows_name) {
   document.getElementById('edit_printer_id').value = id;
   document.getElementById('edit_printer_name').value = name;
   document.getElementById('edit_printer_type').value = type;
   document.getElementById('edit_printer_ip').value = ip;
+  document.getElementById('edit_printer_windows_name').value = windows_name;
   $('#editPrinterModal').modal('show');
 }
 </script>

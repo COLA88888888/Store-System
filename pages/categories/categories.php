@@ -18,17 +18,24 @@ require_once __DIR__ . '/../../layouts/header.php';
   <section class="content-header py-3">
     <div class="container-fluid">
       <div class="row align-items-center">
-        <div class="col-sm-6">
+        <div class="col-12 col-sm-6 mb-2 mb-sm-0">
           <h5 class="m-0 font-weight-bold text-dark" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon'; font-size: 18px;">
             <i class="fas fa-th-list text-primary mr-2"></i> <?php echo htmlspecialchars(t('categories.page_title', 'ຈັດການປະເພດສິນຄ້າ')); ?>
           </h5>
         </div>
-        <div class="col-sm-6 text-right">
-          <?php if (hasPermission('categories', 'add')): ?>
-          <button type="button" class="btn btn-primary px-3 py-1 font-weight-bold shadow-sm" data-toggle="modal" data-target="#addCategoryModal" style="border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
-            <i class="fas fa-plus-circle mr-1"></i> <?php echo htmlspecialchars(t('categories.btn_add', 'ເພີ່ມປະເພດສິນຄ້າ')); ?>
-          </button>
-          <?php endif; ?>
+        <div class="col-12 col-sm-6 text-sm-right">
+          <div class="d-flex flex-wrap justify-content-sm-end" style="gap: 8px;">
+            <?php if (!empty($catPrinters) && hasPermission('categories', 'edit')): ?>
+            <button type="button" class="btn btn-outline-secondary px-3 py-1 font-weight-bold m-0" data-toggle="modal" data-target="#bulkPrinterModal" style="border-radius: 6px;">
+              <i class="fas fa-print mr-1"></i> <?php echo htmlspecialchars(t('categories.btn_bulk_printer', 'ຕັ້ງເຄື່ອງພິມທຸກໝວດ')); ?>
+            </button>
+            <?php endif; ?>
+            <?php if (hasPermission('categories', 'add')): ?>
+            <button type="button" class="btn btn-primary px-3 py-1 font-weight-bold shadow-sm m-0" data-toggle="modal" data-target="#addCategoryModal" style="border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
+              <i class="fas fa-plus-circle mr-1"></i> <?php echo htmlspecialchars(t('categories.btn_add', 'ເພີ່ມປະເພດສິນຄ້າ')); ?>
+            </button>
+            <?php endif; ?>
+          </div>
         </div>
       </div>
     </div>
@@ -209,6 +216,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 <?php
 require_once __DIR__ . '/components/form_add_category.php';
 require_once __DIR__ . '/components/form_edit_category.php';
+require_once __DIR__ . '/components/form_bulk_printer.php';
 ?>
 
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

@@ -48,6 +48,18 @@ return [
     'printers.test_fail' => 'ເຊື່ອມຕໍ່ເຄື່ອງພິມທີ່ %s ບໍ່ໄດ້: %s',
     'printers.test_not_lan' => 'ທົດສອບໄດ້ສະເພາະເຄື່ອງພິມ Network LAN ທີ່ມີ IP Address',
 
+    // Print agent (off-site server mode)
+    'printers.mode_title' => 'ຮູບແບບການພິມ',
+    'printers.mode_direct' => 'ພິມໂດຍກົງ — ລະບົບແລ່ນຢູ່ຄອມໃນຮ້ານ',
+    'printers.mode_agent' => 'ຜ່ານຕົວແທນພິມ — ລະບົບຢູ່ເຊີບເວີນອກ',
+    'printers.mode_hint' => 'ເຊີບເວີນອກຮ້ານຕໍ່ຫາປິ່ນເຕີ 192.168.x.x ບໍ່ໄດ້ — ກໍລະນີນັ້ນຕ້ອງໃຊ້ຕົວແທນພິມ',
+    'printers.agent_token' => 'ລະຫັດຕົວແທນພິມ (ໃສ່ໃນ tools/print-agent.bat):',
+    'printers.agent_token_confirm' => 'ສ້າງລະຫັດໃໝ່? ຕົວແທນພິມເກົ່າຈະໃຊ້ບໍ່ໄດ້ຈົນກວ່າຈະອັບເດດລະຫັດ.',
+    'printers.agent_token_new' => 'ສ້າງລະຫັດໃໝ່',
+    'printers.agent_pending' => 'ງານພິມຄ້າງ',
+    'printers.msg_mode_saved' => 'ບັນທຶກຮູບແບບການພິມແລ້ວ!',
+    'printers.msg_token_new' => 'ສ້າງລະຫັດຕົວແທນພິມໃໝ່ແລ້ວ! ຢ່າລືມອັບເດດໃສ່ຄອມຮ້ານ.',
+
     // LAN receipt printer designation
     'printers.receipt_badge' => 'ໃບບິນຫຼັກ',
     'printers.set_receipt' => 'ຕັ້ງເປັນເຄື່ອງພິມໃບບິນຫຼັກ',

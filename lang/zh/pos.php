@@ -152,6 +152,7 @@ return [
     'pos.lan_print_not_lan' => '该打印机已停用或未设置为网络 LAN。',
     'pos.lan_print_bad_ip' => '打印机 IP 地址无效。',
     'pos.lan_print_bad_request' => '打印数据无效。',
+    'pos.lan_print_no_gd' => '服务器未启用 GD 扩展 — 无法通过 LAN 打印。',
 
     // Receipt / checkout / delete-bill JS strings
     'pos.receipt_vat_exclusive' => '增值税 (%s)：',

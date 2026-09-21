@@ -64,6 +64,14 @@ return [
     'categories.label_printer' => 'ເຄື່ອງພິມໃບຍ່ອຍ (kitchen ticket)',
     'categories.printer_none' => '— ບໍ່ພິມໃບຍ່ອຍ —',
 
+    // Bulk-set printer modal
+    'categories.btn_bulk_printer' => 'ຕັ້ງເຄື່ອງພິມທຸກໝວດ',
+    'categories.bulk_printer_title' => 'ຕັ້ງເຄື່ອງພິມໃຫ້ທຸກໝວດໝູ່',
+    'categories.bulk_printer_hint' => 'ເລືອກເຄື່ອງພິມແລ້ວກົດຢືນຢັນ — ທຸກໝວດໝູ່ສິນຄ້າໃນສາຂານີ້ຈະຖືກຕັ້ງໃຫ້ພິມໃບຍ່ອຍໄປເຄື່ອງນີ້ໝົດ (ທັບຄ່າເກົ່າ).',
+    'categories.bulk_printer_confirm_title' => 'ຢືນຢັນຕັ້ງເຄື່ອງພິມທຸກໝວດ?',
+    'categories.bulk_printer_confirm_body' => 'ຈະທັບຄ່າເຄື່ອງພິມເດີມຂອງທຸກໝວດໝູ່ໃນສາຂານີ້ດ້ວຍຄ່າໃໝ່ນີ້.',
+    'categories.btn_confirm' => 'ຢືນຢັນ',
+
     // Pagination
     'categories.page_showing' => 'ສະແດງ',
     'categories.page_of' => 'ຈາກ',

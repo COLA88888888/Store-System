@@ -64,6 +64,14 @@ return [
     'categories.label_printer' => 'เครื่องพิมพ์ใบย่อย (ใบสั่งครัว)',
     'categories.printer_none' => '— ไม่พิมพ์ใบย่อย —',
 
+    // Bulk-set printer modal
+    'categories.btn_bulk_printer' => 'ตั้งเครื่องพิมพ์ทุกหมวด',
+    'categories.bulk_printer_title' => 'ตั้งเครื่องพิมพ์ให้ทุกหมวดหมู่',
+    'categories.bulk_printer_hint' => 'เลือกเครื่องพิมพ์แล้วกดยืนยัน — ทุกหมวดหมู่สินค้าในสาขานี้จะถูกตั้งให้พิมพ์ใบย่อยไปเครื่องนี้ทั้งหมด (ทับค่าเดิม)',
+    'categories.bulk_printer_confirm_title' => 'ยืนยันตั้งเครื่องพิมพ์ทุกหมวด?',
+    'categories.bulk_printer_confirm_body' => 'จะทับค่าเครื่องพิมพ์เดิมของทุกหมวดหมู่ในสาขานี้ด้วยค่าใหม่นี้',
+    'categories.btn_confirm' => 'ยืนยัน',
+
     // Pagination
     'categories.page_showing' => 'แสดง',
     'categories.page_of' => 'จาก',

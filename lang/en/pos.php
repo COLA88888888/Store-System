@@ -152,6 +152,7 @@ return [
     'pos.lan_print_not_lan' => 'This printer is disabled or not set to Network LAN.',
     'pos.lan_print_bad_ip' => 'The printer IP address is invalid.',
     'pos.lan_print_bad_request' => 'Invalid print data.',
+    'pos.lan_print_no_gd' => 'The server does not have the GD extension enabled — LAN printing is unavailable.',
 
     // Receipt / checkout / delete-bill JS strings
     'pos.receipt_vat_exclusive' => 'VAT (%s):',

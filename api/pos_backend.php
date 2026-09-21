@@ -54,6 +54,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_live_stocks') {
 // which printer fonts can't) and this relays it to the category's network printer.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'print_lan_ticket') {
     header('Content-Type: application/json');
+    // Wrapped end-to-end: any Throwable anywhere in this block (including one the inner
+    // try/catches below don't happen to cover) still comes back as JSON with file:line instead
+    // of a bare 500 — this block runs on hosts we don't have shell/log access to, so the
+    // response body has to be the diagnostic, not the server's own error log.
+    try {
     require_once __DIR__ . '/lan_printer.php';
     // Don't hold the session lock while waiting on the printer socket.
     session_write_close();
@@ -79,10 +84,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'print
         exit();
     }
 
-    $png   = base64_decode(substr($image, strlen($pngPrefix)), true);
-    $bytes = ($png !== false) ? escposRasterFromPng($png, lanPrinterDots($printer['paper_width'] ?? 80)) : null;
+    // GD renders the PNG-to-ESC/POS raster below — on some shared hosting it's disabled, which
+    // would otherwise fatal into a blank 500 (no JSON) instead of a message the cashier can see.
+    if (!extension_loaded('gd')) {
+        echo json_encode(['success' => false, 'message' => t('pos.lan_print_no_gd', 'ເຊີບເວີບໍ່ໄດ້ເປີດໃຊ້ GD extension — ພິມຜ່ານ LAN ບໍ່ໄດ້')], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+
+    $png = base64_decode(substr($image, strlen($pngPrefix)), true);
+    try {
+        $bytes = ($png !== false) ? escposRasterFromPng($png, lanPrinterDots($printer['paper_width'] ?? 80)) : null;
+    } catch (Throwable $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
     if ($bytes === null) {
         echo json_encode(['success' => false, 'message' => t('pos.lan_print_bad_request', 'ຂໍ້ມູນການພິມບໍ່ຖືກຕ້ອງ')], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
+
+    // Off-site server (Settings > Printers > print_mode = agent): this box can't open a socket
+    // to the shop's 192.168.x.x printer itself, so the finished ESC/POS bytes are parked in
+    // print_jobs for tools/print-agent.php — which DOES sit on that LAN — to collect and send.
+    if (getSetting($pdo, 'print_mode', 'direct') === 'agent') {
+        try {
+            $pdo->prepare("INSERT INTO print_jobs (printer_id, store_id, payload) VALUES (?, ?, ?)")
+                ->execute([$printerId, getActiveStoreId($pdo), base64_encode($bytes)]);
+            echo json_encode(['success' => true, 'queued' => true], JSON_UNESCAPED_UNICODE);
+        } catch (Throwable $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+        }
         exit();
     }
 
@@ -92,6 +123,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'print
         'message' => $ok ? '' : ($printer['name'] . ' (' . $addr[0] . ':' . $addr[1] . ') — ' . $err),
     ], JSON_UNESCAPED_UNICODE);
     exit();
+    } catch (Throwable $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => $e->getMessage() . ' @ ' . basename($e->getFile()) . ':' . $e->getLine(),
+        ], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
 }
 
 // 1. AJAX handler for Checkout
@@ -148,8 +186,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $vat_amount = 0.00;
         $net_total = $amount_after_discount;
 
-        if ($tax_type === 'exclusive' && $vat_percent > 0) {
-            $vat_amount = round($amount_after_discount * ($vat_percent / 100), 2);
+        if ($tax_type === 'exclusive' && $vat_percent > 0 && $vat_percent < 100) {
+            // The shop's listed price is the net amount and the rate% is the tax's share of the
+            // FINAL total (not of the net price) — e.g. a 75,000 item at 10% comes to 8,333.33
+            // tax / 83,333.33 total, not a flat 7,500 add-on.
+            $vat_amount = round($amount_after_discount * ($vat_percent / (100 - $vat_percent)), 2);
             $net_total = $amount_after_discount + $vat_amount;
         } elseif ($tax_type === 'inclusive' && $vat_percent > 0) {
             $vat_amount = round($amount_after_discount - ($amount_after_discount / (1 + ($vat_percent / 100))), 2);
@@ -664,6 +705,11 @@ $categories = $categoriesStmt->fetchAll();
 // 'ip' tickets go straight over the LAN; 'browser' tickets open a print dialog.
 $posKitchenRoutes = [];
 try {
+    // Off-site install (print_mode = agent): only the customer receipt should travel through
+    // the shop's print agent — kitchen tickets to a Network LAN printer stay off that queue.
+    // 'browser' tickets are unaffected either way; they print via the cashier's own browser,
+    // never through print_jobs.
+    $kitchenAgentMode = getSetting($pdo, 'print_mode', 'direct') === 'agent';
     $krStmt = $pdo->prepare("
         SELECT p.*, c.category_id, c.printer_id, p.name AS printer_name
         FROM categories c
@@ -672,10 +718,12 @@ try {
     ");
     $krStmt->execute([$activeStoreId]);
     foreach ($krStmt->fetchAll() as $kr) {
+        $krType = ($kr['type'] ?? '') === 'ip' ? 'ip' : 'browser';
+        if ($krType === 'ip' && $kitchenAgentMode) continue;
         $posKitchenRoutes[(string)$kr['category_id']] = [
             'printer_id'   => (int)$kr['printer_id'],
             'printer_name' => $kr['printer_name'],
-            'printer_type' => ($kr['type'] ?? '') === 'ip' ? 'ip' : 'browser',
+            'printer_type' => $krType,
             'paper_width'  => intval($kr['paper_width'] ?? 80) === 58 ? 58 : 80,
         ];
     }

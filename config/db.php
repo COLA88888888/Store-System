@@ -192,7 +192,8 @@ if ($pdo) {
     // Bump the version suffix whenever a new guarded ALTER is added below so every install re-runs the block once.
     // v2: paid_currency / paid_rate / paid_amount_foreign on tbsale_save + sales (multi-currency receipts).
     // v5: tbl_printer created here (it only existed in old dumps) + paper_width for LAN kitchen tickets.
-    $schemaFlagFile = __DIR__ . '/.db_schema_v5';
+    // v10: tbl_printer.is_receipt_printer + print_jobs table (print agent / off-site server mode).
+    $schemaFlagFile = __DIR__ . '/.db_schema_v10';
     if (!file_exists($schemaFlagFile)) {
         try {
 
@@ -333,6 +334,27 @@ if ($pdo) {
         if (!in_array('paper_width', $printerCols, true)) {
             $pdo->exec("ALTER TABLE `tbl_printer` ADD COLUMN `paper_width` TINYINT UNSIGNED NOT NULL DEFAULT 80");
         }
+        if (!in_array('is_receipt_printer', $printerCols, true)) {
+            $pdo->exec("ALTER TABLE `tbl_printer` ADD COLUMN `is_receipt_printer` TINYINT(1) NOT NULL DEFAULT 0");
+        }
+    } catch (Throwable $ex) {}
+
+    // Print agent queue — only used when Settings > Printers has print_mode = 'agent' (the
+    // server is hosted off-site and can't reach a shop printer's 192.168.x.x directly). A LAN
+    // print job is parked here instead of sent straight to the socket; tools/print-agent.php,
+    // running on a shop PC that IS on that LAN, polls api/print_agent.php and prints it.
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `print_jobs` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `printer_id` INT NOT NULL,
+            `store_id` INT DEFAULT 1,
+            `payload` LONGTEXT NOT NULL,
+            `status` ENUM('pending','done','failed') NOT NULL DEFAULT 'pending',
+            `error` VARCHAR(500) DEFAULT NULL,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `printed_at` DATETIME DEFAULT NULL,
+            INDEX idx_print_jobs_status (status)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     } catch (Throwable $ex) {}
 
     // Add performance indexes if missing for lightning-fast queries

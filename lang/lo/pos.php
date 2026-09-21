@@ -152,6 +152,7 @@ return [
     'pos.lan_print_not_lan' => 'ເຄື່ອງພິມນີ້ປິດໃຊ້ງານ ຫຼື ບໍ່ໄດ້ຕັ້ງເປັນ Network LAN',
     'pos.lan_print_bad_ip' => 'IP Address ຂອງເຄື່ອງພິມບໍ່ຖືກຕ້ອງ',
     'pos.lan_print_bad_request' => 'ຂໍ້ມູນການພິມບໍ່ຖືກຕ້ອງ',
+    'pos.lan_print_no_gd' => 'ເຊີບເວີບໍ່ໄດ້ເປີດໃຊ້ GD extension — ພິມຜ່ານ LAN ບໍ່ໄດ້',
 
     // Receipt / checkout / delete-bill JS strings
     'pos.receipt_vat_exclusive' => 'ອມພ (%s):',

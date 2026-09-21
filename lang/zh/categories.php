@@ -64,6 +64,14 @@ return [
     'categories.label_printer' => '厨房小票打印机',
     'categories.printer_none' => '— 不打印厨房小票 —',
 
+    // Bulk-set printer modal
+    'categories.btn_bulk_printer' => '批量设置打印机',
+    'categories.bulk_printer_title' => '为所有分类设置打印机',
+    'categories.bulk_printer_hint' => '选择打印机后确认 — 本分店的所有商品分类都会设置为打印小票到此打印机（覆盖原有设置）。',
+    'categories.bulk_printer_confirm_title' => '确认为所有分类设置打印机？',
+    'categories.bulk_printer_confirm_body' => '这将覆盖本分店所有分类目前的打印机设置。',
+    'categories.btn_confirm' => '确认',
+
     // Pagination
     'categories.page_showing' => '显示',
     'categories.page_of' => '共',

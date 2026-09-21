@@ -615,8 +615,8 @@ function handleOnlineCheckoutReceiptUI(res) {
     var subAmt = parseFloat(res.subtotal) || 0;
     var discAmt = parseFloat(res.discount_amount) || 0;
     var amtAfterDisc = Math.max(0, subAmt - discAmt);
-    if (rTaxType === 'exclusive' && rVatRate > 0) {
-      rVatAmt = Math.round(amtAfterDisc * (rVatRate / 100));
+    if (rTaxType === 'exclusive' && rVatRate > 0 && rVatRate < 100) {
+      rVatAmt = Math.round(amtAfterDisc * (rVatRate / (100 - rVatRate)));
     } else if (rTaxType === 'inclusive' && rVatRate > 0) {
       rVatAmt = Math.round(amtAfterDisc - (amtAfterDisc / (1 + (rVatRate / 100))));
     } else {
@@ -1133,25 +1133,28 @@ function receiptAreaToImage(widthPx) {
     // already writes into its print iframe for the identical reason.
     var receiptCss = fontCss +
       ' *{box-sizing:border-box;font-family:"Receipt Lao",Arial,sans-serif !important;color:#000 !important;}' +
-      ' body{margin:0;font-size:15px;font-weight:600;line-height:1.5;background:#fff;}' +
+      ' body{margin:0;font-size:17px;font-weight:600;line-height:1.5;background:#fff;}' +
       // No Bootstrap in here, so headings keep the browser default ~2.33em top margin, which
       // opened a big gap between the logo and the shop name on the printed receipt.
-      ' h1,h2,h3,h4,h5,h6{margin:0 !important;} h6{font-size:18px !important;}' +
+      ' h1,h2,h3,h4,h5,h6{margin:0 !important;} h6{font-size:20px !important;}' +
       ' .text-center{text-align:center !important;} .text-right{text-align:right !important;}' +
       ' .font-weight-bold{font-weight:700 !important;color:#000 !important;}' +
-      ' .small{font-size:12.5px !important;color:#000 !important;font-weight:600 !important;}' +
+      ' .small{font-size:14px !important;color:#000 !important;font-weight:600 !important;}' +
       ' .d-flex{display:flex;} .justify-content-between{justify-content:space-between;}' +
       ' [style*="display: none"],[style*="display:none"],.d-none{display:none !important;}' +
       ' .mb-0{margin-bottom:0 !important;} .mb-1{margin-bottom:4px !important;} .mb-2{margin-bottom:8px !important;}' +
       ' .mt-2{margin-top:8px !important;}' +
       ' .text-muted{color:#000 !important;font-weight:600 !important;}' +
-      ' .receipt-header-address,.receipt-header-tel{font-size:13px !important;font-weight:600 !important;color:#000 !important;line-height:1.4 !important;}' +
-      ' .receipt-footer-msg{font-size:13.5px !important;font-weight:700 !important;color:#000 !important;border-top:1px dashed #000 !important;margin-top:10px !important;padding-top:8px !important;text-align:center !important;}' +
+      ' .receipt-header-address,.receipt-header-tel{font-size:15px !important;font-weight:600 !important;color:#000 !important;line-height:1.4 !important;}' +
+      ' .receipt-footer-msg{font-size:15px !important;font-weight:700 !important;color:#000 !important;border-top:1px dashed #000 !important;margin-top:10px !important;padding-top:8px !important;text-align:center !important;}' +
       ' img.receipt-logo{max-width:80px !important;max-height:80px !important;height:auto !important;display:block !important;margin:2px auto 2px auto !important;object-fit:contain !important;}' +
       ' img.receipt-qr-img{max-width:130px !important;max-height:130px !important;height:auto !important;display:block !important;margin:6px auto 2px auto !important;object-fit:contain !important;}' +
-      ' table{width:100%;border-collapse:collapse;margin:4px 0;font-size:17px;color:#000 !important;}' +
+      ' table{width:100%;border-collapse:collapse;margin:4px 0;font-size:15px;color:#000 !important;}' +
       ' td,th{padding:4px 0;vertical-align:top;color:#000 !important;font-weight:600 !important;}' +
-      ' th{font-weight:700 !important;}';
+      ' th{font-weight:700 !important;}' +
+      ' #rc_total{font-size:19px !important;}' +
+      ' #rc_multicur{font-size:14.5px !important;}' +
+      ' #rc_bank_name_lbl{font-size:15px !important;}';
 
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + widthPx + '" height="' + h + '">' +
       '<foreignObject width="100%" height="100%">' +
@@ -1264,25 +1267,28 @@ function printReceipt() {
     <style>
       @page { size: 80mm auto; margin: 0mm; }
       * { box-sizing: border-box; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif !important; color: #000 !important; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-      html, body { width: 80mm; margin: 0 auto; padding: 8px 6px; background: #fff; color: #000 !important; font-size: 15px; font-weight: 600; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      html, body { width: 80mm; margin: 0 auto; padding: 8px 6px; background: #fff; color: #000 !important; font-size: 17px; font-weight: 600; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       /* No Bootstrap in this iframe — without this, headings keep the browser's default
          ~2.33em top margin and push the shop name far below the logo. */
-      h1,h2,h3,h4,h5,h6 { margin: 0 !important; } h6 { font-size: 18px !important; }
+      h1,h2,h3,h4,h5,h6 { margin: 0 !important; } h6 { font-size: 20px !important; }
       .text-center { text-align: center !important; } .text-right { text-align: right !important; }
       .font-weight-bold { font-weight: 700 !important; color: #000 !important; }
-      .small { font-size: 12.5px !important; color: #000 !important; font-weight: 600 !important; }
+      .small { font-size: 14px !important; color: #000 !important; font-weight: 600 !important; }
       .d-flex { display: flex; } .justify-content-between { justify-content: space-between; }
       [style*="display: none"], [style*="display:none"], .d-none { display: none !important; }
       .mb-0{margin-bottom:0!important}.mb-1{margin-bottom:4px!important}.mb-2{margin-bottom:8px!important}
       .mt-2{margin-top:8px!important}
       .text-muted { color: #000 !important; font-weight: 600 !important; }
-      .receipt-header-address, .receipt-header-tel { font-size: 13px !important; font-weight: 600 !important; color: #000 !important; line-height: 1.4 !important; }
-      .receipt-footer-msg { font-size: 13.5px !important; font-weight: 700 !important; color: #000 !important; border-top: 1px dashed #000 !important; margin-top: 10px !important; padding-top: 8px !important; text-align: center !important; }
+      .receipt-header-address, .receipt-header-tel { font-size: 15px !important; font-weight: 600 !important; color: #000 !important; line-height: 1.4 !important; }
+      .receipt-footer-msg { font-size: 15px !important; font-weight: 700 !important; color: #000 !important; border-top: 1px dashed #000 !important; margin-top: 10px !important; padding-top: 8px !important; text-align: center !important; }
       img.receipt-logo { max-width:80px!important; max-height:80px!important; height:auto!important; display:block!important; margin:2px auto 2px auto!important; object-fit:contain!important; }
       img.receipt-qr-img { max-width:130px!important; max-height:130px!important; height:auto!important; display:block!important; margin:6px auto 2px auto!important; object-fit:contain!important; image-rendering:-webkit-optimize-contrast; image-rendering:crisp-edges; image-rendering:pixelated; }
-      table { width:100%; border-collapse:collapse; margin:4px 0; font-size:17px; color: #000 !important; }
+      table { width:100%; border-collapse:collapse; margin:4px 0; font-size:15px; color: #000 !important; }
       td,th { padding:4px 0; vertical-align:top; color: #000 !important; font-weight: 600 !important; }
       th { font-weight: 700 !important; }
+      #rc_total { font-size: 19px !important; }
+      #rc_multicur { font-size: 14.5px !important; }
+      #rc_bank_name_lbl { font-size: 15px !important; }
       @media print {
         html,body { width:100%; margin:0; padding:2mm; color: #000 !important; }
         * { color: #000 !important; }

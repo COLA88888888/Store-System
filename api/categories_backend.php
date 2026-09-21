@@ -93,6 +93,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
         }
+        elseif ($_POST['action'] === 'bulk_set_printer') {
+            // Route every category in this branch to one printer in a single click, instead of
+            // opening each category's edit form when a shop has many categories but wants them
+            // all going to the same kitchen printer.
+            if (hasPermission('categories', 'edit')) {
+                $printer_id = !empty($_POST['printer_id']) ? intval($_POST['printer_id']) : null;
+                try {
+                    $stmt = $pdo->prepare("UPDATE categories SET printer_id = ? WHERE store_id = ?");
+                    $stmt->execute([$printer_id, $catActiveStoreId]);
+                    $message = 'ຕັ້ງເຄື່ອງພິມໃຫ້ທຸກໝວດໝູ່ສຳເລັດ! (' . $stmt->rowCount() . ' ໝວດ)';
+                    $message_type = 'success';
+                    logActivity($pdo, "ຕັ້ງເຄື່ອງພິມໃຫ້ທຸກໝວດໝູ່", $printer_id ? "printer_id: $printer_id" : "ຍົກເລີກເຄື່ອງພິມ");
+                } catch (Exception $e) {
+                    $message = 'ຜິດພາດ: ' . $e->getMessage();
+                    $message_type = 'danger';
+                }
+            }
+        }
         elseif ($_POST['action'] === 'delete_category') {
             $id = intval($_POST['category_id'] ?? 0);
             if ($id > 0) {

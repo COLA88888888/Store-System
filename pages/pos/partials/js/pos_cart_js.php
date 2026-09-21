@@ -186,7 +186,8 @@ function updateCartUI() {
 
   if (vatPercent > 0 && taxType !== 'none') {
     if (taxType === 'exclusive') {
-      vatVal = Math.round(amtAfterDisc * (vatPercent / 100));
+      // Rate% is the tax's share of the FINAL total, not of the net price — see api/pos_backend.php.
+      vatVal = (vatPercent < 100) ? Math.round(amtAfterDisc * (vatPercent / (100 - vatPercent))) : 0;
       netTotal = amtAfterDisc + vatVal;
       $('#cartVatRow').attr('style', 'display: flex !important;');
       $('#cartVatLabel').text('ອມພ (' + vatPercent + '%):');

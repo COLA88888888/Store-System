@@ -48,6 +48,18 @@ return [
     'printers.test_fail' => '无法连接 %s 的打印机：%s',
     'printers.test_not_lan' => '仅可测试已填写 IP 地址的网络 LAN 打印机。',
 
+    // Print agent (off-site server mode)
+    'printers.mode_title' => '打印模式',
+    'printers.mode_direct' => '直接打印 — 系统运行在店内电脑',
+    'printers.mode_agent' => '通过打印代理 — 系统托管在外部服务器',
+    'printers.mode_hint' => '外部服务器无法连接到 192.168.x.x 的打印机 — 此情况需使用打印代理',
+    'printers.agent_token' => '代理令牌（粘贴到 tools/print-agent.bat）：',
+    'printers.agent_token_confirm' => '生成新令牌？旧的打印代理将无法使用，直到更新令牌为止。',
+    'printers.agent_token_new' => '生成新令牌',
+    'printers.agent_pending' => '待处理打印任务',
+    'printers.msg_mode_saved' => '打印模式已保存！',
+    'printers.msg_token_new' => '已生成新的代理令牌！请记得更新到店内电脑。',
+
     // LAN receipt printer designation
     'printers.receipt_badge' => '主收据打印机',
     'printers.set_receipt' => '设为主收据打印机',

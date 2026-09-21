@@ -48,6 +48,18 @@ return [
     'printers.test_fail' => 'เชื่อมต่อเครื่องพิมพ์ที่ %s ไม่ได้: %s',
     'printers.test_not_lan' => 'ทดสอบได้เฉพาะเครื่องพิมพ์ Network LAN ที่มี IP Address',
 
+    // Print agent (off-site server mode)
+    'printers.mode_title' => 'รูปแบบการพิมพ์',
+    'printers.mode_direct' => 'พิมพ์โดยตรง — ระบบทำงานอยู่คอมในร้าน',
+    'printers.mode_agent' => 'ผ่านตัวแทนพิมพ์ — ระบบอยู่เซิร์ฟเวอร์นอก',
+    'printers.mode_hint' => 'เซิร์ฟเวอร์นอกร้านเชื่อมต่อไปยังเครื่องพิมพ์ 192.168.x.x ไม่ได้ — กรณีนี้ต้องใช้ตัวแทนพิมพ์',
+    'printers.agent_token' => 'รหัสตัวแทนพิมพ์ (ใส่ใน tools/print-agent.bat):',
+    'printers.agent_token_confirm' => 'สร้างรหัสใหม่? ตัวแทนพิมพ์เก่าจะใช้ไม่ได้จนกว่าจะอัปเดตรหัส',
+    'printers.agent_token_new' => 'สร้างรหัสใหม่',
+    'printers.agent_pending' => 'งานพิมพ์ค้าง',
+    'printers.msg_mode_saved' => 'บันทึกรูปแบบการพิมพ์แล้ว!',
+    'printers.msg_token_new' => 'สร้างรหัสตัวแทนพิมพ์ใหม่แล้ว! อย่าลืมอัปเดตใส่คอมร้าน',
+
     // LAN receipt printer designation
     'printers.receipt_badge' => 'เครื่องพิมพ์ใบเสร็จหลัก',
     'printers.set_receipt' => 'ตั้งเป็นเครื่องพิมพ์ใบเสร็จหลัก',

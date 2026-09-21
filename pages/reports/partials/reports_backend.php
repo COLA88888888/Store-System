@@ -207,8 +207,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_bill_details') {
         if ((empty($billData['vat_amount']) || floatval($billData['vat_amount']) == 0) && !empty($billData['vat_rate']) && floatval($billData['vat_rate']) > 0) {
             $taxT = $billData['tax_type'] ?? 'inclusive';
             $vatR = floatval($billData['vat_rate']);
-            if ($taxT === 'exclusive') {
-                $billData['vat_amount'] = round($amountAfterDisc * ($vatR / 100), 2);
+            if ($taxT === 'exclusive' && $vatR < 100) {
+                $billData['vat_amount'] = round($amountAfterDisc * ($vatR / (100 - $vatR)), 2);
             } elseif ($taxT === 'inclusive') {
                 $billData['vat_amount'] = round($amountAfterDisc - ($amountAfterDisc / (1 + ($vatR / 100))), 2);
             }

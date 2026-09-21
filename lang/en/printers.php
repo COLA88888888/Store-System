@@ -48,6 +48,18 @@ return [
     'printers.test_fail' => 'Could not reach the printer at %s: %s',
     'printers.test_not_lan' => 'Only Network LAN printers with an IP address can be tested.',
 
+    // Print agent (off-site server mode)
+    'printers.mode_title' => 'Print Mode',
+    'printers.mode_direct' => 'Direct — the system runs on a shop PC',
+    'printers.mode_agent' => 'Via print agent — the system is hosted off-site',
+    'printers.mode_hint' => 'An off-site server cannot reach a printer at 192.168.x.x — use the print agent in that case',
+    'printers.agent_token' => 'Agent token (paste into tools/print-agent.bat):',
+    'printers.agent_token_confirm' => 'Generate a new token? The old agent will stop working until it is updated.',
+    'printers.agent_token_new' => 'Generate New Token',
+    'printers.agent_pending' => 'Pending print jobs',
+    'printers.msg_mode_saved' => 'Print mode saved!',
+    'printers.msg_token_new' => 'New agent token generated! Remember to update it on the shop PC.',
+
     // LAN receipt printer designation
     'printers.receipt_badge' => 'Receipt printer',
     'printers.set_receipt' => 'Set as the receipt printer',

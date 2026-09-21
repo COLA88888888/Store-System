@@ -74,7 +74,7 @@ if (isset($_SESSION['user_id'])) {
     // indefinitely. Checked every request so an expiry mid-session still kicks everyone
     // (admin included) to auth/license_expired.php, not just new sign-ins.
     try {
-        $licExpire = $pdo ? $pdo->query("SELECT license_expire_date FROM tbcompanyinfo LIMIT 1")->fetchColumn() : null;
+        $licExpire = $pdo ? $pdo->query("SELECT license_expire_date FROM tbcompanyinfo WHERE branch_id = (SELECT store_id FROM tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1) LIMIT 1")->fetchColumn() : null;
     } catch (Throwable $ex) {
         $licExpire = null;
     }
@@ -241,7 +241,8 @@ if ($pdo) {
     // v2: paid_currency / paid_rate / paid_amount_foreign on tbsale_save + sales (multi-currency receipts).
     // v5: tbl_printer created here (it only existed in old dumps) + paper_width for LAN kitchen tickets.
     // v10: tbl_printer.is_receipt_printer + print_jobs table (print agent / off-site server mode).
-    $schemaFlagFile = __DIR__ . '/.db_schema_v10';
+    // v11: bank_accounts.store_id — each branch now only sees/manages its own bank accounts.
+    $schemaFlagFile = __DIR__ . '/.db_schema_v11';
     if (!file_exists($schemaFlagFile)) {
         try {
 
@@ -691,6 +692,14 @@ if ($pdo) {
             `is_active` TINYINT(1) DEFAULT 1,
             `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        // Each branch manages and sees only its own bank accounts — existing rows (added
+        // before this column existed) default to the main branch (store_id 1) rather than
+        // vanishing from every branch's list.
+        $bankCols = $pdo->query("SHOW COLUMNS FROM bank_accounts")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('store_id', $bankCols)) {
+            $pdo->exec("ALTER TABLE bank_accounts ADD COLUMN `store_id` INT NOT NULL DEFAULT 1");
+        }
 
         // Add columns to tbsale_save & sales if missing
         $saleCols = $pdo->query("SHOW COLUMNS FROM tbsale_save")->fetchAll(PDO::FETCH_COLUMN);
@@ -1506,10 +1515,12 @@ if (!function_exists('getActiveStoreId')) {
 }
 
 if (!function_exists('getCompanyInfoForBranch')) {
-    // Store profile (name/address/phone/tax/receipt-footer/QR) is shared across all branches
-    // and lives only on the main branch's tbcompanyinfo row — sub-branches don't re-enter it.
-    // The LOGO is the one field that's branch-specific: each branch may have its own row with
-    // just its own img_url, which overrides the shared logo when present.
+    // Each branch owns its full profile (name/address/phone/tax/receipt-footer/logo/QR) on its
+    // own tbcompanyinfo row. A branch that hasn't customised its own row yet inherits the main
+    // branch's row for the fields that live ONLY there (tax/logo/receipt-footer/QR) — but
+    // name/address/phone always come from THIS branch's own tbstore row instead, since the
+    // main branch already enters those once, per branch, in Branch Management when the branch
+    // is created; there's no reason to make the shop type them a second time here.
     function getCompanyInfoForBranch($pdo, $storeId) {
         if (!$pdo) {
             return [
@@ -1524,13 +1535,27 @@ if (!function_exists('getCompanyInfoForBranch')) {
             ];
         }
         $mainStoreId = intval($pdo->query("SELECT store_id FROM tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1")->fetchColumn() ?: 1);
+        $storeId = intval($storeId);
 
         $company = [];
         try {
             $stmt = $pdo->prepare("SELECT * FROM tbcompanyinfo WHERE branch_id = ? LIMIT 1");
-            $stmt->execute([$mainStoreId]);
-            $company = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+            $stmt->execute([$storeId]);
+            $ownRow = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+            if (!empty($ownRow['com_name_la'])) {
+                $company = $ownRow;
+            }
         } catch (Throwable $e) {}
+
+        // This branch hasn't entered its own profile yet — inherit the main branch's, so a
+        // freshly added branch shows something sensible instead of a blank receipt.
+        if (!$company && $storeId !== $mainStoreId) {
+            try {
+                $stmt = $pdo->prepare("SELECT * FROM tbcompanyinfo WHERE branch_id = ? LIMIT 1");
+                $stmt->execute([$mainStoreId]);
+                $company = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+            } catch (Throwable $e) {}
+        }
 
         if (!$company) {
             try {
@@ -1538,7 +1563,7 @@ if (!function_exists('getCompanyInfoForBranch')) {
                 $stCols = $pdo->query("SHOW COLUMNS FROM `tbstore`")->fetchAll(PDO::FETCH_COLUMN);
                 $logoExpr = in_array('logo_path', $stCols, true) ? '`logo_path`' : "'logo.png'";
                 $stmt = $pdo->prepare("SELECT store_name as com_name_la, address as com_address, tel as com_tel, 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!' as barcode, {$logoExpr} as img_url FROM tbstore WHERE store_id = ? LIMIT 1");
-                $stmt->execute([$mainStoreId]);
+                $stmt->execute([$storeId]);
                 $company = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
             } catch (Throwable $e) { $company = []; }
         }
@@ -1551,13 +1576,19 @@ if (!function_exists('getCompanyInfoForBranch')) {
             'vat_percent' => 0, 'tax_type' => 'none',
         ], $company);
 
-        if (intval($storeId) !== $mainStoreId) {
-            $logoStmt = $pdo->prepare("SELECT img_url FROM tbcompanyinfo WHERE branch_id = ? LIMIT 1");
-            $logoStmt->execute([$storeId]);
-            $branchRow = $logoStmt->fetch(PDO::FETCH_ASSOC);
-            if ($branchRow && !empty($branchRow['img_url'])) {
-                $company['img_url'] = $branchRow['img_url'];
-            }
+        // This branch's own tbstore row always wins for name/address/phone — even when the
+        // rest of $company above came from the main branch's tbcompanyinfo fallback.
+        if (empty($ownRow['com_name_la'])) {
+            try {
+                $stmt = $pdo->prepare("SELECT store_name, address, tel FROM tbstore WHERE store_id = ? LIMIT 1");
+                $stmt->execute([$storeId]);
+                $ownStoreRow = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($ownStoreRow) {
+                    $company['com_name_la'] = $ownStoreRow['store_name'];
+                    if (empty($company['com_address'])) $company['com_address'] = $ownStoreRow['address'];
+                    if (empty($company['com_tel']))     $company['com_tel']     = $ownStoreRow['tel'];
+                }
+            } catch (Throwable $e) {}
         }
 
         return $company;

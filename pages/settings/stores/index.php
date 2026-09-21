@@ -45,13 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $isMainBranchSave = isMainBranch($pdo, $branch_id_save);
 
-        // Only the main branch can set the shared name/address/phone/tax/etc — sub-branches only
-        // ever change their own logo, so this required check doesn't apply to them.
-        if ($com_name_la !== '' || !$isMainBranchSave) {
+        // Every branch now owns its full profile (name/address/phone/tax/receipt-footer/logo/QR)
+        // on its own tbcompanyinfo row.
+        if ($com_name_la !== '') {
             try {
-                // Each branch has its own tbcompanyinfo row, but only for its LOGO — the rest of
-                // the profile (name/address/phone/tax/etc) is shared and lives on the main
-                // branch's row only, so sub-branches don't need to re-enter it.
                 $stmtCurComp = $pdo->prepare("SELECT * FROM tbcompanyinfo WHERE branch_id = ? LIMIT 1");
                 $stmtCurComp->execute([$branch_id_save]);
                 $curComp = $stmtCurComp->fetch();
@@ -92,47 +89,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                if ($isMainBranchSave) {
-                    // Main branch: this is the one shared source of truth — save everything.
-                    if ($curComp) {
-                        $sql = "UPDATE tbcompanyinfo SET com_name_la = ?, com_address = ?, com_tel = ?, com_email = ?, tax_id = ?, barcode = ?, tax_type = ?, vat_percent = ?, license_start_date = ?, license_expire_date = ?";
-                        $params = [$com_name_la, $com_address, $com_tel, $com_email, $tax_id, $receipt_footer, $tax_type, $vat_percent, $license_start_date, $license_expire_date];
+                if ($curComp) {
+                    $sql = "UPDATE tbcompanyinfo SET com_name_la = ?, com_address = ?, com_tel = ?, com_email = ?, tax_id = ?, barcode = ?, tax_type = ?, vat_percent = ?";
+                    $params = [$com_name_la, $com_address, $com_tel, $com_email, $tax_id, $receipt_footer, $tax_type, $vat_percent];
 
-                        if ($newLogoName) {
-                            $sql .= ", img_url = ?";
-                            $params[] = $newLogoName;
-                        }
-                        if ($newQrName) {
-                            $sql .= ", qr_img = ?";
-                            $params[] = $newQrName;
-                        }
-                        $sql .= " WHERE Id = ?";
-                        $params[] = $curComp['Id'];
+                    // The license dates are the shop's own software-subscription dates, not a
+                    // per-branch identity field — only the main branch may change them, even
+                    // though every branch now saves the rest of its own profile.
+                    if ($isMainBranchSave) {
+                        $sql .= ", license_start_date = ?, license_expire_date = ?";
+                        $params[] = $license_start_date;
+                        $params[] = $license_expire_date;
+                    }
+                    if ($newLogoName) {
+                        $sql .= ", img_url = ?";
+                        $params[] = $newLogoName;
+                    }
+                    if ($newQrName) {
+                        $sql .= ", qr_img = ?";
+                        $params[] = $newQrName;
+                    }
+                    $sql .= " WHERE Id = ?";
+                    $params[] = $curComp['Id'];
 
-                        $stmt = $pdo->prepare($sql);
-                        $stmt->execute($params);
-                    } else {
-                        $logo = $newLogoName ? $newLogoName : 'logo.png';
-                        $qr = $newQrName ? $newQrName : '';
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute($params);
+                } else {
+                    $logo = $newLogoName ? $newLogoName : 'logo.png';
+                    $qr = $newQrName ? $newQrName : '';
+                    if ($isMainBranchSave) {
                         $stmt = $pdo->prepare("INSERT INTO tbcompanyinfo (com_name_la, com_address, com_tel, com_email, tax_id, barcode, img_url, qr_img, tax_type, vat_percent, license_start_date, license_expire_date, branch_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         $stmt->execute([$com_name_la, $com_address, $com_tel, $com_email, $tax_id, $receipt_footer, $logo, $qr, $tax_type, $vat_percent, $license_start_date, $license_expire_date, $branch_id_save]);
-                    }
-
-                    // tbstore's shared name/address/tel is also only owned by the main branch
-                    $stmtStore = $pdo->prepare("UPDATE tbstore SET store_name = ?, address = ?, tel = ? WHERE store_id = ?");
-                    $stmtStore->execute([$com_name_la, $com_address, $com_tel, $branch_id_save]);
-                } else {
-                    // Sub-branch: only the logo is branch-specific — everything else stays on
-                    // the main branch's row untouched, even though this form submitted the
-                    // (read-only, inherited) values for those fields too.
-                    if ($newLogoName) {
-                        if ($curComp) {
-                            $pdo->prepare("UPDATE tbcompanyinfo SET img_url = ? WHERE Id = ?")->execute([$newLogoName, $curComp['Id']]);
-                        } else {
-                            $pdo->prepare("INSERT INTO tbcompanyinfo (com_name_la, img_url, branch_id) VALUES ('', ?, ?)")->execute([$newLogoName, $branch_id_save]);
-                        }
+                    } else {
+                        $stmt = $pdo->prepare("INSERT INTO tbcompanyinfo (com_name_la, com_address, com_tel, com_email, tax_id, barcode, img_url, qr_img, tax_type, vat_percent, branch_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$com_name_la, $com_address, $com_tel, $com_email, $tax_id, $receipt_footer, $logo, $qr, $tax_type, $vat_percent, $branch_id_save]);
                     }
                 }
+
+                // tbstore's own name/address/tel stays in sync with this branch's profile.
+                $stmtStore = $pdo->prepare("UPDATE tbstore SET store_name = ?, address = ?, tel = ? WHERE store_id = ?");
+                $stmtStore->execute([$com_name_la, $com_address, $com_tel, $branch_id_save]);
 
                 $message = 'ບັນທຶກຂໍ້ມູນຮ້ານຄ້າສຳເລັດແລ້ວ!';
                 $message_type = 'success';
@@ -245,23 +241,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ຊື່ຮ້ານ/ທີ່ຢູ່/ເບີໂທ/ອາກອນ ແມ່ນຂໍ້ມູນຮ່ວມກັນ ດຶງມາຈາກສາຂາຫຼັກສະເໝີ (ບໍ່ຕ້ອງປ້ອນຊ້ຳໃນແຕ່ລະສາຂາ)
+// Each branch owns its full profile — this settings form reads and edits THIS branch's own
+// tbcompanyinfo row, never another branch's data.
+// Name/address/phone specifically: the main branch already enters these once, for every
+// branch, in Branch Management (tbstore.store_name/address/tel) when the branch is created —
+// so a branch that hasn't customised its own tbcompanyinfo row yet pre-fills FROM tbstore
+// instead of showing blank fields the shop would otherwise have to type a second time.
 $branch_id = getActiveStoreId($pdo);
 $mainStoreRow = $pdo->query("SELECT store_id FROM tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1")->fetch();
 $mainStoreId = $mainStoreRow ? intval($mainStoreRow['store_id']) : 1;
 $isMainBranchView = isMainBranch($pdo, $branch_id);
 
 $stmtComp = $pdo->prepare("SELECT * FROM tbcompanyinfo WHERE branch_id = ? LIMIT 1");
-$stmtComp->execute([$mainStoreId]);
+$stmtComp->execute([$branch_id]);
 $company = $stmtComp->fetch(PDO::FETCH_ASSOC);
 
-// ...ຍົກເວັ້ນ "ໂລໂກ້" ທີ່ເປັນຂອງສະເພາະສາຂາທີ່ກຳລັງໃຊ້ງານຢູ່ ບໍ່ປົນກັບສາຂາອື່ນ
-if (!$isMainBranchView) {
-    $stmtBranchLogo = $pdo->prepare("SELECT img_url FROM tbcompanyinfo WHERE branch_id = ? LIMIT 1");
-    $stmtBranchLogo->execute([$branch_id]);
-    $branchLogoRow = $stmtBranchLogo->fetch(PDO::FETCH_ASSOC);
-    if (!is_array($company)) $company = [];
-    $company['img_url'] = $branchLogoRow['img_url'] ?? '';
+if (empty($company['com_name_la'])) {
+    $stmtOwnStore = $pdo->prepare("SELECT store_name, address, tel FROM tbstore WHERE store_id = ? LIMIT 1");
+    $stmtOwnStore->execute([$branch_id]);
+    $ownStoreRow = $stmtOwnStore->fetch(PDO::FETCH_ASSOC);
+    if ($ownStoreRow) {
+        if (!is_array($company)) $company = [];
+        $company['com_name_la'] = $ownStoreRow['store_name'];
+        if (empty($company['com_address'])) $company['com_address'] = $ownStoreRow['address'];
+        if (empty($company['com_tel']))     $company['com_tel']     = $ownStoreRow['tel'];
+    }
 }
 
 if (!$company) {
@@ -349,16 +353,15 @@ require_once __DIR__ . '/../../../layouts/header.php';
           </div>
 
           <?php
-            // Everything below the logo (name/address/phone/tax/etc) is shared across all
-            // branches and lives on the main branch's row — only the main branch can edit it.
-            $sharedReadonly = $isMainBranchView ? '' : 'readonly';
-            $sharedDisabled = $isMainBranchView ? '' : 'disabled';
-            $sharedFieldClass = $isMainBranchView ? '' : 'bg-light';
+            // Every branch (not just main) now edits its own name/address/phone/tax/etc.
+            $sharedReadonly = '';
+            $sharedDisabled = '';
+            $sharedFieldClass = '';
           ?>
 
           <?php if (!$isMainBranchView): ?>
             <div class="alert alert-info border-0 mb-4" style="border-radius: 10px; font-size: 0.88rem;">
-              <i class="fas fa-info-circle mr-1"></i> <?php echo htmlspecialchars(t('stores.shared_info_note', 'ຊື່ຮ້ານ, ທີ່ຢູ່, ເບີໂທ ແລະ ຂໍ້ມູນອາກອນ ແມ່ນໃຊ້ຮ່ວມກັນຈາກສາຂາຫຼັກ ແກ້ໄຂໄດ້ສະເພາະຈາກສາຂາຫຼັກເທົ່ານັ້ນ — ມີແຕ່ "ໂລໂກ້" ດ້ານເທິງນີ້ທີ່ປ່ຽນສະເພາະສາຂານີ້ໄດ້.')); ?>
+              <i class="fas fa-info-circle mr-1"></i> <?php echo htmlspecialchars(t('stores.branch_own_info_note', 'ຂໍ້ມູນນີ້ແມ່ນຂອງສາຂານີ້ໂດຍສະເພາະ, ບໍ່ປົນກັບສາຂາອື່ນ.')); ?>
             </div>
           <?php endif; ?>
 
@@ -462,7 +465,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
           <!-- Submit Button (Aligned to the Right) -->
           <div class="pt-3 border-top text-right d-flex justify-content-end">
             <button type="submit" class="btn btn-primary px-4 py-2 font-weight-bold shadow-sm" style="border-radius: 8px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
-              <i class="fas fa-save mr-2"></i> <?php echo htmlspecialchars($isMainBranchView ? t('stores.btn_save_info', 'ບັນທຶກຂໍ້ມູນຮ້ານຄ້າ') : t('stores.btn_save_logo', 'ບັນທຶກໂລໂກ້')); ?>
+              <i class="fas fa-save mr-2"></i> <?php echo htmlspecialchars(t('stores.btn_save_info', 'ບັນທຶກຂໍ້ມູນຮ້ານຄ້າ')); ?>
             </button>
           </div>
         </form>

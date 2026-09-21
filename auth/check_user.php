@@ -78,7 +78,7 @@ try {
             // Package/license expiry is checked before a session is ever created — an expired
             // shop can't log in at all, admin included, until the vendor is contacted to renew.
             try {
-                $licExpire = $pdo->query("SELECT license_expire_date FROM tbcompanyinfo LIMIT 1")->fetchColumn();
+                $licExpire = $pdo->query("SELECT license_expire_date FROM tbcompanyinfo WHERE branch_id = (SELECT store_id FROM tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1) LIMIT 1")->fetchColumn();
             } catch (Throwable $ex) {
                 $licExpire = null;
             }

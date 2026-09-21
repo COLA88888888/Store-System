@@ -54,8 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if (!empty($bank_name) && !empty($account_number)) {
             try {
-                $stmt = $pdo->prepare("INSERT INTO bank_accounts (bank_name, account_number, account_name, bank_code, bank_logo, qr_code_img, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$bank_name, $account_number, $account_name, $bank_code, $bank_logo, $qr_code_img, $is_active]);
+                $stmt = $pdo->prepare("INSERT INTO bank_accounts (bank_name, account_number, account_name, bank_code, bank_logo, qr_code_img, is_active, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->execute([$bank_name, $account_number, $account_name, $bank_code, $bank_logo, $qr_code_img, $is_active, getActiveStoreId($pdo)]);
                 $message = "ເພີ່ມບັນຊີທະນາຄານ \"$bank_name\" ສໍາເລັດແລ້ວ!";
                 $message_type = "success";
                 logActivity($pdo, "ເພີ່ມບັນຊີທະນາຄານ", "$bank_name ($account_number)");
@@ -77,13 +77,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($bank_id > 0 && !empty($bank_name)) {
             try {
+                // Scoped to this branch's own accounts — a sub-branch can't edit another
+                // branch's bank by guessing its id.
+                $editStoreId = getActiveStoreId($pdo);
+
                 // ດຶງຮູບເກົ່າກ່ອນ update
-                $oldRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM bank_accounts WHERE id = ?");
-                $oldRow->execute([$bank_id]);
+                $oldRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM bank_accounts WHERE id = ? AND store_id = ?");
+                $oldRow->execute([$bank_id, $editStoreId]);
                 $oldData = $oldRow->fetch(PDO::FETCH_ASSOC);
 
-                $pdo->prepare("UPDATE bank_accounts SET bank_name = ?, account_number = ?, account_name = ?, bank_code = ?, is_active = ? WHERE id = ?")
-                    ->execute([$bank_name, $account_number, $account_name, $bank_code, $is_active, $bank_id]);
+                $pdo->prepare("UPDATE bank_accounts SET bank_name = ?, account_number = ?, account_name = ?, bank_code = ?, is_active = ? WHERE id = ? AND store_id = ?")
+                    ->execute([$bank_name, $account_number, $account_name, $bank_code, $is_active, $bank_id, $editStoreId]);
 
                 // ແກ້ໄຂ bank_logo ຖ້າ upload ໃໝ່
                 if (!empty($_FILES['bank_logo']['name']) && $_FILES['bank_logo']['error'] === UPLOAD_ERR_OK) {
@@ -132,12 +136,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $bank_id = intval($_POST['bank_id'] ?? 0);
         if ($bank_id > 0) {
             try {
+                // Scoped to this branch's own accounts — a sub-branch can't delete another
+                // branch's bank by guessing its id.
+                $delStoreId = getActiveStoreId($pdo);
+
                 // ດຶງຊື່ໄຟລ໌ຮູບກ່ອນລົບ record
-                $delRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM bank_accounts WHERE id = ?");
-                $delRow->execute([$bank_id]);
+                $delRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM bank_accounts WHERE id = ? AND store_id = ?");
+                $delRow->execute([$bank_id, $delStoreId]);
                 $delData = $delRow->fetch(PDO::FETCH_ASSOC);
 
-                $pdo->prepare("DELETE FROM bank_accounts WHERE id = ?")->execute([$bank_id]);
+                $pdo->prepare("DELETE FROM bank_accounts WHERE id = ? AND store_id = ?")->execute([$bank_id, $delStoreId]);
 
                 // ລົບຮູບ bank_logo ແລະ QR ອອກຈາກ folder
                 if ($delData) {

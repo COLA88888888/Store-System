@@ -7,8 +7,9 @@ if (!defined('MINIPOS_APP')) {
     define('MINIPOS_APP', true);
 }
 
-// Fetch all bank accounts
-$banks_stmt = $pdo->query("SELECT * FROM bank_accounts ORDER BY is_active DESC, id ASC");
+// Fetch this branch's own bank accounts only.
+$banks_stmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE store_id = ? ORDER BY is_active DESC, id ASC");
+$banks_stmt->execute([getActiveStoreId($pdo)]);
 $bank_accounts_list = $banks_stmt ? $banks_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
 // Helper get bank logo image

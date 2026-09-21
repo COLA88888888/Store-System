@@ -296,7 +296,7 @@ if (!hasPermission('dashboard')) {
       $license_start = '2026-01-01';
       $license_expire = '2026-12-31';
       try {
-        $cLic = $pdo->query("SELECT license_start_date, license_expire_date FROM tbcompanyinfo LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+        $cLic = $pdo->query("SELECT license_start_date, license_expire_date FROM tbcompanyinfo WHERE branch_id = (SELECT store_id FROM tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1) LIMIT 1")->fetch(PDO::FETCH_ASSOC);
         if ($cLic) {
           if (!empty($cLic['license_start_date'])) $license_start = $cLic['license_start_date'];
           if (!empty($cLic['license_expire_date'])) $license_expire = $cLic['license_expire_date'];

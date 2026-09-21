@@ -16,6 +16,11 @@ if (empty($_SESSION['user_id']) || (!hasPermission('exchange_rate') && !hasPermi
 $message = '';
 $message_type = '';
 
+// Same pattern as bank accounts / promotions / printers: a sub-branch only sees and manages
+// its own exchange-rate history; the main branch / admin (canViewAllBranches) sees/acts on all.
+$canAllRateBranches = canViewAllBranches($pdo);
+$myRateStoreId = getActiveStoreId($pdo);
+
 // ຈັດການ POST Action (ເພີ່ມ, ແກ້ໄຂ, ລຶບ)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
@@ -36,8 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($thb_rate > 0 && $usd_rate > 0) {
             try {
-                $stmt = $pdo->prepare("INSERT INTO tbexchange (ex_date, ex_time, ex_kip_bath, ex_kip_us, ex_kip_cn, ex_status, ex_userlogin, branch_id) VALUES (CURDATE(), CURTIME(), ?, ?, ?, 'Active', ?, 1)");
-                $stmt->execute([$thb_rate, $usd_rate, $cny_rate, $username]);
+                $stmt = $pdo->prepare("INSERT INTO tbexchange (ex_date, ex_time, ex_kip_bath, ex_kip_us, ex_kip_cn, ex_status, ex_userlogin, branch_id) VALUES (CURDATE(), CURTIME(), ?, ?, ?, 'Active', ?, ?)");
+                $stmt->execute([$thb_rate, $usd_rate, $cny_rate, $username, $myRateStoreId]);
                 $message = t('exchange_rate.msg_save_success', 'ອັບເດດອັດຕາແລກປ່ຽນເງິນສຳເລັດແລ້ວ!');
                 $message_type = 'success';
                 logActivity($pdo, "ອັບເດດອັດຕາແລກປ່ຽນ", "THB: $thb_rate ₭, USD: $usd_rate ₭, CNY: $cny_rate ₭");
@@ -57,8 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($rate_id > 0 && $thb_rate > 0 && $usd_rate > 0) {
             try {
-                $stmt = $pdo->prepare("UPDATE tbexchange SET ex_kip_bath = ?, ex_kip_us = ?, ex_kip_cn = ?, ex_userlogin = ? WHERE Id = ?");
-                $stmt->execute([$thb_rate, $usd_rate, $cny_rate, $username, $rate_id]);
+                $sql = "UPDATE tbexchange SET ex_kip_bath = ?, ex_kip_us = ?, ex_kip_cn = ?, ex_userlogin = ? WHERE Id = ?";
+                $params = [$thb_rate, $usd_rate, $cny_rate, $username, $rate_id];
+                if (!$canAllRateBranches) {
+                    $sql .= " AND branch_id = ?";
+                    $params[] = $myRateStoreId;
+                }
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
                 $message = t('exchange_rate.msg_update_success', 'ດຳເນີນການອັບເດດອັດຕາແລກປ່ຽນສຳເລັດ!');
                 $message_type = 'success';
                 logActivity($pdo, "ແກ້ໄຂອັດຕາແລກປ່ຽນ", "ID: $rate_id, THB: $thb_rate ₭, USD: $usd_rate ₭, CNY: $cny_rate ₭");
@@ -85,8 +96,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $rate_id = intval($_POST['rate_id'] ?? 0);
         if ($rate_id > 0) {
             try {
-                $stmt = $pdo->prepare("DELETE FROM tbexchange WHERE Id = ?");
-                $stmt->execute([$rate_id]);
+                $sql = "DELETE FROM tbexchange WHERE Id = ?";
+                $params = [$rate_id];
+                if (!$canAllRateBranches) {
+                    $sql .= " AND branch_id = ?";
+                    $params[] = $myRateStoreId;
+                }
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
                 $message = t('exchange_rate.msg_delete_success', 'ລຶບປະຫວັດອັດຕາແລກປ່ຽນສຳເລັດແລ້ວ!');
                 $message_type = 'success';
                 logActivity($pdo, "ລຶບອັດຕາແລກປ່ຽນ", "ID: $rate_id");
@@ -98,8 +115,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-// ດຶງປະຫວັດອັດຕາແລກປ່ຽນທັງໝົດ
-$historyRates = $pdo->query("SELECT * FROM tbexchange ORDER BY Id DESC")->fetchAll(PDO::FETCH_ASSOC);
+// ດຶງປະຫວັດອັດຕາແລກປ່ຽນ — ສາຂາຍ່ອຍເຫັນສະເພາະຂອງຕົນເອງ, ສາຂາໃຫຍ່/admin ເຫັນທຸກສາຂາ
+if ($canAllRateBranches) {
+    $historyRates = $pdo->query("SELECT * FROM tbexchange ORDER BY Id DESC")->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $historyStmt = $pdo->prepare("SELECT * FROM tbexchange WHERE branch_id = ? ORDER BY Id DESC");
+    $historyStmt->execute([$myRateStoreId]);
+    $historyRates = $historyStmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 // ສະກຸນເງິນສະແດງຜົນປັດຈຸບັນ + ອັດຕາລ່າສຸດ (ສຳລັບ POS/ບິນ)
 $displayCurrency = getDisplayCurrency($pdo);

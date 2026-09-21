@@ -61,8 +61,9 @@
               <?php 
                 $pos_bank_accounts = [];
                 try {
-                    $b_stmt = $pdo->query("SELECT * FROM bank_accounts WHERE is_active = 1 ORDER BY id ASC");
-                    if ($b_stmt) $pos_bank_accounts = $b_stmt->fetchAll(PDO::FETCH_ASSOC);
+                    $b_stmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE is_active = 1 AND store_id = ? ORDER BY id ASC");
+                    $b_stmt->execute([getActiveStoreId($pdo)]);
+                    $pos_bank_accounts = $b_stmt->fetchAll(PDO::FETCH_ASSOC);
                 } catch (Throwable $e) {}
 
                 $defaultQrPath = resolveBankQr($company['qr_img'] ?? '');

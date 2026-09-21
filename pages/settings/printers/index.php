@@ -11,6 +11,12 @@ if (empty($_SESSION['user_id']) || (!hasPermission('printers') && !hasPermission
 $message = '';
 $message_type = '';
 
+// Same pattern as bank accounts / promotions / price adjustment: a sub-branch only ever
+// sees and manages its own printers; the main branch / admin (canViewAllBranches) sees
+// and can act on every branch's.
+$canAllPrinterBranches = canViewAllBranches($pdo);
+$myPrinterStoreId = getActiveStoreId($pdo);
+
 // Handle POST actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
@@ -23,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($name !== '') {
             try {
-                $stmt = $pdo->prepare("INSERT INTO tbl_printer (name, ip_address, type, status, branch_id, paper_width) VALUES (?, ?, ?, 1, 1, ?)");
-                $stmt->execute([$name, $ip_address, $type, $paper_width]);
+                $stmt = $pdo->prepare("INSERT INTO tbl_printer (name, ip_address, type, status, branch_id, paper_width) VALUES (?, ?, ?, 1, ?, ?)");
+                $stmt->execute([$name, $ip_address, $type, $myPrinterStoreId, $paper_width]);
                 $message = t('printers.msg_add_success', 'ເພີ່ມເຄື່ອງພິມໃໝ່ສຳເລັດ!');
                 $message_type = 'success';
                 logActivity($pdo, "ເພີ່ມເຄື່ອງພິມ", "$name ($type)");
@@ -42,8 +48,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($id > 0 && $name !== '') {
             try {
-                $stmt = $pdo->prepare("UPDATE tbl_printer SET name = ?, ip_address = ?, type = ?, paper_width = ? WHERE id = ?");
-                $stmt->execute([$name, $ip_address, $type, $paper_width, $id]);
+                $sql = "UPDATE tbl_printer SET name = ?, ip_address = ?, type = ?, paper_width = ? WHERE id = ?";
+                $params = [$name, $ip_address, $type, $paper_width, $id];
+                if (!$canAllPrinterBranches) {
+                    $sql .= " AND branch_id = ?";
+                    $params[] = $myPrinterStoreId;
+                }
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
                 $message = t('printers.msg_edit_success', 'ອັບເດດຂໍ້ມູນເຄື່ອງພິມສຳເລັດແລ້ວ!');
                 $message_type = 'success';
                 logActivity($pdo, "ແກ້ໄຂເຄື່ອງພິມ", "$name (ID: $id)");
@@ -56,25 +68,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $id = intval($_POST['id'] ?? 0);
         $status = intval($_POST['status'] ?? 0);
         if ($id > 0) {
-            $stmt = $pdo->prepare("UPDATE tbl_printer SET status = ? WHERE id = ?");
-            $stmt->execute([$status, $id]);
+            $sql = "UPDATE tbl_printer SET status = ? WHERE id = ?";
+            $params = [$status, $id];
+            if (!$canAllPrinterBranches) {
+                $sql .= " AND branch_id = ?";
+                $params[] = $myPrinterStoreId;
+            }
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
             $message = t('printers.msg_toggle_success', 'ອັບເດດສະຖານະເຄື່ອງພິມສຳເລັດ!');
             $message_type = 'success';
         }
     } elseif ($action === 'set_receipt_printer') {
         // Only one printer at a time gets the customer receipt (mirrors tbstore.is_main:
-        // setting a new one unsets the old one). Restricted to Network LAN printers — a
-        // 'browser' printer needs no designation, it's already what happens by default.
+        // setting a new one unsets the old one) — scoped to THIS branch only, so setting a
+        // receipt printer here never touches another branch's own receipt-printer choice.
+        // Restricted to Network LAN printers — a 'browser' printer needs no designation,
+        // it's already what happens by default.
         $id = intval($_POST['id'] ?? 0);
         try {
-            $target = $pdo->prepare("SELECT type, status FROM tbl_printer WHERE id = ?");
+            $target = $pdo->prepare("SELECT type, status, branch_id FROM tbl_printer WHERE id = ?");
             $target->execute([$id]);
             $row = $target->fetch();
-            if (!$row || $row['type'] !== 'ip' || !$row['status']) {
+            $ownsRow = $row && ($canAllPrinterBranches || (int)$row['branch_id'] === $myPrinterStoreId);
+            if (!$row || !$ownsRow || $row['type'] !== 'ip' || !$row['status']) {
                 $message = t('printers.receipt_needs_lan', 'ເລືອກໄດ້ສະເພາະເຄື່ອງພິມ Network LAN ທີ່ເປີດໃຊ້ງານຢູ່ເທົ່ານັ້ນ!');
                 $message_type = 'warning';
             } else {
-                $pdo->exec("UPDATE tbl_printer SET is_receipt_printer = 0");
+                $rowBranchId = (int)$row['branch_id'];
+                $pdo->prepare("UPDATE tbl_printer SET is_receipt_printer = 0 WHERE branch_id = ?")->execute([$rowBranchId]);
                 $pdo->prepare("UPDATE tbl_printer SET is_receipt_printer = 1 WHERE id = ?")->execute([$id]);
                 $message = t('printers.receipt_set_success', 'ຕັ້ງເປັນເຄື່ອງພິມໃບບິນຫຼັກສຳເລັດ!');
                 $message_type = 'success';
@@ -85,7 +107,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $message_type = 'danger';
         }
     } elseif ($action === 'unset_receipt_printer') {
-        $pdo->exec("UPDATE tbl_printer SET is_receipt_printer = 0");
+        $sql = "UPDATE tbl_printer SET is_receipt_printer = 0";
+        $params = [];
+        if (!$canAllPrinterBranches) {
+            $sql .= " WHERE branch_id = ?";
+            $params[] = $myPrinterStoreId;
+        }
+        $pdo->prepare($sql)->execute($params);
         $message = t('printers.receipt_unset_success', 'ຍົກເລີກເຄື່ອງພິມໃບບິນຫຼັກແລ້ວ — ໃບບິນຈະພິມຜ່ານບຣາວເຊີຄືເກົ່າ');
         $message_type = 'success';
     } elseif ($action === 'test_print') {
@@ -94,8 +122,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         require_once __DIR__ . '/../../../api/lan_printer.php';
         session_write_close();
         $id = intval($_POST['id'] ?? 0);
-        $testStmt = $pdo->prepare("SELECT * FROM tbl_printer WHERE id = ? LIMIT 1");
-        $testStmt->execute([$id]);
+        $testSql = "SELECT * FROM tbl_printer WHERE id = ?";
+        $testParams = [$id];
+        if (!$canAllPrinterBranches) {
+            $testSql .= " AND branch_id = ?";
+            $testParams[] = $myPrinterStoreId;
+        }
+        $testStmt = $pdo->prepare($testSql . " LIMIT 1");
+        $testStmt->execute($testParams);
         $testPrinter = $testStmt->fetch();
         $addr = $testPrinter ? lanPrinterAddress($testPrinter['ip_address'] ?? '') : null;
         if (!$testPrinter || ($testPrinter['type'] ?? '') !== 'ip' || $addr === null) {
@@ -114,8 +148,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } elseif ($action === 'delete_printer') {
         $id = intval($_POST['id'] ?? 0);
         if ($id > 0) {
-            $stmt = $pdo->prepare("DELETE FROM tbl_printer WHERE id = ?");
-            $stmt->execute([$id]);
+            $sql = "DELETE FROM tbl_printer WHERE id = ?";
+            $params = [$id];
+            if (!$canAllPrinterBranches) {
+                $sql .= " AND branch_id = ?";
+                $params[] = $myPrinterStoreId;
+            }
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
             $message = t('printers.msg_delete_success', 'ລົບເຄື່ອງພິມສຳເລັດ!');
             $message_type = 'success';
         }
@@ -147,7 +187,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-$printers = $pdo->query("SELECT * FROM tbl_printer ORDER BY id ASC")->fetchAll();
+if ($canAllPrinterBranches) {
+    $printers = $pdo->query("SELECT * FROM tbl_printer ORDER BY id ASC")->fetchAll();
+} else {
+    $printersStmt = $pdo->prepare("SELECT * FROM tbl_printer WHERE branch_id = ? ORDER BY id ASC");
+    $printersStmt->execute([$myPrinterStoreId]);
+    $printers = $printersStmt->fetchAll();
+}
 $printMode = getSetting($pdo, 'print_mode', 'direct') === 'agent' ? 'agent' : 'direct';
 $printAgentToken = trim((string)getSetting($pdo, 'print_agent_token', ''));
 // The agent can't authenticate without one, so mint it on first view rather than making
@@ -161,7 +207,13 @@ if ($printAgentToken === '') {
 }
 $pendingPrintJobs = 0;
 try {
-    $pendingPrintJobs = (int)$pdo->query("SELECT COUNT(*) FROM print_jobs WHERE status = 'pending'")->fetchColumn();
+    if ($canAllPrinterBranches) {
+        $pendingPrintJobs = (int)$pdo->query("SELECT COUNT(*) FROM print_jobs WHERE status = 'pending'")->fetchColumn();
+    } else {
+        $pendingStmt = $pdo->prepare("SELECT COUNT(*) FROM print_jobs WHERE status = 'pending' AND store_id = ?");
+        $pendingStmt->execute([$myPrinterStoreId]);
+        $pendingPrintJobs = (int)$pendingStmt->fetchColumn();
+    }
 } catch (Throwable $e) {}
 
 require_once __DIR__ . '/../../../layouts/header.php';

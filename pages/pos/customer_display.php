@@ -36,7 +36,8 @@ try {
 $cd_bank_accounts = [];
 try {
     if (isset($pdo)) {
-        $bStmt = $pdo->query("SELECT * FROM bank_accounts WHERE is_active = 1 ORDER BY id ASC");
+        $bStmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE is_active = 1 AND store_id = ? ORDER BY id ASC");
+        $bStmt->execute([getActiveStoreId($pdo)]);
         if ($bStmt) {
             foreach ($bStmt->fetchAll(PDO::FETCH_ASSOC) as $ba) {
                 $qr = resolveBankQr($ba['qr_code_img'] ?? '', $ba['bank_code'] ?? '');
@@ -208,7 +209,7 @@ $base_path = '../../';
       border: 2px solid #cbd5e1;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       text-align: center;
       padding: 28px 22px;
@@ -237,7 +238,7 @@ $base_path = '../../';
       flex-direction: column;
       align-items: center;
       width: 100%;
-      margin: auto 0;   /* stays vertically centred, but grows past centre when tall */
+      margin: 0;   /* top-aligned, not vertically centred */
     }
 
     .large-logo-box {
@@ -306,6 +307,32 @@ $base_path = '../../';
       width: 150px;
       height: 150px;
       margin: 2px 0 10px;
+    }
+
+    /* ===== HEADER ROW: LOGO ON THE LEFT, NAME/ADDRESS/TEL ON THE RIGHT ===== */
+    .store-header-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .store-header-row .large-logo-box {
+      width: 100px;
+      height: 100px;
+      margin: 0;
+      flex-shrink: 0;
+    }
+    .store-header-row .store-info-block {
+      margin-bottom: 0;
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+    }
+    .store-header-row .store-name-title,
+    .store-header-row .store-info-text {
+      text-align: left;
     }
 
     /* ===== PAYMENT QR CODES (replaces the old "thank you" card) ===== */
@@ -423,23 +450,24 @@ $base_path = '../../';
       table-layout: fixed;
     }
 
+    /* Plain header — same style as the rest of the app's tables (e.g. Settings > Printers). */
     .display-table-head {
-      color: #ffffff;
+      color: #475569;
       font-weight: 700;
-      font-size: 0.98rem;
+      font-size: 0.88rem;
     }
     .display-table-head th {
-      background: linear-gradient(135deg, #2c5aa0 0%, #244886 100%);
+      background: #f8fafc;
       padding: 10px 14px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
       border: none;
+      border-bottom: 2px solid #e2e8f0;
       position: sticky;
       top: 0;
       z-index: 10;
     }
 
     .display-table-body {
+      position: relative;   /* anchors the empty-state overlay below */
       overflow-y: auto;
       flex: 1;
       scrollbar-width: none;
@@ -447,11 +475,33 @@ $base_path = '../../';
     .display-table-body::-webkit-scrollbar {
       display: none;
     }
-    /* Cart empty: keep the header row pinned at the top (same as the populated list);
-       the tall empty-state cell then vertically centres the icon + message below it. */
-    .display-empty-state td {
-      vertical-align: middle !important;
-      height: 56vh;
+    /* Cart empty: same technique the POS cart panel itself uses (pos_cart_js.php) — a plain
+       flex-centred div, not a table row/cell, so it centres reliably regardless of table
+       height quirks. Sits over the table body, below the sticky header. */
+    .display-cart-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 10px;
+      padding: 20px;
+    }
+    .display-cart-empty i {
+      font-size: 3rem;
+      color: #94a3b8;
+      opacity: 0.4;
+    }
+    .display-cart-empty h4 {
+      font-weight: 700;
+      color: #64748b;
+      margin: 0;
+    }
+    .display-cart-empty p {
+      color: #94a3b8;
+      margin: 0;
     }
     .display-table-body td {
       padding: 9px 14px;
@@ -497,27 +547,36 @@ $base_path = '../../';
       box-shadow: 0 2px 6px rgba(2, 99, 255, 0.3);
     }
 
-    /* GREEN GRAND-TOTAL BOX — carries every payment stat + grand total */
+    /* GREEN GRAND-TOTAL BOX — full-width bar below both panels, everything in ONE row:
+       every payment stat, then the grand total at the end. */
     .grand-total-banner {
       background: linear-gradient(135deg, #059669 0%, #047857 100%);
-      border-radius: 12px;
-      padding: 12px 20px 14px;
+      border-radius: 10px;
+      padding: 10px 22px;
+      margin: 0 16px 12px;
       box-sizing: border-box;
       color: #ffffff;
       box-shadow: 0 6px 18px rgba(5, 150, 105, 0.30);
       animation: glowTotal 2.4s ease-in-out infinite;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
     }
     .gt-substats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px 18px;
-      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+      gap: 18px;
+      flex: 1;
+      min-width: 0;
     }
     .gt-substat {
       display: flex;
       flex-direction: column;
       gap: 2px;
+      min-width: 0;
     }
     .gt-substat-label {
       font-size: 0.92rem;
@@ -525,51 +584,58 @@ $base_path = '../../';
       color: #d1fae5;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      white-space: nowrap;
     }
     .gt-substat-value {
       font-size: 1.4rem;
       font-weight: 800;
       color: #ffffff;
-      line-height: 1.2;
+      line-height: 1.15;
       white-space: nowrap;
     }
     #displayItemCount {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
     }
     .gt-final {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      text-align: center;
+      align-items: flex-end;
+      text-align: right;
+      flex-shrink: 0;
+      padding-left: 22px;
+      border-left: 2px solid rgba(255,255,255,0.3);
     }
     .gt-final-label {
       text-transform: uppercase;
       color: #dcfce7;
       letter-spacing: 0.5px;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       font-weight: 700;
+      white-space: nowrap;
     }
     .gt-final h2 {
       font-weight: 800;
-      margin: 3px 0 0;
-      font-size: 2.2rem;
+      margin: 2px 0 0;
+      font-size: 2.1rem;
       color: #ffffff;
       font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
       text-shadow: 0 2px 5px rgba(0,0,0,0.25);
+      white-space: nowrap;
     }
 
     /* Short customer-display monitors (e.g. 1024x600): tighten the green summary box
        so the product list keeps enough visible rows instead of being squeezed. */
     @media (max-height: 720px) {
       .display-main { padding: 10px; gap: 10px; }
-      .grand-total-banner { padding: 10px 16px 12px; }
-      .gt-substats { gap: 7px 14px; margin-bottom: 9px; }
-      .gt-substat-label { font-size: 0.88rem; }
-      .gt-substat-value { font-size: 1.25rem; }
-      #displayItemCount { font-size: 1.08rem; }
-      .gt-final-label { font-size: 0.8rem; }
-      .gt-final h2 { font-size: 1.95rem; }
+      .grand-total-banner { padding: 8px 16px; gap: 10px; }
+      .gt-substats { gap: 12px; }
+      .gt-substat-label { font-size: 0.8rem; }
+      .gt-substat-value { font-size: 1.15rem; }
+      #displayItemCount { font-size: 1.02rem; }
+      .gt-final { padding-left: 14px; }
+      .gt-final-label { font-size: 0.72rem; }
+      .gt-final h2 { font-size: 1.7rem; }
       .display-table-body td { height: 52px; font-size: 0.98rem; padding: 6px 12px; }
       .display-table-head th { padding: 7px 12px; font-size: 0.9rem; }
 
@@ -625,24 +691,24 @@ $base_path = '../../';
       <div class="store-card">
         <canvas class="particle-canvas" id="storeCardParticles"></canvas>
         <div class="store-card-content">
-          <!-- Store Name & Info — ABOVE the logo -->
-          <div class="store-info-block">
-            <div class="store-name-title"><?php echo htmlspecialchars($company['com_name']); ?></div>
-            <div class="store-info-text">
-              <?php if(!empty($company['com_address'])): ?>
-                <div class="mb-1"><i class="fas fa-map-marker-alt text-danger mr-2"></i> <?php echo htmlspecialchars($company['com_address']); ?></div>
-              <?php endif; ?>
-              <?php if(!empty($company['com_tel'])): ?>
-                <div><i class="fas fa-phone-alt text-primary mr-2"></i> ເບີໂທ: <strong><?php echo htmlspecialchars($company['com_tel']); ?></strong></div>
-              <?php endif; ?>
+          <!-- Logo on the left, store name/address/tel on the right -->
+          <div class="store-header-row">
+            <div class="large-logo-box">
+              <img src="<?php echo htmlspecialchars($company['com_logo']); ?>" alt="Store Logo" class="large-logo-img"
+                   onerror="this.style.display='none'; document.getElementById('largeFallbackIcon').style.display='block';">
+              <i class="fas fa-store large-fallback-icon" id="largeFallbackIcon" style="display:none;"></i>
             </div>
-          </div>
-
-          <!-- Large Store Logo — below the info -->
-          <div class="large-logo-box logo-below">
-            <img src="<?php echo htmlspecialchars($company['com_logo']); ?>" alt="Store Logo" class="large-logo-img"
-                 onerror="this.style.display='none'; document.getElementById('largeFallbackIcon').style.display='block';">
-            <i class="fas fa-store large-fallback-icon" id="largeFallbackIcon" style="display:none;"></i>
+            <div class="store-info-block">
+              <div class="store-name-title"><?php echo htmlspecialchars($company['com_name']); ?></div>
+              <div class="store-info-text">
+                <?php if(!empty($company['com_address'])): ?>
+                  <div class="mb-1"><i class="fas fa-map-marker-alt text-danger mr-2"></i> <?php echo htmlspecialchars($company['com_address']); ?></div>
+                <?php endif; ?>
+                <?php if(!empty($company['com_tel'])): ?>
+                  <div><i class="fas fa-phone-alt text-primary mr-2"></i> ເບີໂທ: <strong><?php echo htmlspecialchars($company['com_tel']); ?></strong></div>
+                <?php endif; ?>
+              </div>
+            </div>
           </div>
 
           <?php if (!empty($cd_bank_accounts)): ?>
@@ -703,56 +769,53 @@ $base_path = '../../';
                 <th class="text-right">ລວມ</th>
               </tr>
             </thead>
-            <tbody id="displayCartBody">
-              <tr class="display-empty-state">
-                <td colspan="7" class="text-center text-muted">
-                  <i class="fas fa-shopping-basket fa-3x mb-3 text-secondary opacity-40"></i>
-                  <h4 class="font-weight-bold text-secondary">ຍັງບໍ່ມີລາຍການສິນຄ້າ</h4>
-                  <p class="mb-0 text-muted">ກະລຸນາລໍຖ້າພະນັກງານສະແກນ ຫຼື ເລືອກສິນຄ້າ...</p>
-                </td>
-              </tr>
-            </tbody>
+            <tbody id="displayCartBody"></tbody>
           </table>
-        </div>
-      </div>
-
-      <!-- GREEN GRAND-TOTAL BOX: every payment stat lives here, grand total below -->
-      <div class="grand-total-banner">
-        <div class="gt-substats">
-          <div class="gt-substat">
-            <span class="gt-substat-label"><i class="fas fa-boxes"></i> ລາຍການສິນຄ້າ</span>
-            <span class="gt-substat-value" id="displayItemCount">0 ລາຍການ / 0 ອັນ</span>
+          <div class="display-cart-empty" id="displayCartEmpty">
+            <i class="fas fa-shopping-basket"></i>
+            <h4>ຍັງບໍ່ມີລາຍການສິນຄ້າ</h4>
+            <p>ກະລຸນາລໍຖ້າພະນັກງານສະແກນ ຫຼື ເລືອກສິນຄ້າ...</p>
           </div>
-          <div class="gt-substat">
-            <span class="gt-substat-label"><i class="fas fa-calculator"></i> ຍອດລວມ</span>
-            <span class="gt-substat-value" id="displaySubtotal">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
-          </div>
-          <div class="gt-substat">
-            <span class="gt-substat-label"><i class="fas fa-percent"></i> ສ່ວນຫຼຸດ</span>
-            <span class="gt-substat-value" id="displayDiscount">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
-          </div>
-          <div class="gt-substat">
-            <span class="gt-substat-label"><i class="fas fa-qrcode"></i> ຮັບເງິນໂອນ</span>
-            <span class="gt-substat-value" id="displayQrReceived">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
-          </div>
-          <div class="gt-substat">
-            <span class="gt-substat-label"><i class="fas fa-money-bill-wave"></i> ຮັບເງິນສົດ</span>
-            <span class="gt-substat-value" id="displayCashReceived">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
-          </div>
-          <div class="gt-substat">
-            <span class="gt-substat-label"><i class="fas fa-hand-holding-usd"></i> ເງິນທອນ</span>
-            <span class="gt-substat-value" id="displayChangeAmount">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
-          </div>
-        </div>
-
-        <div class="gt-final">
-          <span class="gt-final-label">ຍອດຊຳລະ (ຍອດລວມ - ສ່ວນຫຼຸດ)</span>
-          <h2 id="displayGrandTotal">0 <?php echo htmlspecialchars($cd['symbol']); ?></h2>
         </div>
       </div>
 
     </div>
 
+  </div>
+
+  <!-- GREEN GRAND-TOTAL BOX: full-width bar below both panels, every payment stat + grand total -->
+  <div class="grand-total-banner">
+    <div class="gt-substats">
+      <div class="gt-substat">
+        <span class="gt-substat-label"><i class="fas fa-boxes"></i> ລາຍການສິນຄ້າ</span>
+        <span class="gt-substat-value" id="displayItemCount">0 ລາຍການ / 0 ອັນ</span>
+      </div>
+      <div class="gt-substat">
+        <span class="gt-substat-label"><i class="fas fa-calculator"></i> ຍອດລວມ</span>
+        <span class="gt-substat-value" id="displaySubtotal">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
+      </div>
+      <div class="gt-substat">
+        <span class="gt-substat-label"><i class="fas fa-percent"></i> ສ່ວນຫຼຸດ</span>
+        <span class="gt-substat-value" id="displayDiscount">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
+      </div>
+      <div class="gt-substat">
+        <span class="gt-substat-label"><i class="fas fa-qrcode"></i> ຮັບເງິນໂອນ</span>
+        <span class="gt-substat-value" id="displayQrReceived">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
+      </div>
+      <div class="gt-substat">
+        <span class="gt-substat-label"><i class="fas fa-money-bill-wave"></i> ຮັບເງິນສົດ</span>
+        <span class="gt-substat-value" id="displayCashReceived">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
+      </div>
+      <div class="gt-substat">
+        <span class="gt-substat-label"><i class="fas fa-hand-holding-usd"></i> ເງິນທອນ</span>
+        <span class="gt-substat-value" id="displayChangeAmount">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
+      </div>
+    </div>
+
+    <div class="gt-final">
+      <span class="gt-final-label">ຍອດຊຳລະ (ຍອດລວມ - ສ່ວນຫຼຸດ)</span>
+      <h2 id="displayGrandTotal">0 <?php echo htmlspecialchars($cd['symbol']); ?></h2>
+    </div>
   </div>
 </div>
 
@@ -948,16 +1011,9 @@ function renderDisplayData(data) {
   tbody.empty();
 
   var cart = data.cart || [];
+  $('#displayCartEmpty').toggle(cart.length === 0);
   if (cart.length === 0) {
-    tbody.append(`
-      <tr class="display-empty-state">
-        <td colspan="7" class="text-center text-muted">
-          <i class="fas fa-shopping-basket fa-3x mb-3 text-secondary opacity-40"></i>
-          <h4 class="font-weight-bold text-secondary">ຍັງບໍ່ມີລາຍການສິນຄ້າ</h4>
-          <p class="mb-0 text-muted">ກະລຸນາລໍຖ້າພະນັກງານສະແກນ ຫຼື ເລືອກສິນຄ້າ...</p>
-        </td>
-      </tr>
-    `);
+    // Nothing to render — #displayCartEmpty (shown above) carries the message.
   } else {
     // Render newest first: the most recently scanned/tapped item shows at the top and
     // is highlighted. Prefer the "_touch" stamp set by the POS cart; fall back to the

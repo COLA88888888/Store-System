@@ -99,8 +99,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($id > 0 && $promo_name !== '') {
             try {
-                $stmt = $pdo->prepare("UPDATE promotions SET promo_name = ?, promo_type = ?, discount_type = ?, discount_value = ?, gift_product_name = ?, gift_qty = ?, start_date = ?, end_date = ?, min_qty = ?, min_amount = ?, target_type = ?, target_name = ?, target_unit_name = ?, branch_id = ? WHERE id = ?");
-                $stmt->execute([$promo_name, $promo_type, $discount_type, $discount_value, $gift_product_name, $gift_qty, $start_date, $end_date, $min_qty, $min_amount, $target_type, $target_name, $target_unit_name, $branch_id, $id]);
+                $sql = "UPDATE promotions SET promo_name = ?, promo_type = ?, discount_type = ?, discount_value = ?, gift_product_name = ?, gift_qty = ?, start_date = ?, end_date = ?, min_qty = ?, min_amount = ?, target_type = ?, target_name = ?, target_unit_name = ?, branch_id = ? WHERE id = ?";
+                $params = [$promo_name, $promo_type, $discount_type, $discount_value, $gift_product_name, $gift_qty, $start_date, $end_date, $min_qty, $min_amount, $target_type, $target_name, $target_unit_name, $branch_id, $id];
+                if (!$canAllBranches) {
+                    $sql .= " AND branch_id = ?";
+                    $params[] = $userStoreId;
+                }
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute($params);
                 $message = t('promotions.msg_updated', 'ອັບເດດໂປຣໂມຊັ່ນສຳເລັດ!');
                 $message_type = 'success';
                 logActivity($pdo, "ແກ້ໄຂໂປຣໂມຊັ່ນ", "$promo_name (ID: $id)");
@@ -113,11 +119,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $id = intval($_POST['id'] ?? 0);
         $status = intval($_POST['status'] ?? 0);
         if ($id > 0) {
-            if ($status == 1) {
-                $chk = $pdo->prepare("SELECT end_date FROM promotions WHERE id = ?");
-                $chk->execute([$id]);
-                $promoDate = $chk->fetchColumn();
-                
+            $chkSql = "SELECT end_date, branch_id FROM promotions WHERE id = ?";
+            $chkParams = [$id];
+            if (!$canAllBranches) {
+                $chkSql .= " AND branch_id = ?";
+                $chkParams[] = $userStoreId;
+            }
+            $chk = $pdo->prepare($chkSql);
+            $chk->execute($chkParams);
+            $promoRow = $chk->fetch(PDO::FETCH_ASSOC);
+
+            if (!$promoRow) {
+                $message = t('promotions.msg_not_found', 'ບໍ່ພົບໂປຣໂມຊັ່ນນີ້!');
+                $message_type = 'danger';
+            } elseif ($status == 1) {
+                $promoDate = $promoRow['end_date'];
                 if ($promoDate && $promoDate < date('Y-m-d')) {
                     $message = t('promotions.msg_expired_pre', 'ໂປຣໂມຊັ່ນນີ້ໝົດອາຍຸແລ້ວ (') . date('d/m/Y', strtotime($promoDate)) . t('promotions.msg_expired_post', ')! ກະລຸນາກົດ "ແກ້ໄຂ" ເພື່ອປ່ຽນວັນທີສິ້ນສຸດກ່ອນເປີດໃຊ້ງານ.');
                     $message_type = 'warning';
@@ -137,8 +153,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } elseif ($action === 'delete_promo') {
         $id = intval($_POST['id'] ?? 0);
         if ($id > 0) {
-            $stmt = $pdo->prepare("DELETE FROM promotions WHERE id = ?");
-            $stmt->execute([$id]);
+            $sql = "DELETE FROM promotions WHERE id = ?";
+            $params = [$id];
+            if (!$canAllBranches) {
+                $sql .= " AND branch_id = ?";
+                $params[] = $userStoreId;
+            }
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
             $message = t('promotions.msg_deleted', 'ລົບໂປຣໂມຊັ່ນສຳເລັດ!');
             $message_type = 'success';
         }

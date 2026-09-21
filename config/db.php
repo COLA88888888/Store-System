@@ -59,11 +59,59 @@ if (session_status() === PHP_SESSION_NONE) {
 // 15 Minutes Inactivity Idle Timeout (900 seconds)
 $maxIdleTime = 900;
 if (isset($_SESSION['user_id'])) {
+    // Depth-aware redirect prefix, shared by both checks below: a flat '../' only reaches
+    // auth/ from home/<file>.php (1 level deep). pages/pos/pos.php is 2 levels deep and needs
+    // '../../'; pages/settings/printers/index.php is 3 levels deep and needs '../../../' — a
+    // single hardcoded '../' 404s from any page nested more than one directory under pages/.
+    $scriptDepth = 0;
+    if (preg_match('#/(pages|home)/(.+)$#', $_SERVER['SCRIPT_NAME'] ?? '', $m)) {
+        $scriptDepth = substr_count($m[2], '/') + 1;
+    }
+    $authPrefix = str_repeat('../', $scriptDepth);
+
+    // Shop-wide license expiry — auth/check_user.php already blocks a NEW login once the
+    // package has lapsed, but a shop that stays logged in would otherwise keep working
+    // indefinitely. Checked every request so an expiry mid-session still kicks everyone
+    // (admin included) to auth/license_expired.php, not just new sign-ins.
+    try {
+        $licExpire = $pdo ? $pdo->query("SELECT license_expire_date FROM tbcompanyinfo LIMIT 1")->fetchColumn() : null;
+    } catch (Throwable $ex) {
+        $licExpire = null;
+    }
+    if (!empty($licExpire) && strtotime($licExpire) < strtotime(date('Y-m-d'))) {
+        session_unset();
+        session_destroy();
+        $redirectExpiredPath = $authPrefix . 'auth/license_expired.php';
+        echo "<script>if (window.top) { window.top.location.href = '{$redirectExpiredPath}'; } else { window.location.href = '{$redirectExpiredPath}'; }</script>";
+        exit();
+    }
+
+    // Per-user access expiry (owner-only field, set from Users Management) — same gap as the
+    // license check above: auth/check_user.php blocks a NEW login once it's lapsed, but a user
+    // already logged in would otherwise keep working past their own 0-days-left date until
+    // their session naturally idles out. Id 1 (the owner) is exempt — this field is never set
+    // on it, same rule check_user.php already uses.
+    if (intval($_SESSION['user_id']) !== 1 && $pdo) {
+        try {
+            $myAccessStmt = $pdo->prepare("SELECT access_expire_date FROM tbuser WHERE Id = ? LIMIT 1");
+            $myAccessStmt->execute([intval($_SESSION['user_id'])]);
+            $myAccessExpire = $myAccessStmt->fetchColumn();
+        } catch (Throwable $ex) {
+            $myAccessExpire = null;
+        }
+        if (!empty($myAccessExpire) && strtotime($myAccessExpire) <= strtotime(date('Y-m-d'))) {
+            session_unset();
+            session_destroy();
+            $redirectAccessExpiredPath = $authPrefix . 'auth/access_expired.php';
+            echo "<script>if (window.top) { window.top.location.href = '{$redirectAccessExpiredPath}'; } else { window.location.href = '{$redirectAccessExpiredPath}'; }</script>";
+            exit();
+        }
+    }
+
     if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $maxIdleTime)) {
         session_unset();
         session_destroy();
-        $isPageDir = (strpos($_SERVER['SCRIPT_NAME'] ?? '', '/pages/') !== false || strpos($_SERVER['SCRIPT_NAME'] ?? '', '/home/') !== false);
-        $redirectLoginPath = $isPageDir ? '../auth/login.php?expired=1' : 'auth/login.php?expired=1';
+        $redirectLoginPath = $authPrefix . 'auth/login.php?expired=1';
         echo "<script>if (window.top) { window.top.location.href = '{$redirectLoginPath}'; } else { window.location.href = '{$redirectLoginPath}'; }</script>";
         exit();
     }

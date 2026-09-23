@@ -77,12 +77,18 @@
                 <td class="text-right font-weight-bold text-primary">
                   <?php if (($row['qr'] ?? 0) > 0): ?>
                     <div><?php echo displayMoney($pdo, $row['qr']); ?></div>
-                    <?php 
+                    <?php
                       $bName = !empty($row['bank_name']) ? $row['bank_name'] : 'BCEL One';
                       $bLogoUrl = getBankLogoByInfo($bName, $row['bank_account_id'] ?? 0);
                     ?>
                     <div class="d-inline-flex align-items-center mt-1 justify-content-end">
-                      <img src="<?php echo htmlspecialchars($bLogoUrl); ?>" style="width: 24px; height: 24px; object-fit: cover; border-radius: 50% !important; background: #ffffff; padding: 1px; border: 1.5px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08);" title="<?php echo htmlspecialchars($bName); ?>" onerror="this.src='../../assets/img/banks/bcel.svg';">
+                      <?php if (!empty($bLogoUrl)): ?>
+                        <img src="<?php echo htmlspecialchars($bLogoUrl); ?>" style="width: 24px; height: 24px; object-fit: cover; border-radius: 50% !important; background: #ffffff; padding: 1px; border: 1.5px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08);" title="<?php echo htmlspecialchars($bName); ?>" onerror="this.style.display='none';">
+                      <?php else: ?>
+                        <span class="d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px; border-radius: 50%; background: #f1f5f9; border: 1.5px solid #cbd5e1;" title="<?php echo htmlspecialchars($bName); ?>">
+                          <i class="fas fa-university text-muted" style="font-size: 0.7rem;"></i>
+                        </span>
+                      <?php endif; ?>
                     </div>
                   <?php else: ?>
                     <span class="text-muted"><?php echo displayMoney($pdo, 0); ?></span>

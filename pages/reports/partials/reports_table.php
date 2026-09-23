@@ -157,13 +157,23 @@
                 <td class="text-right font-weight-bold text-primary"><?php echo displayMoney($pdo, $row['qr']); ?></td>
                 <td class="text-center align-middle">
                   <?php if (!empty($row['qr']) && $row['qr'] > 0): ?>
-                    <?php 
+                    <?php
                       $bName = !empty($row['bank_name']) ? $row['bank_name'] : '';
                       $bCode = !empty($row['bank_code']) ? $row['bank_code'] : $bName;
                       $code = strtoupper(trim($bCode));
                       $logoPath = resolveBankLogo($row['bank_logo'] ?? '', $code);
                     ?>
-                    <img src="<?php echo htmlspecialchars($logoPath); ?>" style="width: 24px; height: 24px; object-fit: cover; border-radius: 50% !important; background: #ffffff; padding: 1px; border: 1.5px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08);" title="<?php echo htmlspecialchars($bName ?: $code); ?>" onerror="this.src='../../assets/img/banks/default.svg';">
+                    <?php if (!empty($logoPath)): ?>
+                      <img src="<?php echo htmlspecialchars($logoPath); ?>" style="width: 24px; height: 24px; object-fit: cover; border-radius: 50% !important; background: #ffffff; padding: 1px; border: 1.5px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.08);" title="<?php echo htmlspecialchars($bName ?: $code); ?>" onerror="this.style.display='none';">
+                    <?php else: ?>
+                      <!-- No bank logo on file (or the bill's bank_account_id never resolved,
+                           e.g. this branch has no bank account configured) — a generic icon
+                           beats an <img> with an empty src, which some browsers render as a
+                           blank circle instead of triggering onerror. -->
+                      <span class="d-inline-flex align-items-center justify-content-center" style="width: 24px; height: 24px; border-radius: 50%; background: #f1f5f9; border: 1.5px solid #cbd5e1;" title="<?php echo htmlspecialchars($bName ?: $code); ?>">
+                        <i class="fas fa-university text-muted" style="font-size: 0.7rem;"></i>
+                      </span>
+                    <?php endif; ?>
                   <?php endif; ?>
                 </td>
                 <td class="text-center">

@@ -36,7 +36,8 @@ try {
 $cd_bank_accounts = [];
 try {
     if (isset($pdo)) {
-        $bStmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE is_active = 1 AND store_id = ? ORDER BY id ASC");
+        // This branch's own banks, plus any shared across every branch (store_id = 0).
+        $bStmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE is_active = 1 AND (store_id = ? OR store_id = 0) ORDER BY id ASC");
         $bStmt->execute([getActiveStoreId($pdo)]);
         if ($bStmt) {
             foreach ($bStmt->fetchAll(PDO::FETCH_ASSOC) as $ba) {
@@ -835,7 +836,7 @@ window.CD_CUR = {
 };
 function cdFmt(v) {
   v = parseFloat(v) || 0;
-  return v.toLocaleString('en-US', { minimumFractionDigits: CD_CUR.decimals, maximumFractionDigits: CD_CUR.decimals }) + ' <span class="cur-sym">' + CD_CUR.symbol + '</span>';
+  return v.toLocaleString('en-US', { minimumFractionDigits: CD_CUR.decimals, maximumFractionDigits: CD_CUR.decimals }) + ' <span class="cur-sym">' + CD_CUR.symbol + '</span>';
 }
 // kip -> formatted display string
 function cdMoney(kip) {

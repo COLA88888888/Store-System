@@ -4,7 +4,7 @@
 <script>
 <?php $__idc = getDisplayCurrency($pdo); ?>
 window.IMP_CUR = { code: <?php echo json_encode($__idc['code']); ?>, symbol: <?php echo json_encode($__idc['symbol'], JSON_UNESCAPED_UNICODE); ?>, decimals: <?php echo (int)$__idc['decimals']; ?>, rate: <?php echo json_encode((float)$__idc['rate']); ?>, isKip: <?php echo ($__idc['code']==='KIP')?'true':'false'; ?> };
-function impFmtFromKip(n){ n=parseFloat(n)||0; var v=IMP_CUR.isKip?Math.round(n):(n/IMP_CUR.rate); return v.toLocaleString('en-US',{minimumFractionDigits:IMP_CUR.decimals,maximumFractionDigits:IMP_CUR.decimals}) + ' <span class="cur-sym">' + IMP_CUR.symbol + '</span>'; }
+function impFmtFromKip(n){ n=parseFloat(n)||0; var v=IMP_CUR.isKip?Math.round(n):(n/IMP_CUR.rate); return v.toLocaleString('en-US',{minimumFractionDigits:IMP_CUR.decimals,maximumFractionDigits:IMP_CUR.decimals}) + ' <span class="cur-sym">' + IMP_CUR.symbol + '</span>'; }
   var I18N_IMPORT_LIST = <?php echo tjson([
       'import_list.default_unit' => 'ອັນ',
       'import_list.js_no_items_in_bill' => 'ບໍ່ມີລາຍການສິນຄ້າໃນໃບບິນນີ້',

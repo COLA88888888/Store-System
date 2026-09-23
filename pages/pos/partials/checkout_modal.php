@@ -19,11 +19,43 @@
           <div class="checkout-left-col">
 
             <!-- Total -->
-            <div class="text-center p-2.5 text-white" style="border-radius:12px;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid rgba(255,255,255,0.2);box-shadow:0 4px 12px rgba(0, 68, 255, 0.4);">
-              <div style="color:#94a3b8;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">
-                <h6 class="font-weight-bold mb-1" style="font-size:0.82rem;"><?php echo htmlspecialchars(t('pos.amount_due', 'ຍອດທີ່ຕ້ອງຊຳລະ')); ?></h6>
+            <style>
+              @keyframes checkoutTotalGlow {
+                0%, 100% { box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35), 0 0 0 1px rgba(255,255,255,0.2) inset; }
+                50%      { box-shadow: 0 6px 26px rgba(37, 99, 235, 0.55), 0 0 0 1px rgba(255,255,255,0.3) inset; }
+              }
+              .checkout-total-card {
+                position: relative;
+                overflow: hidden;
+                border-radius: 14px;
+                padding: 14px 16px;
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%);
+                animation: checkoutTotalGlow 2.6s ease-in-out infinite;
+              }
+              .checkout-total-card::before {
+                content: '';
+                position: absolute;
+                top: -40%; right: -15%;
+                width: 140px; height: 140px;
+                background: radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 70%);
+                pointer-events: none;
+              }
+              .checkout-total-icon {
+                width: 30px; height: 30px;
+                background: rgba(255,255,255,0.20);
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 4px;
+              }
+            </style>
+            <div class="text-center text-white checkout-total-card">
+              <div class="checkout-total-icon"><i class="fas fa-wallet" style="font-size:0.85rem;color:#fff;"></i></div>
+              <div style="color:rgba(255,255,255,0.82);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;position:relative;">
+                <?php echo htmlspecialchars(t('pos.amount_due', 'ຍອດທີ່ຕ້ອງຊຳລະ')); ?>
               </div>
-              <div class="font-weight-bold" id="checkoutTotalDisplay" style="font-size:1.35rem;color:#fff;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;line-height:1.2;word-break:break-all;">0 ₭</div>
+              <div class="font-weight-bold" id="checkoutTotalDisplay" style="font-size:1.55rem;color:#fff;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;line-height:1.2;word-break:break-all;text-shadow:0 2px 8px rgba(0,0,0,0.15);position:relative;">0 ₭</div>
             </div>
 
             <!-- Pay Mode -->
@@ -61,7 +93,8 @@
               <?php 
                 $pos_bank_accounts = [];
                 try {
-                    $b_stmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE is_active = 1 AND store_id = ? ORDER BY id ASC");
+                    // This branch's own banks, plus any shared across every branch (store_id = 0).
+                    $b_stmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE is_active = 1 AND (store_id = ? OR store_id = 0) ORDER BY id ASC");
                     $b_stmt->execute([getActiveStoreId($pdo)]);
                     $pos_bank_accounts = $b_stmt->fetchAll(PDO::FETCH_ASSOC);
                 } catch (Throwable $e) {}
@@ -105,7 +138,10 @@
                 </div>
               <?php endif; ?>
 
-              <div class="text-center mt-2 pt-2 border-top" id="posActiveBankQrDisplaySection">
+              <!-- QR preview only needs to be on the printed receipt, not re-shown here too —
+                   selectPosBank() still fills #rc_bank_qr_img for the receipt; this block just
+                   stays hidden so the cashier isn't looking at a redundant QR on this screen. -->
+              <div class="text-center mt-2 pt-2 border-top" id="posActiveBankQrDisplaySection" style="display:none;">
                 <div id="posActiveBankQrContainer" style="display: none;">
                   <div class="font-weight-bold mb-1.5" style="font-size:0.85rem;color:#7c3aed;">
                     <i class="fas fa-qrcode mr-1"></i> <?php echo htmlspecialchars(t('pos.scan_qr_to_pay', 'ສະແກນ QR Code ຊຳລະເງິນ')); ?> <span id="posActiveBankNameTitle" class="text-primary font-weight-bold"></span>
@@ -220,44 +256,44 @@
 
             <!-- SINGLE: change display -->
             <div id="singleSummary">
-              <div style="background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;padding:12px 14px;">
-                <div style="font-size:0.86rem;color:#64748b;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;"><?php echo htmlspecialchars(t('pos.payment_summary', 'ສຳຫຼວດການຊຳລະ')); ?></div>
-                <div class="d-flex justify-content-between mb-1" style="font-size:0.86rem;">
+              <div style="background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;padding:14px 16px;">
+                <div style="font-size:0.9rem;color:#64748b;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;"><?php echo htmlspecialchars(t('pos.payment_summary', 'ສຳຫຼວດການຊຳລະ')); ?></div>
+                <div class="d-flex justify-content-between mb-2" style="font-size:1.05rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.total_label', 'ລວມ:')); ?></span>
                   <span class="font-weight-bold text-dark text-truncate ml-2" id="singleTotalLbl">0 ₭</span>
                 </div>
-                <div class="d-flex justify-content-between mb-1" style="font-size:0.86rem;">
+                <div class="d-flex justify-content-between mb-1" style="font-size:1.05rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.received_label', 'ຮັບມາ:')); ?></span>
                   <span class="font-weight-bold text-primary text-truncate ml-2" id="singleCashLbl">0 ₭</span>
                 </div>
-                <div style="border-top:1px dashed #e2e8f0;margin:6px 0;"></div>
+                <div style="border-top:1px dashed #e2e8f0;margin:8px 0;"></div>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
-                  <span class="font-weight-bold" style="font-size:0.88rem;"><?php echo htmlspecialchars(t('pos.change_label', 'ເງິນທອນ:')); ?></span>
-                  <span class="font-weight-bold text-success" id="changeDisplay" style="font-size:1.25rem;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">0 ₭</span>
+                  <span class="font-weight-bold" style="font-size:1.05rem;"><?php echo htmlspecialchars(t('pos.change_label', 'ເງິນທອນ:')); ?></span>
+                  <span class="font-weight-bold text-success" id="changeDisplay" style="font-size:1.5rem;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">0 ₭</span>
                 </div>
               </div>
             </div>
 
             <!-- SPLIT: summary -->
             <div id="splitSummary" style="display:none;">
-              <div style="background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;padding:12px 14px;">
-                <div style="font-size:0.86rem;color:#64748b;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;"><?php echo htmlspecialchars(t('pos.payment_summary', 'ສຳຫຼວດການຊຳລະ')); ?></div>
-                <div class="d-flex justify-content-between mb-1" style="font-size:0.86rem;">
+              <div style="background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;padding:14px 16px;">
+                <div style="font-size:0.9rem;color:#64748b;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;"><?php echo htmlspecialchars(t('pos.payment_summary', 'ສຳຫຼວດການຊຳລະ')); ?></div>
+                <div class="d-flex justify-content-between mb-2" style="font-size:1.05rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.grand_total_label', 'ຍອດທັງໝົດ:')); ?></span>
                   <span class="font-weight-bold text-dark text-truncate ml-2" id="splitTotal">0 ₭</span>
                 </div>
-                <div class="d-flex justify-content-between mb-1" style="font-size:0.86rem;">
+                <div class="d-flex justify-content-between mb-2" style="font-size:1.05rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.pay_type_cash', 'ເງິນສົດ')); ?>:</span>
                   <span class="font-weight-bold text-success text-truncate ml-2" id="splitCashDisplay">0 ₭</span>
                 </div>
-                <div class="d-flex justify-content-between mb-1" style="font-size:0.86rem;">
+                <div class="d-flex justify-content-between mb-1" style="font-size:1.05rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.pay_type_qr', 'ໂອນ / QR')); ?>:</span>
                   <span class="font-weight-bold text-truncate ml-2" style="color:#7c3aed;" id="splitQrDisplay">0 ₭</span>
                 </div>
-                <div style="border-top:1px dashed #e2e8f0;margin:6px 0;"></div>
+                <div style="border-top:1px dashed #e2e8f0;margin:8px 0;"></div>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
-                  <span class="font-weight-bold" style="font-size:0.88rem;" id="splitStatusLabel"><?php echo htmlspecialchars(t('pos.split_status_remaining', 'ຍັງຄ້າງ:')); ?></span>
-                  <span class="font-weight-bold" style="font-size:1.2rem;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;" id="splitRemainingDisplay">0 ₭</span>
+                  <span class="font-weight-bold" style="font-size:1.05rem;" id="splitStatusLabel"><?php echo htmlspecialchars(t('pos.split_status_remaining', 'ຍັງຄ້າງ:')); ?></span>
+                  <span class="font-weight-bold" style="font-size:1.45rem;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;" id="splitRemainingDisplay">0 ₭</span>
                 </div>
               </div>
             </div>

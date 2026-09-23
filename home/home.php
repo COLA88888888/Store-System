@@ -576,6 +576,7 @@ var I18N_HOME = <?php echo tjson([
     'home.legend_margin' => 'ອັດຕາກຳໄລ (%)',
     'home.legend_qty_sold' => 'ຈຳນວນຂາຍ',
     'home.no_sales_data' => 'ບໍ່ມີຂໍ້ມູນການຂາຍ',
+    'home.year_label' => 'ປີ %d',
     'home.month_1' => 'ມັງກອນ', 'home.month_2' => 'ກຸມພາ', 'home.month_3' => 'ມີນາ',
     'home.month_4' => 'ເມສາ', 'home.month_5' => 'ພຶດສະພາ', 'home.month_6' => 'ມິຖຸນາ',
     'home.month_7' => 'ກໍລະກົດ', 'home.month_8' => 'ສິງຫາ', 'home.month_9' => 'ກັນຍາ',
@@ -673,6 +674,9 @@ $(document).ready(function() {
 
   var yearlyLabels  = <?php echo json_encode($yearly_labels); ?>;
   var yearlySales   = <?php echo json_encode(array_map($__hcvt, $yearly_sales)); ?>;
+  // Raw years behind yearlyLabels, kept so refreshChartLangs() can rebuild the "ປີ %d" labels
+  // in the new language without re-fetching data from the server.
+  var yearlyYears   = <?php echo json_encode(array_keys($yearly_sales_map)); ?>;
 
   var top10Names    = <?php echo json_encode($top10_names); ?>;
   var top10Qty      = <?php echo json_encode($top10_qty); ?>;
@@ -680,6 +684,12 @@ $(document).ready(function() {
   if (!yearlyLabels.length) {
     yearlyLabels = [<?php echo json_encode(sprintf(t('home.year_label', 'ປີ %d'), $selected_year), JSON_UNESCAPED_UNICODE); ?>];
     yearlySales  = [0];
+    yearlyYears  = [<?php echo (int)$selected_year; ?>];
+  }
+
+  function fmtYearLabel(year) {
+    var pattern = I18N_HOME['home.year_label'] || 'ປີ %d';
+    return pattern.replace('%d', year);
   }
 
   if (!top10Names.length) {
@@ -690,6 +700,8 @@ $(document).ready(function() {
   // Chart instances kept so their labels can be re-translated on an instant language switch
   var monthlyRevenueChartObj = null;
   var profitMarginChartObj = null;
+  var topSellersChartObj = null;
+  var yearlySalesChartObj = null;
 
   // ===== 1. Monthly Revenue & Profit Chart =====
   var ctxMonthly = document.getElementById('monthlyRevenueChart');
@@ -742,7 +754,7 @@ $(document).ready(function() {
   // ===== 2. Yearly Sales Comparison Chart =====
   var ctxYearly = document.getElementById('yearlySalesChart');
   if (ctxYearly) {
-    new Chart(ctxYearly, {
+    yearlySalesChartObj = new Chart(ctxYearly, {
       type: 'bar',
       data: {
         labels: yearlyLabels,
@@ -815,7 +827,7 @@ $(document).ready(function() {
       return formatChartLabel(name, 16);
     });
 
-    new Chart(ctxTop, {
+    topSellersChartObj = new Chart(ctxTop, {
       type: 'bar',
       data: {
         labels: formattedTop10Names,
@@ -898,6 +910,20 @@ $(document).ready(function() {
         profitMarginChartObj.data.datasets[0].label = I18N_HOME['home.legend_margin'];
       }
       profitMarginChartObj.update();
+    }
+    if (topSellersChartObj && topSellersChartObj.data.datasets[0]) {
+      // Only the dataset label needs updating — the tooltip title callback reads top10Names
+      // directly (product names, not translated) and the axis ticks use formattedTop10Names.
+      topSellersChartObj.data.datasets[0].label = I18N_HOME['home.legend_qty_sold'];
+      topSellersChartObj.update();
+    }
+    if (yearlySalesChartObj) {
+      yearlyLabels = yearlyYears.map(fmtYearLabel);
+      yearlySalesChartObj.data.labels = yearlyLabels;
+      if (yearlySalesChartObj.data.datasets[0]) {
+        yearlySalesChartObj.data.datasets[0].label = curLabel(I18N_HOME['home.legend_sales']);
+      }
+      yearlySalesChartObj.update();
     }
   }
   window.addEventListener('pos:langchange', refreshChartLangs);

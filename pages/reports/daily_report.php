@@ -163,10 +163,14 @@ try {
         $bStmt->execute($params);
         $bank_daily_breakdown_raw = $bStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fetch bank accounts master list for accurate ID mapping
+        // Fetch bank accounts master list for accurate ID mapping — this branch's own banks
+        // plus any shared across every branch (store_id = 0), so a same-named bank from
+        // ANOTHER branch never gets matched in by the label fallback below.
         $bank_accounts_map = [];
         try {
-            $bList = $pdo->query("SELECT * FROM bank_accounts WHERE is_active = 1 ORDER BY id ASC")->fetchAll(PDO::FETCH_ASSOC);
+            $bListStmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE is_active = 1 AND (store_id = ? OR store_id = 0) ORDER BY id ASC");
+            $bListStmt->execute([getActiveStoreId($pdo)]);
+            $bList = $bListStmt->fetchAll(PDO::FETCH_ASSOC);
             foreach ($bList as $b) {
                 $bank_accounts_map[$b['id']] = $b;
             }

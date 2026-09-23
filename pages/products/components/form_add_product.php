@@ -351,8 +351,8 @@ function addUnitRow(mode, data) {
           <input type="text" name="extra_unit_name[]" class="form-control form-control-sm" placeholder="${I18N_ADD_PRODUCT['products.unit_row_name_placeholder']}" value="${unitName}" required>
         </div>
         <div class="col-md-2 col-6 mb-2 mb-md-0">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_ADD_PRODUCT['products.unit_row_qty_label']} <span class="text-danger">*</span></label>
-          <input type="number" name="extra_unit_multiplier[]" class="form-control form-control-sm text-center" placeholder="${I18N_ADD_PRODUCT['products.unit_row_qty_placeholder']}" min="2" value="${multiplier}" required>
+          <label class="small text-muted font-weight-bold mb-1">${I18N_ADD_PRODUCT['products.unit_row_qty_label']}</label>
+          <input type="number" name="extra_unit_multiplier[]" class="form-control form-control-sm text-center" placeholder="1" min="1" value="${multiplier}">
         </div>
         <div class="col-md-2 col-6 mb-2 mb-md-0">
           <label class="small text-muted font-weight-bold mb-1">${I18N_ADD_PRODUCT['products.unit_row_bprice_label']}</label>
@@ -470,21 +470,7 @@ function submitAddProduct(e) {
       validExtra = false;
       return false;
     }
-    if (uMult === '' || parseInt(uMult) <= 0) {
-      if (e) e.preventDefault();
-      var inputEl = $(this).find('input[name="extra_unit_multiplier[]"]');
-      Swal.fire({
-        icon: 'warning',
-        title: I18N_ADD_PRODUCT['products.alert_notice_title'],
-        text: I18N_ADD_PRODUCT['products.validate_unit_qty'],
-        confirmButtonColor: '#2563eb',
-        confirmButtonText: I18N_ADD_PRODUCT['products.btn_ok']
-      }).then(function() {
-        inputEl.focus();
-      });
-      validExtra = false;
-      return false;
-    }
+    // uMult optional — blank/0 defaults to 1 (same quantity as the base unit) server-side.
     // uPrice optional
   });
 

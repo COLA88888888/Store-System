@@ -7,8 +7,9 @@ if (!defined('MINIPOS_APP')) {
     define('MINIPOS_APP', true);
 }
 
-// Fetch this branch's own bank accounts only.
-$banks_stmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE store_id = ? ORDER BY is_active DESC, id ASC");
+// This branch's own bank accounts, plus any account shared across every branch (store_id = 0
+// — same convention promotions uses for a "global" row).
+$banks_stmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE store_id = ? OR store_id = 0 ORDER BY is_active DESC, id ASC");
 $banks_stmt->execute([getActiveStoreId($pdo)]);
 $bank_accounts_list = $banks_stmt ? $banks_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
@@ -230,20 +231,28 @@ function getBankBrandStyle($bankCode) {
       $brand = getBankBrandStyle($bank['bank_code'] ?: $bank['bank_name']);
     ?>
     <div class="col-lg-3 col-md-6 mb-3">
-      <div class="bank-card p-3 border-0 shadow-sm rounded-lg h-100 d-flex flex-column justify-content-between" style="background: <?php echo $brand['bg']; ?>; color: #ffffff; min-height: 120px;">
-        <div class="d-flex align-items-start justify-content-between mb-2">
-          <div class="d-flex align-items-center" style="gap: 12px;">
-            <img src="<?php echo htmlspecialchars($logoSrc); ?>" alt="Bank Logo" style="width: 44px; height: 44px; object-fit: contain; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: #fff; padding: 2px;">
-            <div>
-              <h6 class="font-weight-bold text-white mb-0 text-truncate" style="max-width: 140px;" title="<?php echo htmlspecialchars($bank['bank_name']); ?>">
+      <div class="bank-card p-2 border-0 shadow-sm rounded-lg h-100 d-flex flex-column justify-content-between" style="background: <?php echo $brand['bg']; ?>; color: #ffffff; min-height: 92px;">
+        <div class="d-flex align-items-start justify-content-between mb-1">
+          <div class="d-flex align-items-center" style="gap: 8px;">
+            <img src="<?php echo htmlspecialchars($logoSrc); ?>" alt="Bank Logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: #fff; padding: 2px; flex-shrink: 0;">
+            <div style="min-width: 0;">
+              <h6 class="font-weight-bold text-white mb-0 text-truncate" style="max-width: 130px; font-size: 0.88rem;" title="<?php echo htmlspecialchars($bank['bank_name']); ?>">
                 <?php echo htmlspecialchars($bank['bank_name']); ?>
               </h6>
-              <div class="font-weight-bold" style="font-size: 0.9rem; font-family: monospace; color: <?php echo $brand['acc_color']; ?>;">
+              <div class="font-weight-bold" style="font-size: 0.76rem; font-family: monospace; color: <?php echo $brand['acc_color']; ?>;">
                 <?php echo htmlspecialchars($bank['account_number']); ?>
               </div>
-              <small class="text-truncate d-block" style="max-width: 140px; color: <?php echo $brand['text_sub']; ?>;" title="<?php echo htmlspecialchars($bank['account_name']); ?>">
-                <?php echo htmlspecialchars($bank['account_name'] ?: '-'); ?>
-              </small>
+              <?php
+                $bankBranchLabel = t('bank.opt_global', '-- ທຸກສາຂາ (Global) --');
+                if ((int)$bank['store_id'] > 0) {
+                    foreach ($branches_list as $__bst) {
+                        if ((int)$__bst['store_id'] === (int)$bank['store_id']) { $bankBranchLabel = $__bst['store_name']; break; }
+                    }
+                }
+              ?>
+              <span class="badge badge-light border font-weight-bold text-truncate d-inline-block" style="font-size: 0.6rem; color: #1e293b; max-width: 130px; vertical-align: bottom;">
+                <i class="fas fa-<?php echo (int)$bank['store_id'] === 0 ? 'globe' : 'store'; ?> mr-1"></i><?php echo htmlspecialchars($bankBranchLabel); ?>
+              </span>
             </div>
           </div>
 
@@ -262,15 +271,15 @@ function getBankBrandStyle($bankCode) {
           </div>
         </div>
 
-        <div class="pt-2 border-top d-flex align-items-center justify-content-between mt-2" style="border-color: rgba(255,255,255,0.2) !important;">
+        <div class="pt-1 border-top d-flex align-items-center justify-content-between mt-1" style="border-color: rgba(255,255,255,0.2) !important;">
           <div>
-            <small style="color: <?php echo $brand['text_sub']; ?>;" class="font-weight-bold"><?php echo htmlspecialchars(t('bank.received_amount', 'ຍອດຮັບເງິນ:')); ?></small>
-            <div class="font-weight-bold text-white" style="font-size: 1.02rem;">
+            <small style="color: <?php echo $brand['text_sub']; ?>; font-size: 0.68rem;" class="font-weight-bold"><?php echo htmlspecialchars(t('bank.received_amount', 'ຍອດຮັບເງິນ:')); ?></small>
+            <div class="font-weight-bold text-white" style="font-size: 0.86rem;">
               <span class="counter-num" data-target="<?php echo __bnum($__bdc, $receivedAmt); ?>" data-suffix=" <?php echo htmlspecialchars($__bsym); ?>" data-decimals="<?php echo $__bdec; ?>"><?php echo displayMoney($pdo, $receivedAmt); ?></span>
             </div>
           </div>
           <div class="text-right">
-            <span class="badge text-white px-2 py-1 shadow-xs" style="font-size: 0.76rem; background-color: <?php echo $brand['badge_bg']; ?>; border: 1px solid rgba(255,255,255,0.25);">
+            <span class="badge text-white px-1.5 py-1 shadow-xs" style="font-size: 0.66rem; background-color: <?php echo $brand['badge_bg']; ?>; border: 1px solid rgba(255,255,255,0.25);">
               <?php echo number_format($txCount); ?> <?php echo htmlspecialchars(t('bank.bill_suffix', 'ບິນ')); ?> (<?php echo $pct; ?>%)
             </span>
           </div>
@@ -281,19 +290,19 @@ function getBankBrandStyle($bankCode) {
 
   <!-- Total Transfer Revenue Summary Card (Moved to the END) -->
   <div class="col-lg-3 col-md-6 mb-3">
-    <div class="bank-card p-3 rounded-lg border-0 shadow-sm h-100 d-flex flex-column justify-content-center" style="background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color: #ffffff; min-height: 120px;">
+    <div class="bank-card p-2 rounded-lg border-0 shadow-sm h-100 d-flex flex-column justify-content-center" style="background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color: #ffffff; min-height: 92px;">
       <div class="d-flex align-items-center justify-content-between">
         <div>
-          <small class="text-white-50 font-weight-bold text-uppercase" style="font-size: 0.78rem; letter-spacing: 0.5px;"><?php echo htmlspecialchars(t('bank.total_transfer_received', 'ລວມຍອດຮັບເງິນໂອນທັງໝົດ')); ?></small>
-          <h4 class="font-weight-bold text-white mb-0 mt-1">
+          <small class="text-white-50 font-weight-bold text-uppercase" style="font-size: 0.66rem; letter-spacing: 0.5px;"><?php echo htmlspecialchars(t('bank.total_transfer_received', 'ລວມຍອດຮັບເງິນໂອນທັງໝົດ')); ?></small>
+          <h5 class="font-weight-bold text-white mb-0 mt-1" style="font-size: 1.15rem;">
             <span class="counter-num" data-target="<?php echo __bnum($__bdc, $total_transfer_sum); ?>" data-suffix=" <?php echo htmlspecialchars($__bsym); ?>" data-decimals="<?php echo $__bdec; ?>"><?php echo displayMoney($pdo, $total_transfer_sum); ?></span>
-          </h4>
-          <small class="text-white-50 font-weight-bold mt-1 d-block">
+          </h5>
+          <small class="text-white-50 font-weight-bold mt-1 d-block" style="font-size: 0.7rem;">
             <i class="fas fa-exchange-alt mr-1"></i> <?php echo htmlspecialchars(sprintf(t('bank.total_items', 'ລວມ %s ລາຍການ'), number_format($total_transfer_count))); ?>
           </small>
         </div>
-        <div class="rounded-circle p-3 text-primary" style="width: 52px; height: 52px; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.95); box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-          <i class="fas fa-qrcode fa-2x"></i>
+        <div class="rounded-circle text-primary" style="width: 38px; height: 38px; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.95); box-shadow: 0 4px 12px rgba(0,0,0,0.15); flex-shrink: 0;">
+          <i class="fas fa-qrcode"></i>
         </div>
       </div>
     </div>
@@ -426,6 +435,7 @@ function editBankAccount(bank) {
   $('#form_account_number').val(bank.account_number);
   $('#form_account_name').val(bank.account_name);
   $('#form_is_active').val(bank.is_active || 1);
+  $('#form_store_id').val(bank.store_id);
 
   $('#bankModalTitle').html('<i class="fas fa-edit text-primary mr-1"></i> ' + I18N_BANK['bank.modal_title_edit']);
   $('#addBankAccountModal').modal('show');
@@ -488,6 +498,7 @@ function resetBankForm() {
   $('#form_account_number').val('');
   $('#form_account_name').val('');
   $('#form_is_active').val('1');
+  $('#form_store_id').val(<?php echo (int)$userStoreId; ?>);
   $('#bankModalTitle').html('<i class="fas fa-plus-circle text-primary mr-1"></i> ' + I18N_BANK['bank.modal_title_add']);
 }
 

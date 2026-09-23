@@ -69,12 +69,12 @@ function fillReprintMultiCurrency(netKip) {
 function repMoneyFromKip(n) {
   n = parseFloat(n) || 0;
   var v = REP_CUR.isKip ? Math.round(n) : (n / REP_CUR.rate);
-  return v.toLocaleString('en-US', { minimumFractionDigits: REP_CUR.decimals, maximumFractionDigits: REP_CUR.decimals }) + ' <span class="cur-sym">' + REP_CUR.symbol + '</span>';
+  return v.toLocaleString('en-US', { minimumFractionDigits: REP_CUR.decimals, maximumFractionDigits: REP_CUR.decimals }) + ' <span class="cur-sym">' + REP_CUR.symbol + '</span>';
 }
 // n is ALREADY in the report currency -> just format it
 function repMoney(n) {
   n = parseFloat(n) || 0;
-  return n.toLocaleString('en-US', { minimumFractionDigits: REP_CUR.decimals, maximumFractionDigits: REP_CUR.decimals }) + ' <span class="cur-sym">' + REP_CUR.symbol + '</span>';
+  return n.toLocaleString('en-US', { minimumFractionDigits: REP_CUR.decimals, maximumFractionDigits: REP_CUR.decimals }) + ' <span class="cur-sym">' + REP_CUR.symbol + '</span>';
 }
 
 function viewBillDetails(billNo) {

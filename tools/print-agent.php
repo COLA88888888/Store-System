@@ -38,11 +38,15 @@ if ($baseUrl === '' || $token === '') {
 
 $endpoint = $baseUrl . '/api/print_agent.php';
 
-// The printer can't take the next job until it's done printing + cutting the current one.
-// Lower printSpeedMmS if tickets are still missing (slower/older printer head).
-$printSpeedMmS = 70;   // mm/s
-$cutTimeMs     = 400;  // paper cut + settle
-$minGapMs      = 400;  // floor, for very short tickets
+// The printer can't take the next job until it's done printing + cutting the current one. Sending
+// the next job too early doesn't queue behind the first — the printer's tiny receive buffer just
+// drops the rest, so the first ticket comes out cut off partway through (a half-printed bill).
+// These defaults are deliberately conservative (slower than most printers' real speed) because a
+// truncated bill is a real money/audit problem; a print job finishing a bit early to wait is not.
+// Lower printSpeedMmS further (or raise cutTimeMs) if tickets are still coming out incomplete.
+$printSpeedMmS = 45;   // mm/s
+$cutTimeMs     = 700;  // paper cut + settle
+$minGapMs      = 600;  // floor, for very short tickets
 
 function agentLog($msg) {
     echo '[' . date('Y-m-d H:i:s') . '] ' . $msg . PHP_EOL;
@@ -112,13 +116,22 @@ function sendToPrinter($ip, $bytes) {
     stream_set_timeout($sock, 4);
     $len = strlen($bytes);
     $sent = 0;
+    // Small chunks with a short pause between them, not one big burst — see the matching note
+    // in api/lan_printer.php::lanPrinterSend(). A cheap ESC/POS printer's receive buffer can be
+    // far smaller than a receipt image; blasting it all in 8 KB writes overruns that buffer
+    // (fwrite() still reports success — the printer just drops the rest), which is what was
+    // cutting tickets off partway through and leaving the printer to read the leftover raster
+    // bytes as garbled text on the next job.
+    $chunkSize  = 1024;
+    $chunkDelay = 15000; // microseconds
     while ($sent < $len) {
-        $written = @fwrite($sock, substr($bytes, $sent, 8192));
+        $written = @fwrite($sock, substr($bytes, $sent, $chunkSize));
         if ($written === false || $written === 0) {
             fclose($sock);
             throw new Exception("Write failed after $sent bytes");
         }
         $sent += $written;
+        if ($sent < $len) usleep($chunkDelay);
     }
     fclose($sock);
 }

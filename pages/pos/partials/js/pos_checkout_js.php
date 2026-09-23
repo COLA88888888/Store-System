@@ -42,12 +42,12 @@ function posMoneyIn(amountKip, code) {
   code = (code || 'KIP').toUpperCase();
   var meta = window.POS_CURRENCY_META[code] || window.POS_CURRENCY_META.KIP;
   if (code === 'KIP') {
-    return Math.round(amountKip || 0).toLocaleString('en-US') + ' <span class="cur-sym">' + meta.symbol + '</span>';
+    return Math.round(amountKip || 0).toLocaleString('en-US') + ' <span class="cur-sym">' + meta.symbol + '</span>';
   }
   var rate = parseFloat(window.POS_EX_RATES[code]) || 0;
   if (rate <= 0) return '-';
   var val = (amountKip || 0) / rate;
-  return val.toLocaleString('en-US', { minimumFractionDigits: meta.decimals, maximumFractionDigits: meta.decimals }) + ' <span class="cur-sym">' + meta.symbol + '</span>';
+  return val.toLocaleString('en-US', { minimumFractionDigits: meta.decimals, maximumFractionDigits: meta.decimals }) + ' <span class="cur-sym">' + meta.symbol + '</span>';
 }
 
 // Fill the receipt's 4-currency net-total block from a KIP amount.
@@ -189,6 +189,20 @@ function numpadBackspace() {
   else calculateChange();
 }
 
+// Auto trigger the already-selected bank, or default to the first configured bank account
+// (bank_accounts.id ASC — for a shop with only one bank on file, e.g. BCEL One, that IS the
+// default) so the QR/transfer amount always has a bank chosen without the cashier hunting for
+// the picker first. Shared by single QR-pay and split payment — both show the same bank grid.
+function autoSelectPosBank() {
+  var activeBankOpt = $('.pos-bank-option.selected-bank');
+  if (!activeBankOpt.length) {
+    activeBankOpt = $('.pos-bank-option').first();
+  }
+  if (activeBankOpt.length) {
+    activeBankOpt.click();
+  }
+}
+
 function setPayMode(mode) {
   currentPayMode = mode;
   if (mode === 'single') {
@@ -214,6 +228,7 @@ function setPayMode(mode) {
     $('#singleSummary').hide();
     $('#splitSummary').show();
     $('#singleQrSection').show();
+    autoSelectPosBank();
     $('#splitTotal').html(POSCUR.fmt(window.CART_NET_KIP || 0));
     calcSplitRemaining();
     $('#btnSubmitPayment').prop('disabled', true);
@@ -233,15 +248,7 @@ function selectPayTypeTab(type) {
     $('#payTypeQrBtn').css({ 'border-color': '#7c3aed', 'background': '#faf5ff', 'color': '#7c3aed' });
     $('#payTypeCashBtn').css({ 'border-color': '#cbd5e1', 'background': '#ffffff', 'color': '#64748b' });
     $('#singleQrSection').slideDown(150);
-
-    // Auto trigger selected/first bank option to load bank QR
-    var activeBankOpt = $('.pos-bank-option.selected-bank');
-    if (!activeBankOpt.length) {
-      activeBankOpt = $('.pos-bank-option').first();
-    }
-    if (activeBankOpt.length) {
-      activeBankOpt.click();
-    }
+    autoSelectPosBank();
   }
 }
 
@@ -349,6 +356,10 @@ function openCheckoutModal() {
   $('#splitSummary').hide();
   $('#payModeSingleBtn').css({ 'border-color': '#244886', 'background': '#eef2fb', 'color': '#1a3666' });
   $('#payModeSplitBtn').css({ 'border-color': '#cbd5e1', 'background': '#ffffff', 'color': '#64748b' });
+  // Split-payment amounts belong to this one bill only — left as-is, the next sale opened
+  // straight in split mode would start pre-filled with the last customer's cash/QR split.
+  $('#splitCashAmount').val('0');
+  $('#splitQrAmount').val('0');
   window.currentSelectedBankId = null;
   window.currentSelectedBankName = null;
   window.currentSelectedBankQrPath = '';
@@ -385,6 +396,12 @@ function openCheckoutModal() {
 // PROCESS CHECKOUT
 // ============================
 function processCheckout() {
+  // Re-entrancy guard: a fast double-tap on the submit button (common on a touchscreen POS)
+  // used to fire two checkout requests before the first response came back, creating two
+  // separate bills in the DB and printing a receipt for each. Cleared once the request settles
+  // (success or error) in the ajax `complete` callback below.
+  if (window.__posCheckoutInFlight) return;
+
   // Everything below is KIP — inputs are typed in the display currency and converted here.
   var total    = window.CART_NET_KIP || 0;
   var discount = window.CART_DISCOUNT_KIP || 0;
@@ -505,6 +522,9 @@ function processCheckout() {
     paid_rate:       (window.POSCUR && POSCUR.rate) ? POSCUR.rate : 1
   };
 
+  window.__posCheckoutInFlight = true;
+  $('#btnSubmitPayment').prop('disabled', true);
+
   $.ajax({
     url: (window.POS_BACKEND_URL || '../../api/pos_backend.php'),
     type: 'POST',
@@ -514,6 +534,13 @@ function processCheckout() {
     // fatal-errors on every checkout (array given, not string).
     data: Object.assign({}, payload, { action: 'checkout', cart: JSON.stringify(cleanCart) }),
     dataType: 'json',
+    complete: function() {
+      window.__posCheckoutInFlight = false;
+      // On success the modal is already closing (handleOnlineCheckoutReceiptUI); on failure
+      // re-derive the button's disabled state from the still-visible amounts instead of just
+      // force-enabling it, so a genuinely short payment still blocks the retry.
+      if (currentPayMode === 'split') calcSplitRemaining(); else calculateChange();
+    },
     success: function(res) {
       if (res && res.success) {
         handleOnlineCheckoutReceiptUI(res);
@@ -556,6 +583,13 @@ function processCheckout() {
 }
 
 function handleOnlineCheckoutReceiptUI(res) {
+  // Idempotency guard: if this exact invoice already ran through here once (e.g. a duplicate
+  // success callback, or the ajax success firing after the checkout button's own re-entrancy
+  // guard let a second request slip through some other way), never repeat the stock update,
+  // cart reset or — most visibly — the physical print. One invoice number prints one receipt.
+  if (res.invoice_number && window.__posLastReceiptInvoice === res.invoice_number) return;
+  window.__posLastReceiptInvoice = res.invoice_number;
+
   $('#checkoutModal').modal('hide');
   // Receipt is always rendered in the POS display currency, not the tender currency
   // the cashier may have just picked. (hidden.bs.modal fires async — reset now.)

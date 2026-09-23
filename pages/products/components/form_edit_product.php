@@ -296,21 +296,7 @@ function submitEditProduct(e) {
       validExtra = false;
       return false;
     }
-    if (uMult === '' || parseInt(uMult) <= 0) {
-      if (e) e.preventDefault();
-      var inputEl = $(this).find('input[name="extra_unit_multiplier[]"]');
-      Swal.fire({
-        icon: 'warning',
-        title: I18N_EDIT_PRODUCT['products.alert_notice_title'],
-        text: I18N_EDIT_PRODUCT['products.validate_unit_qty'],
-        confirmButtonColor: '#2563eb',
-        confirmButtonText: I18N_EDIT_PRODUCT['products.btn_ok']
-      }).then(function() {
-        inputEl.focus();
-      });
-      validExtra = false;
-      return false;
-    }
+    // uMult optional — blank/0 defaults to 1 (same quantity as the base unit) server-side.
     // uPrice optional
   });
 

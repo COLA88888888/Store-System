@@ -118,13 +118,14 @@ window.POSCUR = (function () {
     var p = Math.pow(10, meta.decimals);
     return Math.round(fromKip(kip) * p) / p;
   }
-  // Full display string with symbol.
-  function fmt(kip) { return num(kip) + ' <span class="cur-sym">' + meta.symbol + '</span>'; }
+  // Full display string with symbol. A non-breaking space glues the number to the symbol so
+  // a narrow receipt/print column never wraps the currency symbol onto its own line.
+  function fmt(kip) { return num(kip) + ' <span class="cur-sym">' + meta.symbol + '</span>'; }
   // Format an amount that is ALREADY in display-currency units (see units()/parseUnits()).
   function fmtUnits(u) {
     u = parseFloat(u) || 0;
     return u.toLocaleString('en-US', { minimumFractionDigits: meta.decimals, maximumFractionDigits: meta.decimals })
-      + ' <span class="cur-sym">' + meta.symbol + '</span>';
+      + ' <span class="cur-sym">' + meta.symbol + '</span>';
   }
 
   return {

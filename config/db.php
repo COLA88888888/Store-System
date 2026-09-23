@@ -242,7 +242,10 @@ if ($pdo) {
     // v5: tbl_printer created here (it only existed in old dumps) + paper_width for LAN kitchen tickets.
     // v10: tbl_printer.is_receipt_printer + print_jobs table (print agent / off-site server mode).
     // v11: bank_accounts.store_id — each branch now only sees/manages its own bank accounts.
-    $schemaFlagFile = __DIR__ . '/.db_schema_v11';
+    // v12: tbsale_save.cash_received / qr_received — persist the split-payment breakdown so
+    // bill reprints and the reports "bill details" modal show the actual amount received per
+    // channel instead of 0 (checkout already computed both, they just weren't saved).
+    $schemaFlagFile = __DIR__ . '/.db_schema_v12';
     if (!file_exists($schemaFlagFile)) {
         try {
 
@@ -712,6 +715,15 @@ if ($pdo) {
         if (!in_array('points_earned', $saleCols)) {
             $pdo->exec("ALTER TABLE tbsale_save ADD COLUMN `points_earned` INT NOT NULL DEFAULT 0");
         }
+        // Split-payment breakdown (cash portion vs QR/transfer portion) — checkout already
+        // computes both for mixed-channel payments, but they were never persisted, so bill
+        // reprints / report modals showed 0 for whichever channel wasn't sale_pay's cash figure.
+        if (!in_array('cash_received', $saleCols)) {
+            $pdo->exec("ALTER TABLE tbsale_save ADD COLUMN `cash_received` DECIMAL(12,2) DEFAULT 0.00");
+        }
+        if (!in_array('qr_received', $saleCols)) {
+            $pdo->exec("ALTER TABLE tbsale_save ADD COLUMN `qr_received` DECIMAL(12,2) DEFAULT 0.00");
+        }
 
         $salesCols = $pdo->query("SHOW COLUMNS FROM sales")->fetchAll(PDO::FETCH_COLUMN);
         if (!in_array('bank_account_id', $salesCols)) {
@@ -1153,7 +1165,7 @@ if (!function_exists('formatMoneyIn')) {
         $dec = $meta[$code]['decimals'];
         $val = convertFromKip($amountKip, $code, $rates, $pdo);
         return number_format((float)$val, $dec, '.', ',')
-             . ' <span class="cur-sym">' . $meta[$code]['symbol'] . '</span>';
+             . "\u{00A0}<span class=\"cur-sym\">" . $meta[$code]['symbol'] . '</span>';
     }
 }
 

@@ -33,13 +33,24 @@ function lanPrinterSend($host, $port, $bytes, $timeout = 4) {
     stream_set_timeout($fp, $timeout);
     $len = strlen($bytes);
     $sent = 0;
+    // Small chunks with a short pause between them, not one big burst. A receipt image can be
+    // tens of KB, and plenty of cheap ESC/POS network/WiFi printers have a receive buffer far
+    // smaller than that with no real TCP backpressure — fwrite() happily reports success while
+    // the printer itself silently drops whatever didn't fit. The result: the ticket cuts off
+    // partway through, and the leftover raster bytes it never consumed as an image get read as
+    // plain text on its next job, printing as garbled (often Chinese-codepage) characters. A
+    // 1 KB chunk every ~15 ms keeps arrival well under what even a small on-board buffer drains
+    // at typical print speed.
+    $chunkSize  = 1024;
+    $chunkDelay = 15000; // microseconds
     while ($sent < $len) {
-        $written = @fwrite($fp, substr($bytes, $sent, 8192));
+        $written = @fwrite($fp, substr($bytes, $sent, $chunkSize));
         if ($written === false || $written === 0) {
             fclose($fp);
             return [false, 'write failed after ' . $sent . ' bytes'];
         }
         $sent += $written;
+        if ($sent < $len) usleep($chunkDelay);
     }
     fclose($fp);
     return [true, ''];
@@ -67,6 +78,45 @@ function escposRasterFromPng($png, $dots) {
         $h = $nh;
     }
 
+    // A flat "black if darker than mid-gray" threshold drops anything the logo used lighter
+    // colors or soft/anti-aliased edges for — those pixels just vanish, so the printed logo
+    // came out visibly incomplete instead of the full image. Floyd–Steinberg error-diffusion
+    // dithering renders those tones as a dot pattern instead, so the whole logo (and any
+    // photo/gradient content) prints recognizably; pure black text is unaffected since its
+    // luminance is already 0 or 255 and dithers to the same crisp pixels as before.
+    $lum = [];
+    for ($y = 0; $y < $h; $y++) {
+        $row = [];
+        for ($x = 0; $x < $w; $x++) {
+            $rgb = imagecolorat($src, $x, $y);
+            $alpha = ($rgb >> 24) & 0x7F; // GD alpha: 0 = opaque, 127 = fully transparent
+            $opacity = 1 - ($alpha / 127);
+            $pxLum = (((($rgb >> 16) & 0xFF) * 299) + ((($rgb >> 8) & 0xFF) * 587) + (($rgb & 0xFF) * 114)) / 1000;
+            // Blend transparent pixels toward white (the paper) instead of an abrupt cutoff,
+            // so a logo's soft/anti-aliased edges dither smoothly rather than disappearing.
+            $row[] = ($pxLum * $opacity) + (255 * (1 - $opacity));
+        }
+        $lum[] = $row;
+    }
+    imagedestroy($src);
+
+    $bitmap = [];
+    for ($y = 0; $y < $h; $y++) {
+        $bitmap[] = array_fill(0, $w, false);
+        for ($x = 0; $x < $w; $x++) {
+            $old = $lum[$y][$x];
+            $black = $old < 128;
+            $bitmap[$y][$x] = $black;
+            $err = $old - ($black ? 0 : 255);
+            if ($x + 1 < $w) $lum[$y][$x + 1] += $err * 7 / 16;
+            if ($y + 1 < $h) {
+                if ($x > 0) $lum[$y + 1][$x - 1] += $err * 3 / 16;
+                $lum[$y + 1][$x] += $err * 5 / 16;
+                if ($x + 1 < $w) $lum[$y + 1][$x + 1] += $err * 1 / 16;
+            }
+        }
+    }
+
     $ESC = chr(27);
     $GS = chr(29);
     $rowBytes = intdiv($w + 7, 8);
@@ -81,10 +131,7 @@ function escposRasterFromPng($png, $dots) {
             $byte = 0;
             $bit = 0;
             for ($x = 0; $x < $w; $x++) {
-                $rgb = imagecolorat($src, $x, $y);
-                $alpha = ($rgb >> 24) & 0x7F;
-                $lum = (((($rgb >> 16) & 0xFF) * 299) + ((($rgb >> 8) & 0xFF) * 587) + (($rgb & 0xFF) * 114)) / 1000;
-                if ($alpha < 64 && $lum < 128) {
+                if ($bitmap[$y][$x]) {
                     $byte |= (0x80 >> $bit);
                 }
                 $bit++;
@@ -103,9 +150,11 @@ function escposRasterFromPng($png, $dots) {
             . chr($rows & 0xFF) . chr(($rows >> 8) & 0xFF)
             . $data;
     }
-    imagedestroy($src);
 
-    $out .= $ESC . 'd' . chr(4);          // feed 4 lines
+    // GS V already feeds the paper to the cutter's own blade position before cutting — an
+    // extra explicit "feed 4 lines" stacked in front of that (the old behaviour) left a long
+    // blank gap between the last printed line (the thank-you footer) and the cut. Cut right
+    // where the printer's own feed-to-cut already lands.
     $out .= $GS . 'V' . chr(66) . chr(0); // feed to cutter and cut
     return $out;
 }
@@ -125,6 +174,5 @@ function escposTestPage($printerName, $host, $port) {
         . 'Address: ' . $host . ':' . $port . $LF
         . 'Time:    ' . date('Y-m-d H:i:s') . $LF . $LF
         . 'If you can read this, LAN printing works.' . $LF
-        . $ESC . 'd' . chr(4)
         . $GS . 'V' . chr(66) . chr(0);
 }

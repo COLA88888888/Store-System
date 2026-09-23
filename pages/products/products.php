@@ -193,11 +193,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         $insertUnitStmt = $pdo->prepare("INSERT INTO product_units (product_id, unit_name, multiplier, bprice, price, barcode) VALUES (?, ?, ?, ?, ?, ?)");
                         for ($i = 0; $i < count($_POST['extra_unit_name']); $i++) {
                             $uName = trim($_POST['extra_unit_name'][$i] ?? '');
+                            // Quantity is optional in the form — a blank/0 multiplier defaults to
+                            // 1 (same quantity as the base unit) instead of silently dropping the row.
                             $uMult = intval($_POST['extra_unit_multiplier'][$i] ?? 1);
+                            if ($uMult <= 0) $uMult = 1;
                             $uBprice = floatval(str_replace(',', '', $_POST['extra_unit_bprice'][$i] ?? '0'));
                             $uPrice = floatval(str_replace(',', '', $_POST['extra_unit_price'][$i] ?? '0'));
                             $uBarcode = trim($_POST['extra_unit_barcode'][$i] ?? '');
-                            if ($uName !== '' && $uMult > 0 && $uPrice > 0) {
+                            if ($uName !== '' && $uPrice > 0) {
                                 $insertUnitStmt->execute([$product_id, $uName, $uMult, $uBprice, $uPrice, $uBarcode]);
                             }
                         }
@@ -479,11 +482,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         $insertUnitStmt = $pdo->prepare("INSERT INTO product_units (product_id, unit_name, multiplier, bprice, price, barcode) VALUES (?, ?, ?, ?, ?, ?)");
                         for ($i = 0; $i < count($_POST['extra_unit_name']); $i++) {
                             $uName = trim($_POST['extra_unit_name'][$i] ?? '');
+                            // Quantity is optional in the form — a blank/0 multiplier defaults to
+                            // 1 (same quantity as the base unit) instead of silently dropping the row.
                             $uMult = intval($_POST['extra_unit_multiplier'][$i] ?? 1);
+                            if ($uMult <= 0) $uMult = 1;
                             $uBprice = floatval(str_replace(',', '', $_POST['extra_unit_bprice'][$i] ?? '0'));
                             $uPrice = floatval(str_replace(',', '', $_POST['extra_unit_price'][$i] ?? '0'));
                             $uBarcode = trim($_POST['extra_unit_barcode'][$i] ?? '');
-                            if ($uName !== '' && $uMult > 0 && $uPrice > 0) {
+                            if ($uName !== '' && $uPrice > 0) {
                                 $insertUnitStmt->execute([$product_id, $uName, $uMult, $uBprice, $uPrice, $uBarcode]);
                             }
                         }

@@ -158,7 +158,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         echo json_encode(['success' => false, 'message' => 'ກະຕ່າສິນຄ້າຫວ່າງເປົ່າ!']);
         exit();
     }
-    
+
+    // Idempotency guard: the exact same checkout (same cart + amounts + customer, same login
+    // session) arriving again within a few seconds is a duplicate submission — a double-tap on
+    // the submit button, a slow-network retry, or a stale browser tab that fired before a fix
+    // landed — never a genuine second sale (a real repeat purchase is never byte-identical down
+    // to the tendered amounts). Replay the first request's own response instead of creating a
+    // second bill and decrementing stock twice. This is server-side and session-scoped, so it
+    // still catches a duplicate even if the client-side re-entrancy guard in pos_checkout_js.php
+    // was bypassed or hasn't loaded yet.
+    $idemFp = md5(($_POST['cart'] ?? '') . '|' . $cash_received . '|' . $qr_received . '|' .
+        $payment_type . '|' . $discount_bill . '|' . $customer_id . '|' . ($_SESSION['user_id'] ?? ''));
+    if (
+        isset($_SESSION['pos_last_checkout_fp'], $_SESSION['pos_last_checkout_time'], $_SESSION['pos_last_checkout_response']) &&
+        $_SESSION['pos_last_checkout_fp'] === $idemFp &&
+        (time() - $_SESSION['pos_last_checkout_time']) < 20
+    ) {
+        echo json_encode($_SESSION['pos_last_checkout_response']);
+        exit();
+    }
+
     try {
         $pdo->beginTransaction();
         
@@ -224,7 +243,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         if (empty($bank_account_id) && ($qr_received > 0 || strpos($payment_type, 'ໂອນ') !== false || strpos($payment_type, 'QR') !== false || strpos($payment_type, 'Transfer') !== false)) {
             try {
-                $bStmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE is_active = 1 AND store_id = ? ORDER BY id ASC LIMIT 1");
+                // This branch's own banks, plus any shared across every branch (store_id = 0).
+                $bStmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE is_active = 1 AND (store_id = ? OR store_id = 0) ORDER BY id ASC LIMIT 1");
                 $bStmt->execute([$activeStoreId]);
                 $bank_info = $bStmt->fetch(PDO::FETCH_ASSOC);
                 if ($bank_info) {
@@ -234,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             } catch (Throwable $e) {}
         } else if ($bank_account_id) {
             try {
-                $bStmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE id = ? AND store_id = ?");
+                $bStmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE id = ? AND (store_id = ? OR store_id = 0)");
                 $bStmt->execute([$bank_account_id, $activeStoreId]);
                 $bank_info = $bStmt->fetch(PDO::FETCH_ASSOC);
                 if ($bank_info && !empty($bank_info['bank_name'])) {
@@ -245,8 +265,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         // Insert into tbsale_save
         $stmtSave = $pdo->prepare("
-            INSERT INTO tbsale_save (sale_save_bill, sale_date, sale_time, user_receive, customer_id, customer_name, ip_address, sale_qty, sale_amount, sale_discount_bill, sale_barlance, sale_pay, sale_return, type_pay, bank_account_id, bank_name, sale_status, store_id, paid_currency, paid_rate, paid_amount_foreign, queue_no)
-            VALUES (:invoice_no, CURDATE(), CURTIME(), :user_id, :customer_id, :customer_name, :ip_address, :sale_qty, :sale_amount, :discount_bill, :net_total, :cash_received, :change, :payment_type, :bank_account_id, :bank_name, 'SUCCESS', :store_id, :paid_currency, :paid_rate, :paid_amount_foreign, :queue_no)
+            INSERT INTO tbsale_save (sale_save_bill, sale_date, sale_time, user_receive, customer_id, customer_name, ip_address, sale_qty, sale_amount, sale_discount_bill, sale_barlance, sale_pay, sale_return, type_pay, bank_account_id, bank_name, sale_status, store_id, paid_currency, paid_rate, paid_amount_foreign, queue_no, cash_received, qr_received)
+            VALUES (:invoice_no, CURDATE(), CURTIME(), :user_id, :customer_id, :customer_name, :ip_address, :sale_qty, :sale_amount, :discount_bill, :net_total, :cash_received, :change, :payment_type, :bank_account_id, :bank_name, 'SUCCESS', :store_id, :paid_currency, :paid_rate, :paid_amount_foreign, :queue_no, :cash_received_col, :qr_received_col)
         ");
         $stmtSave->execute([
             ':invoice_no'      => $invoice_no,
@@ -267,7 +287,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             ':store_id'        => $activeStoreId,
             ':paid_currency'      => $paid_currency,
             ':paid_rate'         => $paid_rate,
-            ':paid_amount_foreign' => $paid_amount_foreign
+            ':paid_amount_foreign' => $paid_amount_foreign,
+            ':cash_received_col' => $cash_received,
+            ':qr_received_col'   => $qr_received
         ]);
 
         // Insert into physical sales table with tax details
@@ -437,8 +459,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         $pdo->commit();
 
-        if (ob_get_length()) ob_clean();
-        echo json_encode([
+        $responsePayload = [
             'success'        => true,
             'points_earned'   => $points_earned,
             'customer_points' => $customer_points_balance,
@@ -467,7 +488,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'bank_qr_img'    => resolveBankQr($bank_info['qr_code_img'] ?? '', $bank_info['bank_code'] ?? ''),
             'details'        => $details_summary,
             'updated_stocks' => $updated_stocks
-        ]);
+        ];
+
+        // Remember this exact request so a duplicate arriving within the window above (see the
+        // idempotency guard) replays this same successful response instead of billing twice.
+        $_SESSION['pos_last_checkout_fp']       = $idemFp;
+        $_SESSION['pos_last_checkout_time']     = time();
+        $_SESSION['pos_last_checkout_response'] = $responsePayload;
+
+        if (ob_get_length()) ob_clean();
+        echo json_encode($responsePayload);
         exit();
     } catch (Exception $e) {
         if ($pdo->inTransaction()) {

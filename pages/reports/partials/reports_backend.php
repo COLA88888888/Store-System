@@ -58,20 +58,25 @@ function getReportPageUrl($targetPage) {
 }
 
 function getBankLogoByInfo($bankName, $bankAccountId = 0) {
-    global $pdo, $bank_accounts_map;
+    // Unscoped on purpose: a bill's own bank_account_id/bank_name is a concrete record of
+    // whichever bank was actually picked at checkout, and must still resolve to its real logo
+    // for display even when that account's store_id doesn't match the branch currently being
+    // viewed (see the note where $all_bank_accounts_map is built). $bank_accounts_map (branch-
+    // scoped) stays reserved for the filter dropdown & per-branch breakdown only.
+    global $pdo, $all_bank_accounts_map;
     $logoFile = '';
     $bankCode = '';
-    
+
     // 1. Search by bankAccountId
-    if (!empty($bankAccountId) && isset($bank_accounts_map[$bankAccountId])) {
-        $logoFile = $bank_accounts_map[$bankAccountId]['bank_logo'] ?? '';
-        $bankCode = $bank_accounts_map[$bankAccountId]['bank_code'] ?? '';
+    if (!empty($bankAccountId) && isset($all_bank_accounts_map[$bankAccountId])) {
+        $logoFile = $all_bank_accounts_map[$bankAccountId]['bank_logo'] ?? '';
+        $bankCode = $all_bank_accounts_map[$bankAccountId]['bank_code'] ?? '';
     }
-    
-    // 2. Search bank_accounts_map by bank_name or bank_code if logoFile is empty
-    if (empty($logoFile) && !empty($bank_accounts_map)) {
+
+    // 2. Search all_bank_accounts_map by bank_name or bank_code if logoFile is empty
+    if (empty($logoFile) && !empty($all_bank_accounts_map)) {
         $search = strtolower(trim($bankName));
-        foreach ($bank_accounts_map as $acc) {
+        foreach ($all_bank_accounts_map as $acc) {
             $bName = strtolower(trim($acc['bank_name'] ?? ''));
             $bCode = strtolower(trim($acc['bank_code'] ?? ''));
             if ($search && (($bName && strpos($search, $bName) !== false) || ($bCode && strpos($search, $bCode) !== false) || ($bName && strpos($bName, $search) !== false))) {
@@ -81,7 +86,7 @@ function getBankLogoByInfo($bankName, $bankAccountId = 0) {
             }
         }
     }
-    
+
     if (empty($bankCode) && !empty($bankName)) {
         if (stripos($bankName, 'BCEL') !== false || stripos($bankName, 'BCL') !== false) { $bankCode = 'BCEL'; }
         elseif (stripos($bankName, 'LDB') !== false) { $bankCode = 'LDB'; }
@@ -99,7 +104,10 @@ function getBankLogoByInfo($bankName, $bankAccountId = 0) {
     if (!empty($code) && file_exists($root . '/assets/img/banks/' . $code . '.svg')) {
         return '../../assets/img/banks/' . $code . '.svg';
     }
-    return '../../assets/img/banks/bcel.svg';
+    // No uploaded logo and no matching code-based .svg on disk (the app ships none by default,
+    // e.g. bcel.svg) — empty string tells the caller to show a generic fallback icon instead of
+    // an <img> pointed at a file that doesn't exist.
+    return '';
 }
 
 // Handle AJAX Request for Bill Items Modal Details
@@ -370,16 +378,33 @@ $params = [];
 
 $bank_filter = trim($_GET['bank_filter'] ?? '');
 
-// Fetch all bank accounts for filter & breakdown
+// Bank accounts for the filter & breakdown — scoped to the branch this report is actually
+// viewing (honours ?switch_store_id for admin/main-branch) plus any bank shared across every
+// branch (store_id = 0), so the dropdown never mixes in ANOTHER branch's own bank accounts.
 $bank_accounts = [];
 $bank_accounts_map = [];
 try {
-    $b_stmt = $pdo->query("SELECT * FROM bank_accounts ORDER BY id ASC");
+    $b_stmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE store_id = ? OR store_id = 0 ORDER BY id ASC");
+    $b_stmt->execute([getActiveStoreId($pdo)]);
     if ($b_stmt) {
         $bank_accounts = $b_stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($bank_accounts as $bAcc) {
             $bank_accounts_map[$bAcc['id']] = $bAcc;
         }
+    }
+} catch (Throwable $e) {}
+
+// Separate, UNSCOPED lookup (every branch's bank_accounts, by id) — a bill's own
+// bank_account_id is a concrete reference to whichever bank account was actually picked at
+// checkout time, and must still resolve to its real name/logo for display even when that
+// account's store_id doesn't match the branch this report is currently viewing (e.g. a bank
+// account created before branches were split out, or shared/misfiled under another store_id).
+// Only $bank_accounts_map above (branch-scoped) feeds the filter dropdown & breakdown, so this
+// doesn't reopen the cross-branch mixing that was fixed there.
+$all_bank_accounts_map = [];
+try {
+    foreach ($pdo->query("SELECT * FROM bank_accounts")->fetchAll(PDO::FETCH_ASSOC) as $bAcc) {
+        $all_bank_accounts_map[$bAcc['id']] = $bAcc;
     }
 } catch (Throwable $e) {}
 
@@ -770,7 +795,10 @@ if ($view_mode === 'item') {
         $change = floatval($r['sale_return'] ?? 0);
 
         $bAccId = intval($r['bank_account_id'] ?? 0);
-        $bInfo = $bank_accounts_map[$bAccId] ?? [];
+        // Unscoped lookup — this bill's own bank_account_id is a concrete reference that must
+        // resolve regardless of which branch's report is currently being viewed (see the note
+        // where $all_bank_accounts_map is built above).
+        $bInfo = $all_bank_accounts_map[$bAccId] ?? [];
         $bName = !empty($r['bank_name']) ? $r['bank_name'] : ($bInfo['bank_name'] ?? '');
         $bCode = !empty($bInfo['bank_code']) ? $bInfo['bank_code'] : $bName;
         $bLogo = !empty($bInfo['bank_logo']) ? $bInfo['bank_logo'] : '';

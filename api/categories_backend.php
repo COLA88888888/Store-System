@@ -156,7 +156,12 @@ $total_records = count($allCategories);
 $next_cat_id = (int)$pdo->query("SELECT IFNULL(MAX(category_id), 0) + 1 FROM categories")->fetchColumn();
 
 // Active printers — for the "kitchen ticket printer" dropdown on the add/edit category form.
+// Scoped to this branch only (categories.printer_id joins tbl_printer.id where branch_id =
+// c.store_id at checkout time — see pos_backend.php) — a branch must never be offered another
+// branch's printer here, and must never see its name mixed into this list.
 $catPrinters = [];
 try {
-    $catPrinters = $pdo->query("SELECT id, name FROM tbl_printer WHERE status = 1 ORDER BY name ASC")->fetchAll();
+    $catPrintersStmt = $pdo->prepare("SELECT id, name FROM tbl_printer WHERE status = 1 AND branch_id = ? ORDER BY name ASC");
+    $catPrintersStmt->execute([$activeStoreIdForCat]);
+    $catPrinters = $catPrintersStmt->fetchAll();
 } catch (Throwable $e) {}

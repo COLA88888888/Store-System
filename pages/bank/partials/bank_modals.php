@@ -54,12 +54,34 @@ if (!defined('MINIPOS_APP')) {
             </div>
           </div>
 
-          <div class="form-group mt-3 mb-0">
-            <label class="font-weight-bold"><?php echo htmlspecialchars(t('bank.field_status', 'ສະຖານະ:')); ?></label>
-            <select name="is_active" id="form_is_active" class="form-control" style="border-radius: 8px;">
-              <option value="1"><?php echo htmlspecialchars(t('bank.status_option_active', 'ເປີດໃຊ້ງານ')); ?></option>
-              <option value="0"><?php echo htmlspecialchars(t('bank.status_option_inactive', 'ປິດໃຊ້ງານ')); ?></option>
-            </select>
+          <div class="row mt-3">
+            <div class="col-6">
+              <div class="form-group mb-0">
+                <label class="font-weight-bold" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('bank.field_branch', 'ສາຂາ:')); ?></label>
+                <select name="store_id" id="form_store_id" class="form-control" style="border-radius: 8px;" <?php echo (!$canAllBranches) ? 'disabled' : ''; ?>>
+                  <?php if ($canAllBranches): ?>
+                    <option value="0"><?php echo htmlspecialchars(t('bank.opt_global', '-- ທຸກສາຂາ (Global) --')); ?></option>
+                  <?php endif; ?>
+                  <?php foreach ($branches_list as $st): ?>
+                    <option value="<?php echo $st['store_id']; ?>" <?php echo ($userStoreId == $st['store_id']) ? 'selected' : ''; ?>>
+                      <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('bank.main_branch_suffix', '(ສາຂາຫຼັກ)')) : ''; ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+                <?php if (!$canAllBranches): ?>
+                  <input type="hidden" name="store_id" value="<?php echo $userStoreId; ?>">
+                <?php endif; ?>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-group mb-0">
+                <label class="font-weight-bold" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('bank.field_status', 'ສະຖານະ:')); ?></label>
+                <select name="is_active" id="form_is_active" class="form-control" style="border-radius: 8px;">
+                  <option value="1"><?php echo htmlspecialchars(t('bank.status_option_active', 'ເປີດໃຊ້ງານ')); ?></option>
+                  <option value="0"><?php echo htmlspecialchars(t('bank.status_option_inactive', 'ປິດໃຊ້ງານ')); ?></option>
+                </select>
+              </div>
+            </div>
           </div>
 
         </div>

@@ -18,6 +18,13 @@ if (empty($_SESSION['user_id']) || (!hasPermission('accounting') && !hasPermissi
 $message = '';
 $message_type = '';
 
+// Same "branch_id = 0 means every branch" convention promotions already use — a shop can share
+// one bank account across all its branches, or give a branch its own. Only a user who can see
+// every branch (canViewAllBranches) is allowed to pick 0 or another branch's id; everyone else
+// is locked to their own store_id regardless of what the form posts.
+$canAllBranches = canViewAllBranches($pdo);
+$userStoreId    = intval($_SESSION['store_id'] ?? 1);
+
 // Handle POST actions for Bank Accounts
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
@@ -29,6 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $account_name   = trim($_POST['account_name'] ?? '');
         $bank_code      = strtoupper(trim($_POST['bank_code'] ?? '')) ?: strtoupper(trim($bank_name));
         $is_active      = intval($_POST['is_active'] ?? 1);
+        $bank_store_id  = isset($_POST['store_id']) ? intval($_POST['store_id']) : $userStoreId;
+        if (!$canAllBranches) {
+            $bank_store_id = $userStoreId;
+        }
 
         $bank_logo = null;
         if (!empty($_FILES['bank_logo']['name']) && $_FILES['bank_logo']['error'] === UPLOAD_ERR_OK) {
@@ -55,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         if (!empty($bank_name) && !empty($account_number)) {
             try {
                 $stmt = $pdo->prepare("INSERT INTO bank_accounts (bank_name, account_number, account_name, bank_code, bank_logo, qr_code_img, is_active, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->execute([$bank_name, $account_number, $account_name, $bank_code, $bank_logo, $qr_code_img, $is_active, getActiveStoreId($pdo)]);
+                $stmt->execute([$bank_name, $account_number, $account_name, $bank_code, $bank_logo, $qr_code_img, $is_active, $bank_store_id]);
                 $message = "ເພີ່ມບັນຊີທະນາຄານ \"$bank_name\" ສໍາເລັດແລ້ວ!";
                 $message_type = "success";
                 logActivity($pdo, "ເພີ່ມບັນຊີທະນາຄານ", "$bank_name ($account_number)");
@@ -74,20 +85,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $account_name   = trim($_POST['account_name'] ?? '');
         $bank_code      = strtoupper(trim($_POST['bank_code'] ?? '')) ?: strtoupper(trim($bank_name));
         $is_active      = intval($_POST['is_active'] ?? 1);
+        $bank_store_id  = isset($_POST['store_id']) ? intval($_POST['store_id']) : $userStoreId;
+        if (!$canAllBranches) {
+            $bank_store_id = $userStoreId;
+        }
 
         if ($bank_id > 0 && !empty($bank_name)) {
             try {
-                // Scoped to this branch's own accounts — a sub-branch can't edit another
-                // branch's bank by guessing its id.
-                $editStoreId = getActiveStoreId($pdo);
+                // A sub-branch can only touch its own accounts by id; a canAllBranches user
+                // (main branch / admin) can edit any — same rule promotions uses.
+                $ownerSql = "";
+                $ownerParams = [];
+                if (!$canAllBranches) {
+                    $ownerSql = " AND store_id = ?";
+                    $ownerParams = [$userStoreId];
+                }
 
                 // ດຶງຮູບເກົ່າກ່ອນ update
-                $oldRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM bank_accounts WHERE id = ? AND store_id = ?");
-                $oldRow->execute([$bank_id, $editStoreId]);
+                $oldRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM bank_accounts WHERE id = ?{$ownerSql}");
+                $oldRow->execute(array_merge([$bank_id], $ownerParams));
                 $oldData = $oldRow->fetch(PDO::FETCH_ASSOC);
 
-                $pdo->prepare("UPDATE bank_accounts SET bank_name = ?, account_number = ?, account_name = ?, bank_code = ?, is_active = ? WHERE id = ? AND store_id = ?")
-                    ->execute([$bank_name, $account_number, $account_name, $bank_code, $is_active, $bank_id, $editStoreId]);
+                $pdo->prepare("UPDATE bank_accounts SET bank_name = ?, account_number = ?, account_name = ?, bank_code = ?, is_active = ?, store_id = ? WHERE id = ?{$ownerSql}")
+                    ->execute(array_merge([$bank_name, $account_number, $account_name, $bank_code, $is_active, $bank_store_id, $bank_id], $ownerParams));
 
                 // ແກ້ໄຂ bank_logo ຖ້າ upload ໃໝ່
                 if (!empty($_FILES['bank_logo']['name']) && $_FILES['bank_logo']['error'] === UPLOAD_ERR_OK) {
@@ -136,16 +156,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $bank_id = intval($_POST['bank_id'] ?? 0);
         if ($bank_id > 0) {
             try {
-                // Scoped to this branch's own accounts — a sub-branch can't delete another
-                // branch's bank by guessing its id.
-                $delStoreId = getActiveStoreId($pdo);
+                // Same ownership rule as edit: a sub-branch can't delete another branch's (or a
+                // shared/global) bank by guessing its id; a canAllBranches user can delete any.
+                $ownerSql = "";
+                $ownerParams = [];
+                if (!$canAllBranches) {
+                    $ownerSql = " AND store_id = ?";
+                    $ownerParams = [$userStoreId];
+                }
 
                 // ດຶງຊື່ໄຟລ໌ຮູບກ່ອນລົບ record
-                $delRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM bank_accounts WHERE id = ? AND store_id = ?");
-                $delRow->execute([$bank_id, $delStoreId]);
+                $delRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM bank_accounts WHERE id = ?{$ownerSql}");
+                $delRow->execute(array_merge([$bank_id], $ownerParams));
                 $delData = $delRow->fetch(PDO::FETCH_ASSOC);
 
-                $pdo->prepare("DELETE FROM bank_accounts WHERE id = ? AND store_id = ?")->execute([$bank_id, $delStoreId]);
+                $pdo->prepare("DELETE FROM bank_accounts WHERE id = ?{$ownerSql}")->execute(array_merge([$bank_id], $ownerParams));
 
                 // ລົບຮູບ bank_logo ແລະ QR ອອກຈາກ folder
                 if ($delData) {

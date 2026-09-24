@@ -33,4 +33,8 @@ return [
     'home.month_4' => '4月', 'home.month_5' => '5月', 'home.month_6' => '6月',
     'home.month_7' => '7月', 'home.month_8' => '8月', 'home.month_9' => '9月',
     'home.month_10' => '10月', 'home.month_11' => '11月', 'home.month_12' => '12月',
+    'home.period_label' => '时间段:', 'home.period_today' => '今天',
+    'home.period_month' => '本月', 'home.period_year' => '全年',
+    'home.chart_revenue_hourly' => '每小时收入图表', 'home.chart_revenue_daily' => '每日收入图表',
+    'home.badge_hours' => '24 小时', 'home.badge_days' => '%s 天', 'home.badge_months' => '%s 个月',
 ];

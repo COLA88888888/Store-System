@@ -93,19 +93,16 @@ if ($currency_filter !== '' && $hasCurrencyCol && isset(getCurrencyMeta()[$curre
 
 $whereClause = implode(" AND ", $where);
 
-// Count Total Deleted Bills + sum of their net amounts (whole filtered set, not just this page)
+// Count Total Deleted Bills (whole filtered set, not just this page) — drives pagination
 $stmtCount = $pdo->prepare("
-    SELECT
-        COUNT(*) AS cnt,
-        COALESCE(SUM(IFNULL(NULLIF(s.sale_barlance, 0), GREATEST(0, s.sale_amount - s.sale_discount_bill))), 0) AS net_sum
+    SELECT COUNT(*) AS cnt
     FROM tbsale_save s
     LEFT JOIN tbuser u ON (s.user_receive = u.Id OR s.user_receive = u.username)
     WHERE {$whereClause}
 ");
 $stmtCount->execute($params);
-$countRow = $stmtCount->fetch(PDO::FETCH_ASSOC) ?: ['cnt' => 0, 'net_sum' => 0];
+$countRow = $stmtCount->fetch(PDO::FETCH_ASSOC) ?: ['cnt' => 0];
 $total_records      = (int)($countRow['cnt'] ?? 0);
-$deleted_total_net  = (float)($countRow['net_sum'] ?? 0);
 
 $total_pages = max(1, ceil($total_records / $per_page));
 if ($page > $total_pages) $page = $total_pages;
@@ -297,15 +294,6 @@ require_once __DIR__ . '/partials/reports_modal.php';
               <?php endforeach; ?>
             <?php endif; ?>
           </tbody>
-          <?php if (!empty($deleted_bills)): ?>
-            <tfoot style="background: #f8fafc; font-weight: 800; border-top: 2px solid #cbd5e1;">
-              <tr style="font-size: 0.92rem; color: #0f172a;">
-                <td colspan="5" class="text-right text-dark py-3"><?php echo htmlspecialchars(t('reports.total_all_label', 'ລວມທັງໝົດ:')); ?></td>
-                <td class="text-right text-primary py-3" style="font-size: 0.98rem;"><?php echo displayMoney($pdo, $deleted_total_net); ?></td>
-                <td colspan="2"></td>
-              </tr>
-            </tfoot>
-          <?php endif; ?>
         </table>
       </div>
     </div>

@@ -86,4 +86,6 @@ return [
     'layout.logout_confirm_title' => '确认退出登录',
     'layout.logout_confirm_text' => '确定要退出登录吗？',
     'layout.cancel' => '取消',
+    'layout.expiry' => '过期商品管理',
+    'layout.expiry_report' => '商品到期报表',
 ];

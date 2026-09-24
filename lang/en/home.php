@@ -33,4 +33,8 @@ return [
     'home.month_4' => 'Apr', 'home.month_5' => 'May', 'home.month_6' => 'Jun',
     'home.month_7' => 'Jul', 'home.month_8' => 'Aug', 'home.month_9' => 'Sep',
     'home.month_10' => 'Oct', 'home.month_11' => 'Nov', 'home.month_12' => 'Dec',
+    'home.period_label' => 'Period:', 'home.period_today' => 'Today',
+    'home.period_month' => 'This Month', 'home.period_year' => 'Whole Year',
+    'home.chart_revenue_hourly' => 'Hourly Revenue Chart', 'home.chart_revenue_daily' => 'Daily Revenue Chart',
+    'home.badge_hours' => '24 Hours', 'home.badge_days' => '%s Days', 'home.badge_months' => '%s Months',
 ];

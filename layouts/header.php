@@ -10,7 +10,7 @@ $header_site_name = 'Wlaodev POS';
 $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
 ?>
 <!DOCTYPE html>
-<html lang="lo" translate="no">
+<html lang="<?php echo htmlspecialchars(function_exists('getCurrentLang') ? getCurrentLang() : 'lo'); ?>" translate="no">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -40,13 +40,18 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
     <!-- Select2 Searchable Dropdown -->
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/select2/css/select2.min.css">
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
-    <!-- Flatpickr Lao Datepicker CSS -->
+    <!-- Flatpickr: base styles, Lao theme, then the compact size used by every date box -->
+    <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/flatpickr/flatpickr.min.css">
     <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/flatpickr.min.css">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/flatpickr/minipos-datepicker.css?v=<?php echo @filemtime(__DIR__ . '/../plugins/flatpickr/minipos-datepicker.css'); ?>">
 
     <!-- Core JavaScript Libraries (Load in head so all page scripts & components can use $ and Swal) -->
     <script src="<?php echo $base_path; ?>plugins/jquery/jquery.min.js"></script>
     <script src="<?php echo $base_path; ?>plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="<?php echo $base_path; ?>plugins/sweetalert2/sweetalert2.all.min.js"></script>
+    <!-- Every <input type="date"> becomes the same Lao calendar, converted as the page is parsed -->
+    <script src="<?php echo $base_path; ?>plugins/flatpickr/flatpickr.min.js"></script>
+    <script src="<?php echo $base_path; ?>plugins/flatpickr/minipos-datepicker.js?v=<?php echo @filemtime(__DIR__ . '/../plugins/flatpickr/minipos-datepicker.js'); ?>"></script>
     <script>
       // Offline mode has been removed. Unregister any service worker still installed
       // from an older build so it can't serve stale cached pages.
@@ -139,6 +144,13 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
     </style>
   </head>
   <body class="hold-transition sidebar-mini layout-fixed">
+    <script>
+      // Pages load inside the dashboard iframe, where there's no sidebar. AdminLTE only adds
+      // body.iframe-mode (content-wrapper margin-left: 0) once its JS runs at the end of the
+      // page, so until then the content sat 250px to the right and then snapped to full width
+      // on every page change. Set it before anything paints.
+      try { if (window.self !== window.top) document.body.classList.add('iframe-mode'); } catch (e) { document.body.classList.add('iframe-mode'); }
+    </script>
     <?php if (empty($pos_page)): ?>
     <!-- Smart Delayed Global Preloader: Triggers only if live server latency > 600ms -->
     <div id="global-preloader">

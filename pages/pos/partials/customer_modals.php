@@ -41,6 +41,8 @@
             </tbody>
           </table>
         </div>
+        <!-- Page info + page buttons, filled by renderCustomerPager() in pos_customer_js.php -->
+        <div id="customerPager" class="d-flex justify-content-between align-items-center flex-wrap mt-3" style="gap: 8px;"></div>
       </div>
       <div class="modal-footer border-0 bg-light p-3">
         <button type="button" class="btn btn-primary font-weight-bold px-3 py-2" onclick="selectCustomer(null)" data-dismiss="modal" style="border-radius: 8px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none; box-shadow: 0 3px 10px rgba(36, 72, 134, 0.30);">

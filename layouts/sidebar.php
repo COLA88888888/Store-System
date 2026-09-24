@@ -250,7 +250,7 @@
           </li>
         <?php endif; ?>
 
-        <?php if (hasPermission('report') || hasPermission('daily_report') || hasPermission('all_sales') || hasPermission('best_seller') || hasPermission('profit_cost') || hasPermission('financial') || hasPermission('category_sales') || hasPermission('delete_bills')): ?>
+        <?php if (hasPermission('report') || hasPermission('daily_report') || hasPermission('all_sales') || hasPermission('best_seller') || hasPermission('profit_cost') || hasPermission('financial') || hasPermission('category_sales') || hasPermission('delete_bills') || hasPermission('expiry')): ?>
           <!-- Dropdown Treeview: ລາຍງານ -->
           <li class="nav-item has-treeview">
             <a href="#" class="nav-link">
@@ -327,6 +327,16 @@
                 <a href="<?php echo $bp; ?>pages/reports/delete_bills.php" target="frame" class="nav-link">
                   <i class="nav-icon fas fa-trash-alt text-danger"></i>
                   <p data-i18n="layout.delete_bills"><?php echo htmlspecialchars(t('layout.delete_bills', 'ປະຫວັດການລົບບິນຂາຍ')); ?></p>
+                </a>
+              </li>
+              <?php endif; ?>
+
+              <?php if (hasPermission('report') || hasPermission('expiry')): ?>
+              <!-- 8. ລາຍງານສິນຄ້າໝົດອາຍຸ -->
+              <li class="nav-item">
+                <a href="<?php echo $bp; ?>pages/reports/expiry_report.php" target="frame" class="nav-link">
+                  <i class="nav-icon fas fa-hourglass-half text-warning"></i>
+                  <p data-i18n="layout.expiry_report"><?php echo htmlspecialchars(t('layout.expiry_report', 'ລາຍງານສິນຄ້າໝົດອາຍຸ')); ?></p>
                 </a>
               </li>
               <?php endif; ?>
@@ -447,6 +457,14 @@
                     <p data-i18n="layout.loyalty"><?php echo htmlspecialchars(t('layout.loyalty', 'ຄະແນນສະສົມລູກຄ້າ')); ?></p>
                   </a>
                 </li>
+                  <?php if (hasPermission("expiry") || hasPermission("setup") || ($_SESSION["status"] ?? "") === "ຜູ້ບໍລິຫານ"): ?>
+                  <li class="nav-item">
+                    <a href="<?php echo $bp; ?>pages/settings/expiry/index.php" target="frame" class="nav-link">
+                      <i class="nav-icon fas fa-hourglass-half text-danger"></i>
+                      <p data-i18n="layout.expiry"><?php echo htmlspecialchars(t("layout.expiry", "ຈັດການສິນຄ້າໝົດອາຍຸ")); ?></p>
+                    </a>
+                  </li>
+                  <?php endif; ?>
                 <?php endif; ?>
               </ul>
             </li>

@@ -169,4 +169,6 @@ return [
     'products.bulk_col_price' => 'ราคาขาย',
     'products.bulk_col_supplier' => 'ผู้จัดจำหน่าย',
     'products.bulk_validate_none' => 'กรุณาป้อนอย่างน้อย 1 รายการ!',
+    'products.bulk_no_cut_qty' => 'ไม่ตัดสต็อก สำหรับทุกรายการในชุดนี้',
+    'products.bulk_no_cut_qty_hint' => 'ใช้สำหรับบริการ / สินค้าสั่งทำ — ขายได้โดยไม่ตัดจำนวนคงคลัง ตั้งค่าที่นี่ครั้งเดียว แทนการไปแก้ไขทีละรายการภายหลัง',
 ];

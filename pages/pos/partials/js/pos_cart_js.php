@@ -17,7 +17,8 @@ function broadcastCustomerDisplay(checkoutState, extraData) {
     cart: (typeof cart !== 'undefined') ? cart : [],
     customer: (typeof selectedCustomer !== 'undefined') ? selectedCustomer : null,
     // Customer display works in KIP — send the discount already converted to KIP.
-    discount: String((window.POSCUR ? POSCUR.toKip($('#cartDiscount').val() || '0') : (parseFloat(($('#cartDiscount').val() || '0').replace(/[^\d]/g, '')) || 0))),
+    // Includes the loyalty-points discount so the customer sees the same total as the cashier.
+    discount: String((window.POSCUR ? POSCUR.toKip($('#cartDiscount').val() || '0') : (parseFloat(($('#cartDiscount').val() || '0').replace(/[^\d]/g, '')) || 0)) + (window.CART_POINTS_DISCOUNT_KIP || 0)),
     checkoutState: checkoutState || 'shopping',
     ...(extraData || {})
   };
@@ -84,8 +85,11 @@ function updateCartUI() {
     `);
     window.CART_SUBTOTAL_KIP = 0;
     window.CART_DISCOUNT_KIP = POSCUR.toKip($('#cartDiscount').val() || '0');
+    // An empty cart can't meet any discount reward's minimum purchase — drops those redemptions.
+    window.CART_POINTS_DISCOUNT_KIP = (typeof posPointsDiscountKip === 'function') ? posPointsDiscountKip(0, 0) : 0;
     window.CART_VAT_KIP = 0;
     window.CART_NET_KIP = 0;
+    if (typeof updateLoyaltyUI === 'function') updateLoyaltyUI();
     $('#cartItemCountBadge').text(cartCountText(0, 0));
     $('#cartSubtotal').html(POSCUR.fmt(0));
     $('#cartVat').html(POSCUR.fmt(0));
@@ -120,7 +124,9 @@ function updateCartUI() {
     }
 
     var isGift = !!item.is_free_gift;
-    var giftBadge = isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.78rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i>ແຖມຟຣີ</span>` : '';
+    var giftBadge = item.reward_uid
+      ? `<span class="badge font-weight-bold ml-1" style="font-size:0.78rem; padding:2px 6px; border-radius:4px; background:#f59e0b; color:#fff;"><i class="fas fa-star mr-1"></i>${posT('pos.redeem_badge')}</span>`
+      : (isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.78rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i>ແຖມຟຣີ</span>` : '');
     var priceDisplay = isGift
       ? `<span class="text-success font-weight-bold" style="font-size:0.80rem;">${POSCUR.fmt(0)}</span>`
       : `${POSCUR.fmt(item.unit_price)}`;
@@ -178,9 +184,11 @@ function updateCartUI() {
   window.STORE_TAX_ID = '<?php echo htmlspecialchars($company['tax_id'] ?? ''); ?>';
   // Discount is typed in the display currency; convert it to KIP for all math below.
   var discountVal  = POSCUR.toKip($('#cartDiscount').val() || '0');
+  // Discount rewards bought with loyalty points come off after the cashier's own discount.
+  var pointsDiscountVal = (typeof posPointsDiscountKip === 'function') ? posPointsDiscountKip(subtotal, discountVal) : 0;
   var taxType      = window.STORE_TAX_TYPE;
   var vatPercent   = window.STORE_VAT_PERCENT;
-  var amtAfterDisc = Math.max(0, subtotal - discountVal);
+  var amtAfterDisc = Math.max(0, subtotal - discountVal - pointsDiscountVal);
   var vatVal       = 0;
   var netTotal     = amtAfterDisc;
 
@@ -210,9 +218,11 @@ function updateCartUI() {
 
   // Source-of-truth totals in KIP for the checkout modal to read (no DOM scraping).
   window.CART_SUBTOTAL_KIP = subtotal;
-  window.CART_DISCOUNT_KIP = discountVal;
+  window.CART_DISCOUNT_KIP = discountVal;   // cashier's discount only — the server adds the points part
+  window.CART_POINTS_DISCOUNT_KIP = pointsDiscountVal;
   window.CART_VAT_KIP = vatVal;
   window.CART_NET_KIP = netTotal;
+  if (typeof updateLoyaltyUI === 'function') updateLoyaltyUI();
 
   $('#cartItemCountBadge').text(countText);
   $('#cartSubtotal').html(POSCUR.fmt(subtotal));
@@ -428,6 +438,11 @@ window.recalculateLiveStock = recalculateLiveStock;
 
 function incCartQty(cartKey, delta) {
   var item = cart.find(function(i) { return i.cartKey === cartKey; });
+  // A points-reward line has a fixed quantity (the reward's); minus cancels the redemption.
+  if (item && item.reward_uid) {
+    if (delta < 0) removeRedemption(item.reward_uid);
+    return;
+  }
   if (item) {
     if (delta > 0) {
       var remaining = getProductRemainingStock(item.product_id);
@@ -492,6 +507,10 @@ function changeCartQty(cartKey, val) {
 
 function removeFromCart(cartKey) {
   var itemToRemove = cart.find(function(i) { return i.cartKey === cartKey; });
+  if (itemToRemove && itemToRemove.reward_uid) {
+    removeRedemption(itemToRemove.reward_uid);
+    return;
+  }
   if (itemToRemove && itemToRemove.product_id) {
     var pid = itemToRemove.product_id;
     cart = cart.filter(function(i) { 
@@ -507,6 +526,7 @@ function clearCart() {
   // ລ້າງກະຕ່າໂດຍກົງ ບໍ່ຕ້ອງມີ popup ຢືນຢັນ
   if (cart.length === 0) return;
   cart = [];
+  if (typeof posDropAllRedemptions === 'function') posDropAllRedemptions();
   updateCartUI();
 }
 

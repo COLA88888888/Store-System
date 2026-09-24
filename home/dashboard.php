@@ -719,6 +719,32 @@ if (!hasPermission('dashboard')) {
         return rev;
       }
 
+      // Dictionary values with %s / %d placeholders, compiled to anchored regexes (longest
+      // literal text first, so "ກາຍມາ %s ມື້" wins over the bare "%s ມື້"). Values whose fixed
+      // text is under 2 characters are skipped — they'd match almost anything.
+      var sprintfPatternCache = {};
+      function getSprintfPatterns(fromLang) {
+        if (sprintfPatternCache[fromLang]) return sprintfPatternCache[fromLang];
+        var dict = I18N_ALL_MERGED[fromLang] || {};
+        var list = [], seen = {};
+        for (var key in dict) {
+          if (!Object.prototype.hasOwnProperty.call(dict, key)) continue;
+          var val = (dict[key] || '').trim();
+          if (!/%[sd]/.test(val) || seen[val]) continue;
+          var literal = val.replace(/%[sd]/g, '').replace(/\s+/g, '');
+          // One CJK character is a whole word ("%s 天" = "%s days"); anything else needs 2+.
+          if (literal.length < 2 && !/[㐀-鿿]/.test(literal)) continue;
+          seen[val] = 1;
+          var src = val.split(/%[sd]/).map(function (part) {
+            return part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          }).join('(.+?)');
+          list.push({ key: key, re: new RegExp('^' + src + '$'), weight: literal.length });
+        }
+        list.sort(function (a, b) { return b.weight - a.weight; });
+        sprintfPatternCache[fromLang] = list;
+        return list;
+      }
+
       function translateIframeContent(fromLang, toLang) {
         var frameEl = document.querySelector('iframe[name="frame"]');
         if (!frameEl) return;
@@ -740,15 +766,40 @@ if (!hasPermission('dashboard')) {
             return NodeFilter.FILTER_ACCEPT;
           }
         });
+        // "ກີບ (₭)" / "BCEL One (ສາຂາຫຼັກ)": a known word followed by a bracketed part that
+        // isn't in any dictionary (currency symbol, count, code) — translate the word, keep the rest.
+        var BRACKET_TAIL_RE = /^(.+?)(\s*\([^()]*\))$/;
+        var patterns = getSprintfPatterns(fromLang);
+        function translateText(text) {
+          var key = rev[text];
+          if (key && toDict[key]) return toDict[key];
+          var m = text.match(BRACKET_TAIL_RE);
+          if (m) {
+            var headKey = rev[m[1].trim()];
+            if (headKey && toDict[headKey]) return toDict[headKey] + m[2];
+          }
+          // "3 ມື້" / "ສະແດງ 1–10 ຈາກ 25 ລາຍການ": a sprintf string with its values already filled
+          // in — match it against the %s/%d patterns and refill the target language's pattern.
+          for (var i = 0; i < patterns.length; i++) {
+            var pm = text.match(patterns[i].re);
+            if (!pm) continue;
+            var target = toDict[patterns[i].key];
+            if (!target) continue;
+            var args = pm.slice(1);
+            return target.replace(/%[sd]/g, function () { return args.length ? args.shift() : ''; });
+          }
+          return null;
+        }
+
         var node;
         while ((node = walker.nextNode())) {
           var trimmed = node.nodeValue.trim();
           if (!trimmed) continue;
-          var key = rev[trimmed];
-          if (key && toDict[key]) {
+          var translated = translateText(trimmed);
+          if (translated !== null) {
             var lead = node.nodeValue.match(/^\s*/)[0];
             var trail = node.nodeValue.match(/\s*$/)[0];
-            node.nodeValue = lead + toDict[key] + trail;
+            node.nodeValue = lead + translated + trail;
           }
         }
 

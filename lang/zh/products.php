@@ -169,4 +169,6 @@ return [
     'products.bulk_col_price' => '销售价',
     'products.bulk_col_supplier' => '供应商',
     'products.bulk_validate_none' => '请至少输入 1 个商品！',
+    'products.bulk_no_cut_qty' => '本批所有商品不扣库存',
+    'products.bulk_no_cut_qty_hint' => '适用于服务 / 定制商品 — 销售时不扣减库存。在此统一设置，无需事后逐个修改',
 ];

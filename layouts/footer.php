@@ -9,6 +9,13 @@ if (!isset($base_path)) {
     <script src="<?php echo $base_path; ?>plugins/select2/js/select2.full.min.js"></script>
     <!-- Flatpickr Lao Datepicker JS -->
     <script src="<?php echo $base_path; ?>assets/js/flatpickr.min.js"></script>
+    <!-- Fallback: the date picker normally loads in <head> (layouts/header.php); load it here if it did not -->
+    <script>
+      if (!window.miniposDatePicker) {
+        if (typeof window.flatpickr !== 'function') document.write('<script src="<?php echo $base_path; ?>plugins/flatpickr/flatpickr.min.js"><\/script>');
+        document.write('<script src="<?php echo $base_path; ?>plugins/flatpickr/minipos-datepicker.js?v=<?php echo @filemtime(__DIR__ . '/../plugins/flatpickr/minipos-datepicker.js'); ?>"><\/script>');
+      }
+    </script>
 
     <script>
       // Smart Preloader: Immediately cancel timer & hide preloader on fast page load

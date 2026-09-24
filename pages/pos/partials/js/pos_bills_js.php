@@ -60,11 +60,16 @@ window.createNewBillModal = function() {
 
   if (!isBillOpened || activeBills.length === 0) {
     var newId = 'BILL-' + Date.now();
+    // A customer the cashier picked before any bill was open (e.g. before scanning the first
+    // item) carries into this first bill instead of being reset to the walk-in customer.
+    var carriedCustomer = (selectedCustomer && selectedCustomer.customer_id)
+      ? JSON.parse(JSON.stringify(selectedCustomer))
+      : { customer_id: null, customer_name: 'ລູກຄ້າທົ່ວໄປ', phone: '' };
     var firstBill = {
       id: newId,
       name: 'ບິນທີ 1',
       time: new Date().toLocaleTimeString('lo-LA', { hour: '2-digit', minute: '2-digit' }),
-      customer: { customer_id: null, customer_name: 'ລູກຄ້າທົ່ວໄປ', phone: '' },
+      customer: carriedCustomer,
       cart: [],
       discount: '0'
     };

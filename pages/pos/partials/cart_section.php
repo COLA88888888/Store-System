@@ -29,6 +29,11 @@
       </div>
     </div>
     <div class="d-flex align-items-center" style="gap: 6px; flex-shrink: 0;">
+      <!-- Loyalty: points balance + redeem button, shown only for a customer with points (pos_loyalty_js.php) -->
+      <span id="selectedCustomerPoints" class="badge badge-pill font-weight-bold" style="display: none; background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:0.8rem; padding: 4px 8px;"><i class="fas fa-star mr-1"></i><span id="selectedCustomerPointsVal">0</span></span>
+      <button class="btn btn-sm font-weight-bold px-2 py-1" type="button" id="btnRedeemPoints" onclick="openRedeemPointsModal()" style="display: none; border-radius: 8px; font-size: 0.82rem; background: #f59e0b; border-color: #d97706; color: #ffffff;" title="<?php echo htmlspecialchars(t('pos.redeem_btn', 'ແລກຄະແນນ')); ?>">
+        <i class="fas fa-gift mr-1"></i><span class="d-none d-xl-inline"><?php echo htmlspecialchars(t('pos.redeem_btn', 'ແລກຄະແນນ')); ?></span>
+      </button>
       <button class="btn btn-sm btn-outline-primary font-weight-bold px-2.5 py-1" type="button" onclick="openCustomerSelectModal()" style="border-radius: 8px; font-size: 0.82rem;">
         <i class="fas fa-search mr-1"></i> <?php echo htmlspecialchars(t('pos.select', 'ເລືອກ')); ?>
       </button>
@@ -39,9 +44,12 @@
   </div>
 
   <div class="cart-items" id="cartItemsContainer">
-    <div class="text-center py-1 text-muted" id="cartPlaceholder">
-      <i class="fas fa-barcode text-secondary opacity-50" style="font-size: 1.6rem; margin-bottom: 2px;"></i>
-      <p class="mb-0 small"><?php echo htmlspecialchars(t('pos.cart_empty_hint', 'ສະແກນບາໂຄ້ດ ຫຼື ເລືອກສິນຄ້າເພື່ອເລີ່ມຕົ້ນຂາຍ')); ?></p>
+    <!-- Same empty state updateCartUI() (pos_cart_js.php) draws, so the panel doesn't switch
+         looks the first time the cart is re-rendered (e.g. when a customer is picked). -->
+    <div class="cart-empty-state d-flex flex-column align-items-center justify-content-center h-100 py-5">
+      <i class="fas fa-shopping-basket text-muted mb-2" style="font-size: 2.2rem; opacity: 0.3;"></i>
+      <div class="text-muted font-weight-bold" style="font-size: 0.92rem;"><?php echo htmlspecialchars(t('pos.cart_empty_title', 'ບໍ່ມີລາຍການສິນຄ້າໃນກະຕ່າ')); ?></div>
+      <small class="text-muted"><?php echo htmlspecialchars(t('pos.cart_empty_hint', 'ກະລຸນາເລືອກສິນຄ້າ ຫຼື ສະແກນບາໂຄ້ດ')); ?></small>
     </div>
   </div>
 
@@ -60,6 +68,15 @@
       </div>
     </div>
     
+    <!-- Loyalty points redeemed on this bill (discount rewards) — filled by pos_loyalty_js.php -->
+    <div id="cartPointsRow" class="mb-1" style="display: none;">
+      <div class="d-flex justify-content-between align-items-center small">
+        <span class="font-weight-bold" style="color: #b45309;"><i class="fas fa-gift mr-1"></i><?php echo htmlspecialchars(t('pos.redeem_row_label', 'ແລກຄະແນນ')); ?> (<span id="cartPointsUsed">0</span> <?php echo htmlspecialchars(t('pos.points_unit', 'ຄະແນນ')); ?>)</span>
+        <span class="font-weight-bold text-danger" id="cartPointsDiscount">0 ₭</span>
+      </div>
+      <div id="cartRedemptionList" style="font-size: 0.78rem;"></div>
+    </div>
+
     <?php
       $cTaxType = !empty($company['tax_type']) ? $company['tax_type'] : 'none';
       $cVatPercent = ($cTaxType === 'none') ? 0 : (isset($company['vat_percent']) ? floatval($company['vat_percent']) : 0);

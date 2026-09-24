@@ -55,6 +55,10 @@ if (!defined('MINIPOS_APP')) {
           </div>
 
           <div class="row mt-3">
+            <?php if (!$bankMultiBranch): ?>
+              <!-- Single-branch shop: no branch to choose, the account belongs to this branch -->
+              <input type="hidden" name="store_id" id="form_store_id" value="<?php echo (int)$userStoreId; ?>">
+            <?php else: ?>
             <div class="col-6">
               <div class="form-group mb-0">
                 <label class="font-weight-bold" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('bank.field_branch', 'ສາຂາ:')); ?></label>
@@ -73,7 +77,8 @@ if (!defined('MINIPOS_APP')) {
                 <?php endif; ?>
               </div>
             </div>
-            <div class="col-6">
+            <?php endif; ?>
+            <div class="<?php echo $bankMultiBranch ? 'col-6' : 'col-12'; ?>">
               <div class="form-group mb-0">
                 <label class="font-weight-bold" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('bank.field_status', 'ສະຖານະ:')); ?></label>
                 <select name="is_active" id="form_is_active" class="form-control" style="border-radius: 8px;">

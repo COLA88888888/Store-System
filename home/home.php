@@ -87,6 +87,17 @@ if (isset($_GET['year']) || isset($_GET['store_id'])) {
     $to_date   = trim($_GET['to_date'] ?? date('Y-m-d'));
 }
 
+// ປຸ່ມຊ່ວງເວລາດ່ວນ (ມື້ນີ້ / ເດືອນນີ້ / ທັງປີ) — ໄຮໄລທ໌ປຸ່ມທີ່ກົງກັບຊ່ວງວັນທີປັດຈຸບັນ
+$period_today_str = date('Y-m-d');
+$active_period = '';
+if ($from_date === $period_today_str && $to_date === $period_today_str) {
+    $active_period = 'today';
+} elseif ($from_date === date('Y-m-01') && $to_date === $period_today_str) {
+    $active_period = 'month';
+} elseif ($from_date === "{$selected_year}-01-01" && $to_date === "{$selected_year}-12-31") {
+    $active_period = 'year';
+}
+
 // 3. Build SQL Where for Main Metrics
 $where   = ["(s.sale_status IS NULL OR s.sale_status != 'CANCEL')"];
 $params  = [];
@@ -166,57 +177,86 @@ try {
     $profit_pct = ($total_sales > 0) ? round(($total_profit / $total_sales) * 100, 1) : 0.0;
 } catch (Exception $e) {}
 
-// 5. Monthly Revenue & Profit % Chart Data for Selected Year
-$monthly_sales  = array_fill(1, 12, 0.00);
-$monthly_cost   = array_fill(1, 12, 0.00);
-$monthly_profit = array_fill(1, 12, 0.00);
-$monthly_margin = array_fill(1, 12, 0.0);
+// 5. Revenue & Profit % chart data — follows the selected date range (same as the cards):
+//    one day → by hour, up to 62 days → by day, longer → by month. So "ມື້ນີ້" shows today's
+//    sales hour by hour, "ເດືອນນີ້" day by day, "ທັງປີ" month by month.
+$chartFrom = $from_date ?: date('Y-m-01');
+$chartTo   = $to_date ?: date('Y-m-d');
+if ($chartTo < $chartFrom) { $__tmp = $chartFrom; $chartFrom = $chartTo; $chartTo = $__tmp; }
+$chartDays = (int)((strtotime($chartTo) - strtotime($chartFrom)) / 86400) + 1;
+$chart_mode = ($chartDays <= 1) ? 'hour' : (($chartDays <= 62) ? 'day' : 'month');
+
+// Bucket keys in order: hours 0–23, each Y-m-d, or each Y-m in the range
+$chart_keys = [];
+if ($chart_mode === 'hour') {
+    $chart_keys = range(0, 23);
+    $bucketSql = "HOUR(s.sale_time)";
+} elseif ($chart_mode === 'day') {
+    for ($t = strtotime($chartFrom); $t <= strtotime($chartTo); $t = strtotime('+1 day', $t)) $chart_keys[] = date('Y-m-d', $t);
+    $bucketSql = "DATE_FORMAT(s.sale_date, '%Y-%m-%d')";
+} else {
+    for ($t = strtotime(date('Y-m-01', strtotime($chartFrom))); $t <= strtotime($chartTo); $t = strtotime('+1 month', $t)) $chart_keys[] = date('Y-m', $t);
+    $bucketSql = "DATE_FORMAT(s.sale_date, '%Y-%m')";
+}
+$chart_sales = array_fill_keys($chart_keys, 0.00);
+$chart_cost  = array_fill_keys($chart_keys, 0.00);
 
 try {
-    $monthlyWhere = ["YEAR(s.sale_date) = :yr", "(s.sale_status IS NULL OR s.sale_status != 'CANCEL')"];
-    $monthlyParams = [':yr' => $selected_year];
-    if ($selected_store > 0) {
-        $monthlyWhere[] = "s.store_id = :store_id";
-        $monthlyParams[':store_id'] = $selected_store;
-    }
-    $monthlyWhereClause = implode(" AND ", $monthlyWhere);
-
-    $stmtMonthly = $pdo->prepare("
-        SELECT MONTH(s.sale_date) AS m, COALESCE(SUM(s.sale_barlance), 0) AS sales
+    $stmtChart = $pdo->prepare("
+        SELECT {$bucketSql} AS b, COALESCE(SUM(s.sale_barlance), 0) AS sales
         FROM tbsale_save s
-        WHERE {$monthlyWhereClause}
-        GROUP BY MONTH(s.sale_date)
+        WHERE {$whereClause}
+        GROUP BY b
     ");
-    $stmtMonthly->execute($monthlyParams);
-    while ($mRow = $stmtMonthly->fetch(PDO::FETCH_ASSOC)) {
-        $m = (int)$mRow['m'];
-        $monthly_sales[$m] = floatval($mRow['sales']);
+    $stmtChart->execute($params);
+    while ($r = $stmtChart->fetch(PDO::FETCH_ASSOC)) {
+        $k = ($chart_mode === 'hour') ? (int)$r['b'] : (string)$r['b'];
+        if (array_key_exists($k, $chart_sales)) $chart_sales[$k] = floatval($r['sales']);
     }
 
-    // ຕົ້ນທຶນລາຍເດືອນ = ຕົ້ນທຶນຍອດຂາຍ (COGS) ຂອງລາຍການທີ່ຂາຍອອກໃນເດືອນນັ້ນ ຈາກ tbsale_save_detail
-    // ເພື່ອໃຫ້ກາຟ "ກຳໄລ" = ຍອດຂາຍ - ຕົ້ນທຶນຍອດຂາຍ ກົງກັບບັອກສະຫຼຸບຂ້າງເທິງ
-    $stmtMonthlyCost = $pdo->prepare("
-        SELECT MONTH(s.sale_date) AS m, COALESCE(SUM(d.save_qty * d.cost_price), 0) AS cost
+    // ຕົ້ນທຶນຍອດຂາຍ (COGS) ຕໍ່ຊ່ວງ ເພື່ອໃຫ້ "ກຳໄລ" ໃນກາຟກົງກັບບັອກສະຫຼຸບຂ້າງເທິງ
+    $stmtChartCost = $pdo->prepare("
+        SELECT {$bucketSql} AS b, COALESCE(SUM(d.save_qty * d.cost_price), 0) AS cost
         FROM tbsale_save_detail d
         INNER JOIN tbsale_save s ON d.save_bill = s.sale_save_bill
-        WHERE {$monthlyWhereClause}
-        GROUP BY MONTH(s.sale_date)
+        WHERE {$whereClause}
+        GROUP BY b
     ");
-    $stmtMonthlyCost->execute($monthlyParams);
-    while ($mcRow = $stmtMonthlyCost->fetch(PDO::FETCH_ASSOC)) {
-        $m = (int)$mcRow['m'];
-        $monthly_cost[$m] = floatval($mcRow['cost']);
-    }
-
-    for ($m = 1; $m <= 12; $m++) {
-        $s = $monthly_sales[$m];
-        $c = $monthly_cost[$m];
-        // ເດືອນທີ່ຍັງບໍ່ມີຍອດຂາຍ ໃຫ້ກຳໄລເປັນ 0 (ບໍ່ໃຫ້ເປັນຄ່າລົບ)
-        $p = ($s > 0) ? ($s - $c) : 0.00;
-        $monthly_profit[$m] = $p;
-        $monthly_margin[$m] = ($s > 0) ? round(($p / $s) * 100, 1) : 0;
+    $stmtChartCost->execute($params);
+    while ($r = $stmtChartCost->fetch(PDO::FETCH_ASSOC)) {
+        $k = ($chart_mode === 'hour') ? (int)$r['b'] : (string)$r['b'];
+        if (array_key_exists($k, $chart_cost)) $chart_cost[$k] = floatval($r['cost']);
     }
 } catch (Exception $e) {}
+
+$chart_profit = [];
+$chart_margin = [];
+foreach ($chart_keys as $k) {
+    $s = $chart_sales[$k];
+    // ຊ່ວງທີ່ຍັງບໍ່ມີຍອດຂາຍ ໃຫ້ກຳໄລເປັນ 0 (ບໍ່ໃຫ້ເປັນຄ່າລົບ)
+    $p = ($s > 0) ? ($s - $chart_cost[$k]) : 0.00;
+    $chart_profit[] = $p;
+    $chart_margin[] = ($s > 0) ? round(($p / $s) * 100, 1) : 0;
+}
+
+// Chart titles/badges for the current mode
+if ($chart_mode === 'hour') {
+    $chart_title_key = 'home.chart_revenue_hourly'; $chart_title_def = 'ກາຟລາຍຮັບລາຍຊົ່ວໂມງ';
+    $chart_period_text = date('d/m/Y', strtotime($chartFrom));
+    $chart_badge_key = 'home.badge_hours'; $chart_badge_def = '24 ຊົ່ວໂມງ'; $chart_badge_n = null;
+} elseif ($chart_mode === 'day') {
+    $chart_title_key = 'home.chart_revenue_daily'; $chart_title_def = 'ກາຟລາຍຮັບລາຍວັນ';
+    $chart_period_text = date('d/m/Y', strtotime($chartFrom)) . ' – ' . date('d/m/Y', strtotime($chartTo));
+    $chart_badge_key = 'home.badge_days'; $chart_badge_def = '%s ວັນ'; $chart_badge_n = count($chart_keys);
+} else {
+    $chart_title_key = 'home.chart_monthly_revenue'; $chart_title_def = 'ກາຟລາຍຮັບປະຈຳເດືອນ';
+    $sameYear = substr($chartFrom, 0, 4) === substr($chartTo, 0, 4);
+    $chart_period_text = ($sameYear && substr($chartFrom, 5) === '01-01' && substr($chartTo, 5) === '12-31')
+        ? sprintf(t('home.year_label', 'ປີ %d'), (int)substr($chartFrom, 0, 4))
+        : date('m/Y', strtotime($chartFrom)) . ' – ' . date('m/Y', strtotime($chartTo));
+    $chart_badge_key = 'home.badge_months'; $chart_badge_def = '%s ເດືອນ'; $chart_badge_n = count($chart_keys);
+}
+$chart_badge_text = $chart_badge_n === null ? t($chart_badge_key, $chart_badge_def) : sprintf(t($chart_badge_key, $chart_badge_def), $chart_badge_n);
 
 // 6. Yearly Sales Comparison Chart (Include selected year with 0 if no sales)
 $yearly_sales_map = [];
@@ -256,13 +296,6 @@ foreach ($yearly_sales_map as $yrKey => $yrSalesVal) {
     $yearly_sales[]  = $yrSalesVal;
 }
 
-$month_labels_i18n = [
-    t('home.month_1', 'ມັງກອນ'), t('home.month_2', 'ກຸມພາ'), t('home.month_3', 'ມີນາ'),
-    t('home.month_4', 'ເມສາ'), t('home.month_5', 'ພຶດສະພາ'), t('home.month_6', 'ມິຖຸນາ'),
-    t('home.month_7', 'ກໍລະກົດ'), t('home.month_8', 'ສິງຫາ'), t('home.month_9', 'ກັນຍາ'),
-    t('home.month_10', 'ຕຸລາ'), t('home.month_11', 'ພະຈິກ'), t('home.month_12', 'ທັນວາ'),
-];
-
 // 7. Top 10 Best Selling Products Chart
 $top10_names = [];
 $top10_qty   = [];
@@ -294,6 +327,37 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <link rel="stylesheet" href="../themes/reports.css?v=<?php echo filemtime(__DIR__ . '/../themes/reports.css'); ?>">
 
+<style>
+  .home-period-group { display: inline-flex; height: 38px; padding: 3px; gap: 3px; border-radius: 8px; border: 1.5px solid #2563eb; background: #eff6ff; }
+  .home-period-btn { border: 0; background: transparent; color: #1e40af; font-weight: 700; font-size: 0.82rem; padding: 0 12px; border-radius: 6px; white-space: nowrap; cursor: pointer; transition: background .15s, color .15s; }
+  .home-period-btn:hover { background: #dbeafe; }
+  .home-period-btn.active { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #ffffff; box-shadow: 0 2px 6px rgba(37,99,235,0.3); }
+  .home-period-btn:focus { outline: none; }
+  .home-year-select { width: auto; min-width: 0; padding-right: 26px; }
+</style>
+<script>
+  // ຕັ້ງຊ່ວງວັນທີຕາມປຸ່ມທີ່ກົດ ແລ້ວສົ່ງຟອມ — ມື້ນີ້/ເດືອນນີ້ ບັງຄັບເປັນປີປັດຈຸບັນ, ທັງປີ ໃຊ້ປີທີ່ເລືອກຢູ່
+  function homeSetPeriod(period, form) {
+    var today = <?php echo json_encode(date('Y-m-d')); ?>;
+    var curYear = <?php echo (int)$current_year_real; ?>;
+    var from, to;
+    if (period === 'today') {
+      from = to = today;
+      form.year.value = curYear;
+    } else if (period === 'month') {
+      from = today.slice(0, 8) + '01';
+      to = today;
+      form.year.value = curYear;
+    } else {
+      var yr = form.year.value;
+      from = yr + '-01-01';
+      to = yr + '-12-31';
+    }
+    form.from_date.value = from;
+    form.to_date.value = to;
+    form.submit();
+  }
+</script>
 <div class="container-fluid p-3 p-md-4">
   <!-- Header Title & Controls -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3.5 gap-2">
@@ -328,15 +392,29 @@ require_once __DIR__ . '/../layouts/header.php';
       <?php endif; ?>
 
       <!-- Year Select (Auto-Generated) -->
-      <div style="flex: 1 1 140px; min-width: 130px;">
+      <div style="flex: 0 0 auto;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-calendar-check text-primary mr-1"></i> <?php echo htmlspecialchars(t('home.select_year', 'ເລືອກປີ:')); ?>
         </label>
-        <select name="year" class="form-control form-control-sm font-weight-bold" onchange="this.form.from_date.value=''; this.form.to_date.value=''; this.form.submit();" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #2563eb; color: #1e40af; background: #eff6ff;">
+        <select name="year" class="form-control form-control-sm font-weight-bold home-year-select" onchange="this.form.from_date.value=''; this.form.to_date.value=''; this.form.submit();" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #2563eb; color: #1e40af; background: #eff6ff;">
           <?php foreach ($available_years as $yr): ?>
             <option value="<?php echo $yr; ?>" <?php echo ($selected_year == $yr) ? 'selected' : ''; ?>><?php echo htmlspecialchars(sprintf(t('home.year_label', 'ປີ %d'), $yr)); ?></option>
           <?php endforeach; ?>
         </select>
+      </div>
+
+      <!-- Quick Period Buttons: ມື້ນີ້ / ເດືອນນີ້ / ທັງປີ -->
+      <div style="flex: 0 0 auto;">
+        <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
+          <i class="fas fa-clock text-primary mr-1"></i> <span data-i18n-key="home.period_label"><?php echo htmlspecialchars(t('home.period_label', 'ຊ່ວງເວລາ:')); ?></span>
+        </label>
+        <div class="home-period-group">
+          <?php foreach (['today' => ['home.period_today', 'ມື້ນີ້'], 'month' => ['home.period_month', 'ເດືອນນີ້'], 'year' => ['home.period_year', 'ທັງປີ']] as $__pk => $__pl): ?>
+            <button type="button" class="home-period-btn<?php echo $active_period === $__pk ? ' active' : ''; ?>" onclick="homeSetPeriod('<?php echo $__pk; ?>', this.form)">
+              <span data-i18n-key="<?php echo $__pl[0]; ?>"><?php echo htmlspecialchars(t($__pl[0], $__pl[1])); ?></span>
+            </button>
+          <?php endforeach; ?>
+        </div>
       </div>
 
       <!-- From Date -->
@@ -496,9 +574,9 @@ require_once __DIR__ . '/../layouts/header.php';
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: #ffffff;">
         <div class="card-header bg-white border-0 py-3 px-3.5 d-flex justify-content-between align-items-center">
           <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-            <i class="fas fa-chart-area text-primary mr-2"></i> <span><?php echo htmlspecialchars(t('home.chart_monthly_revenue', 'ກາຟລາຍຮັບປະຈຳເດືອນ')); ?></span> (<?php echo htmlspecialchars(sprintf(t('home.year_label', 'ປີ %d'), $selected_year)); ?>)
+            <i class="fas fa-chart-area text-primary mr-2"></i> <span data-i18n-key="<?php echo $chart_title_key; ?>"><?php echo htmlspecialchars(t($chart_title_key, $chart_title_def)); ?></span> (<?php echo htmlspecialchars($chart_period_text); ?>)
           </h6>
-          <span class="badge badge-light border text-primary font-weight-bold px-2.5 py-1"><?php echo htmlspecialchars(t('home.months_12', '12 ເດືອນ')); ?></span>
+          <span class="badge badge-light border text-primary font-weight-bold px-2.5 py-1"><?php echo htmlspecialchars($chart_badge_text); ?></span>
         </div>
         <div class="card-body p-3">
           <div style="position: relative; height: 380px; width: 100%;">
@@ -532,7 +610,7 @@ require_once __DIR__ . '/../layouts/header.php';
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: #ffffff;">
         <div class="card-header bg-white border-0 py-3 px-3.5 d-flex justify-content-between align-items-center">
           <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-            <i class="fas fa-percentage text-warning mr-2"></i> <span><?php echo htmlspecialchars(t('home.chart_profit_margin', 'ກາຟອັດຕາກຳໄລ %')); ?></span> (<?php echo htmlspecialchars(sprintf(t('home.year_label', 'ປີ %d'), $selected_year)); ?>)
+            <i class="fas fa-percentage text-warning mr-2"></i> <span><?php echo htmlspecialchars(t('home.chart_profit_margin', 'ກາຟອັດຕາກຳໄລ %')); ?></span> (<?php echo htmlspecialchars($chart_period_text); ?>)
           </h6>
         </div>
         <div class="card-body p-3">
@@ -665,11 +743,21 @@ $(document).ready(function() {
   function curLabel(name){ return name + ' (' + CUR_SYM + ')'; }
   function curAxis(v){ return Number(v).toLocaleString('en-US',{maximumFractionDigits:CUR_DEC}) + ' ' + CUR_SYM; }
   // Data variables from PHP
-  var monthLabels   = <?php echo json_encode($month_labels_i18n, JSON_UNESCAPED_UNICODE); ?>;
-  var monthlySales  = <?php echo json_encode(array_map($__hcvt, array_values($monthly_sales))); ?>;
-  var monthlyCost   = <?php echo json_encode(array_map($__hcvt, array_values($monthly_cost))); ?>;
-  var monthlyProfit = <?php echo json_encode(array_map($__hcvt, array_values($monthly_profit))); ?>;
-  var monthlyMargin = <?php echo json_encode(array_values($monthly_margin)); ?>;
+  // Revenue / margin charts follow the selected range: 'hour' | 'day' | 'month' buckets
+  var CHART_MODE    = <?php echo json_encode($chart_mode); ?>;
+  var chartKeys     = <?php echo json_encode(array_values($chart_keys)); ?>;
+  var CHART_MULTI_YEAR = <?php echo json_encode($chart_mode === 'month' && substr($chartFrom, 0, 4) !== substr($chartTo, 0, 4)); ?>;
+  function chartBucketLabel(k) {
+    if (CHART_MODE === 'hour') return (k < 10 ? '0' : '') + k + ':00';
+    if (CHART_MODE === 'day') return k.slice(8, 10) + '/' + k.slice(5, 7);
+    var name = I18N_HOME['home.month_' + parseInt(k.slice(5, 7), 10)] || k.slice(5, 7);
+    return CHART_MULTI_YEAR ? name + ' ' + k.slice(0, 4) : name;
+  }
+  var monthLabels   = chartKeys.map(chartBucketLabel);
+  var monthlySales  = <?php echo json_encode(array_map($__hcvt, array_values($chart_sales))); ?>;
+  var monthlyCost   = <?php echo json_encode(array_map($__hcvt, array_values($chart_cost))); ?>;
+  var monthlyProfit = <?php echo json_encode(array_map($__hcvt, $chart_profit)); ?>;
+  var monthlyMargin = <?php echo json_encode($chart_margin); ?>;
   var hasProductCostData = <?php echo json_encode($has_product_cost_data); ?>;
 
   var yearlyLabels  = <?php echo json_encode($yearly_labels); ?>;
@@ -890,11 +978,7 @@ $(document).ready(function() {
   // their build-time labels. The shell updates I18N_HOME in place then fires 'pos:langchange';
   // rebuild the affected charts' month-axis and legend labels from the refreshed dictionary.
   function refreshChartLangs() {
-    var newMonthLabels = [];
-    for (var m = 1; m <= 12; m++) {
-      newMonthLabels.push(I18N_HOME['home.month_' + m] || monthLabels[m - 1]);
-    }
-    monthLabels = newMonthLabels;
+    monthLabels = chartKeys.map(chartBucketLabel);
 
     if (monthlyRevenueChartObj) {
       monthlyRevenueChartObj.data.labels = monthLabels;
@@ -927,5 +1011,6 @@ $(document).ready(function() {
     }
   }
   window.addEventListener('pos:langchange', refreshChartLangs);
+
 });
 </script>

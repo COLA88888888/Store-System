@@ -169,4 +169,6 @@ return [
     'products.bulk_col_price' => 'ລາຄາຂາຍ',
     'products.bulk_col_supplier' => 'ຜູ້ສະໜອງ',
     'products.bulk_validate_none' => 'ກະລຸນາປ້ອນຢ່າງໜ້ອຍ 1 ລາຍການ!',
+    'products.bulk_no_cut_qty' => 'ບໍ່ຕັດສະຕັອກ ສຳລັບທຸກລາຍການໃນຊຸດນີ້',
+    'products.bulk_no_cut_qty_hint' => 'ໃຊ້ສຳລັບບໍລິການ / ສິນຄ້າສັ່ງເຮັດ — ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ. ຕັ້ງທີ່ນີ້ຄັ້ງດຽວ ແທນທີ່ຈະໄປແກ້ໄຂເອົາທີລະລາຍການພາຍຫຼັງ',
 ];

@@ -209,4 +209,6 @@ try {
     $branches_stmt = $pdo->query("SELECT store_id, store_code, store_name, is_main, status FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC");
     $branches_list = $branches_stmt ? $branches_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 } catch (Exception $e) {}
+// ຮ້ານທີ່ມີສາຂາດຽວ: ບໍ່ຕ້ອງສະແດງຫຍັງກ່ຽວກັບສາຂາ (ບັອກເລືອກສາຂາ, ປ້າຍສາຂາໃນບັດທະນາຄານ, ຊ່ອງສາຂາໃນຟອມ)
+$bankMultiBranch = count($branches_list) > 1;
 

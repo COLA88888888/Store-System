@@ -222,4 +222,5 @@ return [
     'reports.js_scan_transfer' => 'ສະແກນ QR ໂອນຊຳລະ',
     'reports.js_error_prefix' => 'ເກີດຂໍ້ຜິດພາດ:',
     'reports.js_confirm_delete_plain' => 'ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລົບບິນເລກທີ %s ?\nສະຕັອກສິນຄ້າທັງໝົດໃນບິນນີ້ຈະຖືກຄືນເຂົ້າຄັງອັດໂຕໂນມັດ!',
+    'reports.reprint_sent' => 'ສົ່ງບິນໄປເຄື່ອງພິມແລ້ວ',
 ];

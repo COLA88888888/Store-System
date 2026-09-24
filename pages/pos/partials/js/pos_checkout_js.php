@@ -488,6 +488,7 @@ function processCheckout() {
       multiplier:     parseInt(item.multiplier, 10) || 1,
       quantity:       parseFloat(item.quantity) || 1,
       is_free_gift:   !!item.is_free_gift,
+      reward_id:      item.reward_id ? parseInt(item.reward_id, 10) : null,
       parent_product_id: item.parent_product_id ? parseInt(item.parent_product_id, 10) : null
     };
   });
@@ -532,7 +533,12 @@ function processCheckout() {
     // or Object.assign lets the raw array clobber it, jQuery then serializes it as
     // cart[0][product_id]=... instead of one JSON string, and PHP's json_decode($_POST['cart'])
     // fatal-errors on every checkout (array given, not string).
-    data: Object.assign({}, payload, { action: 'checkout', cart: JSON.stringify(cleanCart) }),
+    // Loyalty rewards being redeemed, as a JSON list of reward ids (same reason as cart).
+    data: Object.assign({}, payload, {
+      action: 'checkout',
+      cart: JSON.stringify(cleanCart),
+      redemptions: JSON.stringify((typeof posRedemptions === 'function') ? posRedemptions().map(function (r) { return r.reward_id; }) : [])
+    }),
     dataType: 'json',
     complete: function() {
       window.__posCheckoutInFlight = false;
@@ -691,6 +697,24 @@ function handleOnlineCheckoutReceiptUI(res) {
   } else {
     $('#rc_points_row').hide();
   }
+  // Points spent on this bill: what they paid for, and what the customer has left.
+  var ptsRedeemed = parseInt(res.points_redeemed) || 0;
+  if (ptsRedeemed > 0) {
+    $('#rc_points_redeemed').text('-' + ptsRedeemed.toLocaleString());
+    $('#rc_points_redeem_row').css('display', 'flex');
+    var ptsDisc = parseFloat(res.points_discount) || 0;
+    if (ptsDisc > 0) {
+      $('#rc_points_discount').html('-' + POSCUR.fmt(ptsDisc));
+      $('#rc_points_discount_row').css('display', 'flex');
+    } else {
+      $('#rc_points_discount_row').hide();
+    }
+    $('#rc_points_balance').text((parseInt(res.customer_points) || 0).toLocaleString());
+    $('#rc_points_balance_row').css('display', 'flex');
+  } else {
+    $('#rc_points_redeem_row, #rc_points_discount_row, #rc_points_balance_row').hide();
+  }
+  if (typeof posApplyCustomerPointsFromCheckout === 'function') posApplyCustomerPointsFromCheckout(res);
 
   var cashAmt = parseFloat(res.cash_received) || 0;
   var qrAmt   = parseFloat(res.qr_received) || 0;
@@ -752,7 +776,10 @@ function handleOnlineCheckoutReceiptUI(res) {
       var nameHtml = displayName;
       var priceHtml = '';
 
-      if (isGift) {
+      if (d.is_reward) {
+        nameHtml = `<span style="font-weight:bold; color:#b45309;">[${posT('pos.redeem_badge')}]</span> ${nameHtml}`;
+        priceHtml = '<span style="font-weight:bold; color:#b45309;">' + POSCUR.fmt(0) + '</span>';
+      } else if (isGift) {
         if (!nameHtml.includes('ແຖມ')) {
           nameHtml = `<span style="font-weight:bold; color:#059669;">[${posT('pos.receipt_free_gift')}]</span> ${nameHtml}`;
         }
@@ -808,11 +835,13 @@ function buildKitchenTickets(items) {
 }
 
 function kitchenTicketHtml(group, meta) {
+  // Category / kitchen ticket: date-time and seller on top (large, left), then the station
+  // name and the items in a large font. No shop name, no bill number, no divider lines.
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function(c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); }
   var totalQty = group.items.reduce(function(s, i) { return s + i.qty; }, 0);
   var rows = group.items.map(function(it) {
-    return '<tr><td style="padding:4px 0;font-size:15px;font-weight:700;line-height:1.25;">' + esc(it.name) +
-      '</td><td style="text-align:right;padding:4px 0;font-size:17px;font-weight:800;white-space:nowrap;vertical-align:top;">x' +
+    return '<tr><td style="padding:5px 0;font-size:21px;font-weight:800;line-height:1.3;">' + esc(it.name) +
+      '</td><td style="text-align:right;padding:5px 0 5px 8px;font-size:23px;font-weight:900;white-space:nowrap;vertical-align:top;">x' +
       it.qty + (it.unit ? ' ' + esc(it.unit) : '') + '</td></tr>';
   }).join('');
   return '<!DOCTYPE html><html><head><meta charset="utf-8">' +
@@ -820,21 +849,15 @@ function kitchenTicketHtml(group, meta) {
     '<style>@page{size:80mm auto;margin:0}' +
     '*{box-sizing:border-box;font-family:\'Noto Sans Lao\',\'Souliyo\',\'Boon\',Arial,sans-serif !important;color:#000 !important}' +
     'html,body{width:80mm;margin:0 auto;padding:10px 8px}' +
-    'h2{font-size:19px;margin:0 0 2px;text-align:center;font-weight:800}' +
-    '.sub{text-align:center;font-size:12px;font-weight:600;margin-bottom:8px}' +
+    '.meta{text-align:left;font-size:19px;font-weight:800;line-height:1.35}' +
+    'h2{font-size:22px;margin:10px 0 6px;text-align:center;font-weight:900}' +
     'table{width:100%;border-collapse:collapse}' +
-    'hr{border:none;border-top:1px dashed #000;margin:7px 0}' +
-    '.foot{text-align:right;font-size:13px;font-weight:800;margin-top:4px}' +
-    '.meta-bottom{text-align:center;font-size:11.5px;font-weight:600;margin-top:8px;padding-top:6px;border-top:1px dashed #000}</style></head><body>' +
+    '.foot{text-align:right;font-size:19px;font-weight:900;margin-top:8px}</style></head><body>' +
+    (meta && meta.date ? '<div class="meta">' + esc(meta.date) + '</div>' : '') +
+    (meta && meta.cashier ? '<div class="meta">' + esc(posT('pos.kitchen_cashier_label')) + ' ' + esc(meta.cashier) + '</div>' : '') +
     '<h2>' + esc(group.name) + '</h2>' +
-    '<div class="sub">' + (window.STORE_NAME ? esc(window.STORE_NAME) + ' — ' : '') +
-      (meta && meta.invoice_number ? '#' + esc(meta.invoice_number) : '') + '</div>' +
-    '<hr><table>' + rows + '</table><hr>' +
+    '<table>' + rows + '</table>' +
     '<div class="foot">' + esc(posT('pos.kitchen_total', totalQty)) + '</div>' +
-    '<div class="meta-bottom">' +
-      (meta && meta.date ? esc(meta.date) : '') +
-      (meta && meta.cashier ? '<br>' + esc(posT('pos.kitchen_cashier_label')) + ' ' + esc(meta.cashier) : '') +
-    '</div>' +
     '</body></html>';
 }
 
@@ -900,7 +923,8 @@ function kitchenTicketCanvas(group, meta, widthPx) {
   var W = widthPx;
   var s = W / 576;
   var pad = Math.round(14 * s);
-  var sizes = { title: Math.round(40 * s), sub: Math.round(24 * s), item: Math.round(32 * s), qty: Math.round(34 * s), foot: Math.round(30 * s), meta: Math.round(22 * s) };
+  // Large print for the kitchen: date-time / seller on top, then station name and items.
+  var sizes = { title: Math.round(44 * s), item: Math.round(42 * s), qty: Math.round(46 * s), foot: Math.round(38 * s), meta: Math.round(36 * s) };
   var measure = document.createElement('canvas').getContext('2d');
   function font(px, bold) { return (bold ? '700 ' : '400 ') + px + 'px ' + LAN_TICKET_FONT; }
   function wrap(str, px, bold, maxW) {
@@ -927,17 +951,13 @@ function kitchenTicketCanvas(group, meta, widthPx) {
       y += Math.round(px * 1.4);
     });
   }
-  function rule() {
-    y += Math.round(6 * s);
-    ops.push({ kind: 'rule', y: y });
-    y += Math.round(14 * s);
-  }
 
+  // Date-time and seller first (large, flush left); no shop name, no bill number, no rules.
+  if (meta && meta.date) text(meta.date, sizes.meta, true, 'left');
+  if (meta && meta.cashier) text(posT('pos.kitchen_cashier_label') + ' ' + meta.cashier, sizes.meta, true, 'left');
+  y += Math.round(14 * s);
   text(group.name, sizes.title, true, 'center');
-  var sub = (window.STORE_NAME ? window.STORE_NAME + ' — ' : '') +
-    (meta && meta.invoice_number ? '#' + meta.invoice_number : '');
-  if (sub.trim() !== '') text(sub, sizes.sub, false, 'center');
-  rule();
+  y += Math.round(10 * s);
 
   var totalQty = 0;
   group.items.forEach(function (it) {
@@ -950,16 +970,11 @@ function kitchenTicketCanvas(group, meta, widthPx) {
       ops.push({ kind: 'text', str: ln, px: sizes.item, bold: true, align: 'left', y: y });
       y += Math.round(sizes.item * 1.4);
     });
-    y += Math.round(4 * s);
+    y += Math.round(6 * s);
   });
-  rule();
+  y += Math.round(10 * s);
   text(posT('pos.kitchen_total', totalQty), sizes.foot, true, 'right');
-  if ((meta && meta.date) || (meta && meta.cashier)) {
-    rule();
-    if (meta.date) text(meta.date, sizes.meta, false, 'center');
-    if (meta.cashier) text(posT('pos.kitchen_cashier_label') + ' ' + meta.cashier, sizes.meta, false, 'center');
-  }
-  y += pad * 3;
+  y += pad * 2;
 
   var canvas = document.createElement('canvas');
   canvas.width = W;

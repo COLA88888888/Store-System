@@ -145,6 +145,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $customer_id   = !empty($_POST['customer_id']) ? strval($_POST['customer_id']) : '';
     $customer_name = !empty($_POST['customer_name']) ? trim($_POST['customer_name']) : 'ລູກຄ້າທົ່ວໄປ';
     $client_ip     = getClientIP();
+    // Loyalty rewards the customer is exchanging points for on this bill — a list of
+    // loyalty_rewards ids (an id repeats when the same reward is redeemed twice). Costs and
+    // discount values are always re-read from the DB below, never taken from the client.
+    $redeem_ids = json_decode($_POST['redemptions'] ?? '[]', true);
+    $redeem_ids = is_array($redeem_ids) ? array_values(array_filter(array_map('intval', $redeem_ids))) : [];
 
     // Tender currency for this bill (chosen at checkout). Base data stays in KIP; these
     // just record what the customer handed over so the daily report can split by currency.
@@ -168,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // still catches a duplicate even if the client-side re-entrancy guard in pos_checkout_js.php
     // was bypassed or hasn't loaded yet.
     $idemFp = md5(($_POST['cart'] ?? '') . '|' . $cash_received . '|' . $qr_received . '|' .
-        $payment_type . '|' . $discount_bill . '|' . $customer_id . '|' . ($_SESSION['user_id'] ?? ''));
+        $payment_type . '|' . $discount_bill . '|' . $customer_id . '|' . implode(',', $redeem_ids) . '|' . ($_SESSION['user_id'] ?? ''));
     if (
         isset($_SESSION['pos_last_checkout_fp'], $_SESSION['pos_last_checkout_time'], $_SESSION['pos_last_checkout_response']) &&
         $_SESSION['pos_last_checkout_fp'] === $idemFp &&
@@ -200,6 +205,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         $tax_type = !empty($company['tax_type']) ? $company['tax_type'] : 'none';
         $vat_percent = ($tax_type === 'none') ? 0.00 : floatval($company['vat_percent'] ?? 0);
+
+        // ===== LOYALTY REDEMPTION: validate + price the rewards before any totals are fixed =====
+        $points_redeemed = 0;
+        $points_discount = 0.00;
+        $redeem_notes    = [];
+        if (!empty($redeem_ids)) {
+            $redeemFail = function ($msg) use ($pdo) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                echo json_encode(['success' => false, 'message' => $msg]);
+                exit();
+            };
+            if (getSetting($pdo, 'loyalty_enabled', '0') !== '1') {
+                $redeemFail(t('pos.redeem_err_disabled', 'ລະບົບຄະແນນສະສົມຖືກປິດຢູ່ — ແລກຄະແນນບໍ່ໄດ້'));
+            }
+            if (intval($customer_id) <= 0) {
+                $redeemFail(t('pos.redeem_err_no_customer', 'ກະລຸນາເລືອກລູກຄ້າກ່ອນແລກຄະແນນ'));
+            }
+            // Lock the customer's row so two tills can't spend the same points at once.
+            $lockStmt = $pdo->prepare("SELECT points FROM customers WHERE customer_id = ? FOR UPDATE");
+            $lockStmt->execute([intval($customer_id)]);
+            $pointsAvailable = $lockStmt->fetchColumn();
+            if ($pointsAvailable === false) {
+                $redeemFail(t('pos.redeem_err_no_customer', 'ກະລຸນາເລືອກລູກຄ້າກ່ອນແລກຄະແນນ'));
+            }
+
+            $uniqIds = array_values(array_unique($redeem_ids));
+            $rwStmt = $pdo->prepare("SELECT * FROM loyalty_rewards WHERE is_active = 1 AND id IN (" . implode(',', array_fill(0, count($uniqIds), '?')) . ")");
+            $rwStmt->execute($uniqIds);
+            $rewardsById = [];
+            foreach ($rwStmt->fetchAll(PDO::FETCH_ASSOC) as $rw) $rewardsById[(int)$rw['id']] = $rw;
+
+            // Product rewards must arrive as matching 0-price cart lines tagged with reward_id.
+            $rewardLineQty = [];
+            foreach ($cart as $item) {
+                $rid = intval($item['reward_id'] ?? 0);
+                if ($rid > 0) $rewardLineQty[$rid] = ($rewardLineQty[$rid] ?? 0) + floatval($item['quantity']);
+            }
+
+            $discountFromRewards = 0.00;
+            $redeemCount = array_count_values($redeem_ids);
+            foreach ($redeemCount as $rid => $times) {
+                if (!isset($rewardsById[$rid])) {
+                    $redeemFail(t('pos.redeem_err_reward_gone', 'ລາງວັນທີ່ເລືອກຖືກປິດ ຫຼື ລຶບໄປແລ້ວ — ກະລຸນາເລືອກໃໝ່'));
+                }
+                $rw = $rewardsById[$rid];
+                $points_redeemed += intval($rw['points_cost']) * $times;
+                if ($rw['reward_type'] === 'product') {
+                    if (abs(($rewardLineQty[$rid] ?? 0) - intval($rw['product_qty']) * $times) > 0.0001) {
+                        $redeemFail(t('pos.redeem_err_mismatch', 'ລາຍການແລກຄະແນນໃນກະຕ່າບໍ່ຖືກຕ້ອງ — ກະລຸນາແລກໃໝ່'));
+                    }
+                } else {
+                    // A discount reward needs the purchase to reach its minimum AND to be more
+                    // than the discount itself (same rule the POS applies before redeeming).
+                    $rwMinSpend = floatval($rw['min_spend'] ?? 0);
+                    if ($subtotal < $rwMinSpend || $subtotal <= floatval($rw['discount_amount'])) {
+                        $redeemFail(sprintf(t('pos.redeem_err_min_spend', 'ຍອດຊື້ບໍ່ຮອດເງື່ອນໄຂຂອງ "%s" — ຕ້ອງຊື້ຢ່າງໜ້ອຍ %s ₭'), $rw['reward_name'], number_format(max($rwMinSpend, floatval($rw['discount_amount']) + 1))));
+                    }
+                    $discountFromRewards += floatval($rw['discount_amount']) * $times;
+                }
+                $redeem_notes[] = $rw['reward_name'] . ($times > 1 ? ' ×' . $times : '');
+            }
+            foreach ($rewardLineQty as $rid => $q) {
+                if (!isset($redeemCount[$rid])) {
+                    $redeemFail(t('pos.redeem_err_mismatch', 'ລາຍການແລກຄະແນນໃນກະຕ່າບໍ່ຖືກຕ້ອງ — ກະລຸນາແລກໃໝ່'));
+                }
+            }
+            if ($discountFromRewards > 0 && $subtotal <= $discountFromRewards) {
+                $redeemFail(sprintf(t('pos.redeem_err_min_spend', 'ຍອດຊື້ບໍ່ຮອດເງື່ອນໄຂຂອງ "%s" — ຕ້ອງຊື້ຢ່າງໜ້ອຍ %s ₭'), implode(', ', $redeem_notes), number_format($discountFromRewards + 1)));
+            }
+            if ($points_redeemed > intval($pointsAvailable)) {
+                $redeemFail(sprintf(t('pos.redeem_err_not_enough', 'ຄະແນນບໍ່ພໍ: ມີ %s ຄະແນນ ແຕ່ຕ້ອງໃຊ້ %s ຄະແນນ'), number_format(intval($pointsAvailable)), number_format($points_redeemed)));
+            }
+            // A discount reward can bring the bill down to 0, never below it.
+            $points_discount = min($discountFromRewards, max(0, $subtotal - $discount_bill));
+            $discount_bill += $points_discount;
+        }
 
         $amount_after_discount = max(0, $subtotal - $discount_bill);
         $vat_amount = 0.00;
@@ -324,8 +405,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         // Insert into tbsale_save_detail and update inventory
         $stmtDetail = $pdo->prepare("
-            INSERT INTO tbsale_save_detail (save_bill, save_date, save_time, save_proid, save_proname, save_qty, save_price, cost_price, save_money, save_net_money, user_receives, multiplier)
-            VALUES (:save_bill, CURDATE(), CURTIME(), :save_proid, :save_proname, :save_qty, :save_price, :cost_price, :save_money, :save_net_money, :user_receives, :multiplier)
+            INSERT INTO tbsale_save_detail (save_bill, save_date, save_time, save_proid, save_proname, save_qty, save_price, save_orig_price, is_reward, cost_price, save_money, save_net_money, user_receives, multiplier)
+            VALUES (:save_bill, CURDATE(), CURTIME(), :save_proid, :save_proname, :save_qty, :save_price, :save_orig_price, :is_reward, :cost_price, :save_money, :save_net_money, :user_receives, :multiplier)
         ");
         
         $stmtUpdateStock = $pdo->prepare("
@@ -350,8 +431,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $deduct_stock_qty = $qty * $multiplier;
 
             $is_gift = !empty($item['is_free_gift']) || $price == 0 || strpos($item['product_name'], '(ແຖມ)') !== false;
+            // A points-reward product is a real item leaving the shelf — it gets the normal
+            // stock check below, not the promo-gift shortcut.
+            $is_reward_line = intval($item['reward_id'] ?? 0) > 0;
 
-            if ($is_gift) {
+            if ($is_gift && !$is_reward_line) {
                 $stmtCheckStock->execute([':pid' => $pid, ':store_id' => $activeStoreId]);
                 $pData = $stmtCheckStock->fetch();
                 $shouldCutQty = $pData ? intval($pData['cut_qty'] ?? 0) : 0;
@@ -389,6 +473,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 ':save_proname' => $proname,
                 ':save_qty'     => $qty,
                 ':save_price'   => $price,
+                // pre-promotion unit price + reward flag, so a reprint draws this line exactly
+                // like the checkout receipt did (struck-through price / [reward] tag)
+                ':save_orig_price' => floatval($item['original_price'] ?? $price),
+                ':is_reward'    => !empty($is_reward_line) ? 1 : 0,
                 ':cost_price'   => $cost,
                 ':save_money'   => $total_item,
                 ':save_net_money'=> $total_item,
@@ -425,14 +513,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 'price'          => $price,
                 'original_price' => $orig_price,
                 'is_free_gift'   => $is_gift,
+                'is_reward'      => $is_reward_line,
                 'total'          => $total_item
             ];
         }
         
-        // ===== CUSTOMER LOYALTY POINTS: earn Y points for every X kip of net spend =====
+        // ===== CUSTOMER LOYALTY POINTS =====
+        // 1. Spend the redeemed points (validated + locked above). Not wrapped in a
+        //    try/catch: if this fails the whole sale must roll back, or the customer would
+        //    get the reward without the points being taken.
         $points_earned = 0;
         $customer_points_balance = 0;
         $loyalty_active = 0;
+        if ($points_redeemed > 0) {
+            changeCustomerPoints($pdo, $customer_id, -$points_redeemed, 'redeem', $invoice_no, implode(', ', $redeem_notes), $activeStoreId);
+            $pdo->prepare("UPDATE tbsale_save SET points_redeemed = ?, points_discount = ? WHERE sale_save_bill = ?")
+                ->execute([$points_redeemed, $points_discount, $invoice_no]);
+        }
+        // 2. Earn Y points for every X kip actually paid — $net_total is already after the
+        //    points discount, so a redeemed discount doesn't earn points back on itself.
         if (!empty($customer_id) && intval($customer_id) > 0) {
             if (getSetting($pdo, 'loyalty_enabled', '0') === '1') {
                 $loyalty_active = 1;
@@ -442,8 +541,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     $points_earned = intdiv((int)round($net_total), $lpSpend) * $lpPer;
                     if ($points_earned > 0) {
                         try {
-                            $pdo->prepare("UPDATE customers SET points = points + ? WHERE customer_id = ?")
-                                ->execute([$points_earned, intval($customer_id)]);
+                            changeCustomerPoints($pdo, $customer_id, $points_earned, 'earn', $invoice_no, null, $activeStoreId);
                             $pdo->prepare("UPDATE tbsale_save SET points_earned = ? WHERE sale_save_bill = ?")
                                 ->execute([$points_earned, $invoice_no]);
                         } catch (Throwable $e) { $points_earned = 0; }
@@ -462,6 +560,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $responsePayload = [
             'success'        => true,
             'points_earned'   => $points_earned,
+            'points_redeemed' => $points_redeemed,
+            'points_discount' => $points_discount,
+            'customer_id'     => $customer_id,
             'customer_points' => $customer_points_balance,
             'loyalty_active'  => $loyalty_active,
             'invoice_number' => $invoice_no,
@@ -730,41 +831,13 @@ $categoriesStmt = $pdo->prepare("SELECT * FROM categories WHERE store_id = ? ORD
 $categoriesStmt->execute([$activeStoreId]);
 $categories = $categoriesStmt->fetchAll();
 
-// Kitchen-ticket routing for this branch: category_id => {printer_id, printer_name, printer_type,
-// paper_width}. Only categories with an active printer assigned; the POS uses this to split the
-// print by category at checkout (each printer gets a ticket with only its items). printer_type
-// 'ip' tickets go straight over the LAN; 'browser' tickets open a print dialog.
-$posKitchenRoutes = [];
-try {
-    // Off-site install (print_mode = agent): only the customer receipt should travel through
-    // the shop's print agent — kitchen tickets to a Network LAN printer stay off that queue.
-    // 'browser' tickets are unaffected either way; they print via the cashier's own browser,
-    // never through print_jobs.
-    $kitchenAgentMode = getSetting($pdo, 'print_mode', 'direct') === 'agent';
-    $krStmt = $pdo->prepare("
-        SELECT p.*, c.category_id, c.printer_id, p.name AS printer_name
-        FROM categories c
-        JOIN tbl_printer p ON p.id = c.printer_id AND p.status = 1 AND p.branch_id = c.store_id
-        WHERE c.store_id = ? AND c.printer_id IS NOT NULL
-    ");
-    $krStmt->execute([$activeStoreId]);
-    foreach ($krStmt->fetchAll() as $kr) {
-        $krType = ($kr['type'] ?? '') === 'ip' ? 'ip' : 'browser';
-        if ($krType === 'ip' && $kitchenAgentMode) continue;
-        $posKitchenRoutes[(string)$kr['category_id']] = [
-            'printer_id'   => (int)$kr['printer_id'],
-            'printer_name' => $kr['printer_name'],
-            'printer_type' => $krType,
-            'paper_width'  => intval($kr['paper_width'] ?? 80) === 58 ? 58 : 80,
-        ];
-    }
-} catch (Throwable $e) {}
-
-// The customer receipt's own LAN printer, if THIS branch designated one (Settings > Printers).
-// Each branch sets and prints through its own receipt printer.
+// The customer receipt's own printer, if THIS branch designated one (Settings > Printers).
+// Each branch sets and prints through its own receipt printer. Read first: the kitchen routes
+// below must never point back at it.
 $posReceiptPrinter = null;
+$posReceiptPrinterIp = '';
 try {
-    $rpStmt = $pdo->prepare("SELECT id, name, type, paper_width FROM tbl_printer WHERE is_receipt_printer = 1 AND status = 1 AND branch_id = ? LIMIT 1");
+    $rpStmt = $pdo->prepare("SELECT id, name, type, paper_width, ip_address FROM tbl_printer WHERE is_receipt_printer = 1 AND status = 1 AND branch_id = ? LIMIT 1");
     $rpStmt->execute([$activeStoreId]);
     $rpRow = $rpStmt->fetch();
     if ($rpRow) {
@@ -774,8 +847,42 @@ try {
             'printer_type' => ($rpRow['type'] ?? '') === 'ip' ? 'ip' : 'browser',
             'paper_width'  => intval($rpRow['paper_width'] ?? 80) === 58 ? 58 : 80,
         ];
+        $posReceiptPrinterIp = strtolower(trim((string)($rpRow['ip_address'] ?? '')));
     }
 } catch (Throwable $e) {}
+
+// Kitchen / category tickets: category_id => {printer_id, printer_name, printer_type, paper_width}.
+// At checkout the main bill goes ONLY to the receipt printer above, and each category's items go
+// as a separate ticket to the printer set on that category. A category pointed at the receipt
+// printer itself (same printer, or another entry with the same IP) gets no ticket — otherwise the
+// main printer prints the bill plus a duplicate slip. 'ip' tickets go over the LAN (through the
+// print agent when print_mode = agent, like the receipt); 'browser' tickets open a print dialog.
+// Switch all category tickets off with POS_PRINT_KITCHEN_TICKETS in config/db.php.
+$posKitchenRoutes = [];
+if (!defined('POS_PRINT_KITCHEN_TICKETS') || POS_PRINT_KITCHEN_TICKETS) try {
+    $krStmt = $pdo->prepare("
+        SELECT p.*, c.category_id, c.printer_id, p.name AS printer_name
+        FROM categories c
+        JOIN tbl_printer p ON p.id = c.printer_id AND p.status = 1 AND p.branch_id = c.store_id
+        WHERE c.store_id = ? AND c.printer_id IS NOT NULL
+    ");
+    $krStmt->execute([$activeStoreId]);
+    foreach ($krStmt->fetchAll() as $kr) {
+        $krType = ($kr['type'] ?? '') === 'ip' ? 'ip' : 'browser';
+        $krIp = strtolower(trim((string)($kr['ip_address'] ?? '')));
+        if ($posReceiptPrinter) {
+            if ((int)$kr['printer_id'] === $posReceiptPrinter['printer_id']) continue;
+            if ($krType === 'ip' && $krIp !== '' && $krIp === $posReceiptPrinterIp) continue;
+        }
+        $posKitchenRoutes[(string)$kr['category_id']] = [
+            'printer_id'   => (int)$kr['printer_id'],
+            'printer_name' => $kr['printer_name'],
+            'printer_type' => $krType,
+            'paper_width'  => intval($kr['paper_width'] ?? 80) === 58 ? 58 : 80,
+        ];
+    }
+} catch (Throwable $e) {}
+
 $productsStmt = $pdo->prepare("
     SELECT p.*, c.category_name 
     FROM products p 
@@ -789,6 +896,42 @@ $productsRaw = $productsStmt->fetchAll();
 $stmtPosCust = $pdo->prepare("SELECT customer_id, customer_code, customer_name, phone, address, member_card, notes, points, created_at FROM customers WHERE store_id = ? OR store_id = 0 ORDER BY customer_id DESC");
 $stmtPosCust->execute([$activeStoreId]);
 $customersList = $stmtPosCust->fetchAll();
+
+// Loyalty redemption catalogue for the "ແລກຄະແນນ" button. Product rewards are resolved in
+// THIS branch (product_id repeats per store); one whose product doesn't exist here is dropped.
+$posLoyalty = ['enabled' => getSetting($pdo, 'loyalty_enabled', '0') === '1', 'rewards' => []];
+if ($posLoyalty['enabled']) {
+    try {
+        $lrStmt = $pdo->prepare("
+            SELECT r.id, r.reward_name, r.points_cost, r.reward_type, r.discount_amount, r.min_spend, r.product_id, r.product_qty,
+                   p.product_name, p.unit, p.price, p.bprice, p.img_url, p.category_id
+            FROM loyalty_rewards r
+            LEFT JOIN products p ON (r.reward_type = 'product' AND p.product_id = r.product_id AND p.store_id = ?)
+            WHERE r.is_active = 1
+            ORDER BY r.points_cost ASC, r.id ASC
+        ");
+        $lrStmt->execute([$activeStoreId]);
+        foreach ($lrStmt->fetchAll(PDO::FETCH_ASSOC) as $lr) {
+            if ($lr['reward_type'] === 'product' && $lr['product_name'] === null) continue;
+            $posLoyalty['rewards'][] = [
+                'id'              => (int)$lr['id'],
+                'name'            => $lr['reward_name'],
+                'points'          => (int)$lr['points_cost'],
+                'type'            => $lr['reward_type'] === 'product' ? 'product' : 'discount',
+                'discount_amount' => (float)$lr['discount_amount'],
+                'min_spend'       => (float)$lr['min_spend'],
+                'product_id'      => $lr['product_id'] !== null ? (int)$lr['product_id'] : null,
+                'product_qty'     => max(1, (int)$lr['product_qty']),
+                'product_name'    => $lr['product_name'],
+                'unit'            => $lr['unit'],
+                'price'           => (float)$lr['price'],
+                'bprice'          => (float)$lr['bprice'],
+                'image'           => $lr['img_url'],
+                'category_id'     => $lr['category_id'],
+            ];
+        }
+    } catch (Throwable $e) {}
+}
 
 // Fetch extra units
 $extraUnits = $pdo->query("SELECT * FROM product_units ORDER BY multiplier ASC, id ASC")->fetchAll();

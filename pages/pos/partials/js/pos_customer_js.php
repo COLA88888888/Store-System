@@ -6,19 +6,30 @@ function updateSelectedCustomerUI() {
   } else {
     $('#selectedCustomerDisplay').text(posCustomerDisplayName(''));
   }
+  if (typeof updateLoyaltyUI === 'function') updateLoyaltyUI();
 }
 
 function selectCustomer(cus) {
+  // Points redeemed on this bill belong to the customer who owned them — switching to
+  // someone else drops those redemptions (and their reward lines) from the bill.
+  var newId = cus ? cus.customer_id : null;
+  var changed = String(newId || '') !== String((selectedCustomer && selectedCustomer.customer_id) || '');
+  if (changed && typeof posDropAllRedemptions === 'function' && posRedemptions().length) {
+    posDropAllRedemptions();
+    updateCartUI();
+  }
+  var keepRedemptions = (!changed && selectedCustomer && selectedCustomer.redemptions) ? selectedCustomer.redemptions : [];
   if (cus) {
     selectedCustomer = {
       customer_id: cus.customer_id,
       customer_name: cus.customer_name,
       phone: cus.phone || '',
       address: cus.address || '',
-      notes: cus.notes || ''
+      notes: cus.notes || '',
+      redemptions: keepRedemptions
     };
   } else {
-    selectedCustomer = { customer_id: null, customer_name: 'ລູກຄ້າທົ່ວໄປ', phone: '', address: '', notes: '' };
+    selectedCustomer = { customer_id: null, customer_name: 'ລູກຄ້າທົ່ວໄປ', phone: '', address: '', notes: '', redemptions: [] };
   }
   updateSelectedCustomerUI();
   saveCurrentBillState();
@@ -31,7 +42,17 @@ function openCustomerSelectModal() {
   $('#selectCustomerModal').modal('show');
 }
 
-function filterCustomersList() {
+Object.assign(window.POS_RCPT_I18N, <?php echo tjson([
+  'pos.pager_showing' => 'ສະແດງ %s–%s ຈາກ %s ລາຍການ',
+]); ?>);
+
+// The customer picker shows one page at a time so a shop with hundreds of members still
+// opens it instantly. Typing a search always goes back to page 1.
+var CUSTOMER_PAGE_SIZE = 10;
+var customerListPage = 1;
+
+function filterCustomersList(page) {
+  customerListPage = page || 1;
   var q = ($('#customerSearchInput').val() || '').toLowerCase().trim();
   var tbody = $('#customerTableBody');
   tbody.empty();
@@ -46,6 +67,9 @@ function filterCustomersList() {
     var card  = (c.member_card || '').toLowerCase();
     return name.indexOf(q) !== -1 || phone.indexOf(q) !== -1 || code.indexOf(q) !== -1 || card.indexOf(q) !== -1;
   });
+  // Most loyalty points first. Array.sort is stable, so customers with equal points keep
+  // allCustomers' own order (newest first).
+  filtered.sort(function(a, b) { return (parseInt(b.points, 10) || 0) - (parseInt(a.points, 10) || 0); });
 
   if (filtered.length === 0) {
     tbody.append(`
@@ -56,10 +80,16 @@ function filterCustomersList() {
         </td>
       </tr>
     `);
+    renderCustomerPager(0);
     return;
   }
 
-  filtered.forEach(function(c, idx) {
+  var totalPages = Math.max(1, Math.ceil(filtered.length / CUSTOMER_PAGE_SIZE));
+  if (customerListPage > totalPages) customerListPage = totalPages;
+  var offset = (customerListPage - 1) * CUSTOMER_PAGE_SIZE;
+
+  filtered.slice(offset, offset + CUSTOMER_PAGE_SIZE).forEach(function(c, i) {
+    var idx = offset + i;
     var jsonStr = JSON.stringify(c).replace(/'/g, "&apos;");
     var createdAt = c.created_at ? new Date(c.created_at).toLocaleDateString('lo-LA') : '-';
     var memberCardBadge = c.member_card 
@@ -82,6 +112,43 @@ function filterCustomersList() {
       </tr>
     `);
   });
+  renderCustomerPager(filtered.length);
+  $('#selectCustomerModal .table-responsive').scrollTop(0);
+}
+
+// "ສະແດງ 11–20 ຈາກ 57 ລາຍການ" + page buttons: first, current ±2, last, with … gaps.
+function renderCustomerPager(total) {
+  var pager = $('#customerPager');
+  var totalPages = Math.ceil(total / CUSTOMER_PAGE_SIZE);
+  if (totalPages <= 1) {
+    pager.html(total > 0 ? '<small class="text-muted">' + posT('pos.pager_showing', 1, total, total) + '</small>' : '');
+    return;
+  }
+  var cur = customerListPage;
+  var from = (cur - 1) * CUSTOMER_PAGE_SIZE + 1;
+  var to = Math.min(total, cur * CUSTOMER_PAGE_SIZE);
+
+  function item(p, label, disabled, active) {
+    return '<li class="page-item' + (disabled ? ' disabled' : '') + (active ? ' active' : '') + '">' +
+      '<a class="page-link" href="javascript:void(0)"' + (disabled || active ? '' : ' onclick="filterCustomersList(' + p + ')"') + '>' + label + '</a></li>';
+  }
+  var html = item(cur - 1, '<i class="fas fa-chevron-left" style="font-size:0.75rem;"></i>', cur === 1, false);
+  var start = Math.max(1, cur - 2), end = Math.min(totalPages, cur + 2);
+  if (start > 1) {
+    html += item(1, '1', false, false);
+    if (start > 2) html += '<li class="page-item disabled"><span class="page-link">…</span></li>';
+  }
+  for (var p = start; p <= end; p++) html += item(p, String(p), false, p === cur);
+  if (end < totalPages) {
+    if (end < totalPages - 1) html += '<li class="page-item disabled"><span class="page-link">…</span></li>';
+    html += item(totalPages, String(totalPages), false, false);
+  }
+  html += item(cur + 1, '<i class="fas fa-chevron-right" style="font-size:0.75rem;"></i>', cur === totalPages, false);
+
+  pager.html(
+    '<small class="text-muted">' + posT('pos.pager_showing', from.toLocaleString(), to.toLocaleString(), total.toLocaleString()) + '</small>' +
+    '<ul class="pagination pagination-sm mb-0">' + html + '</ul>'
+  );
 }
 
 var matchedExistingCustomer = null;

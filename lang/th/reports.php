@@ -222,4 +222,5 @@ return [
     'reports.js_scan_transfer' => 'สแกน QR โอนชำระ',
     'reports.js_error_prefix' => 'เกิดข้อผิดพลาด:',
     'reports.js_confirm_delete_plain' => 'คุณแน่ใจหรือไม่ว่าต้องการลบบิลเลขที่ %s ?\nสต็อกสินค้าทั้งหมดในบิลนี้จะถูกคืนเข้าคลังอัตโนมัติ!',
+    'reports.reprint_sent' => 'ส่งบิลไปเครื่องพิมพ์แล้ว',
 ];

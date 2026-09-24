@@ -86,4 +86,6 @@ return [
     'layout.logout_confirm_title' => 'ຢືນຢັນການອອກຈາກລະບົບ',
     'layout.logout_confirm_text' => 'ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ຫຼືບໍ່?',
     'layout.cancel' => 'ຍົກເລີກ',
+    'layout.expiry' => 'ຈັດການສິນຄ້າໝົດອາຍຸ',
+    'layout.expiry_report' => 'ລາຍງານສິນຄ້າໝົດອາຍຸ',
 ];

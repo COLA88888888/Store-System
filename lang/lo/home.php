@@ -33,4 +33,8 @@ return [
     'home.month_4' => 'ເມສາ', 'home.month_5' => 'ພຶດສະພາ', 'home.month_6' => 'ມິຖຸນາ',
     'home.month_7' => 'ກໍລະກົດ', 'home.month_8' => 'ສິງຫາ', 'home.month_9' => 'ກັນຍາ',
     'home.month_10' => 'ຕຸລາ', 'home.month_11' => 'ພະຈິກ', 'home.month_12' => 'ທັນວາ',
+    'home.period_label' => 'ຊ່ວງເວລາ:', 'home.period_today' => 'ມື້ນີ້',
+    'home.period_month' => 'ເດືອນນີ້', 'home.period_year' => 'ທັງປີ',
+    'home.chart_revenue_hourly' => 'ກາຟລາຍຮັບລາຍຊົ່ວໂມງ', 'home.chart_revenue_daily' => 'ກາຟລາຍຮັບລາຍວັນ',
+    'home.badge_hours' => '24 ຊົ່ວໂມງ', 'home.badge_days' => '%s ວັນ', 'home.badge_months' => '%s ເດືອນ',
 ];

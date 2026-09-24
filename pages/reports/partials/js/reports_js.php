@@ -1,4 +1,57 @@
+<?php
+  // The branch's own LAN receipt printer (Settings > Printers), if it has one — reprinting a
+  // bill then goes straight to that printer with no print preview, same as the POS checkout.
+  $__repReceiptPrinter = null;
+  try {
+      $__rpStmt = $pdo->prepare("SELECT id, name, type, paper_width FROM tbl_printer WHERE is_receipt_printer = 1 AND status = 1 AND branch_id = ? LIMIT 1");
+      $__rpStmt->execute([getActiveStoreId($pdo)]);
+      if ($__rpRow = $__rpStmt->fetch(PDO::FETCH_ASSOC)) {
+          $__repReceiptPrinter = [
+              'printer_id'   => (int)$__rpRow['id'],
+              'printer_name' => $__rpRow['name'],
+              'printer_type' => (($__rpRow['type'] ?? '') === 'ip') ? 'ip' : 'browser',
+              'paper_width'  => intval($__rpRow['paper_width'] ?? 80) === 58 ? 58 : 80,
+          ];
+      }
+  } catch (Throwable $e) {}
+?>
+<script src="../../assets/js/lan-receipt.js?v=<?php echo @filemtime(__DIR__ . '/../../../../assets/js/lan-receipt.js'); ?>"></script>
 <script>
+// Strings the reprint receipt shares with the checkout receipt (same keys, same defaults)
+window.REPORT_RCPT_I18N = <?php echo tjson([
+  'pos.customer_default'      => 'ລູກຄ້າທົ່ວໄປ',
+  'pos.receipt_vat_exclusive' => 'ອມພ (%s):',
+  'pos.receipt_vat_inclusive' => 'ລວມ ອມພ (%s):',
+  'pos.receipt_free_gift'     => 'ແຖມຟຣີ',
+  'pos.redeem_badge'          => 'ແລກຄະແນນ',
+  'pos.receipt_scan_transfer' => 'ສະແກນ QR ໂອນຊຳລະ',
+]); ?>;
+window.REPORT_QUEUE_ENABLED = <?php echo getSetting($pdo, 'queue_enabled', '0') === '1' ? 'true' : 'false'; ?>;
+window.REPORT_RECEIPT_PRINTER = <?php echo json_encode($__repReceiptPrinter, JSON_UNESCAPED_UNICODE); ?>;
+window.REPORT_LAN_MSG = <?php echo json_encode([
+    'sent'   => t('reports.reprint_sent', 'ສົ່ງບິນໄປເຄື່ອງພິມແລ້ວ'),
+    'failed' => t('pos.lan_print_failed', 'ພິມໃບຍ່ອຍຜ່ານ LAN ບໍ່ສຳເລັດ: %s'),
+], JSON_UNESCAPED_UNICODE); ?>;
+
+// Reprint: LAN receipt printer → print straight away (no preview); otherwise the browser dialog.
+function reprintReceiptAuto() {
+  var rp = window.REPORT_RECEIPT_PRINTER;
+  if (!rp || rp.printer_type !== 'ip' || !window.MiniposLanReceipt) {
+    doPrintReportReceipt();
+    return;
+  }
+  // Same per-id sizes the POS adds to its LAN receipt image (#rc_total etc.)
+  var extraCss = ' #rc_rep_total{font-size:19px !important;} #rc_rep_multicur{font-size:14.5px !important;} #rc_rep_bank_name_lbl{font-size:15px !important;}';
+  MiniposLanReceipt.print(document.getElementById('reportReceiptPrintArea'), rp, { basePath: '../../', extraCss: extraCss }).then(function (r) {
+    if (typeof Swal === 'undefined') return;
+    if (r.success) {
+      Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: REPORT_LAN_MSG.sent, showConfirmButton: false, timer: 1800 });
+    } else {
+      Swal.fire({ icon: 'error', title: REPORT_LAN_MSG.failed.replace('%s', r.message || '') });
+    }
+  });
+}
+
 // ===== Report display currency (data is stored in KIP; reports show the active currency) =====
 <?php
   $__rdc = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo)
@@ -60,10 +113,17 @@ function repMoneyInCode(kip, code) {
 }
 // Fill the reprint receipt's 4-currency net-total block from a KIP amount.
 function fillReprintMultiCurrency(netKip) {
-  $('#rc_rep_total_kip').text(repMoneyInCode(netKip, 'KIP'));
-  $('#rc_rep_total_thb').text(repMoneyInCode(netKip, 'THB'));
-  $('#rc_rep_total_usd').text(repMoneyInCode(netKip, 'USD'));
-  $('#rc_rep_total_cny').text(repMoneyInCode(netKip, 'CNY'));
+  // Same markup as the checkout receipt (posMoneyIn): the symbol in a .cur-sym span
+  function withSym(code) {
+    var txt = repMoneyInCode(netKip, code);
+    if (txt === '-') return txt;
+    var i = txt.lastIndexOf(' ');
+    return i < 0 ? txt : txt.slice(0, i) + ' <span class="cur-sym">' + txt.slice(i + 1) + '</span>';
+  }
+  $('#rc_rep_total_kip').html(withSym('KIP'));
+  $('#rc_rep_total_thb').html(withSym('THB'));
+  $('#rc_rep_total_usd').html(withSym('USD'));
+  $('#rc_rep_total_cny').html(withSym('CNY'));
 }
 // n is a KIP amount -> formatted string in the report currency
 function repMoneyFromKip(n) {
@@ -122,6 +182,12 @@ function viewBillDetails(billNo) {
         $('#modal_cash_rec').html(repMoneyFromKip(cash));
         $('#modal_qr_rec').html(repMoneyFromKip(qr));
         $('#modal_change').html(repMoneyFromKip(change));
+        // Show only the payment method(s) actually used: a cash bill has no transfer row and
+        // vice versa; a split bill shows both.
+        // (the rows are .d-flex, whose display:flex !important beats .toggle(), so swap classes)
+        var showCash = cash > 0 || qr <= 0, showQr = qr > 0;
+        $('#modal_cash_row').toggleClass('d-flex', showCash).toggleClass('d-none', !showCash);
+        $('#modal_qr_row').toggleClass('d-flex', showQr).toggleClass('d-none', !showQr);
 
         var tbody = $('#modal_items_body');
         tbody.empty();
@@ -155,6 +221,189 @@ function viewBillDetails(billNo) {
   });
 }
 
+// Fill the reprint receipt (layouts/receipt_template.php, prefix rc_rep_) exactly the way the
+// POS fills the checkout receipt (handleOnlineCheckoutReceiptUI in pos_checkout_js.php) — same
+// rows, same labels, same show/hide rules — so a reprinted bill is the bill printed at the sale.
+function fillReprintReceipt(b, details, billNo) {
+  var P = '#rc_rep_';
+  function rpT(key) {
+    var s = (window.REPORT_RCPT_I18N && REPORT_RCPT_I18N[key]) || key;
+    var args = Array.prototype.slice.call(arguments, 1);
+    return s.replace(/%s/g, function () { return args.length ? args.shift() : ''; });
+  }
+  var DEFAULT_ALIASES = ['ລູກຄ້າທົ່ວໄປ', 'Walk-in Customer', 'ลูกค้าทั่วไป', '散客'];
+  function customerName(name) {
+    name = (name == null ? '' : String(name)).trim();
+    return (!name || DEFAULT_ALIASES.indexOf(name) !== -1) ? rpT('pos.customer_default') : name;
+  }
+  // Checkout prints the date as d/m/Y H:i
+  function saleDate(d, t) {
+    var m = String(d || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    var hm = String(t || '').slice(0, 5);
+    return m ? (m[3] + '/' + m[2] + '/' + m[1] + (hm ? ' ' + hm : '')) : ((d || '') + ' ' + (t || '')).trim();
+  }
+  var fmt = repMoneyFromKip;
+
+  $(P + 'bill').text(b.sale_save_bill || billNo);
+  $(P + 'date').text(saleDate(b.sale_date, b.sale_time));
+  $(P + 'cashier').text(b.user_receive || 'Admin');
+
+  // Queue number: same rule as checkout — printed only while the shop has queue numbers
+  // switched on (the bill always stores one), using the bill's own saved number
+  if (window.REPORT_QUEUE_ENABLED && b.queue_no !== undefined && b.queue_no !== null && String(b.queue_no).trim() !== '') {
+    $(P + 'queue_no').text(b.queue_no);
+    $(P + 'queue_wrap').css('display', 'block');
+  } else {
+    $(P + 'queue_wrap').css('display', 'none');
+  }
+  $(P + 'customer').text(customerName(b.customer_name));
+  var phone = (b.customer_phone || '').toString().trim();
+  if (phone) {
+    $(P + 'customer_phone').text(phone);
+    $(P + 'customer_phone_row').attr('style', 'color:#000;font-weight:600;display:flex;').show();
+  } else {
+    $(P + 'customer_phone_row').attr('style', 'display:none !important;').hide();
+  }
+
+  var subtotal = parseFloat(b.sale_amount || 0);
+  var discount = parseFloat(b.sale_discount_bill || 0);
+  var net      = parseFloat(b.sale_barlance || 0);
+  var change   = parseFloat(b.sale_return || 0);
+  $(P + 'subtotal').html(fmt(subtotal));
+  $(P + 'discount').html(fmt(discount));
+
+  var rTaxType = b.tax_type || 'none';
+  var rTaxId   = b.tax_id || '';
+  if (rTaxType === 'none' || !rTaxId || String(rTaxId).trim() === '') {
+    $(P + 'tax_id_row').attr('style', 'display: none !important;').hide();
+  } else {
+    $(P + 'tax_id').text(rTaxId);
+    $(P + 'tax_id_row').attr('style', 'color:#000;font-weight:600;display:flex !important;').show();
+  }
+
+  var rVatRate = parseFloat(b.vat_rate) || 0;
+  var rVatAmt  = parseFloat(b.vat_amount);
+  if (isNaN(rVatAmt) || (rVatAmt === 0 && rVatRate > 0 && rTaxType !== 'none')) {
+    var amtAfterDisc = Math.max(0, subtotal - discount);
+    if (rTaxType === 'exclusive' && rVatRate > 0 && rVatRate < 100) {
+      rVatAmt = Math.round(amtAfterDisc * (rVatRate / (100 - rVatRate)));
+    } else if (rTaxType === 'inclusive' && rVatRate > 0) {
+      rVatAmt = Math.round(amtAfterDisc - (amtAfterDisc / (1 + (rVatRate / 100))));
+    } else {
+      rVatAmt = 0;
+    }
+  }
+  var vatShow = 'color:#000;font-weight:600;display:flex !important;';
+  if (rTaxType === 'none' || rVatRate <= 0 || rVatAmt <= 0) {
+    $(P + 'vat_row').attr('style', 'display: none !important;').hide();
+  } else if (rTaxType === 'exclusive' || rTaxType === 'inclusive') {
+    $(P + 'vat_label').text(rpT(rTaxType === 'inclusive' ? 'pos.receipt_vat_inclusive' : 'pos.receipt_vat_exclusive', rVatRate + '%'));
+    $(P + 'vat').html(fmt(rVatAmt));
+    $(P + 'vat_row').attr('style', vatShow).show();
+  } else {
+    $(P + 'vat_label').text(rpT('pos.receipt_vat_exclusive', rVatRate > 0 ? rVatRate + '%' : ''));
+    $(P + 'vat').html(fmt(rVatAmt));
+    $(P + 'vat_row').attr('style', vatShow).show();
+  }
+
+  $(P + 'total').html(fmt(net));
+  $(P + 'change').html(fmt(change));
+  fillReprintMultiCurrency(net);
+
+  // Loyalty points, same rows as at checkout
+  var ptsEarned = parseInt(b.points_earned) || 0;
+  if (ptsEarned > 0) {
+    $(P + 'points_earned').text(ptsEarned.toLocaleString());
+    $(P + 'points_row').css('display', 'flex');
+  } else {
+    $(P + 'points_row').hide();
+  }
+  var ptsRedeemed = parseInt(b.points_redeemed) || 0;
+  if (ptsRedeemed > 0) {
+    $(P + 'points_redeemed').text('-' + ptsRedeemed.toLocaleString());
+    $(P + 'points_redeem_row').css('display', 'flex');
+    var ptsDisc = parseFloat(b.points_discount) || 0;
+    if (ptsDisc > 0) {
+      $(P + 'points_discount').html('-' + fmt(ptsDisc));
+      $(P + 'points_discount_row').css('display', 'flex');
+    } else {
+      $(P + 'points_discount_row').hide();
+    }
+    if (b.points_balance_after !== null && b.points_balance_after !== undefined) {
+      $(P + 'points_balance').text((parseInt(b.points_balance_after) || 0).toLocaleString());
+      $(P + 'points_balance_row').css('display', 'flex');
+    } else {
+      $(P + 'points_balance_row').hide();
+    }
+  } else {
+    $(P + 'points_redeem_row, ' + P + 'points_discount_row, ' + P + 'points_balance_row').hide();
+  }
+
+  var cashAmt = parseFloat(b.cash_received) || 0;
+  var qrAmt   = parseFloat(b.qr_received) || 0;
+  var pType   = b.type_pay || b.payment_type || '';
+  if (cashAmt === 0 && qrAmt === 0) {
+    if (pType === 'ເງິນສົດ') cashAmt = net + change;
+    else qrAmt = net;
+  }
+  $(P + 'cash_amt').html(fmt(cashAmt));
+  $(P + 'qr_amt').html(fmt(qrAmt));
+  $(P + 'cash_row').toggle(cashAmt > 0 || (cashAmt === 0 && qrAmt === 0));
+  $(P + 'qr_row').toggle(qrAmt > 0);
+
+  // Bank QR — the exact bank/QR used for this sale
+  var isTransferPayment = (qrAmt > 0) || (pType && (pType.indexOf('ໂອນ') !== -1 || pType.indexOf('QR') !== -1));
+  var $qrBox = $('#reportReceiptPrintArea .receipt-qr-box');
+  if (isTransferPayment) {
+    var bQrImg = b.bank_qr_img || '';
+    if (bQrImg && bQrImg.trim() !== '') $(P + 'bank_qr_img').attr('src', bQrImg).show();
+    else $(P + 'bank_qr_img').hide();
+    var labelBank = b.bank_name || '';
+    var scanLbl = rpT('pos.receipt_scan_transfer');
+    $(P + 'bank_name_lbl').text(labelBank ? scanLbl + ' (' + labelBank + ')' : scanLbl);
+    $qrBox.attr('style', 'display:block!important; text-align:center; margin:8px 0;').show();
+  } else {
+    $qrBox.attr('style', 'display:none!important;').hide();
+  }
+
+  // Item lines — same format as checkout: name (unit), xQty, price / gift / reward / promo
+  var tbody = $(P + 'items');
+  tbody.empty();
+  (details || []).forEach(function (d) {
+    var displayName = d.save_proname || d.product_name || '';
+    var qty = parseFloat(d.save_qty) || 0;
+    var curUnitPrice = parseFloat(d.save_price) || 0;
+    var origUnitPrice = (d.save_orig_price !== null && d.save_orig_price !== undefined && d.save_orig_price !== '')
+      ? (parseFloat(d.save_orig_price) || 0) : curUnitPrice;
+    var totalAmt = parseFloat(d.save_money) || (curUnitPrice * qty);
+    var isReward = parseInt(d.is_reward, 10) === 1;
+    var isGift = curUnitPrice === 0 || displayName.indexOf('(ແຖມ)') !== -1;
+
+    var nameHtml = displayName;
+    var priceHtml;
+    if (isReward) {
+      nameHtml = '<span style="font-weight:bold; color:#b45309;">[' + rpT('pos.redeem_badge') + ']</span> ' + nameHtml;
+      priceHtml = '<span style="font-weight:bold; color:#b45309;">' + fmt(0) + '</span>';
+    } else if (isGift) {
+      if (nameHtml.indexOf('ແຖມ') === -1) {
+        nameHtml = '<span style="font-weight:bold; color:#059669;">[' + rpT('pos.receipt_free_gift') + ']</span> ' + nameHtml;
+      }
+      priceHtml = '<span style="font-weight:bold; color:#059669;">' + fmt(0) + ' (' + rpT('pos.receipt_free_gift') + ')</span>';
+    } else if (origUnitPrice > curUnitPrice && curUnitPrice >= 0) {
+      priceHtml = '<del style="color:#64748b; font-size:0.85em;">' + fmt(origUnitPrice * qty) + '</del><br><span style="font-weight:bold;">' + fmt(totalAmt) + '</span>';
+    } else {
+      priceHtml = fmt(totalAmt);
+    }
+    tbody.append(
+      '<tr>' +
+        '<td>' + nameHtml + '</td>' +
+        '<td class="text-center">x' + qty + '</td>' +
+        '<td class="text-right">' + priceHtml + '</td>' +
+      '</tr>'
+    );
+  });
+}
+
 function printBill(billNo) {
   if (!billNo) return;
 
@@ -165,131 +414,8 @@ function printBill(billNo) {
     dataType: 'json',
     success: function(res) {
       if (res.success && res.bill) {
-        var b = res.bill;
-        $('#rc_rep_bill').text(b.sale_save_bill || billNo);
-        $('#rc_rep_date').text((b.sale_date || '') + ' ' + (b.sale_time || ''));
-
-        // Reprint must show the SAME queue number the bill got at checkout, not a new
-        // or missing one — so this goes off the bill's own saved queue_no, not the
-        // store's current queue_enabled setting (which may have since been toggled off).
-        if (b.queue_no !== undefined && b.queue_no !== null && String(b.queue_no).trim() !== '') {
-          $('#rc_rep_queue_no').text(b.queue_no);
-          $('#rc_rep_queue_wrap').css('display', 'block');
-        } else {
-          $('#rc_rep_queue_wrap').css('display', 'none');
-        }
-        $('#rc_rep_cashier').text(b.user_receive || 'Admin');
-        $('#rc_rep_customer').text(b.customer_name || repT('reports.default_customer'));
-
-        var subtotal = parseFloat(b.sale_amount || 0);
-        var discount = parseFloat(b.sale_discount_bill || 0);
-        var net      = parseFloat(b.sale_barlance || 0);
-        var cash     = parseFloat(b.cash_received || 0);
-        var qr       = parseFloat(b.qr_received || 0);
-        var change   = parseFloat(b.sale_return || 0);
-        var typePay  = b.type_pay || b.payment_type || '';
-
-        if (cash === 0 && qr === 0) {
-          if (typePay.indexOf('ເງິນສົດ') !== -1) {
-            cash = parseFloat(b.sale_pay || b.sale_barlance || 0);
-          }
-          if (typePay.indexOf('ໂອນ') !== -1 || typePay.indexOf('QR') !== -1) {
-            qr = parseFloat(b.sale_barlance || 0);
-          }
-        }
-
-        $('#rc_rep_subtotal').html(repMoneyFromKip(subtotal));
-        $('#rc_rep_discount').html(repMoneyFromKip(discount));
-
-        var bTaxType = b.tax_type || 'none';
-        var bTaxId   = b.tax_id || b.company_tax_id || '';
-        if (bTaxType === 'none' || !bTaxId || bTaxId.trim() === '') {
-          $('#rc_rep_tax_id_row').hide();
-        } else {
-          $('#rc_rep_tax_id').text(bTaxId);
-          $('#rc_rep_tax_id_row').show();
-        }
-
-        var bVatRate = parseFloat(b.vat_rate) || 0;
-        var bVatAmt  = parseFloat(b.vat_amount);
-
-        if (isNaN(bVatAmt) || (bVatAmt === 0 && bVatRate > 0 && bTaxType !== 'none')) {
-          var amtAfterDisc = Math.max(0, subtotal - discount);
-          if (bTaxType === 'exclusive' && bVatRate > 0 && bVatRate < 100) {
-            bVatAmt = Math.round(amtAfterDisc * (bVatRate / (100 - bVatRate)));
-          } else if (bTaxType === 'inclusive' && bVatRate > 0) {
-            bVatAmt = Math.round(amtAfterDisc - (amtAfterDisc / (1 + (bVatRate / 100))));
-          } else {
-            bVatAmt = 0;
-          }
-        }
-
-        if (bTaxType === 'none' || bVatRate <= 0) {
-          $('#rc_rep_vat_row').hide();
-        } else if (bTaxType === 'exclusive' && (bVatAmt > 0 || bVatRate > 0)) {
-          $('#rc_rep_vat_label').text(repT('reports.js_vat_exclusive', bVatRate + '%'));
-          $('#rc_rep_vat').html(repMoneyFromKip(bVatAmt));
-          $('#rc_rep_vat_row').show();
-        } else if (bTaxType === 'inclusive' && (bVatAmt > 0 || bVatRate > 0)) {
-          $('#rc_rep_vat_label').text(repT('reports.js_vat_inclusive', bVatRate + '%'));
-          $('#rc_rep_vat').html(repMoneyFromKip(bVatAmt));
-          $('#rc_rep_vat_row').show();
-        } else if (bVatAmt > 0) {
-          $('#rc_rep_vat_label').text(repT('reports.js_vat_exclusive', bVatRate > 0 ? bVatRate + '%' : ''));
-          $('#rc_rep_vat').html(repMoneyFromKip(bVatAmt));
-          $('#rc_rep_vat_row').show();
-        } else {
-          $('#rc_rep_vat_row').hide();
-        }
-
-        $('#rc_rep_total').html(repMoneyFromKip(net));
-        $('#rc_rep_change').html(repMoneyFromKip(change));
-        fillReprintMultiCurrency(net);   // net total in all 4 currencies
-
-        var payHtml = '';
-        payHtml += '<div class="d-flex justify-content-between"><span>' + repT('reports.modal_cash_received_label') + '</span><span>' + repMoneyFromKip(cash) + '</span></div>';
-        payHtml += '<div class="d-flex justify-content-between"><span>' + repT('reports.modal_qr_received_label') + '</span><span>' + repMoneyFromKip(qr) + '</span></div>';
-        $('#rc_rep_payment_rows').html(payHtml);
-
-        // Bank QR box — must show the exact bank/QR/account used for this sale, same as the
-        // original receipt printed at checkout, not a generic store default.
-        var isTransferPayment = (qr > 0) || (typePay && (typePay.indexOf('ໂອນ') !== -1 || typePay.indexOf('QR') !== -1));
-        if (isTransferPayment) {
-          var bQrImg = b.bank_qr_img || '';
-          if (bQrImg) {
-            $('#rc_rep_bank_qr_img').attr('src', bQrImg).show();
-          } else {
-            $('#rc_rep_bank_qr_img').hide();
-          }
-          // Reprinted bill: show the bank name only — no account name, no account number.
-          var labelBank = b.bank_name || '';
-          $('#rc_rep_bank_name_lbl').text(labelBank ? repT('reports.js_scan_transfer') + ' (' + labelBank + ')' : repT('reports.js_scan_transfer'));
-          $('#rc_rep_bank_acc_lbl').text('').hide();
-          $('.receipt-qr-box').show();
-        } else {
-          $('.receipt-qr-box').hide();
-        }
-
-        var tbody = $('#rc_rep_items');
-        tbody.empty();
-
-        if (res.details && res.details.length > 0) {
-          $.each(res.details, function(idx, item) {
-            var q = floatval(item.save_qty);
-            var p = floatval(item.save_price);
-            var total = floatval(item.save_money || (q * p));
-
-            tbody.append(`
-              <tr>
-                <td style="text-align:left;padding:3px 0;">${item.save_proname || item.product_name || repT('reports.js_item_fallback')}</td>
-                <td style="text-align:center;padding:3px 0;">${q.toLocaleString()}</td>
-                <td style="text-align:right;padding:3px 0;">${repMoneyFromKip(total)}</td>
-              </tr>
-            `);
-          });
-        }
-
-        doPrintReportReceipt();
+        fillReprintReceipt(res.bill, res.details || [], billNo);
+        reprintReceiptAuto();
       } else {
         alert(repT('reports.js_load_fail'));
       }
@@ -319,25 +445,31 @@ function doPrintReportReceipt() {
     <link rel="stylesheet" href="../../assets/css/local-font.css">
     <style>
       @page { size: 80mm auto; margin: 0mm; }
-      * { box-sizing: border-box; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif !important; color: #000 !important; }
-      html, body { width: 80mm; margin: 0 auto; padding: 8px 6px; background: #fff; color: #000 !important; font-size: 12px; line-height: 1.4; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      * { box-sizing: border-box; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif !important; color: #000 !important; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+      html, body { width: 80mm; margin: 0 auto; padding: 8px 6px; background: #fff; color: #000 !important; font-size: 17px; font-weight: 600; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      /* No Bootstrap in this iframe — without this, headings keep the browser's default
+         ~2.33em top margin and push the shop name far below the logo. */
+      h1,h2,h3,h4,h5,h6 { margin: 0 !important; } h6 { font-size: 20px !important; }
       .text-center { text-align: center !important; } .text-right { text-align: right !important; }
-      .font-weight-bold { font-weight: 700 !important; color: #000 !important; } 
-      .small { font-size: 11.5px !important; color: #000 !important; font-weight: 600 !important; }
+      .font-weight-bold { font-weight: 700 !important; color: #000 !important; }
+      .small { font-size: 14px !important; color: #000 !important; font-weight: 600 !important; }
       .d-flex { display: flex; } .justify-content-between { justify-content: space-between; }
       [style*="display: none"], [style*="display:none"], .d-none { display: none !important; }
       .mb-0{margin-bottom:0!important}.mb-1{margin-bottom:4px!important}.mb-2{margin-bottom:8px!important}
-      .mt-2{margin-top:8px!important} 
+      .mt-2{margin-top:8px!important}
       .text-muted { color: #000 !important; font-weight: 600 !important; }
-      .receipt-header-address, .receipt-header-tel { font-size: 12px !important; font-weight: 600 !important; color: #000 !important; line-height: 1.4 !important; }
-      .receipt-footer-msg { font-size: 12.5px !important; font-weight: 700 !important; color: #000 !important; border-top: 1px dashed #000 !important; margin-top: 10px !important; padding-top: 8px !important; text-align: center !important; }
-      img.receipt-logo { max-width:80px!important; max-height:80px!important; height:auto!important; display:block!important; margin:10px auto 2px auto!important; object-fit:contain!important; }
-      img.receipt-qr-img { max-width:100px!important; max-height:100px!important; height:auto!important; display:block!important; margin:6px auto 2px auto!important; object-fit:contain!important; }
-      table { width:100%; border-collapse:collapse; margin:4px 0; font-size:11.5px; color: #000 !important; }
-      td,th { padding:3px 0; vertical-align:top; color: #000 !important; font-weight: 600 !important; }
+      .receipt-header-address, .receipt-header-tel { font-size: 15px !important; font-weight: 600 !important; color: #000 !important; line-height: 1.4 !important; }
+      .receipt-footer-msg { font-size: 15px !important; font-weight: 700 !important; color: #000 !important; border-top: 1px dashed #000 !important; margin-top: 10px !important; padding-top: 8px !important; text-align: center !important; }
+      img.receipt-logo { max-width:80px!important; max-height:80px!important; height:auto!important; display:block!important; margin:2px auto 2px auto!important; object-fit:contain!important; }
+      img.receipt-qr-img { max-width:130px!important; max-height:130px!important; height:auto!important; display:block!important; margin:6px auto 2px auto!important; object-fit:contain!important; image-rendering:-webkit-optimize-contrast; image-rendering:crisp-edges; image-rendering:pixelated; }
+      table { width:100%; border-collapse:collapse; margin:4px 0; font-size:15px; color: #000 !important; }
+      td,th { padding:4px 0; vertical-align:top; color: #000 !important; font-weight: 600 !important; }
       th { font-weight: 700 !important; }
-      @media print { 
-        html,body { width:100%; margin:0; padding:2mm; color: #000 !important; } 
+      #rc_rep_total { font-size: 19px !important; }
+      #rc_rep_multicur { font-size: 14.5px !important; }
+      #rc_rep_bank_name_lbl { font-size: 15px !important; }
+      @media print {
+        html,body { width:100%; margin:0; padding:2mm; color: #000 !important; }
         * { color: #000 !important; }
       }
     </style>

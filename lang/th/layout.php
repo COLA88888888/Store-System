@@ -86,4 +86,6 @@ return [
     'layout.logout_confirm_title' => 'ยืนยันการออกจากระบบ',
     'layout.logout_confirm_text' => 'คุณต้องการออกจากระบบใช่หรือไม่?',
     'layout.cancel' => 'ยกเลิก',
+    'layout.expiry' => 'จัดการสินค้าหมดอายุ',
+    'layout.expiry_report' => 'รายงานสินค้าหมดอายุ',
 ];

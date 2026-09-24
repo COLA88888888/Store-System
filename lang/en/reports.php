@@ -222,4 +222,5 @@ return [
     'reports.js_scan_transfer' => 'Scan QR to pay by transfer',
     'reports.js_error_prefix' => 'Error:',
     'reports.js_confirm_delete_plain' => 'Are you sure you want to delete bill #%s?\nAll stock on this bill will be automatically returned!',
+    'reports.reprint_sent' => 'Bill sent to the printer',
 ];

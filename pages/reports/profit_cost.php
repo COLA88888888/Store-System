@@ -99,8 +99,8 @@ if (!empty($checkColBprice)) {
 // Fetch Items with Buy Price for Profit & Cost Analysis. Real cost only — d.cost_price
 // (recorded at checkout) falling back to the product's current buy-price column. Never a
 // guessed margin: a non-stock/service item (cut_qty = 0) commonly has no purchase cost at
-// all, so when neither is on file buy_price comes back NULL and the page hides the
-// cost/profit/% columns for that row instead of showing a fabricated number.
+// all, so when neither is on file buy_price comes back NULL and the row counts its cost
+// as 0 (profit = the full net sales).
 $sql = "
     SELECT
         d.save_proid,
@@ -136,7 +136,6 @@ $pc_total_qty      = 0;
 $pc_total_discount = 0;
 $pc_total_revenue  = 0;
 $pc_total_cost     = 0;
-$pc_has_cost_data  = false;
 foreach ($items as $pcRow) {
     $q  = floatval($pcRow['total_qty_sold'] ?? 0);
     $bp = floatval($pcRow['buy_price'] ?? 0);
@@ -145,9 +144,6 @@ foreach ($items as $pcRow) {
     // Sales figure is net of item-level and prorated bill-level discount, so profit/margin below are too
     $pc_total_revenue  += max(0, floatval($pcRow['total_revenue'] ?? 0) - floatval($pcRow['total_discount'] ?? 0));
     $pc_total_cost     += $q * $bp;
-    if ($pcRow['buy_price'] !== null) {
-        $pc_has_cost_data = true;
-    }
 }
 $pc_total_profit = $pc_total_revenue - $pc_total_cost;
 $pc_total_margin = ($pc_total_revenue > 0) ? round(($pc_total_profit / $pc_total_revenue) * 100, 1) : 0;
@@ -297,8 +293,7 @@ require_once __DIR__ . '/../../layouts/header.php';
               <?php foreach ($display_data as $idx => $row): ?>
                 <?php
                   $qty        = floatval($row['total_qty_sold']);
-                  $hasCost    = $row['buy_price'] !== null;
-                  $buyPrice   = floatval($row['buy_price']);
+                  $buyPrice   = floatval($row['buy_price']); // no cost on file → 0, so profit = full sales
                   $costSum    = $qty * $buyPrice;
                   $revSum     = max(0, floatval($row['total_revenue']) - floatval($row['total_discount']));
                   $profit     = $revSum - $costSum;
@@ -319,21 +314,15 @@ require_once __DIR__ . '/../../layouts/header.php';
                     <?php endif; ?>
                   </td>
                   <td class="text-right font-weight-bold text-dark"><?php echo displayMoney($pdo, $revSum); ?></td>
-                  <?php if ($hasCost): ?>
-                    <td class="text-right font-weight-bold text-secondary"><?php echo displayMoney($pdo, $costSum); ?></td>
-                    <td class="text-right font-weight-bold <?php echo $profitClass; ?>" style="font-size: 0.95rem;">
-                      <?php echo $profitPrefix . displayMoney($pdo, $profit); ?>
-                    </td>
-                    <td class="text-center font-weight-bold text-primary">
-                      <span class="badge badge-light border text-primary px-2 py-1" style="font-size: 0.82rem; border-radius: 8px;">
-                        <?php echo number_format($margin, 1); ?>%
-                      </span>
-                    </td>
-                  <?php else: ?>
-                    <td class="text-right text-muted">-</td>
-                    <td class="text-right text-muted">-</td>
-                    <td class="text-center text-muted">-</td>
-                  <?php endif; ?>
+                  <td class="text-right font-weight-bold text-secondary"><?php echo displayMoney($pdo, $costSum); ?></td>
+                  <td class="text-right font-weight-bold <?php echo $profitClass; ?>" style="font-size: 0.95rem;">
+                    <?php echo $profitPrefix . displayMoney($pdo, $profit); ?>
+                  </td>
+                  <td class="text-center font-weight-bold text-primary">
+                    <span class="badge badge-light border text-primary px-2 py-1" style="font-size: 0.82rem; border-radius: 8px;">
+                      <?php echo number_format($margin, 1); ?>%
+                    </span>
+                  </td>
                 </tr>
               <?php endforeach; ?>
             <?php endif; ?>
@@ -356,7 +345,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                 </td>
                 <td class="text-right text-dark py-3"><?php echo displayMoney($pdo, $pc_total_revenue); ?></td>
                 <td class="text-right text-secondary py-3">
-                  <?php echo $pc_has_cost_data ? displayMoney($pdo, $pc_total_cost) : '<span class="text-muted">-</span>'; ?>
+                  <?php echo displayMoney($pdo, $pc_total_cost); ?>
                 </td>
                 <td class="text-right py-3 <?php echo $pcFootClass; ?>" style="font-size: 0.98rem;"><?php echo $pcFootPrefix . displayMoney($pdo, $pc_total_profit); ?></td>
                 <td class="text-center py-3">

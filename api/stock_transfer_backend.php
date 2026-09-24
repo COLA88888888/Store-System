@@ -79,6 +79,7 @@ if ($action === 'get_transfer_details') {
             // Sub-branch notification poll
             $incomingTransfers = getIncomingTransfersForStore($pdo, $userStoreId);
             $subLowStock = getLowStockAlerts($pdo, $userStoreId);
+            $subExpiry = getExpiryAlerts($pdo, $userStoreId);
             $subNewProducts = getNewProductsForStore($pdo, $userStoreId);
 
             foreach ($incomingTransfers as &$t) {
@@ -86,7 +87,7 @@ if ($action === 'get_transfer_details') {
             }
             unset($t);
 
-            $totalCount = count($incomingTransfers) + count($subLowStock) + count($subNewProducts);
+            $totalCount = count($incomingTransfers) + count($subLowStock) + count($subNewProducts) + count($subExpiry);
 
             echo json_encode([
                 'success' => true,
@@ -94,12 +95,14 @@ if ($action === 'get_transfer_details') {
                 'total_count' => $totalCount,
                 'incoming_transfers' => $incomingTransfers,
                 'sub_low_stock' => $subLowStock,
+                'sub_expiry' => $subExpiry,
                 'sub_new_products' => $subNewProducts
             ]);
             exit();
         } else {
             // Main branch notification poll (Low stock & Out of stock across all stores + Sub-branch Stock Imports)
             $lowStockList = getLowStockAlerts($pdo);
+            $expiryList = getExpiryAlerts($pdo);
             $subBranchImports = getSubBranchStockImportsForMain($pdo);
 
             foreach ($subBranchImports as &$imp) {
@@ -107,7 +110,7 @@ if ($action === 'get_transfer_details') {
             }
             unset($imp);
 
-            $totalCount = count($lowStockList) + count($subBranchImports);
+            $totalCount = count($lowStockList) + count($subBranchImports) + count($expiryList);
 
             $groupedLowStock = [];
             foreach ($lowStockList as $alert) {
@@ -128,7 +131,8 @@ if ($action === 'get_transfer_details') {
                 'is_main' => true,
                 'total_count' => $totalCount,
                 'grouped_low_stock' => array_values($groupedLowStock),
-                'sub_branch_imports' => $subBranchImports
+                'sub_branch_imports' => $subBranchImports,
+                'expiry_list' => $expiryList
             ]);
             exit();
         }

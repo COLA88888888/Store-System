@@ -222,4 +222,5 @@ return [
     'reports.js_scan_transfer' => '扫码转账付款',
     'reports.js_error_prefix' => '发生错误：',
     'reports.js_confirm_delete_plain' => '确定要删除单号 %s 的账单吗？\n此单的所有库存将自动返还！',
+    'reports.reprint_sent' => '账单已发送到打印机',
 ];

@@ -1053,6 +1053,88 @@ if ($pdo) {
 }
 }
 
+// Loyalty points schema. Checked against the real database once per session rather than
+// trusting the .db_schema_vNN flag file: a deploy that copies config/ from another install
+// carries that flag along, the block above is then skipped, and every points save would fail
+// on a missing table. Everything here is idempotent (IF NOT EXISTS / SHOW COLUMNS guards).
+if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['loyalty_schema_v3'])) {
+    try {
+        // Redemption catalogue: what a customer can exchange points for. 'discount' takes
+        // discount_amount (KIP) off the bill (only when the bill reaches min_spend); 'product'
+        // adds product_qty of product_id (resolved in the selling branch) at price 0.
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `loyalty_rewards` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `reward_name` VARCHAR(255) NOT NULL,
+            `points_cost` INT NOT NULL,
+            `reward_type` VARCHAR(20) NOT NULL DEFAULT 'discount',
+            `discount_amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
+            `min_spend` DECIMAL(15,2) NOT NULL DEFAULT 0,
+            `product_id` INT NULL,
+            `product_qty` INT NOT NULL DEFAULT 1,
+            `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        $lrCols = $pdo->query("SHOW COLUMNS FROM loyalty_rewards")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('min_spend', $lrCols)) {
+            $pdo->exec("ALTER TABLE loyalty_rewards ADD COLUMN `min_spend` DECIMAL(15,2) NOT NULL DEFAULT 0 AFTER `discount_amount`");
+        }
+
+        // Every change to customers.points: earn (+), redeem (-), and their reversals when a
+        // bill is cancelled. balance_after is the customer's points right after the change.
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `loyalty_points_log` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `customer_id` INT NOT NULL,
+            `store_id` INT NULL,
+            `change_points` INT NOT NULL,
+            `log_type` VARCHAR(20) NOT NULL,
+            `sale_bill` VARCHAR(50) NULL,
+            `note` VARCHAR(255) NULL,
+            `balance_after` INT NOT NULL DEFAULT 0,
+            `user_id` INT NULL,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_lpl_customer` (`customer_id`),
+            INDEX `idx_lpl_bill` (`sale_bill`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        $lpCustCols = $pdo->query("SHOW COLUMNS FROM customers")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('points', $lpCustCols)) {
+            $pdo->exec("ALTER TABLE `customers` ADD COLUMN `points` INT NOT NULL DEFAULT 0");
+        }
+
+        // Points earned / spent on each bill, and the part of sale_discount_bill the spent
+        // points paid for (a product reward costs points but no discount — it's a 0-price line).
+        $lpSaleCols = $pdo->query("SHOW COLUMNS FROM tbsale_save")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('points_earned', $lpSaleCols)) {
+            $pdo->exec("ALTER TABLE tbsale_save ADD COLUMN `points_earned` INT NOT NULL DEFAULT 0");
+        }
+        if (!in_array('points_redeemed', $lpSaleCols)) {
+            $pdo->exec("ALTER TABLE tbsale_save ADD COLUMN `points_redeemed` INT NOT NULL DEFAULT 0");
+        }
+        if (!in_array('points_discount', $lpSaleCols)) {
+            $pdo->exec("ALTER TABLE tbsale_save ADD COLUMN `points_discount` DECIMAL(15,2) NOT NULL DEFAULT 0");
+        }
+
+        // Per line, what a reprint needs to draw the line exactly like the checkout receipt:
+        // the unit price before a promotion (struck through when higher) and whether the line
+        // was a points reward.
+        $lpDetCols = $pdo->query("SHOW COLUMNS FROM tbsale_save_detail")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('save_orig_price', $lpDetCols)) {
+            $pdo->exec("ALTER TABLE tbsale_save_detail ADD COLUMN `save_orig_price` DECIMAL(15,2) NULL");
+        }
+        if (!in_array('is_reward', $lpDetCols)) {
+            $pdo->exec("ALTER TABLE tbsale_save_detail ADD COLUMN `is_reward` TINYINT(1) NOT NULL DEFAULT 0");
+        }
+
+        $pdo->exec("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES
+            ('loyalty_enabled', '0'), ('loyalty_spend_amount', '100000'), ('loyalty_points_earned', '1')");
+
+        $_SESSION['loyalty_schema_v3'] = 1;
+    } catch (Throwable $ex) {
+        // Leave the session flag unset so the next request tries again.
+        error_log('MiniPos loyalty schema: ' . $ex->getMessage());
+    }
+}
+
 
 
 
@@ -1067,6 +1149,27 @@ if (!function_exists('getSetting')) {
         } catch (Exception $e) {
             return $default;
         }
+    }
+}
+
+if (!function_exists('changeCustomerPoints')) {
+    /**
+     * Apply a points change to a customer and record it in loyalty_points_log. Runs inside
+     * the caller's transaction (checkout / bill cancel), so a failure rolls both back.
+     * Never lets the balance go below 0. Returns the balance after the change.
+     */
+    function changeCustomerPoints($pdo, $customerId, $delta, $logType, $saleBill = null, $note = null, $storeId = null) {
+        $customerId = intval($customerId);
+        $delta = intval($delta);
+        if ($customerId <= 0 || $delta === 0) return null;
+        $pdo->prepare("UPDATE customers SET points = GREATEST(0, points + ?) WHERE customer_id = ?")
+            ->execute([$delta, $customerId]);
+        $bStmt = $pdo->prepare("SELECT points FROM customers WHERE customer_id = ?");
+        $bStmt->execute([$customerId]);
+        $balance = (int)$bStmt->fetchColumn();
+        $pdo->prepare("INSERT INTO loyalty_points_log (customer_id, store_id, change_points, log_type, sale_bill, note, balance_after, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+            ->execute([$customerId, $storeId, $delta, $logType, $saleBill, $note, $balance, intval($_SESSION['user_id'] ?? 0) ?: null]);
+        return $balance;
     }
 }
 
@@ -1758,4 +1861,95 @@ if (!empty($_SESSION['user_id'])) {
         }
     }
 }
-?>
+// ແຈ້ງເຕືອນສິນຄ້າເມື່ອເຫຼືອ 5 ມື້ ຫຼື ໜ້ອຍກວ່າກ່ອນໝົດອາຍຸ — ກຳນົດຕາຍຕົວໃນໂຄດ, ບໍ່ມີຊ່ອງໃຫ້ຕັ້ງຄ່າ
+if (!defined('EXPIRY_ALERT_DAYS')) define('EXPIRY_ALERT_DAYS', 5);
+// ພິມບິນຕອນຂາຍ: ບິນຫຼັກອອກສະເພາະເຄື່ອງພິມບິນຫຼັກ, ບິນຍ່ອຍແຍກຕາມໝວດສິນຄ້າອອກເຄື່ອງພິມທີ່ຕັ້ງໄວ້ໃນໝວດນັ້ນ
+// (ໝວດທີ່ຕັ້ງເປັນເຄື່ອງພິມບິນຫຼັກ ຈະບໍ່ອອກບິນຍ່ອຍຊ້ຳ). ປ່ຽນເປັນ false ເພື່ອປິດບິນຍ່ອຍທັງໝົດ.
+if (!defined('POS_PRINT_KITCHEN_TICKETS')) define('POS_PRINT_KITCHEN_TICKETS', true);
+if (!function_exists("getExpiryAlertDays")) {
+    function getExpiryAlertDays($pdo) {
+        return EXPIRY_ALERT_DAYS;
+    }
+}
+// ເວລາທີ່ເຫຼືອກ່ອນໝົດອາຍຸ ເປັນ ປີ/ເດືອນ/ວັນ ຕາມປະຕິທິນແທ້ ("1 ເດືອນ 1 ວັນ"), ຫຼື "ກາຍມາ ..." ຖ້າໝົດອາຍຸແລ້ວ,
+// "ມື້ນີ້" ຖ້າໝົດອາຍຸມື້ນີ້. ໃຊ້ຢູ່ໜ້າ ຈັດການສິນຄ້າໝົດອາຍຸ ແລະ ລາຍງານສິນຄ້າໝົດອາຍຸ.
+if (!function_exists("formatExpiryRemaining")) {
+    function formatExpiryRemaining($expiryDate) {
+        try {
+            $today = new DateTime('today');
+            $exp   = new DateTime(substr((string)$expiryDate, 0, 10));
+        } catch (Throwable $e) {
+            return '-';
+        }
+        $diff = $today->diff($exp);
+        if ($diff->days === 0) return t('expiry.days_today', 'ມື້ນີ້');
+        $parts = [];
+        if ($diff->y > 0) $parts[] = sprintf(t('expiry.dur_year', '%s ປີ'), $diff->y);
+        if ($diff->m > 0) $parts[] = sprintf(t('expiry.dur_month', '%s ເດືອນ'), $diff->m);
+        if ($diff->d > 0) $parts[] = sprintf(t('expiry.dur_day', '%s ວັນ'), $diff->d);
+        $text = implode(' ', $parts);
+        return $diff->invert ? sprintf(t('expiry.overdue_by', 'ກາຍມາ %s'), $text) : $text;
+    }
+}
+// Same text as HTML with every piece ("1 ເດືອນ", "9 ວັນ", "ກາຍມາ") in its own <span>, so the
+// dashboard's instant language switch can translate each piece — it matches one phrase per text node.
+if (!function_exists("formatExpiryRemainingHtml")) {
+    function formatExpiryRemainingHtml($expiryDate) {
+        try {
+            $today = new DateTime('today');
+            $exp   = new DateTime(substr((string)$expiryDate, 0, 10));
+        } catch (Throwable $e) {
+            return '-';
+        }
+        $diff = $today->diff($exp);
+        $esc = function ($s) { return '<span>' . htmlspecialchars($s) . '</span>'; };
+        if ($diff->days === 0) return $esc(t('expiry.days_today', 'ມື້ນີ້'));
+        $parts = [];
+        if ($diff->y > 0) $parts[] = $esc(sprintf(t('expiry.dur_year', '%s ປີ'), $diff->y));
+        if ($diff->m > 0) $parts[] = $esc(sprintf(t('expiry.dur_month', '%s ເດືອນ'), $diff->m));
+        if ($diff->d > 0) $parts[] = $esc(sprintf(t('expiry.dur_day', '%s ວັນ'), $diff->d));
+        $html = implode(' ', $parts);
+        if (!$diff->invert) return $html;
+        // "ກາຍມາ %s" / "%s overdue": keep the language's word order, the word itself in its own span
+        $pattern = t('expiry.overdue_by', 'ກາຍມາ %s');
+        $pos = strpos($pattern, '%s');
+        $before = trim(substr($pattern, 0, $pos === false ? 0 : $pos));
+        $after  = trim($pos === false ? '' : substr($pattern, $pos + 2));
+        return ($before !== '' ? $esc($before) . ' ' : '') . $html . ($after !== '' ? ' ' . $esc($after) : '');
+    }
+}
+// ແປງວັນໝົດອາຍຸທີ່ຮັບມາຈາກຟອມ (Y-m-d ຫຼື d/m/Y) ເປັນ Y-m-d; ວ່າງ ຫຼື ບໍ່ຖືກຕ້ອງ → null (= ບໍ່ຕິດຕາມ)
+if (!function_exists("normalizeExpiryDate")) {
+    function normalizeExpiryDate($value) {
+        $value = trim((string)$value);
+        if ($value === '') return null;
+        foreach (['Y-m-d', 'd/m/Y', 'd-m-Y'] as $fmt) {
+            $dt = DateTime::createFromFormat('!' . $fmt, $value);
+            if ($dt && $dt->format($fmt) === $value) {
+                $y = (int)$dt->format('Y');
+                return ($y >= 2000 && $y <= 2100) ? $dt->format('Y-m-d') : null;
+            }
+        }
+        return null;
+    }
+}
+if (!function_exists("getExpiryAlerts")) {
+    function getExpiryAlerts($pdo, $store_id = null) {
+        if (!$pdo) return [];
+        $days = function_exists("getExpiryAlertDays") ? getExpiryAlertDays($pdo) : 5;
+        try {
+            $sql = "SELECT p.*, s.store_name, s.is_main, DATEDIFF(p.expiry_date, CURDATE()) as days_left FROM products p JOIN tbstore s ON p.store_id = s.store_id WHERE p.expiry_date IS NOT NULL AND DATEDIFF(p.expiry_date, CURDATE()) <= ? AND s.status = \"active\"";
+            $params = [$days];
+            if ($store_id !== null && intval($store_id) > 0) {
+                $sql .= " AND p.store_id = ?";
+                $params[] = intval($store_id);
+            }
+            $sql .= " ORDER BY p.expiry_date ASC";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+}

@@ -32,6 +32,8 @@ window.POS_RECEIPT_PRINTER = <?php echo json_encode($posReceiptPrinter, JSON_UNE
 window.STORE_NAME = <?php echo json_encode($company['com_name_la'] ?? ($company['com_name'] ?? 'POS'), JSON_UNESCAPED_UNICODE); ?>;
 // Show a daily-resetting queue number on the receipt (coffee-shop style). Off for general retail.
 window.POS_QUEUE_ENABLED = <?php echo getSetting($pdo, 'queue_enabled', '0') === '1' ? 'true' : 'false'; ?>;
+// Loyalty redemption: { enabled, rewards: [{ id, name, points, type: 'discount'|'product', ... }] }
+window.POS_LOYALTY = <?php echo json_encode($posLoyalty, JSON_UNESCAPED_UNICODE); ?>;
 
 // Stop SweetAlert2 from reflowing the page when an alert opens: heightAuto:false keeps it
 // from forcing html/body to height:auto, scrollbarPadding:false keeps it from adding a
@@ -98,6 +100,7 @@ window.POS_QUEUE_ENABLED = <?php echo getSetting($pdo, 'queue_enabled', '0') ===
 
 <!-- POS Partial Modals -->
 <?php require_once __DIR__ . '/partials/customer_modals.php'; ?>
+<?php require_once __DIR__ . '/partials/loyalty_modal.php'; ?>
 <?php require_once __DIR__ . '/partials/held_orders_modal.php'; ?>
 <?php require_once __DIR__ . '/partials/active_bills_modal.php'; ?>
 <?php require_once __DIR__ . '/partials/checkout_modal.php'; ?>

@@ -156,6 +156,18 @@
                 </div>
               </div>
 
+              <!-- ວັນໝົດອາຍຸ (ບໍ່ບັງຄັບ) -->
+              <div class="row mt-2">
+                <div class="col-md-6">
+                  <label class="font-weight-bold text-dark mb-1"><i class="far fa-calendar-alt text-warning mr-1"></i><?php echo htmlspecialchars(t('products.field_expiry_date', 'ວັນໝົດອາຍຸ')); ?></label>
+                  <input type="date" id="edit_expiry_date" name="expiry_date" class="form-control" style="height: 40px; border-radius: 6px;">
+                  <input type="hidden" id="edit_expiry_store_id" name="expiry_store_id" value="">
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                  <small class="text-muted"><?php echo htmlspecialchars(t('products.field_expiry_hint', 'ບໍ່ໃສ່ກໍໄດ້ — ໃສ່ແລ້ວລະບົບຈະແຈ້ງເຕືອນກ່ອນໝົດອາຍຸ')); ?></small>
+                </div>
+              </div>
+
             </div>
           </div>
 

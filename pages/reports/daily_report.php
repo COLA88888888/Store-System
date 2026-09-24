@@ -756,12 +756,18 @@ document.addEventListener('DOMContentLoaded', function () {
   var tipData  = <?php echo json_encode(__cvtArr($__dc, $chartTip)); ?>;
   var billsData = <?php echo json_encode($chartBills); ?>;
 
+  // Chart instances + the translation key behind each label, so the pos:langchange handler
+  // below can switch them to another language on an instant (no-reload) language change.
+  var CUR_SUFFIX = ' (<?php echo addslashes($__sym); ?>)';
+  var billTooltipPrefix = <?php echo json_encode(t('reports.chart_tooltip_bill', 'ບິນ:') . ' ', JSON_UNESCAPED_UNICODE); ?>;
+
   // Bar Chart: Daily Net Sales
-  new Chart(document.getElementById('chartDailySales'), {
+  var dailySalesChart = new Chart(document.getElementById('chartDailySales'), {
     type: 'bar',
     data: {
       labels: labels,
       datasets: [{
+        _key: 'reports.chart_legend_net',
         label: <?php echo json_encode(t('reports.chart_legend_net', 'ສຸດທິ'), JSON_UNESCAPED_UNICODE); ?> + ' (<?php echo addslashes($__sym); ?>)',
         data: netData,
         backgroundColor: 'rgba(37,99,235,0.75)',
@@ -769,6 +775,7 @@ document.addEventListener('DOMContentLoaded', function () {
         borderWidth: 1.5,
         borderRadius: 6,
       }, {
+        _key: 'reports.chart_legend_cash',
         label: <?php echo json_encode(t('reports.chart_legend_cash', 'ເງິນສົດ'), JSON_UNESCAPED_UNICODE); ?> + ' (<?php echo addslashes($__sym); ?>)',
         data: cashData,
         backgroundColor: 'rgba(99,102,241,0.55)',
@@ -776,6 +783,7 @@ document.addEventListener('DOMContentLoaded', function () {
         borderWidth: 1,
         borderRadius: 4,
       }, {
+        _key: 'reports.chart_legend_transfer',
         label: <?php echo json_encode(t('reports.chart_legend_transfer', 'ໂອນ'), JSON_UNESCAPED_UNICODE); ?> + ' (<?php echo addslashes($__sym); ?>)',
         data: qrData,
         backgroundColor: 'rgba(6,182,212,0.55)',
@@ -811,7 +819,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Donut Chart: Payment Method
   var totalPay = <?php echo (convertFromKip($totalCash + $totalQr, $__dc['code'], $__dc['rates']) ?: 1); ?>;
-  new Chart(document.getElementById('chartPaymentMethod'), {
+  var paymentMethodChart = new Chart(document.getElementById('chartPaymentMethod'), {
     type: 'doughnut',
     data: {
       labels: [<?php echo json_encode(t('reports.cash_opt', 'ເງິນສົດ'), JSON_UNESCAPED_UNICODE); ?>, <?php echo json_encode(t('reports.col_transfer', 'ໂອນ'), JSON_UNESCAPED_UNICODE); ?>],
@@ -841,11 +849,12 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // Line Chart: Daily Bills Count
-  new Chart(document.getElementById('chartDailyBills'), {
+  var dailyBillsChart = new Chart(document.getElementById('chartDailyBills'), {
     type: 'line',
     data: {
       labels: labels,
       datasets: [{
+        _key: 'reports.chart_legend_bill_count',
         label: <?php echo json_encode(t('reports.chart_legend_bill_count', 'ຈຳນວນບິນ'), JSON_UNESCAPED_UNICODE); ?>,
         data: billsData,
         borderColor: '#f59e0b',
@@ -862,7 +871,7 @@ document.addEventListener('DOMContentLoaded', function () {
       plugins: {
         legend: { display: false },
         tooltip: {
-          callbacks: { label: function(ctx) { return <?php echo json_encode(t('reports.chart_tooltip_bill', 'ບິນ:') . ' ', JSON_UNESCAPED_UNICODE); ?> + ctx.parsed.y; } }
+          callbacks: { label: function(ctx) { return billTooltipPrefix + ctx.parsed.y; } }
         }
       },
       scales: {
@@ -874,6 +883,28 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
     }
+  });
+
+  // <canvas> labels are painted into the bitmap, so the shell's DOM translation can't reach
+  // them — relabel each chart from the new language's dictionary on pos:langchange.
+  var PAYMENT_LABEL_KEYS = ['reports.cash_opt', 'reports.col_transfer'];
+  window.addEventListener('pos:langchange', function(e) {
+    var lang = (e && e.detail && e.detail.lang) || (window.parent && window.parent.CURRENT_ACTIVE_LANG);
+    var dict = null;
+    try { dict = window.parent.I18N_ALL_MERGED && window.parent.I18N_ALL_MERGED[lang]; } catch (err) {}
+    if (!dict) return;
+
+    [dailySalesChart, dailyBillsChart].forEach(function(chart) {
+      chart.data.datasets.forEach(function(ds) {
+        if (ds._key && dict[ds._key]) ds.label = dict[ds._key] + (chart === dailySalesChart ? CUR_SUFFIX : '');
+      });
+      chart.update();
+    });
+    paymentMethodChart.data.labels = PAYMENT_LABEL_KEYS.map(function(k, i) {
+      return dict[k] || paymentMethodChart.data.labels[i];
+    });
+    paymentMethodChart.update();
+    if (dict['reports.chart_tooltip_bill']) billTooltipPrefix = dict['reports.chart_tooltip_bill'] + ' ';
   });
 });
 </script>

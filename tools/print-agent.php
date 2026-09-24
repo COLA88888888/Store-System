@@ -114,24 +114,29 @@ function sendToPrinter($ip, $bytes) {
         throw new Exception("Cannot connect to $ip:$port - $errstr ($errno)");
     }
     stream_set_timeout($sock, 4);
+    // Paced to the printer's own speed — same scheme as api/lan_printer.php::lanPrinterWritePaced().
+    // Too slow (the old 1 KB / 15 ms ≈ 68 KB/s) and the printer runs dry mid-ticket, printing in
+    // stop-start jerks; one big burst overruns a cheap printer's small receive buffer (fwrite()
+    // still reports success, the printer drops the rest, and the leftover raster prints as garbled
+    // text on the next job). So: a small head start, then a clock-based rate a little above
+    // print speed.
+    $bytesPerSec = 72000;   // same as LAN_PRINT_BYTES_PER_SEC in api/lan_printer.php
+    $headStart   = 4096;
     $len = strlen($bytes);
     $sent = 0;
-    // Small chunks with a short pause between them, not one big burst — see the matching note
-    // in api/lan_printer.php::lanPrinterSend(). A cheap ESC/POS printer's receive buffer can be
-    // far smaller than a receipt image; blasting it all in 8 KB writes overruns that buffer
-    // (fwrite() still reports success — the printer just drops the rest), which is what was
-    // cutting tickets off partway through and leaving the printer to read the leftover raster
-    // bytes as garbled text on the next job.
-    $chunkSize  = 1024;
-    $chunkDelay = 15000; // microseconds
+    $start = microtime(true);
     while ($sent < $len) {
-        $written = @fwrite($sock, substr($bytes, $sent, $chunkSize));
+        $allowed = $headStart + (int)((microtime(true) - $start) * $bytesPerSec);
+        if ($sent >= $allowed) {
+            usleep(2000);
+            continue;
+        }
+        $written = @fwrite($sock, substr($bytes, $sent, min(2048, $len - $sent, $allowed - $sent)));
         if ($written === false || $written === 0) {
             fclose($sock);
             throw new Exception("Write failed after $sent bytes");
         }
         $sent += $written;
-        if ($sent < $len) usleep($chunkDelay);
     }
     fclose($sock);
 }

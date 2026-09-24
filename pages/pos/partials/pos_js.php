@@ -177,6 +177,7 @@ try {
 // POS Modular JS Includes
 require_once __DIR__ . '/js/pos_bills_js.php';
 require_once __DIR__ . '/js/pos_customer_js.php';
+require_once __DIR__ . '/js/pos_loyalty_js.php';
 require_once __DIR__ . '/js/pos_cart_js.php';
 require_once __DIR__ . '/js/pos_barcode_js.php';
 require_once __DIR__ . '/js/pos_checkout_js.php';

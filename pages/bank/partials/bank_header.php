@@ -26,8 +26,8 @@ if (!defined('MINIPOS_APP')) {
   <div class="bank-header-tools d-flex align-items-center flex-wrap mt-2 mt-md-0" style="gap: 6px;">
     <!-- Date & Store Filter Form -->
     <form method="GET" action="" class="form-inline d-flex align-items-center flex-wrap" style="gap: 6px;">
-      <?php if (canViewAllBranches($pdo)): ?>
-      <!-- Store / Branch Selector Box -->
+      <?php if (canViewAllBranches($pdo) && $bankMultiBranch): ?>
+      <!-- Store / Branch Selector Box (hidden when the shop has only one branch) -->
       <div class="input-group input-group-sm">
         <div class="input-group-prepend">
           <span class="input-group-text bg-white font-weight-bold text-dark" style="font-size: 0.78rem;">
@@ -88,7 +88,8 @@ if (!defined('MINIPOS_APP')) {
     font-size: 0.72rem !important;
     white-space: nowrap;
   }
-  .bank-header-tools input[type="date"] {
+  .bank-header-tools input[type="date"],
+  .bank-header-tools input.mp-date {
     max-width: 132px;
     font-size: 0.78rem;
   }

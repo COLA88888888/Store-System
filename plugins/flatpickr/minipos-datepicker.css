@@ -1,0 +1,25 @@
+/* MiniPos compact flatpickr calendar (used with minipos-datepicker.js) */
+.flatpickr-calendar { font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif; border-radius: 10px; }
+.flatpickr-day.selected, .flatpickr-day.selected:hover { background: #2563eb; border-color: #2563eb; }
+.flatpickr-day.today { border-color: #93c5fd; }
+.flatpickr-calendar select, .flatpickr-calendar input, .flatpickr-weekday { font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif !important; }
+/* ປະຕິທິນຂະໜາດນ້ອຍ */
+.flatpickr-calendar { width: 238px !important; font-size: 12px; padding: 0 !important; }
+.flatpickr-calendar .flatpickr-months { height: 34px; }
+.flatpickr-calendar .flatpickr-months .flatpickr-month { height: 34px; }
+.flatpickr-calendar .flatpickr-current-month { font-size: 13px !important; padding-top: 6px !important; height: 34px; }
+.flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months, .flatpickr-calendar .flatpickr-current-month input.cur-year { font-size: 13px !important; height: auto; padding: 0 2px !important; }
+.flatpickr-calendar .flatpickr-months .flatpickr-prev-month, .flatpickr-calendar .flatpickr-months .flatpickr-next-month { top: 50% !important; height: 24px; width: 24px; padding: 6px !important; display: flex; align-items: center; justify-content: center; }
+.flatpickr-calendar .flatpickr-prev-month svg, .flatpickr-calendar .flatpickr-next-month svg { width: 11px; height: 11px; }
+.flatpickr-calendar .flatpickr-weekdays { height: 24px; }
+.flatpickr-calendar span.flatpickr-weekday { font-size: 11px !important; }
+.flatpickr-calendar .flatpickr-innerContainer, .flatpickr-calendar .flatpickr-rContainer, .flatpickr-calendar .flatpickr-weekdays, .flatpickr-calendar .flatpickr-days, .flatpickr-calendar .dayContainer { width: 238px !important; min-width: 238px !important; max-width: 238px !important; }
+.flatpickr-calendar .flatpickr-day { max-width: 34px !important; height: 28px !important; line-height: 28px !important; font-size: 12px !important; margin: 1px 0 !important; }
+/* Until minipos-datepicker.js swaps it for the calendar box, keep the native date input's
+   border/size (so nothing moves) but hide its browser-language text and calendar icon —
+   otherwise every page change flashes the native box before the swap. */
+/* Scoped to html.mp-dp-on, which minipos-datepicker.js sets as soon as it runs — if the script
+   never loads, the native box stays fully visible instead of showing an empty field. */
+html.mp-dp-on input[type="date"]:not([data-native-date="1"]) { color: transparent !important; }
+html.mp-dp-on input[type="date"]:not([data-native-date="1"])::-webkit-datetime-edit { opacity: 0; }
+html.mp-dp-on input[type="date"]:not([data-native-date="1"])::-webkit-calendar-picker-indicator { opacity: 0; }

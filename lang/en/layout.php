@@ -86,4 +86,6 @@ return [
     'layout.logout_confirm_title' => 'Confirm logout',
     'layout.logout_confirm_text' => 'Are you sure you want to log out?',
     'layout.cancel' => 'Cancel',
+    'layout.expiry' => 'Product Expiry',
+    'layout.expiry_report' => 'Expiry Report',
 ];

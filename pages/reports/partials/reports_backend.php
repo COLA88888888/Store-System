@@ -211,6 +211,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_bill_details') {
             } catch (Throwable $e) {}
         }
 
+        // Customer's points balance right after this sale (as printed on the checkout receipt when
+        // points were redeemed) — from the points log, not today's balance.
+        $billData['points_balance_after'] = null;
+        try {
+            $plStmt = $pdo->prepare("SELECT balance_after FROM loyalty_points_log WHERE sale_bill = ? AND log_type IN ('redeem','earn') ORDER BY id DESC LIMIT 1");
+            $plStmt->execute([$billNo]);
+            $plBal = $plStmt->fetchColumn();
+            if ($plBal !== false) $billData['points_balance_after'] = (int)$plBal;
+        } catch (Throwable $e) {}
+
         $amountAfterDisc = max(0, floatval($billData['sale_amount'] ?? 0) - floatval($billData['sale_discount_bill'] ?? 0));
         if ((empty($billData['vat_amount']) || floatval($billData['vat_amount']) == 0) && !empty($billData['vat_rate']) && floatval($billData['vat_rate']) > 0) {
             $taxT = $billData['tax_type'] ?? 'inclusive';
@@ -299,7 +309,21 @@ if ($reqAction === 'delete_bill') {
             }
         }
 
-        // 4. Update sale_status = 'CANCEL'
+        // 4. Undo the bill's loyalty points: give back what was redeemed on it and take back
+        // what it earned, each logged separately so the customer's history stays readable.
+        $billCustomerId = intval($bill['customer_id'] ?? 0);
+        if ($billCustomerId > 0) {
+            $billRedeemed = intval($bill['points_redeemed'] ?? 0);
+            $billEarned   = intval($bill['points_earned'] ?? 0);
+            if ($billRedeemed > 0) {
+                changeCustomerPoints($pdo, $billCustomerId, $billRedeemed, 'redeem_refund', $billNo, null, $billStoreId);
+            }
+            if ($billEarned > 0) {
+                changeCustomerPoints($pdo, $billCustomerId, -$billEarned, 'earn_reversal', $billNo, null, $billStoreId);
+            }
+        }
+
+        // 5. Update sale_status = 'CANCEL'
         $stmtCancel = $pdo->prepare("UPDATE tbsale_save SET sale_status = 'CANCEL' WHERE sale_save_bill = :bill");
         $stmtCancel->execute([':bill' => $billNo]);
 

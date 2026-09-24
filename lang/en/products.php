@@ -169,4 +169,6 @@ return [
     'products.bulk_col_price' => 'Sale Price',
     'products.bulk_col_supplier' => 'Supplier',
     'products.bulk_validate_none' => 'Please enter at least 1 item!',
+    'products.bulk_no_cut_qty' => 'Do not deduct stock for every item in this batch',
+    'products.bulk_no_cut_qty_hint' => 'For services / made-to-order items — sold without deducting stock. Set it once here instead of editing each item afterwards',
 ];

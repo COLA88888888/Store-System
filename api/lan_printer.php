@@ -23,6 +23,34 @@ function lanPrinterDots($paperWidth) {
     return intval($paperWidth) === 58 ? 384 : 576;
 }
 
+// Write $bytes to an open printer socket at LAN_PRINT_BYTES_PER_SEC after an initial
+// LAN_PRINT_HEAD_START burst. Shared by lanPrinterSend(); tools/print-agent.php has a copy.
+// ~72 KB/s: what an 80 mm printer takes while printing a raster image (slower than text).
+// 190 KB/s overran some printers' receive buffer and the bill came out cut short — only raise
+// this if a printer stutters AND keeps printing complete bills.
+if (!defined('LAN_PRINT_BYTES_PER_SEC')) define('LAN_PRINT_BYTES_PER_SEC', 72000);
+if (!defined('LAN_PRINT_HEAD_START'))    define('LAN_PRINT_HEAD_START', 4096);
+function lanPrinterWritePaced($fp, $bytes) {
+    $len = strlen($bytes);
+    $sent = 0;
+    $chunk = 2048;
+    $start = microtime(true);
+    while ($sent < $len) {
+        $allowed = LAN_PRINT_HEAD_START + (int)((microtime(true) - $start) * LAN_PRINT_BYTES_PER_SEC);
+        if ($sent >= $allowed) {
+            usleep(2000);
+            continue;
+        }
+        $n = min($chunk, $len - $sent, $allowed - $sent);
+        $written = @fwrite($fp, substr($bytes, $sent, $n));
+        if ($written === false || $written === 0) {
+            return [false, 'write failed after ' . $sent . ' bytes'];
+        }
+        $sent += $written;
+    }
+    return [true, ''];
+}
+
 function lanPrinterSend($host, $port, $bytes, $timeout = 4) {
     $errno = 0;
     $errstr = '';
@@ -31,26 +59,19 @@ function lanPrinterSend($host, $port, $bytes, $timeout = 4) {
         return [false, $errstr !== '' ? $errstr : ('connection failed (' . $errno . ')')];
     }
     stream_set_timeout($fp, $timeout);
-    $len = strlen($bytes);
-    $sent = 0;
-    // Small chunks with a short pause between them, not one big burst. A receipt image can be
-    // tens of KB, and plenty of cheap ESC/POS network/WiFi printers have a receive buffer far
-    // smaller than that with no real TCP backpressure — fwrite() happily reports success while
-    // the printer itself silently drops whatever didn't fit. The result: the ticket cuts off
-    // partway through, and the leftover raster bytes it never consumed as an image get read as
-    // plain text on its next job, printing as garbled (often Chinese-codepage) characters. A
-    // 1 KB chunk every ~15 ms keeps arrival well under what even a small on-board buffer drains
-    // at typical print speed.
-    $chunkSize  = 1024;
-    $chunkDelay = 15000; // microseconds
-    while ($sent < $len) {
-        $written = @fwrite($fp, substr($bytes, $sent, $chunkSize));
-        if ($written === false || $written === 0) {
-            fclose($fp);
-            return [false, 'write failed after ' . $sent . ' bytes'];
-        }
-        $sent += $written;
-        if ($sent < $len) usleep($chunkDelay);
+    // Pace the bytes to the printer's own speed. Too slow and the printer runs dry mid-ticket
+    // and prints in stop-start jerks (the old 1 KB / 15 ms ≈ 68 KB/s was well under the
+    // ~140–170 KB/s an 80 mm printer eats at full speed). One big burst is no good either: plenty
+    // of cheap ESC/POS network/WiFi printers have a small receive buffer and no real TCP
+    // backpressure — fwrite() reports success while the printer silently drops the overflow,
+    // cutting the ticket short and printing the leftover raster as garbled text on the next job.
+    // So: a small head start to get the paper moving at once, then a steady clock-based rate that
+    // the printer can absorb (usleep granularity differs by OS, so time is measured, not
+    // assumed from the sleep length).
+    [$ok, $err] = lanPrinterWritePaced($fp, $bytes);
+    if (!$ok) {
+        fclose($fp);
+        return [false, $err];
     }
     fclose($fp);
     return [true, ''];
@@ -117,13 +138,27 @@ function escposRasterFromPng($png, $dots) {
         }
     }
 
+    // Trim blank paper after the last printed line (the thank-you footer): the rendered image
+    // carries bottom padding / empty rows, and every blank row is fed out before the cut. Keep
+    // a small margin (~2 mm) under the last dot so the cut doesn't graze the text.
+    $lastInk = -1;
+    for ($y = $h - 1; $y >= 0; $y--) {
+        if (in_array(true, $bitmap[$y], true)) { $lastInk = $y; break; }
+    }
+    if ($lastInk >= 0) {
+        $h = min($h, $lastInk + 1 + 16);
+        $bitmap = array_slice($bitmap, 0, $h);
+    }
+
     $ESC = chr(27);
     $GS = chr(29);
     $rowBytes = intdiv($w + 7, 8);
     $out = $ESC . '@';
 
-    // Send the image in bands so each GS v 0 block fits in small printer buffers.
-    $band = 200;
+    // Send the image in small bands (48 rows ≈ 3.5 KB at 80 mm): a printer prints a GS v 0 block
+    // once it has received it whole, so small bands keep the paper moving continuously instead of
+    // pausing while each big block arrives — and each still fits a small receive buffer.
+    $band = 48;
     for ($y0 = 0; $y0 < $h; $y0 += $band) {
         $rows = min($band, $h - $y0);
         $data = '';

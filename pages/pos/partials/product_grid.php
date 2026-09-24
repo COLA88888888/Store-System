@@ -40,7 +40,7 @@
                in-stock/low/out-of-stock signal, so there's no separate top-left text badge
                anymore: on narrow cards the two used to collide and overlap each other. -->
           <div class="stock-info-wrap stock-info-wrap-<?php echo $p['product_id']; ?> <?php echo $stock <= 0 ? 'out-of-stock' : ($stock <= 10 ? 'low-stock' : 'in-stock'); ?>" style="position: absolute; top: 4px; right: 4px; z-index: 10;">
-            <span><span class="stock-remaining-label"><?php echo htmlspecialchars(t('pos.stock_remaining', 'ເຫຼືອ')); ?></span>: <span class="font-weight-bold product-stock-val product-stock-val-<?php echo $p['product_id']; ?>" data-initial-stock="<?php echo $p['qty']; ?>" data-cut-qty="<?php echo intval($p['cut_qty'] ?? 1); ?>"><?php echo number_format($p['qty']); ?></span></span>
+            <span><span class="stock-remaining-label" data-i18n-key="pos.stock_remaining"><?php echo htmlspecialchars(t('pos.stock_remaining', 'ສະຕັອກ')); ?></span>: <span class="font-weight-bold product-stock-val product-stock-val-<?php echo $p['product_id']; ?>" data-initial-stock="<?php echo $p['qty']; ?>" data-cut-qty="<?php echo intval($p['cut_qty'] ?? 1); ?>"><?php echo number_format($p['qty']); ?></span></span>
           </div>
           <?php endif; ?>
 

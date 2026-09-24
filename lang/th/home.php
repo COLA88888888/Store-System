@@ -33,4 +33,8 @@ return [
     'home.month_4' => 'เม.ย', 'home.month_5' => 'พ.ค', 'home.month_6' => 'มิ.ย',
     'home.month_7' => 'ก.ค', 'home.month_8' => 'ส.ค', 'home.month_9' => 'ก.ย',
     'home.month_10' => 'ต.ค', 'home.month_11' => 'พ.ย', 'home.month_12' => 'ธ.ค',
+    'home.period_label' => 'ช่วงเวลา:', 'home.period_today' => 'วันนี้',
+    'home.period_month' => 'เดือนนี้', 'home.period_year' => 'ทั้งปี',
+    'home.chart_revenue_hourly' => 'กราฟรายรับรายชั่วโมง', 'home.chart_revenue_daily' => 'กราฟรายรับรายวัน',
+    'home.badge_hours' => '24 ชั่วโมง', 'home.badge_days' => '%s วัน', 'home.badge_months' => '%s เดือน',
 ];

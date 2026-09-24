@@ -188,6 +188,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         $stmt->execute([$product_id, $name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $supplier_id, $img_name, $qty, $cut_qty, $activeStoreId]);
                     }
 
+                    // ວັນໝົດອາຍຸ (ບໍ່ບັງຄັບ) — ວ່າງ = ບໍ່ຕິດຕາມ, ຈະບໍ່ແຈ້ງເຕືອນ
+                    $expiry_date = normalizeExpiryDate($_POST['expiry_date'] ?? '');
+                    try {
+                        $pdo->prepare("UPDATE products SET expiry_date = ? WHERE product_id = ? AND store_id = ?")->execute([$expiry_date, $product_id, $activeStoreId]);
+                    } catch (Throwable $e) {}
+
                     // ບັນທຶກຫຼາຍລາຄາ/ຫຼາຍຫົວໜ່ວຍ (product_units) ຖ້າມີ
                     if (isset($_POST['extra_unit_name']) && is_array($_POST['extra_unit_name'])) {
                         $insertUnitStmt = $pdo->prepare("INSERT INTO product_units (product_id, unit_name, multiplier, bprice, price, barcode) VALUES (?, ?, ?, ?, ?, ?)");
@@ -465,6 +471,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         $pdo->prepare("UPDATE products SET cut_qty=? WHERE product_id=? AND store_id=?")->execute([$cut_qty, $product_id, $userStoreId]);
                     }
 
+                    // ວັນໝົດອາຍຸ (ບໍ່ບັງຄັບ) — ສະເພາະສາຂານີ້ ເພາະແຕ່ລະສາຂາມີລັອດສິນຄ້າຂອງຕົນເອງ
+                    try {
+                        $pdo->prepare("UPDATE products SET expiry_date=? WHERE product_id=? AND store_id=?")->execute([normalizeExpiryDate($_POST['expiry_date'] ?? ''), $product_id, ($canAllBranches && intval($_POST['expiry_store_id'] ?? 0) > 0) ? intval($_POST['expiry_store_id']) : $userStoreId]);
+                    } catch (Throwable $e) {}
+
                     // ຜູ້ສະໜອງ — ອັບເດດແຍກ ເພື່ອບໍ່ຕ້ອງແກ້ SQL UPDATE ທັງ 4 ຕົວຂ້າງເທິງ
                     try {
                         if ($canAllBranches) {
@@ -597,6 +608,7 @@ $products_stmt = $pdo->prepare("
 ");
 $products_stmt->execute([$selectedStoreId]);
 $products = $products_stmt->fetchAll();
+$expiryAlertDays = getExpiryAlertDays($pdo);
 
 // ດຶງຂໍ້ມູນ product_units ທັງໝົດມາ map
 $allUnitsStmt = $pdo->query("SELECT * FROM product_units ORDER BY multiplier ASC, id ASC");
@@ -798,6 +810,15 @@ require_once __DIR__ . '/../../layouts/header.php';
                   <?php if (!empty($p['unit'])): ?>
                     <span class="badge badge-light border ml-1 px-2 py-0.5" style="font-size:0.78rem; color:#64748b; font-weight: 500;">
                       <i class="fas fa-box-open mr-1" style="font-size:0.72rem; color:#94a3b8;"></i><?php echo htmlspecialchars($p['unit']); ?>
+                    </span>
+                  <?php endif; ?>
+                  <?php if (!empty($p['expiry_date'])): ?>
+                    <?php
+                      $expDaysLeft = (int)floor((strtotime($p['expiry_date']) - strtotime(date('Y-m-d'))) / 86400);
+                      $expClass = $expDaysLeft < 0 ? 'badge-danger' : ($expDaysLeft <= $expiryAlertDays ? 'badge-warning text-dark' : 'badge-light border text-muted');
+                    ?>
+                    <span class="badge <?php echo $expClass; ?> ml-1 px-2 py-0.5" style="font-size:0.76rem; font-weight: 600;" title="<?php echo htmlspecialchars(t('products.field_expiry_date', 'ວັນໝົດອາຍຸ')); ?>">
+                      <i class="far fa-calendar-alt mr-1"></i>EXP <?php echo date('d/m/Y', strtotime($p['expiry_date'])); ?>
                     </span>
                   <?php endif; ?>
                 </td>
@@ -1056,6 +1077,8 @@ require_once __DIR__ . '/../../layouts/header.php';
     $('#edit_qty').val(p.qty !== undefined && p.qty !== null ? p.qty : 0);
     // cut_qty: default 1 (deduct) when the field is missing on older rows
     $('#edit_cut_qty').prop('checked', (p.cut_qty === undefined || p.cut_qty === null) ? true : (parseInt(p.cut_qty) === 1));
+    $('#edit_expiry_date').val(p.expiry_date || '');
+    $('#edit_expiry_store_id').val(p.store_id || '');
 
     // ຜູ້ສະໜອງ (ບໍ່ບັງຄັບ) — ຖ້າຜູ້ສະໜອງເກົ່າຖືກພັກໃຊ້ງານແລ້ວ ຈະບໍ່ມີ option ໃຫ້ ຈຶ່ງວ່າງໄວ້
     $('#edit_supplier_id').val(p.supplier_id ? String(p.supplier_id) : '');

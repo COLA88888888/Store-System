@@ -103,21 +103,12 @@ if ($action === 'get_live_user_statuses') {
 
 // === 0.1 GET NEXT USER CODE (GET request) ===
 if ($action === 'get_next_user_code') {
-    try {
-        $stmt = $pdo->query("SELECT user_code FROM st_tbuser WHERE user_code LIKE 'USR-%' ORDER BY Id DESC LIMIT 1");
-        $last = $stmt->fetchColumn();
-        if ($last && preg_match('/USR-(\d+)/', $last, $m)) {
-            $nextNum = intval($m[1]) + 1;
-        } else {
-            // Count all users to get a reasonable starting number
-            $countStmt = $pdo->query("SELECT COUNT(*) FROM st_tbuser");
-            $nextNum = intval($countStmt->fetchColumn()) + 1;
-        }
-        $nextCode = 'USR-' . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
-        echo json_encode(['status' => 'success', 'code' => $nextCode]);
-    } catch (Exception $e) {
-        echo json_encode(['status' => 'success', 'code' => 'USR-001']);
-    }
+    // ລະຫັດຜູ້ໃຊ້ອໍໂຕ້ແຍກຕາມສາຂາ "<ລະຫັດສາຂາ>-<ລຳດັບ>" (1-1, 1-2 …) ຕາມສາຂາທີ່ເລືອກໃນຟອມ
+    $codeStoreId = $canAllBranches ? intval($_GET['store_id'] ?? $userStoreId) : $userStoreId;
+    if ($codeStoreId <= 0) $codeStoreId = $userStoreId;
+    ensureBranchNos($pdo, 'st_tbuser');
+    $nextCode = branchCodeLabel($pdo, $codeStoreId, nextBranchNo($pdo, 'st_tbuser', $codeStoreId));
+    echo json_encode(['status' => 'success', 'code' => $nextCode]);
     exit();
 }
 
@@ -172,8 +163,16 @@ if ($action === 'add_user') {
         $profile_img = handleUserProfileUpload('profile_img', 'default.png');
         [, $accessExpireDate] = resolveAccessExpireDate($_POST['access_days'] ?? '');
 
-        $stmt = $pdo->prepare("INSERT INTO st_tbuser (user_code, fname, lname, gender, dob, tel, status, username, password, address, notes, profile_img, sale, stock, report, accounting, setup, users, edit, store_id, access_expire_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, password_hash($password, PASSWORD_DEFAULT), $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $accessExpireDate]);
+        // ລຳດັບຜູ້ໃຊ້ໃນສາຂານີ້. ລະຫັດອໍໂຕ້ ("1-3") ສ້າງໃໝ່ຢູ່ server ຕາມສາຂາທີ່ບັນທຶກແທ້ (ບໍ່ຊ້ຳ);
+        // ລະຫັດທີ່ພິມເອງ (ຮູບແບບອື່ນ) ເກັບໄວ້ຕາມເດີມ.
+        ensureBranchNos($pdo, 'st_tbuser');
+        $userBranchNo = nextBranchNo($pdo, 'st_tbuser', $store_id);
+        if (preg_match('/^[0-9A-Za-z]+-[0-9]+$/', $user_code)) {
+            $user_code = branchCodeLabel($pdo, $store_id, $userBranchNo);
+        }
+
+        $stmt = $pdo->prepare("INSERT INTO st_tbuser (user_code, fname, lname, gender, dob, tel, status, username, password, address, notes, profile_img, sale, stock, report, accounting, setup, users, edit, store_id, branch_no, access_expire_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, password_hash($password, PASSWORD_DEFAULT), $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $userBranchNo, $accessExpireDate]);
 
         logActivity($pdo, "ເພີ່ມຜູ້ໃຊ້", "ຊື່: $username, ຕຳແໜ່ງ: $userstatus");
         echo json_encode(['status' => 'success', 'message' => 'ເພີ່ມຜູ້ໃຊ້ງານໃໝ່ສຳເລັດແລ້ວ!']);

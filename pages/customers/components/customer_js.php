@@ -13,13 +13,18 @@
   ]); ?>;
 
   var NEXT_CUST_CODE = '<?php echo $next_cust_code; ?>';
+  // ລະຫັດຕໍ່ໄປ ແຍກຕາມສາຂາ { store_id: "CUST-2-0001" } — ປ່ຽນຕາມສາຂາທີ່ເລືອກໃນຟອມ
+  var NEXT_CUST_CODES = <?php echo json_encode($next_cust_codes ?? new stdClass()); ?>;
   var currentPage = 1;
   var pageSize = 10;
   var filteredRows = [];
 
-  $('#addCustomerModal').on('show.bs.modal', function() {
-    $('#add_customer_code').val(NEXT_CUST_CODE);
-  });
+  function refreshNextCustomerCode() {
+    var sid = $('#add_store_id').val();
+    $('#add_customer_code').val((sid && NEXT_CUST_CODES[sid]) ? NEXT_CUST_CODES[sid] : NEXT_CUST_CODE);
+  }
+  $('#addCustomerModal').on('show.bs.modal', refreshNextCustomerCode);
+  $(document).on('change', '#add_store_id', refreshNextCustomerCode);
 
   function openEditCustomerModal(cust) {
     $('#edit_customer_id').val(cust.customer_id);

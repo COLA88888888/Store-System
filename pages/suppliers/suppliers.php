@@ -56,8 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $sup_message = 'ມີຜູ້ສະໜອງຊື່ "' . htmlspecialchars($name) . '" ຢູ່ແລ້ວ!';
                     $sup_message_type = 'error';
                 } elseif ($act === 'add_supplier') {
-                    $ins = $pdo->prepare("INSERT INTO st_suppliers (supplier_name, phone, contact_person, address, notes, status, store_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                    $ins->execute([$name, $phone, $contact, $address, $notes, $status, $activeStoreId]);
+                    // branch_no = ລຳດັບໃນສາຂານີ້ → ລະຫັດທີ່ສະແດງ "<ລະຫັດສາຂາ>-<branch_no>"
+                    $ins = $pdo->prepare("INSERT INTO st_suppliers (supplier_name, phone, contact_person, address, notes, status, store_id, branch_no) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                    $ins->execute([$name, $phone, $contact, $address, $notes, $status, $activeStoreId, nextBranchNo($pdo, "st_suppliers", $activeStoreId)]);
                     $sup_message = 'ເພີ່ມຜູ້ສະໜອງສຳເລັດ!';
                     $sup_message_type = 'success';
                     logActivity($pdo, "ເພີ່ມຜູ້ສະໜອງ", "ຊື່: $name");
@@ -102,10 +103,12 @@ $listSql = "SELECT s.*, (SELECT COUNT(*) FROM st_products p WHERE p.supplier_id 
 $listParams = [':store_id' => $activeStoreId];
 $listSql .= " ORDER BY s.status ASC, s.supplier_name ASC";
 $suppliers = [];
+ensureBranchNos($pdo, "st_suppliers");
 try {
     $stmt = $pdo->prepare($listSql);
     $stmt->execute($listParams);
     $suppliers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    attachBranchCodes($pdo, $suppliers, "st_suppliers"); // ລະຫັດ "1-1" ແຍກຕາມສາຂາ
 } catch (Throwable $e) {
     // ຕາຕະລາງ suppliers ຍັງບໍ່ຖືກສ້າງ (auto-migration ຈະສ້າງໃຫ້ໃນ request ຖັດໄປ)
     if ($sup_message === '') {
@@ -170,6 +173,7 @@ require_once __DIR__ . '/../../layouts/header.php';
               <thead style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                 <tr>
                   <th class="text-center" style="width: 56px;"><?php echo htmlspecialchars(t('suppliers.col_no', 'ລຳດັບ')); ?></th>
+                  <th class="text-center" style="width: 80px;"><?php echo htmlspecialchars(t('suppliers.col_code', 'ລະຫັດ')); ?></th>
                   <th><?php echo htmlspecialchars(t('suppliers.col_name', 'ຊື່ຜູ້ສະໜອງ')); ?></th>
                   <th><?php echo htmlspecialchars(t('suppliers.col_phone', 'ເບີໂທ')); ?></th>
                   <th><?php echo htmlspecialchars(t('suppliers.col_contact', 'ຜູ້ຕິດຕໍ່')); ?></th>
@@ -181,20 +185,21 @@ require_once __DIR__ . '/../../layouts/header.php';
               </thead>
               <tbody>
                 <tr id="supplierNoResult" style="display: none;">
-                  <td colspan="8" class="text-center text-muted py-4">
+                  <td colspan="9" class="text-center text-muted py-4">
                     <i class="fas fa-search fa-lg mb-2 d-block opacity-50"></i>
                     <?php echo htmlspecialchars(t('suppliers.no_result', 'ບໍ່ພົບຜູ້ສະໜອງທີ່ຄົ້ນຫາ')); ?>
                   </td>
                 </tr>
                 <?php if (empty($suppliers)): ?>
-                  <tr><td colspan="8" class="text-center text-muted py-5">
+                  <tr><td colspan="9" class="text-center text-muted py-5">
                     <i class="fas fa-truck fa-2x mb-2 d-block opacity-50"></i>
                     <?php echo htmlspecialchars(t('suppliers.empty', 'ຍັງບໍ່ມີຜູ້ສະໜອງ')); ?>
                   </td></tr>
                 <?php else: foreach ($suppliers as $i => $s): ?>
-                  <?php $sRow = strtolower(($s['supplier_name'] ?? '') . ' ' . ($s['phone'] ?? '') . ' ' . ($s['contact_person'] ?? '') . ' ' . ($s['address'] ?? '')); ?>
+                  <?php $sRow = strtolower(($s['display_code'] ?? '') . ' ' . ($s['supplier_name'] ?? '') . ' ' . ($s['phone'] ?? '') . ' ' . ($s['contact_person'] ?? '') . ' ' . ($s['address'] ?? '')); ?>
                   <tr class="supplier-row" data-s="<?php echo htmlspecialchars($sRow); ?>">
                     <td class="text-center text-muted row-no"><?php echo $i + 1; ?></td>
+                    <td class="text-center font-weight-bold"><?php echo branchCodeHtml($s['display_code'] ?? ''); ?></td>
                     <td class="font-weight-bold text-dark"><?php echo htmlspecialchars($s['supplier_name']); ?></td>
                     <td><?php echo htmlspecialchars($s['phone'] ?: '-'); ?></td>
                     <td><?php echo htmlspecialchars($s['contact_person'] ?: '-'); ?></td>

@@ -36,8 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $message = 'ຜິດພາດ: ລະຫັດປະເພດສິນຄ້າ ' . $cat_id . ' ນີ້ມີໃນລະບົບແລ້ວ! ກະລຸນາປ້ອນລະຫັດອື່ນ.';
                         $message_type = 'danger';
                     } else {
-                        $stmt = $pdo->prepare("INSERT INTO st_categories (category_id, category_name, description, store_id, printer_id) VALUES (?, ?, ?, ?, ?)");
-                        $stmt->execute([$cat_id, $name, $desc, $catActiveStoreId, $printer_id]);
+                        // branch_no = ລຳດັບໃນສາຂານີ້ → ລະຫັດທີ່ສະແດງ "<ລະຫັດສາຂາ>-<branch_no>"
+                        $stmt = $pdo->prepare("INSERT INTO st_categories (category_id, category_name, description, store_id, branch_no, printer_id) VALUES (?, ?, ?, ?, ?, ?)");
+                        $stmt->execute([$cat_id, $name, $desc, $catActiveStoreId, nextBranchNo($pdo, 'st_categories', $catActiveStoreId), $printer_id]);
 
                         $message = 'ເພີ່ມປະເພດສິນຄ້າສຳເລັດ!';
                         $message_type = 'success';
@@ -138,21 +139,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch Categories shared across branches, ordered sequentially by category_id ASC
+// Fetch Categories of the active branch only (ສາຂາໃດສາຂານັ້ນ — ບໍ່ລວມກັບສາຂາອື່ນ),
+// ordered by its per-branch number (1-1, 1-2 …)
 $activeStoreIdForCat = getActiveStoreId($pdo);
+ensureBranchNos($pdo, 'st_categories');
 try {
     $stmtCat = $pdo->prepare("SELECT c.*, (SELECT COUNT(*) FROM st_products p WHERE p.category_id = c.category_id) AS product_count,
             pr.name AS printer_name, pr.status AS printer_status
         FROM st_categories c
         LEFT JOIN st_tbl_printer pr ON pr.id = c.printer_id AND pr.branch_id = ?
-        ORDER BY c.category_id ASC");
-    $stmtCat->execute([$activeStoreIdForCat]);
+        WHERE c.store_id = ?
+        ORDER BY c.branch_no ASC, c.category_id ASC");
+    $stmtCat->execute([$activeStoreIdForCat, $activeStoreIdForCat]);
 } catch (Throwable $e) {
-    $stmtCat = $pdo->prepare("SELECT c.*, (SELECT COUNT(*) FROM st_products p WHERE p.category_id = c.category_id) AS product_count FROM st_categories c ORDER BY c.category_id ASC");
-    $stmtCat->execute();
+    $stmtCat = $pdo->prepare("SELECT c.*, (SELECT COUNT(*) FROM st_products p WHERE p.category_id = c.category_id) AS product_count FROM st_categories c WHERE c.store_id = ? ORDER BY c.category_id ASC");
+    $stmtCat->execute([$activeStoreIdForCat]);
 }
 $allCategories = $stmtCat->fetchAll();
+foreach ($allCategories as &$__c) {
+    $__c['display_code'] = branchCodeLabel($pdo, $__c['store_id'] ?? 0, $__c['branch_no'] ?? null, $__c['category_id']);
+}
+unset($__c);
 $total_records = count($allCategories);
+// ລະຫັດທີ່ໝວດໃໝ່ຈະໄດ້ ໃນສາຂາທີ່ກຳລັງເຮັດວຽກ (ສະແດງໃນຟອມເພີ່ມ)
+$next_cat_code = branchCodeLabel($pdo, $activeStoreIdForCat, nextBranchNo($pdo, 'st_categories', $activeStoreIdForCat));
 
 // Sequential next available ID (fill lowest unused integer starting from 1)
 $usedCatIds = $pdo->query("SELECT category_id FROM st_categories ORDER BY category_id ASC")->fetchAll(PDO::FETCH_COLUMN);

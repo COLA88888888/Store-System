@@ -96,7 +96,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                       <td class="align-middle text-center text-muted font-weight-bold"><?php echo $uIdx++; ?></td>
 
                       <td class="align-middle text-center font-weight-bold">
-                        <span class="badge badge-light border px-2 py-1" style="font-size: 0.85rem; color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe !important;"><?php echo $unit['unit_id']; ?></span>
+                        <span class="badge badge-light border px-2 py-1" style="font-size: 0.85rem; color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe !important;"><?php echo branchCodeHtml($unit['display_code'] ?? $unit['unit_id']); ?></span>
                       </td>
 
                       <td class="align-middle font-weight-bold text-dark">
@@ -176,15 +176,19 @@ require_once __DIR__ . '/components/form_edit_unit.php';
   ]); ?>;
 
   var NEXT_UNIT_ID = <?php echo $next_unit_id; ?>;
+  // ລະຫັດທີ່ສະແດງ ແຍກຕາມສາຂາ ("1-13") — ລະຫັດພາຍໃນ (NEXT_UNIT_ID) ຍັງສົ່ງໄປແບບເຊື່ອງ
+  var NEXT_UNIT_CODE = <?php echo json_encode($next_unit_code ?? (string)$next_unit_id); ?>;
 
   // Auto-fill next ID when add modal opens
   $('#addUnitModal').on('show.bs.modal', function() {
     $('#add_unit_id').val(NEXT_UNIT_ID);
+    $('#add_unit_code_label').val(NEXT_UNIT_CODE);
   });
 
   function openEditUnitModal(unit) {
     $('#edit_unit_id').val(unit.unit_id);
     $('#edit_unit_id_input').val(unit.unit_id);
+    $('#edit_unit_code_label').val(unit.display_code || unit.unit_id);
     $('#edit_unit_name').val(unit.unit_name);
     $('#edit_unit_desc').val(unit.description);
     $('#editUnitModal').modal('show');

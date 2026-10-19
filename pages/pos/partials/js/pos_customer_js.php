@@ -226,14 +226,14 @@ function openAddCustomerModal() {
   matchedExistingCustomer = null;
   $('#existingCustomerAlert').addClass('d-none');
   
+  // ຕົວຢ່າງລະຫັດ "CUST-<ລະຫັດສາຂາ>-<ລຳດັບ 4 ຫຼັກ>" — server ສ້າງລະຫັດຈິງເອງຕອນບັນທຶກ (api/pos/add_customer.php)
   var maxNum = 0;
   allCustomers.forEach(function(c) {
-    if (c.customer_id) {
-      var cid = parseInt(c.customer_id, 10);
-      if (cid > maxNum) maxNum = cid;
-    }
+    if (parseInt(c.store_id, 10) !== POS_STORE_ID_NUM) return;
+    var bn = parseInt(c.branch_no, 10);
+    if (bn > maxNum) maxNum = bn;
   });
-  var nextCode = 'CUST-' + String(maxNum + 1).padStart(3, '0');
+  var nextCode = 'CUST-' + POS_STORE_CODE + '-' + String(maxNum + 1).padStart(4, '0');
 
   $('#newCusCode').val(nextCode);
   $('#newCusName').val('');

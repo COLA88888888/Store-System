@@ -35,8 +35,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $unit_message = 'ຜິດພາດ: ລະຫັດຫົວໜ່ວຍ ' . $unit_id . ' ນີ້ມີໃນລະບົບແລ້ວ! ກະລຸນາປ້ອນລະຫັດອື່ນ.';
                         $unit_message_type = 'danger';
                     } else {
-                        $stmt = $pdo->prepare("INSERT INTO st_units (unit_id, unit_name, description, store_id) VALUES (?, ?, ?, ?)");
-                        $stmt->execute([$unit_id, $name, $desc, $unitActiveStoreId]);
+                        // branch_no = ລຳດັບໃນສາຂານີ້ → ລະຫັດທີ່ສະແດງ "<ລະຫັດສາຂາ>-<branch_no>"
+                        $stmt = $pdo->prepare("INSERT INTO st_units (unit_id, unit_name, description, store_id, branch_no) VALUES (?, ?, ?, ?, ?)");
+                        $stmt->execute([$unit_id, $name, $desc, $unitActiveStoreId, nextBranchNo($pdo, 'st_units', $unitActiveStoreId)]);
 
                         $unit_message = 'ເພີ່ມຫົວໜ່ວຍສຳເລັດ!';
                         $unit_message_type = 'success';
@@ -119,10 +120,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch Units shared across branches, ordered sequentially by unit_id ASC
+// Fetch Units of the active branch only (ສາຂາໃດສາຂານັ້ນ — ບໍ່ລວມກັບສາຂາອື່ນ),
+// ordered by its per-branch number (1-1, 1-2 …)
 $activeStoreIdForUnit = getActiveStoreId($pdo);
-$stmtUnit = $pdo->query("SELECT u.*, (SELECT COUNT(*) FROM st_products p WHERE p.unit_id = u.unit_id) AS product_count FROM st_units u ORDER BY u.unit_id ASC");
+ensureBranchNos($pdo, 'st_units');
+$stmtUnit = $pdo->prepare("SELECT u.*, (SELECT COUNT(*) FROM st_products p WHERE p.unit_id = u.unit_id) AS product_count FROM st_units u WHERE u.store_id = ? ORDER BY u.branch_no ASC, u.unit_id ASC");
+$stmtUnit->execute([$activeStoreIdForUnit]);
 $allUnits = $stmtUnit->fetchAll();
+foreach ($allUnits as &$__u) {
+    $__u['display_code'] = branchCodeLabel($pdo, $__u['store_id'] ?? 0, $__u['branch_no'] ?? null, $__u['unit_id']);
+}
+unset($__u);
+// ລະຫັດທີ່ຫົວໜ່ວຍໃໝ່ຈະໄດ້ ໃນສາຂາທີ່ກຳລັງເຮັດວຽກ (ສະແດງໃນຟອມເພີ່ມ)
+$next_unit_code = branchCodeLabel($pdo, $activeStoreIdForUnit, nextBranchNo($pdo, 'st_units', $activeStoreIdForUnit));
 
 // Sequential next available unit_id (fill lowest unused integer starting from 1)
 $usedUnitIds = $pdo->query("SELECT unit_id FROM st_units ORDER BY unit_id ASC")->fetchAll(PDO::FETCH_COLUMN);

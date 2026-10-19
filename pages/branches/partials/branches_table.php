@@ -13,7 +13,7 @@ if (!defined('MINIPOS_APP')) {
     <table class="table table-hover align-middle mb-0" id="branchTable">
       <thead class="bg-light">
         <tr style="white-space: nowrap;">
-          <th class="text-center" style="width: 60px;">ID</th>
+          <th class="text-center" style="width: 60px;"><?php echo htmlspecialchars(t('branches.col_no', 'ລຳດັບ')); ?></th>
           <th style="white-space: nowrap;"><?php echo htmlspecialchars(t('branches.col_store_code', 'ລະຫັດສາຂາ')); ?></th>
           <th style="white-space: nowrap;"><?php echo htmlspecialchars(t('branches.col_store_name', 'ຊື່ສາຂາ')); ?></th>
           <th style="white-space: nowrap;"><?php echo htmlspecialchars(t('branches.col_type', 'ປະເພດ')); ?></th>
@@ -25,9 +25,10 @@ if (!defined('MINIPOS_APP')) {
       </thead>
       <tbody>
         <?php if (!empty($all_branches)): ?>
-          <?php foreach ($all_branches as $b): ?>
+          <?php $brNo = 1; foreach ($all_branches as $b): ?>
             <tr class="branch-row" style="white-space: nowrap;">
-              <td class="text-center font-weight-bold" style="white-space: nowrap;"><?php echo $b['store_id']; ?></td>
+              <!-- ລຳດັບ 1, 2, 3 … (ບໍ່ສະແດງ store_id ພາຍໃນ ທີ່ຂ້າມເລກ ເຊັ່ນ 7, 9) -->
+              <td class="text-center font-weight-bold" style="white-space: nowrap;"><?php echo $brNo++; ?></td>
               <td style="white-space: nowrap;"><span class="badge badge-secondary px-2 py-1"><?php echo htmlspecialchars($b['store_code']); ?></span></td>
               <td class="font-weight-bold text-dark" style="white-space: nowrap;">
                 <?php echo htmlspecialchars($b['store_name']); ?>

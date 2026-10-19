@@ -22,6 +22,7 @@ return [
 
     'branches.table_card_title' => '系统内所有分店列表',
     'branches.unit_branch' => '家分店',
+    'branches.col_no' => '序号',
     'branches.col_store_code' => '分店编号',
     'branches.col_store_name' => '分店名称',
     'branches.col_type' => '类型',

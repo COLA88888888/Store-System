@@ -49,7 +49,9 @@ if ($pdo) {
     // v14: tbl_printer.type gains 'usb' — direct RAW printing to a USB printer (api/usb_printer.php).
     // v15: quotations module removed (quotations / quotation_details dropped, tbuser.quotations
     // dropped); customer_debts + customer_debt_payments + tbuser.customer_debt added.
-    $schemaFlagFile = __DIR__ . '/.db_schema_v15';
+    // v16: categories.branch_no / units.branch_no — per-branch code "<store_code>-<branch_no>".
+    // v17: branch_no also on customers, suppliers, tbuser, bank_accounts, promotions, products.
+    $schemaFlagFile = __DIR__ . '/.db_schema_v17';
     if (!file_exists($schemaFlagFile)) {
         // ແລ່ນຄັ້ງດຽວຕໍ່ເວີຊັນ: ອັບເດດໂຄງສ້າງ DB ທັງ 4 ສ່ວນ ຕາມລຳດັບ ແລ້ວຂຽນໄຟລ໌ flag ໄວ້
         require __DIR__ . '/migrations/schema_core.php';             // (1) ພື້ນຖານ

@@ -188,8 +188,9 @@ if ($filter_branch > 0) {
 }
 $whereSql = implode(' AND ', $where);
 
+ensureBranchNos($pdo, 'st_promotions');
 $stmtP = $pdo->prepare("
-    SELECT p.*, s.store_name 
+    SELECT p.*, s.store_name
     FROM st_promotions p 
     LEFT JOIN st_tbstore s ON p.branch_id = s.store_id 
     WHERE {$whereSql} 
@@ -197,6 +198,7 @@ $stmtP = $pdo->prepare("
 ");
 $stmtP->execute($params);
 $promos = $stmtP->fetchAll(PDO::FETCH_ASSOC);
+attachBranchCodes($pdo, $promos, 'st_promotions'); // ລະຫັດ "1-1" ແຍກຕາມສາຂາ
 
 // Map barcode / code1 -> product_name so the table can show a real name even when a promo's
 // target was entered as a code. Built before the fetch_table exit so the AJAX reload has it too.

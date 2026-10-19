@@ -21,15 +21,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 
     $activePosStoreId = getPosStoreId();
-    if (empty($c_code)) {
-        $stmtSeq = $pdo->prepare("SELECT IFNULL(MAX(customer_id), 0) + 1 FROM st_customers WHERE store_id = ?");
-        $stmtSeq->execute([$activePosStoreId]);
-        $maxCusId = (int)$stmtSeq->fetchColumn();
-        $c_code = 'CUST-' . str_pad($activePosStoreId, 2, '0', STR_PAD_LEFT) . '-' . str_pad($maxCusId, 3, '0', STR_PAD_LEFT);
-    }
+    // ລະຫັດລູກຄ້າອໍໂຕ້ແຍກຕາມສາຂາ "CUST-<ລະຫັດສາຂາ>-<ລຳດັບ 4 ຫຼັກ>" (CUST-1-0001 …) — ສ້າງຢູ່ server ສະເໝີ
+    // (ລະຫັດທີ່ໜ້າ POS ສົ່ງມາ ເປັນແຕ່ຕົວຢ່າງ, ອາດຊ້ຳຖ້າ 2 ເຄື່ອງເພີ່ມພ້ອມກັນ)
+    ensureBranchNos($pdo, 'st_customers');
+    $c_branch_no = nextBranchNo($pdo, 'st_customers', $activePosStoreId);
+    $c_code = customerCodeLabel($pdo, $activePosStoreId, $c_branch_no);
 
     try {
-        $stmtIns = $pdo->prepare("INSERT INTO st_customers (customer_code, customer_name, phone, address, member_card, notes, store_id, created_at) VALUES (:code, :name, :phone, :address, :card, :notes, :store_id, NOW())");
+        $stmtIns = $pdo->prepare("INSERT INTO st_customers (customer_code, customer_name, phone, address, member_card, notes, store_id, branch_no, created_at) VALUES (:code, :name, :phone, :address, :card, :notes, :store_id, :branch_no, NOW())");
         $stmtIns->execute([
             ':code'     => $c_code,
             ':name'     => $c_name,
@@ -37,7 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             ':address'  => $c_address,
             ':card'     => $c_member_card,
             ':notes'    => $c_notes,
-            ':store_id' => $activePosStoreId
+            ':store_id' => $activePosStoreId,
+            ':branch_no' => $c_branch_no
         ]);
         $new_id = $pdo->lastInsertId();
 

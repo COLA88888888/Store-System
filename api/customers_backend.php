@@ -63,17 +63,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $address     = trim($_POST['address'] ?? '');
             $notes       = trim($_POST['notes'] ?? '');
 
-            if (empty($code)) {
-                $stmtMaxCode = $pdo->prepare("SELECT IFNULL(MAX(customer_id), 0) + 1 FROM st_customers WHERE store_id = ?");
-                $stmtMaxCode->execute([$targetStoreId]);
-                $maxId = (int)$stmtMaxCode->fetchColumn();
-                $code = 'CUST-' . str_pad($targetStoreId, 2, '0', STR_PAD_LEFT) . '-' . str_pad($maxId, 3, '0', STR_PAD_LEFT);
-            }
+            // ລະຫັດລູກຄ້າອໍໂຕ້ແຍກຕາມສາຂາ "CUST-<ລະຫັດສາຂາ>-<ລຳດັບ 4 ຫຼັກ>" (CUST-1-0001 …) — ສ້າງຢູ່ server ສະເໝີ
+            ensureBranchNos($pdo, 'st_customers');
+            $custBranchNo = nextBranchNo($pdo, 'st_customers', $targetStoreId);
+            $code = customerCodeLabel($pdo, $targetStoreId, $custBranchNo);
 
             if ($name !== '') {
                 try {
-                    $stmt = $pdo->prepare("INSERT INTO st_customers (customer_code, customer_name, phone, member_card, email, address, notes, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmt->execute([$code, $name, $phone, $member_card, $email, $address, $notes, $targetStoreId]);
+                    $stmt = $pdo->prepare("INSERT INTO st_customers (customer_code, customer_name, phone, member_card, email, address, notes, store_id, branch_no) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->execute([$code, $name, $phone, $member_card, $email, $address, $notes, $targetStoreId, $custBranchNo]);
                     $message = 'ເພີ່ມຂໍ້ມູນລູກຄ້າສຳເລັດ!';
                     $message_type = 'success';
                     logActivity($pdo, "ເພີ່ມຂໍ້ມູນລູກຄ້າ", "ລະຫັດ: $code, ຊື່: $name (ສາຂາ #$targetStoreId)");
@@ -162,12 +160,15 @@ $stmtCust->execute($params);
 $allCustomers = $stmtCust->fetchAll();
 $total_records = count($allCustomers);
 
-// Generate Next Customer Code Scoped to Store (ໃຊ້ Prepared Statement ປອດໄພ 100%)
-$stmtNext = $pdo->prepare("SELECT IFNULL(MAX(customer_id), 0) + 1 FROM st_customers WHERE store_id = ?");
-$stmtNext->execute([$targetCodeStore]);
-$maxId = (int)$stmtNext->fetchColumn();
-
-$next_cust_code = 'CUST-' . str_pad($targetCodeStore, 2, '0', STR_PAD_LEFT) . '-' . str_pad($maxId, 3, '0', STR_PAD_LEFT);
+// ລະຫັດລູກຄ້າຄົນຕໍ່ໄປ ຂອງສາຂານີ້ "CUST-<ລະຫັດສາຂາ>-<ລຳດັບ 4 ຫຼັກ>" (ສະແດງໃນຟອມເພີ່ມ)
+$next_cust_code = customerCodeLabel($pdo, $targetCodeStore, nextBranchNo($pdo, 'st_customers', $targetCodeStore));
+// ລະຫັດຕໍ່ໄປ ຂອງທຸກສາຂາ — ຟອມເພີ່ມປ່ຽນລະຫັດຕາມສາຂາທີ່ເລືອກ (#add_store_id, customer_js.php)
+$next_cust_codes = [];
+try {
+    foreach ($pdo->query("SELECT store_id FROM st_tbstore")->fetchAll(PDO::FETCH_COLUMN) as $__sid) {
+        $next_cust_codes[(int)$__sid] = customerCodeLabel($pdo, $__sid, nextBranchNo($pdo, 'st_customers', $__sid));
+    }
+} catch (Throwable $e) {}
 
 if (!empty($_GET['fetch_table'])) {
     require_once __DIR__ . '/../pages/customers/components/customer_table.php';

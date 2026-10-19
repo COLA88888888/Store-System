@@ -9,9 +9,11 @@ if (!defined('MINIPOS_APP')) {
 
 // This branch's own bank accounts, plus any account shared across every branch (store_id = 0
 // — same convention promotions uses for a "global" row).
+ensureBranchNos($pdo, "st_bank_accounts");
 $banks_stmt = $pdo->prepare("SELECT * FROM st_bank_accounts WHERE store_id = ? OR store_id = 0 ORDER BY is_active DESC, id ASC");
 $banks_stmt->execute([getActiveStoreId($pdo)]);
 $bank_accounts_list = $banks_stmt ? $banks_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+attachBranchCodes($pdo, $bank_accounts_list, "st_bank_accounts"); // ລະຫັດ "1-1" ແຍກຕາມສາຂາ
 
 // Helper get bank logo image
 if (!function_exists('resolveBankLogo')) {
@@ -217,7 +219,7 @@ function getBankBrandStyle($bankCode) {
     <table class="table table-hover align-middle mb-0" style="font-size: 0.9rem;">
       <thead class="bg-light text-uppercase text-secondary font-weight-bold" style="font-size: 0.8rem;">
         <tr>
-          <th class="py-3 px-4" style="width: 60px;"><?php echo htmlspecialchars(t('bank.col_no', 'ລຳດັບ')); ?></th>
+          <th class="py-3 px-4" style="width: 60px;"><?php echo htmlspecialchars(t('bank.col_code', 'ລະຫັດ')); ?></th>
           <th class="py-3"><?php echo htmlspecialchars(t('bank.col_bank', 'ທະນາຄານ')); ?></th>
           <th class="py-3"><?php echo htmlspecialchars(t('bank.col_account_number', 'ເລກບັນຊີ')); ?></th>
           <th class="py-3"><?php echo htmlspecialchars(t('bank.col_account_name', 'ຊື່ບັນຊີ')); ?></th>
@@ -248,7 +250,7 @@ function getBankBrandStyle($bankCode) {
               $brand = getBankBrandStyle($bank['bank_code'] ?: $bank['bank_name']);
             ?>
             <tr>
-              <td class="py-3 px-4 text-secondary font-weight-bold"><?php echo $index + 1; ?></td>
+              <td class="py-3 px-4 text-secondary font-weight-bold" style="white-space: nowrap;"><?php echo branchCodeHtml($bank['display_code'] ?? ($index + 1)); ?></td>
               <td class="py-3 font-weight-bold">
                 <div class="d-flex align-items-center" style="gap: 10px;">
                   <img src="<?php echo htmlspecialchars($logoSrc); ?>" alt="Bank Logo" style="width: 32px; height: 32px; object-fit: contain; border-radius: 6px; border: 1px solid #cbd5e1; background: #fff; padding: 2px;">

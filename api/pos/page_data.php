@@ -73,7 +73,7 @@ $productsStmt = $pdo->prepare("
 $productsStmt->execute([$activeStoreId]);
 $productsRaw = $productsStmt->fetchAll();
 
-$stmtPosCust = $pdo->prepare("SELECT customer_id, customer_code, customer_name, phone, address, member_card, notes, points, created_at FROM st_customers WHERE store_id = ? OR store_id = 0 ORDER BY customer_id DESC");
+$stmtPosCust = $pdo->prepare("SELECT customer_id, customer_code, customer_name, phone, address, member_card, notes, points, created_at, store_id, branch_no FROM st_customers WHERE store_id = ? OR store_id = 0 ORDER BY customer_id DESC");
 $stmtPosCust->execute([$activeStoreId]);
 $customersList = $stmtPosCust->fetchAll();
 

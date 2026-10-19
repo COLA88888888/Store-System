@@ -174,3 +174,112 @@ if (!function_exists('getActiveStoreId')) {
     }
 }
 
+
+// ລະຫັດອໍໂຕ້ແຍກຕາມສາຂາ: "<ລະຫັດສາຂາ>-<ລຳດັບໃນສາຂາ>" — ສາຂາ 1 = 1-1, 1-2 …, ສາຂາ 2 = 2-1 …
+// ໃຊ້ກັບ ໝວດໝູ່, ຫົວໜ່ວຍ, ລູກຄ້າ, ຜູ້ສະໜອງ, ຜູ້ໃຊ້, ທະນາຄານ, ໂປຣໂມຊັ່ນ ແລະ ສິນຄ້າ.
+// ລຳດັບເກັບໃນຖັນ branch_no (migration v16/v17 ໃນ config/migrations/schema_core.php). ລະຫັດພາຍໃນ
+// (category_id, product_id, …) ບໍ່ປ່ຽນ — ການຂາຍ, ບາໂຄ້ດ ແລະ ຂໍ້ມູນເກົ່າ ຍັງຊີ້ໄປຫາມັນຄືເກົ່າ.
+if (!function_exists('branchNoTables')) {
+    // table => [ຖັນ id (PK), ຖັນສາຂາ]
+    function branchNoTables() {
+        return [
+            'st_categories'    => ['category_id', 'store_id'],
+            'st_units'         => ['unit_id', 'store_id'],
+            'st_customers'     => ['customer_id', 'store_id'],
+            'st_suppliers'     => ['supplier_id', 'store_id'],
+            'st_tbuser'        => ['Id', 'store_id'],
+            'st_bank_accounts' => ['id', 'store_id'],
+            'st_promotions'    => ['id', 'branch_id'],
+            'st_products'      => ['code1', 'store_id'],
+        ];
+    }
+}
+if (!function_exists('ensureBranchNos')) {
+    // ໃສ່ລຳດັບໃຫ້ແຖວທີ່ຍັງບໍ່ມີ (ຂໍ້ມູນເກົ່າ, ແຖວທີ່ສ້າງຈາກບ່ອນອື່ນ) — ຕາມລຳດັບ id ພາຍໃນແຕ່ລະສາຂາ
+    function ensureBranchNos($pdo, $table) {
+        $tables = branchNoTables();
+        if (!isset($tables[$table])) return;
+        list($idCol, $sCol) = $tables[$table];
+        try {
+            $rows = $pdo->query("SELECT `$idCol` AS id, `$sCol` AS sid FROM `$table` WHERE branch_no IS NULL ORDER BY `$idCol` ASC")->fetchAll(PDO::FETCH_ASSOC);
+            if (!$rows) return;
+            $max = $pdo->query("SELECT `$sCol`, COALESCE(MAX(branch_no), 0) AS m FROM `$table` GROUP BY `$sCol`")->fetchAll(PDO::FETCH_KEY_PAIR);
+            $upd = $pdo->prepare("UPDATE `$table` SET branch_no = ? WHERE `$idCol` = ? AND branch_no IS NULL");
+            foreach ($rows as $r) {
+                $sid = (int)$r['sid'];
+                $max[$sid] = (int)($max[$sid] ?? 0) + 1;
+                $upd->execute([$max[$sid], (int)$r['id']]);
+            }
+        } catch (Throwable $e) {}
+    }
+}
+if (!function_exists('nextBranchNo')) {
+    function nextBranchNo($pdo, $table, $storeId) {
+        $tables = branchNoTables();
+        if (!isset($tables[$table])) return 1;
+        $sCol = $tables[$table][1];
+        try {
+            $st = $pdo->prepare("SELECT COALESCE(MAX(branch_no), 0) + 1 FROM `$table` WHERE `$sCol` = ?");
+            $st->execute([intval($storeId)]);
+            return max(1, (int)$st->fetchColumn());
+        } catch (Throwable $e) {
+            return 1;
+        }
+    }
+}
+if (!function_exists('branchCodeLabel')) {
+    // "1-3": ລະຫັດສາຂາ (store_code) + ລຳດັບ. ບໍ່ມີລຳດັບ → ຄືນ $fallback (ລະຫັດພາຍໃນເກົ່າ)
+    function branchCodeLabel($pdo, $storeId, $branchNo, $fallback = '') {
+        static $codes = null;
+        if ($codes === null) {
+            $codes = [];
+            try { $codes = $pdo->query("SELECT store_id, store_code FROM st_tbstore")->fetchAll(PDO::FETCH_KEY_PAIR); } catch (Throwable $e) {}
+        }
+        if ($branchNo === null || $branchNo === '' || (int)$branchNo < 1) return (string)$fallback;
+        $sc = trim((string)($codes[(int)$storeId] ?? ''));
+        if ($sc === '') $sc = (string)intval($storeId);
+        return $sc . '-' . (int)$branchNo;
+    }
+}
+if (!function_exists('branchCodeHtml')) {
+    // HTML ຂອງລະຫັດ "1-3" ໃຫ້ລະຫັດສາຂາ (ສ່ວນໜ້າ "-") ເປັນສີແດງ — ໃຊ້ໃນຕາຕະລາງໝວດໝູ່ / ຫົວໜ່ວຍ
+    function branchCodeHtml($code) {
+        $code = (string)$code;
+        // ລະຫັດລູກຄ້າ "CUST-<ລະຫັດສາຂາ>-<ເລກ>" — ສະເພາະລະຫັດສາຂາເປັນສີແດງ
+        if (preg_match('/^(CUST-)([0-9A-Za-z]+)(-[0-9]+)$/i', $code, $c)) {
+            return htmlspecialchars($c[1]) . '<span class="branch-code-prefix" style="color:#dc2626;font-weight:800;">' . htmlspecialchars($c[2]) . '</span>'
+                 . htmlspecialchars($c[3]);
+        }
+        // ສະເພາະຮູບແບບ "<ລະຫັດສາຂາ>-<ເລກ>" — ລະຫັດອື່ນ ສະແດງຕາມເດີມ
+        if (!preg_match('/^([0-9A-Za-z]+)(-[0-9]+)$/', $code, $m)) {
+            return htmlspecialchars($code);
+        }
+        return '<span class="branch-code-prefix" style="color:#dc2626;font-weight:800;">' . htmlspecialchars($m[1]) . '</span>'
+             . htmlspecialchars($m[2]);
+    }
+}
+if (!function_exists('attachBranchCodes')) {
+    // ໃສ່ 'display_code' ("1-3") ໃຫ້ທຸກແຖວຂອງລາຍການ — ໃຊ້ຫຼັງ ensureBranchNos() ໃນ backend ຂອງແຕ່ລະໜ້າ
+    function attachBranchCodes($pdo, array &$rows, $table) {
+        $tables = branchNoTables();
+        if (!isset($tables[$table])) return;
+        list($idCol, $sCol) = $tables[$table];
+        foreach ($rows as &$row) {
+            $row['display_code'] = branchCodeLabel($pdo, $row[$sCol] ?? 0, $row['branch_no'] ?? null, $row[$idCol] ?? '');
+        }
+        unset($row);
+    }
+}
+if (!function_exists('branchStoreCode')) {
+    // ລະຫັດສາຂາ (store_code) ຂອງ store_id — ສ່ວນໜ້າ "-" ຂອງລະຫັດອໍໂຕ້ (ໃຊ້ສ້າງຕົວຢ່າງລະຫັດໃນ JS)
+    function branchStoreCode($pdo, $storeId) {
+        $label = branchCodeLabel($pdo, $storeId, 1);
+        return substr($label, 0, strrpos($label, '-'));
+    }
+}
+if (!function_exists('customerCodeLabel')) {
+    // ລະຫັດລູກຄ້າ "CUST-<ລະຫັດສາຂາ>-<ລຳດັບ 4 ຫຼັກ>" — ສາຂາ 1 = CUST-1-0001, ສາຂາ 2 = CUST-2-0001
+    function customerCodeLabel($pdo, $storeId, $branchNo) {
+        return 'CUST-' . branchStoreCode($pdo, $storeId) . '-' . str_pad((string)max(1, (int)$branchNo), 4, '0', STR_PAD_LEFT);
+    }
+}

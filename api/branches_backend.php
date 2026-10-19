@@ -30,9 +30,10 @@ if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[
     exit();
 }
 
-// Auto-generate next numeric Branch Code (1, 2, 3...)
-$max_id = (int)$pdo->query("SELECT COALESCE(MAX(store_id), 0) FROM st_tbstore")->fetchColumn();
-$next_store_code = (string)($max_id + 1);
+// Auto-generate next numeric Branch Code (1, 2, 3...) — ຕໍ່ຈາກລະຫັດສາຂາສູງສຸດ, ບໍ່ແມ່ນ store_id
+// (store_id ພາຍໃນ ຂ້າມເລກໄດ້ ເຊັ່ນ 7, 9 — ໃຊ້ມັນ ສາຂາໃໝ່ຈະໄດ້ລະຫັດ 10 ແທນ 3).
+$max_code = (int)$pdo->query("SELECT COALESCE(MAX(CAST(store_code AS UNSIGNED)), 0) FROM st_tbstore WHERE store_code REGEXP '^[0-9]+$'")->fetchColumn();
+$next_store_code = (string)($max_code + 1);
 
 // Handle POST Add Branch Store
 if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_branch') {
@@ -167,7 +168,8 @@ if ($canManageBranches && isset($_GET['delete_branch_id'])) {
 
 // Fetch all branch stores
 if ($canManageBranches) {
-    $all_branches = $pdo->query("SELECT * FROM st_tbstore ORDER BY is_main DESC, store_id ASC")->fetchAll();
+    // ຮຽງຕາມລະຫັດສາຂາ (1, 2, 3 …) — ລະຫັດສາຂາເປັນຫຼັກ, ບໍ່ແມ່ນ store_id ພາຍໃນ
+    $all_branches = $pdo->query("SELECT * FROM st_tbstore ORDER BY (store_code REGEXP '^[0-9]+$') DESC, CAST(store_code AS UNSIGNED) ASC, store_code ASC, store_id ASC")->fetchAll();
 } else {
     $ownBranchStmt = $pdo->prepare("SELECT * FROM st_tbstore WHERE store_id = ?");
     $ownBranchStmt->execute([intval($_SESSION['store_id'] ?? 0)]);

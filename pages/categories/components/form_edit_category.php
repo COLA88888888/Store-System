@@ -16,7 +16,9 @@
         <div class="modal-body p-4">
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('categories.label_code', 'ລະຫັດປະເພດສິນຄ້າ')); ?></label>
-            <input type="text" name="new_category_id" id="edit_cat_id_input" class="form-control bg-light font-weight-bold text-primary" style="border-radius: 8px; height: 42px;" readonly>
+            <!-- ລະຫັດພາຍໃນ (ສົ່ງໄປ backend) ເຊື່ອງໄວ້; ສະແດງລະຫັດແຍກຕາມສາຂາ "<ລະຫັດສາຂາ>-<ລຳດັບ>" ແທນ -->
+            <input type="hidden" name="new_category_id" id="edit_cat_id_input">
+            <input type="text" id="edit_cat_code_label" class="form-control bg-light font-weight-bold text-primary" style="border-radius: 8px; height: 42px;" readonly>
             <small class="form-text text-muted" style="font-size: 0.82rem;"><i class="fas fa-lock mr-1"></i><?php echo htmlspecialchars(t('categories.hint_code_locked', 'ລະຫັດປະເພດສິນຄ້າ (ແກ້ໄຂບໍ່ໄດ້)')); ?></small>
           </div>
           <div class="form-group mb-3">

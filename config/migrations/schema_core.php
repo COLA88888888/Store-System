@@ -186,6 +186,23 @@
         $pdo->exec("CREATE INDEX IF NOT EXISTS idx_transfers_stores ON st_stock_transfers (from_store_id, to_store_id, status)");
     } catch (Throwable $ex) {}
 
+    // v16: branch_no — ລຳດັບໝວດໝູ່ / ຫົວໜ່ວຍ ພາຍໃນແຕ່ລະສາຂາ, ສະແດງເປັນ "<ລະຫັດສາຂາ>-<branch_no>" (1-1, 2-1 …).
+    // v17: ຂະຫຍາຍໄປ ລູກຄ້າ, ຜູ້ສະໜອງ, ຜູ້ໃຊ້, ທະນາຄານ, ໂປຣໂມຊັ່ນ ແລະ ສິນຄ້າ (ຄໍລຳສາຂາ: branchNoTables()).
+    // ໃສ່ເລກໃຫ້ແຖວເກົ່າ ໂດຍ ensureBranchNos() (config/helpers/branches.php) ຕອນເປີດໜ້າລາຍການ.
+    foreach (['st_categories' => 'store_id', 'st_units' => 'store_id', 'st_customers' => 'store_id',
+              'st_suppliers' => 'store_id', 'st_tbuser' => 'store_id', 'st_bank_accounts' => 'store_id',
+              'st_promotions' => 'branch_id', 'st_products' => 'store_id'] as $__bnTbl => $__bnStoreCol) {
+        try {
+            if (!$pdo->query("SHOW COLUMNS FROM `{$__bnTbl}` LIKE 'branch_no'")->fetch()) {
+                $pdo->exec("ALTER TABLE `{$__bnTbl}` ADD COLUMN `branch_no` INT NULL DEFAULT NULL AFTER `{$__bnStoreCol}`");
+            }
+            // MySQL 8 ບໍ່ຮູ້ຈັກ CREATE INDEX IF NOT EXISTS — ກວດກ່ອນ
+            if (!$pdo->query("SHOW INDEX FROM `{$__bnTbl}` WHERE Key_name = 'idx_branch_no'")->fetch()) {
+                $pdo->exec("CREATE INDEX idx_branch_no ON `{$__bnTbl}` (`{$__bnStoreCol}`, branch_no)");
+            }
+        } catch (Throwable $ex) {}
+    }
+
     // Clean up unused/deprecated database tables
     $unusedTables = [
         'tbbranch', 'tbunit', 'tbsale', 'tbsale_detail', 'category', 'tbsupplier', 'tbcurrency',

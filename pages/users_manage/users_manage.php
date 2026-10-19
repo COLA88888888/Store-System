@@ -102,7 +102,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   ?>
                     <tr>
                       <td class="text-center align-middle font-weight-bold text-muted"><?php echo $idx++; ?></td>
-                      <td class="align-middle text-secondary font-weight-bold"><?php echo htmlspecialchars($u['user_code'] ?: '-'); ?></td>
+                      <td class="align-middle text-secondary font-weight-bold"><?php echo $u['user_code'] !== '' && $u['user_code'] !== null ? branchCodeHtml($u['user_code']) : '-'; ?></td>
                       <td class="text-center align-middle">
                         <img src="<?php echo $base_path . 'assets/img/users/' . htmlspecialchars($imgName); ?>" class="shadow-sm" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; border: 2px solid #e2e8f0;">
                       </td>

@@ -113,13 +113,13 @@ require_once __DIR__ . '/../../layouts/header.php';
                     $createdAt = !empty($cat['created_at']) ? date('d/m/Y H:i', strtotime($cat['created_at'])) : '-';
                     $productCount = intval($cat['product_count'] ?? 0);
                     $printerName = trim((string)($cat['printer_name'] ?? ''));
-                    $catSearchAttr = strtolower(($cat['category_name'] ?? '') . ' ' . ($cat['description'] ?? '') . ' ' . $printerName);
+                    $catSearchAttr = strtolower(($cat['display_code'] ?? '') . ' ' . ($cat['category_name'] ?? '') . ' ' . ($cat['description'] ?? '') . ' ' . $printerName);
                   ?>
                     <tr class="cat-row" data-s="<?php echo htmlspecialchars($catSearchAttr); ?>">
                       <td class="align-middle text-center text-muted font-weight-bold row-no"><?php echo $idx++; ?></td>
 
                       <td class="align-middle text-center font-weight-bold">
-                        <span class="badge badge-light border px-2 py-1" style="font-size: 0.85rem; color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe !important;"><?php echo $cat['category_id']; ?></span>
+                        <span class="badge badge-light border px-2 py-1" style="font-size: 0.85rem; color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe !important;"><?php echo branchCodeHtml($cat['display_code'] ?? $cat['category_id']); ?></span>
                       </td>
 
                       <td class="align-middle font-weight-bold text-dark cat-name-cell" style="white-space: nowrap !important;">
@@ -247,15 +247,19 @@ require_once __DIR__ . '/components/form_bulk_printer.php';
   ]); ?>;
 
   var NEXT_CAT_ID = <?php echo $next_cat_id; ?>;
+  // ລະຫັດທີ່ສະແດງ ແຍກຕາມສາຂາ ("1-13") — ລະຫັດພາຍໃນ (NEXT_CAT_ID) ຍັງສົ່ງໄປແບບເຊື່ອງ
+  var NEXT_CAT_CODE = <?php echo json_encode($next_cat_code ?? (string)$next_cat_id); ?>;
 
   // Auto-fill next ID when add modal opens
   $('#addCategoryModal').on('show.bs.modal', function() {
     $('#add_cat_id').val(NEXT_CAT_ID);
+    $('#add_cat_code_label').val(NEXT_CAT_CODE);
   });
 
   function openEditModal(cat) {
     $('#edit_cat_id').val(cat.category_id);
     $('#edit_cat_id_input').val(cat.category_id);
+    $('#edit_cat_code_label').val(cat.display_code || cat.category_id);
     $('#edit_cat_name').val(cat.category_name);
     $('#edit_cat_desc').val(cat.description);
     $('#edit_cat_printer').val(cat.printer_id != null ? String(cat.printer_id) : '');

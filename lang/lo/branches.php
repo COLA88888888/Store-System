@@ -22,6 +22,7 @@ return [
 
     'branches.table_card_title' => 'ລາຍຊື່ສາຂາທັງໝົດໃນລະບົບ',
     'branches.unit_branch' => 'ສາຂາ',
+    'branches.col_no' => 'ລຳດັບ',
     'branches.col_store_code' => 'ລະຫັດສາຂາ',
     'branches.col_store_name' => 'ຊື່ສາຂາ',
     'branches.col_type' => 'ປະເພດ',

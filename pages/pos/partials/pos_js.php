@@ -1,6 +1,9 @@
 <script>
 var allProducts = <?php echo json_encode($products); ?>;
 var allCustomers = <?php echo json_encode($customersList); ?>;
+// ລະຫັດສາຂາຂອງໜ້າຂາຍ — ສ່ວນໜ້າຂອງລະຫັດລູກຄ້າອໍໂຕ້ "<ລະຫັດສາຂາ>-<ລຳດັບ>" (pos_customer_js.php)
+var POS_STORE_CODE = <?php echo json_encode(branchStoreCode($pdo, getPosStoreId())); ?>;
+var POS_STORE_ID_NUM = <?php echo (int)getPosStoreId(); ?>;
 var cart = [];
 
 // "Walk-in customer" label. Kept in a "domain.key" map so the dashboard flag switcher

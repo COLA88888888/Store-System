@@ -22,6 +22,7 @@ return [
 
     'branches.table_card_title' => 'รายชื่อสาขาทั้งหมดในระบบ',
     'branches.unit_branch' => 'สาขา',
+    'branches.col_no' => 'ลำดับ',
     'branches.col_store_code' => 'รหัสสาขา',
     'branches.col_store_name' => 'ชื่อสาขา',
     'branches.col_type' => 'ประเภท',

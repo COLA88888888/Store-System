@@ -59,7 +59,7 @@ $(document).ready(function() {
   });
 });
 
-// Auto-generate ລະຫັດຜູ້ໃຊ້ (USR-XXX)
+// Auto-generate ລະຫັດຜູ້ໃຊ້ ແຍກຕາມສາຂາ "<ລະຫັດສາຂາ>-<ລຳດັບ>" (1-1, 1-2 …) ຕາມສາຂາທີ່ເລືອກ
 function fetchNextUserCode() {
   var apiUrl = typeof API_URL !== 'undefined' ? API_URL : 'api_user.php';
   var codeEl = document.getElementById('add_user_code');
@@ -68,8 +68,11 @@ function fetchNextUserCode() {
   codeEl.placeholder = 'ກຳລັງສ້າງ...';
   codeEl.style.color = '#94a3b8';
 
+  var storeSel = codeEl.form ? codeEl.form.querySelector('select[name="store_id"]') : null;
+  var storeParam = storeSel && storeSel.value ? '&store_id=' + encodeURIComponent(storeSel.value) : '';
+
   $.ajax({
-    url: apiUrl + '?action=get_next_user_code',
+    url: apiUrl + '?action=get_next_user_code' + storeParam,
     type: 'GET',
     dataType: 'json',
     success: function(res) {
@@ -77,17 +80,24 @@ function fetchNextUserCode() {
         codeEl.value = res.code;
         codeEl.style.color = '#2563eb';
       } else {
-        codeEl.value = 'USR-001';
+        codeEl.value = '';
         codeEl.style.color = '#2563eb';
       }
     },
     error: function() {
-      codeEl.value = 'USR-001';
+      codeEl.value = '';
       codeEl.style.color = '#2563eb';
     }
   });
 }
 
+
+// ປ່ຽນສາຂາໃນຟອມເພີ່ມ → ລະຫັດອໍໂຕ້ປ່ຽນຕາມ (ສະເພາະລະຫັດຮູບແບບ "1-3" — ລະຫັດທີ່ພິມເອງບໍ່ແຕະ)
+$(document).on('change', 'select[name="store_id"]', function() {
+  var codeEl = document.getElementById('add_user_code');
+  if (!codeEl || codeEl.form !== this.form) return;
+  if (codeEl.value === '' || /^[0-9A-Za-z]+-[0-9]+$/.test(codeEl.value)) fetchNextUserCode();
+});
 
 // Avatar Live Preview & Remove
 function previewAvatar(input, previewId, removeBtnId) {

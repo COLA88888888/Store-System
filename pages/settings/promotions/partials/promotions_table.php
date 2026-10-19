@@ -8,7 +8,7 @@
     <table class="table table-hover align-middle mb-0" id="promoTable" style="font-size: 0.88rem;">
       <thead style="background: #f8fafc; color: #475569; font-size: 0.82rem;" class="font-weight-bold">
         <tr style="white-space: nowrap;">
-          <th class="text-center" style="width: 55px; white-space: nowrap;"><?php echo htmlspecialchars(t('promotions.col_no', 'ລຳດັບ')); ?></th>
+          <th class="text-center" style="width: 55px; white-space: nowrap;"><?php echo htmlspecialchars(t('promotions.col_code', 'ລະຫັດ')); ?></th>
           <th style="white-space: nowrap;"><?php echo htmlspecialchars(t('promotions.col_name', 'ຊື່ໂປຣ')); ?></th>
           <th style="white-space: nowrap;"><?php echo htmlspecialchars(t('promotions.col_branch', 'ສາຂາ')); ?></th>
           <th style="white-space: nowrap;"><?php echo htmlspecialchars(t('promotions.col_type', 'ປະເພດ')); ?></th>
@@ -32,7 +32,7 @@
             ?>
             <tr class="promo-row" style="white-space: nowrap;<?php echo $isExpired ? ' background:#fef2f2;' : ''; ?>">
               <!-- 1. ລຳດັບ -->
-              <td class="text-center font-weight-bold text-muted" style="white-space: nowrap;"><?php echo $i++; ?></td>
+              <td class="text-center font-weight-bold text-muted" style="white-space: nowrap;"><?php $i++; echo branchCodeHtml($p['display_code'] ?? $i); ?></td>
 
               <!-- 2. ຊື່ໂປຣ -->
               <td class="font-weight-bold text-dark text-nowrap" style="white-space: nowrap;"><?php echo htmlspecialchars($p['promo_name']); ?></td>

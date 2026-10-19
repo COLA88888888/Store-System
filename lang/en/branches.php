@@ -22,6 +22,7 @@ return [
 
     'branches.table_card_title' => 'All Branches in the System',
     'branches.unit_branch' => 'branches',
+    'branches.col_no' => 'No.',
     'branches.col_store_code' => 'Branch Code',
     'branches.col_store_name' => 'Branch Name',
     'branches.col_type' => 'Type',

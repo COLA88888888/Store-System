@@ -36,7 +36,7 @@
               <td class="align-middle text-center text-muted font-weight-bold row-index"><?php echo $idx++; ?></td>
               
               <td class="align-middle text-center font-weight-bold">
-                <span class="cust-code-badge"><?php echo htmlspecialchars($cust['customer_code']); ?></span>
+                <span class="cust-code-badge"><?php echo branchCodeHtml($cust['customer_code']); ?></span>
               </td>
 
               <td class="align-middle font-weight-bold text-dark cust-name-cell">

@@ -346,3 +346,9 @@ html, body { overflow: hidden !important; height: 100% !important; }
 .notif-dropdown-box .text-muted { font-size: 0.88rem !important; }
 .notif-dropdown-box .px-3.py-1\.5 { font-size: 0.92rem !important; }
 
+
+/* ແຕະເມນູເທື່ອດຽວໃນໂທລະສັບ: ບໍ່ລໍຖ້າ double-tap zoom (ເບິ່ງ touchend ໃນ home/partials/dashboard/js_layout.php) */
+.main-sidebar a.nav-link {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}

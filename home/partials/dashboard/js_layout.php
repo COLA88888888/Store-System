@@ -310,6 +310,30 @@
       } catch(e) {}
     });
 
+    // ===== ແຕະເທື່ອດຽວ ເປີດເມນູໄດ້ເລີຍ (ໂທລະສັບ / iPhone) =====
+    // Safari ເທິງ iPhone ໃຊ້ການແຕະທຳອິດເປັນ "hover" ກ່ອນ, ຈຶ່ງຕ້ອງແຕະ 2 ເທື່ອ ກວ່າເມນູຈະເປີດ.
+    // ແຕະສັ້ນໆ (ນິ້ວບໍ່ເລື່ອນ) ເທິງລິ້ງເມນູ → ກົດໃຫ້ທັນທີ ແລະ ຢຸດ hover/click ຈຳລອງຂອງ browser.
+    // ລາກນິ້ວເພື່ອເລື່ອນເມນູ ຍັງເລື່ອນໄດ້ປົກກະຕິ (ບໍ່ນັບເປັນການແຕະ).
+    var menuTap = null;
+    $(document).on('touchstart', '.main-sidebar a.nav-link', function(e) {
+      var t = e.originalEvent.touches && e.originalEvent.touches[0];
+      menuTap = (t && e.originalEvent.touches.length === 1)
+        ? { el: this, x: t.clientX, y: t.clientY, time: Date.now() } : null;
+    });
+    $(document).on('touchmove', '.main-sidebar a.nav-link', function(e) {
+      if (!menuTap) return;
+      var t = e.originalEvent.touches && e.originalEvent.touches[0];
+      if (!t || Math.abs(t.clientX - menuTap.x) > 10 || Math.abs(t.clientY - menuTap.y) > 10) menuTap = null;
+    });
+    $(document).on('touchend', '.main-sidebar a.nav-link', function(e) {
+      var tap = menuTap;
+      menuTap = null;
+      if (!tap || tap.el !== this || Date.now() - tap.time > 700) return;
+      e.preventDefault();   // ບໍ່ໃຫ້ browser ສົ່ງ hover + click ຈຳລອງຕາມມາ (ຈະກົດຊ້ຳ)
+      this.click();         // ເອີ້ນ click handler ທັງໝົດ ແລະ ເປີດລິ້ງ (target="frame") ຄືກົດປົກກະຕິ
+    });
+    $(document).on('touchcancel', '.main-sidebar a.nav-link', function() { menuTap = null; });
+
     // ===== Universal Accordion Dropdown Toggle (Only 1 dropdown open at a time) =====
     $(document).on('click', '.nav-sidebar .has-treeview > .nav-link', function(e) {
       e.preventDefault();

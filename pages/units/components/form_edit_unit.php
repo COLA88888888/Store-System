@@ -15,6 +15,11 @@
         </div>
         <div class="modal-body p-4">
           <div class="form-group mb-3">
+            <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('units.label_code', 'ລະຫັດຫົວໜ່ວຍ')); ?></label>
+            <input type="text" name="new_unit_id" id="edit_unit_id_input" class="form-control bg-light font-weight-bold text-primary" style="border-radius: 8px; height: 42px;" readonly>
+            <small class="form-text text-muted" style="font-size: 0.82rem;"><i class="fas fa-lock mr-1"></i><?php echo htmlspecialchars(t('units.hint_code_locked', 'ລະຫັດຫົວໜ່ວຍ (ແກ້ໄຂບໍ່ໄດ້)')); ?></small>
+          </div>
+          <div class="form-group mb-3">
             <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('units.label_name', 'ຊື່ຫົວໜ່ວຍ')); ?> <span class="text-danger">*</span></label>
             <input type="text" name="unit_name" id="edit_unit_name" class="form-control" style="border-radius: 8px; height: 42px;">
           </div>
@@ -36,13 +41,28 @@
 
 <script>
 var I18N_EDIT_UNIT = <?php echo tjson([
+    'units.warn_enter_code_title' => 'ກະລຸນາປ້ອນລະຫັດ',
+    'units.warn_code_empty' => 'ລະຫັດຫົວໜ່ວຍບໍ່ສາມາດຫວ່າງໄດ້!',
     'units.warn_enter_name_title' => 'ກະລຸນາປ້ອນຊື່',
     'units.warn_name_empty' => 'ຊື່ຫົວໜ່ວຍບໍ່ສາມາດຫວ່າງໄດ້!',
     'units.btn_ok' => 'ຕົກລົງ',
 ]); ?>;
 
 function submitEditUnit() {
+  var unitId   = $('#edit_unit_id_input').val().trim();
   var unitName = $('#edit_unit_name').val().trim();
+
+  if (unitId === '' || parseInt(unitId) < 1) {
+    Swal.fire({
+      icon: 'warning',
+      title: I18N_EDIT_UNIT['units.warn_enter_code_title'],
+      text: I18N_EDIT_UNIT['units.warn_code_empty'],
+      confirmButtonColor: '#2563eb',
+      confirmButtonText: I18N_EDIT_UNIT['units.btn_ok']
+    });
+    $('#edit_unit_id_input').focus();
+    return;
+  }
 
   if (unitName === '') {
     Swal.fire({

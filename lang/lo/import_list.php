@@ -51,6 +51,8 @@ return [
     'import_list.edit_title' => 'ແກ້ໄຂ',
     'import_list.cancel_delete_title' => 'ຍົກເລີກ/ລົບບິນນີ້',
     'import_list.cannot_cancel_movement_title' => 'ບໍ່ສາມາດຍົກເລີກໄດ້ ເນື່ອງຈາກສິນຄ້າມີການເຄື່ອນໄຫວແລ້ວ',
+    'import_list.transfer_out_to' => 'ໂອນອອກໄປສາຂາ',
+    'import_list.transfer_out_badge' => 'ໂອນອອກ',
     'import_list.view_only' => 'ເບິ່ງຢ່າງດຽວ',
 
     // Filter bar

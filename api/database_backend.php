@@ -21,52 +21,106 @@ if (!file_exists($backupDir)) {
     @mkdir($backupDir, 0777, true);
 }
 
-// Export database function
+// ປ່ຽນ charset/collation ທຸກບ່ອນໃນ CREATE ໃຫ້ເປັນ utf8mb4_general_ci ຢ່າງດຽວ
+// (ຖານຂໍ້ມູນເກົ່າມີປົນກັນ: utf8mb4_0900_ai_ci, utf8mb4_unicode_ci, utf8mb3_unicode_ci)
+function normalizeCollationSQL($createSql) {
+    $createSql = preg_replace('/\bCHARACTER SET (utf8mb3|utf8mb4|utf8)\b/i', 'CHARACTER SET utf8mb4', $createSql);
+    $createSql = preg_replace('/\bCOLLATE([ =])(utf8mb3|utf8mb4|utf8)_\w+/i', 'COLLATE$1utf8mb4_general_ci', $createSql);
+    $createSql = preg_replace(
+        '/\bDEFAULT CHARSET=\w+(\s+COLLATE=\w+)?/i',
+        'DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci',
+        $createSql
+    );
+    return $createSql;
+}
+
+// Export database function (ທຸກຕາຕະລາງ + ຂໍ້ມູນທັງໝົດ + View, ເປັນ utf8mb4_general_ci)
 function exportDatabaseSQL($pdo, $dbname, $outputPath) {
-    // 1. Try mysqldump if available
-    if (function_exists('exec')) {
-        $mysqldumpPath = 'mysqldump';
-        if (file_exists('C:/xampp/mysql/bin/mysqldump.exe')) {
-            $mysqldumpPath = '"C:/xampp/mysql/bin/mysqldump.exe"';
-        }
-        $cmd = "{$mysqldumpPath} --host=localhost --user=root {$dbname} > \"{$outputPath}\"";
-        @exec($cmd, $output, $returnVar);
-        if ($returnVar === 0 && file_exists($outputPath) && filesize($outputPath) > 100) {
-            return true;
-        }
-    }
+    $fh = @fopen($outputPath, 'wb');
+    if (!$fh) return false;
 
-    // 2. Pure PHP Exporter Fallback
-    $sql = "-- MiniPOS Database Backup\n";
-    $sql .= "-- Generated: " . date('Y-m-d H:i:s') . "\n";
-    $sql .= "-- Database: {$dbname}\n\n";
-    $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
+    try {
+        fwrite($fh, "-- MiniPOS Database Backup\n");
+        fwrite($fh, "-- Generated: " . date('Y-m-d H:i:s') . "\n");
+        fwrite($fh, "-- Database: {$dbname}\n");
+        fwrite($fh, "-- Collation: utf8mb4_general_ci\n\n");
+        fwrite($fh, "SET NAMES utf8mb4 COLLATE utf8mb4_general_ci;\n");
+        fwrite($fh, "SET FOREIGN_KEY_CHECKS=0;\n");
+        fwrite($fh, "SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n\n");
 
-    $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
-    foreach ($tables as $table) {
-        $createStmt = $pdo->query("SHOW CREATE TABLE `{$table}`")->fetch(PDO::FETCH_NUM);
-        if (!$createStmt) continue;
-        $sql .= "DROP TABLE IF EXISTS `{$table}`;\n";
-        $sql .= $createStmt[1] . ";\n\n";
+        $objects = $pdo->query("SHOW FULL TABLES")->fetchAll(PDO::FETCH_NUM);
+        $views = [];
 
-        $rows = $pdo->query("SELECT * FROM `{$table}`")->fetchAll(PDO::FETCH_ASSOC);
-        if (!empty($rows)) {
-            $cols = array_map(function($c) { return "`{$c}`"; }, array_keys($rows[0]));
-            $sql .= "INSERT INTO `{$table}` (" . implode(", ", $cols) . ") VALUES\n";
-            
-            $valRows = [];
-            foreach ($rows as $row) {
-                $vals = array_map(function($v) use ($pdo) {
-                    if ($v === null) return 'NULL';
-                    return $pdo->quote($v);
-                }, array_values($row));
-                $valRows[] = "(" . implode(", ", $vals) . ")";
+        foreach ($objects as [$table, $type]) {
+            if ($type === 'VIEW') {
+                $views[] = $table;
+                continue;
             }
-            $sql .= implode(",\n", $valRows) . ";\n\n";
+            $createStmt = $pdo->query("SHOW CREATE TABLE `{$table}`")->fetch(PDO::FETCH_NUM);
+            if (!$createStmt) continue;
+
+            fwrite($fh, "-- Table: {$table}\n");
+            fwrite($fh, "DROP TABLE IF EXISTS `{$table}`;\n");
+            fwrite($fh, normalizeCollationSQL($createStmt[1]) . ";\n\n");
+
+            // ຂ້າມ generated column, ແລະ ເກັບ binary/blob ເປັນ hex ເພື່ອບໍ່ໃຫ້ໄຟລ໌ເສຍ
+            $insertCols = [];
+            $binaryCols = [];
+            foreach ($pdo->query("SHOW COLUMNS FROM `{$table}`")->fetchAll(PDO::FETCH_ASSOC) as $col) {
+                if (stripos($col['Extra'] ?? '', 'GENERATED') !== false) continue;
+                $insertCols[] = $col['Field'];
+                if (preg_match('/^(tiny|medium|long)?blob|^(var)?binary/i', $col['Type'])) {
+                    $binaryCols[$col['Field']] = true;
+                }
+            }
+            if (empty($insertCols)) continue;
+
+            $colList = implode(', ', array_map(function ($c) { return "`{$c}`"; }, $insertCols));
+            $stmt = $pdo->query("SELECT {$colList} FROM `{$table}`");
+
+            $batch = [];
+            $flush = function () use (&$batch, $fh, $table, $colList) {
+                if (empty($batch)) return;
+                fwrite($fh, "INSERT INTO `{$table}` ({$colList}) VALUES\n" . implode(",\n", $batch) . ";\n");
+                $batch = [];
+            };
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $vals = [];
+                foreach ($row as $field => $v) {
+                    if ($v === null) {
+                        $vals[] = 'NULL';
+                    } elseif (isset($binaryCols[$field])) {
+                        $vals[] = $v === '' ? "''" : '0x' . bin2hex($v);
+                    } else {
+                        $vals[] = $pdo->quote($v);
+                    }
+                }
+                $batch[] = '(' . implode(', ', $vals) . ')';
+                if (count($batch) >= 200) $flush();
+            }
+            $flush();
+            $stmt->closeCursor();
+            fwrite($fh, "\n");
         }
+
+        foreach ($views as $view) {
+            $createView = $pdo->query("SHOW CREATE VIEW `{$view}`")->fetch(PDO::FETCH_NUM);
+            if (!$createView) continue;
+            // ຕັດ DEFINER ອອກ ເພື່ອໃຫ້ restore ໄດ້ໃນເຄື່ອງອື່ນ
+            $viewSql = preg_replace('/\sDEFINER=`[^`]*`@`[^`]*`/', '', $createView[1]);
+            fwrite($fh, "-- View: {$view}\n");
+            fwrite($fh, "DROP VIEW IF EXISTS `{$view}`;\n");
+            fwrite($fh, normalizeCollationSQL($viewSql) . ";\n\n");
+        }
+
+        fwrite($fh, "SET FOREIGN_KEY_CHECKS=1;\n");
+        fclose($fh);
+        return true;
+    } catch (Throwable $e) {
+        fclose($fh);
+        @unlink($outputPath);
+        return false;
     }
-    $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
-    return (file_put_contents($outputPath, $sql) !== false);
 }
 
 // Restore database function
@@ -78,8 +132,9 @@ function restoreDatabaseSQL($pdo, $sqlFilePath) {
     $pdo->exec("SET FOREIGN_KEY_CHECKS=0;");
     $queries = preg_split('/;\s*[\r\n]+/', $sql);
     foreach ($queries as $query) {
-        $q = trim($query);
-        if (!empty($q) && strpos($q, '--') !== 0) {
+        // ຕັດແຖວ comment (-- ...) ອອກ ໂດຍບໍ່ທິ້ງຄຳສັ່ງທີ່ຕາມມາ
+        $q = trim(preg_replace('/^\s*--[^\n]*\n?/m', '', $query));
+        if (!empty($q)) {
             try {
                 $pdo->exec($q);
             } catch (Throwable $e) {
@@ -117,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Action 1: Create Backup
     if ($action === 'create_backup') {
-        $dbName = $database ?? 'minipos';
+        $dbName = $database ?? 'storepos';
         $filename = 'minipos_backup_' . date('Y-m-d_H-i-s') . '.sql';
         $outputPath = $backupDir . $filename;
 

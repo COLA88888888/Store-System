@@ -3,6 +3,12 @@
   <!-- Active Bills Navigation Bar -->
   <div class="pos-active-bills-bar bg-light border-bottom p-2 d-flex justify-content-between align-items-center">
     <div class="d-flex align-items-center" style="gap: 6px;">
+      <?php if (hasPermission('customer_debt', 'add')): ?>
+      <!-- ຂາຍຕິດໜີ້: opens the payment form straight in credit mode -->
+      <button type="button" class="btn btn-sm btn-danger font-weight-bold px-3 py-1.5 shadow-sm" id="btnCreditSale" onclick="openCreditCheckout()" title="<?php echo htmlspecialchars(t('pos.credit_sale_btn_title', 'ຂາຍຕິດໜີ້ (ລູກຄ້າຈ່າຍພາຍຫຼັງ)')); ?>" style="border-radius: 8px; white-space: nowrap; font-size: 0.85rem;">
+        <i class="fas fa-hand-holding-usd mr-1"></i> <?php echo htmlspecialchars(t('pos.pay_mode_credit', 'ຕິດໜີ້')); ?>
+      </button>
+      <?php endif; ?>
       <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold px-3 py-1.5 shadow-sm d-none d-md-inline-block" onclick="openCustomerDisplayWindow()" title="<?php echo htmlspecialchars(t('pos.customer_display_title', 'ເປີດໜ້າຈໍສະແດງຜົນລູກຄ້າ (Customer Display)')); ?>" style="border-radius: 8px; white-space: nowrap; font-size: 0.85rem; background: #ffffff;">
         <i class="fas fa-desktop mr-1"></i> <?php echo htmlspecialchars(t('pos.customer_display_btn', 'ຈໍລູກຄ້າ')); ?>
       </button>

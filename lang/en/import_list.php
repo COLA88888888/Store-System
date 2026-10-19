@@ -49,6 +49,8 @@ return [
     'import_list.edit_title' => 'Edit',
     'import_list.cancel_delete_title' => 'Cancel/Delete This Receipt',
     'import_list.cannot_cancel_movement_title' => 'Cannot cancel — product already has movement',
+    'import_list.transfer_out_to' => 'Transferred out to',
+    'import_list.transfer_out_badge' => 'Transfer out',
     'import_list.view_only' => 'View Only',
 
     // Filter bar

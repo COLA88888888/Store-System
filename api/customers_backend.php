@@ -23,10 +23,10 @@ $isMain = isMainBranch($pdo, $userStoreId);
 $canAllBranches = canViewAllBranches($pdo);
 
 // Fetch stores list for branch selection/filter
-$stores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+$stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // GET filter_store parameter
-$filter_store = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : 0;
+$filter_store = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : intval($_SESSION['store_id'] ?? 1);
 if (!$canAllBranches) {
     $filter_store = $userStoreId;
 }
@@ -36,13 +36,13 @@ $targetCodeStore = ($filter_store > 0) ? $filter_store : $userStoreId;
 
 // Auto-ensure member_card & store_id columns exist
 try {
-    $custCols = $pdo->query("SHOW COLUMNS FROM customers")->fetchAll(PDO::FETCH_COLUMN);
+    $custCols = $pdo->query("SHOW COLUMNS FROM st_customers")->fetchAll(PDO::FETCH_COLUMN);
     if (!in_array('member_card', $custCols)) {
-        $pdo->exec("ALTER TABLE `customers` ADD COLUMN `member_card` VARCHAR(50) NULL AFTER `phone`");
+        $pdo->exec("ALTER TABLE `st_customers` ADD COLUMN `member_card` VARCHAR(50) NULL AFTER `phone`");
     }
     if (!in_array('store_id', $custCols)) {
-        $pdo->exec("ALTER TABLE `customers` ADD COLUMN `store_id` INT DEFAULT 1 AFTER `notes`");
-        $pdo->exec("UPDATE `customers` SET `store_id` = 1 WHERE `store_id` IS NULL OR `store_id` = 0");
+        $pdo->exec("ALTER TABLE `st_customers` ADD COLUMN `store_id` INT DEFAULT 1 AFTER `notes`");
+        $pdo->exec("UPDATE `st_customers` SET `store_id` = 1 WHERE `store_id` IS NULL OR `store_id` = 0");
     }
 } catch (Throwable $ex) {}
 
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $notes       = trim($_POST['notes'] ?? '');
 
             if (empty($code)) {
-                $stmtMaxCode = $pdo->prepare("SELECT IFNULL(MAX(customer_id), 0) + 1 FROM customers WHERE store_id = ?");
+                $stmtMaxCode = $pdo->prepare("SELECT IFNULL(MAX(customer_id), 0) + 1 FROM st_customers WHERE store_id = ?");
                 $stmtMaxCode->execute([$targetStoreId]);
                 $maxId = (int)$stmtMaxCode->fetchColumn();
                 $code = 'CUST-' . str_pad($targetStoreId, 2, '0', STR_PAD_LEFT) . '-' . str_pad($maxId, 3, '0', STR_PAD_LEFT);
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($name !== '') {
                 try {
-                    $stmt = $pdo->prepare("INSERT INTO customers (customer_code, customer_name, phone, member_card, email, address, notes, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt = $pdo->prepare("INSERT INTO st_customers (customer_code, customer_name, phone, member_card, email, address, notes, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt->execute([$code, $name, $phone, $member_card, $email, $address, $notes, $targetStoreId]);
                     $message = 'ເພີ່ມຂໍ້ມູນລູກຄ້າສຳເລັດ!';
                     $message_type = 'success';
@@ -98,10 +98,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($id > 0 && $name !== '') {
                 try {
                     if ($canAllBranches) {
-                        $stmt = $pdo->prepare("UPDATE customers SET customer_name = ?, phone = ?, member_card = ?, email = ?, address = ?, notes = ?, store_id = ? WHERE customer_id = ?");
+                        $stmt = $pdo->prepare("UPDATE st_customers SET customer_name = ?, phone = ?, member_card = ?, email = ?, address = ?, notes = ?, store_id = ? WHERE customer_id = ?");
                         $stmt->execute([$name, $phone, $member_card, $email, $address, $notes, $targetStoreId, $id]);
                     } else {
-                        $stmt = $pdo->prepare("UPDATE customers SET customer_name = ?, phone = ?, member_card = ?, email = ?, address = ?, notes = ? WHERE customer_id = ? AND store_id = ?");
+                        $stmt = $pdo->prepare("UPDATE st_customers SET customer_name = ?, phone = ?, member_card = ?, email = ?, address = ?, notes = ? WHERE customer_id = ? AND store_id = ?");
                         $stmt->execute([$name, $phone, $member_card, $email, $address, $notes, $id, $userStoreId]);
                     }
                     $message = 'ແກ້ໄຂຂໍ້ມູນລູກຄ້າສຳເລັດ!';
@@ -121,10 +121,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($id > 0) {
                 try {
                     if ($canAllBranches) {
-                        $stmt = $pdo->prepare("DELETE FROM customers WHERE customer_id = ?");
+                        $stmt = $pdo->prepare("DELETE FROM st_customers WHERE customer_id = ?");
                         $stmt->execute([$id]);
                     } else {
-                        $stmt = $pdo->prepare("DELETE FROM customers WHERE customer_id = ? AND store_id = ?");
+                        $stmt = $pdo->prepare("DELETE FROM st_customers WHERE customer_id = ? AND store_id = ?");
                         $stmt->execute([$id, $userStoreId]);
                     }
                     $message = 'ລົບຂໍ້ມູນລູກຄ້າສຳເລັດ!';
@@ -157,13 +157,13 @@ if ($filter_store > 0) {
 }
 $whereSql = implode(' AND ', $where);
 
-$stmtCust = $pdo->prepare("SELECT c.*, s.store_name FROM customers c LEFT JOIN tbstore s ON c.store_id = s.store_id WHERE {$whereSql} ORDER BY c.customer_id DESC");
+$stmtCust = $pdo->prepare("SELECT c.*, s.store_name FROM st_customers c LEFT JOIN st_tbstore s ON c.store_id = s.store_id WHERE {$whereSql} ORDER BY c.customer_id DESC");
 $stmtCust->execute($params);
 $allCustomers = $stmtCust->fetchAll();
 $total_records = count($allCustomers);
 
 // Generate Next Customer Code Scoped to Store (ໃຊ້ Prepared Statement ປອດໄພ 100%)
-$stmtNext = $pdo->prepare("SELECT IFNULL(MAX(customer_id), 0) + 1 FROM customers WHERE store_id = ?");
+$stmtNext = $pdo->prepare("SELECT IFNULL(MAX(customer_id), 0) + 1 FROM st_customers WHERE store_id = ?");
 $stmtNext->execute([$targetCodeStore]);
 $maxId = (int)$stmtNext->fetchColumn();
 

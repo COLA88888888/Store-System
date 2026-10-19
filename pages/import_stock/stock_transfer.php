@@ -51,11 +51,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
             // Auto-generate transfer code (TRF-YYYYMMDD-001)
             $todayStr = date('Ymd');
-            $countToday = (int)$pdo->query("SELECT COUNT(*) FROM stock_transfers WHERE DATE(transfer_date) = CURDATE()")->fetchColumn();
+            $countToday = (int)$pdo->query("SELECT COUNT(*) FROM st_stock_transfers WHERE DATE(transfer_date) = CURDATE()")->fetchColumn();
             $transfer_code = 'TRF-' . $todayStr . '-' . str_pad($countToday + 1, 3, '0', STR_PAD_LEFT);
 
             // Insert into stock_transfers
-            $insTrf = $pdo->prepare("INSERT INTO stock_transfers (transfer_code, from_store_id, to_store_id, transfer_date, status, notes, created_by) VALUES (?, ?, ?, ?, 'completed', ?, ?)");
+            $insTrf = $pdo->prepare("INSERT INTO st_stock_transfers (transfer_code, from_store_id, to_store_id, transfer_date, status, notes, created_by) VALUES (?, ?, ?, ?, 'completed', ?, ?)");
             $insTrf->execute([$transfer_code, $from_store_id, $to_store_id, $full_transfer_date, $notes, $_SESSION['user_id']]);
             $transfer_id = $pdo->lastInsertId();
 
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 if ($product_id <= 0 || $qty <= 0) continue;
 
                 // Fetch source product in $from_store_id
-                $stmtSrc = $pdo->prepare("SELECT * FROM products WHERE product_id = ? AND store_id = ? FOR UPDATE");
+                $stmtSrc = $pdo->prepare("SELECT * FROM st_products WHERE product_id = ? AND store_id = ? FOR UPDATE");
                 $stmtSrc->execute([$product_id, $from_store_id]);
                 $srcProd = $stmtSrc->fetch();
 
@@ -98,19 +98,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 }
 
                 // Deduct from source branch
-                $stmtDeduct = $pdo->prepare("UPDATE products SET qty = qty - ? WHERE product_id = ? AND store_id = ?");
+                $stmtDeduct = $pdo->prepare("UPDATE st_products SET qty = qty - ? WHERE product_id = ? AND store_id = ?");
                 $stmtDeduct->execute([$qty, $product_id, $from_store_id]);
 
                 // Add / Update target product in $to_store_id
-                $stmtDst = $pdo->prepare("SELECT * FROM products WHERE product_id = ? AND store_id = ? FOR UPDATE");
+                $stmtDst = $pdo->prepare("SELECT * FROM st_products WHERE product_id = ? AND store_id = ? FOR UPDATE");
                 $stmtDst->execute([$product_id, $to_store_id]);
                 $dstProd = $stmtDst->fetch();
 
                 if ($dstProd) {
-                    $stmtAddDst = $pdo->prepare("UPDATE products SET qty = qty + ? WHERE product_id = ? AND store_id = ?");
+                    $stmtAddDst = $pdo->prepare("UPDATE st_products SET qty = qty + ? WHERE product_id = ? AND store_id = ?");
                     $stmtAddDst->execute([$qty, $product_id, $to_store_id]);
                 } else {
-                    $stmtInsDst = $pdo->prepare("INSERT INTO products (product_id, barcode, product_name, category_id, bprice, price, qty, unit, img_url, cook, cut_qty, min_qty, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmtInsDst = $pdo->prepare("INSERT INTO st_products (product_id, barcode, product_name, category_id, bprice, price, qty, unit, img_url, cook, cut_qty, min_qty, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmtInsDst->execute([
                         $srcProd['product_id'],
                         $srcProd['barcode'],
@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 }
 
                 // Save detail line
-                $stmtDet = $pdo->prepare("INSERT INTO stock_transfer_details (transfer_id, product_id, product_name, barcode, qty, unit, bprice, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmtDet = $pdo->prepare("INSERT INTO st_stock_transfer_details (transfer_id, product_id, product_name, barcode, qty, unit, bprice, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmtDet->execute([
                     $transfer_id,
                     $product_id,
@@ -155,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             // ຕົ້ນທຶນ (cost brought into the branch) reports correctly include stock that
             // arrived via inter-branch transfer, not only stock bought directly from a supplier.
             if (!empty($importLines)) {
-                $fromStoreName = $pdo->prepare("SELECT store_name FROM tbstore WHERE store_id = ?");
+                $fromStoreName = $pdo->prepare("SELECT store_name FROM st_tbstore WHERE store_id = ?");
                 $fromStoreName->execute([$from_store_id]);
                 $fromStoreNameVal = $fromStoreName->fetchColumn() ?: "ສາຂາ #{$from_store_id}";
 
@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     $transferTotalCost += $line['quantity'] * $line['cost_price'];
                 }
 
-                $insImp = $pdo->prepare("INSERT INTO imports (invoice_number, supplier_name, import_date, total_cost, created_by, notes, store_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $insImp = $pdo->prepare("INSERT INTO st_imports (invoice_number, supplier_name, import_date, total_cost, created_by, notes, store_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 $insImp->execute([
                     $transfer_code,
                     'ໂອນຈາກສາຂາ ' . $fromStoreNameVal,
@@ -176,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 ]);
                 $transferImportId = $pdo->lastInsertId();
 
-                $insDet = $pdo->prepare("INSERT INTO import_details (import_id, product_id, unit_name, multiplier, quantity, total_base_qty, cost_price, total_cost) VALUES (?, ?, ?, 1, ?, ?, ?, ?)");
+                $insDet = $pdo->prepare("INSERT INTO st_import_details (import_id, product_id, unit_name, multiplier, quantity, total_base_qty, cost_price, total_cost) VALUES (?, ?, ?, 1, ?, ?, ?, ?)");
                 foreach ($importLines as $line) {
                     $insDet->execute([
                         $transferImportId,
@@ -194,11 +194,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 // (No matching import_details row on purpose — this is a ledger adjustment, not a
                 // purchase invoice line, so it stays out of the "ນຳເຂົ້າສິນຄ້າ" history list; the
                 // actual movement is already visible there in "ປະຫວັດການໂອນສິນຄ້າ".)
-                $toStoreName = $pdo->prepare("SELECT store_name FROM tbstore WHERE store_id = ?");
+                $toStoreName = $pdo->prepare("SELECT store_name FROM st_tbstore WHERE store_id = ?");
                 $toStoreName->execute([$to_store_id]);
                 $toStoreNameVal = $toStoreName->fetchColumn() ?: "ສາຂາ #{$to_store_id}";
 
-                $insImpOut = $pdo->prepare("INSERT INTO imports (invoice_number, supplier_name, import_date, total_cost, created_by, notes, store_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $insImpOut = $pdo->prepare("INSERT INTO st_imports (invoice_number, supplier_name, import_date, total_cost, created_by, notes, store_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 $insImpOut->execute([
                     $transfer_code,
                     'ໂອນອອກໄປສາຂາ ' . $toStoreNameVal,
@@ -225,7 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 }
 
 // Fetch all stores
-$stores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+$stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Target store pre-selected from GET
 $preSelectedTarget = intval($_GET['target_store'] ?? 0);
@@ -239,15 +239,14 @@ if (!$canAllBranches) {
 }
 
 // Fetch categories for modal filter
-$catStmt = $pdo->prepare("SELECT category_id, category_name FROM categories WHERE store_id = ? ORDER BY category_name ASC");
-$catStmt->execute([$sourceStoreId]);
+$catStmt = $pdo->query("SELECT category_id, category_name FROM st_categories ORDER BY category_id ASC");
 $categories = $catStmt->fetchAll();
 
 // Fetch products of source store with categories & units
 $sourceProductsStmt = $pdo->prepare("
     SELECT p.product_id, p.product_name, p.barcode, p.unit, p.bprice, p.price, p.qty, p.category_id, c.category_name 
-    FROM products p 
-    LEFT JOIN categories c ON p.category_id = c.category_id 
+    FROM st_products p 
+    LEFT JOIN st_categories c ON p.category_id = c.category_id 
     WHERE p.store_id = ?
     ORDER BY p.code1 DESC, p.product_name ASC
 ");
@@ -255,14 +254,14 @@ $sourceProductsStmt->execute([$sourceStoreId]);
 $products = $sourceProductsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 $product_units_map = [];
-$uRows = $pdo->query("SELECT * FROM product_units ORDER BY multiplier ASC")->fetchAll();
+$uRows = $pdo->query("SELECT * FROM st_product_units ORDER BY multiplier ASC")->fetchAll();
 foreach ($uRows as $u) {
     $product_units_map[$u['product_id']][] = $u;
 }
 
 // Auto-generate transfer invoice code
 $todayStr = date('Ymd');
-$countToday = (int)$pdo->query("SELECT COUNT(*) FROM stock_transfers WHERE DATE(transfer_date) = CURDATE()")->fetchColumn();
+$countToday = (int)$pdo->query("SELECT COUNT(*) FROM st_stock_transfers WHERE DATE(transfer_date) = CURDATE()")->fetchColumn();
 $next_transfer_code = 'TRF-' . $todayStr . '-' . str_pad($countToday + 1, 3, '0', STR_PAD_LEFT);
 
 // Receiver / Transferrer Name

@@ -29,25 +29,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $printer_id = !empty($_POST['printer_id']) ? intval($_POST['printer_id']) : null;
             if ($name !== '' && $cat_id !== null && $cat_id > 0) {
                 try {
-                    $stmt = $pdo->prepare("INSERT INTO categories (category_id, category_name, description, store_id, printer_id) VALUES (?, ?, ?, ?, ?)");
-                    $stmt->execute([$cat_id, $name, $desc, $catActiveStoreId, $printer_id]);
+                    // Check if category_id already exists to prevent duplicate entry error
+                    $checkExists = $pdo->prepare("SELECT COUNT(*) FROM st_categories WHERE category_id = ?");
+                    $checkExists->execute([$cat_id]);
+                    if ((int)$checkExists->fetchColumn() > 0) {
+                        $message = 'ຜິດພາດ: ລະຫັດປະເພດສິນຄ້າ ' . $cat_id . ' ນີ້ມີໃນລະບົບແລ້ວ! ກະລຸນາປ້ອນລະຫັດອື່ນ.';
+                        $message_type = 'danger';
+                    } else {
+                        $stmt = $pdo->prepare("INSERT INTO st_categories (category_id, category_name, description, store_id, printer_id) VALUES (?, ?, ?, ?, ?)");
+                        $stmt->execute([$cat_id, $name, $desc, $catActiveStoreId, $printer_id]);
 
-                    // A category added from the main branch is also created in every sub-branch
-                    // (own auto-generated category_id per branch, since category_id is a single
-                    // shared PRIMARY KEY across the whole table, not composite with store_id),
-                    // so it's immediately available for products there without a manual re-add.
-                    if (isMainBranch($pdo, $catActiveStoreId)) {
-                        $subStoresStmt = $pdo->prepare("SELECT store_id FROM tbstore WHERE store_id != ?");
-                        $subStoresStmt->execute([$catActiveStoreId]);
-                        $subInsertStmt = $pdo->prepare("INSERT INTO categories (category_name, description, store_id) VALUES (?, ?, ?)");
-                        foreach ($subStoresStmt->fetchAll(PDO::FETCH_COLUMN) as $subStoreId) {
-                            $subInsertStmt->execute([$name, $desc, $subStoreId]);
-                        }
+                        $message = 'ເພີ່ມປະເພດສິນຄ້າສຳເລັດ!';
+                        $message_type = 'success';
+                        logActivity($pdo, "ເພີ່ມປະເພດສິນຄ້າ", "ລະຫັດ: $cat_id, ຊື່: $name");
                     }
-
-                    $message = 'ເພີ່ມປະເພດສິນຄ້າສຳເລັດ!';
-                    $message_type = 'success';
-                    logActivity($pdo, "ເພີ່ມປະເພດສິນຄ້າ", "ຊື່: $name");
                 } catch (Exception $e) {
                     $message = 'ຜິດພາດ: ລະຫັດນີ້ອາດຊ້ຳກັນ ຫຼື ' . $e->getMessage();
                     $message_type = 'danger';
@@ -59,35 +54,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         elseif ($_POST['action'] === 'edit_category') {
             $id = intval($_POST['category_id'] ?? 0);
+            $new_id = isset($_POST['new_category_id']) && $_POST['new_category_id'] !== '' ? intval($_POST['new_category_id']) : $id;
             $name = trim($_POST['category_name'] ?? '');
             $desc = trim($_POST['description'] ?? '');
             $printer_id = !empty($_POST['printer_id']) ? intval($_POST['printer_id']) : null;
-            if ($id > 0 && $name !== '') {
+            if ($id > 0 && $new_id > 0 && $name !== '') {
                 try {
-                    // Grab the pre-edit name so a main-branch edit can find the matching
-                    // rows in sub-branches (each branch holds its own category_id, so the
-                    // only thing linking "the same" category across branches is its name).
-                    $oldNameStmt = $pdo->prepare("SELECT category_name FROM categories WHERE category_id = ? AND store_id = ?");
-                    $oldNameStmt->execute([$id, $catActiveStoreId]);
-                    $oldName = $oldNameStmt->fetchColumn();
-
-                    // Scoped to this branch's own category — a sub-branch user can't edit another branch's row.
-                    // printer_id stays branch-local (each branch has its own printers), so it's not propagated below.
-                    $stmt = $pdo->prepare("UPDATE categories SET category_name = ?, description = ?, printer_id = ? WHERE category_id = ? AND store_id = ?");
-                    $stmt->execute([$name, $desc, $printer_id, $id, $catActiveStoreId]);
-
-                    // A category edited from the main branch also renames the matching
-                    // category in every sub-branch, so products there keep showing the
-                    // updated name/description without a manual re-edit in each branch.
-                    if ($oldName !== false && $oldName !== '' && isMainBranch($pdo, $catActiveStoreId)) {
-                        $subUpdateStmt = $pdo->prepare("UPDATE categories SET category_name = ?, description = ? WHERE category_name = ? AND store_id != ?");
-                        $subUpdateStmt->execute([$name, $desc, $oldName, $catActiveStoreId]);
+                    // If changing category_id, ensure new_id is not already taken
+                    if ($new_id !== $id) {
+                        $chk = $pdo->prepare("SELECT COUNT(*) FROM st_categories WHERE category_id = ?");
+                        $chk->execute([$new_id]);
+                        if ((int)$chk->fetchColumn() > 0) {
+                            throw new Exception("ລະຫັດປະເພດສິນຄ້າ $new_id ນີ້ມີໃນລະບົບແລ້ວ!");
+                        }
                     }
+
+                    $pdo->beginTransaction();
+                    if ($new_id !== $id) {
+                        $pdo->prepare("UPDATE st_products SET category_id = ? WHERE category_id = ?")->execute([$new_id, $id]);
+                        $stmt = $pdo->prepare("UPDATE st_categories SET category_id = ?, category_name = ?, description = ?, printer_id = ? WHERE category_id = ?");
+                        $stmt->execute([$new_id, $name, $desc, $printer_id, $id]);
+                    } else {
+                        $stmt = $pdo->prepare("UPDATE st_categories SET category_name = ?, description = ?, printer_id = ? WHERE category_id = ?");
+                        $stmt->execute([$name, $desc, $printer_id, $id]);
+                    }
+                    $pdo->commit();
 
                     $message = 'ແກ້ໄຂປະເພດສິນຄ້າສຳເລັດ!';
                     $message_type = 'success';
-                    logActivity($pdo, "ແກ້ໄຂປະເພດສິນຄ້າ", "ID: $id, ຊື່ໃໝ່: $name");
+                    logActivity($pdo, "ແກ້ໄຂປະເພດສິນຄ້າ", "ID: $new_id, ຊື່ໃໝ່: $name");
                 } catch (Exception $e) {
+                    if ($pdo->inTransaction()) {
+                        $pdo->rollBack();
+                    }
                     $message = 'ຜິດພາດ: ' . $e->getMessage();
                     $message_type = 'danger';
                 }
@@ -100,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (hasPermission('categories', 'edit')) {
                 $printer_id = !empty($_POST['printer_id']) ? intval($_POST['printer_id']) : null;
                 try {
-                    $stmt = $pdo->prepare("UPDATE categories SET printer_id = ? WHERE store_id = ?");
+                    $stmt = $pdo->prepare("UPDATE st_categories SET printer_id = ? WHERE store_id = ?");
                     $stmt->execute([$printer_id, $catActiveStoreId]);
                     $message = 'ຕັ້ງເຄື່ອງພິມໃຫ້ທຸກໝວດໝູ່ສຳເລັດ! (' . $stmt->rowCount() . ' ໝວດ)';
                     $message_type = 'success';
@@ -114,10 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         elseif ($_POST['action'] === 'delete_category') {
             $id = intval($_POST['category_id'] ?? 0);
             if ($id > 0) {
-                // Check if category has products inside — across ALL branches, since some
-                // branches' products intentionally still point at another branch's category
-                // (left in place by design) and deleting it out from under them isn't safe.
-                $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM products WHERE category_id = ?");
+                // Check if category has products inside
+                $checkStmt = $pdo->prepare("SELECT COUNT(*) FROM st_products WHERE category_id = ?");
                 $checkStmt->execute([$id]);
                 $count = (int)$checkStmt->fetchColumn();
 
@@ -126,8 +123,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $message_type = 'danger';
                 } else {
                     try {
-                        $stmt = $pdo->prepare("DELETE FROM categories WHERE category_id = ? AND store_id = ?");
-                        $stmt->execute([$id, $catActiveStoreId]);
+                        $stmt = $pdo->prepare("DELETE FROM st_categories WHERE category_id = ?");
+                        $stmt->execute([$id]);
                         $message = 'ລົບປະເພດສິນຄ້າສຳເລັດ!';
                         $message_type = 'success';
                         logActivity($pdo, "ລົບປະເພດສິນຄ້າ", "ID: $id");
@@ -141,27 +138,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch Categories scoped to the active branch only — don't mix categories across branches.
-// product_count intentionally still matches by category_id alone (not store_id) — some
-// branches already have products pointing at another branch's category by design and those
-// links were left in place, so the count must keep including them.
+// Fetch Categories shared across branches, ordered sequentially by category_id ASC
 $activeStoreIdForCat = getActiveStoreId($pdo);
-$stmtCat = $pdo->prepare("SELECT c.*, (SELECT COUNT(*) FROM products p WHERE p.category_id = c.category_id) AS product_count FROM categories c WHERE c.store_id = ? ORDER BY c.category_id DESC");
-$stmtCat->execute([$activeStoreIdForCat]);
+try {
+    $stmtCat = $pdo->prepare("SELECT c.*, (SELECT COUNT(*) FROM st_products p WHERE p.category_id = c.category_id) AS product_count,
+            pr.name AS printer_name, pr.status AS printer_status
+        FROM st_categories c
+        LEFT JOIN st_tbl_printer pr ON pr.id = c.printer_id AND pr.branch_id = ?
+        ORDER BY c.category_id ASC");
+    $stmtCat->execute([$activeStoreIdForCat]);
+} catch (Throwable $e) {
+    $stmtCat = $pdo->prepare("SELECT c.*, (SELECT COUNT(*) FROM st_products p WHERE p.category_id = c.category_id) AS product_count FROM st_categories c ORDER BY c.category_id ASC");
+    $stmtCat->execute();
+}
 $allCategories = $stmtCat->fetchAll();
 $total_records = count($allCategories);
 
-// Next available ID (MAX + 1 across all branches, or 1 if empty) — category_id is a shared
-// primary key, so this must stay global to avoid two branches generating the same new ID.
-$next_cat_id = (int)$pdo->query("SELECT IFNULL(MAX(category_id), 0) + 1 FROM categories")->fetchColumn();
+// Sequential next available ID (fill lowest unused integer starting from 1)
+$usedCatIds = $pdo->query("SELECT category_id FROM st_categories ORDER BY category_id ASC")->fetchAll(PDO::FETCH_COLUMN);
+$next_cat_id = 1;
+foreach ($usedCatIds as $cid) {
+    if ((int)$cid === $next_cat_id) {
+        $next_cat_id++;
+    } elseif ((int)$cid > $next_cat_id) {
+        break;
+    }
+}
 
 // Active printers — for the "kitchen ticket printer" dropdown on the add/edit category form.
-// Scoped to this branch only (categories.printer_id joins tbl_printer.id where branch_id =
-// c.store_id at checkout time — see pos_backend.php) — a branch must never be offered another
-// branch's printer here, and must never see its name mixed into this list.
 $catPrinters = [];
 try {
-    $catPrintersStmt = $pdo->prepare("SELECT id, name FROM tbl_printer WHERE status = 1 AND branch_id = ? ORDER BY name ASC");
+    $catPrintersStmt = $pdo->prepare("SELECT id, name FROM st_tbl_printer WHERE status = 1 AND branch_id = ? ORDER BY name ASC");
     $catPrintersStmt->execute([$activeStoreIdForCat]);
     $catPrinters = $catPrintersStmt->fetchAll();
 } catch (Throwable $e) {}

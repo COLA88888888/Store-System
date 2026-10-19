@@ -19,14 +19,14 @@ if (empty($company_name)) $company_name = 'MiniPos';
 
 // ດຶງຂໍ້ມູນປະເພດ ແລະ ສິນຄ້າ (ສະເພາະສາຂາທີ່ເລືອກຢູ່)
 $printBarcodeStoreId = getActiveStoreId($pdo);
-$catStmt = $pdo->prepare("SELECT * FROM categories WHERE store_id = ? ORDER BY category_name ASC");
+$catStmt = $pdo->prepare("SELECT * FROM st_categories WHERE store_id = ? ORDER BY category_name ASC");
 $catStmt->execute([$printBarcodeStoreId]);
 $categories = $catStmt->fetchAll();
 $prodStmt = $pdo->prepare("
     SELECT p.*, c.category_name
-    FROM products p
-    LEFT JOIN categories c ON p.category_id = c.category_id
-    WHERE p.store_id = ?
+    FROM st_products p
+    LEFT JOIN st_categories c ON p.category_id = c.category_id
+    WHERE p.store_id = ? AND p.barcode IS NOT NULL AND TRIM(p.barcode) <> ''
     ORDER BY p.product_name ASC
 ");
 $prodStmt->execute([$printBarcodeStoreId]);

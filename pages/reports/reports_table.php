@@ -157,6 +157,8 @@
                         <i class="fas fa-university text-muted" style="font-size: 0.7rem;"></i>
                       </span>
                     <?php endif; ?>
+                  <?php else: ?>
+                    <span class="text-muted font-weight-bold">-</span>
                   <?php endif; ?>
                 </td>
                 <td class="text-right font-weight-bold text-info"><?php echo number_format($row['change'] ?? 0, 0); ?> ₭</td>

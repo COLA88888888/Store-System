@@ -128,15 +128,6 @@ return [
     // Row action buttons / titles
     'reports.view_detail_title'      => '查看账单详情',
     'reports.print_bill_title'       => '打印账单',
-    'reports.print_delivery_note_title' => '打印送货单',
-    'reports.delivery_note' => '送货单',
-    'reports.dn_sender' => '寄件人',
-    'reports.dn_recipient' => '收件人',
-    'reports.dn_recipient_name' => '姓名：',
-    'reports.dn_phone' => '电话：',
-    'reports.dn_recipient_address' => '地址：',
-    'reports.dn_sender_sign' => '寄件人签名',
-    'reports.dn_recipient_sign' => '收件人签名',
     'reports.delete_bill_title'      => '删除账单',
     'reports.view_deleted_items_title' => '查看已删除商品明细',
 

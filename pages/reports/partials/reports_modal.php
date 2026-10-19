@@ -113,26 +113,3 @@
   </div>
 </div>
 
-<!-- Delivery Note print template (ບິນສົ່ງເຄື່ອງ) — hidden; filled by printDeliveryNote(billNo) from get_bill_details, printed 80mm -->
-<div id="deliveryNoteReportArea" style="display:none;font-family:'Noto Sans Lao','Souliyo','Boon',Arial,sans-serif;font-size:13px;font-weight:600;line-height:1.5;color:#000;padding:8px 6px;">
-  <img id="dn_rep_logo" src="" alt="Logo" style="max-width:70px;max-height:70px;object-fit:contain;display:block;margin:6px auto 4px auto;" onerror="this.onerror=null;this.src='<?php echo $base_path; ?>assets/img/logo/logo.png';">
-  <div style="text-align:center;font-size:14px;font-weight:800;letter-spacing:1px;margin-bottom:4px;"><i class="fas fa-truck mr-1"></i> <?php echo htmlspecialchars(t('reports.delivery_note', 'ບິນສົ່ງເຄື່ອງ')); ?></div>
-  <div style="display:flex;justify-content:space-between;"><span><?php echo htmlspecialchars(t('reports.receipt_bill_no_label', 'ເລກບິນ:')); ?></span><span id="dn_rep_bill" style="font-weight:700;">-</span></div>
-  <div style="display:flex;justify-content:space-between;"><span><?php echo htmlspecialchars(t('reports.receipt_date_label', 'ວັນທີ:')); ?></span><span id="dn_rep_date">-</span></div>
-  <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-  <!-- Sender = the staff member who made this sale: name + phone right after the label -->
-  <div style="display:flex;justify-content:space-between;"><span style="font-weight:800;"><i class="fas fa-store mr-1"></i> <?php echo htmlspecialchars(t('reports.dn_sender', 'ຜູ້ສົ່ງ')); ?>:</span><span id="dn_rep_sender_name" style="font-weight:700;">-</span></div>
-  <div style="display:flex;justify-content:space-between;" id="dn_rep_sender_phone_row"><span><?php echo htmlspecialchars(t('reports.dn_phone', 'ເບີໂທ:')); ?></span><span id="dn_rep_sender_tel" style="font-weight:700;">-</span></div>
-  <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-  <div style="display:flex;justify-content:space-between;"><span style="font-weight:800;"><i class="fas fa-user mr-1"></i> <?php echo htmlspecialchars(t('reports.dn_recipient', 'ຜູ້ຮັບ')); ?>:</span><span id="dn_rep_customer" style="font-weight:700;">-</span></div>
-  <div style="display:flex;justify-content:space-between;" id="dn_rep_phone_row"><span><?php echo htmlspecialchars(t('reports.dn_phone', 'ເບີໂທ:')); ?></span><span id="dn_rep_phone" style="font-weight:700;">-</span></div>
-  <div id="dn_rep_address_row" style="margin-top:1px;"><?php echo htmlspecialchars(t('reports.dn_recipient_address', 'ທີ່ຢູ່:')); ?> <span id="dn_rep_address" style="font-weight:700;">-</span></div>
-  <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-  <table style="width:100%;font-size:12.5px;">
-    <thead><tr style="border-bottom:1px dashed #000;">
-      <th style="text-align:left;padding-bottom:3px;font-weight:800;"><?php echo htmlspecialchars(t('reports.col_product_item', 'ລາຍການສິນຄ້າ')); ?></th>
-      <th style="text-align:right;padding-bottom:3px;font-weight:800;width:70px;"><?php echo htmlspecialchars(t('reports.col_qty', 'ຈຳນວນ')); ?></th>
-    </tr></thead>
-    <tbody id="dn_rep_items"></tbody>
-  </table>
-</div>

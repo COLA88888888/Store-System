@@ -8,7 +8,7 @@ return [
     'layout.pos_sell' => '销售商品',
     'layout.pos_item_sales' => '销售记录',
     'layout.customers' => '客户管理',
-    'layout.quotations' => '报价单',
+    'layout.customer_debt' => '客户欠款',
     'layout.products_group' => '商品信息',
     'layout.stock_intake_group' => '入库',
     'layout.categories' => '商品分类',
@@ -88,4 +88,5 @@ return [
     'layout.cancel' => '取消',
     'layout.expiry' => '过期商品管理',
     'layout.expiry_report' => '商品到期报表',
+    'layout.debt_report' => '客户欠款报表',
 ];

@@ -1,0 +1,290 @@
+<?php
+/*
+ * ສ່ວນ: JS: ແຖວຂອງເພີ່ມຫຼາຍລາຍການ
+ * ສ້າງ/ລຶບ/ນັບແຖວ, ອັບໂຫຼດຮູບລາຍແຖວ, ແລະ ຟັງຊັນອ່ານໄຟລ໌ Excel (ໂຫຼດ SheetJS, ແປງຄ່າເຊວ).
+ * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/products/components/form_add_product.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
+ */
+?>/* ============================ BULK ADD (ເພີ່ມຫຼາຍລາຍການ) ============================ */
+
+var __bulkT = <?php echo tjson([
+    'products.bulk_col_cat'            => 'ໝວດໝູ່',
+    'products.bulk_col_name'           => 'ຊື່ສິນຄ້າ',
+    'products.bulk_col_barcode'        => 'ບາໂຄ້ດ',
+    'products.bulk_col_unit'           => 'ຫົວໜ່ວຍ',
+    'products.bulk_col_bprice'         => 'ລາຄາຊື້',
+    'products.bulk_col_price'          => 'ລາຄາຂາຍ',
+    'products.bulk_col_supplier'       => 'ຜູ້ສະໜອງ',
+    'products.select_category_placeholder' => '-- ເລືອກປະເພດ --',
+    'products.select_unit_placeholder' => '-- ເລືອກຫົວໜ່ວຍ --',
+    'products.select_supplier_placeholder' => '-- ບໍ່ລະບຸ / ເລືອກຜູ້ສະໜອງ --',
+    'products.product_name_placeholder' => 'ປ້ອນຊື່ສິນຄ້າ...',
+    'products.barcode_placeholder'     => 'ສະແກນ ຫຼື ປ້ອນຕົວເລກ...',
+    'products.gen_barcode_title'       => 'ສ້າງບາໂຄ້ດ 13 ຫຼັກ',
+    'products.unit_row_delete_title'   => 'ລົບແຖວນີ້',
+    'products.validate_name'           => 'ກະລຸນາປ້ອນຊື່ສິນຄ້າ!',
+    'products.validate_category'       => 'ກະລຸນາເລືອກປະເພດສິນຄ້າ!',
+    'products.validate_barcode_required' => 'ກະລຸນາປ້ອນ ຫຼື ສະແກນລະຫັດບາໂຄ້ດສິນຄ້າ!',
+    'products.validate_barcode_numeric' => 'ລະຫັດບາໂຄ້ດຮອງຮັບສະເພາະຕົວເລກ (0-9) ເທົ່ານັ້ນ!',
+    'products.validate_unit'           => 'ກະລຸນາເລືອກຫົວໜ່ວຍ!',
+    'products.validate_bprice'         => 'ກະລຸນາປ້ອນລາຄາຊື້!',
+    'products.validate_price'          => 'ກະລຸນາປ້ອນລາຄາຂາຍ!',
+    'products.duplicate_in_form_text'  => 'ລະຫັດບາໂຄ້ດ "{value}" ນີ້ຊໍ້າກັນກັບແຖວອື່ນໃນຟອມດຽວກັນ!',
+    'products.bulk_validate_none'      => 'ກະລຸນາປ້ອນຢ່າງໜ້ອຍ 1 ລາຍການ!',
+    'products.bulk_col_img'            => 'ຮູບ',
+    'products.bulk_img_hint'           => 'ກົດເພື່ອເລືອກຮູບ (ບໍ່ໃສ່ກໍໄດ້)',
+    'products.bulk_img_fail'           => 'ອັບໂຫຼດຮູບບໍ່ສຳເລັດ',
+    'products.bulk_img_busy'           => 'ກຳລັງອັບໂຫຼດຮູບ — ກະລຸນາລໍຖ້າບຶດໜຶ່ງ',
+]); ?>;
+
+var I18N_BULK = {
+  cat: __bulkT['products.bulk_col_cat'], cat_ph: __bulkT['products.select_category_placeholder'],
+  name: __bulkT['products.bulk_col_name'], name_ph: __bulkT['products.product_name_placeholder'],
+  barcode: __bulkT['products.bulk_col_barcode'], barcode_ph: __bulkT['products.barcode_placeholder'],
+  unit: __bulkT['products.bulk_col_unit'], unit_ph: __bulkT['products.select_unit_placeholder'],
+  bprice: __bulkT['products.bulk_col_bprice'], price: __bulkT['products.bulk_col_price'],
+  supplier: __bulkT['products.bulk_col_supplier'], supplier_ph: __bulkT['products.select_supplier_placeholder'],
+  gen: __bulkT['products.gen_barcode_title'], del: __bulkT['products.unit_row_delete_title'],
+  e_name: __bulkT['products.validate_name'], e_cat: __bulkT['products.validate_category'],
+  e_bc: __bulkT['products.validate_barcode_required'], e_bc_num: __bulkT['products.validate_barcode_numeric'],
+  e_unit: __bulkT['products.validate_unit'], e_bp: __bulkT['products.validate_bprice'],
+  e_pr: __bulkT['products.validate_price'], e_bc_dup: __bulkT['products.duplicate_in_form_text'],
+  e_none: __bulkT['products.bulk_validate_none'],
+  img: __bulkT['products.bulk_col_img'], img_ph: __bulkT['products.bulk_img_hint'],
+  img_fail: __bulkT['products.bulk_img_fail'], img_busy: __bulkT['products.bulk_img_busy']
+};
+
+var BULK_CAT_OPTIONS = <?php echo json_encode(implode('', array_map(function ($c) {
+    return '<option value="' . (int)$c['category_id'] . '">' . htmlspecialchars($c['category_name']) . '</option>';
+}, $categories)), JSON_UNESCAPED_UNICODE); ?>;
+
+var BULK_UNIT_OPTIONS = <?php echo json_encode(implode('', array_map(function ($u) {
+    return '<option value="' . (int)$u['unit_id'] . '">' . htmlspecialchars($u['unit_name']) . '</option>';
+}, $units)), JSON_UNESCAPED_UNICODE); ?>;
+
+var BULK_SUPPLIER_OPTIONS = <?php echo json_encode(implode('', array_map(function ($sp) {
+    return '<option value="' . (int)$sp['supplier_id'] . '">' . htmlspecialchars($sp['supplier_name']) . '</option>';
+}, $suppliers ?? [])), JSON_UNESCAPED_UNICODE); ?>;
+
+var BULK_DEFAULT_ROWS = 10;
+
+function bulkRenumber() {
+  var rows = $('#bulk_rows_container .bulk-row');
+  rows.each(function (i) { $(this).find('.bulk-row-idx').text(i + 1); });
+  $('#bulkRowCounter').text(rows.length);
+}
+
+function bulkAddRow(data) {
+  data = data || {};
+  var html = `
+  <div class="card border mb-2 bulk-row" style="border-radius: 10px;">
+    <div class="card-body p-2">
+      <div class="row align-items-end" style="row-gap: 8px;">
+        <div class="col-auto d-flex align-items-center" style="padding-bottom: 6px;">
+          <span class="badge badge-light border font-weight-bold bulk-row-idx" style="font-size: 0.8rem;">0</span>
+        </div>
+        <div class="col-auto">
+          <label class="small text-muted font-weight-bold mb-1 d-block">${I18N_BULK.img}</label>
+          <div class="bulk-img-box" title="${I18N_BULK.img_ph}">
+            <input type="file" class="d-none bulk-img-file" accept="image/*">
+            <input type="hidden" class="bulk-img" value="">
+            <img class="bulk-img-preview" alt="" style="display:none;">
+            <i class="fas fa-camera bulk-img-ico"></i>
+            <span class="bulk-img-spin spinner-border spinner-border-sm text-primary" style="display:none;"></span>
+            <button type="button" class="bulk-img-clear" title="${I18N_BULK.del}" style="display:none;">&times;</button>
+          </div>
+        </div>
+        <div class="col-md col-6">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.cat} <span class="text-danger">*</span></label>
+          <select name="b_category_id[]" class="form-control form-control-sm bulk-cat"><option value="">${I18N_BULK.cat_ph}</option>${BULK_CAT_OPTIONS}</select>
+        </div>
+        <div class="col-md col-6">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.name} <span class="text-danger">*</span></label>
+          <input type="text" name="b_name[]" class="form-control form-control-sm bulk-name" placeholder="${I18N_BULK.name_ph}">
+        </div>
+        <div class="col-md col-8">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.barcode}</label>
+          <div class="input-group input-group-sm">
+            <input type="text" name="b_barcode[]" class="form-control form-control-sm bulk-barcode" placeholder="${I18N_BULK.barcode_ph}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <div class="input-group-append">
+              <button type="button" class="btn btn-outline-primary" title="${I18N_BULK.gen}" onclick="generateEAN13(this)"><i class="fas fa-barcode"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md col-4">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.unit} <span class="text-danger">*</span></label>
+          <select name="b_unit_id[]" class="form-control form-control-sm bulk-unit"><option value="">${I18N_BULK.unit_ph}</option>${BULK_UNIT_OPTIONS}</select>
+        </div>
+        <div class="col-md col-6">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.bprice}</label>
+          <input type="text" name="b_bprice[]" class="form-control form-control-sm text-right price-input bulk-bprice" placeholder="0" oninput="formatPriceInput(this)">
+        </div>
+        <div class="col-md col-6">
+          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.price} </label>
+<input type="text" name="b_price[]" class="form-control form-control-sm text-right font-weight-bold text-success price-input bulk-price" placeholder="0" oninput="formatPriceInput(this)">
+        </div>
+        <div class="col-auto text-right" style="padding-bottom: 4px;">
+          <button type="button" class="btn btn-sm btn-outline-danger border-0 bulk-row-del" title="${I18N_BULK.del}"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  var $row = $(html);
+  if (data.category_id) $row.find('.bulk-cat').val(String(data.category_id));
+  if (data.unit_id) $row.find('.bulk-unit').val(String(data.unit_id));
+  // Per-row supplier only comes from an Excel import; the batch box at the top wins when set.
+  $row.data('supplier', data.supplier_id ? String(data.supplier_id) : '');
+  $('#bulk_rows_container').append($row);
+  bulkRenumber();
+}
+
+// ====== ຮູບພາບລາຍແຖວ (ບໍ່ບັງຄັບ) — ອັບໂຫຼດທັນທີທີ່ເລືອກ, ເກັບໄວ້ແຕ່ຊື່ໄຟລ໌ ======
+function bulkClearImg($box) {
+  $box.find('.bulk-img').val('');
+  $box.find('.bulk-img-file').val('');
+  $box.find('.bulk-img-preview').hide().attr('src', '');
+  $box.find('.bulk-img-clear, .bulk-img-spin').hide();
+  $box.find('.bulk-img-ico').show();
+  $box.removeClass('has-img');
+}
+
+$(document).on('click', '#bulk_rows_container .bulk-img-box', function (e) {
+  if ($(e.target).closest('.bulk-img-clear, .bulk-img-file').length) return;
+  if ($(this).data('busy')) return;
+  $(this).find('.bulk-img-file')[0].click();
+});
+
+$(document).on('click', '#bulk_rows_container .bulk-img-clear', function (e) {
+  e.stopPropagation();
+  bulkClearImg($(this).closest('.bulk-img-box'));
+});
+
+$(document).on('change', '#bulk_rows_container .bulk-img-file', function () {
+  var file = this.files && this.files[0];
+  var $box = $(this).closest('.bulk-img-box');
+  if (!file) return;
+  var fd = new FormData();
+  fd.append('action', 'upload_image');
+  fd.append('image', file);
+  $box.data('busy', true);
+  $box.find('.bulk-img-ico').hide();
+  $box.find('.bulk-img-spin').show();
+  $.ajax({ url: 'api_product.php', type: 'POST', data: fd, processData: false, contentType: false, dataType: 'json' })
+    .done(function (res) {
+      if (res && res.success) {
+        $box.find('.bulk-img').val(res.file);
+        $box.find('.bulk-img-preview').attr('src', res.url).show();
+        $box.find('.bulk-img-clear').show();
+        $box.addClass('has-img');
+      } else {
+        bulkClearImg($box);
+        Swal.fire({ icon: 'warning', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: (res && res.message) || I18N_BULK.img_fail, confirmButtonColor: '#2563eb' });
+      }
+    })
+    .fail(function () {
+      bulkClearImg($box);
+      Swal.fire({ icon: 'error', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: I18N_BULK.img_fail, confirmButtonColor: '#2563eb' });
+    })
+    .always(function () {
+      $box.data('busy', false);
+      $box.find('.bulk-img-spin').hide();
+    });
+});
+
+// ເພີ່ມຫຼາຍແຖວພ້ອມກັນ (1 / 5 / 10)
+function bulkAddRows(n) {
+  n = parseInt(n, 10) || 1;
+  for (var i = 0; i < n; i++) bulkAddRow();
+  var $last = $('#bulk_rows_container .bulk-row').last();
+  if ($last.length && $last[0].scrollIntoView) {
+    $last[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function bulkResetRows() {
+  $('#bulk_rows_container').empty();
+  for (var i = 0; i < BULK_DEFAULT_ROWS; i++) bulkAddRow();
+}
+
+// ====== ນຳເຂົ້າຈາກ Excel ======
+// SheetJS (plugins/sheetjs) ໂຫຼດເມື່ອກົດປຸ່ມຄັ້ງທຳອິດເທົ່ານັ້ນ — ໄຟລ໌ໃຫຍ່ ~900KB, ບໍ່ຢາກໃຫ້ທຸກໜ້າຕ້ອງໂຫຼດ.
+// ໄຟລ໌ຖືກອ່ານຢູ່ໃນ browser ແລ້ວຕື່ມລົງແຖວ bulk ດ້ານລຸ່ມ; ການບັນທຶກຍັງຜ່ານ add_products_bulk ຄືເກົ່າ.
+var BULK_XLSX_URL = '<?php echo $base_path; ?>plugins/sheetjs/xlsx.full.min.js';
+
+// ຊື່ຫົວຖັນທີ່ຮັບໄດ້ (ປຽບທຽບແບບຕັດຍະຫວ່າງ, * ແລະ ໂຕພິມໃຫຍ່ອອກ)
+var BULK_EXCEL_HEADERS = {
+  cat:      ['ປະເພດ', 'ປະເພດສິນຄ້າ', 'ໝວດໝູ່', 'ໝວດ', 'category'],
+  name:     ['ຊື່ສິນຄ້າ', 'ຊື່', 'ລາຍການ', 'ລາຍການສິນຄ້າ', 'name', 'productname', 'product'],
+  barcode:  ['ບາໂຄ້ດ', 'ບາໂຄດ', 'ລະຫັດບາໂຄ້ດ', 'ລະຫັດບາໂຄດ', 'barcode'],
+  unit:     ['ຫົວໜ່ວຍ', 'ຫົວໜ່ວຍນັບ', 'unit'],
+  bprice:   ['ລາຄາຊື້', 'ຕົ້ນທຶນ', 'ລາຄາຕົ້ນທຶນ', 'bprice', 'cost', 'buyprice'],
+  price:    ['ລາຄາຂາຍ', 'ລາຄາ', 'price', 'sellprice'],
+  supplier: ['ຜູ້ສະໜອງ', 'supplier']
+};
+// ລຳດັບຖັນຂອງແບບຟອມ — ໃຊ້ເມື່ອໄຟລ໌ບໍ່ມີແຖວຫົວຖັນ
+var BULK_EXCEL_ORDER = ['cat', 'name', 'barcode', 'unit', 'bprice', 'price', 'supplier'];
+
+// NFKC: "ຳ" ພິມໄດ້ 2 ແບບ (U+0EB3 ຫຼື ໍ+າ) — ໃຫ້ຖືວ່າເທົ່າກັນ ເວລາທຽບຊື່ປະເພດ/ຫົວໜ່ວຍ
+function bulkNorm(s) {
+  return String(s == null ? '' : s).normalize('NFKC').toLowerCase().replace(/[\s*_\-]+/g, '');
+}
+
+function bulkLoadXlsx(cb) {
+  if (window.XLSX) return cb();
+  Swal.fire({ title: 'ກຳລັງໂຫຼດ...', allowOutsideClick: false, didOpen: function () { Swal.showLoading(); } });
+  $.ajax({ url: BULK_XLSX_URL, dataType: 'script', cache: true })
+    .done(function () { Swal.close(); cb(); })
+    .fail(function () {
+      Swal.fire({ icon: 'error', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: 'ໂຫຼດຕົວອ່ານ Excel ບໍ່ສຳເລັດ', confirmButtonColor: '#2563eb' });
+    });
+}
+
+// ຊື່ -> id ຈາກ <option> ທີ່ມີຢູ່ແລ້ວ (ຮັບທັງຊື່ ແລະ ລະຫັດ id)
+function bulkOptionMap(optionsHtml) {
+  var map = {};
+  $('<select>' + optionsHtml + '</select>').find('option').each(function () {
+    map[bulkNorm($(this).text())] = this.value;
+    map[bulkNorm(this.value)] = this.value;
+  });
+  return map;
+}
+
+function bulkCellText(v) {
+  return v == null ? '' : String(v).trim();
+}
+
+// ບາໂຄ້ດທີ່ Excel ເກັບເປັນຕົວເລກ (8850999...) -> ສະຕຣິງຕົວເລກລ້ວນ
+function bulkCellBarcode(v) {
+  if (v == null || v === '') return '';
+  if (typeof v === 'number') return Math.round(v).toLocaleString('fullwide', { useGrouping: false });
+  return String(v).replace(/[^0-9]/g, '');
+}
+
+// "12,000", "12000 ກີບ", 12000.4 -> "12,000" (ຮູບແບບດຽວກັບ formatPriceInput)
+function bulkCellPrice(v) {
+  if (v == null || v === '') return '';
+  var n = typeof v === 'number' ? v : parseFloat(String(v).replace(/[^0-9.]/g, ''));
+  if (!isFinite(n) || n <= 0) return '';
+  return Math.round(n).toLocaleString('en-US');
+}
+
+function bulkImportExcel(input) {
+  var file = input.files && input.files[0];
+  if (!file) return;
+  bulkLoadXlsx(function () {
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      var rows;
+      try {
+        var wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+        var ws = wb.Sheets[wb.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '', blankrows: false });
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: 'ອ່ານໄຟລ໌ບໍ່ໄດ້: ' + err.message, confirmButtonColor: '#2563eb' });
+        return;
+      }
+      bulkFillFromRows(rows);
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+

@@ -38,7 +38,49 @@
   // Placeholder shown in an empty box, in the app's language
   var PLACEHOLDERS = { lo: 'ວັນ/ເດືອນ/ປີ', th: 'วัน/เดือน/ปี', zh: '日/月/年', en: 'dd/mm/yyyy' };
 
-  var NATIVE_VALUE = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  // Phone / tablet: tapping a typeable box pops the keyboard and (iOS, font < 16px) zooms the
+  // page in. On touch screens the box is tap-to-open-calendar only — no keyboard, no zoom.
+  var TOUCH = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+
+  // Touch: lock page zoom ONLY while a date box is being tapped / its calendar is open, then
+  // give it back — the rest of the app keeps normal zoom. The viewport meta that matters is the
+  // shell's (window.top), since pages live in an iframe; this page's own meta is locked too.
+  var zoomLocks = 0;
+  function viewportMetas() {
+    var docs = [document];
+    try { if (window.top !== window && window.top.document) docs.push(window.top.document); } catch (e) {}
+    return docs.map(function (d) { return d.querySelector('meta[name="viewport"]'); }).filter(Boolean);
+  }
+  function lockZoom(fp) {
+    if (!TOUCH || fp._mpZoomLocked) return;
+    fp._mpZoomLocked = true;
+    if (zoomLocks++ > 0) return;
+    viewportMetas().forEach(function (m) {
+      var orig = m.getAttribute('content') || 'width=device-width, initial-scale=1';
+      m._mpOrigContent = orig;
+      m.setAttribute('content', orig.replace(/,?\s*(maximum-scale|user-scalable)\s*=[^,]*/gi, '') + ', maximum-scale=1, user-scalable=no');
+    });
+  }
+  function unlockZoom(fp) {
+    if (!fp._mpZoomLocked) return;
+    fp._mpZoomLocked = false;
+    if (--zoomLocks > 0) return;
+    zoomLocks = 0;
+    viewportMetas().forEach(function (m) {
+      if (m._mpOrigContent !== undefined) { m.setAttribute('content', m._mpOrigContent); delete m._mpOrigContent; }
+    });
+  }
+  if (TOUCH) {
+    // iOS Safari ignores user-scalable=no for pinch — block pinch while a calendar is open
+    ['gesturestart', 'gesturechange'].forEach(function (type) {
+      document.addEventListener(type, function (e) { if (zoomLocks > 0) e.preventDefault(); }, { passive: false });
+    });
+    document.addEventListener('touchmove', function (e) {
+      if (zoomLocks > 0 && e.touches && e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+  }
+
+  var NATIVE_VALUE =Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
   var inputs = [];
   var currentLang = document.documentElement.lang || 'lo';
 
@@ -81,7 +123,7 @@
     if (typeof window.flatpickr !== 'function' || !el || !el.isConnected) return;
     var val = nativeGet(el);
     var readOnly = el.readOnly;
-    if (el._flatpickr) el._flatpickr.destroy();
+    if (el._flatpickr) { unlockZoom(el._flatpickr); el._flatpickr.destroy(); }
     if (el.type === 'date') el.type = 'text';
     hookValue(el);
     nativeSet(el, val);
@@ -92,13 +134,23 @@
       altInput: true,
       altFormat: 'd/m/Y',
       altInputClass: (el.className || 'form-control') + ' mp-date',
-      allowInput: !readOnly,
+      allowInput: !readOnly && !TOUCH,
       clickOpens: !readOnly && !el.disabled,
       disableMobile: true,
       minDate: el.getAttribute('min') || null,
-      maxDate: el.getAttribute('max') || null
+      maxDate: el.getAttribute('max') || null,
+      onOpen: [function (s, d, inst) { lockZoom(inst); }],
+      // Small delay so the tap that closes the calendar can't turn into a double-tap zoom
+      onClose: [function (s, d, inst) { setTimeout(function () { unlockZoom(inst); }, 350); }]
     });
     if (!fp || !fp.altInput) return;
+
+    // Touch: the header's year box would pop the keyboard (and zoom) — change year with its
+    // up/down arrows or the month arrows instead.
+    if (TOUCH && fp.currentYearElement) {
+      fp.currentYearElement.readOnly = true;
+      fp.currentYearElement.inputMode = 'none';
+    }
 
     var alt = fp.altInput;
     alt.style.cssText = el.style.cssText;
@@ -106,9 +158,19 @@
     if (el.title) alt.title = el.title;
     alt.required = el.required;       // the original is now hidden, so the visible box carries "required"
     alt.disabled = el.disabled;
-    alt.readOnly = readOnly;
+    alt.readOnly = readOnly || TOUCH;   // readonly = no keyboard; clickOpens still opens the calendar
     alt.autocomplete = 'off';
-    alt.inputMode = 'numeric';
+    if (TOUCH) {
+      alt.inputMode = 'none';
+      alt.classList.add('mp-date-touch');
+      // Lock before the tap lands, so even a double-tap on the box itself can't zoom
+      alt.addEventListener('touchstart', function () {
+        lockZoom(fp);
+        setTimeout(function () { if (!fp.isOpen) unlockZoom(fp); }, 800);
+      }, { passive: true });
+    } else {
+      alt.inputMode = 'numeric';
+    }
     alt.addEventListener('input', onAltTyping);
     // Commit what was typed when leaving the box: a full d/m/Y sets the date, an empty box
     // clears it, anything incomplete snaps back to the current date.

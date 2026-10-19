@@ -108,7 +108,7 @@
           </div>
 
           <div class="form-group mb-1">
-            <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('pos.customer_address_label', 'ທີ່ຢູ່ (ສຳລັບບິນສົ່ງເຄື່ອງ)')); ?></label>
+            <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('pos.customer_address_label', 'ທີ່ຢູ່')); ?></label>
             <input type="text" id="newCusAddress" class="form-control" placeholder="<?php echo htmlspecialchars(t('pos.customer_address_placeholder', 'ບ້ານ, ເມືອງ, ແຂວງ / ຈຸດສັງເກດ')); ?>" style="border-radius: 8px; height: 42px;">
           </div>
 

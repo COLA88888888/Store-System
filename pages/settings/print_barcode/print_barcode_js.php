@@ -1,3 +1,10 @@
+<?php
+/*
+ * ໂຄງສ້າງໄຟລ໌ (ແຍກເປັນໄຟລ໌ຍ່ອຍເພື່ອໃຫ້ອ່ານງ່າຍ — ແຕ່ລະໄຟລ໌ບໍ່ເກີນ 500 ແຖວ):
+ * JS ຂອງໜ້າພິມບາໂຄ້ດ: ເລືອກສິນຄ້າ, ຈຳນວນສຳເນົາ ແລະ ສັ່ງພິມ.
+ *   - js/print_execute.php : ສັ່ງພິມບາໂຄ້ດ
+ */
+?>
 <!-- ============================================================
      print_barcode_js.php - JavaScript Render Barcode & Engine ສັ່ງພິມ
      ============================================================ -->
@@ -140,7 +147,8 @@ function renderPageBarcodeBlocks() {
         width: 1.3,
         height: previewBarcodeHeightPx,
         displayValue: showCode,
-        fontSize: 10,
+        fontSize: 12,
+        fontOptions: "bold",
         font: "monospace",
         margin: 1,
         textMargin: 1
@@ -342,188 +350,7 @@ var BARCODE_SIZE_CONFIGS = {
   }
 };
 
-function executePageBarcodePrint() {
-  var size       = $('#print_size').val();
-  var showShop   = $('#opt_show_shop').is(':checked');
-  var showName   = $('#opt_show_name').is(':checked');
-  var showPrice  = $('#opt_show_price').is(':checked');
-  var showCode   = $('#opt_show_code').is(':checked');
-  var barcodeWidthMm  = parseFloat($('#barcode_width_mm').val()) || 36;
-  var barcodeHeightMm = parseFloat($('#barcode_height_mm').val()) || 8.5;
-  var verticalOffsetMm = parseFloat($('#label_vertical_offset_mm').val()) || 0;
-
-  var itemsToPrint = [];
-  var totalStickers = 0;
-
-  ALL_PRODUCTS_PAGE.forEach(function(p) {
-    var st = pageBarcodeState[p.product_id];
-    if (st && st.selected && st.copies > 0) {
-      itemsToPrint.push({ product: p, copies: st.copies });
-      totalStickers += st.copies;
-    }
-  });
-
-  if (itemsToPrint.length === 0 || totalStickers === 0) {
-    Swal.fire({
-      icon: 'warning',
-      title: I18N_PRINT_BARCODE['print_barcode.no_selection_title'],
-      text: I18N_PRINT_BARCODE['print_barcode.no_selection_text'],
-      confirmButtonColor: '#0284c7',
-      confirmButtonText: I18N_PRINT_BARCODE['print_barcode.ok_button']
-    });
-    return;
-  }
-
-  var cfg = BARCODE_SIZE_CONFIGS[size] || BARCODE_SIZE_CONFIGS['40x30_vert'];
-  var basePath = '<?php echo $base_path; ?>';
-
-  // Clamp the barcode to what actually fits this label format — the width/height fields above
-  // are shared across every sticker size, and their default (36mm) is wider than a 3-up cell
-  // (~31mm), which overflowed the cell and got clipped by the printer.
-  if (cfg.maxBarcodeMm && barcodeWidthMm > cfg.maxBarcodeMm) {
-    barcodeWidthMm = cfg.maxBarcodeMm;
-  }
-
-  // ຄວາມສູງໜ້າຕ້ອງເທົ່າກັບ "ໄລຍະຕໍ່ 1 ດວງ" ຂອງມ້ວນແທ້ (ສະຕິກເກີ + ຮ່ອງ) ບໍ່ດັ່ງນັ້ນທຸກໆດວງ
-  // ຈະຄາດເຄື່ອນສະສົມໄປເລື່ອຍໆ. ສ່ວນເນື້ອຫາຍັງຕ້ອງຈັດເຄິ່ງກາງໃນ "ເນື້ອທີ່ສະຕິກເກີ" ເທົ່ານັ້ນ
-  // (ຮ່ອງທີ່ເຫຼືອປະໄວ້ຫວ່າງ) — ຖ້າຈັດເຄິ່ງກາງທັງໜ້າ ເນື້ອຫາຈະຕ່ຳໄປເຄິ່ງໜຶ່ງຂອງຮ່ອງ.
-  var labelPitchMm = parseFloat($('#label_pitch_mm').val());
-  var sizeMatch = /size:\s*([\d.]+)mm\s+([\d.]+)mm/.exec(cfg.pageCss || '');
-  // Label pitch only makes sense for a single-column roll (one sticker per physical page).
-  // The 3-up layout prints 3 stickers per row inside a fixed 105x25mm page — its row-container
-  // CSS is a fixed grid, not a per-label page, so overriding the page height here (defaults to
-  // 30mm) desyncs @page from the hardcoded 25mm row-container and breaks the print.
-  if (cfg.mode === 'single_roll' && !isNaN(labelPitchMm) && labelPitchMm > 0 && sizeMatch) {
-    var stickerHeightMm = parseFloat(sizeMatch[2]);
-    cfg = Object.assign({}, cfg);
-    cfg.pageCss = '@page { size: ' + sizeMatch[1] + 'mm ' + labelPitchMm + 'mm; margin: 0; }';
-    cfg.pageBoxCss = (cfg.pageBoxCss || '')
-      .replace(/(^|[^-])height:\s*[\d.]+mm/, '$1height: ' + labelPitchMm + 'mm')
-      .replace(/max-height:\s*[\d.]+mm/, 'max-height: ' + labelPitchMm + 'mm');
-    if (labelPitchMm > stickerHeightMm) {
-      cfg.labelCss = (cfg.labelCss || '').replace(/height:\s*100%/, 'height: ' + stickerHeightMm + 'mm');
-    }
-  }
-
-  var printDoc = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print Barcodes - MiniPos</title>';
-  printDoc += '<script src="' + basePath + 'assets/js/JsBarcode.all.min.js"><\/script>';
-  printDoc += '<style>';
-  printDoc += cfg.pageCss + ' ';
-  printDoc += '@media print { @page { ' + (cfg.pageCss.replace('@page {', '').replace('}', '')) + ' } html, body { margin: 0 !important; padding: 0 !important; } } ';
-  printDoc += '* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; } ';
-  printDoc += 'html, body { margin: 0 !important; padding: 0 !important; width: 100%; background: #ffffff; color: #000000; font-family: "Noto Sans Lao", "Souliyo", "Boon", Arial, sans-serif; } ';
-
-  if (cfg.mode === 'single_roll') {
-    printDoc += '.label-page { ' + cfg.pageBoxCss + ' } ';
-    printDoc += '.label-page:last-child { page-break-after: auto !important; break-after: auto !important; } ';
-    printDoc += '.barcode-label { ' + cfg.labelCss + ' } ';
-  } else if (cfg.mode === '3up_roll') {
-    // Each row of 3 is its own explicit block with page-break-after — letting the browser
-    // auto-paginate one continuous multi-row grid across print pages is unreliable in Chrome
-    // (rows can end up isolated on their own page with the rest blank).
-    printDoc += '.row-container { display: grid; grid-template-columns: 32mm 32mm 32mm; justify-content: space-between; width: 105mm; padding: 0 1.5mm; box-sizing: border-box; page-break-after: always; break-after: page; page-break-inside: avoid; break-inside: avoid; } ';
-    printDoc += '.row-container:last-child { page-break-after: auto !important; break-after: auto !important; } ';
-    printDoc += '.barcode-label { ' + cfg.labelCss + ' } ';
-  } else {
-    printDoc += '.label-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; padding: 4mm; } ';
-    printDoc += '.barcode-label { ' + cfg.labelCss + ' page-break-inside: avoid; break-inside: avoid; } ';
-  }
-
-  if (verticalOffsetMm) {
-    printDoc += '.barcode-label { transform: translateY(' + verticalOffsetMm + 'mm); } ';
-  }
-
-  printDoc += '.shop-title { ' + cfg.shopTitleCss + ' } ';
-  printDoc += '.prod-title { ' + cfg.prodTitleCss + ' } ';
-  printDoc += '.barcode-svg-wrap { width: 100%; display: flex; justify-content: center; align-items: center; margin: 0; padding: 0; overflow: hidden; } ';
-  printDoc += '.barcode-svg { max-width: ' + barcodeWidthMm + 'mm; max-height: ' + barcodeHeightMm + 'mm; height: auto; display: block; margin: 0 auto; } ';
-  printDoc += '.barcode-num-text { font-family: monospace, "Courier New", Courier, sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 1px; line-height: 1.1; max-width: ' + barcodeWidthMm + 'mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center; color: #000000; } ';
-  printDoc += '.price-title { ' + cfg.priceTitleCss + ' } ';
-  printDoc += '</style></head><body>';
-
-  function escapeHtml(str) {
-    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  var allStickerElements = [];
-  itemsToPrint.forEach(function(item) {
-    var p = item.product;
-    var copies = item.copies;
-    var barcodeVal = (p.barcode && p.barcode.trim() !== '') ? p.barcode.trim() : String(p.product_id);
-    var prodName = p.product_name || '';
-    if (p.unit) prodName += ' (' + p.unit + ')';
-    var priceFormatted = Number(p.price || 0).toLocaleString('en-US') + ' ₭';
-
-    for (var i = 0; i < copies; i++) {
-      var contentHtml = '';
-      if (showShop) contentHtml += '<div class="shop-title">' + escapeHtml(SHOP_NAME) + '</div>';
-      if (showName) contentHtml += '<div class="prod-title">' + escapeHtml(prodName) + '</div>';
-      contentHtml += '<div class="barcode-svg-wrap"><svg class="barcode-svg" data-barcode="' + escapeHtml(barcodeVal) + '"></svg></div>';
-      if (showCode) contentHtml += '<div class="barcode-num-text">' + escapeHtml(barcodeVal) + '</div>';
-      if (showPrice) contentHtml += '<div class="price-title">' + escapeHtml(priceFormatted) + '</div>';
-
-      if (cfg.mode === 'single_roll') {
-        allStickerElements.push('<div class="label-page"><div class="barcode-label">' + contentHtml + '</div></div>');
-      } else {
-        allStickerElements.push('<div class="barcode-label">' + contentHtml + '</div>');
-      }
-    }
-  });
-
-  if (cfg.mode === '3up_roll') {
-    for (var k = 0; k < allStickerElements.length; k += 3) {
-      printDoc += '<div class="row-container">';
-      printDoc += allStickerElements[k] || '';
-      printDoc += allStickerElements[k + 1] || '';
-      printDoc += allStickerElements[k + 2] || '';
-      printDoc += '</div>';
-    }
-  } else if (cfg.mode === 'grid_a4') {
-    printDoc += '<div class="label-container">' + allStickerElements.join('') + '</div>';
-  } else {
-    printDoc += allStickerElements.join('');
-  }
-
-  printDoc += '<script>';
-  printDoc += 'function calcBarcodeWidth(code, maxMm) {';
-  printDoc += '  var len = String(code || "").length;';
-  printDoc += '  var modules = 35 + 11 * Math.max(len, 1);';
-  printDoc += '  var targetPx = ((maxMm || 36) / 25.4) * 96;';
-  printDoc += '  var w = targetPx / modules;';
-  printDoc += '  if (w > 1.7) w = 1.7;';
-  printDoc += '  if (w < 0.75) w = 0.75;';
-  printDoc += '  return Math.round(w * 100) / 100;';
-  printDoc += '}';
-  printDoc += 'function doPrint() {';
-  printDoc += '  var svgs = document.querySelectorAll(".barcode-svg");';
-  printDoc += '  var maxMm = ' + barcodeWidthMm + ';';
-  printDoc += '  var heightPx = ' + Math.round(barcodeHeightMm * 3.78) + ';';
-  printDoc += '  svgs.forEach(function(el) {';
-  printDoc += '    var code = el.getAttribute("data-barcode");';
-  printDoc += '    var bWidth = calcBarcodeWidth(code, maxMm);';
-  printDoc += '    try {';
-  printDoc += '      JsBarcode(el, code, {';
-  printDoc += '        format: "CODE128",';
-  printDoc += '        width: bWidth,';
-  printDoc += '        height: heightPx,';
-  printDoc += '        displayValue: false,';
-  printDoc += '        margin: 0';
-  printDoc += '      });';
-  printDoc += '    } catch (e) { console.error(e); }';
-  printDoc += '  });';
-  printDoc += '  setTimeout(function() { window.focus(); window.print(); }, 250);';
-  printDoc += '}';
-  printDoc += 'if (document.readyState === "complete") { doPrint(); } else { window.onload = doPrint; }';
-  printDoc += '<\/script></body></html>';
-
-  var iframe = document.getElementById('pageBarcodePrintIframe');
-  var ifrDoc = iframe.contentWindow || iframe.contentDocument;
-  if (ifrDoc.document) ifrDoc = ifrDoc.document;
-  ifrDoc.open();
-  ifrDoc.write(printDoc);
-  ifrDoc.close();
-}
-
+<?php require __DIR__ . '/js/print_execute.php'; /* ສັ່ງພິມບາໂຄ້ດ */ ?>
 $(document).ready(function() {
   initPageBarcodeState();
   renderPageBarcodeBlocks();

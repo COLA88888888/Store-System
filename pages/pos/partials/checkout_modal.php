@@ -6,7 +6,8 @@
       <!-- Header -->
       <div class="modal-header bg-primary py-2 px-4">
         <h5 class="modal-title font-weight-bold d-flex align-items-center mb-0" style="font-size: 18px; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-          <?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?>
+          <span id="checkoutTitlePay"><?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?></span>
+          <span id="checkoutTitleCredit" style="display:none;"><i class="fas fa-hand-holding-usd mr-2"></i><?php echo htmlspecialchars(t('pos.credit_summary', 'ຂາຍຕິດໜີ້')); ?></span>
         </h5>
         <button type="button" class="close text-white" data-dismiss="modal" style="opacity:0.9;font-size:1.4rem;"><span>&times;</span></button>
       </div>
@@ -58,8 +59,8 @@
               <div class="font-weight-bold" id="checkoutTotalDisplay" style="font-size:1.55rem;color:#fff;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;line-height:1.2;word-break:break-all;text-shadow:0 2px 8px rgba(0,0,0,0.15);position:relative;">0 ₭</div>
             </div>
 
-            <!-- Pay Mode -->
-            <div>
+            <!-- Pay Mode (hidden in credit mode — that is opened from the ຕິດໜີ້ button on the scan bar) -->
+            <div id="payModeRow">
               <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><?php echo htmlspecialchars(t('pos.pay_method_label', 'ວິທີຊຳລະ')); ?></div>
               <div class="d-flex" style="gap:7px;">
                 <button type="button" id="payModeSingleBtn" onclick="setPayMode('single')"
@@ -94,8 +95,8 @@
                 $pos_bank_accounts = [];
                 try {
                     // This branch's own banks, plus any shared across every branch (store_id = 0).
-                    $b_stmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE is_active = 1 AND (store_id = ? OR store_id = 0) ORDER BY id ASC");
-                    $b_stmt->execute([getActiveStoreId($pdo)]);
+                    $b_stmt = $pdo->prepare("SELECT * FROM st_bank_accounts WHERE is_active = 1 AND (store_id = ? OR store_id = 0) ORDER BY id ASC");
+                    $b_stmt->execute([getPosStoreId()]);
                     $pos_bank_accounts = $b_stmt->fetchAll(PDO::FETCH_ASSOC);
                 } catch (Throwable $e) {}
 
@@ -183,7 +184,10 @@
 
             <!-- SINGLE: cash input -->
             <div id="singlePaySection">
-              <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><?php echo htmlspecialchars(t('pos.amount_received_label', 'ຈຳນວນທີ່ຮັບ')); ?> <span class="text-danger">*</span></div>
+              <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;">
+                <span id="singleAmountLbl"><?php echo htmlspecialchars(t('pos.amount_received_label', 'ຈຳນວນທີ່ຮັບ')); ?> <span class="text-danger">*</span></span>
+                <span id="creditDepositLbl" style="display:none;"><?php echo htmlspecialchars(t('pos.credit_deposit_label', 'ເງິນມັດຈຳ (ຖ້າມີ)')); ?> <small class="text-muted font-weight-normal"><?php echo htmlspecialchars(t('pos.credit_deposit_hint', '— ບໍ່ຈ່າຍເລີຍ ໃຫ້ປ່ອຍເປັນ 0')); ?></small></span>
+              </div>
               <div class="input-group" style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(36,72,134,0.10);">
                 <input type="text" id="cashReceived" class="form-control text-right font-weight-bold"
                   placeholder="0" oninput="formatMoneyInput(this);calculateChange();"
@@ -202,6 +206,24 @@
                 <button type="button" class="btn btn-sm btn-quick-cash font-weight-bold" onclick="addCashShortcut(50000)" style="font-size:0.80rem;padding:6px 10px;">+50K</button>
                 <button type="button" class="btn btn-sm btn-quick-cash font-weight-bold" onclick="addCashShortcut(100000)" style="font-size:0.80rem;padding:6px 10px;">+100K</button>
                 <button type="button" class="btn btn-sm btn-quick-cash font-weight-bold" onclick="addCashShortcut(500000)" style="font-size:0.80rem;padding:6px 10px;">+500K</button>
+              </div>
+            </div>
+
+            <!-- CREDIT: when the customer promises to pay (ກຳນົດຊຳລະ) — optional -->
+            <div id="creditDueSection" style="display:none;">
+              <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><i class="far fa-calendar-alt text-danger mr-1"></i><?php echo htmlspecialchars(t('pos.credit_due_label', 'ກຳນົດຊຳລະ (ມື້ທີ່ຈະມາຈ່າຍ)')); ?></div>
+              <input type="date" id="creditDueDate" class="form-control font-weight-bold" onchange="calcCredit()" style="height:40px;border:2px solid #fca5a5;border-radius:8px;color:#b91c1c;">
+              <div class="d-flex flex-wrap mt-1" style="gap:5px;">
+                <?php foreach ([7, 15, 30] as $__dd): ?>
+                  <button type="button" class="btn btn-sm font-weight-bold" onclick="setCreditDueIn(<?php echo $__dd; ?>)"
+                    style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:6px;font-size:0.8rem;padding:3px 10px;">
+                    +<?php echo $__dd; ?> <?php echo htmlspecialchars(t('pos.credit_due_days', 'ວັນ')); ?>
+                  </button>
+                <?php endforeach; ?>
+                <button type="button" class="btn btn-sm font-weight-bold" onclick="$('#creditDueDate').val(''); calcCredit();"
+                  style="background:#fff;color:#64748b;border:1px solid #cbd5e1;border-radius:6px;font-size:0.8rem;padding:3px 10px;">
+                  <?php echo htmlspecialchars(t('pos.credit_due_none', 'ບໍ່ກຳນົດ')); ?>
+                </button>
               </div>
             </div>
 
@@ -274,6 +296,50 @@
               </div>
             </div>
 
+            <!-- CREDIT: summary (ຂາຍຕິດໜີ້) -->
+            <div id="creditSummary" style="display:none;">
+              <div style="background:#fef2f2;border-radius:12px;border:1.5px solid #fecaca;padding:14px 16px;">
+                <div style="font-size:0.9rem;color:#b91c1c;font-weight:700;margin-bottom:8px;letter-spacing:.4px;"><i class="fas fa-hand-holding-usd mr-1"></i><?php echo htmlspecialchars(t('pos.credit_summary', 'ຂາຍຕິດໜີ້')); ?></div>
+                <div class="d-flex justify-content-between mb-2" style="font-size:1rem;">
+                  <span class="text-muted"><?php echo htmlspecialchars(t('pos.credit_customer', 'ລູກຄ້າ:')); ?></span>
+                  <span class="font-weight-bold text-dark text-truncate ml-2" id="creditCustomerLbl">-</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1" style="font-size:1rem;">
+                  <span class="text-muted"><?php echo htmlspecialchars(t('pos.credit_bill_total', '① ຍອດບິນນີ້:')); ?></span>
+                  <span class="font-weight-bold text-dark text-truncate ml-2" id="creditTotalLbl">0 ₭</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1" style="font-size:1rem;">
+                  <span class="text-muted"><?php echo htmlspecialchars(t('pos.credit_deposit_today', '② ຈ່າຍມັດຈຳມື້ນີ້:')); ?></span>
+                  <span class="font-weight-bold text-primary text-truncate ml-2" id="creditDepositDisplay">0 ₭</span>
+                </div>
+                <div style="border-top:1px dashed #fecaca;margin:8px 0;"></div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                  <span class="font-weight-bold" style="font-size:1rem;color:#b91c1c;"><?php echo htmlspecialchars(t('pos.credit_owed_this_bill', 'ຕິດໜີ້ບິນນີ້ (① − ②):')); ?></span>
+                  <span class="font-weight-bold" id="creditOwedDisplay" style="font-size:1.5rem;color:#dc2626;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">0 ₭</span>
+                </div>
+                <!-- Customer's other unpaid bills (api/pos/customer_debt_info.php) -->
+                <div id="creditOldDebtBox" style="display:none;margin-top:8px;padding-top:8px;border-top:1px dashed #fecaca;">
+                  <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
+                    <span class="text-muted"><?php echo htmlspecialchars(t('pos.credit_old_debt', 'ໜີ້ເກົ່າທີ່ຍັງຄ້າງ:')); ?> <small id="creditOldDebtBills"></small></span>
+                    <span class="font-weight-bold text-dark text-truncate ml-2" id="creditOldDebtLbl">0 ₭</span>
+                  </div>
+                  <div class="d-flex justify-content-between" style="font-size:1rem;">
+                    <span class="font-weight-bold" style="color:#7f1d1d;"><?php echo htmlspecialchars(t('pos.credit_total_after', 'ໜີ້ລວມຫຼັງບິນນີ້:')); ?></span>
+                    <span class="font-weight-bold text-truncate ml-2" id="creditTotalAfterLbl" style="color:#7f1d1d;">0 ₭</span>
+                  </div>
+                  <div id="creditOverdueLbl" class="mt-1 font-weight-bold" style="display:none;font-size:0.82rem;color:#b45309;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-2" style="font-size:0.95rem;">
+                  <span class="text-muted"><i class="far fa-calendar-alt mr-1"></i><?php echo htmlspecialchars(t('pos.credit_due_short', 'ກຳນົດຊຳລະ:')); ?></span>
+                  <span class="font-weight-bold text-dark ml-2" id="creditDueLbl">-</span>
+                </div>
+                <div id="creditWarning" class="mt-2 font-weight-bold" style="display:none;font-size:0.85rem;color:#b91c1c;"></div>
+                <div class="mt-2" style="font-size:0.78rem;color:#7f1d1d;line-height:1.45;background:#fff;border-radius:8px;padding:6px 8px;border:1px solid #fecaca;">
+                  <i class="fas fa-info-circle mr-1"></i><?php echo htmlspecialchars(t('pos.credit_explain', 'ສິນຄ້າຈະຖືກຕັດສະຕັອກທັນທີ. ຍອດ "ຕິດໜີ້ບິນນີ້" ຈະຖືກບັນທຶກເປັນໜີ້ຂອງລູກຄ້າ — ເມື່ອລູກຄ້າມາຈ່າຍ ໃຫ້ຮັບເງິນຢູ່ເມນູ ລູກຄ້າຕິດໜີ້.')); ?>
+                </div>
+              </div>
+            </div>
+
             <!-- SPLIT: summary -->
             <div id="splitSummary" style="display:none;">
               <div style="background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;padding:14px 16px;">
@@ -330,7 +396,8 @@
               <button type="button" class="btn font-weight-bold flex-fill py-2 text-white" id="btnSubmitPayment"
                 onclick="processCheckout()"
                 style="background:linear-gradient(135deg,#244886,#1a3666);border:none;border-radius:9px;font-size:0.90rem;box-shadow:0 4px 14px rgba(36,72,134,0.35);">
-                <?php echo htmlspecialchars(t('pos.confirm_payment', 'ຢືນຢັນຊຳລະ')); ?>
+                <span id="btnSubmitPayLbl"><?php echo htmlspecialchars(t('pos.confirm_payment', 'ຢືນຢັນຊຳລະ')); ?></span>
+                <span id="btnSubmitCreditLbl" style="display:none;"><?php echo htmlspecialchars(t('pos.credit_submit', 'ບັນທຶກຂາຍຕິດໜີ້')); ?></span>
               </button>
             </div>
 
@@ -354,61 +421,10 @@
       <?php $rcAreaId = 'receiptPrintArea'; $rcP = 'rc_'; require __DIR__ . '/../../../layouts/receipt_template.php'; ?>
       <div class="modal-footer border-0 p-3 bg-light">
         <button type="button" class="btn btn-secondary btn-sm font-weight-bold" onclick="resetPOS()"><?php echo htmlspecialchars(t('pos.close', 'ປິດ')); ?></button>
-        <button type="button" class="btn btn-outline-primary btn-sm font-weight-bold px-3" onclick="printDeliveryNote()"><i class="fas fa-truck mr-1"></i> <?php echo htmlspecialchars(t('pos.delivery_note', 'ບິນສົ່ງເຄື່ອງ')); ?></button>
         <button type="button" class="btn btn-primary btn-sm font-weight-bold px-3" onclick="printReceiptAuto()"><i class="fas fa-print mr-1"></i> <?php echo htmlspecialchars(t('pos.print_receipt', 'ພິມໃບບິນ')); ?></button>
       </div>
     </div>
   </div>
-</div>
-
-<!-- Delivery Note print template (ບິນສົ່ງເຄື່ອງ) — hidden; filled by JS from the completed sale, printed 80mm -->
-<?php
-  // Sender = the logged-in staff member (name + phone) on the branch letterhead logo
-  $dnSenderName = trim(($_SESSION['fname'] ?? '') . ' ' . ($_SESSION['lname'] ?? ''));
-  if ($dnSenderName === '') $dnSenderName = $_SESSION['username'] ?? 'Admin';
-  $dnSenderTel = '';
-  try {
-      $dnUStmt = $pdo->prepare("SELECT tel FROM tbuser WHERE Id = ? LIMIT 1");
-      $dnUStmt->execute([intval($_SESSION['user_id'] ?? 0)]);
-      $dnSenderTel = trim((string)$dnUStmt->fetchColumn());
-  } catch (Throwable $e) {}
-
-  $dnBranch = [];
-  try {
-      $dnStmt = $pdo->prepare("SELECT logo_path FROM tbstore WHERE store_id = ? LIMIT 1");
-      $dnStmt->execute([getActiveStoreId($pdo)]);
-      $dnBranch = $dnStmt->fetch(PDO::FETCH_ASSOC) ?: [];
-  } catch (Throwable $e) {}
-  if (!empty($dnBranch['logo_path'])) {
-      $dnLogoPath = $base_path . ltrim(str_replace('\\', '/', $dnBranch['logo_path']), '/');
-  } else {
-      $dnLogoName = !empty($company['img_url']) ? basename($company['img_url']) : 'logo.png';
-      $dnLogoPath = $base_path . 'assets/img/logo/' . $dnLogoName;
-  }
-?>
-<div id="deliveryNoteArea" style="display:none;font-family:'Noto Sans Lao','Souliyo','Boon',Arial,sans-serif;font-size:13px;font-weight:600;line-height:1.5;color:#000;padding:8px 6px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;">
-  <img src="<?php echo htmlspecialchars($dnLogoPath); ?>" alt="Logo" style="max-width:70px;max-height:70px;object-fit:contain;display:block;margin:6px auto 4px auto;" onerror="this.onerror=null;this.src='<?php echo $base_path; ?>assets/img/logo/logo.png';">
-  <div style="text-align:center;font-size:14px;font-weight:800;letter-spacing:1px;margin-bottom:4px;"><i class="fas fa-truck mr-1"></i> <?php echo htmlspecialchars(t('pos.delivery_note', 'ບິນສົ່ງເຄື່ອງ')); ?></div>
-  <div style="display:flex;justify-content:space-between;"><span><?php echo htmlspecialchars(t('pos.receipt_bill_no', 'ເລກບິນ:')); ?></span><span id="dn_bill" style="font-weight:700;">-</span></div>
-  <div style="display:flex;justify-content:space-between;"><span><?php echo htmlspecialchars(t('pos.receipt_date', 'ວັນທີ:')); ?></span><span id="dn_date">-</span></div>
-  <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-  <!-- Sender = the logged-in staff member: name + phone right after the label -->
-  <div style="display:flex;justify-content:space-between;"><span style="font-weight:800;"><i class="fas fa-store mr-1"></i> <?php echo htmlspecialchars(t('pos.dn_sender', 'ຜູ້ສົ່ງ')); ?>:</span><span style="font-weight:700;"><?php echo htmlspecialchars($dnSenderName); ?></span></div>
-  <?php if ($dnSenderTel !== ''): ?>
-  <div style="display:flex;justify-content:space-between;"><span><?php echo htmlspecialchars(t('pos.receipt_customer_phone', 'ເບີໂທ:')); ?></span><span style="font-weight:700;"><?php echo htmlspecialchars($dnSenderTel); ?></span></div>
-  <?php endif; ?>
-  <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-  <div style="display:flex;justify-content:space-between;"><span style="font-weight:800;"><i class="fas fa-user mr-1"></i> <?php echo htmlspecialchars(t('pos.dn_recipient', 'ຜູ້ຮັບ')); ?>:</span><span id="dn_customer" style="font-weight:700;">-</span></div>
-  <div style="display:flex;justify-content:space-between;" id="dn_phone_row"><span><?php echo htmlspecialchars(t('pos.receipt_customer_phone', 'ເບີໂທ:')); ?></span><span id="dn_phone" style="font-weight:700;">-</span></div>
-  <div id="dn_address_row" style="margin-top:1px;"><?php echo htmlspecialchars(t('pos.dn_recipient_address', 'ທີ່ຢູ່:')); ?> <span id="dn_address" style="font-weight:700;">-</span></div>
-  <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-  <table style="width:100%;font-size:12.5px;">
-    <thead><tr style="border-bottom:1px dashed #000;">
-      <th style="text-align:left;padding-bottom:3px;font-weight:800;"><?php echo htmlspecialchars(t('pos.receipt_col_item', 'ລາຍການ')); ?></th>
-      <th style="text-align:right;padding-bottom:3px;font-weight:800;width:70px;"><?php echo htmlspecialchars(t('pos.receipt_col_qty', 'ຈຳນວນ')); ?></th>
-    </tr></thead>
-    <tbody id="dn_items"></tbody>
-  </table>
 </div>
 
 <!-- Modal: QR Code Enlarge / Zoom HD -->

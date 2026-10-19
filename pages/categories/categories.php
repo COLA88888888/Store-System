@@ -93,15 +93,16 @@ require_once __DIR__ . '/../../layouts/header.php';
                 <tr>
                   <th class="py-3 text-center" style="width: 60px;"><?php echo htmlspecialchars(t('categories.col_no', 'ລຳດັບ')); ?></th>
                   <th class="py-3 text-center" style="width: 100px;"><?php echo htmlspecialchars(t('categories.col_code', 'ລະຫັດ')); ?></th>
-                  <th class="py-3"><?php echo htmlspecialchars(t('categories.col_name', 'ຊື່ປະເພດສິນຄ້າ')); ?></th>
+                  <th class="py-3" style="white-space: nowrap !important;"><?php echo htmlspecialchars(t('categories.col_name', 'ຊື່ປະເພດສິນຄ້າ')); ?></th>
                   <th class="py-3"><?php echo htmlspecialchars(t('categories.col_desc', 'ລາຍລະອຽດ')); ?></th>
+                  <th class="py-3" style="width: 180px;"><?php echo htmlspecialchars(t('categories.col_printer', 'ເຄື່ອງພິມ')); ?></th>
                   <th class="py-3" style="width: 180px;"><?php echo htmlspecialchars(t('categories.col_created_at', 'ວັນທີບັນທຶກ')); ?></th>
                   <th class="text-center py-3" style="width: 140px;"><?php echo htmlspecialchars(t('categories.col_action', 'ຈັດການ')); ?></th>
                 </tr>
               </thead>
               <tbody style="font-size: 0.95rem;">
                 <tr id="catNoResult" style="display: none;">
-                  <td colspan="6" class="text-center text-muted py-4">
+                  <td colspan="7" class="text-center text-muted py-4">
                     <i class="fas fa-search fa-lg mb-2 d-block opacity-50"></i>
                     <?php echo htmlspecialchars(t('categories.no_result', 'ບໍ່ພົບໝວດໝູ່ທີ່ຄົ້ນຫາ')); ?>
                   </td>
@@ -111,7 +112,8 @@ require_once __DIR__ . '/../../layouts/header.php';
                     $catJson = htmlspecialchars(json_encode($cat), ENT_QUOTES, 'UTF-8');
                     $createdAt = !empty($cat['created_at']) ? date('d/m/Y H:i', strtotime($cat['created_at'])) : '-';
                     $productCount = intval($cat['product_count'] ?? 0);
-                    $catSearchAttr = strtolower(($cat['category_name'] ?? '') . ' ' . ($cat['description'] ?? ''));
+                    $printerName = trim((string)($cat['printer_name'] ?? ''));
+                    $catSearchAttr = strtolower(($cat['category_name'] ?? '') . ' ' . ($cat['description'] ?? '') . ' ' . $printerName);
                   ?>
                     <tr class="cat-row" data-s="<?php echo htmlspecialchars($catSearchAttr); ?>">
                       <td class="align-middle text-center text-muted font-weight-bold row-no"><?php echo $idx++; ?></td>
@@ -120,12 +122,23 @@ require_once __DIR__ . '/../../layouts/header.php';
                         <span class="badge badge-light border px-2 py-1" style="font-size: 0.85rem; color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe !important;"><?php echo $cat['category_id']; ?></span>
                       </td>
 
-                      <td class="align-middle font-weight-bold text-dark cat-name-cell">
+                      <td class="align-middle font-weight-bold text-dark cat-name-cell" style="white-space: nowrap !important;">
                         <?php echo htmlspecialchars($cat['category_name']); ?>
                       </td>
 
                       <td class="align-middle text-muted cat-desc-cell">
                         <?php echo htmlspecialchars($cat['description'] ?: '-'); ?>
+                      </td>
+
+                      <td class="align-middle">
+                        <?php if ($printerName !== ''): ?>
+                          <?php $printerOff = isset($cat['printer_status']) && (int)$cat['printer_status'] !== 1; ?>
+                          <span class="badge border px-2 py-1" style="font-size: 0.85rem; <?php echo $printerOff ? 'color: #64748b; background-color: #f1f5f9; border-color: #cbd5e1 !important; text-decoration: line-through;' : 'color: #047857; background-color: #ecfdf5; border-color: #a7f3d0 !important;'; ?>">
+                            <i class="fas fa-print mr-1"></i><?php echo htmlspecialchars($printerName); ?>
+                          </span>
+                        <?php else: ?>
+                          <span class="text-muted" style="font-size: 0.85rem;"><?php echo htmlspecialchars(t('categories.no_printer', 'ບໍ່ໄດ້ຕັ້ງ')); ?></span>
+                        <?php endif; ?>
                       </td>
 
                       <td class="align-middle text-secondary" style="font-size: 0.88rem;">
@@ -242,6 +255,7 @@ require_once __DIR__ . '/components/form_bulk_printer.php';
 
   function openEditModal(cat) {
     $('#edit_cat_id').val(cat.category_id);
+    $('#edit_cat_id_input').val(cat.category_id);
     $('#edit_cat_name').val(cat.category_name);
     $('#edit_cat_desc').val(cat.description);
     $('#edit_cat_printer').val(cat.printer_id != null ? String(cat.printer_id) : '');

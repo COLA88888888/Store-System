@@ -25,11 +25,12 @@ function lanPrinterDots($paperWidth) {
 
 // Write $bytes to an open printer socket at LAN_PRINT_BYTES_PER_SEC after an initial
 // LAN_PRINT_HEAD_START burst. Shared by lanPrinterSend(); tools/print-agent.php has a copy.
-// ~72 KB/s: what an 80 mm printer takes while printing a raster image (slower than text).
-// 190 KB/s overran some printers' receive buffer and the bill came out cut short — only raise
-// this if a printer stutters AND keeps printing complete bills.
-if (!defined('LAN_PRINT_BYTES_PER_SEC')) define('LAN_PRINT_BYTES_PER_SEC', 72000);
-if (!defined('LAN_PRINT_HEAD_START'))    define('LAN_PRINT_HEAD_START', 4096);
+// 72 KB/s was below an 80 mm printer's raster speed, so it ran dry and printed the bill in
+// stop-start jerks; 190 KB/s overran some printers' receive buffer and the bill came out cut
+// short. 120 KB/s + an 8 KB head start sits between the two: fast enough to print in one
+// continuous run. If a printer starts cutting bills short, lower this again (e.g. 100000).
+if (!defined('LAN_PRINT_BYTES_PER_SEC')) define('LAN_PRINT_BYTES_PER_SEC', 120000);
+if (!defined('LAN_PRINT_HEAD_START'))    define('LAN_PRINT_HEAD_START', 8192);
 function lanPrinterWritePaced($fp, $bytes) {
     $len = strlen($bytes);
     $sent = 0;
@@ -77,6 +78,11 @@ function lanPrinterSend($host, $port, $bytes, $timeout = 4) {
     return [true, ''];
 }
 
+// ບິນ LAN: ຍັບຂວາ 7 dots (~0.9 mm) ໃຫ້ຂອບເຈ້ຍສອງຂ້າງເທົ່າກັນ. ທົດລອງກັບເຄື່ອງແລ້ວ:
+//   6 = ຊິດຊ້າຍ ~0.35 mm (ວັດຈາກຮູບ: ຊ້າຍ ~5.4 mm, ຂວາ ~6.1 mm); 8, 9 = ຊິດຂວາເລັກນ້ອຍ.
+//   ບວກ = ຂວາ, ລົບ = ຊ້າຍ (8 dots = 1 mm; 1 dot = 0.125 mm ເປັນໜ່ວຍນ້ອຍສຸດ).
+//   USB ມີຄ່າຂອງມັນເອງ: USB_PRINT_SHIFT_MM ໃນ assets/js/lan-receipt.js.
+if (!defined('LAN_PRINT_SHIFT_DOTS')) define('LAN_PRINT_SHIFT_DOTS', 7);
 function escposRasterFromPng($png, $dots) {
     $src = @imagecreatefromstring($png);
     if (!$src) {
@@ -135,6 +141,36 @@ function escposRasterFromPng($png, $dots) {
                 $lum[$y + 1][$x] += $err * 5 / 16;
                 if ($x + 1 < $w) $lum[$y + 1][$x + 1] += $err * 1 / 16;
             }
+        }
+    }
+
+    // LAN-only horizontal nudge (LAN_PRINT_SHIFT_DOTS, now 7 ≈ 0.9 mm right) on top of the centring
+    // done for both paths by PRINT_SHIFT_DOTS in assets/js/lan-receipt.js — this printer's head
+    // sits off-centre over the network, so the bill still had more blank paper on the right. Was: the bill image is tuned for USB
+    // (browser dialog); the LAN printer's head sits differently, so the same image came out too
+    // far left. Shift it right here, which the USB path never goes through. 8 dots = 1 mm;
+    // positive = right, negative = left.
+    $shift = LAN_PRINT_SHIFT_DOTS;
+    // ບໍ່ຍັບເກີນຂອບເຈ້ຍຫວ່າງ — ໜັງສືຢູ່ຂອບຈະບໍ່ຖືກຕັດຫາຍ
+    if ($shift !== 0) {
+        $minX = $w; $maxX = -1;
+        foreach ($bitmap as $row) {
+            $first = array_search(true, $row, true);
+            if ($first === false) continue;
+            if ($first < $minX) $minX = $first;
+            $last = $w - 1 - array_search(true, array_reverse($row), true);
+            if ($last > $maxX) $maxX = $last;
+        }
+        if ($maxX >= 0) {
+            $shift = $shift > 0 ? min($shift, $w - 1 - $maxX) : -min(-$shift, $minX);
+        }
+    }
+    if ($shift !== 0) {
+        $blank = array_fill(0, abs($shift), false);
+        foreach ($bitmap as $y => $row) {
+            $bitmap[$y] = $shift > 0
+                ? array_merge($blank, array_slice($row, 0, $w - $shift))
+                : array_merge(array_slice($row, -$shift), $blank);
         }
     }
 

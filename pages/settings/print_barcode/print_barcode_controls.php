@@ -71,7 +71,7 @@
         </label>
       </div>
       <div class="custom-control custom-checkbox custom-control-inline mb-0">
-        <input type="checkbox" class="custom-control-input" id="opt_show_code" onchange="renderPageBarcodeBlocks()">
+        <input type="checkbox" class="custom-control-input" id="opt_show_code" checked onchange="renderPageBarcodeBlocks()">
         <label class="custom-control-label font-weight-bold text-dark" for="opt_show_code" style="font-size: 0.85rem; cursor: pointer;">
           <?php echo htmlspecialchars(t('print_barcode.opt_show_code', 'ເລກລະຫັດໃຕ້ບາໂຄ້ດ')); ?>
         </label>
@@ -98,7 +98,7 @@
       </div>
       <div class="d-flex align-items-center" style="gap: 4px;" title="<?php echo htmlspecialchars(t('print_barcode.label_pitch_hint', 'ວັດຈາກຂອບເທິງຂອງດວງໜຶ່ງ ຫາ ຂອບເທິງຂອງດວງຖັດໄປ (ສະຕິກເກີ + ຮ່ອງ) — ແກ້ອາການພິມຫຼາຍດວງແລ້ວເລື່ອນສະສົມ')); ?>">
         <label for="label_pitch_mm" class="mb-0 font-weight-bold text-dark" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('print_barcode.label_pitch', 'ໄລຍະຕໍ່ດວງ')); ?></label>
-        <input type="number" id="label_pitch_mm" class="form-control form-control-sm" style="width: 80px; border-radius: 6px;" value="30" min="10" max="120" step="0.1" placeholder="<?php echo htmlspecialchars(t('print_barcode.auto', 'ອັດຕະໂນມັດ')); ?>">
+        <input type="number" id="label_pitch_mm" class="form-control form-control-sm" style="width: 80px; border-radius: 6px;" value="0" min="0" max="120" step="0.1" placeholder="<?php echo htmlspecialchars(t('print_barcode.auto', 'ອັດຕະໂນມັດ')); ?>">
         <span class="text-muted" style="font-size: 0.78rem;">mm</span>
         <i class="fas fa-question-circle text-info" style="font-size: 0.75rem; cursor: help;"></i>
       </div>

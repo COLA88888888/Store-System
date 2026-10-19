@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($com_name_la !== '') {
             try {
                 // Get existing images for cleanup
-                $curComp = $pdo->query("SELECT img_url, qr_img FROM tbcompanyinfo WHERE Id = 1")->fetch();
+                $curComp = $pdo->query("SELECT img_url, qr_img FROM st_tbcompanyinfo WHERE Id = 1")->fetch();
 
                 $newLogoName = null;
                 if (isset($_FILES['logo_img']) && !empty($_FILES['logo_img']['name']) && $_FILES['logo_img']['error'] === UPLOAD_ERR_OK) {
@@ -72,9 +72,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // Check if record exists in tbcompanyinfo
-                $cnt = $pdo->query("SELECT COUNT(*) FROM tbcompanyinfo")->fetchColumn();
+                $cnt = $pdo->query("SELECT COUNT(*) FROM st_tbcompanyinfo")->fetchColumn();
                 if ($cnt > 0) {
-                    $sql = "UPDATE tbcompanyinfo SET com_name_la = ?, com_address = ?, com_tel = ?, com_email = ?, barcode = ?, tax_type = ?, vat_percent = ?";
+                    $sql = "UPDATE st_tbcompanyinfo SET com_name_la = ?, com_address = ?, com_tel = ?, com_email = ?, barcode = ?, tax_type = ?, vat_percent = ?";
                     $params = [$com_name_la, $com_address, $com_tel, $com_email, $receipt_footer, $tax_type, $vat_percent];
 
                     if ($newLogoName) {
@@ -85,8 +85,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $sql .= ", qr_img = ?";
                         $params[] = $newQrName;
                     }
-                    $hasIdCol = $pdo->query("SHOW COLUMNS FROM tbcompanyinfo LIKE 'Id'")->fetch();
-                    $pkCol = $hasIdCol ? 'Id' : ($pdo->query("SHOW COLUMNS FROM tbcompanyinfo LIKE 'com_id'")->fetch() ? 'com_id' : '1');
+                    $hasIdCol = $pdo->query("SHOW COLUMNS FROM st_tbcompanyinfo LIKE 'Id'")->fetch();
+                    $pkCol = $hasIdCol ? 'Id' : ($pdo->query("SHOW COLUMNS FROM st_tbcompanyinfo LIKE 'com_id'")->fetch() ? 'com_id' : '1');
                     $sql .= " WHERE {$pkCol} = 1";
 
                     $stmt = $pdo->prepare($sql);
@@ -94,14 +94,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $logo = $newLogoName ? $newLogoName : 'logo.png';
                     $qr = $newQrName ? $newQrName : '';
-                    $stmt = $pdo->prepare("INSERT INTO tbcompanyinfo (Id, com_name_la, com_address, com_tel, com_email, barcode, img_url, qr_img, tax_type, vat_percent, branch_id) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)");
+                    $stmt = $pdo->prepare("INSERT INTO st_tbcompanyinfo (Id, com_name_la, com_address, com_tel, com_email, barcode, img_url, qr_img, tax_type, vat_percent, branch_id) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)");
                     $stmt->execute([$com_name_la, $com_address, $com_tel, $com_email, $receipt_footer, $logo, $qr, $tax_type, $vat_percent]);
                 }
 
                 // Sync with main store in tbstore if exists
-                $storeCnt = $pdo->query("SELECT COUNT(*) FROM tbstore WHERE store_id = 1 OR is_main = 1")->fetchColumn();
+                $storeCnt = $pdo->query("SELECT COUNT(*) FROM st_tbstore WHERE store_id = 1 OR is_main = 1")->fetchColumn();
                 if ($storeCnt > 0) {
-                    $stmtStore = $pdo->prepare("UPDATE tbstore SET store_name = ?, address = ?, tel = ? WHERE store_id = 1 OR is_main = 1");
+                    $stmtStore = $pdo->prepare("UPDATE st_tbstore SET store_name = ?, address = ?, tel = ? WHERE store_id = 1 OR is_main = 1");
                     $stmtStore->execute([$com_name_la, $com_address, $com_tel]);
                 }
 
@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         try {
             if ($bank_id > 0) {
-                $sql = "UPDATE bank_accounts SET bank_name = ?, account_number = ?, account_name = ?, bank_code = ?, is_active = ?";
+                $sql = "UPDATE st_bank_accounts SET bank_name = ?, account_number = ?, account_name = ?, bank_code = ?, is_active = ?";
                 $params = [$bank_name, $account_number, $account_name, $bank_code, $is_active];
 
                 if ($bank_logo) {
@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message = "ອັບເດດຂໍ້ມູນບັນຊີທະນາຄານ \"$bank_name\" ສຳເລັດແລ້ວ!";
                 $message_type = "success";
             } else {
-                $stmt = $pdo->prepare("INSERT INTO bank_accounts (bank_name, account_number, account_name, bank_code, bank_logo, qr_code_img, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO st_bank_accounts (bank_name, account_number, account_name, bank_code, bank_logo, qr_code_img, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$bank_name, $account_number, $account_name, $bank_code, $bank_logo, $qr_code_img, $is_active]);
                 $message = "ເພີ່ມບັນຊີທະນາຄານ \"$bank_name\" ສຳເລັດແລ້ວ!";
                 $message_type = "success";
@@ -186,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $bank_id = intval($_POST['bank_id'] ?? 0);
         if ($bank_id > 0) {
             try {
-                $stmt = $pdo->prepare("DELETE FROM bank_accounts WHERE id = ?");
+                $stmt = $pdo->prepare("DELETE FROM st_bank_accounts WHERE id = ?");
                 $stmt->execute([$bank_id]);
                 $message = "ລົບບັນຊີທະນາຄານສຳເລັດແລ້ວ!";
                 $message_type = "success";
@@ -200,7 +200,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ດຶງຂໍ້ມູນຮ້ານຄ້າຕາມ branch_id ຂອງ Session (ຮອງຮັບຫຼາຍສາຂາ)
 $branch_id = $_SESSION['branch_id'] ?? 1;
-$stmtComp = $pdo->prepare("SELECT * FROM tbcompanyinfo WHERE branch_id = ? OR Id = 1 ORDER BY branch_id DESC, Id ASC LIMIT 1");
+$stmtComp = $pdo->prepare("SELECT * FROM st_tbcompanyinfo WHERE branch_id = ? OR Id = 1 ORDER BY branch_id DESC, Id ASC LIMIT 1");
 $stmtComp->execute([$branch_id]);
 $company = $stmtComp->fetch(PDO::FETCH_ASSOC);
 

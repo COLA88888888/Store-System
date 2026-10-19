@@ -15,7 +15,8 @@
         <div class="modal-body p-4">
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('units.label_code', 'ລະຫັດຫົວໜ່ວຍ')); ?></label>
-            <input type="number" id="add_unit_id" name="unit_id" class="form-control bg-light" style="border-radius: 8px; height: 42px;" min="1" readonly>
+            <input type="text" id="add_unit_id" name="unit_id" class="form-control bg-light font-weight-bold text-primary" style="border-radius: 8px; height: 42px;" readonly>
+            <small class="form-text text-muted" style="font-size: 0.82rem;"><i class="fas fa-lock mr-1"></i><?php echo htmlspecialchars(t('units.hint_code_locked', 'ລະຫັດຈະລຽນລຳດັບອັດຕະໂນມັດ (ແກ້ໄຂບໍ່ໄດ້)')); ?></small>
           </div>
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('units.label_name', 'ຊື່ຫົວໜ່ວຍ')); ?> <span class="text-danger">*</span></label>

@@ -68,4 +68,6 @@ return [
     'printers.receipt_set_success' => '已成功设为主收据打印机！',
     'printers.receipt_unset_success' => '已取消主收据打印机 — 收据将恢复通过浏览器打印',
     'printers.receipt_hint' => '提示：若已设置主收据打印机（绿色收据图标），顾客收据将直接通过 LAN 打印，不会弹出浏览器打印对话框。若未设置，收据仍照旧通过浏览器打印。',
+    'printers.type_usb_direct' => '直接打印，与 LAN 相同（填写 Windows 打印机名称）',
+    'printers.usb_hint' => 'USB：填写 Windows 中的打印机名称（可从列表选择）。小票与 LAN 完全相同，不弹出打印窗口。',
 ];

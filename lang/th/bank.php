@@ -62,6 +62,8 @@ return [
     'bank.placeholder_account_name' => 'กรุณากรอกชื่อบัญชีธนาคาร...',
     'bank.field_bank_logo' => 'รูปโลโก้ธนาคาร:',
     'bank.field_qr_code' => 'รูป QR Code:',
+    'bank.choose_image' => 'คลิกเพื่อเลือกรูป',
+    'bank.remove_image' => 'ลบรูป',
     'bank.field_status' => 'สถานะ:',
     'bank.status_option_active' => 'เปิดใช้งาน',
     'bank.status_option_inactive' => 'ปิดใช้งาน',

@@ -1,4 +1,9 @@
 <?php
+/**
+ * ໂຄງສ້າງໄຟລ໌ (ແຍກເປັນໄຟລ໌ຍ່ອຍເພື່ອໃຫ້ອ່ານງ່າຍ — ແຕ່ລະໄຟລ໌ບໍ່ເກີນ 500 ແຖວ):
+ * ໜ້າບັນທຶກຮັບສິນຄ້າເຂົ້າສາງ: ບັນທຶກບິນນຳເຂົ້າ (POST), ດຶງສິນຄ້າ/ຜູ້ສະໜອງ/ປະຫວັດ ແລ້ວສະແດງຟອມປ້ອນ.
+ *   - partials/import_stock/actions.php : ການກະທຳ POST: ບັນທຶກບິນນຳເຂົ້າ
+ */
 session_start();
 $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
 $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
@@ -15,273 +20,19 @@ $message = '';
 $message_type = '';
 
 // Let a receipt line record the sell price applied at receipt time (nullable, additive migration)
-try { $pdo->exec("ALTER TABLE import_details ADD COLUMN sell_price DECIMAL(15,2) NULL AFTER cost_price"); } catch (Throwable $e) {}
+try { $pdo->exec("ALTER TABLE st_import_details ADD COLUMN sell_price DECIMAL(15,2) NULL AFTER cost_price"); } catch (Throwable $e) {}
 
-// ====== HANDLE POST ACTIONS ======
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-
-    // --- 1. ACTION: IMPORT STOCK BILL (MULTI-ITEM OR SINGLE ITEM) ---
-    if ($_POST['action'] === 'import_stock_bill') {
-        if (!hasPermission('import_stock', 'add')) {
-            $message = t('import_stock.err_no_permission', 'ທ່ານບໍ່ມີສິດໃນການເພີ່ມ ຫຼື ບັນທຶກຮັບເຂົ້າສິນຄ້າ!');
-            $message_type = 'warning';
-        } else {
-        $invoice_number = trim($_POST['invoice_number'] ?? '');
-        $supplier_name  = trim($_POST['supplier_name'] ?? '');
-        $raw_date       = trim($_POST['import_date'] ?? '');
-        $import_date    = !empty($raw_date) ? $raw_date . ' ' . date('H:i:s') : date('Y-m-d H:i:s');
-        $notes          = trim($_POST['notes'] ?? '');
-        $cart_json      = $_POST['cart_json'] ?? '[]';
-        $items          = json_decode($cart_json, true);
-
-        if ($invoice_number === '') {
-            $maxImpId = (int)$pdo->query("SELECT IFNULL(MAX(import_id), 0) + 1 FROM imports")->fetchColumn();
-            $invoice_number = str_pad($maxImpId, 6, '0', STR_PAD_LEFT);
-        }
-
-        if (!empty($items) && is_array($items)) {
-            try {
-                $pdo->beginTransaction();
-
-                // Calculate bill total cost
-                $total_bill_cost = 0;
-                foreach ($items as $it) {
-                    $q = intval($it['quantity'] ?? 0);
-                    $c = floatval($it['cost_price'] ?? 0);
-                    $total_bill_cost += ($q * $c);
-                }
-
-                $activeStoreId = getActiveStoreId($pdo);
-
-                // Insert master `imports` record with selected import_date and store_id
-                $insImp = $pdo->prepare("INSERT INTO imports (invoice_number, supplier_name, import_date, total_cost, created_by, notes, store_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $insImp->execute([$invoice_number, $supplier_name, $import_date, $total_bill_cost, $_SESSION['user_id'], $notes, $activeStoreId]);
-                $import_id = $pdo->lastInsertId();
-
-                $insertedCount = 0;
-                foreach ($items as $item) {
-                    $product_id   = intval($item['product_id'] ?? 0);
-                    $unit_key     = trim($item['unit_key'] ?? 'base');
-                    $quantity     = intval($item['quantity'] ?? 0);
-                    $cost_price   = floatval($item['cost_price'] ?? 0);
-                    $sell_price   = floatval($item['sell_price'] ?? 0);
-                    $expiry_date  = !empty($item['expiry_date']) ? $item['expiry_date'] : null;
-
-                    if ($product_id <= 0 || $quantity <= 0) continue;
-
-                    // Fetch Product
-                    $activeStoreId = getActiveStoreId($pdo);
-                    $pStmt = $pdo->prepare("SELECT * FROM products WHERE product_id = ? AND store_id = ? FOR UPDATE");
-                    $pStmt->execute([$product_id, $activeStoreId]);
-                    $product = $pStmt->fetch();
-
-                    if (!$product) continue;
-
-                    $unit_name = !empty($product['unit']) ? $product['unit'] : t('import_stock.default_unit', 'ອັນ');
-                    $multiplier = 1;
-
-                    if ($unit_key !== 'base') {
-                        $uStmt = $pdo->prepare("SELECT unit_name, multiplier FROM product_units WHERE id = ? AND product_id = ?");
-                        $uStmt->execute([intval($unit_key), $product_id]);
-                        $puRow = $uStmt->fetch();
-                        if ($puRow) {
-                            $unit_name  = $puRow['unit_name'];
-                            $multiplier = max(1, intval($puRow['multiplier']));
-                        }
-                    }
-
-                    $total_base_qty = $quantity * $multiplier;
-                    $total_cost     = $quantity * $cost_price;
-
-                    // Insert into import_details
-                    $insDet = $pdo->prepare("INSERT INTO import_details (import_id, product_id, unit_name, multiplier, quantity, total_base_qty, cost_price, sell_price, total_cost, expiry_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    $insDet->execute([
-                        $import_id, $product_id, $unit_name, $multiplier,
-                        $quantity, $total_base_qty, $cost_price, ($sell_price > 0 ? $sell_price : null), $total_cost, $expiry_date
-                    ]);
-                    $import_detail_id = $pdo->lastInsertId();
-
-                    // Insert into product_batches
-                    $insBatch = $pdo->prepare("INSERT INTO product_batches (product_id, import_detail_id, expiry_date, initial_qty, quantity) VALUES (?, ?, ?, ?, ?)");
-                    $insBatch->execute([$product_id, $import_detail_id, $expiry_date, $total_base_qty, $total_base_qty]);
-
-                    // Update product stock + buy price, and the sell price too when one was entered
-                    if ($sell_price > 0) {
-                        $updProd = $pdo->prepare("UPDATE products SET qty = qty + ?, bprice = ?, price = ? WHERE product_id = ? AND store_id = ?");
-                        $updProd->execute([$total_base_qty, $cost_price, $sell_price, $product_id, $activeStoreId]);
-                    } else {
-                        $updProd = $pdo->prepare("UPDATE products SET qty = qty + ?, bprice = ? WHERE product_id = ? AND store_id = ?");
-                        $updProd->execute([$total_base_qty, $cost_price, $product_id, $activeStoreId]);
-                    }
-
-                    $insertedCount++;
-                }
-
-                $pdo->commit();
-                $message = sprintf(t('import_stock.msg_bill_success', 'ບັນທຶກໃບບິນຮັບສິນຄ້າເຂົ້າເລກທີ %s ສຳເລັດ (ລວມ %s ລາຍການ)!'), $invoice_number, $insertedCount);
-                $message_type = 'success';
-                logActivity($pdo, "ຮັບສິນຄ້າເຂົ້າ (ໃບບິນ)", "ໃບບິນ: $invoice_number, $insertedCount ລາຍການ, ລວມ: " . number_format($total_bill_cost) . " ₭");
-            } catch (Exception $e) {
-                if ($pdo->inTransaction()) $pdo->rollBack();
-                $message = t('import_stock.err_prefix', 'ຜິດພາດ: ') . $e->getMessage();
-                $message_type = 'danger';
-            }
-        } else {
-            $message = t('import_stock.err_no_items', 'ກະລຸນາເພີ່ມສິນຄ້າໃສ່ລາຍການຮັບເຂົ້າຢ່າງນ້ອຍ 1 ລາຍການ!');
-            $message_type = 'danger';
-        }
-        }
-    }
-
-    // --- 2. ACTION: DELETE/CANCEL IMPORT DETAIL ---
-    elseif ($_POST['action'] === 'delete_import_detail') {
-        $import_detail_id = intval($_POST['import_detail_id'] ?? 0);
-        if ($import_detail_id > 0) {
-            try {
-                $pdo->beginTransaction();
-
-                $detStmt = $pdo->prepare("
-                    SELECT id.*, p.qty AS current_product_qty, pb.initial_qty AS batch_initial_qty, pb.quantity AS batch_rem_qty
-                    FROM import_details id
-                    JOIN products p ON id.product_id = p.product_id
-                    LEFT JOIN product_batches pb ON id.import_detail_id = pb.import_detail_id
-                    WHERE id.import_detail_id = ? FOR UPDATE
-                ");
-                $detStmt->execute([$import_detail_id]);
-                $det = $detStmt->fetch();
-
-                if ($det) {
-                    $bRem = isset($det['batch_rem_qty']) ? intval($det['batch_rem_qty']) : null;
-                    $bInit = isset($det['batch_initial_qty']) ? intval($det['batch_initial_qty']) : null;
-                    $pQty = intval($det['current_product_qty']);
-                    $baseQty = intval($det['total_base_qty']);
-
-                    if (($bRem !== null && $bInit !== null && $bRem < $bInit) || ($pQty < $baseQty)) {
-                        throw new Exception(t('import_stock.err_has_movement', 'ບໍ່ສາມາດລົບ/ຍົກເລີກໃບບິນນີ້ໄດ້ ເນື່ອງຈາກສິນຄ້ານີ້ມີການເຄື່ອນໄຫວ ຫຼື ຖືກຂາຍອອກໄປແລ້ວ!'));
-                    }
-
-                    // Revert stock quantity in products
-                    $revStock = $pdo->prepare("UPDATE products SET qty = GREATEST(0, qty - ?) WHERE product_id = ?");
-                    $revStock->execute([$det['total_base_qty'], $det['product_id']]);
-
-                    // Update total cost in imports master
-                    $updImp = $pdo->prepare("UPDATE imports SET total_cost = GREATEST(0, total_cost - ?) WHERE import_id = ?");
-                    $updImp->execute([$det['total_cost'], $det['import_id']]);
-
-                    // Delete batches
-                    $delBatch = $pdo->prepare("DELETE FROM product_batches WHERE import_detail_id = ?");
-                    $delBatch->execute([$import_detail_id]);
-
-                    // Delete detail
-                    $delDet = $pdo->prepare("DELETE FROM import_details WHERE import_detail_id = ?");
-                    $delDet->execute([$import_detail_id]);
-
-                    $message = t('import_stock.msg_cancel_success', 'ຍົກເລີກການຮັບສິນຄ້າເຂົ້າສຳເລັດ (ປັບສະຕັອກຄືນແລ້ວ)!');
-                    $message_type = 'success';
-                    logActivity($pdo, "ຍົກເລີກການຮັບສິນຄ້າເຂົ້າ", "Detail ID: $import_detail_id");
-                }
-
-                $pdo->commit();
-            } catch (Exception $e) {
-                if ($pdo->inTransaction()) $pdo->rollBack();
-                $message = $e->getMessage();
-                $message_type = 'danger';
-            }
-        }
-    }
-
-    // --- 3. ACTION: EDIT IMPORT DETAIL ---
-    elseif ($_POST['action'] === 'edit_import_detail') {
-        $import_detail_id = intval($_POST['import_detail_id'] ?? 0);
-        $supplier_name    = trim($_POST['supplier_name'] ?? '');
-        $quantity         = intval($_POST['quantity'] ?? 0);
-        $cost_price       = floatval($_POST['cost_price'] ?? 0);
-        $sell_price       = floatval($_POST['sell_price'] ?? 0);
-        $unit_key         = trim($_POST['unit_key'] ?? 'base');
-        $expiry_date      = !empty($_POST['expiry_date']) ? $_POST['expiry_date'] : null;
-        $notes            = trim($_POST['notes'] ?? '');
-
-        if ($import_detail_id > 0 && $quantity > 0) {
-            try {
-                $pdo->beginTransaction();
-
-                $detStmt = $pdo->prepare("SELECT * FROM import_details WHERE import_detail_id = ? FOR UPDATE");
-                $detStmt->execute([$import_detail_id]);
-                $oldDet = $detStmt->fetch();
-
-                if ($oldDet) {
-                    $product_id = $oldDet['product_id'];
-
-                    // Fetch Product
-                    $pStmt = $pdo->prepare("SELECT * FROM products WHERE product_id = ? FOR UPDATE");
-                    $pStmt->execute([$product_id]);
-                    $product = $pStmt->fetch();
-
-                    $unit_name = !empty($product['unit']) ? $product['unit'] : t('import_stock.default_unit', 'ອັນ');
-                    $multiplier = 1;
-
-                    if ($unit_key !== 'base') {
-                        $uStmt = $pdo->prepare("SELECT unit_name, multiplier FROM product_units WHERE id = ? AND product_id = ?");
-                        $uStmt->execute([intval($unit_key), $product_id]);
-                        $puRow = $uStmt->fetch();
-                        if ($puRow) {
-                            $unit_name  = $puRow['unit_name'];
-                            $multiplier = max(1, intval($puRow['multiplier']));
-                        }
-                    }
-
-                    $new_total_base_qty = $quantity * $multiplier;
-                    $new_total_cost     = $quantity * $cost_price;
-
-                    $diff_base_qty = $new_total_base_qty - $oldDet['total_base_qty'];
-                    $diff_cost     = $new_total_cost - $oldDet['total_cost'];
-
-                    // Update products stock + buy price, and the sell price when one was entered
-                    if ($sell_price > 0) {
-                        $updStock = $pdo->prepare("UPDATE products SET qty = GREATEST(0, qty + ?), bprice = ?, price = ? WHERE product_id = ?");
-                        $updStock->execute([$diff_base_qty, $cost_price, $sell_price, $product_id]);
-                    } else {
-                        $updStock = $pdo->prepare("UPDATE products SET qty = GREATEST(0, qty + ?), bprice = ? WHERE product_id = ?");
-                        $updStock->execute([$diff_base_qty, $cost_price, $product_id]);
-                    }
-
-                    // Update master import
-                    $updImp = $pdo->prepare("UPDATE imports SET supplier_name = ?, total_cost = GREATEST(0, total_cost + ?), notes = IF(? != '', ?, notes) WHERE import_id = ?");
-                    $updImp->execute([$supplier_name, $diff_cost, $notes, $notes, $oldDet['import_id']]);
-
-                    // Update import_details
-                    $updDet = $pdo->prepare("UPDATE import_details SET unit_name = ?, multiplier = ?, quantity = ?, total_base_qty = ?, cost_price = ?, sell_price = ?, total_cost = ?, expiry_date = ? WHERE import_detail_id = ?");
-                    $updDet->execute([$unit_name, $multiplier, $quantity, $new_total_base_qty, $cost_price, ($sell_price > 0 ? $sell_price : null), $new_total_cost, $expiry_date, $import_detail_id]);
-
-                    // Update product_batches
-                    $updBatch = $pdo->prepare("UPDATE product_batches SET expiry_date = ?, initial_qty = ?, quantity = GREATEST(0, quantity + ?) WHERE import_detail_id = ?");
-                    $updBatch->execute([$expiry_date, $new_total_base_qty, $diff_base_qty, $import_detail_id]);
-
-                    $message = t('import_stock.msg_edit_success', 'ດັດແກ້ຂໍ້ມູນການຮັບສິນຄ້າເຂົ້າສຳເລັດ!');
-                    $message_type = 'success';
-                    logActivity($pdo, "ແກ້ໄຂການຮັບສິນຄ້າເຂົ້າ", "Detail ID: $import_detail_id");
-                }
-
-                $pdo->commit();
-            } catch (Exception $e) {
-                if ($pdo->inTransaction()) $pdo->rollBack();
-                $message = t('import_stock.err_prefix', 'ຜິດພາດ: ') . $e->getMessage();
-                $message_type = 'danger';
-            }
-        }
-    }
-}
-
+// ການກະທຳ POST: ບັນທຶກບິນນຳເຂົ້າ
+require __DIR__ . '/partials/import_stock/actions.php';
 // Fetch categories for modal filter
 $activeStoreId = getActiveStoreId($pdo);
-$catStmt = $pdo->prepare("SELECT category_id, category_name FROM categories WHERE store_id = ? ORDER BY category_name ASC");
-$catStmt->execute([$activeStoreId]);
+$catStmt = $pdo->query("SELECT category_id, category_name FROM st_categories ORDER BY category_id ASC");
 $categories = $catStmt->fetchAll();
 
 // Fetch active suppliers so the receiving form is a dropdown, not free text
 $suppliers = [];
 try {
-    $supStmt = $pdo->prepare("SELECT supplier_id, supplier_name FROM suppliers WHERE store_id = ? AND status = 'active' ORDER BY supplier_name ASC");
+    $supStmt = $pdo->prepare("SELECT supplier_id, supplier_name FROM st_suppliers WHERE store_id = ? AND status = 'active' ORDER BY supplier_name ASC");
     $supStmt->execute([$activeStoreId]);
     $suppliers = $supStmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {}
@@ -289,8 +40,8 @@ try {
 // Fetch products for current active store with categories & multi-units
 $prodStmt = $pdo->prepare("
     SELECT p.product_id, p.product_name, p.barcode, p.unit, p.bprice, p.price, p.qty, p.category_id, c.category_name 
-    FROM products p 
-    LEFT JOIN categories c ON p.category_id = c.category_id 
+    FROM st_products p 
+    LEFT JOIN st_categories c ON p.category_id = c.category_id 
     WHERE p.store_id = ?
     ORDER BY p.product_name ASC
 ");
@@ -298,7 +49,7 @@ $prodStmt->execute([$activeStoreId]);
 $products = $prodStmt->fetchAll();
 
 $product_units_map = [];
-$uRows = $pdo->query("SELECT * FROM product_units ORDER BY multiplier ASC")->fetchAll();
+$uRows = $pdo->query("SELECT * FROM st_product_units ORDER BY multiplier ASC")->fetchAll();
 foreach ($uRows as $u) {
     $product_units_map[$u['product_id']][] = $u;
 }
@@ -333,11 +84,11 @@ $historyQuery = "
         u.lname,
         pb.initial_qty AS batch_initial_qty,
         pb.quantity AS batch_rem_qty
-    FROM import_details id
-    JOIN imports i ON id.import_id = i.import_id
-    LEFT JOIN products p ON (id.product_id = p.product_id AND (p.store_id = i.store_id OR i.store_id <= 1))
-    LEFT JOIN tbuser u ON i.created_by = u.Id
-    LEFT JOIN product_batches pb ON id.import_detail_id = pb.import_detail_id
+    FROM st_import_details id
+    JOIN st_imports i ON id.import_id = i.import_id
+    LEFT JOIN st_products p ON (id.product_id = p.product_id AND (p.store_id = i.store_id OR i.store_id <= 1))
+    LEFT JOIN st_tbuser u ON i.created_by = u.Id
+    LEFT JOIN st_product_batches pb ON id.import_detail_id = pb.import_detail_id
     {$historyWhere}
     GROUP BY id.import_detail_id, p.product_name, p.barcode, p.qty, p.unit, u.username, u.fname, u.lname, pb.initial_qty, pb.quantity
     ORDER BY id.import_detail_id DESC
@@ -352,7 +103,7 @@ $importHistory = $histStmt->fetchAll();
 $total_imports = count($importHistory);
 
 // Next available auto invoice number (000001, 000002, 000003...)
-$maxImpId = (int)$pdo->query("SELECT IFNULL(MAX(import_id), 0) + 1 FROM imports")->fetchColumn();
+$maxImpId = (int)$pdo->query("SELECT IFNULL(MAX(import_id), 0) + 1 FROM st_imports")->fetchColumn();
 $next_invoice = str_pad($maxImpId, 6, '0', STR_PAD_LEFT);
 
 // Current User Receiver Name

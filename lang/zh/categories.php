@@ -9,6 +9,8 @@ return [
     'categories.col_code' => '编号',
     'categories.col_name' => '分类名称',
     'categories.col_desc' => '说明',
+    'categories.col_printer' => '打印机',
+    'categories.no_printer' => '未设置',
     'categories.col_created_at' => '创建日期',
     'categories.col_action' => '操作',
     'categories.view_only' => '仅查看',

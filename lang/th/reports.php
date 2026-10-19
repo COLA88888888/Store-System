@@ -128,15 +128,6 @@ return [
     // Row action buttons / titles
     'reports.view_detail_title'      => 'ดูรายละเอียดบิล',
     'reports.print_bill_title'       => 'พิมพ์บิล',
-    'reports.print_delivery_note_title' => 'พิมพ์ใบส่งของ',
-    'reports.delivery_note' => 'ใบส่งของ',
-    'reports.dn_sender' => 'ผู้ส่ง',
-    'reports.dn_recipient' => 'ผู้รับ',
-    'reports.dn_recipient_name' => 'ชื่อ:',
-    'reports.dn_phone' => 'เบอร์โทร:',
-    'reports.dn_recipient_address' => 'ที่อยู่:',
-    'reports.dn_sender_sign' => 'ลายเซ็นผู้ส่ง',
-    'reports.dn_recipient_sign' => 'ลายเซ็นผู้รับ',
     'reports.delete_bill_title'      => 'ลบบิลขาย',
     'reports.view_deleted_items_title' => 'ดูรายการสินค้าที่ถูกลบ',
 

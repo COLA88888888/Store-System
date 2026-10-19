@@ -11,12 +11,12 @@
         <?php if ($canAllBranches): ?>
           <form method="GET" action="" class="m-0 d-inline-block">
             <select name="store_id" class="form-control form-control-sm font-weight-bold border-info text-info" style="height: 38px; border-radius: 8px; background-color: #f0f9ff; min-width: 170px;" onchange="this.form.submit()">
-              <option value="0"><?php echo htmlspecialchars(t('customers.all_branches', '-- ທຸກສາຂາ --')); ?></option>
               <?php foreach ($stores as $st): ?>
                 <option value="<?php echo $st['store_id']; ?>" <?php echo ($filter_store == $st['store_id']) ? 'selected' : ''; ?>>
                   <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('customers.main_branch_suffix', '(ສາງຫຼັກ)')) : ''; ?>
                 </option>
               <?php endforeach; ?>
+              <option value="0" <?php echo ((int)$filter_store === 0) ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('customers.all_branches', '-- ທຸກສາຂາ --')); ?></option>
             </select>
           </form>
         <?php endif; ?>

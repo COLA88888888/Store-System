@@ -76,7 +76,7 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 // === 0. GET LIVE USER STATUSES (Real-time Polling) ===
 if ($action === 'get_live_user_statuses') {
     try {
-        $stmt = $pdo->query("SELECT Id, status, last_activity FROM tbuser" . ($canAllBranches ? '' : ' WHERE store_id = ' . $userStoreId));
+        $stmt = $pdo->query("SELECT Id, status, last_activity FROM st_tbuser" . ($canAllBranches ? '' : ' WHERE store_id = ' . $userStoreId));
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $result = [];
         $now = time();
@@ -104,13 +104,13 @@ if ($action === 'get_live_user_statuses') {
 // === 0.1 GET NEXT USER CODE (GET request) ===
 if ($action === 'get_next_user_code') {
     try {
-        $stmt = $pdo->query("SELECT user_code FROM tbuser WHERE user_code LIKE 'USR-%' ORDER BY Id DESC LIMIT 1");
+        $stmt = $pdo->query("SELECT user_code FROM st_tbuser WHERE user_code LIKE 'USR-%' ORDER BY Id DESC LIMIT 1");
         $last = $stmt->fetchColumn();
         if ($last && preg_match('/USR-(\d+)/', $last, $m)) {
             $nextNum = intval($m[1]) + 1;
         } else {
             // Count all users to get a reasonable starting number
-            $countStmt = $pdo->query("SELECT COUNT(*) FROM tbuser");
+            $countStmt = $pdo->query("SELECT COUNT(*) FROM st_tbuser");
             $nextNum = intval($countStmt->fetchColumn()) + 1;
         }
         $nextCode = 'USR-' . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
@@ -148,7 +148,7 @@ if ($action === 'add_user') {
     }
 
     try {
-        $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM tbuser WHERE username = ?");
+        $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM st_tbuser WHERE username = ?");
         $stmtCheck->execute([$username]);
         if ($stmtCheck->fetchColumn() > 0) {
             echo json_encode(['status' => 'error', 'message' => 'ຊື່ຜູ້ໃຊ້ນີ້ມີໃນລະບົບແລ້ວ ກະລຸນາເລືອກຊື່ອື່ນ']);
@@ -172,7 +172,7 @@ if ($action === 'add_user') {
         $profile_img = handleUserProfileUpload('profile_img', 'default.png');
         [, $accessExpireDate] = resolveAccessExpireDate($_POST['access_days'] ?? '');
 
-        $stmt = $pdo->prepare("INSERT INTO tbuser (user_code, fname, lname, gender, dob, tel, status, username, password, address, notes, profile_img, sale, stock, report, accounting, setup, users, edit, store_id, access_expire_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO st_tbuser (user_code, fname, lname, gender, dob, tel, status, username, password, address, notes, profile_img, sale, stock, report, accounting, setup, users, edit, store_id, access_expire_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, password_hash($password, PASSWORD_DEFAULT), $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $accessExpireDate]);
 
         logActivity($pdo, "ເພີ່ມຜູ້ໃຊ້", "ຊື່: $username, ຕຳແໜ່ງ: $userstatus");
@@ -219,14 +219,14 @@ if ($action === 'edit_user') {
     }
 
     try {
-        $usernameCheck = $pdo->prepare("SELECT COUNT(*) FROM tbuser WHERE username = ? AND Id <> ?");
+        $usernameCheck = $pdo->prepare("SELECT COUNT(*) FROM st_tbuser WHERE username = ? AND Id <> ?");
         $usernameCheck->execute([$username, $user_id]);
         if ($usernameCheck->fetchColumn() > 0) {
             echo json_encode(['status' => 'error', 'message' => 'ຊື່ຜູ້ໃຊ້ນີ້ມີໃນລະບົບແລ້ວ ກະລຸນາເລືອກຊື່ອື່ນ']);
             exit();
         }
 
-        $cStmt = $pdo->prepare("SELECT profile_img, sale, stock, report, accounting, setup, users, edit, store_id, access_expire_date FROM tbuser WHERE Id = ?");
+        $cStmt = $pdo->prepare("SELECT profile_img, sale, stock, report, accounting, setup, users, edit, store_id, access_expire_date FROM st_tbuser WHERE Id = ?");
         $cStmt->execute([$user_id]);
         $currUser = $cStmt->fetch();
         if (!$currUser || (!$canAllBranches && intval($currUser['store_id']) !== $userStoreId)) {
@@ -269,10 +269,10 @@ if ($action === 'edit_user') {
         }
 
         if ($password !== '') {
-            $stmt = $pdo->prepare("UPDATE tbuser SET user_code = ?, fname = ?, lname = ?, gender = ?, dob = ?, tel = ?, status = ?, username = ?, password = ?, address = ?, notes = ?, profile_img = ?, sale = ?, stock = ?, report = ?, accounting = ?, setup = ?, users = ?, edit = ?, store_id = ?, access_expire_date = ? WHERE Id = ?");
+            $stmt = $pdo->prepare("UPDATE st_tbuser SET user_code = ?, fname = ?, lname = ?, gender = ?, dob = ?, tel = ?, status = ?, username = ?, password = ?, address = ?, notes = ?, profile_img = ?, sale = ?, stock = ?, report = ?, accounting = ?, setup = ?, users = ?, edit = ?, store_id = ?, access_expire_date = ? WHERE Id = ?");
             $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, password_hash($password, PASSWORD_DEFAULT), $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $accessExpireDate, $user_id]);
         } else {
-            $stmt = $pdo->prepare("UPDATE tbuser SET user_code = ?, fname = ?, lname = ?, gender = ?, dob = ?, tel = ?, status = ?, username = ?, address = ?, notes = ?, profile_img = ?, sale = ?, stock = ?, report = ?, accounting = ?, setup = ?, users = ?, edit = ?, store_id = ?, access_expire_date = ? WHERE Id = ?");
+            $stmt = $pdo->prepare("UPDATE st_tbuser SET user_code = ?, fname = ?, lname = ?, gender = ?, dob = ?, tel = ?, status = ?, username = ?, address = ?, notes = ?, profile_img = ?, sale = ?, stock = ?, report = ?, accounting = ?, setup = ?, users = ?, edit = ?, store_id = ?, access_expire_date = ? WHERE Id = ?");
             $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $accessExpireDate, $user_id]);
         }
 
@@ -307,7 +307,7 @@ if ($action === 'delete_user') {
     }
 
     try {
-        $uStmt = $pdo->prepare("SELECT profile_img, store_id FROM tbuser WHERE Id = ?");
+        $uStmt = $pdo->prepare("SELECT profile_img, store_id FROM st_tbuser WHERE Id = ?");
         $uStmt->execute([$user_id]);
         $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
         if (!$uRow || (!$canAllBranches && intval($uRow['store_id']) !== $userStoreId)) {
@@ -322,7 +322,7 @@ if ($action === 'delete_user') {
             }
         }
 
-        $stmt = $pdo->prepare("DELETE FROM tbuser WHERE Id = ?");
+        $stmt = $pdo->prepare("DELETE FROM st_tbuser WHERE Id = ?");
         $stmt->execute([$user_id]);
         logActivity($pdo, "ລົບຜູ້ໃຊ້", "ID: $user_id");
         echo json_encode(['status' => 'success', 'message' => 'ລົບຜູ້ໃຊ້ງານສຳເລັດແລ້ວ!']);

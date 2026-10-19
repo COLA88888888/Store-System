@@ -15,6 +15,11 @@
         </div>
         <div class="modal-body p-4">
           <div class="form-group mb-3">
+            <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('categories.label_code', 'ລະຫັດປະເພດສິນຄ້າ')); ?></label>
+            <input type="text" name="new_category_id" id="edit_cat_id_input" class="form-control bg-light font-weight-bold text-primary" style="border-radius: 8px; height: 42px;" readonly>
+            <small class="form-text text-muted" style="font-size: 0.82rem;"><i class="fas fa-lock mr-1"></i><?php echo htmlspecialchars(t('categories.hint_code_locked', 'ລະຫັດປະເພດສິນຄ້າ (ແກ້ໄຂບໍ່ໄດ້)')); ?></small>
+          </div>
+          <div class="form-group mb-3">
             <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('categories.label_name', 'ຊື່ປະເພດສິນຄ້າ')); ?> <span class="text-danger">*</span></label>
             <input type="text" name="category_name" id="edit_cat_name" class="form-control" placeholder="<?php echo htmlspecialchars(t('categories.placeholder_name', 'ປ້ອນຊື່ປະເພດສິນຄ້າ')); ?>" style="border-radius: 8px; height: 42px;">
           </div>
@@ -47,13 +52,28 @@
 
 <script>
 var I18N_EDIT_CATEGORY = <?php echo tjson([
+    'categories.warn_enter_code_title' => 'ກະລຸນາປ້ອນລະຫັດ',
+    'categories.warn_code_empty' => 'ລະຫັດປະເພດສິນຄ້າບໍ່ສາມາດຫວ່າງໄດ້!',
     'categories.warn_enter_name_title' => 'ກະລຸນາປ້ອນຊື່',
     'categories.warn_name_empty' => 'ຊື່ປະເພດສິນຄ້າບໍ່ສາມາດຫວ່າງໄດ້!',
     'categories.btn_ok' => 'ຕົກລົງ',
 ]); ?>;
 
 function submitEditCategory() {
+  var catId   = $('#edit_cat_id_input').val().trim();
   var catName = $('#edit_cat_name').val().trim();
+
+  if (catId === '' || parseInt(catId) < 1) {
+    Swal.fire({
+      icon: 'warning',
+      title: I18N_EDIT_CATEGORY['categories.warn_enter_code_title'],
+      text: I18N_EDIT_CATEGORY['categories.warn_code_empty'],
+      confirmButtonColor: '#2563eb',
+      confirmButtonText: I18N_EDIT_CATEGORY['categories.btn_ok']
+    });
+    $('#edit_cat_id_input').focus();
+    return;
+  }
 
   if (catName === '') {
     Swal.fire({

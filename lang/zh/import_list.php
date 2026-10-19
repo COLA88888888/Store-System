@@ -49,6 +49,8 @@ return [
     'import_list.edit_title' => '编辑',
     'import_list.cancel_delete_title' => '取消/删除此单据',
     'import_list.cannot_cancel_movement_title' => '无法取消，因为商品已有变动',
+    'import_list.transfer_out_to' => '调出至分店',
+    'import_list.transfer_out_badge' => '调出',
     'import_list.view_only' => '仅查看',
 
     // Filter bar

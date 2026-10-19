@@ -9,6 +9,8 @@ return [
     'categories.col_code' => 'ລະຫັດ',
     'categories.col_name' => 'ຊື່ປະເພດສິນຄ້າ',
     'categories.col_desc' => 'ລາຍລະອຽດ',
+    'categories.col_printer' => 'ເຄື່ອງພິມ',
+    'categories.no_printer' => 'ບໍ່ໄດ້ຕັ້ງ',
     'categories.col_created_at' => 'ວັນທີບັນທຶກ',
     'categories.col_action' => 'ຈັດການ',
     'categories.view_only' => 'ເບິ່ງຢ່າງດຽວ',
@@ -32,6 +34,8 @@ return [
     // Add modal
     'categories.modal_add_title' => 'ເພີ່ມປະເພດສິນຄ້າ',
     'categories.label_code' => 'ລະຫັດປະເພດສິນຄ້າ',
+    'categories.placeholder_code' => 'ປ້ອນລະຫັດ (ເຊັ່ນ: 1, 2, 3...)',
+    'categories.hint_code' => 'ລະຫັດຈະລຽນລຳດັບອັດຕະໂນມັດ ຫຼື ທ່ານສາມາດປ້ອນລະຫັດເອງໄດ້',
     'categories.label_name' => 'ຊື່ປະເພດສິນຄ້າ',
     'categories.placeholder_name' => 'ປ້ອນຊື່ປະເພດສິນຄ້າ',
     'categories.label_desc' => 'ລາຍລະອຽດ',

@@ -9,6 +9,8 @@ return [
     'categories.col_code' => 'Code',
     'categories.col_name' => 'Category Name',
     'categories.col_desc' => 'Description',
+    'categories.col_printer' => 'Printer',
+    'categories.no_printer' => 'No printer',
     'categories.col_created_at' => 'Date Created',
     'categories.col_action' => 'Actions',
     'categories.view_only' => 'View Only',

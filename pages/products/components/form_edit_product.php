@@ -70,7 +70,7 @@
                 </div>
                 <div class="col-md-5 mb-3">
                   <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_product_code', 'ລະຫັດສິນຄ້າ:')); ?></label>
-                  <input type="text" id="edit_product_id_display" class="form-control bg-light font-weight-bold text-primary" style="border-radius: 6px; height: 40px;" readonly>
+                  <div id="edit_product_id_display" class="form-control bg-light d-flex align-items-center" style="border-radius: 6px; height: 40px; font-family: 'Courier New', Courier, monospace; font-size: 1.05rem; font-weight: bold; overflow: hidden; letter-spacing: 0.5px;"></div>
                 </div>
               </div>
 
@@ -112,9 +112,9 @@
                 <?php endif; ?>
               </div>
 
-              <!-- Row 3b: ຜູ້ສະໜອງ (ບໍ່ບັງຄັບ) -->
+              <!-- Row 3b: ຜູ້ສະໜອງ & ວັນໝົດອາຍຸ (ທັງສອງບໍ່ບັງຄັບ) -->
               <div class="row">
-                <div class="col-md-12 mb-3">
+                <div class="col-md-6 mb-3">
                   <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_supplier', 'ຜູ້ສະໜອງ:')); ?></label>
                   <select name="supplier_id" id="edit_supplier_id" class="form-control" style="border-radius: 6px; height: 40px;">
                     <option value=""><?php echo htmlspecialchars(t('products.select_supplier_placeholder', '-- ບໍ່ລະບຸ / ເລືອກຜູ້ສະໜອງ --')); ?></option>
@@ -122,6 +122,12 @@
                       <option value="<?php echo (int)$sp['supplier_id']; ?>"><?php echo htmlspecialchars($sp['supplier_name']); ?></option>
                     <?php endforeach; ?>
                   </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="font-weight-bold text-dark mb-1"><i class="far fa-calendar-alt text-warning mr-1"></i><?php echo htmlspecialchars(t('products.field_expiry_date', 'ວັນໝົດອາຍຸ')); ?></label>
+                  <input type="date" id="edit_expiry_date" name="expiry_date" class="form-control" style="height: 40px; border-radius: 6px;">
+                  <input type="hidden" id="edit_expiry_store_id" name="expiry_store_id" value="">
+                  <small class="text-muted"><?php echo htmlspecialchars(t('products.field_expiry_hint', 'ບໍ່ໃສ່ກໍໄດ້ — ໃສ່ແລ້ວລະບົບຈະແຈ້ງເຕືອນກ່ອນໝົດອາຍຸ')); ?></small>
                 </div>
               </div>
 
@@ -153,18 +159,6 @@
                     </label>
                   </div>
                   <small class="text-muted"><?php echo htmlspecialchars(t('products.field_cut_qty_hint', 'ປິດໄວ້ສຳລັບ ບໍລິການ / ສິນຄ້າສັ່ງເຮັດ (ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ)')); ?></small>
-                </div>
-              </div>
-
-              <!-- ວັນໝົດອາຍຸ (ບໍ່ບັງຄັບ) -->
-              <div class="row mt-2">
-                <div class="col-md-6">
-                  <label class="font-weight-bold text-dark mb-1"><i class="far fa-calendar-alt text-warning mr-1"></i><?php echo htmlspecialchars(t('products.field_expiry_date', 'ວັນໝົດອາຍຸ')); ?></label>
-                  <input type="date" id="edit_expiry_date" name="expiry_date" class="form-control" style="height: 40px; border-radius: 6px;">
-                  <input type="hidden" id="edit_expiry_store_id" name="expiry_store_id" value="">
-                </div>
-                <div class="col-md-6 d-flex align-items-end">
-                  <small class="text-muted"><?php echo htmlspecialchars(t('products.field_expiry_hint', 'ບໍ່ໃສ່ກໍໄດ້ — ໃສ່ແລ້ວລະບົບຈະແຈ້ງເຕືອນກ່ອນໝົດອາຍຸ')); ?></small>
                 </div>
               </div>
 
@@ -344,7 +338,7 @@ function submitEditProduct(e) {
 
   if (catId) {
     try {
-      localStorage.setItem('minipos_product_category_filter', catId);
+      localStorage.setItem('StoreMini.minipos_product_category_filter', catId);
     } catch(e) {}
   }
 

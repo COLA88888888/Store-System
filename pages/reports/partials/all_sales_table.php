@@ -64,9 +64,7 @@
                   <a href="javascript:void(0)" onclick="viewBillDetails('<?php echo htmlspecialchars($row['bill_no']); ?>')" class="text-primary" title="<?php echo htmlspecialchars(t('reports.view_detail_title', 'ເບິ່ງລາຍລະອຽດບິນ')); ?>">
                     <?php echo htmlspecialchars($row['bill_no']); ?>
                   </a>
-                  <?php if (strpos($row['sale_remark'] ?? '', 'Quotation To Sale') !== false): ?>
-                    <span class="badge badge-warning text-dark ml-1" style="font-size: 0.65rem;"><i class="fas fa-file-invoice mr-1"></i> ໃບສະເໜີລາຄາ</span>
-                  <?php endif; ?>
+                  <?php echo reportDebtBadge($pdo, $row['bill_no'], $openDebtByBill); ?>
                 </td>
                 <td class="text-left" style="font-size: 0.84rem; color: #475569;"><?php echo htmlspecialchars($row['date_time']); ?></td>
                 <td class="text-center font-weight-bold text-dark"><?php echo number_format($row['qty']); ?></td>
@@ -99,17 +97,14 @@
                     $__curCode = strtoupper($row['currency'] ?? 'KIP') ?: 'KIP';
                     $__curMeta = getCurrencyMeta()[$__curCode] ?? ['name' => $__curCode, 'symbol' => $__curCode];
                     $__curColor = ($__curCode === 'THB') ? '#0369a1' : (($__curCode === 'USD') ? '#047857' : (($__curCode === 'CNY') ? '#b91c1c' : '#a16207'));
+                    $__curDisplay = ($__curCode === 'KIP' || $__curCode === 'LAK') ? 'LAK' : $__curCode;
                   ?>
                   <span class="badge border font-weight-bold" style="color: <?php echo $__curColor; ?>; border-color: <?php echo $__curColor; ?> !important; background: #ffffff; font-size: 0.76rem;" title="<?php echo htmlspecialchars($__curMeta['name']); ?>">
-                    <?php echo htmlspecialchars($__curMeta['symbol'] . ' ' . $__curCode); ?>
+                    <?php echo htmlspecialchars($__curDisplay); ?>
                   </span>
                 </td>
                 <td class="text-center font-weight-bold">
-                  <?php if (($row['status'] ?? 'SUCCESS') === 'CANCEL'): ?>
-                    <span class="badge badge-danger px-2 py-1" style="font-size: 0.76rem;"><?php echo htmlspecialchars(t('reports.status_cancel', 'ຍົກເລີກ')); ?></span>
-                  <?php else: ?>
-                    <span class="badge badge-success px-2 py-1" style="font-size: 0.76rem;"><?php echo htmlspecialchars(t('reports.status_paid', 'ຈ່າຍແລ້ວ')); ?></span>
-                  <?php endif; ?>
+                  <?php echo reportBillStatusBadge($pdo, $row, $debtStatusByBill, $openDebtByBill, $debtPaidByBill); ?>
                 </td>
                 <td class="text-left font-weight-bold text-dark" style="font-size: 0.84rem;"><?php echo htmlspecialchars($row['cashier']); ?></td>
                 <td class="text-center no-print" style="white-space: nowrap !important;">

@@ -1,0 +1,331 @@
+/*
+ * ສ່ວນ: ສ່ວນປະກອບທົ່ວລະບົບ
+ * pagination ສີຟ້າ, preloader, ປຸ່ມໄອຄອນໃນຕາຕະລາງ, ປຸ່ມອອກຈາກລະບົບ ແລະ ການປັບໃຫ້ເໝາະກັບມືຖື.
+ * ແຍກອອກມາຈາກ assets/css/global-custom.css — ໂຫຼດຕາມລຳດັບເລກໜ້າຊື່ໄຟລ໌ (ລຳດັບສຳຄັນສຳລັບ CSS).
+ */
+/* Custom Beautiful Blue Rounded Pagination (Inline Cache-Buster Override) */
+.pagination {
+    gap: 6px !important;
+    border-radius: 0 !important;
+    border: none !important;
+}
+.pagination .page-item {
+    margin: 0 !important;
+}
+.pagination .page-link {
+    border: 1px solid #dee2e6 !important;
+    color: #244886 !important;
+    background-color: #fff !important;
+    border-radius: 50% !important; /* Make buttons circular */
+    width: 32px !important; /* Smaller circular button */
+    height: 32px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important; /* Smaller font size */
+    transition: all 0.2s ease-in-out !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    padding: 0 !important; /* Reset padding to keep perfectly circular */
+}
+.pagination .page-item.active .page-link {
+    background-color: #244886 !important;
+    border-color: #244886 !important;
+    color: #fff !important;
+    box-shadow: 0 4px 10px rgba(36, 72, 134, 0.25) !important;
+}
+.pagination .page-item:not(.active):not(.disabled) .page-link:hover {
+    background-color: #e9eef7 !important;
+    border-color: #a9bfe0 !important;
+    color: #1b3869 !important;
+    transform: translateY(-1px) !important;
+}
+.pagination .page-item.disabled .page-link {
+    color: #6c757d !important;
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    opacity: 0.6 !important;
+}
+
+@media (max-width: 767.98px) {
+    .pagination .page-link {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 0.7rem !important;
+    }
+}
+
+/* Premium Global Preloader Styles */
+#global-preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.98);
+    z-index: 99999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+#global-preloader.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+@media print {
+    #global-preloader, .modal-backdrop, .preloader-content {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
+}
+.preloader-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.preloader-logo {
+    font-size: 3.5rem;
+    color: #007bff;
+    margin-bottom: 20px;
+    animation: logoPulse 2s infinite ease-in-out;
+}
+/* 8-Dots Circular Rotating Gradient Spinner Matching User Screenshot */
+.lao-dots-spinner {
+    display: inline-block;
+    position: relative;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 18px;
+}
+.lao-dots-spinner div {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #2563eb;
+    animation: laoDotsPulse 1.2s linear infinite;
+}
+.lao-dots-spinner div:nth-child(1) { top: 2px; left: 22px; animation-delay: 0s; background: #60a5fa; }
+.lao-dots-spinner div:nth-child(2) { top: 8px; left: 36px; animation-delay: -0.15s; background: #93c5fd; }
+.lao-dots-spinner div:nth-child(3) { top: 22px; left: 42px; animation-delay: -0.3s; background: #bfdbfe; }
+.lao-dots-spinner div:nth-child(4) { top: 36px; left: 36px; animation-delay: -0.45s; background: #dbeafe; }
+.lao-dots-spinner div:nth-child(5) { top: 42px; left: 22px; animation-delay: -0.6s; background: #3b82f6; }
+.lao-dots-spinner div:nth-child(6) { top: 36px; left: 8px; animation-delay: -0.75s; background: #2563eb; }
+.lao-dots-spinner div:nth-child(7) { top: 22px; left: 2px; animation-delay: -0.9s; background: #1d4ed8; }
+.lao-dots-spinner div:nth-child(8) { top: 8px; left: 8px; animation-delay: -1.05s; background: #1e40af; }
+
+@keyframes laoDotsPulse {
+    0%, 20%, 80%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(0.35); opacity: 0.2; }
+}
+
+.preloader-text {
+    font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
+    font-size: 1.15rem;
+    color: #334155;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* Table Action Buttons - Icon Only (No Borders or Background Boxes) */
+.table td .btn,
+.table-custom td .btn,
+.table td button,
+.table-custom td button {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: transform 0.2s ease, opacity 0.2s ease !important;
+    margin: 0 2px !important;
+}
+
+.table td .btn:hover,
+.table-custom td .btn:hover,
+.table td button:hover,
+.table-custom td button:hover {
+    transform: scale(1.2) !important;
+    opacity: 0.85 !important;
+    background: transparent !important;
+}
+
+/* Icon Colors & Sizing */
+.table td .btn-view-details i,
+.table td .btn-outline-primary i,
+.table-custom td .btn-outline-primary i,
+.table td .btn-info i,
+.table-custom td .btn-primary i {
+    color: #007bff !important; /* Blue for View/Eye/Shield */
+    font-size: 1.2rem !important;
+}
+
+.table td .btn-edit i,
+.table td .btn-outline-info i,
+.table td .btn-warning i {
+    color: #17a2b8 !important; /* Teal/Cyan for Edit */
+    font-size: 1.2rem !important;
+}
+
+.table td .btn-delete i,
+.table td .btn-outline-danger i,
+.table td .btn-danger i {
+    color: #dc3545 !important; /* Red for Delete/Trash */
+    font-size: 1.2rem !important;
+}
+
+/* Responsive Mobile Typography & Button Scaling */
+@media (max-width: 576px) {
+    html, body {
+        font-size: 16px !important;
+    }
+    .btn {
+        font-size: 0.8rem !important;
+        padding: 0.35rem 0.75rem !important;
+        border-radius: 6px !important;
+    }
+    .btn i {
+        font-size: 0.75rem !important;
+    }
+    .card-header h5, .card-title, h5 {
+        font-size: 0.95rem !important;
+    }
+    .table {
+        font-size: 0.8rem !important;
+    }
+    .table th, .table td {
+        padding: 0.5rem 0.4rem !important;
+    }
+    .badge {
+        font-size: 0.72rem !important;
+        padding: 0.3em 0.55em !important;
+    }
+    .container-fluid.p-4, .container.p-4, .p-4 {
+        padding: 0.85rem !important;
+    }
+}
+
+/* ===== RESPONSIVE NAVBAR LOGOUT BUTTON ===== */
+.logout-nav-btn {
+    font-size: 0.85rem !important;
+    color: #ffffff !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    border: 1px solid rgba(255, 255, 255, 0.28) !important;
+    transition: all 0.2s ease !important;
+}
+.logout-nav-btn i {
+    font-size: 0.95rem !important;
+    color: #ffffff !important;
+}
+
+@media (max-width: 767.98px) {
+    .logout-nav-btn {
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        padding: 4px 6px !important;
+    }
+    .logout-nav-btn i {
+        font-size: 1.25rem !important;
+    }
+}
+
+/* ===== MOBILE RESPONSIVE & HIGH PERFORMANCE OPTIMIZATIONS ===== */
+html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    touch-action: manipulation;
+}
+
+body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Touch targets optimization for mobile phones */
+@media (max-width: 575.98px) {
+    .btn, button, input[type="button"], input[type="submit"] {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+        border: none !important;
+    }
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+    .modal-content {
+        border-radius: 12px !important;
+    }
+}
+
+/* Smooth Hardware Accelerated Transitions */
+.card, .btn, .modal-content, .table-responsive {
+    transform: translateZ(0);
+    will-change: auto;
+}
+
+/* Clean block flow positioning for navbar */
+.main-header {
+    position: relative !important;
+    z-index: 1030 !important;
+}
+
+.container-fluid {
+    padding-top: 18px !important;
+}
+
+/* Mobile responsive modal & page container top padding */
+@media (max-width: 991.98px) {
+    body {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+    .wrapper .main-header {
+        position: relative !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        height: 64px !important;
+        z-index: 1030 !important;
+        margin-left: 0 !important;
+    }
+    .wrapper .content-wrapper {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        height: calc(100vh - 64px - 42px) !important;
+        height: calc(100dvh - 64px - 42px) !important;
+        min-height: calc(100vh - 64px - 42px) !important;
+        min-height: calc(100dvh - 64px - 42px) !important;
+    }
+    .modal-dialog {
+        margin: 0.75rem auto !important;
+    }
+    .container-fluid {
+        padding-top: 18px !important;
+        margin-top: 0 !important;
+    }
+}
+
+/* Multi-currency: make the currency symbol stand out a bit larger */
+.cur-sym { font-size: 1.28em; font-weight: 800; letter-spacing: 0.5px; }

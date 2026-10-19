@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $pdo->beginTransaction();
 
             // Fetch transfer
-            $stmtTrf = $pdo->prepare("SELECT * FROM stock_transfers WHERE transfer_id = ? FOR UPDATE");
+            $stmtTrf = $pdo->prepare("SELECT * FROM st_stock_transfers WHERE transfer_id = ? FOR UPDATE");
             $stmtTrf->execute([$transfer_id]);
             $transfer = $stmtTrf->fetch();
 
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
 
             // Fetch details
-            $stmtDet = $pdo->prepare("SELECT * FROM stock_transfer_details WHERE transfer_id = ?");
+            $stmtDet = $pdo->prepare("SELECT * FROM st_stock_transfer_details WHERE transfer_id = ?");
             $stmtDet->execute([$transfer_id]);
             $details = $stmtDet->fetchAll();
 
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $qty        = $item['qty'];
 
                 // Check stock in target store
-                $stmtCheckTarget = $pdo->prepare("SELECT qty, product_name FROM products WHERE product_id = ? AND store_id = ? FOR UPDATE");
+                $stmtCheckTarget = $pdo->prepare("SELECT qty, product_name FROM st_products WHERE product_id = ? AND store_id = ? FOR UPDATE");
                 $stmtCheckTarget->execute([$product_id, $to_store_id]);
                 $targetProd = $stmtCheckTarget->fetch();
 
@@ -71,11 +71,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $qty        = $item['qty'];
 
                 // Deduct from target store
-                $stmtDeductTarget = $pdo->prepare("UPDATE products SET qty = qty - ? WHERE product_id = ? AND store_id = ?");
+                $stmtDeductTarget = $pdo->prepare("UPDATE st_products SET qty = qty - ? WHERE product_id = ? AND store_id = ?");
                 $stmtDeductTarget->execute([$qty, $product_id, $to_store_id]);
 
                 // Return to source store
-                $stmtReturnSrc = $pdo->prepare("UPDATE products SET qty = qty + ? WHERE product_id = ? AND store_id = ?");
+                $stmtReturnSrc = $pdo->prepare("UPDATE st_products SET qty = qty + ? WHERE product_id = ? AND store_id = ?");
                 $stmtReturnSrc->execute([$qty, $product_id, $from_store_id]);
 
                 $totalCost += $qty * (float)$item['bprice'];
@@ -86,15 +86,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             // source branch. Cancelling must reverse both, or the cost stays booked at the
             // destination (and missing at the source) even after the stock itself moved back.
             if ($totalCost > 0) {
-                $fromStoreNameStmt = $pdo->prepare("SELECT store_name FROM tbstore WHERE store_id = ?");
+                $fromStoreNameStmt = $pdo->prepare("SELECT store_name FROM st_tbstore WHERE store_id = ?");
                 $fromStoreNameStmt->execute([$from_store_id]);
                 $fromStoreNameVal = $fromStoreNameStmt->fetchColumn() ?: "ສາຂາ #{$from_store_id}";
 
-                $toStoreNameStmt = $pdo->prepare("SELECT store_name FROM tbstore WHERE store_id = ?");
+                $toStoreNameStmt = $pdo->prepare("SELECT store_name FROM st_tbstore WHERE store_id = ?");
                 $toStoreNameStmt->execute([$to_store_id]);
                 $toStoreNameVal = $toStoreNameStmt->fetchColumn() ?: "ສາຂາ #{$to_store_id}";
 
-                $insImpRevert = $pdo->prepare("INSERT INTO imports (invoice_number, supplier_name, import_date, total_cost, created_by, notes, store_id) VALUES (?, ?, NOW(), ?, ?, ?, ?)");
+                $insImpRevert = $pdo->prepare("INSERT INTO st_imports (invoice_number, supplier_name, import_date, total_cost, created_by, notes, store_id) VALUES (?, ?, NOW(), ?, ?, ?, ?)");
 
                 // Reverse the destination branch's cost-in
                 $insImpRevert->execute([
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
 
             // Update status
-            $stmtUpdateStatus = $pdo->prepare("UPDATE stock_transfers SET status = 'cancelled' WHERE transfer_id = ?");
+            $stmtUpdateStatus = $pdo->prepare("UPDATE st_stock_transfers SET status = 'cancelled' WHERE transfer_id = ?");
             $stmtUpdateStatus->execute([$transfer_id]);
 
             $pdo->commit();
@@ -145,7 +145,7 @@ if (!empty($_POST['is_ajax'])) {
 }
 
 // Fetch all branches for filtering
-$stores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+$stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // Filters — default date range: 1st of the current month → today
 $from_date  = trim($_GET['from_date'] ?? date('Y-m-01'));
@@ -189,13 +189,13 @@ $whereClause = implode(" AND ", $where);
 // Fetch Inter-branch transfers with filters
 $sqlTransfers = "
     SELECT t.*, f.store_name as from_store_name, to_s.store_name as to_store_name, u.username as creator_name,
-           (SELECT COUNT(*) FROM stock_transfer_details d WHERE d.transfer_id = t.transfer_id) as total_items,
-           (SELECT SUM(qty) FROM stock_transfer_details d WHERE d.transfer_id = t.transfer_id) as total_qty,
-           (SELECT GROUP_CONCAT(CONCAT(product_name, ' x', qty, ' ', unit) SEPARATOR ', ') FROM stock_transfer_details d WHERE d.transfer_id = t.transfer_id) as product_list
-    FROM stock_transfers t
-    LEFT JOIN tbstore f ON t.from_store_id = f.store_id
-    LEFT JOIN tbstore to_s ON t.to_store_id = to_s.store_id
-    LEFT JOIN tbuser u ON t.created_by = u.Id
+           (SELECT COUNT(*) FROM st_stock_transfer_details d WHERE d.transfer_id = t.transfer_id) as total_items,
+           (SELECT SUM(qty) FROM st_stock_transfer_details d WHERE d.transfer_id = t.transfer_id) as total_qty,
+           (SELECT GROUP_CONCAT(CONCAT(product_name, ' x', qty, ' ', unit) SEPARATOR ', ') FROM st_stock_transfer_details d WHERE d.transfer_id = t.transfer_id) as product_list
+    FROM st_stock_transfers t
+    LEFT JOIN st_tbstore f ON t.from_store_id = f.store_id
+    LEFT JOIN st_tbstore to_s ON t.to_store_id = to_s.store_id
+    LEFT JOIN st_tbuser u ON t.created_by = u.Id
     WHERE {$whereClause}
     ORDER BY t.transfer_id DESC
 ";

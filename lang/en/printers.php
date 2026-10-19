@@ -68,4 +68,6 @@ return [
     'printers.receipt_set_success' => 'Set as the receipt printer successfully!',
     'printers.receipt_unset_success' => 'Receipt printer unset — receipts will print through the browser again',
     'printers.receipt_hint' => 'Note: if a receipt printer is set (green receipt icon), the customer receipt prints straight over LAN with no browser print dialog. If none is set, receipts print through the browser as before.',
+    'printers.type_usb_direct' => 'Direct, same as LAN (enter the Windows printer name)',
+    'printers.usb_hint' => 'USB: enter the printer name as shown in Windows (pick from the list). Bills print exactly like LAN, with no print dialog.',
 ];

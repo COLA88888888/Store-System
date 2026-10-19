@@ -55,10 +55,11 @@ return [
     'permissions.module_customers_title' => 'ຈັດການລູກຄ້າ',
     'permissions.module_customers_desc' => 'ເພີ່ມ, ແກ້ໄຂ ແລະ ຈັດການຂໍ້ມູນລູກຄ້າ/ສະມາຊິກ',
 
-    // section_quotations.php
-    'permissions.section_quotations' => 'ໃບສະເໜີລາຄາ',
-    'permissions.module_quotations_title' => 'ໃບສະເໜີລາຄາ',
-    'permissions.module_quotations_desc' => 'ສ້າງ, ແກ້ໄຂ ແລະ ຈັດການໃບສະເໜີລາຄາໃຫ້ລູກຄ້າ',
+    // section_customer_debt.php
+    'permissions.section_customer_debt' => 'ລູກຄ້າຕິດໜີ້',
+    'permissions.module_customer_debt_title' => 'ລູກຄ້າຕິດໜີ້',
+    'permissions.module_customer_debt_desc' => 'ຂາຍຕິດໜີ້ໃນ POS, ຮັບຊຳລະໜີ້ ແລະ ຈັດການໜີ້ຂອງລູກຄ້າ',
+    'permissions.module_debt_report_title' => 'ລາຍງານໜີ້ລູກຄ້າ',
 
     // section_inventory.php
     'permissions.section_inventory' => '4. ຂໍ້ມູນສິນຄ້າ & ຄັງສິນຄ້າ',

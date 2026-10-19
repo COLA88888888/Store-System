@@ -15,7 +15,7 @@ if (!hasPermission('best_seller') && !hasPermission('report')) {
 $from_date = trim($_GET['from_date'] ?? date('Y-m-01'));
 $to_date   = trim($_GET['to_date'] ?? date('Y-m-d'));
 $search    = trim($_GET['search'] ?? '');
-$filter_store_id = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : 0;
+$filter_store_id = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : intval($_SESSION['store_id'] ?? 1);
 if (!canViewAllBranches($pdo)) {
     $filter_store_id = intval($_SESSION['store_id'] ?? 1);
 }
@@ -25,14 +25,14 @@ $per_page_raw = trim($_GET['per_page'] ?? '10');
 // Fetch all active branches
 $branchesList = [];
 try {
-    $branchesList = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+    $branchesList = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
 // Check store_id / paid_currency columns
 $hasStoreIdCol  = false;
 $hasCurrencyCol = false;
 try {
-    $saleCols = $pdo->query("SHOW COLUMNS FROM tbsale_save")->fetchAll(PDO::FETCH_COLUMN);
+    $saleCols = $pdo->query("SHOW COLUMNS FROM st_tbsale_save")->fetchAll(PDO::FETCH_COLUMN);
     $hasStoreIdCol  = in_array('store_id', $saleCols) || in_array('branch_id', $saleCols);
     $storeColName   = in_array('store_id', $saleCols) ? 'store_id' : 'branch_id';
     $hasCurrencyCol = in_array('paid_currency', $saleCols);
@@ -100,10 +100,10 @@ $sql = "
             COALESCE(d.save_discount_item, 0) +
             (CASE WHEN s.sale_amount > 0 THEN (d.save_money / s.sale_amount) * COALESCE(s.sale_discount_bill, 0) ELSE 0 END)
         ) AS total_discount
-    FROM tbsale_save_detail d
-    INNER JOIN tbsale_save s ON d.save_bill = s.sale_save_bill
-    LEFT JOIN products p ON (d.save_proid = p.product_id AND p.store_id = s.store_id)
-    LEFT JOIN categories cat ON p.category_id = cat.category_id
+    FROM st_tbsale_save_detail d
+    INNER JOIN st_tbsale_save s ON d.save_bill = s.sale_save_bill
+    LEFT JOIN st_products p ON (d.save_proid = p.product_id AND p.store_id = s.store_id)
+    LEFT JOIN st_categories cat ON p.category_id = cat.category_id
     WHERE {$whereClause}
     GROUP BY d.save_proid, product_name, cat.category_name
     ORDER BY total_qty_sold DESC, total_revenue DESC
@@ -201,12 +201,12 @@ require_once __DIR__ . '/../../layouts/header.php';
           <i class="fas fa-store text-info mr-1"></i> <?php echo htmlspecialchars(t('reports.branch_label', 'ສາຂາ:')); ?>
         </label>
         <select name="store_id" class="form-control form-control-sm font-weight-bold" style="border-radius: 8px; height: 38px; width: 100%;" onchange="this.form.submit()">
-          <option value="0"><?php echo htmlspecialchars(t('reports.all_branches_opt', '-- ທຸກສາຂາ --')); ?></option>
           <?php foreach ($branchesList as $b): ?>
             <option value="<?php echo $b['store_id']; ?>" <?php echo ($filter_store_id == $b['store_id']) ? 'selected' : ''; ?>>
               <?php echo htmlspecialchars($b['store_name']); ?> <?php echo !empty($b['is_main']) ? htmlspecialchars(t('reports.main_branch_suffix', '(ສາຂາໃຫຍ່)')) : ''; ?>
             </option>
           <?php endforeach; ?>
+          <option value="0" <?php echo ((int)$filter_store_id === 0) ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('reports.all_branches_opt', '-- ທຸກສາຂາ --')); ?></option>
         </select>
       </div>
       <?php else: ?>

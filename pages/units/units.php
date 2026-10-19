@@ -184,6 +184,7 @@ require_once __DIR__ . '/components/form_edit_unit.php';
 
   function openEditUnitModal(unit) {
     $('#edit_unit_id').val(unit.unit_id);
+    $('#edit_unit_id_input').val(unit.unit_id);
     $('#edit_unit_name').val(unit.unit_name);
     $('#edit_unit_desc').val(unit.description);
     $('#editUnitModal').modal('show');

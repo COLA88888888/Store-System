@@ -1,9 +1,10 @@
 <!-- Sticky Top Bar: Search/Scan + Category Pills stay pinned while products scroll below -->
 <div class="pos-sticky-topbar">
-  <!-- Top Search & Barcode Scan Bar -->
-  <div class="row mb-1">
-    <div class="col-12">
-      <div class="pos-search-wrapper">
+  <!-- Top Search & Barcode Scan Bar (sits inside the dashboard navbar on wide screens — see
+       html.pos-nav-mode in themes/pos/02-mobile-cart-search.css) -->
+  <div class="row mb-1 pos-search-row">
+    <div class="col-12 d-flex align-items-center" style="gap: 8px;">
+      <div class="pos-search-wrapper" style="flex: 1 1 0%; min-width: 0;">
         <!-- Barcode Icon Left -->
         <div class="pos-search-icon-left">
           <i class="fas fa-barcode"></i>
@@ -11,9 +12,9 @@
         <!-- Input -->
         <input type="text" id="barcodeInput" class="pos-search-input"
                placeholder="<?php echo htmlspecialchars(t('pos.search_placeholder', 'ສະແກນບາໂຄ້ດ ຫຼື ພິມຊື່ສິນຄ້າ...')); ?>"
-               autocomplete="off" autofocus oninput="filterGrid()">
+               autocomplete="off" inputmode="none" autofocus oninput="filterGrid()">
         <!-- Clear Button Right -->
-        <button type="button" class="pos-search-clear" onclick="document.getElementById('barcodeInput').value=''; filterGrid(); document.getElementById('barcodeInput').focus();" title="<?php echo htmlspecialchars(t('pos.clear', 'ລ້າງ')); ?>">
+        <button type="button" class="pos-search-clear" onclick="document.getElementById('barcodeInput').value=''; filterGrid(); ensureBarcodeInputFocused();" title="<?php echo htmlspecialchars(t('pos.clear', 'ລ້າງ')); ?>">
           <i class="fas fa-times"></i>
         </button>
         <!-- Scan indicator label -->
@@ -21,6 +22,7 @@
           <i class="fas fa-wifi fa-rotate-90 mr-1" style="font-size:0.82rem;"></i> SCAN
         </div>
       </div>
+      <!-- ຕິດໜີ້ ແລະ ຈໍລູກຄ້າ ຍ້າຍໄປຢູ່ແຖບເທິງຂອງກະຕ່າ (cart_section.php) -->
     </div>
   </div>
 

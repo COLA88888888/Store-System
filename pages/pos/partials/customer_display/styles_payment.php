@@ -1,0 +1,323 @@
+<?php
+/*
+ * ສ່ວນ: CSS (2): QR ຊຳລະ ແລະ ຍອດລວມ
+ * ບັດ QR ທະນາຄານ (1–3 ບັດ), ແຖບຍອດລວມສີຂຽວ, ໝາຍເລກຄິວ ແລະ ຂະໜາດຈໍຕ່າງໆ; ປິດ </style>.
+ * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/pos/customer_display.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
+ */
+?>    /* ===== PAYMENT QR CODES (replaces the old "thank you" card) ===== */
+    .pay-qr-heading {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #244886;
+      margin: 6px 0 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .pay-qr-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;   /* a single card ends up centred automatically */
+      align-items: stretch;
+      gap: 16px;
+      width: 100%;
+    }
+    .pay-qr-card {
+      background: #ffffff;
+      border: 2px solid #c7d2e8;
+      border-radius: 14px;
+      padding: 14px 16px 16px;
+      box-shadow: 0 6px 20px rgba(36, 72, 134, 0.10);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      flex: 0 1 auto;
+    }
+    .pay-qr-card .pqc-bank {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #1e293b;
+    }
+    .pay-qr-card .pqc-bank img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      padding: 2px;
+    }
+    .pay-qr-card .pqc-qr {
+      width: clamp(140px, 15vw, 200px);
+      height: clamp(140px, 15vw, 200px);
+      object-fit: contain;
+      background: #ffffff;
+      border: 2.5px solid #6366f1;
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.18);
+    }
+    /* 3 cards in one row: split the panel width evenly and shrink the pieces so the
+       bank name + QR stay fully on screen. */
+    .pay-qr-wrap.count-3 {
+      flex-wrap: nowrap;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .pay-qr-wrap.count-3 .pay-qr-card {
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 10px 8px 12px;
+      gap: 6px;
+    }
+    .pay-qr-wrap.count-3 .pqc-bank {
+      font-size: 0.9rem;
+      max-width: 100%;
+    }
+    .pay-qr-wrap.count-3 .pqc-bank span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pay-qr-wrap.count-3 .pqc-bank img { width: 22px; height: 22px; }
+    .pay-qr-wrap.count-3 .pqc-qr {
+      width: 100%;
+      height: auto;
+      max-width: 190px;
+      aspect-ratio: 1 / 1;
+      padding: 4px;
+    }
+
+    /* ===== RIGHT PANEL: ORDER LIST & PAYMENT SUMMARY (60%) ===== */
+    .right-order-panel {
+      flex: 1.15;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .cart-card {
+      flex: 1;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 2px solid #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+    }
+
+    /* Header and body are separate <table>s so columns stay aligned via a shared
+       colgroup + fixed layout instead of each table auto-sizing its own columns. */
+    .display-cols-table {
+      table-layout: fixed;
+    }
+
+    /* Plain header — same style as the rest of the app's tables (e.g. Settings > Printers). */
+    .display-table-head {
+      color: #475569;
+      font-weight: 700;
+      font-size: 0.88rem;
+    }
+    .display-table-head th {
+      background: #f8fafc;
+      padding: 10px 14px;
+      border: none;
+      border-bottom: 2px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .display-table-body {
+      position: relative;   /* anchors the empty-state overlay below */
+      overflow-y: auto;
+      flex: 1;
+      scrollbar-width: none;
+    }
+    .display-table-body::-webkit-scrollbar {
+      display: none;
+    }
+    /* Cart empty: same technique the POS cart panel itself uses (pos_cart_js.php) — a plain
+       flex-centred div, not a table row/cell, so it centres reliably regardless of table
+       height quirks. Sits over the table body, below the sticky header. */
+    .display-cart-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 10px;
+      padding: 20px;
+    }
+    .display-cart-empty i {
+      font-size: 3rem;
+      color: #94a3b8;
+      opacity: 0.4;
+    }
+    .display-cart-empty h4 {
+      font-weight: 700;
+      color: #64748b;
+      margin: 0;
+    }
+    .display-cart-empty p {
+      color: #94a3b8;
+      margin: 0;
+    }
+    .display-table-body td {
+      padding: 9px 14px;
+      vertical-align: middle;
+      font-size: 1.05rem;
+      color: #0f172a;
+      height: 62px;
+      box-sizing: border-box;
+    }
+    .display-table-body tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    /* Latest scanned/tapped item is rendered first and highlighted so the customer
+       can immediately spot what the cashier just added. */
+    .display-table-body tr.display-row-newest td {
+      background: #dbeafe;
+      animation: newRowIn 0.35s ease;
+    }
+    @keyframes newRowIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ENLARGED PRODUCT IMAGE & DETAILS */
+    .display-pro-img {
+      width: 46px;
+      height: 46px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 2px solid #cbd5e1;
+      background: #ffffff;
+      padding: 2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .badge-qty {
+      background: #0263ff;
+      color: #ffffff;
+      font-size: 0.95rem;
+      padding: 3px 11px;
+      border-radius: 7px;
+      font-weight: 800;
+      box-shadow: 0 2px 6px rgba(2, 99, 255, 0.3);
+    }
+
+    /* GREEN GRAND-TOTAL BOX — full-width bar below both panels, everything in ONE row:
+       every payment stat, then the grand total at the end. */
+    .grand-total-banner {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      border-radius: 10px;
+      padding: 10px 22px;
+      margin: 0 16px 12px;
+      box-sizing: border-box;
+      color: #ffffff;
+      box-shadow: 0 6px 18px rgba(5, 150, 105, 0.30);
+      animation: glowTotal 2.4s ease-in-out infinite;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .gt-substats {
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+      gap: 18px;
+      flex: 1;
+      min-width: 0;
+    }
+    .gt-substat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .gt-substat-label {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #d1fae5;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .gt-substat-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+    #displayItemCount {
+      font-size: 1.25rem;
+    }
+    .gt-final {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+      flex-shrink: 0;
+      padding-left: 22px;
+      border-left: 2px solid rgba(255,255,255,0.3);
+    }
+    .gt-final-label {
+      text-transform: uppercase;
+      color: #dcfce7;
+      letter-spacing: 0.5px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .gt-final h2 {
+      font-weight: 800;
+      margin: 2px 0 0;
+      font-size: 2.1rem;
+      color: #ffffff;
+      font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.25);
+      white-space: nowrap;
+    }
+
+    /* Short customer-display monitors (e.g. 1024x600): tighten the green summary box
+       so the product list keeps enough visible rows instead of being squeezed. */
+    @media (max-height: 720px) {
+      .display-main { padding: 10px; gap: 10px; }
+      .grand-total-banner { padding: 8px 16px; gap: 10px; }
+      .gt-substats { gap: 12px; }
+      .gt-substat-label { font-size: 0.8rem; }
+      .gt-substat-value { font-size: 1.15rem; }
+      #displayItemCount { font-size: 1.02rem; }
+      .gt-final { padding-left: 14px; }
+      .gt-final-label { font-size: 0.72rem; }
+      .gt-final h2 { font-size: 1.7rem; }
+      .display-table-body td { height: 52px; font-size: 0.98rem; padding: 6px 12px; }
+      .display-table-head th { padding: 7px 12px; font-size: 0.9rem; }
+
+      .store-card { padding: 18px 16px; }
+      .store-name-title { font-size: 1.7rem; }
+      .store-info-text { font-size: 0.95rem; }
+      .store-info-block { margin-bottom: 10px; }
+      .large-logo-box.logo-below { width: 110px; height: 110px; margin: 2px 0 8px; }
+      .pay-qr-heading { font-size: 1rem; margin: 4px 0 8px; }
+      .pay-qr-wrap { gap: 10px; }
+      .pay-qr-card { padding: 10px 12px 12px; gap: 5px; border-radius: 12px; }
+      .pay-qr-card .pqc-qr { width: clamp(110px, 12vw, 150px); height: clamp(110px, 12vw, 150px); }
+      .pay-qr-card .pqc-bank { font-size: 0.92rem; }
+      .pay-qr-wrap.count-3 .pqc-qr { max-width: 150px; height: auto; }
+    }
+  </style>

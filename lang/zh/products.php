@@ -22,7 +22,6 @@ return [
     'products.col_qty' => '库存',
     'products.col_manage' => '操作',
     'products.empty_state' => '暂无商品数据',
-    'products.tooltip_print' => '打印条码',
     'products.tooltip_edit' => '编辑',
     'products.tooltip_delete' => '删除',
     'products.view_only' => '仅查看',
@@ -171,4 +170,10 @@ return [
     'products.bulk_validate_none' => '请至少输入 1 个商品！',
     'products.bulk_no_cut_qty' => '本批所有商品不扣库存',
     'products.bulk_no_cut_qty_hint' => '适用于服务 / 定制商品 — 销售时不扣减库存。在此统一设置，无需事后逐个修改',
+    'products.bulk_supplier_all' => '供应商（适用于所有商品）',
+    'products.bulk_supplier_hint' => '多个商品来自同一供应商 — 在此选择一次，所有商品都归属该供应商',
+    'products.bulk_col_img' => '图片',
+    'products.bulk_img_hint' => '点击选择图片（可选）',
+    'products.bulk_img_fail' => '图片上传失败',
+    'products.bulk_img_busy' => '图片正在上传 — 请稍候',
 ];

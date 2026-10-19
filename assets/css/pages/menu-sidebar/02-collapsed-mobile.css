@@ -1,0 +1,290 @@
+/*
+ * ສ່ວນ: Sidebar ຕອນຫຍໍ້ ແລະ ໃນມືຖື
+ * user panel ຕອນຫຍໍ້/ເຕັມ, mini-sidebar ໃນຄອມ, drawer ໃນມືຖື ແລະ ຫ້າມຂະຫຍັບຕອນ hover.
+ * ແຍກອອກມາຈາກ assets/css/pages/menu-sidebar.css — ໂຫຼດຕາມລຳດັບເລກໜ້າຊື່ໄຟລ໌ (ລຳດັບສຳຄັນສຳລັບ CSS).
+ */
+/* ===== User Panel - Sidebar Collapsed (ຕອນຫຍໍ້ sidebar) ===== */
+
+/* ຕອນ sidebar ເຕັມ — ປົກກະຕິ */
+.main-sidebar .user-panel {
+    display: flex !important;
+    align-items: center !important;
+    overflow: hidden !important;
+    transition: padding 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.main-sidebar .user-panel .image {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.main-sidebar .user-panel .info {
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), width 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+/* ຕອນ sidebar ຫຍໍ້ (.sidebar-mini ຫຼື .sidebar-collapse) */
+.sidebar-mini.sidebar-collapse .main-sidebar .user-panel,
+.sidebar-collapse .main-sidebar .user-panel {
+    padding: 8px 0 !important;
+    justify-content: center !important;
+    border-bottom: 1px solid rgba(255,255,255,0.15) !important;
+}
+.sidebar-mini.sidebar-collapse .main-sidebar .user-panel .image,
+.sidebar-collapse .main-sidebar .user-panel .image {
+    margin: 0 auto !important;
+    padding: 0 !important;
+}
+.sidebar-mini.sidebar-collapse .main-sidebar .user-panel .image img,
+.sidebar-collapse .main-sidebar .user-panel .image img {
+    width: 38px !important;
+    height: 38px !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+/* ===== Collapsed Sidebar Mode (ຕອນເຊື່ອງ Sidebar) ===== */
+
+/* ===== DESKTOP MINI-SIDEBAR COLLAPSED RULES (min-width: 768px ONLY) ===== */
+@media (min-width: 768px) {
+    /* 1. ຫ້າມບໍ່ໃຫ້ Sidebar ເດັ້ງ/ຂະຫຍາຍ ຕອນເອົາເມົ້າໄປຊີ້ (Fixed width 4.6rem, ບໍ່ໃຫ້ເນັ້ງຕິງ) */
+    .sidebar-collapse .main-sidebar,
+    .sidebar-collapse .main-sidebar:hover,
+    .sidebar-collapse .main-sidebar.sidebar-focused,
+    .sidebar-collapse.sidebar-mini .main-sidebar:hover,
+    .sidebar-collapse.sidebar-mini .main-sidebar.sidebar-focused,
+    body.sidebar-collapse .main-sidebar:hover,
+    body.sidebar-collapse .main-sidebar.sidebar-focused,
+    .sidebar-collapse .main-sidebar:focus {
+        width: 4.6rem !important;
+        max-width: 4.6rem !important;
+        box-shadow: none !important;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        transform: none !important;
+        overflow-x: hidden !important;
+    }
+
+    /* 2. ຈັດໂລໂກ້ໃຫ້ຢູ່ເຄິ່ງກາງ ແລະ ເຊື່ອງຂໍ້ຄວາມ (Labels/Text) ທັງໝົດ ຕອນເຊື່ອງ Sidebar ຢູ່ desktop */
+    .sidebar-collapse .main-sidebar .brand-link,
+    .sidebar-collapse .main-sidebar:hover .brand-link {
+        justify-content: center !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: 100% !important;
+    }
+
+    .sidebar-collapse .main-sidebar .brand-link > div {
+        margin: 0 auto !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+    }
+
+    .sidebar-collapse .main-sidebar .brand-text,
+    .sidebar-collapse .main-sidebar:hover .brand-text,
+    .sidebar-collapse .main-sidebar .nav-sidebar p,
+    .sidebar-collapse .main-sidebar:hover .nav-sidebar p,
+    .sidebar-collapse .main-sidebar .user-panel .info,
+    .sidebar-collapse .main-sidebar:hover .user-panel .info,
+    .sidebar-collapse .main-sidebar .nav-sidebar .nav-header,
+    .sidebar-collapse .main-sidebar .sidebar-footer p,
+    .sidebar-collapse .main-sidebar .sidebar-footer span {
+        display: none !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        visibility: hidden !important;
+        white-space: nowrap !important;
+    }
+
+    .sidebar-collapse .main-sidebar .sidebar-footer {
+        padding: 6px 0 !important;
+        justify-content: center !important;
+        bottom: 24px !important;
+    }
+    .sidebar-collapse .main-sidebar .sidebar-footer .nav-link {
+        justify-content: center !important;
+        padding: 8px 0 !important;
+        width: 44px !important;
+        margin: 0 auto !important;
+    }
+    .sidebar-collapse .main-sidebar .sidebar-footer .nav-link i {
+        margin-right: 0 !important;
+        font-size: 1.25rem !important;
+    }
+
+    /* 3. ຈັດໄອຄອນເມນູຫຼັກໃຫ້ຢູ່ເຄິ່ງກາງ ຄົງທີ່ (ປຸ່ມ 44pxx44px ບໍ່ໃຫ້ລົ້ນຂອບຂວາ) */
+    .sidebar-collapse .main-sidebar .nav-sidebar > .nav-item > .nav-link {
+        width: 44px !important;
+        height: 44px !important;
+        max-width: 44px !important;
+        max-height: 44px !important;
+        margin: 4px auto !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 10px !important;
+        transform: none !important;
+        transition: background-color 0.2s ease !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+    .sidebar-collapse .main-sidebar .nav-sidebar > .nav-item > .nav-link .nav-icon,
+    .sidebar-collapse .main-sidebar .nav-sidebar > .nav-item > .nav-link:hover .nav-icon {
+        margin: 0 !important;
+        font-size: 1.25rem !important;
+        float: none !important;
+        text-align: center !important;
+        display: inline-block !important;
+        transform: none !important;
+    }
+
+    /* 4. ດັອບດາວເມນູ (Dropdown Treeview) ຕອນເຊື່ອງ Sidebar - Handled smoothly by JS */
+    .sidebar-collapse .main-sidebar .nav-sidebar .has-treeview > .nav-treeview {
+        display: none;
+        background: rgba(0, 0, 0, 0.16) !important;
+        border-radius: 12px !important;
+        width: 50px !important;
+        margin: 4px auto !important;
+        padding: 6px 0 !important;
+        border: none !important;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.15) !important;
+    }
+
+    .sidebar-collapse .main-sidebar .nav-sidebar .nav-treeview .nav-item {
+        margin: 3px 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+    }
+    .sidebar-collapse .main-sidebar .nav-sidebar .nav-treeview .nav-link {
+        width: 38px !important;
+        height: 38px !important;
+        max-width: 38px !important;
+        max-height: 38px !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 8px !important;
+        transform: none !important;
+        transition: background-color 0.2s ease !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
+    }
+    .sidebar-collapse .main-sidebar .nav-sidebar .nav-treeview .nav-link .nav-icon,
+    .sidebar-collapse .main-sidebar .nav-sidebar .nav-treeview .nav-link:hover .nav-icon,
+    .sidebar-collapse .main-sidebar .nav-sidebar .nav-treeview .nav-link.active .nav-icon {
+        font-size: 1.05rem !important;
+        margin: 0 !important;
+        opacity: 0.95 !important;
+        transform: none !important;
+    }
+}
+
+/* ===== MOBILE SIDEBAR DRAWER OVERRIDE (SHOW FULL TEXT & NORMAL LAYOUT WHEN OPEN) ===== */
+@media (max-width: 767.98px) {
+    .sidebar-open .main-sidebar,
+    .sidebar-is-opening .main-sidebar,
+    .sidebar-open.sidebar-collapse .main-sidebar {
+        width: 250px !important;
+        max-width: 250px !important;
+    }
+
+    .sidebar-open .main-sidebar .brand-text,
+    .sidebar-open .main-sidebar .nav-sidebar p,
+    .sidebar-open .main-sidebar .user-panel .info,
+    .sidebar-open .main-sidebar .nav-sidebar .nav-header,
+    .sidebar-open.sidebar-collapse .main-sidebar .brand-text,
+    .sidebar-open.sidebar-collapse .main-sidebar .nav-sidebar p,
+    .sidebar-open.sidebar-collapse .main-sidebar .user-panel .info,
+    .sidebar-open.sidebar-collapse .main-sidebar .nav-sidebar .nav-header {
+        display: inline-block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        width: auto !important;
+        height: auto !important;
+    }
+
+    .sidebar-open .main-sidebar .user-panel,
+    .sidebar-open.sidebar-collapse .main-sidebar .user-panel {
+        justify-content: flex-start !important;
+        padding: 10px 16px !important;
+        text-align: left !important;
+    }
+
+    .sidebar-open .main-sidebar .user-panel .image,
+    .sidebar-open.sidebar-collapse .main-sidebar .user-panel .image {
+        margin: 0 10px 0 0 !important;
+        width: auto !important;
+    }
+
+    .sidebar-open .main-sidebar .brand-link,
+    .sidebar-open.sidebar-collapse .main-sidebar .brand-link {
+        justify-content: flex-start !important;
+        padding-left: 16px !important;
+    }
+
+    .sidebar-open .main-sidebar .nav-sidebar > .nav-item > .nav-link,
+    .sidebar-open.sidebar-collapse .main-sidebar .nav-sidebar > .nav-item > .nav-link {
+        width: auto !important;
+        height: auto !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 2px 8px !important;
+        padding: 10px 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        border-radius: 8px !important;
+    }
+
+    .sidebar-open .main-sidebar .nav-sidebar > .nav-item > .nav-link .nav-icon,
+    .sidebar-open.sidebar-collapse .main-sidebar .nav-sidebar > .nav-item > .nav-link .nav-icon,
+    .main-sidebar .nav-sidebar .nav-link .nav-icon {
+        margin-right: 12px !important;
+        font-size: 1.25rem !important;
+    }
+
+    .main-sidebar .nav-sidebar .nav-link p {
+        font-size: 1.05rem !important;
+        font-weight: 600 !important;
+    }
+    .main-sidebar .brand-text {
+        font-size: 1.18rem !important;
+        font-weight: 700 !important;
+    }
+    .main-sidebar .user-panel .info span,
+    .main-sidebar .user-panel .info a {
+        font-size: 1.02rem !important;
+    }
+    .main-sidebar .nav-header {
+        font-size: 0.85rem !important;
+    }
+}
+
+/* ===== COMPLETE HOVER MOVEMENT LOCKDOWN (ຫ້າມຮູບພາບ, ໄອຄອນ ແລະ ເມນູ ຂະຫຍັບ ຕອນ Hover) ===== */
+.main-sidebar img,
+.main-sidebar .brand-link img,
+.main-sidebar .user-panel img,
+.main-sidebar .nav-icon,
+.main-sidebar .nav-link,
+.main-sidebar a,
+.main-sidebar img:hover,
+.main-sidebar .brand-link:hover img,
+.main-sidebar .user-panel:hover img,
+.main-sidebar .nav-link:hover .nav-icon,
+.main-sidebar .nav-link:hover,
+.sidebar-collapse .main-sidebar img,
+.sidebar-collapse .main-sidebar img:hover,
+.sidebar-collapse .main-sidebar .nav-icon,
+.sidebar-collapse .main-sidebar .nav-icon:hover,
+.sidebar-collapse .main-sidebar .nav-link,
+.sidebar-collapse .main-sidebar .nav-link:hover,
+.sidebar-collapse .main-sidebar .nav-link .nav-icon,
+.sidebar-collapse .main-sidebar .nav-link:hover .nav-icon {
+    transform: none !important;
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+    animation: none !important;
+}
+

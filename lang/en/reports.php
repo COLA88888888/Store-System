@@ -128,15 +128,6 @@ return [
     // Row action buttons / titles
     'reports.view_detail_title'      => 'View bill details',
     'reports.print_bill_title'       => 'Print bill',
-    'reports.print_delivery_note_title' => 'Print delivery note',
-    'reports.delivery_note' => 'Delivery Note',
-    'reports.dn_sender' => 'Sender',
-    'reports.dn_recipient' => 'Recipient',
-    'reports.dn_recipient_name' => 'Name:',
-    'reports.dn_phone' => 'Phone:',
-    'reports.dn_recipient_address' => 'Address:',
-    'reports.dn_sender_sign' => 'Sender signature',
-    'reports.dn_recipient_sign' => 'Recipient signature',
     'reports.delete_bill_title'      => 'Delete bill',
     'reports.view_deleted_items_title' => 'View deleted items',
 

@@ -27,7 +27,7 @@ if (!defined('POS_LANG_META')) {
 
 if (!function_exists('getCurrentLang')) {
     function getCurrentLang(): string {
-        $lang = $_SESSION['lang'] ?? ($_COOKIE['pos_lang'] ?? 'lo');
+        $lang = $_SESSION['lang'] ?? ($_COOKIE['minipos_lang'] ?? 'lo');
         return in_array($lang, POS_SUPPORTED_LANGS, true) ? $lang : 'lo';
     }
 }

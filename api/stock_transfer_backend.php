@@ -23,10 +23,10 @@ if ($action === 'get_transfer_details') {
         // Fetch transfer header details
         $stmtTrf = $pdo->prepare("
             SELECT t.*, f.store_name as from_store_name, to_s.store_name as to_store_name, u.username as creator_name
-            FROM stock_transfers t
-            LEFT JOIN tbstore f ON t.from_store_id = f.store_id
-            LEFT JOIN tbstore to_s ON t.to_store_id = to_s.store_id
-            LEFT JOIN tbuser u ON t.created_by = u.Id
+            FROM st_stock_transfers t
+            LEFT JOIN st_tbstore f ON t.from_store_id = f.store_id
+            LEFT JOIN st_tbstore to_s ON t.to_store_id = to_s.store_id
+            LEFT JOIN st_tbuser u ON t.created_by = u.Id
             WHERE t.transfer_id = ?
         ");
         $stmtTrf->execute([$transfer_id]);
@@ -49,8 +49,8 @@ if ($action === 'get_transfer_details') {
                 COALESCE(NULLIF(TRIM(d.unit), ''), p.unit, 'ອັນ') as unit,
                 d.qty,
                 d.bprice
-            FROM stock_transfer_details d
-            LEFT JOIN products p ON d.product_id = p.product_id AND p.store_id = ?
+            FROM st_stock_transfer_details d
+            LEFT JOIN st_products p ON d.product_id = p.product_id AND p.store_id = ?
             WHERE d.transfer_id = ?
             ORDER BY d.id ASC
         ");

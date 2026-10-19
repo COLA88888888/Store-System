@@ -9,6 +9,8 @@ return [
     'categories.col_code' => 'รหัส',
     'categories.col_name' => 'ชื่อหมวดหมู่สินค้า',
     'categories.col_desc' => 'รายละเอียด',
+    'categories.col_printer' => 'เครื่องพิมพ์',
+    'categories.no_printer' => 'ไม่ได้ตั้ง',
     'categories.col_created_at' => 'วันที่บันทึก',
     'categories.col_action' => 'จัดการ',
     'categories.view_only' => 'ดูอย่างเดียว',

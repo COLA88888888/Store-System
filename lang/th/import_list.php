@@ -49,6 +49,8 @@ return [
     'import_list.edit_title' => 'แก้ไข',
     'import_list.cancel_delete_title' => 'ยกเลิก/ลบบิลนี้',
     'import_list.cannot_cancel_movement_title' => 'ไม่สามารถยกเลิกได้ เนื่องจากสินค้ามีการเคลื่อนไหวแล้ว',
+    'import_list.transfer_out_to' => 'โอนออกไปสาขา',
+    'import_list.transfer_out_badge' => 'โอนออก',
     'import_list.view_only' => 'ดูอย่างเดียว',
 
     // Filter bar

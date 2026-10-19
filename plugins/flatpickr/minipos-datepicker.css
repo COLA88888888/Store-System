@@ -1,20 +1,37 @@
-/* MiniPos compact flatpickr calendar (used with minipos-datepicker.js) */
-.flatpickr-calendar { font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif; border-radius: 10px; }
-.flatpickr-day.selected, .flatpickr-day.selected:hover { background: #2563eb; border-color: #2563eb; }
-.flatpickr-day.today { border-color: #93c5fd; }
+/* MiniPos flatpickr calendar (used with minipos-datepicker.js): plain white calendar —
+   white header, grey arrows, month dropdown + year, round days, selected day a blue
+   circle, today a thin grey ring. Sizes are flatpickr's own defaults. */
+.flatpickr-calendar { font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12); }
+.flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after,
+.flatpickr-calendar.arrowBottom:before, .flatpickr-calendar.arrowBottom:after { display: none; }
 .flatpickr-calendar select, .flatpickr-calendar input, .flatpickr-weekday { font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif !important; }
-/* ປະຕິທິນຂະໜາດນ້ອຍ */
-.flatpickr-calendar { width: 238px !important; font-size: 12px; padding: 0 !important; }
-.flatpickr-calendar .flatpickr-months { height: 34px; }
-.flatpickr-calendar .flatpickr-months .flatpickr-month { height: 34px; }
-.flatpickr-calendar .flatpickr-current-month { font-size: 13px !important; padding-top: 6px !important; height: 34px; }
-.flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months, .flatpickr-calendar .flatpickr-current-month input.cur-year { font-size: 13px !important; height: auto; padding: 0 2px !important; }
-.flatpickr-calendar .flatpickr-months .flatpickr-prev-month, .flatpickr-calendar .flatpickr-months .flatpickr-next-month { top: 50% !important; height: 24px; width: 24px; padding: 6px !important; display: flex; align-items: center; justify-content: center; }
-.flatpickr-calendar .flatpickr-prev-month svg, .flatpickr-calendar .flatpickr-next-month svg { width: 11px; height: 11px; }
-.flatpickr-calendar .flatpickr-weekdays { height: 24px; }
-.flatpickr-calendar span.flatpickr-weekday { font-size: 11px !important; }
-.flatpickr-calendar .flatpickr-innerContainer, .flatpickr-calendar .flatpickr-rContainer, .flatpickr-calendar .flatpickr-weekdays, .flatpickr-calendar .flatpickr-days, .flatpickr-calendar .dayContainer { width: 238px !important; min-width: 238px !important; max-width: 238px !important; }
-.flatpickr-calendar .flatpickr-day { max-width: 34px !important; height: 28px !important; line-height: 28px !important; font-size: 12px !important; margin: 1px 0 !important; }
+.flatpickr-months .flatpickr-month { background: #ffffff; color: #1e293b; fill: #1e293b; height: 40px; }
+.flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { color: #334155; fill: #334155; padding: 12px; }
+.flatpickr-months .flatpickr-prev-month:hover svg, .flatpickr-months .flatpickr-next-month:hover svg { fill: #0f172a; }
+.flatpickr-current-month { font-size: 1.2rem; font-weight: 400; color: #1e293b; padding-top: 6px; }
+.flatpickr-current-month .flatpickr-monthDropdown-months, .flatpickr-current-month input.cur-year { font-weight: 400; color: #1e293b; background: #ffffff; }
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover, .flatpickr-current-month .numInputWrapper:hover { background: #f1f5f9; }
+.flatpickr-weekdays { background: #ffffff; height: 32px; }
+span.flatpickr-weekday { font-weight: 600; font-size: 0.85rem; color: #6b7280; background: #ffffff; }
+.flatpickr-day { color: #393939; font-weight: 400; border-radius: 50%; }
+.flatpickr-day:hover, .flatpickr-day:focus { background: #f1f5f9; border-color: #f1f5f9; color: #1e293b; }
+.flatpickr-day.today { border-color: #959ea9; }
+.flatpickr-day.today:hover, .flatpickr-day.today:focus { background: #f1f5f9; border-color: #959ea9; color: #393939; }
+.flatpickr-day.selected, .flatpickr-day.selected:hover, .flatpickr-day.selected:focus { background: #569ff7; border-color: #569ff7; color: #ffffff; box-shadow: none; }
+.flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay, .flatpickr-day.flatpickr-disabled { color: #cbd5e1; }
+/* Touch screens: the box is readonly (tap opens the calendar only) — keep it looking like a
+   normal, enabled field instead of Bootstrap's grey readonly style, and stop double-tap zoom. */
+.form-control.mp-date-touch[readonly] { background-color: #fff; cursor: pointer; touch-action: manipulation; }
+/* Phones: tapping days/arrows fast (2-3 taps) must not trigger double-tap zoom */
+.flatpickr-calendar, .flatpickr-calendar * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+/* iOS zooms into any focused select/input under 16px — the month dropdown and year box
+   in the calendar header get 16px on touch screens so tapping them never zooms */
+@media (pointer: coarse) {
+  .flatpickr-calendar .flatpickr-current-month .flatpickr-monthDropdown-months,
+  .flatpickr-calendar .flatpickr-current-month input.cur-year { font-size: 16px !important; }
+}
+/* Keep the calendar inside a narrow phone screen */
+@media (max-width: 400px) { .flatpickr-calendar.open { max-width: calc(100vw - 16px); } }
 /* Until minipos-datepicker.js swaps it for the calendar box, keep the native date input's
    border/size (so nothing moves) but hide its browser-language text and calendar icon —
    otherwise every page change flashes the native box before the swap. */

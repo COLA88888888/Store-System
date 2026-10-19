@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 
 <?php
 $todayDate = date('Y-m-d');
-$stmtSeq = $pdo->prepare("SELECT COUNT(*) FROM tbsale_save WHERE sale_date = ?");
+$stmtSeq = $pdo->prepare("SELECT COUNT(*) FROM st_tbsale_save WHERE sale_date = ?");
 $stmtSeq->execute([$todayDate]);
 $todaySaleCount = intval($stmtSeq->fetchColumn() ?? 0);
 ?>
@@ -35,6 +35,18 @@ window.POS_QUEUE_ENABLED = <?php echo getSetting($pdo, 'queue_enabled', '0') ===
 // Loyalty redemption: { enabled, rewards: [{ id, name, points, type: 'discount'|'product', ... }] }
 window.POS_LOYALTY = <?php echo json_encode($posLoyalty, JSON_UNESCAPED_UNICODE); ?>;
 
+// Wide screens: the dashboard lifts this page under its navbar so the scan box sits inside it
+// (home/partials/dashboard/js_pos_navbar.php). Released again when the page is left.
+(function () {
+  try {
+    if (window.parent === window || !window.parent.setPosNavMode) return;
+    window.parent.setPosNavMode(true, window);
+    window.addEventListener('pagehide', function () {
+      try { window.parent.setPosNavMode(false, window); } catch (e) {}
+    });
+  } catch (e) {}
+})();
+
 // Stop SweetAlert2 from reflowing the page when an alert opens: heightAuto:false keeps it
 // from forcing html/body to height:auto, scrollbarPadding:false keeps it from adding a
 // body padding-right. Without this the cart's action buttons jump on every stock warning.
@@ -50,7 +62,11 @@ window.POS_LOYALTY = <?php echo json_encode($posLoyalty, JSON_UNESCAPED_UNICODE)
   };
 })();
 </script>
-<link rel="stylesheet" href="../../themes/pos.css?v=<?php echo time(); ?>">
+<!-- CSS ໜ້າຂາຍ ແຍກເປັນ 4 ໄຟລ໌ (ລຳດັບສຳຄັນ) -->
+<link rel="stylesheet" href="../../themes/pos/01-layout.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="../../themes/pos/02-mobile-cart-search.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="../../themes/pos/03-products-checkout.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="../../themes/pos/04-cart-items.css?v=<?php echo time(); ?>">
 
 <div class="pos-wrapper">
   <!-- Mobile Navigation / Tab Switcher (Visible ONLY on Mobile Phones < 768px) -->
@@ -77,23 +93,27 @@ window.POS_LOYALTY = <?php echo json_encode($posLoyalty, JSON_UNESCAPED_UNICODE)
 </div>
 
 <!-- Mobile Floating Cart Bar (Visible ONLY on Mobile Phones < 768px when on Products tab) -->
-<div id="mobileFloatingCartBar" class="d-md-none" style="display: none; position: fixed; bottom: 4px; left: 8px; right: 8px; z-index: 1050;">
-
-  <div class="d-flex align-items-center p-1.5 shadow-lg" style="border-radius: 16px; background: rgba(30, 41, 59, 0.96) !important; backdrop-filter: blur(8px); gap: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;">
-    <!-- 1. Clear Cart Button -->
-    <button type="button" class="btn btn-danger font-weight-bold d-flex align-items-center justify-content-center px-2.5 py-2" onclick="clearCart()" title="<?php echo htmlspecialchars(t('pos.clear', 'ລ້າງ')); ?>" style="border-radius: 12px; min-height: 44px; flex-shrink: 0;">
-      <i class="fas fa-trash-alt" style="font-size: 1.05rem;"></i>
+<div id="mobileFloatingCartBar" class="d-md-none" style="display: none;">
+  <!-- ແຖບກະຕ່າລອຍ (CSS: .pos-float-* ໃນ themes/pos/04-cart-items.css) -->
+  <div class="pos-float-bar">
+    <!-- 1. ລ້າງກະຕ່າ -->
+    <button type="button" class="pos-float-clear" onclick="clearCart()" title="<?php echo htmlspecialchars(t('pos.clear', 'ລ້າງ')); ?>">
+      <i class="fas fa-trash-alt"></i>
     </button>
 
-    <!-- 2. View Cart Details (Middle Button) -->
-    <button type="button" class="btn btn-primary flex-fill font-weight-bold px-2 py-2 d-flex justify-content-between align-items-center" onclick="switchMobilePosTab('cart')" style="border-radius: 12px; min-height: 44px; font-size: 0.88rem; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
-      <span class="text-truncate mr-1"><i class="fas fa-shopping-basket mr-1"></i> <span id="floatingCartItemCount">0 <?php echo htmlspecialchars(t('pos.cart_count_items', 'ລາຍການ')); ?></span></span>
-      <span class="font-weight-bold text-nowrap" id="floatingCartTotal">0 ₭</span>
+    <!-- 2. ເບິ່ງກະຕ່າ: ຈຳນວນ (ແຖວເທິງ) + ຍອດລວມ (ແຖວລຸ່ມ) -->
+    <button type="button" class="btn btn-primary pos-float-cart" onclick="switchMobilePosTab('cart')">
+      <span class="pos-float-cart-icon"><i class="fas fa-shopping-basket"></i></span>
+      <span class="pos-float-cart-text">
+        <span class="pos-float-cart-count" id="floatingCartItemCount">0 <?php echo htmlspecialchars(t('pos.cart_count_items', 'ລາຍການ')); ?></span>
+        <span class="pos-float-cart-total" id="floatingCartTotal">0 ₭</span>
+      </span>
+      <i class="fas fa-chevron-right pos-float-cart-arrow"></i>
     </button>
 
-    <!-- 3. Direct Checkout Button -->
-    <button type="button" id="btnCheckoutFloating" class="btn btn-warning font-weight-bold text-dark d-flex align-items-center justify-content-center px-3 py-2 shadow-sm" onclick="openCheckoutModal()" title="<?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?>" style="border-radius: 12px; min-height: 44px; flex-shrink: 0; background: #eab308; border-color: #ca8a04; font-size: 0.92rem; white-space: nowrap;">
-      <i class="fas fa-money-bill-wave mr-1"></i> <span><?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?></span>
+    <!-- 3. ຊຳລະເງິນທັນທີ -->
+    <button type="button" id="btnCheckoutFloating" class="pos-float-pay" onclick="openCheckoutModal()" title="<?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?>">
+      <i class="fas fa-money-bill-wave"></i> <span><?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?></span>
     </button>
   </div>
 </div>

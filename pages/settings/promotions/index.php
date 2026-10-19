@@ -21,10 +21,10 @@ $isMain = isMainBranch($pdo, $userStoreId);
 $canAllBranches = canViewAllBranches($pdo);
 
 // Fetch stores list for branch selection/filter
-$stores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+$stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // GET filter_branch parameter
-$filter_branch = isset($_GET['branch_id']) && $_GET['branch_id'] !== '' ? intval($_GET['branch_id']) : 0;
+$filter_branch = isset($_GET['branch_id']) && $_GET['branch_id'] !== '' ? intval($_GET['branch_id']) : intval($_SESSION['store_id'] ?? 1);
 if (!$canAllBranches) {
     $filter_branch = $userStoreId;
 }
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($promo_name !== '') {
             try {
-                $stmt = $pdo->prepare("INSERT INTO promotions (promo_name, promo_type, discount_type, discount_value, gift_product_name, gift_qty, start_date, end_date, min_qty, min_amount, target_type, target_name, target_unit_name, status, branch_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO st_promotions (promo_name, promo_type, discount_type, discount_value, gift_product_name, gift_qty, start_date, end_date, min_qty, min_amount, target_type, target_name, target_unit_name, status, branch_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$promo_name, $promo_type, $discount_type, $discount_value, $gift_product_name, $gift_qty, $start_date, $end_date, $min_qty, $min_amount, $target_type, $target_name, $target_unit_name, $status, $branch_id]);
                 $message = t('promotions.msg_added', 'ເພີ່ມໂປຣໂມຊັ່ນໃໝ່ສຳເລັດ!');
                 $message_type = 'success';
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($id > 0 && $promo_name !== '') {
             try {
-                $sql = "UPDATE promotions SET promo_name = ?, promo_type = ?, discount_type = ?, discount_value = ?, gift_product_name = ?, gift_qty = ?, start_date = ?, end_date = ?, min_qty = ?, min_amount = ?, target_type = ?, target_name = ?, target_unit_name = ?, branch_id = ? WHERE id = ?";
+                $sql = "UPDATE st_promotions SET promo_name = ?, promo_type = ?, discount_type = ?, discount_value = ?, gift_product_name = ?, gift_qty = ?, start_date = ?, end_date = ?, min_qty = ?, min_amount = ?, target_type = ?, target_name = ?, target_unit_name = ?, branch_id = ? WHERE id = ?";
                 $params = [$promo_name, $promo_type, $discount_type, $discount_value, $gift_product_name, $gift_qty, $start_date, $end_date, $min_qty, $min_amount, $target_type, $target_name, $target_unit_name, $branch_id, $id];
                 if (!$canAllBranches) {
                     $sql .= " AND branch_id = ?";
@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $id = intval($_POST['id'] ?? 0);
         $status = intval($_POST['status'] ?? 0);
         if ($id > 0) {
-            $chkSql = "SELECT end_date, branch_id FROM promotions WHERE id = ?";
+            $chkSql = "SELECT end_date, branch_id FROM st_promotions WHERE id = ?";
             $chkParams = [$id];
             if (!$canAllBranches) {
                 $chkSql .= " AND branch_id = ?";
@@ -138,13 +138,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $message = t('promotions.msg_expired_pre', 'ໂປຣໂມຊັ່ນນີ້ໝົດອາຍຸແລ້ວ (') . date('d/m/Y', strtotime($promoDate)) . t('promotions.msg_expired_post', ')! ກະລຸນາກົດ "ແກ້ໄຂ" ເພື່ອປ່ຽນວັນທີສິ້ນສຸດກ່ອນເປີດໃຊ້ງານ.');
                     $message_type = 'warning';
                 } else {
-                    $stmt = $pdo->prepare("UPDATE promotions SET status = 1 WHERE id = ?");
+                    $stmt = $pdo->prepare("UPDATE st_promotions SET status = 1 WHERE id = ?");
                     $stmt->execute([$id]);
                     $message = t('promotions.msg_enabled', 'ເປີດໃຊ້ງານໂປຣໂມຊັ່ນສຳເລັດ!');
                     $message_type = 'success';
                 }
             } else {
-                $stmt = $pdo->prepare("UPDATE promotions SET status = 0 WHERE id = ?");
+                $stmt = $pdo->prepare("UPDATE st_promotions SET status = 0 WHERE id = ?");
                 $stmt->execute([$id]);
                 $message = t('promotions.msg_disabled', 'ປິດໃຊ້ງານໂປຣໂມຊັ່ນສຳເລັດ!');
                 $message_type = 'success';
@@ -153,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } elseif ($action === 'delete_promo') {
         $id = intval($_POST['id'] ?? 0);
         if ($id > 0) {
-            $sql = "DELETE FROM promotions WHERE id = ?";
+            $sql = "DELETE FROM st_promotions WHERE id = ?";
             $params = [$id];
             if (!$canAllBranches) {
                 $sql .= " AND branch_id = ?";
@@ -177,7 +177,7 @@ if (!empty($_POST['is_ajax'])) {
 }
 
 try {
-    $pdo->exec("UPDATE promotions SET status = 0 WHERE status = 1 AND end_date < CURDATE()");
+    $pdo->exec("UPDATE st_promotions SET status = 0 WHERE status = 1 AND end_date < CURDATE()");
 } catch (Exception $e) {}
 
 $where = ["1=1"];
@@ -190,8 +190,8 @@ $whereSql = implode(' AND ', $where);
 
 $stmtP = $pdo->prepare("
     SELECT p.*, s.store_name 
-    FROM promotions p 
-    LEFT JOIN tbstore s ON p.branch_id = s.store_id 
+    FROM st_promotions p 
+    LEFT JOIN st_tbstore s ON p.branch_id = s.store_id 
     WHERE {$whereSql} 
     ORDER BY p.id DESC
 ");
@@ -202,7 +202,7 @@ $promos = $stmtP->fetchAll(PDO::FETCH_ASSOC);
 // target was entered as a code. Built before the fetch_table exit so the AJAX reload has it too.
 $productNameByCode = [];
 try {
-    foreach ($pdo->query("SELECT product_name, barcode, code1 FROM products")->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    foreach ($pdo->query("SELECT product_name, barcode, code1 FROM st_products")->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $nm = trim((string)$row['product_name']);
         if ($nm === '') continue;
         foreach ([(string)($row['barcode'] ?? ''), (string)($row['code1'] ?? '')] as $code) {
@@ -234,7 +234,7 @@ $targetProdStore = ($filter_branch > 0) ? $filter_branch : $userStoreId;
 
 $categories = [];
 try {
-    $cStmt = $pdo->prepare("SELECT category_name FROM categories WHERE store_id = ? OR store_id = 1 ORDER BY category_name ASC");
+    $cStmt = $pdo->prepare("SELECT category_name FROM st_categories WHERE store_id = ? OR store_id = 1 ORDER BY category_name ASC");
     $cStmt->execute([$targetProdStore]);
     $categories = $cStmt->fetchAll(PDO::FETCH_COLUMN);
 } catch (Exception $e) {}
@@ -243,14 +243,14 @@ $productsList = [];   // names only — feeds the <datalist>
 $productsLookup = [];  // {code, barcode, name, units[]} — lets the modal resolve a typed code
                       // to a name AND offer that product's real unit names
 try {
-    $pStmt = $pdo->prepare("SELECT product_id, product_name, barcode, code1, unit FROM products WHERE store_id = ? OR store_id = 1 ORDER BY product_name ASC");
+    $pStmt = $pdo->prepare("SELECT product_id, product_name, barcode, code1, unit FROM st_products WHERE store_id = ? OR store_id = 1 ORDER BY product_name ASC");
     $pStmt->execute([$targetProdStore]);
     $prodRows = $pStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Extra units per product
     $unitsByProduct = [];
     try {
-        foreach ($pdo->query("SELECT product_id, unit_name FROM product_units")->fetchAll(PDO::FETCH_ASSOC) as $u) {
+        foreach ($pdo->query("SELECT product_id, unit_name FROM st_product_units")->fetchAll(PDO::FETCH_ASSOC) as $u) {
             $un = trim((string)$u['unit_name']);
             if ($un !== '') $unitsByProduct[$u['product_id']][] = $un;
         }

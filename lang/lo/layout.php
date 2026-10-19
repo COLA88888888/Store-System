@@ -8,7 +8,7 @@ return [
     'layout.pos_sell' => 'ຂາຍສິນຄ້າ',
     'layout.pos_item_sales' => 'ລາຍການຂາຍສິນຄ້າ',
     'layout.customers' => 'ຈັດການລູກຄ້າ',
-    'layout.quotations' => 'ໃບສະເໜີລາຄາ',
+    'layout.customer_debt' => 'ລູກຄ້າຕິດໜີ້',
     'layout.products_group' => 'ຂໍ້ມູນສິນຄ້າ',
     'layout.stock_intake_group' => 'ນຳສິນຄ້າເຂົ້າສາງ',
     'layout.categories' => 'ໝວດໝູ່ສິນຄ້າ',
@@ -88,4 +88,5 @@ return [
     'layout.cancel' => 'ຍົກເລີກ',
     'layout.expiry' => 'ຈັດການສິນຄ້າໝົດອາຍຸ',
     'layout.expiry_report' => 'ລາຍງານສິນຄ້າໝົດອາຍຸ',
+    'layout.debt_report' => 'ລາຍງານໜີ້ລູກຄ້າ',
 ];

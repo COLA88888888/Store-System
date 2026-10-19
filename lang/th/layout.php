@@ -8,7 +8,7 @@ return [
     'layout.pos_sell' => 'ขายสินค้า',
     'layout.pos_item_sales' => 'รายการขายสินค้า',
     'layout.customers' => 'จัดการลูกค้า',
-    'layout.quotations' => 'ใบเสนอราคา',
+    'layout.customer_debt' => 'ลูกค้าค้างชำระ',
     'layout.products_group' => 'ข้อมูลสินค้า',
     'layout.stock_intake_group' => 'นำสินค้าเข้าคลัง',
     'layout.categories' => 'หมวดหมู่สินค้า',
@@ -88,4 +88,5 @@ return [
     'layout.cancel' => 'ยกเลิก',
     'layout.expiry' => 'จัดการสินค้าหมดอายุ',
     'layout.expiry_report' => 'รายงานสินค้าหมดอายุ',
+    'layout.debt_report' => 'รายงานหนี้ลูกค้า',
 ];

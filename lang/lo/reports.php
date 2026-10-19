@@ -128,15 +128,6 @@ return [
     // Row action buttons / titles
     'reports.view_detail_title'      => 'ເບິ່ງລາຍລະອຽດບິນ',
     'reports.print_bill_title'       => 'ພິມໃບບິນ',
-    'reports.print_delivery_note_title' => 'ພິມບິນສົ່ງເຄື່ອງ',
-    'reports.delivery_note' => 'ບິນສົ່ງເຄື່ອງ',
-    'reports.dn_sender' => 'ຜູ້ສົ່ງ',
-    'reports.dn_recipient' => 'ຜູ້ຮັບ',
-    'reports.dn_recipient_name' => 'ຊື່:',
-    'reports.dn_phone' => 'ເບີໂທ:',
-    'reports.dn_recipient_address' => 'ທີ່ຢູ່:',
-    'reports.dn_sender_sign' => 'ລາຍເຊັນຜູ້ສົ່ງ',
-    'reports.dn_recipient_sign' => 'ລາຍເຊັນຜູ້ຮັບ',
     'reports.delete_bill_title'      => 'ລຶບບິນຂາຍ',
     'reports.view_deleted_items_title' => 'ເບິ່ງລາຍການສິນຄ້າທີ່ຖືກລຶບ',
 

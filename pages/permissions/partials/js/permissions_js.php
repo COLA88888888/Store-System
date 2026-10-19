@@ -222,13 +222,20 @@ function applyRolePreset(userId, presetKey) {
  * 6. Execute Preset AJAX Request
  */
 function executePreset(userId, presetKey) {
+  // ສົ່ງລາຍການສະວິດທັງໝົດ ({switch_id: perm}) ເພື່ອໃຫ້ backend ບັນທຶກສະຖານະທຸກສະວິດ
+  var switches = {};
+  document.querySelectorAll('[data-user-id="' + userId + '"][data-perm]').forEach(function(cb) {
+    switches[cb.id] = cb.getAttribute('data-perm');
+  });
+
   $.ajax({
     url: window.location.href,
     type: 'POST',
     data: {
       ajax_action: 'apply_preset',
       user_id: userId,
-      preset: presetKey
+      preset: presetKey,
+      switches: JSON.stringify(switches)
     },
     dataType: 'json',
     success: function(res) {
@@ -246,7 +253,12 @@ function executePreset(userId, presetKey) {
         }
 
         // ອັບເດດສະຖານະສະວິດທຸກອັນໃນຕາຕະລາງຕາມຄ່າ Preset ໃໝ່
-        if (res.permissions) {
+        if (res.switch_values) {
+          Object.keys(res.switch_values).forEach(function(switchKey) {
+            var cb = document.getElementById(switchKey);
+            if (cb) cb.checked = Number(res.switch_values[switchKey]) === 1;
+          });
+        } else if (res.permissions) {
           var p = res.permissions;
           for (var key in p) {
             var val = p[key];

@@ -9,7 +9,7 @@ if (!defined('MINIPOS_APP')) {
 
 // This branch's own bank accounts, plus any account shared across every branch (store_id = 0
 // — same convention promotions uses for a "global" row).
-$banks_stmt = $pdo->prepare("SELECT * FROM bank_accounts WHERE store_id = ? OR store_id = 0 ORDER BY is_active DESC, id ASC");
+$banks_stmt = $pdo->prepare("SELECT * FROM st_bank_accounts WHERE store_id = ? OR store_id = 0 ORDER BY is_active DESC, id ASC");
 $banks_stmt->execute([getActiveStoreId($pdo)]);
 $bank_accounts_list = $banks_stmt ? $banks_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
@@ -41,118 +41,21 @@ if (!function_exists('resolveBankQr')) {
         if (file_exists($root . '/assets/img/qr/' . $filename) || file_exists($htdocsRoot . '/assets/img/qr/' . $filename)) {
             return '../../assets/img/qr/' . $filename;
         }
-        return '../../assets/img/qr/' . $filename;
+        return '';
     }
 }
 
-// Check store_id or branch_id column for tbsale_save & sales tables
-$save_store_col = null;
-$sales_store_col = null;
-try {
-    $saveCols = $pdo->query("SHOW COLUMNS FROM tbsale_save")->fetchAll(PDO::FETCH_COLUMN);
-    if (in_array('store_id', $saveCols)) {
-        $save_store_col = 'store_id';
-    } elseif (in_array('branch_id', $saveCols)) {
-        $save_store_col = 'branch_id';
-    }
-
-    $salesCols = $pdo->query("SHOW COLUMNS FROM sales")->fetchAll(PDO::FETCH_COLUMN);
-    if (in_array('store_id', $salesCols)) {
-        $sales_store_col = 'store_id';
-    } elseif (in_array('branch_id', $salesCols)) {
-        $sales_store_col = 'branch_id';
-    }
-} catch (Exception $e) {}
-
-$save_store_clause = "";
-$sales_store_clause = "";
-
-if (!empty($filter_store_id) && $filter_store_id > 0) {
-    if ($save_store_col) {
-        $save_store_clause = " AND " . $save_store_col . " = " . intval($filter_store_id);
-    }
-    if ($sales_store_col) {
-        $sales_store_clause = " AND " . $sales_store_col . " = " . intval($filter_store_id);
-    }
-}
-
-// Calculate revenue per bank for date range ($start_date to $end_date) and optional store_id filter
-// Exclusively sums the net bank transfer amount (sale_transfer or net transfer total), strictly excluding cash
-$bank_sales_sql = "
-    SELECT 
-        b.id as bank_acc_id,
-        COUNT(s.sale_id) as total_tx,
-        COALESCE(SUM(s.transfer_net_amount), 0) as total_received
-    FROM bank_accounts b
-    LEFT JOIN (
-        SELECT 
-            Id as sale_id,
-            CASE 
-                WHEN sale_transfer > 0 THEN sale_transfer
-                WHEN (type_pay LIKE '%ໂອນ%' OR type_pay LIKE '%QR%' OR bank_account_id > 0) AND type_pay NOT LIKE '%ເງິນສົດ%' THEN sale_barlance
-                ELSE 0
-            END as transfer_net_amount,
-            type_pay as payment_type,
-            bank_account_id,
-            bank_name,
-            sale_date as created_at
-        FROM tbsale_save
-        WHERE (sale_status IS NULL OR sale_status = 'SUCCESS' OR sale_status != 'CANCEL')
-          {$save_store_clause}
-        UNION ALL
-        SELECT 
-            sale_id,
-            CASE 
-                WHEN (payment_type LIKE '%ໂອນ%' OR payment_type LIKE '%QR%' OR bank_account_id > 0) AND payment_type NOT LIKE '%ເງິນສົດ%' THEN total_amount
-                ELSE 0
-            END as transfer_net_amount,
-            payment_type,
-            bank_account_id,
-            bank_name,
-            DATE(created_at) as created_at
-        FROM sales
-        WHERE (status IS NULL OR status = 'SUCCESS' OR status != 'CANCEL') 
-          AND invoice_number NOT IN (SELECT sale_save_bill FROM tbsale_save WHERE sale_save_bill IS NOT NULL)
-          {$sales_store_clause}
-    ) s ON (
-        (
-            (s.bank_account_id IS NOT NULL AND s.bank_account_id > 0 AND s.bank_account_id = b.id)
-            OR (
-                (s.bank_account_id IS NULL OR s.bank_account_id = 0)
-                AND (
-                    (s.bank_name IS NOT NULL AND s.bank_name != '' AND (
-                        LOWER(s.bank_name) = LOWER(b.bank_name)
-                        OR LOWER(s.bank_name) = LOWER(b.bank_code)
-                        OR LOWER(s.bank_name) LIKE CONCAT('%', LOWER(b.bank_name), '%')
-                        OR LOWER(s.bank_name) LIKE CONCAT('%', LOWER(b.bank_code), '%')
-                        OR LOWER(b.bank_name) LIKE CONCAT('%', LOWER(s.bank_name), '%')
-                        OR LOWER(b.bank_code) LIKE CONCAT('%', LOWER(s.bank_name), '%')
-                    ))
-                    OR (
-                        (s.bank_name IS NULL OR s.bank_name = '' OR LOWER(s.bank_name) LIKE '%bcel%' OR LOWER(s.bank_name) LIKE '%onepay%')
-                        AND (LOWER(b.bank_code) = 'BCEL' OR LOWER(b.bank_name) LIKE '%bcel%')
-                    )
-                )
-            )
-        )
-        AND s.transfer_net_amount > 0
-        AND s.created_at BETWEEN ? AND ?
-    )
-    GROUP BY b.id
-";
-$bank_sales_stmt = $pdo->prepare($bank_sales_sql);
-$bank_sales_stmt->execute([$start_date, $end_date]);
-$bank_sales_data = $bank_sales_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Map sales stats by bank_account_id
-$sales_by_bank_id = [];
+// Transfer received per bank for the date range and branch filter — the same helper the daily
+// report uses (config/db.php), so both pages always show the same numbers.
+$sales_by_bank_id = getBankTransferTotals($pdo, $start_date, $end_date, (!empty($filter_store_id) && $filter_store_id > 0) ? $filter_store_id : 0);
 $total_transfer_sum = 0.00;
 $total_transfer_count = 0;
-foreach ($bank_sales_data as $bs) {
-    $bId = intval($bs['bank_acc_id']);
-    $sales_by_bank_id[$bId] = $bs;
-    $total_transfer_sum += floatval($bs['total_received']);
-    $total_transfer_count += intval($bs['total_tx']);
+// Total = the accounts actually listed on this page (not other branches' accounts)
+foreach ($bank_accounts_list as $__bl) {
+    $bs = $sales_by_bank_id[intval($__bl['id'])] ?? null;
+    if (!$bs) continue;
+    $total_transfer_sum += $bs['total_received'];
+    $total_transfer_count += $bs['total_tx'];
 }
 
 // Helper brand colors for Lao Banks
@@ -242,19 +145,6 @@ function getBankBrandStyle($bankCode) {
               <div class="font-weight-bold" style="font-size: 0.95rem; font-family: monospace; letter-spacing: 0.5px; color: <?php echo $brand['acc_color']; ?>;">
                 <?php echo htmlspecialchars($bank['account_number']); ?>
               </div>
-              <?php if ($bankMultiBranch): ?>
-              <?php
-                $bankBranchLabel = t('bank.opt_global', '-- ທຸກສາຂາ (Global) --');
-                if ((int)$bank['store_id'] > 0) {
-                    foreach ($branches_list as $__bst) {
-                        if ((int)$__bst['store_id'] === (int)$bank['store_id']) { $bankBranchLabel = $__bst['store_name']; break; }
-                    }
-                }
-              ?>
-              <span class="badge badge-light border font-weight-bold text-truncate d-inline-block" style="font-size: 0.72rem; color: #1e293b; max-width: 200px; vertical-align: bottom; margin-top: 3px;">
-                <i class="fas fa-<?php echo (int)$bank['store_id'] === 0 ? 'globe' : 'store'; ?> mr-1"></i><?php echo htmlspecialchars($bankBranchLabel); ?>
-              </span>
-              <?php endif; ?>
             </div>
           </div>
 
@@ -374,7 +264,11 @@ function getBankBrandStyle($bankCode) {
               </td>
               <td class="py-3 text-muted"><?php echo htmlspecialchars($bank['account_name'] ?: '-'); ?></td>
               <td class="py-3 text-center">
-                <img src="<?php echo htmlspecialchars($qrSrc); ?>" style="width: 38px; height: 38px; object-fit: contain; border-radius: 6px; border: 1px solid #cbd5e1; padding: 2px; background: #fff;" onerror="this.src='../../assets/img/qr_placeholder.png';">
+                <?php if ($qrSrc !== ''): ?>
+                <img src="<?php echo htmlspecialchars($qrSrc); ?>" style="width: 38px; height: 38px; object-fit: contain; border-radius: 6px; border: 1px solid #cbd5e1; padding: 2px; background: #fff;" onerror="this.outerHTML='<span class=&quot;text-muted&quot;>-</span>';">
+                <?php else: ?>
+                <span class="text-muted">-</span>
+                <?php endif; ?>
               </td>
               <td class="py-3 text-right font-weight-bold text-success" style="font-size: 0.95rem;">
                 <?php echo displayMoney($pdo, $amt); ?>
@@ -438,9 +332,45 @@ function editBankAccount(bank) {
   $('#form_account_name').val(bank.account_name);
   $('#form_is_active').val(bank.is_active || 1);
   $('#form_store_id').val(bank.store_id);
+  setBankImage('bank_logo', bank.bank_logo ? '../../assets/img/banks/' + bank.bank_logo : '');
+  setBankImage('qr_code_img', bank.qr_code_img ? '../../assets/img/qr/' + bank.qr_code_img : '');
 
   $('#bankModalTitle').html('<i class="fas fa-edit text-primary mr-1"></i> ' + I18N_BANK['bank.modal_title_edit']);
   $('#addBankAccountModal').modal('show');
+}
+
+// Logo / QR picker in the bank modal. field = 'bank_logo' | 'qr_code_img'.
+// setBankImage shows a saved image (or clears the box) and resets the pending upload/removal.
+function setBankImage(field, src) {
+  $('#form_' + field).val('');
+  $('#form_remove_' + field).val('0');
+  $('#preview_' + field).attr('src', src || '');
+  $('#pick_' + field).toggleClass('has-img', !!src);
+}
+
+function previewBankImage(input, field) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function (ev) {
+    $('#preview_' + field).attr('src', ev.target.result);
+    $('#pick_' + field).addClass('has-img');
+    $('#form_remove_' + field).val('0');
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+// Closing the modal any way (backdrop, Esc) returns it to a blank "add" form, so the next
+// "add" doesn't show the previous account's images.
+$(function () {
+  $('#addBankAccountModal').on('hidden.bs.modal', resetBankForm);
+});
+
+// × on the corner: drop the picked file, and on save also delete the stored image
+function removeBankImage(field) {
+  $('#form_' + field).val('');
+  $('#preview_' + field).attr('src', '');
+  $('#pick_' + field).removeClass('has-img');
+  $('#form_remove_' + field).val('1');
 }
 
 function validateBankForm(e) {
@@ -501,6 +431,8 @@ function resetBankForm() {
   $('#form_account_name').val('');
   $('#form_is_active').val('1');
   $('#form_store_id').val(<?php echo (int)$userStoreId; ?>);
+  setBankImage('bank_logo', '');
+  setBankImage('qr_code_img', '');
   $('#bankModalTitle').html('<i class="fas fa-plus-circle text-primary mr-1"></i> ' + I18N_BANK['bank.modal_title_add']);
 }
 

@@ -1,0 +1,242 @@
+/*
+ * ສ່ວນ: ຈັດຕຳແໜ່ງ sidebar/header/ເນື້ອຫາ
+ * ໄລຍະຫ່າງ sidebar/header/content ໃຫ້ກົງກັນ ແລະ ຂໍ້ຄວາມບໍ່ສັ່ນຕອນເປີດ/ປິດ.
+ * ແຍກອອກມາຈາກ assets/css/pages/menu-sidebar.css — ໂຫຼດຕາມລຳດັບເລກໜ້າຊື່ໄຟລ໌ (ລຳດັບສຳຄັນສຳລັບ CSS).
+ */
+/* ===== PERFECT SIDEBAR / HEADER / CONTENT MARGIN ALIGNMENT & TEXT STABILITY ===== */
+@media (min-width: 768px) {
+    /* Always visible on Desktop */
+    .main-sidebar,
+    body.sidebar-closed .main-sidebar,
+    body.sidebar-collapse .main-sidebar,
+    html.sidebar-collapse .main-sidebar {
+        display: block !important;
+        left: 0 !important;
+        margin-left: 0 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    /* Top blue bar shield under logo to eliminate white gap artifact during slide */
+    .wrapper::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 250px;
+        height: 64px;
+        background: #244886 !important;
+        z-index: 999;
+        pointer-events: none;
+        will-change: width;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    body.sidebar-collapse .wrapper::before,
+    html.sidebar-collapse .wrapper::before {
+        width: 4.6rem !important;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    /* Disable transitions during page load refresh */
+    .hold-transition .main-sidebar,
+    .hold-transition .main-header,
+    .hold-transition .content-wrapper,
+    .hold-transition .main-footer {
+        transition: none !important;
+    }
+
+    /* ---- DEFAULT (EXPANDED) STATE ----
+       Plain selectors, no :not(). The collapsed rules below come later in source with
+       equal-or-higher specificity, so they win whenever `.sidebar-collapse` lands on
+       EITHER <html> or <body> (both are ancestors of these elements). This is what keeps
+       the sidebar and the content margin from desyncing when the class ends up on only
+       one of the two — the bug where the sidebar shrank but the content stayed put. */
+    .main-sidebar {
+        will-change: width;
+        width: 250px !important;
+        min-width: 250px !important;
+        max-width: 250px !important;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    .main-header,
+    .content-wrapper,
+    .main-footer {
+        will-change: margin-left;
+        /* Animate ONLY margin-left. The right edge stays pinned to the viewport (width:auto),
+           so the content's left edge rides the exact same curve as the sidebar's width and
+           the two never visually separate mid-slide. */
+        margin-left: 250px !important;
+        width: auto !important;
+        transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    /* ---- COLLAPSED (MINI) STATE ---- hard-locked to 4.6rem even on :hover.
+       Handles the class on <html>, on <body>, or on any ancestor (bare .sidebar-collapse). */
+    .sidebar-collapse .main-sidebar,
+    .sidebar-collapse .main-sidebar:hover,
+    .sidebar-collapse .main-sidebar:focus,
+    html.sidebar-collapse .main-sidebar,
+    html.sidebar-collapse .main-sidebar:hover,
+    body.sidebar-collapse .main-sidebar,
+    body.sidebar-collapse .main-sidebar:hover,
+    body.sidebar-collapse.sidebar-mini .main-sidebar,
+    body.sidebar-collapse.sidebar-mini .main-sidebar:hover,
+    body.sidebar-collapse.sidebar-mini-md .main-sidebar,
+    body.sidebar-collapse.sidebar-mini-md .main-sidebar:hover {
+        width: 4.6rem !important;
+        min-width: 4.6rem !important;
+        max-width: 4.6rem !important;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    .sidebar-collapse .main-header,
+    .sidebar-collapse .main-header:hover,
+    .sidebar-collapse .content-wrapper,
+    .sidebar-collapse .content-wrapper:hover,
+    .sidebar-collapse .main-footer,
+    .sidebar-collapse .main-footer:hover,
+    html.sidebar-collapse .main-header,
+    html.sidebar-collapse .content-wrapper,
+    html.sidebar-collapse .main-footer,
+    body.sidebar-collapse .main-header,
+    body.sidebar-collapse .main-header:hover,
+    body.sidebar-collapse .content-wrapper,
+    body.sidebar-collapse .content-wrapper:hover,
+    body.sidebar-collapse .main-footer,
+    body.sidebar-collapse .main-footer:hover {
+        margin-left: 4.6rem !important;
+        width: auto !important;
+        transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+}
+
+/* ===== TEXT STABILITY LOCKDOWN & FAST FADE FOR BOTH EXPAND AND COLLAPSE ===== */
+.main-sidebar .brand-text,
+.main-sidebar .user-panel .info,
+.main-sidebar .nav-sidebar p,
+.main-sidebar .nav-sidebar .nav-header {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+@media (min-width: 768px) {
+    /* Default: labels visible. Collapsed rule below (later, higher specificity) hides them
+       whenever `.sidebar-collapse` is on <html> or <body>. */
+    .main-sidebar .brand-text,
+    .main-sidebar .user-panel .info,
+    .main-sidebar .nav-sidebar p,
+    .main-sidebar .nav-sidebar .nav-header {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    .sidebar-collapse .main-sidebar .brand-text,
+    .sidebar-collapse .main-sidebar .user-panel .info,
+    .sidebar-collapse .main-sidebar .nav-sidebar p,
+    .sidebar-collapse .main-sidebar .nav-sidebar .nav-header,
+    html.sidebar-collapse .main-sidebar .brand-text,
+    html.sidebar-collapse .main-sidebar .user-panel .info,
+    html.sidebar-collapse .main-sidebar .nav-sidebar p,
+    html.sidebar-collapse .main-sidebar .nav-sidebar .nav-header,
+    body.sidebar-collapse .main-sidebar .brand-text,
+    body.sidebar-collapse .main-sidebar .user-panel .info,
+    body.sidebar-collapse .main-sidebar .nav-sidebar p,
+    body.sidebar-collapse .main-sidebar .nav-sidebar .nav-header {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .main-header,
+    .main-header.navbar,
+    .content-wrapper,
+    body.sidebar-collapse .main-header,
+    body.sidebar-collapse .content-wrapper,
+    html.sidebar-collapse .main-header,
+    html.sidebar-collapse .content-wrapper {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* NOTE: html/body/.wrapper/.content-wrapper must stay non-scrolling on mobile too — the
+   "Iframe scroll fix" rule above (line ~105) already pins them so only the iframe's own
+   page scrolls internally, keeping the navbar/header always visible. A mobile override
+   here that makes them overflow-y:auto used to fight that rule and let the whole app
+   shell scroll, dragging the header out of view — removed. */
+
+/* ===== COMPLETE HOVER LOCKDOWN FOR COLLAPSED SIDEBAR (DISABLED HOVER EXPANSION) ===== */
+@media (min-width: 768px) {
+    .sidebar-collapse .main-sidebar,
+    .sidebar-collapse .main-sidebar:hover,
+    .sidebar-collapse .main-sidebar:focus,
+    body.sidebar-collapse .main-sidebar,
+    body.sidebar-collapse .main-sidebar:hover,
+    body.sidebar-collapse.sidebar-mini .main-sidebar,
+    body.sidebar-collapse.sidebar-mini .main-sidebar:hover,
+    body.sidebar-collapse.sidebar-mini-md .main-sidebar,
+    body.sidebar-collapse.sidebar-mini-md .main-sidebar:hover,
+    html.sidebar-collapse .main-sidebar,
+    html.sidebar-collapse .main-sidebar:hover {
+        width: 4.6rem !important;
+        min-width: 4.6rem !important;
+        max-width: 4.6rem !important;
+        transform: none !important;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    .sidebar-collapse .main-sidebar .brand-link,
+    .sidebar-collapse .main-sidebar:hover .brand-link,
+    body.sidebar-collapse .main-sidebar .brand-link,
+    body.sidebar-collapse .main-sidebar:hover .brand-link {
+        width: 4.6rem !important;
+        min-width: 4.6rem !important;
+        max-width: 4.6rem !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    .sidebar-collapse .main-sidebar:hover .brand-text,
+    .sidebar-collapse .main-sidebar:hover .user-panel .info,
+    .sidebar-collapse .main-sidebar:hover .nav-sidebar p,
+    .sidebar-collapse .main-sidebar:hover .nav-sidebar .nav-header,
+    body.sidebar-collapse .main-sidebar:hover .brand-text,
+    body.sidebar-collapse .main-sidebar:hover .user-panel .info,
+    body.sidebar-collapse .main-sidebar:hover .nav-sidebar p,
+    body.sidebar-collapse .main-sidebar:hover .nav-sidebar .nav-header {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        pointer-events: none !important;
+    }
+
+    .sidebar-collapse .main-header,
+    .sidebar-collapse .main-header:hover,
+    .sidebar-collapse .content-wrapper,
+    .sidebar-collapse .content-wrapper:hover,
+    body.sidebar-collapse .main-header,
+    body.sidebar-collapse .main-header:hover,
+    body.sidebar-collapse .content-wrapper,
+    body.sidebar-collapse .content-wrapper:hover {
+        margin-left: 4.6rem !important;
+        width: auto !important;
+        transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+
+    body.sidebar-collapse .main-sidebar .brand-link .brand-logo-wrap,
+    .sidebar-collapse .main-sidebar .brand-link .brand-logo-wrap {
+        margin: 0 auto !important;
+    }
+}

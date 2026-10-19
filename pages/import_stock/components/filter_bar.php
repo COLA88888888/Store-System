@@ -29,12 +29,12 @@
           <i class="fas fa-store text-info mr-1"></i> <?php echo htmlspecialchars(t('import_list.filter_select_branch', 'ເລືອກສາຂາ:')); ?>
         </label>
         <select name="store_id" class="form-control font-weight-bold border-info" style="height: 38px; border-radius: 8px; background-color: #f0f9ff; width: 100%;" onchange="this.form.submit()">
-          <option value="0"><?php echo htmlspecialchars(t('import_list.filter_all_branches', '-- ທຸກສາຂາ --')); ?></option>
           <?php foreach ($stores as $st): ?>
             <option value="<?php echo $st['store_id']; ?>" <?php echo ($filter_store == $st['store_id']) ? 'selected' : ''; ?>>
               <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('import_list.main_branch_suffix', '(ສາງຫຼັກ)')) : ''; ?>
             </option>
           <?php endforeach; ?>
+          <option value="0" <?php echo ((int)$filter_store === 0) ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('import_list.filter_all_branches', '-- ທຸກສາຂາ --')); ?></option>
         </select>
       </div>
       <?php else: ?>

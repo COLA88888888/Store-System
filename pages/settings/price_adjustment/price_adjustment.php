@@ -41,12 +41,12 @@ require_once __DIR__ . '/../../../layouts/header.php';
       <?php if ($canAllBranches): ?>
         <form method="GET" action="" class="m-0 d-inline-block">
           <select name="store_id" class="form-control form-control-sm font-weight-bold border-warning text-warning" style="height: 38px; border-radius: 8px; background-color: #fffbeb; min-width: 130px;" onchange="this.form.submit()">
-            <option value="0"><?php echo htmlspecialchars(t('price_adjustment.opt_all_branches', '-- ທຸກສາຂາ --')); ?></option>
             <?php foreach ($stores as $st): ?>
               <option value="<?php echo $st['store_id']; ?>" <?php echo ($filter_store == $st['store_id']) ? 'selected' : ''; ?>>
                 <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('price_adjustment.badge_main_branch', '(ສາງຫຼັກ)')) : ''; ?>
               </option>
             <?php endforeach; ?>
+            <option value="0" <?php echo ((int)$filter_store === 0) ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('price_adjustment.opt_all_branches', '-- ທຸກສາຂາ --')); ?></option>
           </select>
         </form>
       <?php endif; ?>

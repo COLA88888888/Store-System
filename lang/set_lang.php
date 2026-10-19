@@ -16,7 +16,7 @@ if (!in_array($lang, POS_SUPPORTED_LANGS, true)) {
 }
 
 $_SESSION['lang'] = $lang;
-setcookie('pos_lang', $lang, [
+setcookie('minipos_lang', $lang, [
     'expires' => time() + 31536000,
     'path' => '/',
     'httponly' => false,

@@ -14,7 +14,7 @@ $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
 
 $expire_display = '-';
 try {
-    $exp = $pdo->query("SELECT license_expire_date FROM tbcompanyinfo WHERE branch_id = (SELECT store_id FROM tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1) LIMIT 1")->fetchColumn();
+    $exp = $pdo->query("SELECT license_expire_date FROM st_tbcompanyinfo WHERE branch_id = (SELECT store_id FROM st_tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1) LIMIT 1")->fetchColumn();
     if (!empty($exp)) {
         $expire_display = date('d/m/Y', strtotime($exp));
     }

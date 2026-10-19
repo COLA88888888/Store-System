@@ -31,7 +31,7 @@ if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[
 }
 
 // Auto-generate next numeric Branch Code (1, 2, 3...)
-$max_id = (int)$pdo->query("SELECT COALESCE(MAX(store_id), 0) FROM tbstore")->fetchColumn();
+$max_id = (int)$pdo->query("SELECT COALESCE(MAX(store_id), 0) FROM st_tbstore")->fetchColumn();
 $next_store_code = (string)($max_id + 1);
 
 // Handle POST Add Branch Store
@@ -48,9 +48,9 @@ if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[
     if ($store_code !== '' && $store_name !== '') {
         try {
             if ($is_main === 1) {
-                $pdo->exec("UPDATE tbstore SET is_main = 0");
+                $pdo->exec("UPDATE st_tbstore SET is_main = 0");
             }
-            $stmt = $pdo->prepare("INSERT INTO tbstore (store_code, store_name, is_main, address, tel, status) VALUES (?, ?, ?, ?, ?, 'active')");
+            $stmt = $pdo->prepare("INSERT INTO st_tbstore (store_code, store_name, is_main, address, tel, status) VALUES (?, ?, ?, ?, ?, 'active')");
             $stmt->execute([$store_code, $store_name, $is_main, $address, $tel]);
             $message = 'ເພີ່ມສາຂາໃໝ່ ສຳເລັດແລ້ວ!';
             $message_type = 'success';
@@ -78,9 +78,9 @@ if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[
     if ($store_id > 0 && $store_name !== '') {
         try {
             if ($is_main === 1) {
-                $pdo->exec("UPDATE tbstore SET is_main = 0");
+                $pdo->exec("UPDATE st_tbstore SET is_main = 0");
             }
-            $stmt = $pdo->prepare("UPDATE tbstore SET store_code = ?, store_name = ?, is_main = ?, address = ?, tel = ?, status = ? WHERE store_id = ?");
+            $stmt = $pdo->prepare("UPDATE st_tbstore SET store_code = ?, store_name = ?, is_main = ?, address = ?, tel = ?, status = ? WHERE store_id = ?");
             $stmt->execute([$store_code, $store_name, $is_main, $address, $tel, $status, $store_id]);
             $message = 'ແກ້ໄຂຂໍ້ມູນສາຂາ ສຳເລັດແລ້ວ!';
             $message_type = 'success';
@@ -97,10 +97,10 @@ if ($canManageBranches && isset($_GET['toggle_status_id'])) {
     $toggle_id = intval($_GET['toggle_status_id']);
     if ($toggle_id > 0) {
         try {
-            $curStatus = $pdo->query("SELECT status, store_name FROM tbstore WHERE store_id = {$toggle_id}")->fetch(PDO::FETCH_ASSOC);
+            $curStatus = $pdo->query("SELECT status, store_name FROM st_tbstore WHERE store_id = {$toggle_id}")->fetch(PDO::FETCH_ASSOC);
             if ($curStatus) {
                 $newStatus = ($curStatus['status'] === 'active') ? 'inactive' : 'active';
-                $stmt = $pdo->prepare("UPDATE tbstore SET status = ? WHERE store_id = ?");
+                $stmt = $pdo->prepare("UPDATE st_tbstore SET status = ? WHERE store_id = ?");
                 $stmt->execute([$newStatus, $toggle_id]);
 
                 $statusLabel = ($newStatus === 'active') ? 'ເປີດໃຊ້ງານ' : 'ປິດໃຊ້ງານ';
@@ -120,7 +120,7 @@ if ($canManageBranches && isset($_GET['delete_branch_id'])) {
     $del_id = intval($_GET['delete_branch_id']);
     if ($del_id > 0) {
         try {
-            $branch = $pdo->query("SELECT store_name, is_main FROM tbstore WHERE store_id = {$del_id}")->fetch(PDO::FETCH_ASSOC);
+            $branch = $pdo->query("SELECT store_name, is_main FROM st_tbstore WHERE store_id = {$del_id}")->fetch(PDO::FETCH_ASSOC);
             if (!$branch) {
                 $message = 'ບໍ່ພົບຂໍ້ມູນສາຂານີ້!';
                 $message_type = 'danger';
@@ -133,10 +133,10 @@ if ($canManageBranches && isset($_GET['delete_branch_id'])) {
                 // above and get deleted while products/users/sales still reference its store_id
                 // — orphaning them permanently. Block deletion while any such row still exists.
                 $linkedCounts = [
-                    'ສິນຄ້າ'      => $pdo->prepare("SELECT COUNT(*) FROM products WHERE store_id = ?"),
-                    'ຜູ້ໃຊ້ງານ'    => $pdo->prepare("SELECT COUNT(*) FROM tbuser WHERE store_id = ?"),
-                    'ລູກຄ້າ'      => $pdo->prepare("SELECT COUNT(*) FROM customers WHERE store_id = ?"),
-                    'ການຂາຍ'      => $pdo->prepare("SELECT COUNT(*) FROM tbsale_save WHERE store_id = ?"),
+                    'ສິນຄ້າ'      => $pdo->prepare("SELECT COUNT(*) FROM st_products WHERE store_id = ?"),
+                    'ຜູ້ໃຊ້ງານ'    => $pdo->prepare("SELECT COUNT(*) FROM st_tbuser WHERE store_id = ?"),
+                    'ລູກຄ້າ'      => $pdo->prepare("SELECT COUNT(*) FROM st_customers WHERE store_id = ?"),
+                    'ການຂາຍ'      => $pdo->prepare("SELECT COUNT(*) FROM st_tbsale_save WHERE store_id = ?"),
                 ];
                 $blockedBy = null;
                 foreach ($linkedCounts as $label => $stmtCount) {
@@ -150,7 +150,9 @@ if ($canManageBranches && isset($_GET['delete_branch_id'])) {
                     $message = "ບໍ່ສາມາດລົບສາຂາໄດ້ ເນື່ອງຈາກຍັງມີຂໍ້ມູນ{$blockedBy}ຢູ່ໃນສາຂານີ້! ກະລຸນາຍ້າຍຂໍ້ມູນອອກກ່ອນ.";
                     $message_type = 'warning';
                 } else {
-                    $pdo->prepare("DELETE FROM tbstore WHERE store_id = ?")->execute([$del_id]);
+                    $pdo->prepare("DELETE FROM st_tbstore WHERE store_id = ?")->execute([$del_id]);
+                    // ສາຂາຖືກລົບແລ້ວ — ໂລໂກ້ຂອງສາຂານັ້ນ (ຖ້າບໍ່ມີສາຂາອື່ນໃຊ້ນຳ) ບໍ່ຕ້ອງຄ້າງໃນໂຟນເດີ
+                    cleanupUnusedLogos($pdo);
                     $message = "ລົບສາຂາ \"{$branch['store_name']}\" ສຳເລັດແລ້ວ!";
                     $message_type = 'success';
                     logActivity($pdo, "ລົບສາຂາ", $branch['store_name']);
@@ -165,9 +167,9 @@ if ($canManageBranches && isset($_GET['delete_branch_id'])) {
 
 // Fetch all branch stores
 if ($canManageBranches) {
-    $all_branches = $pdo->query("SELECT * FROM tbstore ORDER BY is_main DESC, store_id ASC")->fetchAll();
+    $all_branches = $pdo->query("SELECT * FROM st_tbstore ORDER BY is_main DESC, store_id ASC")->fetchAll();
 } else {
-    $ownBranchStmt = $pdo->prepare("SELECT * FROM tbstore WHERE store_id = ?");
+    $ownBranchStmt = $pdo->prepare("SELECT * FROM st_tbstore WHERE store_id = ?");
     $ownBranchStmt->execute([intval($_SESSION['store_id'] ?? 0)]);
     $all_branches = $ownBranchStmt->fetchAll();
 }

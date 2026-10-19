@@ -18,8 +18,8 @@ if ($import_id <= 0) {
 // Fetch master import
 $impStmt = $pdo->prepare("
     SELECT i.*, u.username, u.fname, u.lname 
-    FROM imports i 
-    LEFT JOIN tbuser u ON i.created_by = u.Id 
+    FROM st_imports i 
+    LEFT JOIN st_tbuser u ON i.created_by = u.Id 
     WHERE i.import_id = ?
 ");
 $impStmt->execute([$import_id]);
@@ -32,9 +32,9 @@ if (!$import) {
 // Fetch import details
 $detStmt = $pdo->prepare("
     SELECT id.*, p.product_name, p.barcode, p.unit AS base_unit 
-    FROM import_details id 
-    JOIN imports i ON id.import_id = i.import_id
-    LEFT JOIN products p ON (id.product_id = p.product_id AND p.store_id = (CASE WHEN i.store_id > 0 THEN i.store_id ELSE 1 END))
+    FROM st_import_details id 
+    JOIN st_imports i ON id.import_id = i.import_id
+    LEFT JOIN st_products p ON (id.product_id = p.product_id AND p.store_id = (CASE WHEN i.store_id > 0 THEN i.store_id ELSE 1 END))
     WHERE id.import_id = ? 
     GROUP BY id.import_detail_id
     ORDER BY id.import_detail_id ASC

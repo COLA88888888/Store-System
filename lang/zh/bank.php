@@ -62,6 +62,8 @@ return [
     'bank.placeholder_account_name' => '请输入账户名称...',
     'bank.field_bank_logo' => '银行标志图片:',
     'bank.field_qr_code' => 'QR Code 图片:',
+    'bank.choose_image' => '点击选择图片',
+    'bank.remove_image' => '删除图片',
     'bank.field_status' => '状态:',
     'bank.status_option_active' => '启用',
     'bank.status_option_inactive' => '停用',

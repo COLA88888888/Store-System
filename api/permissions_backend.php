@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
     // Users who can't see every branch may only change permissions of accounts in their own branch.
     $targetUserId = intval($_POST['user_id'] ?? 0);
     if ($targetUserId > 0 && !canViewAllBranches($pdo)) {
-        $targetStoreStmt = $pdo->prepare("SELECT store_id FROM tbuser WHERE Id = ?");
+        $targetStoreStmt = $pdo->prepare("SELECT store_id FROM st_tbuser WHERE Id = ?");
         $targetStoreStmt->execute([$targetUserId]);
         if (intval($targetStoreStmt->fetchColumn()) !== intval($_SESSION['store_id'] ?? 0)) {
             echo json_encode(['success' => false, 'message' => 'ທ່ານບໍ່ມີສິດຈັດການຜູ້ໃຊ້ຂອງສາຂາອື່ນ!']);
@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         }
     }
 
-    $pdo->exec("CREATE TABLE IF NOT EXISTS user_permission_switch_states (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS st_user_permission_switch_states (
         user_id INT NOT NULL,
         switch_key VARCHAR(120) NOT NULL,
         is_enabled TINYINT(1) NOT NULL DEFAULT 0,
@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
     if ($action === 'get_switch_states') {
-        $stateStmt = $pdo->query('SELECT switch_key, is_enabled FROM user_permission_switch_states');
+        $stateStmt = $pdo->query('SELECT switch_key, is_enabled FROM st_user_permission_switch_states');
         $states = [];
         foreach ($stateStmt->fetchAll() as $state) {
             $states[$state['switch_key']] = (int)$state['is_enabled'];
@@ -79,8 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             'dashboard', 'sale', 'item_sales', 'stock', 'categories', 'units', 'products', 'suppliers', 'import_stock', 'import_list',
             'stock_transfer', 'transfer_history',
             'report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales', 'delete_bills',
-            'accounting', 'setup', 'stores', 'print_barcode', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty',
-            'users', 'permissions', 'branches', 'edit', 'customers', 'database', 'quotations'
+            'accounting', 'setup', 'stores', 'print_barcode', 'expiry', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty',
+            'users', 'permissions', 'branches', 'edit', 'customers', 'database', 'customer_debt'
         ];
 
         $switchKeyPattern = '/^perm_[a-z0-9_]+_' . preg_quote((string)$user_id, '/') . '$/i';
@@ -104,15 +104,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         try {
             // ເພີ່ມຄໍລຳອໍໂຕ້ໃນຖານຂໍ້ມູນຖ້າຍັງບໍ່ມີ
             try {
-                $pdo->exec("ALTER TABLE tbuser ADD COLUMN `{$perm}` TINYINT(1) DEFAULT 0");
+                $pdo->exec("ALTER TABLE st_tbuser ADD COLUMN `{$perm}` TINYINT(1) DEFAULT 0");
             } catch (Throwable $ex) {}
 
             // ອັບເດດສິດໃນຕາຕະລາງ tbuser
-            $stmt = $pdo->prepare("UPDATE tbuser SET `{$perm}` = ? WHERE Id = ?");
+            $stmt = $pdo->prepare("UPDATE st_tbuser SET `{$perm}` = ? WHERE Id = ?");
             $stmt->execute([$val, $user_id]);
 
             $switchStmt = $pdo->prepare(
-                'INSERT INTO user_permission_switch_states (user_id, switch_key, is_enabled)
+                'INSERT INTO st_user_permission_switch_states (user_id, switch_key, is_enabled)
                  VALUES (?, ?, ?)
                  ON DUPLICATE KEY UPDATE is_enabled = VALUES(is_enabled)'
             );
@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             }
 
             // ດຶງຂໍ້ມູນຜູ້ໃຊ້ທີ່ຖືກອັບເດດ ເພື່ອຄຳນວນຈຳນວນສິດທີ່ເປີດຢູ່
-            $uStmt = $pdo->prepare("SELECT * FROM tbuser WHERE Id = ?");
+            $uStmt = $pdo->prepare("SELECT * FROM st_tbuser WHERE Id = ?");
             $uStmt->execute([$user_id]);
             $userData = $uStmt->fetch();
             $targetUser = $userData['username'] ?? 'User';
@@ -232,11 +232,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         }
 
         $p = $presets_map[$preset];
-        try {
-            $stmt = $pdo->prepare("UPDATE tbuser SET `dashboard` = ?, `sale` = ?, `stock` = ?, `report` = ?, `accounting` = ?, `setup` = ?, `users` = ?, `permissions` = ?, `branches` = ?, `edit` = ?, `customers` = ?, `database` = ? WHERE Id = ?");
-            $stmt->execute([$p['dashboard'] ?? 0, $p['sale'] ?? 0, $p['stock'] ?? 0, $p['report'] ?? 0, $p['accounting'] ?? 0, $p['setup'] ?? 0, $p['users'] ?? 0, $p['permissions'] ?? 0, $p['branches'] ?? ($p['setup'] ?? 0), $p['edit'] ?? 0, $p['customers'] ?? 0, $p['database'] ?? 0, $user_id]);
 
-            $uStmt = $pdo->prepare("SELECT username FROM tbuser WHERE Id = ?");
+        // ເມນູຍ່ອຍບໍ່ມີຄ່າໃນ Preset ໂດຍກົງ — ໃຫ້ຮັບຄ່າຈາກໂມດູນແມ່
+        $parentPerm = [
+            'item_sales' => 'sale', 'customer_debt' => 'customers',
+            'categories' => 'stock', 'units' => 'stock', 'products' => 'stock', 'suppliers' => 'stock',
+            'import_stock' => 'stock', 'import_list' => 'stock', 'stock_transfer' => 'stock', 'transfer_history' => 'stock',
+            'daily_report' => 'report', 'all_sales' => 'report', 'best_seller' => 'report', 'profit_cost' => 'report',
+            'financial' => 'report', 'category_sales' => 'report', 'delete_bills' => 'report',
+            'branches' => 'setup', 'stores' => 'setup', 'print_barcode' => 'setup', 'expiry' => 'setup', 'exchange_rate' => 'setup',
+            'promotions' => 'setup', 'price_adjustment' => 'setup', 'printers' => 'setup', 'loyalty' => 'setup',
+        ];
+        $presetValue = function ($perm) use ($p, $parentPerm) {
+            if (isset($p[$perm])) return (int)$p[$perm];
+            return (int)($p[$parentPerm[$perm] ?? ''] ?? 0);
+        };
+
+        // ສະວິດທຸກອັນໃນຕາຕະລາງ ({switch_id: perm}) ທີ່ JS ສົ່ງມາ
+        $switches = json_decode($_POST['switches'] ?? '{}', true);
+        if (!is_array($switches)) $switches = [];
+        $switchKeyPattern = '/^perm_[a-z0-9_]+_' . preg_quote((string)$user_id, '/') . '$/i';
+
+        try {
+            $tbuserCols = [];
+            foreach ($pdo->query("SHOW COLUMNS FROM st_tbuser")->fetchAll() as $col) {
+                $tbuserCols[$col['Field']] = true;
+            }
+            $colPerms = array_unique(array_merge(
+                ['dashboard', 'sale', 'stock', 'report', 'accounting', 'setup', 'users', 'permissions', 'edit', 'customers', 'database'],
+                array_keys($parentPerm)
+            ));
+            $sets = [];
+            $params = [];
+            foreach ($colPerms as $perm) {
+                if (isset($tbuserCols[$perm])) {
+                    $sets[] = "`{$perm}` = ?";
+                    $params[] = $presetValue($perm);
+                }
+            }
+            $params[] = $user_id;
+            $pdo->prepare("UPDATE st_tbuser SET " . implode(', ', $sets) . " WHERE Id = ?")->execute($params);
+
+            // ບັນທຶກສະຖານະສະວິດທຸກອັນ — ຖ້າບໍ່ບັນທຶກ, ຄ່າເກົ່າໃນ user_permission_switch_states
+            // ຈະທັບຄ່າ Preset ທັງໃນໜ້າຈໍ (ຫຼັງ reload) ແລະ ໃນ hasPermission()
+            $switchValues = [];
+            $switchStmt = $pdo->prepare(
+                'INSERT INTO st_user_permission_switch_states (user_id, switch_key, is_enabled)
+                 VALUES (?, ?, ?)
+                 ON DUPLICATE KEY UPDATE is_enabled = VALUES(is_enabled)'
+            );
+            foreach ($switches as $switchKey => $perm) {
+                if (!is_string($switchKey) || !is_string($perm) || !preg_match($switchKeyPattern, $switchKey)) continue;
+                $v = $presetValue($perm);
+                $switchStmt->execute([$user_id, $switchKey, $v]);
+                $switchValues[$switchKey] = $v;
+            }
+            if ($user_id == ($_SESSION['user_id'] ?? 0)) {
+                $_SESSION['switch_states'] = array_merge($_SESSION['switch_states'] ?? [], $switchValues);
+            }
+
+            $uStmt = $pdo->prepare("SELECT username FROM st_tbuser WHERE Id = ?");
             $uStmt->execute([$user_id]);
             $targetUser = $uStmt->fetchColumn();
 
@@ -255,6 +310,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                 'message' => "ນຳໃຊ້ຮູບແບບ \"{$p['role_name']}\" ໃຫ້ {$targetUser} ສຳເລັດ!",
                 'user_id' => $user_id,
                 'perm_count' => $permCount,
+                'switch_values' => $switchValues,
                 'permissions' => [
                     'dashboard' => $p['dashboard'] ?? 0,
                     'sale' => $p['sale'] ?? 0,
@@ -280,9 +336,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
 // 6. ດຶງຂໍ້ມູນຜູ້ນຳໃຊ້ທັງໝົດ ພ້ອມ Join ຊື່ສາຂາ (tbstore)
 // =========================================================================
 if (canViewAllBranches($pdo)) {
-    $stmtUsers = $pdo->query("SELECT u.*, s.store_name FROM tbuser u LEFT JOIN tbstore s ON u.store_id = s.store_id ORDER BY u.Id ASC");
+    $stmtUsers = $pdo->query("SELECT u.*, s.store_name FROM st_tbuser u LEFT JOIN st_tbstore s ON u.store_id = s.store_id ORDER BY u.Id ASC");
 } else {
-    $stmtUsers = $pdo->prepare("SELECT u.*, s.store_name FROM tbuser u LEFT JOIN tbstore s ON u.store_id = s.store_id WHERE u.store_id = ? ORDER BY u.Id ASC");
+    $stmtUsers = $pdo->prepare("SELECT u.*, s.store_name FROM st_tbuser u LEFT JOIN st_tbstore s ON u.store_id = s.store_id WHERE u.store_id = ? ORDER BY u.Id ASC");
     $stmtUsers->execute([intval($_SESSION['store_id'] ?? 0)]);
 }
 $users = $stmtUsers->fetchAll();

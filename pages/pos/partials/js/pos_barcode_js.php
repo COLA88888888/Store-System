@@ -32,9 +32,42 @@ function ensureBarcodeInputFocused() {
   }
   var barcodeInput = document.getElementById('barcodeInput');
   if (barcodeInput && activeEl !== barcodeInput) {
+    barcodeInput.setAttribute('inputmode', 'none'); // ໂຟກັສໂດຍໂປຣແກຣມ → ບໍ່ເດັ້ງແປ້ນພິມ
     barcodeInput.focus();
   }
 }
+
+// ຈໍສຳພັດ: ຊ່ອງສະແກນໃຊ້ inputmode="none" ເພື່ອໃຫ້ໂຟກັສຮັບບາໂຄ້ດໄດ້ທັນທີ ໂດຍບໍ່ເດັ້ງແປ້ນພິມໜ້າຈໍ.
+// ເປີດແປ້ນພິມສະເພາະຕອນຜູ້ໃຊ້ແຕະໃສ່ຊ່ອງເອງ (ເພື່ອພິມຊອກຊື່ສິນຄ້າ), ແລ້ວປິດຄືນເມື່ອອອກຈາກຊ່ອງ.
+(function() {
+  var input = document.getElementById('barcodeInput');
+  if (!input) return;
+
+  input.addEventListener('pointerdown', function() {
+    if (input.getAttribute('inputmode') !== 'none') return;
+    input.setAttribute('inputmode', 'text');
+    // ຖ້າໂຟກັສຢູ່ແລ້ວ ຕ້ອງ blur/focus ໃໝ່ ບຣາວເຊີຈຶ່ງຍອມເປີດແປ້ນພິມ
+    if (document.activeElement === input) {
+      input.blur();
+      setTimeout(function() { input.focus(); }, 0);
+    }
+  });
+  input.addEventListener('blur', function() {
+    setTimeout(function() {
+      if (document.activeElement !== input) input.setAttribute('inputmode', 'none');
+    }, 0);
+  });
+
+  // ເຂົ້າໜ້າມາແລ້ວພ້ອມສະແກນເລີຍ — ດຶງໂຟກັສເຂົ້າ iframe ແລະ ຊ່ອງສະແກນ
+  function grabFocus() {
+    try { window.focus(); } catch (e) {}
+    input.setAttribute('inputmode', 'none');
+    input.focus({ preventScroll: true });
+  }
+  grabFocus();
+  window.addEventListener('load', function() { setTimeout(grabFocus, 100); });
+  window.addEventListener('pageshow', function() { setTimeout(grabFocus, 100); });
+})();
 
 // Automatically catch scanner typing or refocus barcode input when user scans/types outside inputs
 $(document).on('keydown', function(e) {
@@ -69,15 +102,32 @@ $('#barcodeInput').on('keypress', function(e) {
   }
 });
 
+// ເລກບາໂຄ້ດທີ່ສະແກນລ່າສຸດ ຄ້າງສະແດງໃນຊ່ອງ (ຖືກເລືອກໄວ້ທັງໝົດ) — ສະແກນ/ພິມຄັ້ງຕໍ່ໄປ ຈະແທນທີ່ເລີຍ ບໍ່ຕ້ອງລຶບກ່ອນ.
+// ຕອນຄ້າງສະແດງ ບໍ່ເອົາໄປກັ່ນຕອງລາຍການສິນຄ້າ (ສິນຄ້າທັງໝົດຍັງເຫັນຄືເກົ່າ).
+var barcodeShowingLastScan = false;
+
 function handleBarcodeSubmit() {
   var rawCode = $('#barcodeInput').val().trim();
-  $('#barcodeInput').val('');
   ensureBarcodeInputFocused();
   if (!rawCode) return;
-  
+
+  barcodeShowingLastScan = true;
+  var input = document.getElementById('barcodeInput');
+  if (input) {
+    input.value = rawCode;
+    try { input.select(); } catch (e) {}
+  }
+
   findAndAddByBarcode(rawCode);
   _executeFilterGrid();
 }
+
+// ພິມ/ສະແກນໃໝ່ (ຫຼື ກົດປຸ່ມລ້າງ) → ເລີກສະແດງເລກເກົ່າ, ກັບມາກັ່ນຕອງຕາມທີ່ພິມ
+$('#barcodeInput').on('input', function() { barcodeShowingLastScan = false; });
+// ກັບມາໂຟກັສ ຂະນະເລກເກົ່າຍັງຄ້າງ → ເລືອກທັງໝົດໄວ້ ໃຫ້ສະແກນຕໍ່ແທນທີ່ໄດ້ທັນທີ
+$('#barcodeInput').on('focus', function() {
+  if (barcodeShowingLastScan) { var el = this; setTimeout(function() { try { el.select(); } catch (e) {} }, 0); }
+});
 
 function findAndAddByBarcode(code) {
   var cleanCode = code.toLowerCase();
@@ -253,7 +303,7 @@ function filterGrid() {
 }
 
 function _executeFilterGrid() {
-  var q = ($('#barcodeInput').val() || '').toLowerCase().trim();
+  var q = barcodeShowingLastScan ? '' : ($('#barcodeInput').val() || '').toLowerCase().trim();
   var catId = selectedCategoryPillId;
   var visibleCount = 0;
 

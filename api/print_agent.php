@@ -40,11 +40,11 @@ if ($action === 'status') {
     $pending = 0;
     $printers = [];
     try {
-        $tableExists = (bool)$pdo->query("SHOW TABLES LIKE 'print_jobs'")->fetch();
+        $tableExists = (bool)$pdo->query("SHOW TABLES LIKE 'st_print_jobs'")->fetch();
         if ($tableExists) {
-            $pending = (int)$pdo->query("SELECT COUNT(*) FROM print_jobs WHERE status = 'pending'")->fetchColumn();
+            $pending = (int)$pdo->query("SELECT COUNT(*) FROM st_print_jobs WHERE status = 'pending'")->fetchColumn();
         }
-        foreach ($pdo->query("SELECT id, name, ip_address, status FROM tbl_printer WHERE type = 'ip'") as $p) {
+        foreach ($pdo->query("SELECT id, name, ip_address, status FROM st_tbl_printer WHERE type = 'ip'") as $p) {
             $printers[] = [
                 'id'         => (int)$p['id'],
                 'name'       => $p['name'],
@@ -70,8 +70,8 @@ if ($action === 'fetch') {
     try {
         $stmt = $pdo->prepare("
             SELECT j.id, j.payload, p.ip_address, p.name AS printer_name, p.paper_width
-            FROM print_jobs j
-            JOIN tbl_printer p ON p.id = j.printer_id
+            FROM st_print_jobs j
+            JOIN st_tbl_printer p ON p.id = j.printer_id
             WHERE j.status = 'pending'
             ORDER BY j.id ASC
             LIMIT $limit
@@ -105,7 +105,7 @@ if ($action === 'ack') {
         exit;
     }
     try {
-        $pdo->prepare("UPDATE print_jobs SET status = ?, error = ?, printed_at = NOW() WHERE id = ?")
+        $pdo->prepare("UPDATE st_print_jobs SET status = ?, error = ?, printed_at = NOW() WHERE id = ?")
             ->execute([$ok ? 'done' : 'failed', $ok ? null : $error, $id]);
         echo json_encode(['success' => true]);
     } catch (Throwable $e) {

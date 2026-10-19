@@ -113,12 +113,12 @@
           </li>
         <?php endif; ?>
 
-        <?php if (hasPermission('quotations')): ?>
-          <!-- Menu: Quotations (ໃບສະເໜີລາຄາ) — standalone top-level item, own module -->
+        <?php if (hasPermission('customer_debt')): ?>
+          <!-- Menu: Customer Debts (ລູກຄ້າຕິດໜີ້) — own module -->
           <li class="nav-item">
-            <a href="<?php echo $bp; ?>pages/quotations/quotations.php" target="frame" class="nav-link">
-              <i class="nav-icon fas fa-file-invoice-dollar text-warning"></i>
-              <p data-i18n="layout.quotations"><?php echo htmlspecialchars(t('layout.quotations', 'ໃບສະເໜີລາຄາ')); ?></p>
+            <a href="<?php echo $bp; ?>pages/customer_debts/customer_debts.php" target="frame" class="nav-link">
+              <i class="nav-icon fas fa-hand-holding-usd text-danger"></i>
+              <p data-i18n="layout.customer_debt"><?php echo htmlspecialchars(t('layout.customer_debt', 'ລູກຄ້າຕິດໜີ້')); ?></p>
             </a>
           </li>
         <?php endif; ?>
@@ -250,7 +250,7 @@
           </li>
         <?php endif; ?>
 
-        <?php if (hasPermission('report') || hasPermission('daily_report') || hasPermission('all_sales') || hasPermission('best_seller') || hasPermission('profit_cost') || hasPermission('financial') || hasPermission('category_sales') || hasPermission('delete_bills') || hasPermission('expiry')): ?>
+        <?php if (hasPermission('report') || hasPermission('daily_report') || hasPermission('all_sales') || hasPermission('best_seller') || hasPermission('profit_cost') || hasPermission('financial') || hasPermission('category_sales') || hasPermission('delete_bills') || hasPermission('expiry') || hasPermission('customer_debt')): ?>
           <!-- Dropdown Treeview: ລາຍງານ -->
           <li class="nav-item has-treeview">
             <a href="#" class="nav-link">
@@ -340,6 +340,16 @@
                 </a>
               </li>
               <?php endif; ?>
+
+              <?php if (hasPermission('report') || hasPermission('customer_debt')): ?>
+              <!-- 9. ລາຍງານໜີ້ລູກຄ້າ -->
+              <li class="nav-item">
+                <a href="<?php echo $bp; ?>pages/reports/debt_report.php" target="frame" class="nav-link">
+                  <i class="nav-icon fas fa-hand-holding-usd text-danger"></i>
+                  <p data-i18n="layout.debt_report"><?php echo htmlspecialchars(t('layout.debt_report', 'ລາຍງານໜີ້ລູກຄ້າ')); ?></p>
+                </a>
+              </li>
+              <?php endif; ?>
             </ul>
           </li>
         <?php endif; ?>
@@ -378,7 +388,7 @@
             </li>
           <?php endif; ?>
 
-          <?php if (hasPermission('stores') || hasPermission('print_barcode') || hasPermission('exchange_rate') || hasPermission('promotions') || hasPermission('price_adjustment') || hasPermission('printers')): ?>
+          <?php if (hasPermission('stores') || hasPermission('print_barcode') || hasPermission('exchange_rate') || hasPermission('promotions') || hasPermission('price_adjustment') || hasPermission('printers') || hasPermission('loyalty') || hasPermission('expiry')): ?>
             <!-- Dropdown Treeview: ຕັ້ງຄ່າລະບົບ -->
             <li class="nav-item has-treeview">
               <a href="#" class="nav-link">
@@ -457,14 +467,16 @@
                     <p data-i18n="layout.loyalty"><?php echo htmlspecialchars(t('layout.loyalty', 'ຄະແນນສະສົມລູກຄ້າ')); ?></p>
                   </a>
                 </li>
-                  <?php if (hasPermission("expiry") || hasPermission("setup") || ($_SESSION["status"] ?? "") === "ຜູ້ບໍລິຫານ"): ?>
-                  <li class="nav-item">
-                    <a href="<?php echo $bp; ?>pages/settings/expiry/index.php" target="frame" class="nav-link">
-                      <i class="nav-icon fas fa-hourglass-half text-danger"></i>
-                      <p data-i18n="layout.expiry"><?php echo htmlspecialchars(t("layout.expiry", "ຈັດການສິນຄ້າໝົດອາຍຸ")); ?></p>
-                    </a>
-                  </li>
-                  <?php endif; ?>
+                <?php endif; ?>
+
+                <?php if (hasPermission("expiry")): // own switch in Permissions; admins pass inside hasPermission() ?>
+                <!-- 8. ຈັດການສິນຄ້າໝົດອາຍຸ (was nested inside the loyalty check, so it only showed to users who also had loyalty) -->
+                <li class="nav-item">
+                  <a href="<?php echo $bp; ?>pages/settings/expiry/index.php" target="frame" class="nav-link">
+                    <i class="nav-icon fas fa-hourglass-half text-danger"></i>
+                    <p data-i18n="layout.expiry"><?php echo htmlspecialchars(t("layout.expiry", "ຈັດການສິນຄ້າໝົດອາຍຸ")); ?></p>
+                  </a>
+                </li>
                 <?php endif; ?>
               </ul>
             </li>

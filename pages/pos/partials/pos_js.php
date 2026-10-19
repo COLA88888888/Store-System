@@ -136,6 +136,18 @@ window.POSCUR = (function () {
   };
 })();
 
+// Bill totals on screen. When the shop charges VAT (ອມພ) the KIP amounts carry satang
+// (13,454.55), so the VAT and the net total show 2 decimals, matching the receipt; without VAT
+// they stay whole numbers (POSCUR.fmt).
+function posVatActive() {
+  return window.STORE_TAX_TYPE && window.STORE_TAX_TYPE !== 'none' && parseFloat(window.STORE_VAT_PERCENT) > 0;
+}
+function posFmtTotal(kip) {
+  if (!posVatActive() || !POSCUR.isKip) return POSCUR.fmt(kip);
+  kip = Math.round((parseFloat(kip) || 0) * 100) / 100;
+  return kip.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' <span class="cur-sym">' + POSCUR.symbol + '</span>';
+}
+
 // Live formatter for money <input>s (discount, cash received...). KIP => digits with
 // thousands grouping (old behaviour). Foreign => digits + a single decimal point.
 function formatMoneyInput(input) {
@@ -169,7 +181,7 @@ function checkBillOpenedOrAlert() {
 }
 
 try {
-  heldOrders = JSON.parse(localStorage.getItem('pos_held_orders') || '[]');
+  heldOrders = JSON.parse(localStorage.getItem('StoreMini.held_orders') || '[]');
 } catch(e) { heldOrders = []; }
 </script>
 

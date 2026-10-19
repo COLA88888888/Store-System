@@ -7,7 +7,7 @@ if (isset($_SESSION['user_id'])) {
     $uid = intval($_SESSION['user_id']);
     if (isset($pdo)) {
         try {
-            $pdo->exec("UPDATE tbuser SET last_activity = NULL WHERE Id = '$uid'");
+            $pdo->exec("UPDATE st_tbuser SET last_activity = NULL WHERE Id = '$uid'");
         } catch (Throwable $e) {}
     }
 }
@@ -34,8 +34,8 @@ session_destroy();
     <meta charset="utf-8">
     <title>Logging out...</title>
     <script>
-        sessionStorage.removeItem('currentIframeSrc');
-        sessionStorage.removeItem('sidebarScrollTop');
+        sessionStorage.removeItem('StoreMini.currentIframeSrc');
+        sessionStorage.removeItem('StoreMini.sidebarScrollTop');
         
         var redirectUrl = 'login.php<?php echo isset($_GET['expired']) ? "?expired=1" : ""; ?>';
         if (window.top) {

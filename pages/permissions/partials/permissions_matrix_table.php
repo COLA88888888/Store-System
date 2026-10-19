@@ -60,7 +60,7 @@
                     require __DIR__ . '/sections/section_main_menu.php';
                     require __DIR__ . '/sections/section_pos_sales.php';
                     require __DIR__ . '/sections/section_customers.php';
-                    require __DIR__ . '/sections/section_quotations.php';
+                    require __DIR__ . '/sections/section_customer_debt.php';
                     require __DIR__ . '/sections/section_inventory.php';
                     require __DIR__ . '/sections/section_accounting.php';
                     require __DIR__ . '/sections/section_reports.php';

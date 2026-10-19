@@ -62,6 +62,8 @@ return [
     'bank.placeholder_account_name' => 'Enter the bank account name...',
     'bank.field_bank_logo' => 'Bank Logo Image:',
     'bank.field_qr_code' => 'QR Code Image:',
+    'bank.choose_image' => 'Click to choose an image',
+    'bank.remove_image' => 'Remove image',
     'bank.field_status' => 'Status:',
     'bank.status_option_active' => 'Active',
     'bank.status_option_inactive' => 'Inactive',

@@ -55,10 +55,11 @@ return [
     'permissions.module_customers_title' => 'จัดการลูกค้า',
     'permissions.module_customers_desc' => 'เพิ่ม แก้ไข และจัดการข้อมูลลูกค้า/สมาชิก',
 
-    // section_quotations.php
-    'permissions.section_quotations' => 'ใบเสนอราคา',
-    'permissions.module_quotations_title' => 'ใบเสนอราคา',
-    'permissions.module_quotations_desc' => 'สร้าง แก้ไข และจัดการใบเสนอราคาให้ลูกค้า',
+    // section_customer_debt.php
+    'permissions.section_customer_debt' => 'ลูกค้าค้างชำระ',
+    'permissions.module_customer_debt_title' => 'ลูกค้าค้างชำระ',
+    'permissions.module_customer_debt_desc' => 'ขายเชื่อใน POS รับชำระหนี้ และจัดการหนี้ของลูกค้า',
+    'permissions.module_debt_report_title' => 'รายงานหนี้ลูกค้า',
 
     // section_inventory.php
     'permissions.section_inventory' => '4. ข้อมูลสินค้า & คลังสินค้า',

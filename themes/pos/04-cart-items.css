@@ -1,0 +1,432 @@
+/*
+ * ສ່ວນ: ແຖວລາຍການໃນກະຕ່າ ແລະ ໂຄງກະຕ່າໃນໂທລະສັບ
+ * ໂຄງແຖວດຽວກັບ Pharmacy (themes/pos.css ຂອງ Pharmacy): ຈໍໃຫຍ່ = ແຖວດຽວ (ຮູບ, ຊື່+ຫົວໜ່ວຍ+ລາຄາ, ຈຳນວນ, ລວມ, ລຶບ);
+ * ໂທລະສັບ = ຊື່+ຫົວໜ່ວຍ ແຖວເທິງ, ປຸ່ມຈຳນວນແບບແຄບຊູນ + ລາຄາ ແຖວລຸ່ມ.
+ * HTML ມາຈາກ pages/pos/partials/js/cart/cart_ui.php. ໂຫຼດຫຼັງ 01–03 (ລຳດັບສຳຄັນ).
+ */
+
+/* ===== ຈໍໃຫຍ່ (ພື້ນຖານ) ===== */
+.cart-item-row {
+    width: 100%;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 8px 10px;
+    gap: 10px;
+    min-height: 54px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.cart-item-img-box {
+    flex-shrink: 0;
+}
+.cart-item-img {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    padding: 3px;
+    display: block;
+}
+.cart-item-content {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.cart-item-name-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+}
+.cart-item-title {
+    font-size: 0.88rem;
+    color: #1e293b;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+.cart-item-unit-spec {
+    display: none;
+}
+.cart-item-desktop-sub {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+.cart-item-unit-badge {
+    font-size: 0.80rem;
+    font-weight: 700;
+    color: #244886;
+    background: #eef2fb;
+    border: 1px solid #c7d2e8;
+    border-radius: 5px;
+    padding: 1px 7px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cart-item-price-inline {
+    font-size: 0.84rem;
+    color: #475569;
+    white-space: nowrap;
+}
+.cart-item-actions-wrap {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cart-item-qty-pill {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8fafc;
+}
+.cart-item-qty-pill .btn-qty-minus,
+.cart-item-qty-pill .btn-qty-plus {
+    width: 32px;
+    height: 34px;
+    border: none;
+    background: transparent;
+    font-size: 0.92rem;
+    cursor: pointer;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.cart-item-qty-pill .btn-qty-minus { color: #ef4444; }
+.cart-item-qty-pill .btn-qty-plus { color: #244886; }
+.cart-item-qty-pill .cart-qty-val {
+    width: 38px;
+    height: 34px;
+    border: none;
+    border-left: 1px solid #cbd5e1;
+    border-right: 1px solid #cbd5e1;
+    text-align: center;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1e293b;
+    background: #ffffff;
+    padding: 0;
+    -moz-appearance: textfield;
+}
+.cart-item-qty-pill .cart-qty-val::-webkit-outer-spin-button,
+.cart-item-qty-pill .cart-qty-val::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.cart-item-total-wrap {
+    flex-shrink: 0;
+    text-align: right;
+    min-width: 70px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #16a34a;
+    white-space: nowrap;
+}
+.cart-item-currency-prefix { display: none; }
+.cart-item-currency-suffix { display: inline; }
+.cart-item-del-btn {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #ef4444;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 6px;
+}
+.cart-item-del-btn i { font-size: 1.1rem; }
+
+/* ===== ໂທລະສັບ (< 768px) ===== */
+@media (max-width: 767.98px) {
+    /* ກະຕ່າ ແລະ ລາຍການສິນຄ້າ ໃຊ້ສະເພາະຄວາມສູງທີ່ເຫຼືອໃຕ້ແຖບ ເລືອກສິນຄ້າ/ລາຍການຂາຍ —
+       ເມື່ອກ່ອນ height:100% ເຮັດໃຫ້ລົ້ນເທົ່າຄວາມສູງແຖບ ແລະ ປຸ່ມ ພັກບິນ/ຊຳລະເງິນ ຖືກຕັດຫາຍ. */
+    .pos-products,
+    .pos-cart,
+    .pos-cart.mobile-active {
+        -webkit-flex: 1 1 0 !important;
+        flex: 1 1 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+    }
+
+    /* ແຖບ ຕິດໜີ້ / ເປີດບິນໃໝ່ / ບິນທີ່ເປີດຢູ່: ເຕັມແຖວ, ຕິດໜີ້ ເຫຼືອແຕ່ໄອຄອນ */
+    .pos-active-bills-bar {
+        gap: 6px !important;
+        padding: 6px 8px !important;
+    }
+    .pos-active-bills-bar > div {
+        gap: 6px !important;
+    }
+    .pos-active-bills-bar > div:first-child:not(:has(#btnCreditSale)) {
+        display: none !important;
+    }
+    .pos-active-bills-bar > div:last-child {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        display: flex !important;
+    }
+    .pos-active-bills-bar > div:last-child .btn {
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        font-size: 0.84rem !important;
+        padding: 6px 6px !important;
+        min-height: 36px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+    }
+    #btnCreditSale {
+        min-height: 36px !important;
+        width: 40px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0 !important;
+    }
+    #btnCreditSale i {
+        font-size: 1rem !important;
+        margin: 0 !important;
+    }
+
+    /* ແຖວລາຍການ: ຮູບ ຊ້າຍ; ຊື່ ແຖວເທິງ; [🗑 1 +] ກັບ ລາຄາ ແຖວລຸ່ມ */
+    .cart-item-row {
+        align-items: flex-start !important;
+        border: none !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+        border-radius: 0 !important;
+        padding: 10px 8px !important;
+        margin-bottom: 0 !important;
+        gap: 10px !important;
+        min-height: 0 !important;
+    }
+    .cart-item-img-box {
+        width: 44px !important;
+        height: 44px !important;
+        border-radius: 10px !important;
+        border: 1.2px solid #e2e8f0 !important;
+        background: #ffffff !important;
+        padding: 2px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    .cart-item-img {
+        width: 100% !important;
+        height: 100% !important;
+        border: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+    }
+    .cart-item-content {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 6px !important;
+    }
+    .cart-item-name-wrap {
+        display: block !important;
+        width: 100% !important;
+    }
+    .cart-item-title {
+        font-size: 0.92rem !important;
+        line-height: 1.3 !important;
+    }
+    .cart-item-unit-spec {
+        display: inline-block !important;
+        font-size: 0.86rem !important;
+        font-weight: 600 !important;
+        color: #475569 !important;
+        margin-left: 4px !important;
+    }
+    .cart-item-desktop-sub {
+        display: none !important;
+    }
+    .cart-item-actions-wrap {
+        width: 100% !important;
+        margin-left: 0 !important;
+        justify-content: space-between !important;
+    }
+    .cart-item-qty-pill {
+        display: inline-flex !important;
+        border: 1.2px solid #cbd5e1 !important;
+        border-radius: 9999px !important;
+        background: #ffffff !important;
+        padding: 2px 8px !important;
+        height: 32px !important;
+        gap: 8px !important;
+    }
+    .cart-item-qty-pill .btn-qty-minus,
+    .cart-item-qty-pill .btn-qty-plus {
+        width: 22px !important;
+        height: 22px !important;
+        color: #1e293b !important;
+    }
+    .cart-item-qty-pill .cart-qty-val {
+        width: 28px !important;
+        height: 22px !important;
+        border: none !important;
+        background: transparent !important;
+        font-size: 0.95rem !important;
+        color: #0f172a !important;
+    }
+    .cart-item-total-wrap {
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        min-width: 0 !important;
+    }
+    .cart-item-currency-prefix {
+        display: inline !important;
+        margin-right: 3px !important;
+    }
+    .cart-item-currency-suffix {
+        display: none !important;
+    }
+    .cart-item-del-btn {
+        display: none !important;
+    }
+}
+
+/* ===== ແຖບກະຕ່າລອຍ ໃນໜ້າເລືອກສິນຄ້າ (ໂທລະສັບ) — HTML: #mobileFloatingCartBar ໃນ pages/pos/pos.php =====
+   ພື້ນຂາວ + ເງົາອ່ອນ; ປຸ່ມກາງ (ຈຳນວນ / ຍອດລວມ 2 ແຖວ) ຫຍໍ້ຕົວໄດ້ ຈຶ່ງບໍ່ດັນປຸ່ມ ຊຳລະເງິນ ອອກນອກຈໍ.
+   ປຸ່ມກາງເປັນ .btn-primary: ສີທີມ (js_theme_color.php, !important) ທັບ gradient ຂ້າງລຸ່ມນີ້ໄດ້. */
+#mobileFloatingCartBar {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+    z-index: 1050;
+}
+.pos-float-bar {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    padding: 6px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(15, 23, 42, 0.08);
+    box-sizing: border-box;
+    max-width: 100%;
+}
+.pos-float-bar button {
+    min-height: 48px;
+    border-radius: 12px !important;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s ease, filter 0.12s ease;
+}
+.pos-float-bar button:active {
+    transform: scale(0.97);
+}
+.pos-float-clear {
+    flex: 0 0 48px;
+    width: 48px;
+    padding: 0;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 1.05rem;
+}
+.pos-float-cart {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 4px 10px !important;
+    gap: 9px;
+    justify-content: flex-start !important;
+    text-align: left;
+    color: #ffffff;
+    background: linear-gradient(135deg, #2c5aa0, #244886);
+}
+.pos-float-cart-icon {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+}
+.pos-float-cart-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+}
+.pos-float-cart-count {
+    font-size: 0.74rem;
+    font-weight: 600;
+    opacity: 0.88;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pos-float-cart-total {
+    font-size: 1.05rem;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pos-float-cart-arrow {
+    flex: 0 0 auto;
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+.pos-float-pay {
+    flex: 0 0 auto;
+    padding: 0 14px;
+    gap: 6px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #1e293b;
+    font-size: 0.92rem;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(245, 158, 11, 0.35);
+}
+.pos-float-pay.disabled,
+.pos-float-pay:disabled {
+    opacity: 0.55;
+    box-shadow: none;
+}
+
+@media (max-width: 767.98px) {
+    /* ບັດສິນຄ້າແຖວສຸດທ້າຍ ບໍ່ໃຫ້ຖືກແຖບລອຍບັງ */
+    #productGrid {
+        padding-bottom: 76px !important;
+    }
+}

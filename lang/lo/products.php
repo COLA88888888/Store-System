@@ -22,7 +22,6 @@ return [
     'products.col_qty' => 'ຈຳນວນ',
     'products.col_manage' => 'ຈັດການ',
     'products.empty_state' => 'ບໍ່ມີຂໍ້ມູນສິນຄ້າ',
-    'products.tooltip_print' => 'ປິ່ນບາໂຄ້ດ',
     'products.tooltip_edit' => 'ແກ້ໄຂ',
     'products.tooltip_delete' => 'ລົບ',
     'products.view_only' => 'ເບິ່ງຢ່າງດຽວ',
@@ -171,4 +170,10 @@ return [
     'products.bulk_validate_none' => 'ກະລຸນາປ້ອນຢ່າງໜ້ອຍ 1 ລາຍການ!',
     'products.bulk_no_cut_qty' => 'ບໍ່ຕັດສະຕັອກ ສຳລັບທຸກລາຍການໃນຊຸດນີ້',
     'products.bulk_no_cut_qty_hint' => 'ໃຊ້ສຳລັບບໍລິການ / ສິນຄ້າສັ່ງເຮັດ — ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ. ຕັ້ງທີ່ນີ້ຄັ້ງດຽວ ແທນທີ່ຈະໄປແກ້ໄຂເອົາທີລະລາຍການພາຍຫຼັງ',
+    'products.bulk_supplier_all' => 'ຜູ້ສະໜອງ (ໃຊ້ກັບທຸກລາຍການ)',
+    'products.bulk_supplier_hint' => 'ສິນຄ້າຫຼາຍລາຍການມາຈາກຜູ້ສະໜອງດຽວ — ເລືອກບ່ອນນີ້ບ່ອນດຽວ ທຸກລາຍການຈະເປັນຂອງຜູ້ສະໜອງນີ້',
+    'products.bulk_col_img' => 'ຮູບ',
+    'products.bulk_img_hint' => 'ກົດເພື່ອເລືອກຮູບ (ບໍ່ໃສ່ກໍໄດ້)',
+    'products.bulk_img_fail' => 'ອັບໂຫຼດຮູບບໍ່ສຳເລັດ',
+    'products.bulk_img_busy' => 'ກຳລັງອັບໂຫຼດຮູບ — ກະລຸນາລໍຖ້າບຶດໜຶ່ງ',
 ];

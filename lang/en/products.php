@@ -22,7 +22,6 @@ return [
     'products.col_qty' => 'Stock',
     'products.col_manage' => 'Manage',
     'products.empty_state' => 'No product data',
-    'products.tooltip_print' => 'Print Barcode',
     'products.tooltip_edit' => 'Edit',
     'products.tooltip_delete' => 'Delete',
     'products.view_only' => 'View Only',
@@ -171,4 +170,10 @@ return [
     'products.bulk_validate_none' => 'Please enter at least 1 item!',
     'products.bulk_no_cut_qty' => 'Do not deduct stock for every item in this batch',
     'products.bulk_no_cut_qty_hint' => 'For services / made-to-order items — sold without deducting stock. Set it once here instead of editing each item afterwards',
+    'products.bulk_supplier_all' => 'Supplier (applies to every item)',
+    'products.bulk_supplier_hint' => 'Many items from one supplier — pick it here once and every item gets it',
+    'products.bulk_col_img' => 'Image',
+    'products.bulk_img_hint' => 'Click to choose an image (optional)',
+    'products.bulk_img_fail' => 'Image upload failed',
+    'products.bulk_img_busy' => 'Images are still uploading — please wait a moment',
 ];

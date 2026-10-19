@@ -22,12 +22,12 @@ input::-webkit-list-button {
     <?php if ($canAllBranches): ?>
       <form method="GET" action="" class="m-0 d-inline-block">
         <select name="branch_id" class="form-control form-control-sm font-weight-bold border-primary text-primary" style="height: 38px; border-radius: 8px; background-color: #eff6ff; min-width: 170px;" onchange="this.form.submit()">
-          <option value="0"><?php echo htmlspecialchars(t('promotions.all_branches', '-- ທຸກສາຂາ --')); ?></option>
           <?php foreach ($stores as $st): ?>
             <option value="<?php echo $st['store_id']; ?>" <?php echo ($filter_branch == $st['store_id']) ? 'selected' : ''; ?>>
               <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('promotions.main_branch_suffix', '(ສາງຫຼັກ)')) : ''; ?>
             </option>
           <?php endforeach; ?>
+          <option value="0" <?php echo ((int)$filter_branch === 0) ? 'selected' : ''; ?>><?php echo htmlspecialchars(t('promotions.all_branches', '-- ທຸກສາຂາ --')); ?></option>
         </select>
       </form>
     <?php endif; ?>

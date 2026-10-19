@@ -170,7 +170,7 @@ $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
                 });
             });
 
-            sessionStorage.removeItem('isSessionActive');
+            sessionStorage.removeItem('StoreMini.isSessionActive');
 
             setTimeout(function() {
                 $('#username').val('');
@@ -259,8 +259,8 @@ $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
                     success: function(response) {
                         if (response.success) {
                             var tabToken = 'TOKEN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                            sessionStorage.setItem('pos_tab_active', tabToken);
-                            sessionStorage.setItem('isSessionActive', 'true');
+                            sessionStorage.setItem('StoreMini.pos_tab_active', tabToken);
+                            sessionStorage.setItem('StoreMini.isSessionActive', 'true');
                             window.location.href = response.redirect;
                         } else if (response.expired) {
                             window.location.href = response.redirect;

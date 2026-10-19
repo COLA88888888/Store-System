@@ -246,5 +246,6 @@ require_once __DIR__ . '/components/form_edit_user.php';
   var CURRENT_SESSION_USER_ID = <?php echo intval($_SESSION['user_id'] ?? 0); ?>;
 </script>
 <script src="js/users.js?v=<?php echo filemtime(__DIR__ . '/js/users.js'); ?>"></script>
+<script src="js/users_modals.js?v=<?php echo filemtime(__DIR__ . '/js/users_modals.js'); ?>"></script>
 
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

@@ -37,25 +37,25 @@ function getDashboardQuickStats($conn)
     }
 
     // 1. Total sales revenue from tbsale_save
-    $stats['total_sales'] = (float) dashboardScalar($conn, 'SELECT SUM(sale_amount) FROM tbsale_save');
+    $stats['total_sales'] = (float) dashboardScalar($conn, 'SELECT SUM(sale_amount) FROM st_tbsale_save');
     
     // 2. Total profit (sales amount - estimated cost)
-    $stats['total_profit'] = (float) dashboardScalar($conn, 'SELECT SUM(sale_amount - COALESCE(sale_discount_bill, 0)) FROM tbsale_save');
+    $stats['total_profit'] = (float) dashboardScalar($conn, 'SELECT SUM(sale_amount - COALESCE(sale_discount_bill, 0)) FROM st_tbsale_save');
     
     // 3. Total products from products table
-    $stats['total_products'] = (int) dashboardScalar($conn, 'SELECT COUNT(*) FROM products');
+    $stats['total_products'] = (int) dashboardScalar($conn, 'SELECT COUNT(*) FROM st_products');
     
     // 4. Low stock products (qty <= 5)
-    $stats['low_stock_count'] = (int) dashboardScalar($conn, 'SELECT COUNT(*) FROM products WHERE qty <= 5');
+    $stats['low_stock_count'] = (int) dashboardScalar($conn, 'SELECT COUNT(*) FROM st_products WHERE qty <= 5');
     
     // 5. Total categories from categories table
-    $stats['total_categories'] = (int) dashboardScalar($conn, 'SELECT COUNT(*) FROM categories');
+    $stats['total_categories'] = (int) dashboardScalar($conn, 'SELECT COUNT(*) FROM st_categories');
     
     // 6. Total imports count from imports
-    $stats['total_imports'] = (int) dashboardScalar($conn, 'SELECT COUNT(*) FROM imports');
+    $stats['total_imports'] = (int) dashboardScalar($conn, 'SELECT COUNT(*) FROM st_imports');
     
     // 7. Total imported value from imports
-    $stats['import_value'] = (float) dashboardScalar($conn, 'SELECT SUM(total_cost) FROM imports');
+    $stats['import_value'] = (float) dashboardScalar($conn, 'SELECT SUM(total_cost) FROM st_imports');
     
     // 8. VAT Collected
     $stats['vat_collected'] = 0.00;

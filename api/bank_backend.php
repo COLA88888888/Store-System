@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if (!empty($bank_name) && !empty($account_number)) {
             try {
-                $stmt = $pdo->prepare("INSERT INTO bank_accounts (bank_name, account_number, account_name, bank_code, bank_logo, qr_code_img, is_active, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO st_bank_accounts (bank_name, account_number, account_name, bank_code, bank_logo, qr_code_img, is_active, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$bank_name, $account_number, $account_name, $bank_code, $bank_logo, $qr_code_img, $is_active, $bank_store_id]);
                 $message = "ເພີ່ມບັນຊີທະນາຄານ \"$bank_name\" ສໍາເລັດແລ້ວ!";
                 $message_type = "success";
@@ -102,11 +102,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
 
                 // ດຶງຮູບເກົ່າກ່ອນ update
-                $oldRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM bank_accounts WHERE id = ?{$ownerSql}");
+                $oldRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM st_bank_accounts WHERE id = ?{$ownerSql}");
                 $oldRow->execute(array_merge([$bank_id], $ownerParams));
                 $oldData = $oldRow->fetch(PDO::FETCH_ASSOC);
 
-                $pdo->prepare("UPDATE bank_accounts SET bank_name = ?, account_number = ?, account_name = ?, bank_code = ?, is_active = ?, store_id = ? WHERE id = ?{$ownerSql}")
+                $pdo->prepare("UPDATE st_bank_accounts SET bank_name = ?, account_number = ?, account_name = ?, bank_code = ?, is_active = ?, store_id = ? WHERE id = ?{$ownerSql}")
                     ->execute(array_merge([$bank_name, $account_number, $account_name, $bank_code, $is_active, $bank_store_id, $bank_id], $ownerParams));
 
                 // ແກ້ໄຂ bank_logo ຖ້າ upload ໃໝ່
@@ -120,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         if (!empty($oldData['bank_logo']) && file_exists($uploadDir . $oldData['bank_logo'])) {
                             @unlink($uploadDir . $oldData['bank_logo']);
                         }
-                        $pdo->prepare("UPDATE bank_accounts SET bank_logo = ? WHERE id = ?")
+                        $pdo->prepare("UPDATE st_bank_accounts SET bank_logo = ? WHERE id = ?")
                             ->execute([$newLogo, $bank_id]);
                     }
                 }
@@ -136,8 +136,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         if (!empty($oldData['qr_code_img']) && file_exists($uploadDir . $oldData['qr_code_img'])) {
                             @unlink($uploadDir . $oldData['qr_code_img']);
                         }
-                        $pdo->prepare("UPDATE bank_accounts SET qr_code_img = ? WHERE id = ?")
+                        $pdo->prepare("UPDATE st_bank_accounts SET qr_code_img = ? WHERE id = ?")
                             ->execute([$newQr, $bank_id]);
+                    }
+                }
+
+                // ລົບຮູບທີ່ກົດ × ໃນຟອມ (ເມື່ອບໍ່ໄດ້ upload ຮູບໃໝ່ແທນ)
+                if ($oldData) {
+                    $imgDirs = ['bank_logo' => 'banks', 'qr_code_img' => 'qr'];
+                    foreach ($imgDirs as $col => $dir) {
+                        $replaced = !empty($_FILES[$col]['name']) && $_FILES[$col]['error'] === UPLOAD_ERR_OK;
+                        if (($_POST['remove_' . $col] ?? '0') !== '1' || $replaced) continue;
+                        $oldFile = __DIR__ . '/../assets/img/' . $dir . '/' . basename((string)$oldData[$col]);
+                        if (!empty($oldData[$col]) && is_file($oldFile)) {
+                            @unlink($oldFile);
+                        }
+                        $pdo->prepare("UPDATE st_bank_accounts SET {$col} = NULL WHERE id = ?")
+                            ->execute([$bank_id]);
                     }
                 }
 
@@ -166,11 +181,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
 
                 // ດຶງຊື່ໄຟລ໌ຮູບກ່ອນລົບ record
-                $delRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM bank_accounts WHERE id = ?{$ownerSql}");
+                $delRow = $pdo->prepare("SELECT bank_logo, qr_code_img FROM st_bank_accounts WHERE id = ?{$ownerSql}");
                 $delRow->execute(array_merge([$bank_id], $ownerParams));
                 $delData = $delRow->fetch(PDO::FETCH_ASSOC);
 
-                $pdo->prepare("DELETE FROM bank_accounts WHERE id = ?{$ownerSql}")->execute(array_merge([$bank_id], $ownerParams));
+                $pdo->prepare("DELETE FROM st_bank_accounts WHERE id = ?{$ownerSql}")->execute(array_merge([$bank_id], $ownerParams));
 
                 // ລົບຮູບ bank_logo ແລະ QR ອອກຈາກ folder
                 if ($delData) {
@@ -198,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 // Date Range & Store/Branch Filter parameters for revenue breakdown (Default to all sales history)
 $start_date = $_GET['start_date'] ?? '2000-01-01';
 $end_date   = $_GET['end_date'] ?? date('Y-m-d');
-$filter_store_id = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : (isset($_GET['branch_id']) && $_GET['branch_id'] !== '' ? intval($_GET['branch_id']) : 0);
+$filter_store_id = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : (isset($_GET['branch_id']) && $_GET['branch_id'] !== '' ? intval($_GET['branch_id']) : intval($_SESSION['store_id'] ?? 1));
 if (!canViewAllBranches($pdo)) {
     $filter_store_id = intval($_SESSION['store_id'] ?? 1);
 }
@@ -206,7 +221,7 @@ if (!canViewAllBranches($pdo)) {
 // Fetch active branches for store filter dropdown
 $branches_list = [];
 try {
-    $branches_stmt = $pdo->query("SELECT store_id, store_code, store_name, is_main, status FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC");
+    $branches_stmt = $pdo->query("SELECT store_id, store_code, store_name, is_main, status FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC");
     $branches_list = $branches_stmt ? $branches_stmt->fetchAll(PDO::FETCH_ASSOC) : [];
 } catch (Exception $e) {}
 // ຮ້ານທີ່ມີສາຂາດຽວ: ບໍ່ຕ້ອງສະແດງຫຍັງກ່ຽວກັບສາຂາ (ບັອກເລືອກສາຂາ, ປ້າຍສາຂາໃນບັດທະນາຄານ, ຊ່ອງສາຂາໃນຟອມ)

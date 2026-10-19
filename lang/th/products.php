@@ -22,7 +22,6 @@ return [
     'products.col_qty' => 'จำนวน',
     'products.col_manage' => 'จัดการ',
     'products.empty_state' => 'ไม่มีข้อมูลสินค้า',
-    'products.tooltip_print' => 'พิมพ์บาร์โค้ด',
     'products.tooltip_edit' => 'แก้ไข',
     'products.tooltip_delete' => 'ลบ',
     'products.view_only' => 'ดูอย่างเดียว',
@@ -171,4 +170,10 @@ return [
     'products.bulk_validate_none' => 'กรุณาป้อนอย่างน้อย 1 รายการ!',
     'products.bulk_no_cut_qty' => 'ไม่ตัดสต็อก สำหรับทุกรายการในชุดนี้',
     'products.bulk_no_cut_qty_hint' => 'ใช้สำหรับบริการ / สินค้าสั่งทำ — ขายได้โดยไม่ตัดจำนวนคงคลัง ตั้งค่าที่นี่ครั้งเดียว แทนการไปแก้ไขทีละรายการภายหลัง',
+    'products.bulk_supplier_all' => 'ผู้จัดจำหน่าย (ใช้กับทุกรายการ)',
+    'products.bulk_supplier_hint' => 'สินค้าหลายรายการจากผู้จัดจำหน่ายเดียว — เลือกที่นี่ครั้งเดียว ทุกรายการจะเป็นของผู้จัดจำหน่ายนี้',
+    'products.bulk_col_img' => 'รูป',
+    'products.bulk_img_hint' => 'คลิกเพื่อเลือกรูป (ไม่ใส่ก็ได้)',
+    'products.bulk_img_fail' => 'อัปโหลดรูปไม่สำเร็จ',
+    'products.bulk_img_busy' => 'กำลังอัปโหลดรูป — กรุณารอสักครู่',
 ];

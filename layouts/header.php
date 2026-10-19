@@ -34,15 +34,17 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
     <link rel="stylesheet" href="<?php echo $base_path; ?>dist/css/adminlte.min.css">
     <!-- overlayScrollbars -->
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
-    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/global-custom.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/global-custom/01-base.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/global-custom/02-components.css?v=<?php echo time(); ?>">
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
     <!-- Select2 Searchable Dropdown -->
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/select2/css/select2.min.css">
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
-    <!-- Flatpickr: base styles, Lao theme, then the compact size used by every date box -->
+    <!-- Flatpickr: base styles, then the plain white MiniPos calendar used by every date box.
+         (assets/css/flatpickr.min.css is an old blue-gradient inline theme, no longer loaded:
+         its unscoped rules restyled every popup calendar.) -->
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/flatpickr/flatpickr.min.css">
-    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/flatpickr.min.css">
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/flatpickr/minipos-datepicker.css?v=<?php echo @filemtime(__DIR__ . '/../plugins/flatpickr/minipos-datepicker.css'); ?>">
 
     <!-- Core JavaScript Libraries (Load in head so all page scripts & components can use $ and Swal) -->
@@ -167,5 +169,16 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
         var p = document.getElementById('global-preloader');
         if (p) p.classList.add('show-slow-net');
       }, 600);
+      // Failsafe: footer.php normally hides it, but if the page never reaches the footer (a PHP
+      // error mid-page, a script that fails to load) the overlay covered the page forever.
+      (function() {
+        function hideGlobalPreloader() {
+          clearTimeout(window._slowNetPreloaderTimer);
+          var p = document.getElementById('global-preloader');
+          if (p) { p.classList.remove('show-slow-net'); p.style.display = 'none'; }
+        }
+        window.addEventListener('load', hideGlobalPreloader);
+        setTimeout(hideGlobalPreloader, 8000);
+      })();
     </script>
     <?php endif; ?>

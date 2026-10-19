@@ -1,4 +1,9 @@
 <?php
+/**
+ * ໂຄງສ້າງໄຟລ໌ (ແຍກເປັນໄຟລ໌ຍ່ອຍເພື່ອໃຫ້ອ່ານງ່າຍ — ແຕ່ລະໄຟລ໌ບໍ່ເກີນ 500 ແຖວ):
+ * ໜ້າຕັ້ງຄ່າເຄື່ອງພິມຂອງສາຂາ: ເພີ່ມ/ແກ້ໄຂ/ລົບ ເຄື່ອງພິມ IP/USB/browser, ເຄື່ອງພິມບິນຫຼັກ ແລະ ໂໝດ print agent.
+ *   - partials/actions.php : ການກະທຳ POST ແລະ token ຂອງ print agent
+ */
 session_start();
 $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
@@ -17,177 +22,31 @@ $message_type = '';
 // the active branch's own printers (switch branch via the store switcher to manage another).
 $myPrinterStoreId = getActiveStoreId($pdo);
 
-// Handle POST actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    $action = $_POST['action'];
+// Printers installed in Windows on this PC — suggestions for a 'usb' printer's name field.
+function minipos_windows_printers() {
+    if (stripos(PHP_OS, 'WIN') !== 0 || !function_exists('exec')) return [];
+    $out = [];
+    @exec('powershell -NoProfile -NonInteractive -Command "Get-Printer | Select-Object -ExpandProperty Name" 2>NUL', $out);
+    return array_values(array_filter(array_map('trim', $out), 'strlen'));
+}
 
-    if ($action === 'add_printer') {
-        $name = trim($_POST['name'] ?? '');
-        $ip_address = trim($_POST['ip_address'] ?? '');
-        $type = $_POST['type'] ?? 'browser';
-        $paper_width = intval($_POST['paper_width'] ?? 80) === 58 ? 58 : 80;
-
-        if ($name !== '') {
-            try {
-                $stmt = $pdo->prepare("INSERT INTO tbl_printer (name, ip_address, type, status, branch_id, paper_width) VALUES (?, ?, ?, 1, ?, ?)");
-                $stmt->execute([$name, $ip_address, $type, $myPrinterStoreId, $paper_width]);
-                $message = t('printers.msg_add_success', 'ເພີ່ມເຄື່ອງພິມໃໝ່ສຳເລັດ!');
-                $message_type = 'success';
-                logActivity($pdo, "ເພີ່ມເຄື່ອງພິມ", "$name ($type)");
-            } catch (Exception $e) {
-                $message = sprintf(t('printers.msg_error', 'ຜິດພາດ: %s'), $e->getMessage());
-                $message_type = 'danger';
-            }
-        }
-    } elseif ($action === 'edit_printer') {
-        $id = intval($_POST['id'] ?? 0);
-        $name = trim($_POST['name'] ?? '');
-        $ip_address = trim($_POST['ip_address'] ?? '');
-        $type = $_POST['type'] ?? 'browser';
-        $paper_width = intval($_POST['paper_width'] ?? 80) === 58 ? 58 : 80;
-
-        if ($id > 0 && $name !== '') {
-            try {
-                $sql = "UPDATE tbl_printer SET name = ?, ip_address = ?, type = ?, paper_width = ? WHERE id = ? AND branch_id = ?";
-                $params = [$name, $ip_address, $type, $paper_width, $id, $myPrinterStoreId];
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute($params);
-                $message = t('printers.msg_edit_success', 'ອັບເດດຂໍ້ມູນເຄື່ອງພິມສຳເລັດແລ້ວ!');
-                $message_type = 'success';
-                logActivity($pdo, "ແກ້ໄຂເຄື່ອງພິມ", "$name (ID: $id)");
-            } catch (Exception $e) {
-                $message = sprintf(t('printers.msg_error', 'ຜິດພາດ: %s'), $e->getMessage());
-                $message_type = 'danger';
-            }
-        }
-    } elseif ($action === 'toggle_status') {
-        $id = intval($_POST['id'] ?? 0);
-        $status = intval($_POST['status'] ?? 0);
-        if ($id > 0) {
-            $sql = "UPDATE tbl_printer SET status = ? WHERE id = ? AND branch_id = ?";
-            $params = [$status, $id, $myPrinterStoreId];
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-            $message = t('printers.msg_toggle_success', 'ອັບເດດສະຖານະເຄື່ອງພິມສຳເລັດ!');
-            $message_type = 'success';
-        }
-    } elseif ($action === 'set_receipt_printer') {
-        // Only one printer at a time gets the customer receipt (mirrors tbstore.is_main:
-        // setting a new one unsets the old one) — scoped to THIS branch only, so setting a
-        // receipt printer here never touches another branch's own receipt-printer choice.
-        // Restricted to Network LAN printers — a 'browser' printer needs no designation,
-        // it's already what happens by default.
-        $id = intval($_POST['id'] ?? 0);
-        try {
-            $target = $pdo->prepare("SELECT type, status, branch_id FROM tbl_printer WHERE id = ?");
-            $target->execute([$id]);
-            $row = $target->fetch();
-            $ownsRow = $row && (int)$row['branch_id'] === $myPrinterStoreId;
-            if (!$row || !$ownsRow || $row['type'] !== 'ip' || !$row['status']) {
-                $message = t('printers.receipt_needs_lan', 'ເລືອກໄດ້ສະເພາະເຄື່ອງພິມ Network LAN ທີ່ເປີດໃຊ້ງານຢູ່ເທົ່ານັ້ນ!');
-                $message_type = 'warning';
-            } else {
-                $rowBranchId = (int)$row['branch_id'];
-                $pdo->prepare("UPDATE tbl_printer SET is_receipt_printer = 0 WHERE branch_id = ?")->execute([$rowBranchId]);
-                $pdo->prepare("UPDATE tbl_printer SET is_receipt_printer = 1 WHERE id = ?")->execute([$id]);
-                $message = t('printers.receipt_set_success', 'ຕັ້ງເປັນເຄື່ອງພິມໃບບິນຫຼັກສຳເລັດ!');
-                $message_type = 'success';
-                logActivity($pdo, "ຕັ້ງເຄື່ອງພິມໃບບິນຫຼັກ", $row['type'] . ' #' . $id);
-            }
-        } catch (Exception $e) {
-            $message = sprintf(t('printers.msg_error', 'ຜິດພາດ: %s'), $e->getMessage());
-            $message_type = 'danger';
-        }
-    } elseif ($action === 'unset_receipt_printer') {
-        $sql = "UPDATE tbl_printer SET is_receipt_printer = 0 WHERE branch_id = ?";
-        $pdo->prepare($sql)->execute([$myPrinterStoreId]);
-        $message = t('printers.receipt_unset_success', 'ຍົກເລີກເຄື່ອງພິມໃບບິນຫຼັກແລ້ວ — ໃບບິນຈະພິມຜ່ານບຣາວເຊີຄືເກົ່າ');
-        $message_type = 'success';
-    } elseif ($action === 'test_print') {
-        // AJAX: send a plain ASCII test page straight to a Network LAN printer (raw TCP).
-        header('Content-Type: application/json');
-        require_once __DIR__ . '/../../../api/lan_printer.php';
-        session_write_close();
-        $id = intval($_POST['id'] ?? 0);
-        $testSql = "SELECT * FROM tbl_printer WHERE id = ? AND branch_id = ?";
-        $testParams = [$id, $myPrinterStoreId];
-        $testStmt = $pdo->prepare($testSql . " LIMIT 1");
-        $testStmt->execute($testParams);
-        $testPrinter = $testStmt->fetch();
-        $addr = $testPrinter ? lanPrinterAddress($testPrinter['ip_address'] ?? '') : null;
-        if (!$testPrinter || ($testPrinter['type'] ?? '') !== 'ip' || $addr === null) {
-            echo json_encode(['success' => false, 'message' => t('printers.test_not_lan', 'ທົດສອບໄດ້ສະເພາະເຄື່ອງພິມ Network LAN ທີ່ມີ IP Address')], JSON_UNESCAPED_UNICODE);
-            exit();
-        }
-        $target = $addr[0] . ':' . $addr[1];
-        [$ok, $err] = lanPrinterSend($addr[0], $addr[1], escposTestPage($testPrinter['name'] ?? '', $addr[0], $addr[1]));
-        echo json_encode([
-            'success' => $ok,
-            'message' => $ok
-                ? sprintf(t('printers.test_ok', 'ສົ່ງໜ້າທົດສອບໄປທີ່ %s ແລ້ວ'), $target)
-                : sprintf(t('printers.test_fail', 'ເຊື່ອມຕໍ່ເຄື່ອງພິມທີ່ %s ບໍ່ໄດ້: %s'), $target, $err),
-        ], JSON_UNESCAPED_UNICODE);
-        exit();
-    } elseif ($action === 'delete_printer') {
-        $id = intval($_POST['id'] ?? 0);
-        if ($id > 0) {
-            $sql = "DELETE FROM tbl_printer WHERE id = ? AND branch_id = ?";
-            $params = [$id, $myPrinterStoreId];
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute($params);
-            $message = t('printers.msg_delete_success', 'ລົບເຄື່ອງພິມສຳເລັດ!');
-            $message_type = 'success';
-        }
-    } elseif ($action === 'set_print_mode') {
-        // direct = this server sits on the shop LAN and can reach printer IPs itself.
-        // agent  = the server is hosted off-site, so LAN print jobs queue in print_jobs for
-        //          the shop's own print agent (tools/print-agent.php, running on a shop PC
-        //          that IS on that LAN) to collect and print.
-        $mode = ($_POST['print_mode'] ?? 'direct') === 'agent' ? 'agent' : 'direct';
-        try {
-            $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('print_mode', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")
-                ->execute([$mode]);
-            $message = t('printers.msg_mode_saved', 'ບັນທຶກຮູບແບບການພິມແລ້ວ!');
-            $message_type = 'success';
-        } catch (Throwable $e) {
-            $message = sprintf(t('printers.msg_error', 'ຜິດພາດ: %s'), $e->getMessage());
-            $message_type = 'danger';
-        }
-    } elseif ($action === 'regen_agent_token') {
-        try {
-            $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('print_agent_token', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")
-                ->execute([bin2hex(random_bytes(24))]);
-            $message = t('printers.msg_token_new', 'ສ້າງລະຫັດຕົວແທນພິມໃໝ່ແລ້ວ! ຢ່າລືມອັບເດດໃສ່ຄອມຮ້ານ.');
-            $message_type = 'success';
-        } catch (Throwable $e) {
-            $message = sprintf(t('printers.msg_error', 'ຜິດພາດ: %s'), $e->getMessage());
-            $message_type = 'danger';
-        }
+// The PowerShell call takes ~1s, which used to hold up every page load (and trip the "slow
+// network" loader). The page now fetches the list with this AJAX call after it has shown,
+// and the result is kept in the session for 10 minutes.
+if (($_GET['ajax'] ?? '') === 'win_printers') {
+    $cache = $_SESSION['minipos_win_printers'] ?? null;
+    if (!is_array($cache) || ($cache['at'] ?? 0) < time() - 600) {
+        $cache = ['at' => time(), 'list' => minipos_windows_printers()];
+        $_SESSION['minipos_win_printers'] = $cache;
     }
+    session_write_close();
+    header('Content-Type: application/json');
+    echo json_encode($cache['list'], JSON_UNESCAPED_UNICODE);
+    exit();
 }
 
-$printersStmt = $pdo->prepare("SELECT * FROM tbl_printer WHERE branch_id = ? ORDER BY id ASC");
-$printersStmt->execute([$myPrinterStoreId]);
-$printers = $printersStmt->fetchAll();
-$printMode = getSetting($pdo, 'print_mode', 'direct') === 'agent' ? 'agent' : 'direct';
-$printAgentToken = trim((string)getSetting($pdo, 'print_agent_token', ''));
-// The agent can't authenticate without one, so mint it on first view rather than making
-// the shop hunt for a button.
-if ($printAgentToken === '') {
-    try {
-        $printAgentToken = bin2hex(random_bytes(24));
-        $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('print_agent_token', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")
-            ->execute([$printAgentToken]);
-    } catch (Throwable $e) { $printAgentToken = ''; }
-}
-$pendingPrintJobs = 0;
-try {
-    $pendingStmt = $pdo->prepare("SELECT COUNT(*) FROM print_jobs WHERE status = 'pending' AND store_id = ?");
-    $pendingStmt->execute([$myPrinterStoreId]);
-    $pendingPrintJobs = (int)$pendingStmt->fetchColumn();
-} catch (Throwable $e) {}
-
-require_once __DIR__ . '/../../../layouts/header.php';
+// ການກະທຳ POST ແລະ token ຂອງ print agent
+require __DIR__ . '/partials/actions.php';
 ?>
 
 <div class="container-fluid p-4">
@@ -255,7 +114,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
           <span class="font-weight-bold text-dark small"><?php echo htmlspecialchars(t('printers.agent_token', 'ລະຫັດຕົວແທນພິມ (ໃສ່ໃນ tools/print-agent.bat):')); ?></span>
           <code class="d-block mt-1 p-2" style="background:#f1f5f9; border-radius:6px; word-break:break-all; font-size:0.85rem;"><?php echo htmlspecialchars($printAgentToken); ?></code>
         </div>
-        <form action="" method="POST" style="display:inline;" onsubmit="return confirm('<?php echo htmlspecialchars(t('printers.agent_token_confirm', 'ສ້າງລະຫັດໃໝ່? ຕົວແທນພິມເກົ່າຈະໃຊ້ບໍ່ໄດ້ຈົນກວ່າຈະອັບເດດລະຫັດ.'), ENT_QUOTES); ?>');">
+        <form action="" method="POST" style="display:inline;" onsubmit="return prnConfirmSubmit(this, '<?php echo htmlspecialchars(t('printers.agent_token_confirm', 'ສ້າງລະຫັດໃໝ່? ຕົວແທນພິມເກົ່າຈະໃຊ້ບໍ່ໄດ້ຈົນກວ່າຈະອັບເດດລະຫັດ.'), ENT_QUOTES); ?>', false);">
           <input type="hidden" name="action" value="regen_agent_token">
           <button type="submit" class="btn btn-outline-secondary btn-sm"><i class="fas fa-sync-alt mr-1"></i><?php echo htmlspecialchars(t('printers.agent_token_new', 'ສ້າງລະຫັດໃໝ່')); ?></button>
         </form>
@@ -297,8 +156,8 @@ require_once __DIR__ . '/../../../layouts/header.php';
                   <?php endif; ?>
                 </td>
                 <td style="white-space: nowrap;">
-                  <span class="badge <?php echo $pr['type'] === 'ip' ? 'badge-primary' : 'badge-secondary'; ?> px-2.5 py-1" style="font-size: 0.78rem; white-space: nowrap;">
-                    <?php echo $pr['type'] === 'ip' ? '<i class="fas fa-network-wired mr-1"></i> Network IP' : '<i class="fas fa-desktop mr-1"></i> Browser / USB'; ?>
+                  <span class="badge <?php echo $pr['type'] === 'ip' ? 'badge-primary' : ($pr['type'] === 'usb' ? 'badge-info' : 'badge-secondary'); ?> px-2.5 py-1" style="font-size: 0.78rem; white-space: nowrap;">
+                    <?php echo $pr['type'] === 'usb' ? '<i class="fab fa-usb mr-1"></i> USB' : ($pr['type'] === 'ip' ? '<i class="fas fa-network-wired mr-1"></i> Network IP' : '<i class="fas fa-desktop mr-1"></i> Browser'); ?>
                   </span>
                   <small class="text-muted font-weight-bold ml-1"><?php echo intval($pr['paper_width'] ?? 80) === 58 ? '58 mm' : '80 mm'; ?></small>
                 </td>
@@ -348,7 +207,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
                         </button>
                       <?php endif; ?>
                       <?php if (hasPermission('printers', 'del')): ?>
-                        <form action="" method="POST" onsubmit="return confirm('<?php echo htmlspecialchars(t('printers.delete_confirm', 'ຕ້ອງການລົບເຄື່ອງພິມນີ້ແທ້ຫຼືບໍ່?'), ENT_QUOTES); ?>');" style="display:inline;">
+                        <form action="" method="POST" onsubmit="return prnConfirmSubmit(this, '<?php echo htmlspecialchars(t('printers.delete_confirm', 'ຕ້ອງການລົບເຄື່ອງພິມນີ້ແທ້ຫຼືບໍ່?'), ENT_QUOTES); ?>', true);" style="display:inline;">
                           <input type="hidden" name="action" value="delete_printer">
                           <input type="hidden" name="id" value="<?php echo $pr['id']; ?>">
                           <button type="submit" class="btn btn-outline-danger btn-sm px-2" title="<?php echo htmlspecialchars(t('printers.delete', 'ລຶບ')); ?>"><i class="fas fa-trash-alt"></i></button>
@@ -390,15 +249,17 @@ require_once __DIR__ . '/../../../layouts/header.php';
             <select name="type" class="form-control" style="height: 42px;">
               <option value="browser">Browser / Windows Driver / USB</option>
               <option value="ip">Network LAN / WiFi (IP Address)</option>
+              <option value="usb">USB — <?php echo htmlspecialchars(t('printers.type_usb_direct', 'ພິມກົງ ຄືກັບ LAN (ໃສ່ຊື່ເຄື່ອງພິມ Windows)')); ?></option>
             </select>
           </div>
           <div class="form-group mb-0">
             <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_ip', 'IP Address ເຄື່ອງພິມ (ຖ້າເປັນ Network IP):')); ?></label>
             <div class="input-group">
               <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-network-wired text-muted"></i></span></div>
-              <input type="text" name="ip_address" class="form-control font-weight-bold text-primary" placeholder="<?php echo htmlspecialchars(t('printers.field_ip_placeholder', '192.168...')); ?>" style="height: 42px;">
+              <input type="text" name="ip_address" list="winPrinterList" autocomplete="off" class="form-control font-weight-bold text-primary" placeholder="<?php echo htmlspecialchars(t('printers.field_ip_placeholder', '192.168...')); ?>" style="height: 42px;">
             </div>
             <small class="text-muted d-block mt-1"><?php echo htmlspecialchars(t('printers.lan_hint', 'ເຄື່ອງພິມ Network LAN ຈະໄດ້ຮັບໃບຍ່ອຍໂດຍກົງ ບໍ່ຕ້ອງກົດພິມ. ໃສ່ IP ຂອງເຄື່ອງພິມ (ພອດ 9100 ເປັນຄ່າເລີ່ມຕົ້ນ ຫຼື IP:ພອດ)')); ?></small>
+            <small class="text-info d-block mt-1"><i class="fab fa-usb mr-1"></i><?php echo htmlspecialchars(t('printers.usb_hint', 'USB: ໃສ່ຊື່ເຄື່ອງພິມໃນ Windows (ເລືອກຈາກລາຍການໄດ້). ໃບບິນຈະອອກຄືກັບ LAN ທຸກຢ່າງ, ບໍ່ມີໜ້າຕ່າງພິມ.')); ?></small>
           </div>
           <div class="form-group mb-0 mt-3">
             <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_paper_width', 'ຂະໜາດເຈ້ຍ:')); ?></label>
@@ -440,15 +301,17 @@ require_once __DIR__ . '/../../../layouts/header.php';
             <select name="type" id="edit_printer_type" class="form-control" style="height: 42px;">
               <option value="browser">Browser / Windows Driver / USB</option>
               <option value="ip">Network LAN / WiFi (IP Address)</option>
+              <option value="usb">USB — <?php echo htmlspecialchars(t('printers.type_usb_direct', 'ພິມກົງ ຄືກັບ LAN (ໃສ່ຊື່ເຄື່ອງພິມ Windows)')); ?></option>
             </select>
           </div>
           <div class="form-group mb-0">
             <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_ip_edit', 'IP Address ເຄື່ອງພິມ:')); ?></label>
             <div class="input-group">
               <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-network-wired text-muted"></i></span></div>
-              <input type="text" name="ip_address" id="edit_printer_ip" class="form-control font-weight-bold text-primary" placeholder="192.168.1.200" style="height: 42px;">
+              <input type="text" name="ip_address" id="edit_printer_ip" list="winPrinterList" autocomplete="off" class="form-control font-weight-bold text-primary" placeholder="192.168.1.200" style="height: 42px;">
             </div>
             <small class="text-muted d-block mt-1"><?php echo htmlspecialchars(t('printers.lan_hint', 'ເຄື່ອງພິມ Network LAN ຈະໄດ້ຮັບໃບຍ່ອຍໂດຍກົງ ບໍ່ຕ້ອງກົດພິມ. ໃສ່ IP ຂອງເຄື່ອງພິມ (ພອດ 9100 ເປັນຄ່າເລີ່ມຕົ້ນ ຫຼື IP:ພອດ)')); ?></small>
+            <small class="text-info d-block mt-1"><i class="fab fa-usb mr-1"></i><?php echo htmlspecialchars(t('printers.usb_hint', 'USB: ໃສ່ຊື່ເຄື່ອງພິມໃນ Windows (ເລືອກຈາກລາຍການໄດ້). ໃບບິນຈະອອກຄືກັບ LAN ທຸກຢ່າງ, ບໍ່ມີໜ້າຕ່າງພິມ.')); ?></small>
           </div>
           <div class="form-group mb-0 mt-3">
             <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_paper_width', 'ຂະໜາດເຈ້ຍ:')); ?></label>
@@ -467,6 +330,25 @@ require_once __DIR__ . '/../../../layouts/header.php';
   </div>
 </div>
 
+<!-- Windows printer names for the USB name field — filled after the page has shown (see ?ajax=win_printers above) -->
+<datalist id="winPrinterList"></datalist>
+<script>
+  window.addEventListener('load', function () {
+    fetch('?ajax=win_printers', { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (names) {
+        var dl = document.getElementById('winPrinterList');
+        if (!dl || !Array.isArray(names)) return;
+        names.forEach(function (n) {
+          var o = document.createElement('option');
+          o.value = n;
+          dl.appendChild(o);
+        });
+      })
+      .catch(function () {});
+  });
+</script>
+
 <script>
 function editPrinter(id, name, type, ip, paper) {
   document.getElementById('edit_printer_id').value = id;
@@ -475,6 +357,26 @@ function editPrinter(id, name, type, ip, paper) {
   document.getElementById('edit_printer_ip').value = ip;
   document.getElementById('edit_printer_paper').value = String(paper || 80);
   $('#editPrinterModal').modal('show');
+}
+
+// SweetAlert confirm for a form submit (replaces the browser's native confirm() box).
+// Returns false to stop the submit; on "confirm" the form is submitted for real.
+// form.submit() skips onsubmit, so this doesn't loop.
+function prnConfirmSubmit(form, text, danger) {
+  Swal.fire({
+    icon: danger ? 'warning' : 'question',
+    title: <?php echo json_encode(t('printers.confirm_title', 'ຢືນຢັນ'), JSON_UNESCAPED_UNICODE); ?>,
+    text: text,
+    showCancelButton: true,
+    confirmButtonColor: danger ? '#ef4444' : '#2563eb',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: danger
+      ? <?php echo json_encode(t('printers.confirm_delete_btn', 'ລົບເລີຍ'), JSON_UNESCAPED_UNICODE); ?>
+      : <?php echo json_encode(t('printers.confirm_ok_btn', 'ຕົກລົງ'), JSON_UNESCAPED_UNICODE); ?>,
+    cancelButtonText: <?php echo json_encode(t('printers.cancel', 'ຍົກເລີກ'), JSON_UNESCAPED_UNICODE); ?>,
+    reverseButtons: true
+  }).then(function (r) { if (r.isConfirmed) form.submit(); });
+  return false;
 }
 
 function testPrinter(id, btn) {

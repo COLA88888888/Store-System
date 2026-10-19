@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $unit_id     = intval($_POST['unit_id'] ?? 0) ?: null;
         $unit        = '';
         if ($unit_id !== null) {
-            $unitNameStmt = $pdo->prepare("SELECT unit_name FROM units WHERE unit_id = ?");
+            $unitNameStmt = $pdo->prepare("SELECT unit_name FROM st_units WHERE unit_id = ?");
             $unitNameStmt->execute([$unit_id]);
             $unit = (string)($unitNameStmt->fetchColumn() ?: '');
         }
@@ -136,9 +136,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 } else {
                     $store_id = getActiveStoreId($pdo);
                     $chkStmt = $pdo->prepare("
-                        SELECT p.product_name, p.product_id FROM products p WHERE p.barcode = ? AND p.store_id = ?
+                        SELECT p.product_name, p.product_id FROM st_products p WHERE p.barcode = ? AND p.store_id = ?
                         UNION ALL
-                        SELECT p.product_name, u.product_id FROM product_units u JOIN products p ON u.product_id = p.product_id WHERE u.barcode = ? AND p.store_id = ?
+                        SELECT p.product_name, u.product_id FROM st_product_units u JOIN st_products p ON u.product_id = p.product_id WHERE u.barcode = ? AND p.store_id = ?
                         LIMIT 1
                     ");
                     $chkStmt->execute([$barcode, $store_id, $barcode, $store_id]);
@@ -153,11 +153,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     // ສ້າງ ລະຫັດສິນຄ້າອໍໂຕ້ (Category ID + Sequence)
                     $product_id = intval($_POST['product_id'] ?? 0);
                     if ($product_id <= 0) {
-                        $totalCount = (int)$pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
+                        $totalCount = (int)$pdo->query("SELECT COUNT(*) FROM st_products")->fetchColumn();
                         $seq = $totalCount + 1;
                         $seqFormatted = str_pad($seq, 4, '0', STR_PAD_LEFT);
                         $product_id = intval($category_id . $seqFormatted);
-                        while ((int)$pdo->query("SELECT COUNT(*) FROM products WHERE product_id = {$product_id}")->fetchColumn() > 0) {
+                        while ((int)$pdo->query("SELECT COUNT(*) FROM st_products WHERE product_id = {$product_id}")->fetchColumn() > 0) {
                             $seq++;
                             $seqFormatted = str_pad($seq, 4, '0', STR_PAD_LEFT);
                             $product_id = intval($category_id . $seqFormatted);
@@ -170,8 +170,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $activeStoreId = getActiveStoreId($pdo);
                     $qty = $isAdmin ? max(0, intval($_POST['qty'] ?? 0)) : 0;
 
-                    $stmt      = $pdo->prepare("INSERT INTO products (product_id, product_name, barcode, category_id, bprice, price, unit, unit_id, img_url, qty, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    $existsChk = $pdo->prepare("SELECT 1 FROM products WHERE product_id = ? AND store_id = ? LIMIT 1");
+                    $stmt      = $pdo->prepare("INSERT INTO st_products (product_id, product_name, barcode, category_id, bprice, price, unit, unit_id, img_url, qty, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $existsChk = $pdo->prepare("SELECT 1 FROM st_products WHERE product_id = ? AND store_id = ? LIMIT 1");
 
                     $existsChk->execute([$product_id, $activeStoreId]);
                     if (!$existsChk->fetchColumn()) {
@@ -180,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                     // ບັນທຶກຫຼາຍລາຄາ/ຫຼາຍຫົວໜ່ວຍ (product_units) ຖ້າມີ
                     if (isset($_POST['extra_unit_name']) && is_array($_POST['extra_unit_name'])) {
-                        $insertUnitStmt = $pdo->prepare("INSERT INTO product_units (product_id, unit_name, multiplier, bprice, price, barcode) VALUES (?, ?, ?, ?, ?, ?)");
+                        $insertUnitStmt = $pdo->prepare("INSERT INTO st_product_units (product_id, unit_name, multiplier, bprice, price, barcode) VALUES (?, ?, ?, ?, ?, ?)");
                         for ($i = 0; $i < count($_POST['extra_unit_name']); $i++) {
                             $uName = trim($_POST['extra_unit_name'][$i] ?? '');
                             $uMult = intval($_POST['extra_unit_multiplier'][$i] ?? 1);
@@ -220,7 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $unit_id     = intval($_POST['unit_id'] ?? 0) ?: null;
         $unit        = '';
         if ($unit_id !== null) {
-            $unitNameStmt = $pdo->prepare("SELECT unit_name FROM units WHERE unit_id = ?");
+            $unitNameStmt = $pdo->prepare("SELECT unit_name FROM st_units WHERE unit_id = ?");
             $unitNameStmt->execute([$unit_id]);
             $unit = (string)($unitNameStmt->fetchColumn() ?: '');
         }
@@ -238,9 +238,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 } else {
                     $store_id = getActiveStoreId($pdo);
                     $chkStmt = $pdo->prepare("
-                        SELECT p.product_name, p.product_id FROM products p WHERE p.barcode = ? AND p.product_id != ? AND p.store_id = ?
+                        SELECT p.product_name, p.product_id FROM st_products p WHERE p.barcode = ? AND p.product_id != ? AND p.store_id = ?
                         UNION ALL
-                        SELECT p.product_name, u.product_id FROM product_units u JOIN products p ON u.product_id = p.product_id WHERE u.barcode = ? AND u.product_id != ? AND p.store_id = ?
+                        SELECT p.product_name, u.product_id FROM st_product_units u JOIN st_products p ON u.product_id = p.product_id WHERE u.barcode = ? AND u.product_id != ? AND p.store_id = ?
                         LIMIT 1
                     ");
                     $chkStmt->execute([$barcode, $product_id, $store_id, $barcode, $product_id, $store_id]);
@@ -253,7 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 if (empty($message_type) || $message_type !== 'warning') {
                     // Get current image
-                    $curStmt = $pdo->prepare("SELECT img_url FROM products WHERE product_id = ?");
+                    $curStmt = $pdo->prepare("SELECT img_url FROM st_products WHERE product_id = ?");
                     $curStmt->execute([$product_id]);
                     $currentImg = $curStmt->fetchColumn();
                     $img_name = $currentImg;
@@ -284,28 +284,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     if ($isAdmin && isset($_POST['qty'])) {
                         $qty = max(0, intval($_POST['qty']));
                         if ($canAllBranches) {
-                            $stmt = $pdo->prepare("UPDATE products SET product_name=?, barcode=?, category_id=?, bprice=?, price=?, unit=?, unit_id=?, img_url=?, qty=? WHERE product_id=?");
+                            $stmt = $pdo->prepare("UPDATE st_products SET product_name=?, barcode=?, category_id=?, bprice=?, price=?, unit=?, unit_id=?, img_url=?, qty=? WHERE product_id=?");
                             $stmt->execute([$name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $img_name, $qty, $product_id]);
                         } else {
-                            $stmt = $pdo->prepare("UPDATE products SET product_name=?, barcode=?, category_id=?, bprice=?, price=?, unit=?, unit_id=?, img_url=?, qty=? WHERE product_id=? AND store_id=?");
+                            $stmt = $pdo->prepare("UPDATE st_products SET product_name=?, barcode=?, category_id=?, bprice=?, price=?, unit=?, unit_id=?, img_url=?, qty=? WHERE product_id=? AND store_id=?");
                             $stmt->execute([$name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $img_name, $qty, $product_id, $userStoreId]);
                         }
                     } else {
                         if ($canAllBranches) {
-                            $stmt = $pdo->prepare("UPDATE products SET product_name=?, barcode=?, category_id=?, bprice=?, price=?, unit=?, unit_id=?, img_url=? WHERE product_id=?");
+                            $stmt = $pdo->prepare("UPDATE st_products SET product_name=?, barcode=?, category_id=?, bprice=?, price=?, unit=?, unit_id=?, img_url=? WHERE product_id=?");
                             $stmt->execute([$name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $img_name, $product_id]);
                         } else {
-                            $stmt = $pdo->prepare("UPDATE products SET product_name=?, barcode=?, category_id=?, bprice=?, price=?, unit=?, unit_id=?, img_url=? WHERE product_id=? AND store_id=?");
+                            $stmt = $pdo->prepare("UPDATE st_products SET product_name=?, barcode=?, category_id=?, bprice=?, price=?, unit=?, unit_id=?, img_url=? WHERE product_id=? AND store_id=?");
                             $stmt->execute([$name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $img_name, $product_id, $userStoreId]);
                         }
                     }
 
                     // ອັບເດດຫຼາຍລາຄາ/ຫຼາຍຫົວໜ່ວຍ (product_units)
-                    $delUnitsStmt = $pdo->prepare("DELETE FROM product_units WHERE product_id = ?");
+                    $delUnitsStmt = $pdo->prepare("DELETE FROM st_product_units WHERE product_id = ?");
                     $delUnitsStmt->execute([$product_id]);
 
                     if (isset($_POST['extra_unit_name']) && is_array($_POST['extra_unit_name'])) {
-                        $insertUnitStmt = $pdo->prepare("INSERT INTO product_units (product_id, unit_name, multiplier, bprice, price, barcode) VALUES (?, ?, ?, ?, ?, ?)");
+                        $insertUnitStmt = $pdo->prepare("INSERT INTO st_product_units (product_id, unit_name, multiplier, bprice, price, barcode) VALUES (?, ?, ?, ?, ?, ?)");
                         for ($i = 0; $i < count($_POST['extra_unit_name']); $i++) {
                             $uName = trim($_POST['extra_unit_name'][$i] ?? '');
                             $uMult = intval($_POST['extra_unit_multiplier'][$i] ?? 1);
@@ -340,8 +340,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 // Delete associated image file
                 $curStmt = ($canAllBranches)
-                    ? $pdo->prepare("SELECT img_url FROM products WHERE product_id = ?")
-                    : $pdo->prepare("SELECT img_url FROM products WHERE product_id = ? AND store_id = ?");
+                    ? $pdo->prepare("SELECT img_url FROM st_products WHERE product_id = ?")
+                    : $pdo->prepare("SELECT img_url FROM st_products WHERE product_id = ? AND store_id = ?");
                 if ($canAllBranches) {
                     $curStmt->execute([$id]);
                 } else {
@@ -353,12 +353,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
 
                 // Delete associated units in product_units
-                $delUnitsStmt = $pdo->prepare("DELETE FROM product_units WHERE product_id = ?");
+                $delUnitsStmt = $pdo->prepare("DELETE FROM st_product_units WHERE product_id = ?");
                 $delUnitsStmt->execute([$id]);
 
                 $stmt = ($canAllBranches)
-                    ? $pdo->prepare("DELETE FROM products WHERE product_id = ?")
-                    : $pdo->prepare("DELETE FROM products WHERE product_id = ? AND store_id = ?");
+                    ? $pdo->prepare("DELETE FROM st_products WHERE product_id = ?")
+                    : $pdo->prepare("DELETE FROM st_products WHERE product_id = ? AND store_id = ?");
                 if ($canAllBranches) {
                     $stmt->execute([$id]);
                 } else {
@@ -393,20 +393,20 @@ if (!$canAllBranches) {
     $selectedStoreId = isset($_GET['store_id']) ? intval($_GET['store_id']) : $currentStoreId;
 }
 
-$catStmt = $pdo->prepare("SELECT * FROM categories WHERE store_id = ? ORDER BY category_name ASC");
+$catStmt = $pdo->prepare("SELECT * FROM st_categories WHERE store_id = ? ORDER BY category_name ASC");
 $catStmt->execute([$selectedStoreId]);
 $categories = $catStmt->fetchAll();
 
-$unitStmt = $pdo->prepare("SELECT * FROM units WHERE store_id = ? ORDER BY unit_name ASC");
+$unitStmt = $pdo->prepare("SELECT * FROM st_units WHERE store_id = ? ORDER BY unit_name ASC");
 $unitStmt->execute([$selectedStoreId]);
 $units = $unitStmt->fetchAll();
-$stores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+$stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 $products_stmt = $pdo->prepare("
     SELECT p.*, c.category_name, s.store_name
-    FROM products p
-    LEFT JOIN categories c ON p.category_id = c.category_id
-    LEFT JOIN tbstore s ON p.store_id = s.store_id
+    FROM st_products p
+    LEFT JOIN st_categories c ON p.category_id = c.category_id
+    LEFT JOIN st_tbstore s ON p.store_id = s.store_id
     WHERE p.store_id = ?
     ORDER BY p.code1 DESC, p.product_id DESC
 ");
@@ -414,7 +414,7 @@ $products_stmt->execute([$selectedStoreId]);
 $products = $products_stmt->fetchAll();
 
 // ດຶງຂໍ້ມູນ product_units ທັງໝົດມາ map
-$allUnitsStmt = $pdo->query("SELECT * FROM product_units ORDER BY multiplier ASC, id ASC");
+$allUnitsStmt = $pdo->query("SELECT * FROM st_product_units ORDER BY multiplier ASC, id ASC");
 $productUnitsMap = [];
 while ($u = $allUnitsStmt->fetch()) {
     $productUnitsMap[$u['product_id']][] = $u;
@@ -901,7 +901,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 
   function initPagination() {
     try {
-      var savedCat = localStorage.getItem('minipos_product_category_filter');
+      var savedCat = localStorage.getItem('StoreMini.minipos_product_category_filter');
       if (savedCat !== null && $('#categoryFilter option[value="' + savedCat + '"]').length > 0) {
         $('#categoryFilter').val(savedCat);
       }
@@ -1044,7 +1044,7 @@ require_once __DIR__ . '/../../layouts/header.php';
     var search   = document.getElementById('productSearch').value.toLowerCase().trim();
     var catId    = document.getElementById('categoryFilter').value;
     try {
-      localStorage.setItem('minipos_product_category_filter', catId);
+      localStorage.setItem('StoreMini.minipos_product_category_filter', catId);
     } catch(e) {}
     var rows     = document.querySelectorAll('.product-row');
     filteredRows = [];
@@ -1158,7 +1158,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 
   function switchStoreFilter(storeId) {
     if (storeId) {
-      try { localStorage.removeItem('minipos_product_category_filter'); } catch(e){}
+      try { localStorage.removeItem('StoreMini.minipos_product_category_filter'); } catch(e){}
       window.location.href = 'products.php?store_id=' + storeId;
     }
   }

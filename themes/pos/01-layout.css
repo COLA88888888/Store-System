@@ -1,0 +1,373 @@
+/*
+ * ສ່ວນ: ໂຄງໜ້າຂາຍ ແລະ ຂະໜາດຈໍ
+ * ແບ່ງຈໍສິນຄ້າ/ກະຕ່າ, ແຖບເທິງທີ່ຕິດຢູ່, ສີປຸ່ມ, ແທັບເລັດ ແລະ ມືຖື.
+ * ແຍກອອກມາຈາກ themes/pos.css — ໂຫຼດຕາມລຳດັບເລກໜ້າຊື່ໄຟລ໌ (ລຳດັບສຳຄັນສຳລັບ CSS).
+ */
+html, body {
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    background-color: #dde3ec !important;
+}
+
+/* POS Split Screen Layout */
+.pos-wrapper {
+    display: flex !important;
+    flex-direction: row !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: 100% !important;
+    gap: 12px !important;
+    overflow: hidden !important;
+    padding: 8px !important;
+    box-sizing: border-box !important;
+}
+
+.pos-products {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 4px !important;
+    height: 100% !important;
+    box-sizing: border-box !important;
+    background-color: #dde3ec !important;
+    border-radius: 10px !important;
+}
+
+/* Keep the scan box + category pills pinned at the top while only the product grid scrolls */
+.pos-sticky-topbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 30 !important;
+    background: #dde3ec !important;
+    padding-top: 2px !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 2px !important;
+}
+
+.pos-products::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.pos-products::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+/* Unify every default Bootstrap primary button/badge on the POS page with the sidebar/navbar navy brand color */
+.btn-primary {
+    background: linear-gradient(135deg, #2c5aa0, #244886) !important;
+    border-color: #244886 !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background: linear-gradient(135deg, #244886, #1a3666) !important;
+    border-color: #1a3666 !important;
+}
+
+.btn-outline-primary {
+    color: #244886 !important;
+    border-color: #244886 !important;
+}
+
+.btn-outline-primary:hover {
+    background: #244886 !important;
+    color: #ffffff !important;
+    border-color: #244886 !important;
+}
+
+.bg-primary {
+    background: linear-gradient(135deg, #2c5aa0, #244886) !important;
+}
+
+.pos-products::-webkit-scrollbar-thumb {
+    background: #cbd5e1 !important;
+    border-radius: 10px !important;
+}
+
+.pos-products::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8 !important;
+}
+
+.pos-cart {
+    width: 640px !important;
+    min-width: 640px !important;
+    background: #eef1f6 !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    border: 1px solid #cbd5e1 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+.cart-items {
+    flex: 1 1 0px !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 6px 8px !important;
+    border-bottom: 1.5px solid #e2e8f0 !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: #cbd5e1 transparent !important;
+}
+
+.cart-items::-webkit-scrollbar {
+    width: 5px !important;
+}
+
+.cart-items::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+.cart-items::-webkit-scrollbar-thumb {
+    background: #cbd5e1 !important;
+    border-radius: 10px !important;
+}
+
+.cart-footer {
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    padding: 5px 8px 4px 8px !important;
+    background: #ffffff !important;
+    border-top: 1.5px solid #cbd5e1 !important;
+}
+
+
+.cart-footer .row.mb-2 {
+    margin-bottom: 6px !important;
+}
+
+#cartPlaceholder {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+
+#cartPlaceholder i {
+    font-size: 2.0rem !important;
+    margin-bottom: 0.25rem !important;
+}
+
+
+
+/* Ensure POS cart container maintains clean flex column layout on all screens */
+.pos-cart {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+}
+
+.cart-items {
+    flex: 1 1 auto !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 8px 8px !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+}
+
+/* Specific layout tuning for Tablet devices & short viewports (768px - 1366px or height <= 900px) */
+@media (min-width: 768px) and (max-width: 1366px), (max-height: 900px) {
+    .pos-cart {
+        display: flex !important;
+        flex-direction: column !important;
+        /* capped at 55% so narrow tablets keep room for the product grid */
+        width: min(600px, 55%) !important;
+        min-width: min(600px, 55%) !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+    }
+
+
+    .cart-items {
+        flex: 1 1 0px !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        padding: 6px 8px !important;
+    }
+
+    .cart-footer {
+        flex-shrink: 0 !important;
+        margin-top: auto !important;
+        padding: 6px 8px 6px 8px !important;
+        background: #ffffff !important;
+        border-top: 1.5px solid #cbd5e1 !important;
+    }
+}
+
+
+
+/* Responsive adjustments for mobile phones ONLY (< 768px) */
+@media (max-width: 767.98px) {
+
+    html, body {
+        overflow-x: hidden !important;
+        overflow-y: hidden !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        height: -webkit-fill-available !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    .pos-wrapper {
+        display: -webkit-box !important;
+        display: -webkit-flex !important;
+        display: flex !important;
+        -webkit-box-orient: vertical !important;
+        -webkit-box-direction: normal !important;
+        -webkit-flex-direction: column !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        height: 100dvh !important;
+        height: -webkit-fill-available !important;
+        min-height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+        padding: 6px !important;
+        gap: 6px !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .pos-mobile-nav {
+        -webkit-flex-shrink: 0 !important;
+        flex-shrink: 0 !important;
+        position: relative !important;
+        top: auto !important;
+        z-index: 1040 !important;
+        background: #ffffff !important;
+        margin: 0 0 4px 0 !important;
+        padding: 5px 8px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .pos-products {
+        width: 100% !important;
+        max-width: 100% !important;
+        -webkit-box-flex: 1 !important;
+        -webkit-flex: 1 1 100% !important;
+        flex: 1 1 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        padding-right: 0 !important;
+        padding-bottom: 12px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* ບໍ່ສະແດງ Scrollbar ຈົນກວ່າສິນຄ້າຈະມີ 3 ແຖວກ້າວໄປ (3 Rows / 6+ items) */
+    #productGrid {
+        max-height: none !important;
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
+        padding-right: 4px !important;
+        padding-bottom: 24px !important;
+    }
+
+    .pos-cart {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        background: #ffffff !important;
+        -webkit-box-flex: 1 !important;
+        -webkit-flex: 1 1 100% !important;
+        flex: 1 1 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
+        margin-top: 0 !important;
+        box-sizing: border-box !important;
+        display: none !important;
+        flex-direction: column !important;
+    }
+
+    .pos-cart.mobile-active {
+        display: -webkit-box !important;
+        display: -webkit-flex !important;
+        display: flex !important;
+        -webkit-box-orient: vertical !important;
+        -webkit-box-direction: normal !important;
+        -webkit-flex-direction: column !important;
+        flex-direction: column !important;
+        background: #ffffff !important;
+        -webkit-box-flex: 1 !important;
+        -webkit-flex: 1 1 100% !important;
+        flex: 1 1 100% !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        max-height: 100% !important;
+        margin-top: 0 !important;
+    }
+
+    .pos-products.mobile-hidden {
+        display: none !important;
+    }
+
+    /* cart-items scroll ໄດ້ສະເພາະລາຍການສິນຄ້າໃນ mobile (Headers & Footer Fixed) */
+    .cart-items {
+        -webkit-box-flex: 1 !important;
+        -webkit-flex: 1 1 auto !important;
+        flex: 1 1 auto !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        padding: 6px 4px !important;
+        -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-y !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .cart-item-row {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 6px 6px !important;
+        gap: 5px !important;
+    }
+
+    .cart-items::-webkit-scrollbar {
+        width: 6px !important;
+        height: 6px !important;
+        display: block !important;
+    }
+
+    .cart-items::-webkit-scrollbar-track {
+        background: #eef2fb !important;
+        border-radius: 10px !important;
+    }
+
+    .cart-items::-webkit-scrollbar-thumb {
+        background: #244886 !important;
+        border-radius: 10px !important;
+    }
+
+    .cart-items::-webkit-scrollbar-thumb:hover {
+        background: #1a3666 !important;
+    }
+}
+
+

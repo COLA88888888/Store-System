@@ -62,6 +62,8 @@ return [
     'bank.placeholder_account_name' => 'ກະລຸນາປ້ອນຊື່ບັນຊີທະນາຄານ...',
     'bank.field_bank_logo' => 'ຮູບໂລໂກ້ທະນາຄານ:',
     'bank.field_qr_code' => 'ຮູບ QR Code:',
+    'bank.choose_image' => 'ກົດເພື່ອເລືອກຮູບ',
+    'bank.remove_image' => 'ລົບຮູບ',
     'bank.field_status' => 'ສະຖານະ:',
     'bank.status_option_active' => 'ເປີດໃຊ້ງານ',
     'bank.status_option_inactive' => 'ປິດໃຊ້ງານ',

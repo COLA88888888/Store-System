@@ -31,6 +31,8 @@ return [
     // Add modal
     'units.modal_add_title' => 'ເພີ່ມຫົວໜ່ວຍ',
     'units.label_code' => 'ລະຫັດຫົວໜ່ວຍ',
+    'units.placeholder_code' => 'ປ້ອນລະຫັດ (ເຊັ່ນ: 1, 2, 3...)',
+    'units.hint_code' => 'ລະຫັດຈະລຽນລຳດັບອັດຕະໂນມັດ ຫຼື ທ່ານສາມາດປ້ອນລະຫັດເອງໄດ້',
     'units.label_name' => 'ຊື່ຫົວໜ່ວຍ',
     'units.placeholder_name' => 'ເຊັ່ນ: ອັນ, ກ່ອງ, ຂວດ, ແພັກ...',
     'units.label_desc' => 'ລາຍລະອຽດ',

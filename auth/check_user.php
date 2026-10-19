@@ -39,7 +39,7 @@ if (!$pdo) {
 
 try {
     // 1. ຄົ້ນຫາຜູ້ໃຊ້ງານຈາກຕາຕະລາງ tbuser ໂດຍກົງ
-    $stmt = $pdo->prepare("SELECT * FROM tbuser WHERE username = ? OR fname = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT * FROM st_tbuser WHERE username = ? OR fname = ? LIMIT 1");
     $stmt->execute([$username, $username]);
     $user = $stmt->fetch();
 
@@ -58,14 +58,14 @@ try {
             // ກວດສອບດ້ວຍ MySQL PASSWORD() ແບບເກົ່າ
             try {
                 $hasUserpassCol = false;
-                $userCols = $pdo->query("SHOW COLUMNS FROM tbuser")->fetchAll(PDO::FETCH_COLUMN);
+                $userCols = $pdo->query("SHOW COLUMNS FROM st_tbuser")->fetchAll(PDO::FETCH_COLUMN);
                 $hasUserpassCol = in_array('userpass', $userCols);
 
                 if ($hasUserpassCol) {
-                    $stmtLegacy = $pdo->prepare("SELECT * FROM tbuser WHERE (username = ? OR fname = ?) AND (password = PASSWORD(?) OR userpass = PASSWORD(?)) LIMIT 1");
+                    $stmtLegacy = $pdo->prepare("SELECT * FROM st_tbuser WHERE (username = ? OR fname = ?) AND (password = PASSWORD(?) OR userpass = PASSWORD(?)) LIMIT 1");
                     $stmtLegacy->execute([$username, $username, $password, $password]);
                 } else {
-                    $stmtLegacy = $pdo->prepare("SELECT * FROM tbuser WHERE (username = ? OR fname = ?) AND password = PASSWORD(?) LIMIT 1");
+                    $stmtLegacy = $pdo->prepare("SELECT * FROM st_tbuser WHERE (username = ? OR fname = ?) AND password = PASSWORD(?) LIMIT 1");
                     $stmtLegacy->execute([$username, $username, $password]);
                 }
                 if ($stmtLegacy->fetch()) {
@@ -78,7 +78,7 @@ try {
             // Package/license expiry is checked before a session is ever created — an expired
             // shop can't log in at all, admin included, until the vendor is contacted to renew.
             try {
-                $licExpire = $pdo->query("SELECT license_expire_date FROM tbcompanyinfo WHERE branch_id = (SELECT store_id FROM tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1) LIMIT 1")->fetchColumn();
+                $licExpire = $pdo->query("SELECT license_expire_date FROM st_tbcompanyinfo WHERE branch_id = (SELECT store_id FROM st_tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1) LIMIT 1")->fetchColumn();
             } catch (Throwable $ex) {
                 $licExpire = null;
             }
@@ -104,7 +104,7 @@ try {
 
             // Check if assigned branch store is active (unless Admin/Executive)
             if (!$isAdmin) {
-                $stmtBranchCheck = $pdo->prepare("SELECT status, store_name FROM tbstore WHERE store_id = ?");
+                $stmtBranchCheck = $pdo->prepare("SELECT status, store_name FROM st_tbstore WHERE store_id = ?");
                 $stmtBranchCheck->execute([$userStoreId]);
                 $branchInfo = $stmtBranchCheck->fetch(PDO::FETCH_ASSOC);
 
@@ -123,7 +123,7 @@ try {
             // ອັບເດດເວລາເຄື່ອນໄຫວລ້າສຸດໃນຖານຂໍ້ມູນ
             $nowVientiane = date('Y-m-d H:i:s');
             try {
-                $pdo->exec("UPDATE tbuser SET last_activity = '{$nowVientiane}' WHERE Id = " . intval($user['Id']));
+                $pdo->exec("UPDATE st_tbuser SET last_activity = '{$nowVientiane}' WHERE Id = " . intval($user['Id']));
             } catch (Throwable $ex) {}
 
             $_SESSION['username'] = $user['username'];
@@ -161,7 +161,7 @@ try {
                 'database' => $isAdmin ? 1 : (int)($user['database'] ?? 0),
                 'stock_transfer' => $isAdmin ? 1 : (int)($user['stock_transfer'] ?? 0),
                 'transfer_history' => $isAdmin ? 1 : (int)($user['transfer_history'] ?? 0),
-                'quotations' => $isAdmin ? 1 : (int)($user['quotations'] ?? 0)
+                'customer_debt' => $isAdmin ? 1 : (int)($user['customer_debt'] ?? 0)
             ];
             
             $_SESSION['profile_img'] = 'default.png';

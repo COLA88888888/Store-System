@@ -1,0 +1,9 @@
+# MiniPos and ClothingPOS both run on http://localhost. With PHP's default "PHPSESSID" cookie
+# they shared one session, so logging in, switching language or branch in one app changed the
+# other. Pharmacy also used MINIPOSSID, so StoreMini now has its own STOREMINISSID.
+<IfModule mod_php.c>
+    php_value session.name STOREMINISSID
+</IfModule>
+<IfModule mod_php7.c>
+    php_value session.name STOREMINISSID
+</IfModule>

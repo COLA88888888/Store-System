@@ -55,10 +55,11 @@ return [
     'permissions.module_customers_title' => 'Customer Management',
     'permissions.module_customers_desc' => 'Add, edit, and manage customer/member data',
 
-    // section_quotations.php
-    'permissions.section_quotations' => 'Quotations',
-    'permissions.module_quotations_title' => 'Quotations',
-    'permissions.module_quotations_desc' => 'Create, edit, and manage price quotations for customers',
+    // section_customer_debt.php
+    'permissions.section_customer_debt' => 'Customer Debts',
+    'permissions.module_customer_debt_title' => 'Customer Debts',
+    'permissions.module_customer_debt_desc' => 'Sell on credit at the POS, collect repayments and manage customer debts',
+    'permissions.module_debt_report_title' => 'Customer Debt Report',
 
     // section_inventory.php
     'permissions.section_inventory' => '4. Products & Inventory',

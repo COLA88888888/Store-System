@@ -120,8 +120,8 @@ function sendToPrinter($ip, $bytes) {
     // still reports success, the printer drops the rest, and the leftover raster prints as garbled
     // text on the next job). So: a small head start, then a clock-based rate a little above
     // print speed.
-    $bytesPerSec = 72000;   // same as LAN_PRINT_BYTES_PER_SEC in api/lan_printer.php
-    $headStart   = 4096;
+    $bytesPerSec = 120000;  // same as LAN_PRINT_BYTES_PER_SEC in api/lan_printer.php
+    $headStart   = 8192;    // same as LAN_PRINT_HEAD_START
     $len = strlen($bytes);
     $sent = 0;
     $start = microtime(true);

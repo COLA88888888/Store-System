@@ -1,7 +1,7 @@
 <?php
 // ຮັບປະກັນໂຄງສ້າງຕາຕະລາງ price_adjustments ມີຟີວຄົບຖ້ວນ
 try {
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `price_adjustments` (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `st_price_adjustments` (
         `adjust_id` INT AUTO_INCREMENT PRIMARY KEY,
         `adjust_date` DATE DEFAULT NULL,
         `adjust_time` TIME DEFAULT NULL,
@@ -25,19 +25,19 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
     // Add missing columns if table existed previously with old columns
-    $cols = $pdo->query("SHOW COLUMNS FROM `price_adjustments`")->fetchAll(PDO::FETCH_COLUMN);
-    if (!in_array('target_mode', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `target_mode` VARCHAR(20) DEFAULT 'product' AFTER `adjust_time`");
-    if (!in_array('category_id', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `category_id` INT DEFAULT NULL AFTER `target_mode`");
-    if (!in_array('product_id', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `product_id` INT DEFAULT NULL AFTER `category_id`");
-    if (!in_array('product_name', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `product_name` VARCHAR(255) DEFAULT NULL AFTER `product_id`");
-    if (!in_array('target_price_type', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `target_price_type` VARCHAR(20) DEFAULT 'price' AFTER `product_name`");
-    if (!in_array('calc_type', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `calc_type` VARCHAR(20) DEFAULT 'set' AFTER `target_price_type`");
-    if (!in_array('adjust_value', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `adjust_value` DECIMAL(12,2) DEFAULT 0.00 AFTER `calc_type`");
-    if (!in_array('old_bprice', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `old_bprice` DECIMAL(12,2) DEFAULT 0.00 AFTER `adjust_value`");
-    if (!in_array('old_price', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `old_price` DECIMAL(12,2) DEFAULT 0.00 AFTER `old_bprice`");
-    if (!in_array('new_bprice', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `new_bprice` DECIMAL(12,2) DEFAULT 0.00 AFTER `old_price`");
-    if (!in_array('new_price', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `new_price` DECIMAL(12,2) DEFAULT 0.00 AFTER `new_bprice`");
-    if (!in_array('diff_amount', $cols)) $pdo->exec("ALTER TABLE `price_adjustments` ADD COLUMN `diff_amount` DECIMAL(12,2) DEFAULT 0.00 AFTER `new_price`");
+    $cols = $pdo->query("SHOW COLUMNS FROM `st_price_adjustments`")->fetchAll(PDO::FETCH_COLUMN);
+    if (!in_array('target_mode', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `target_mode` VARCHAR(20) DEFAULT 'product' AFTER `adjust_time`");
+    if (!in_array('category_id', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `category_id` INT DEFAULT NULL AFTER `target_mode`");
+    if (!in_array('product_id', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `product_id` INT DEFAULT NULL AFTER `category_id`");
+    if (!in_array('product_name', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `product_name` VARCHAR(255) DEFAULT NULL AFTER `product_id`");
+    if (!in_array('target_price_type', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `target_price_type` VARCHAR(20) DEFAULT 'price' AFTER `product_name`");
+    if (!in_array('calc_type', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `calc_type` VARCHAR(20) DEFAULT 'set' AFTER `target_price_type`");
+    if (!in_array('adjust_value', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `adjust_value` DECIMAL(12,2) DEFAULT 0.00 AFTER `calc_type`");
+    if (!in_array('old_bprice', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `old_bprice` DECIMAL(12,2) DEFAULT 0.00 AFTER `adjust_value`");
+    if (!in_array('old_price', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `old_price` DECIMAL(12,2) DEFAULT 0.00 AFTER `old_bprice`");
+    if (!in_array('new_bprice', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `new_bprice` DECIMAL(12,2) DEFAULT 0.00 AFTER `old_price`");
+    if (!in_array('new_price', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `new_price` DECIMAL(12,2) DEFAULT 0.00 AFTER `new_bprice`");
+    if (!in_array('diff_amount', $cols)) $pdo->exec("ALTER TABLE `st_price_adjustments` ADD COLUMN `diff_amount` DECIMAL(12,2) DEFAULT 0.00 AFTER `new_price`");
 } catch (Exception $e) {}
 
 $userStoreId = intval($_SESSION['store_id'] ?? 1);
@@ -46,10 +46,10 @@ $isMain = isMainBranch($pdo, $userStoreId);
 $canAllBranches = canViewAllBranches($pdo);
 
 // Fetch stores list for branch selection/filter
-$stores = $pdo->query("SELECT * FROM tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+$stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 // GET filter_store parameter
-$filter_store = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : 0;
+$filter_store = isset($_GET['store_id']) && $_GET['store_id'] !== '' ? intval($_GET['store_id']) : intval($_SESSION['store_id'] ?? 1);
 if (!$canAllBranches) {
     $filter_store = $userStoreId;
 }
@@ -89,11 +89,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 // ດຶງລາຍການສິນຄ້າທີ່ຈະປັບ
                 if ($target_mode === 'product') {
-                    $stmt = $pdo->prepare("SELECT product_id, product_name, bprice, price FROM products WHERE product_id = ? AND store_id = ?");
+                    $stmt = $pdo->prepare("SELECT product_id, product_name, bprice, price FROM st_products WHERE product_id = ? AND store_id = ?");
                     $stmt->execute([$product_id, $targetStoreId]);
                     $targetProducts = $stmt->fetchAll();
                 } else {
-                    $stmt = $pdo->prepare("SELECT product_id, product_name, bprice, price FROM products WHERE category_id = ? AND store_id = ?");
+                    $stmt = $pdo->prepare("SELECT product_id, product_name, bprice, price FROM st_products WHERE category_id = ? AND store_id = ?");
                     $stmt->execute([$category_id, $targetStoreId]);
                     $targetProducts = $stmt->fetchAll();
                 }
@@ -104,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $message_type = 'warning';
                 } else {
                     $count = 0;
-                    $updStmt = $pdo->prepare("UPDATE products SET bprice = ?, price = ? WHERE product_id = ? AND store_id = ?");
-                    $logStmt = $pdo->prepare("INSERT INTO price_adjustments (adjust_date, adjust_time, target_mode, category_id, product_id, product_name, target_price_type, calc_type, adjust_value, old_bprice, old_price, new_bprice, new_price, diff_amount, remark, username, user_id, branch_id) VALUES (CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $updStmt = $pdo->prepare("UPDATE st_products SET bprice = ?, price = ? WHERE product_id = ? AND store_id = ?");
+                    $logStmt = $pdo->prepare("INSERT INTO st_price_adjustments (adjust_date, adjust_time, target_mode, category_id, product_id, product_name, target_price_type, calc_type, adjust_value, old_bprice, old_price, new_bprice, new_price, diff_amount, remark, username, user_id, branch_id) VALUES (CURDATE(), CURTIME(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
                     foreach ($targetProducts as $prod) {
                         $pid       = $prod['product_id'];
@@ -185,8 +185,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $pdo->beginTransaction();
 
                 $sel = ($canAllBranches)
-                    ? $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ?")
-                    : $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ? AND branch_id = ?");
+                    ? $pdo->prepare("SELECT * FROM st_price_adjustments WHERE adjust_id = ?")
+                    : $pdo->prepare("SELECT * FROM st_price_adjustments WHERE adjust_id = ? AND branch_id = ?");
                 ($canAllBranches) ? $sel->execute([$adjust_id]) : $sel->execute([$adjust_id, $userStoreId]);
                 $row = $sel->fetch(PDO::FETCH_ASSOC);
 
@@ -199,17 +199,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     if (!empty($row['product_id'])) {
                         $tpt = $row['target_price_type'] ?? 'price';
                         if ($tpt === 'price') {
-                            $pdo->prepare("UPDATE products SET price = ? WHERE product_id = ? AND store_id = ?")
+                            $pdo->prepare("UPDATE st_products SET price = ? WHERE product_id = ? AND store_id = ?")
                                 ->execute([$row['old_price'], $row['product_id'], $row['branch_id']]);
                         } elseif ($tpt === 'bprice') {
-                            $pdo->prepare("UPDATE products SET bprice = ? WHERE product_id = ? AND store_id = ?")
+                            $pdo->prepare("UPDATE st_products SET bprice = ? WHERE product_id = ? AND store_id = ?")
                                 ->execute([$row['old_bprice'], $row['product_id'], $row['branch_id']]);
                         } else { // both
-                            $pdo->prepare("UPDATE products SET price = ?, bprice = ? WHERE product_id = ? AND store_id = ?")
+                            $pdo->prepare("UPDATE st_products SET price = ?, bprice = ? WHERE product_id = ? AND store_id = ?")
                                 ->execute([$row['old_price'], $row['old_bprice'], $row['product_id'], $row['branch_id']]);
                         }
                     }
-                    $pdo->prepare("DELETE FROM price_adjustments WHERE adjust_id = ?")->execute([$adjust_id]);
+                    $pdo->prepare("DELETE FROM st_price_adjustments WHERE adjust_id = ?")->execute([$adjust_id]);
                     $pdo->commit();
                     logActivity($pdo, "ລຶບການປັບລາຄາ", "ຄືນລາຄາເດີມ ສິນຄ້າ ID: " . ($row['product_id'] ?? '-'));
                     $message = 'ລຶບປະຫວັດ ແລະ ຄືນລາຄາເດີມສຳເລັດ!';
@@ -236,8 +236,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             try {
                 $pdo->beginTransaction();
                 $sel = ($canAllBranches)
-                    ? $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ?")
-                    : $pdo->prepare("SELECT * FROM price_adjustments WHERE adjust_id = ? AND branch_id = ?");
+                    ? $pdo->prepare("SELECT * FROM st_price_adjustments WHERE adjust_id = ?")
+                    : $pdo->prepare("SELECT * FROM st_price_adjustments WHERE adjust_id = ? AND branch_id = ?");
                 ($canAllBranches) ? $sel->execute([$adjust_id]) : $sel->execute([$adjust_id, $userStoreId]);
                 $row = $sel->fetch(PDO::FETCH_ASSOC);
 
@@ -261,9 +261,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     }
                     $diff = ($target_price_type === 'bprice') ? ($newB - $oldB) : ($newP - $oldP);
 
-                    $pdo->prepare("UPDATE products SET bprice = ?, price = ? WHERE product_id = ? AND store_id = ?")
+                    $pdo->prepare("UPDATE st_products SET bprice = ?, price = ? WHERE product_id = ? AND store_id = ?")
                         ->execute([$newB, $newP, $row['product_id'], $row['branch_id']]);
-                    $pdo->prepare("UPDATE price_adjustments SET target_price_type = ?, calc_type = ?, adjust_value = ?, new_bprice = ?, new_price = ?, diff_amount = ?, remark = ? WHERE adjust_id = ?")
+                    $pdo->prepare("UPDATE st_price_adjustments SET target_price_type = ?, calc_type = ?, adjust_value = ?, new_bprice = ?, new_price = ?, diff_amount = ?, remark = ? WHERE adjust_id = ?")
                         ->execute([$target_price_type, $calc_type, $adjust_value, $newB, $newP, $diff, $remark, $adjust_id]);
 
                     $pdo->commit();
@@ -291,11 +291,10 @@ if (!empty($_POST['is_ajax'])) {
 
 // Fetch categories, products, and price adjustments history
 $targetProdStore = ($filter_store > 0) ? $filter_store : $userStoreId;
-$catListStmt = $pdo->prepare("SELECT category_id, category_name FROM categories WHERE store_id = ? ORDER BY category_name ASC");
-$catListStmt->execute([$targetProdStore]);
+$catListStmt = $pdo->query("SELECT category_id, category_name FROM st_categories ORDER BY category_id ASC");
 $categoriesList = $catListStmt->fetchAll();
 
-$prodStmt = $pdo->prepare("SELECT p.product_id, p.product_name, p.barcode, p.category_id, p.bprice, p.price, p.unit, c.category_name FROM products p LEFT JOIN categories c ON p.category_id = c.category_id WHERE p.store_id = ? ORDER BY p.product_name ASC");
+$prodStmt = $pdo->prepare("SELECT p.product_id, p.product_name, p.barcode, p.category_id, p.bprice, p.price, p.unit, c.category_name FROM st_products p LEFT JOIN st_categories c ON p.category_id = c.category_id WHERE p.store_id = ? ORDER BY p.product_name ASC");
 $prodStmt->execute([$targetProdStore]);
 $productsList = $prodStmt->fetchAll();
 
@@ -309,10 +308,10 @@ $whereSql = implode(' AND ', $where);
 
 $adjStmt = $pdo->prepare("
     SELECT pa.*, p.barcode as prod_barcode, c.category_name, s.store_name 
-    FROM price_adjustments pa
-    LEFT JOIN products p ON pa.product_id = p.product_id AND p.store_id = pa.branch_id
-    LEFT JOIN categories c ON pa.category_id = c.category_id
-    LEFT JOIN tbstore s ON pa.branch_id = s.store_id
+    FROM st_price_adjustments pa
+    LEFT JOIN st_products p ON pa.product_id = p.product_id AND p.store_id = pa.branch_id
+    LEFT JOIN st_categories c ON pa.category_id = c.category_id
+    LEFT JOIN st_tbstore s ON pa.branch_id = s.store_id
     WHERE {$whereSql}
     ORDER BY pa.adjust_id DESC 
     LIMIT 100

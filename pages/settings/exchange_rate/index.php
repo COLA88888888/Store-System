@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     // Safety net: make sure the CNY column exists before any INSERT/UPDATE that names it
     // (in case the auto-migration in config/db.php has not run on this server yet).
     try {
-        if (!$pdo->query("SHOW COLUMNS FROM `tbexchange` LIKE 'ex_kip_cn'")->fetch()) {
-            $pdo->exec("ALTER TABLE `tbexchange` ADD COLUMN `ex_kip_cn` VARCHAR(255) NULL");
+        if (!$pdo->query("SHOW COLUMNS FROM `st_tbexchange` LIKE 'ex_kip_cn'")->fetch()) {
+            $pdo->exec("ALTER TABLE `st_tbexchange` ADD COLUMN `ex_kip_cn` VARCHAR(255) NULL");
         }
     } catch (Throwable $e) {}
 
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($thb_rate > 0 && $usd_rate > 0) {
             try {
-                $stmt = $pdo->prepare("INSERT INTO tbexchange (ex_date, ex_time, ex_kip_bath, ex_kip_us, ex_kip_cn, ex_status, ex_userlogin, branch_id) VALUES (CURDATE(), CURTIME(), ?, ?, ?, 'Active', ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO st_tbexchange (ex_date, ex_time, ex_kip_bath, ex_kip_us, ex_kip_cn, ex_status, ex_userlogin, branch_id) VALUES (CURDATE(), CURTIME(), ?, ?, ?, 'Active', ?, ?)");
                 $stmt->execute([$thb_rate, $usd_rate, $cny_rate, $username, $myRateStoreId]);
                 $message = t('exchange_rate.msg_save_success', 'ອັບເດດອັດຕາແລກປ່ຽນເງິນສຳເລັດແລ້ວ!');
                 $message_type = 'success';
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
         if ($rate_id > 0 && $thb_rate > 0 && $usd_rate > 0) {
             try {
-                $sql = "UPDATE tbexchange SET ex_kip_bath = ?, ex_kip_us = ?, ex_kip_cn = ?, ex_userlogin = ? WHERE Id = ?";
+                $sql = "UPDATE st_tbexchange SET ex_kip_bath = ?, ex_kip_us = ?, ex_kip_cn = ?, ex_userlogin = ? WHERE Id = ?";
                 $params = [$thb_rate, $usd_rate, $cny_rate, $username, $rate_id];
                 if (!$canAllRateBranches) {
                     $sql .= " AND branch_id = ?";
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             $cur = 'KIP';
         }
         try {
-            $pdo->prepare("INSERT INTO system_settings (setting_key, setting_value) VALUES ('display_currency', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$cur]);
+            $pdo->prepare("INSERT INTO st_system_settings (setting_key, setting_value) VALUES ('display_currency', ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)")->execute([$cur]);
             $message = t('exchange_rate.msg_currency_saved', 'ຕັ້ງຄ່າສະກຸນເງິນສະແດງຜົນສຳເລັດ!');
             $message_type = 'success';
             logActivity($pdo, "ຕັ້ງຄ່າສະກຸນເງິນສະແດງຜົນ", $cur);
@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $rate_id = intval($_POST['rate_id'] ?? 0);
         if ($rate_id > 0) {
             try {
-                $sql = "DELETE FROM tbexchange WHERE Id = ?";
+                $sql = "DELETE FROM st_tbexchange WHERE Id = ?";
                 $params = [$rate_id];
                 if (!$canAllRateBranches) {
                     $sql .= " AND branch_id = ?";
@@ -117,9 +117,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
 // ດຶງປະຫວັດອັດຕາແລກປ່ຽນ — ສາຂາຍ່ອຍເຫັນສະເພາະຂອງຕົນເອງ, ສາຂາໃຫຍ່/admin ເຫັນທຸກສາຂາ
 if ($canAllRateBranches) {
-    $historyRates = $pdo->query("SELECT * FROM tbexchange ORDER BY Id DESC")->fetchAll(PDO::FETCH_ASSOC);
+    $historyRates = $pdo->query("SELECT * FROM st_tbexchange ORDER BY Id DESC")->fetchAll(PDO::FETCH_ASSOC);
 } else {
-    $historyStmt = $pdo->prepare("SELECT * FROM tbexchange WHERE branch_id = ? ORDER BY Id DESC");
+    $historyStmt = $pdo->prepare("SELECT * FROM st_tbexchange WHERE branch_id = ? ORDER BY Id DESC");
     $historyStmt->execute([$myRateStoreId]);
     $historyRates = $historyStmt->fetchAll(PDO::FETCH_ASSOC);
 }

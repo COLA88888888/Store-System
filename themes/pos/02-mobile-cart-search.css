@@ -1,0 +1,444 @@
+/*
+ * ສ່ວນ: ມືຖື 2 ຖັນ, ລູກຄ້າ ແລະ ບັອກສະແກນ
+ * ໂຄງ 2 ຖັນໃນມືຖື, ຕົວເລືອກລູກຄ້າ/ບິນພັກ, ບັອກສະແກນບາໂຄ້ດ ແລະ ປຸ່ມ ຕິດໜີ້/ຈໍລູກຄ້າ.
+ * ແຍກອອກມາຈາກ themes/pos.css — ໂຫຼດຕາມລຳດັບເລກໜ້າຊື່ໄຟລ໌ (ລຳດັບສຳຄັນສຳລັບ CSS).
+ */
+/* Mobile Screen 2 Columns Layout Adjustments for All Mobile Phones */
+@media (max-width: 575.98px) {
+    .row {
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+    }
+
+    .col-12, [class*='col-'] {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+    }
+
+    /* Mobile Search Bar - Fits 100% Mobile Screen Width */
+    .pos-search-wrapper {
+        height: 40px !important;
+        border-radius: 12px !important;
+        padding: 2px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .pos-search-icon-left {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1.1rem !important;
+        border-radius: 10px 0 0 10px !important;
+    }
+
+    .pos-search-input {
+        height: 36px !important;
+        font-size: 0.98rem !important;
+        font-weight: 600 !important;
+        padding: 0 10px !important;
+        min-width: 0 !important;
+    }
+
+    .pos-search-clear {
+        width: 32px !important;
+        height: 36px !important;
+        font-size: 1.02rem !important;
+    }
+
+    .pos-search-badge {
+        height: 36px !important;
+        padding: 0 10px !important;
+        font-size: 0.88rem !important;
+        border-radius: 0 10px 10px 0 !important;
+    }
+
+    /* Category Pills Bar on Mobile */
+    .category-pills-bar {
+        padding: 3px 2px 5px 2px !important;
+        gap: 6px !important;
+        margin-bottom: 4px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .category-pills-bar .category-pill-btn,
+    button.category-pill-btn,
+    .category-pill-btn {
+        padding: 5px 12px !important;
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        border-radius: 9px !important;
+    }
+
+    #productGrid {
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+        row-gap: 8px !important;
+    }
+
+    #productGrid>[class*='col-'] {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+    }
+
+    .product-img-wrap {
+        height: 135px !important;
+        max-height: 135px !important;
+        padding: 0 !important;
+    }
+
+    .product-card {
+        border-radius: 4px !important;
+    }
+
+    .text-truncate-2 {
+        font-size: 0.92rem !important;
+    }
+
+    .product-card .price-tag {
+        font-size: 1.05rem !important;
+        font-weight: 800 !important;
+    }
+
+    /* ຂໍ້ຄວາມຊື່ສິນຄ້າ */
+    .product-card .card-body h6 {
+        font-size: 0.94rem !important;
+        font-weight: 700 !important;
+        white-space: normal !important;
+        overflow: hidden !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        text-overflow: unset !important;
+        line-height: 1.3 !important;
+        min-height: 2.6em !important;
+    }
+
+    /* ສະຕັອກ pill ແລະ ລາຄາ */
+    .product-card .card-body span.font-weight-bold {
+        font-size: 1.02rem !important;
+        font-weight: 700 !important;
+    }
+
+    .stock-info-wrap {
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        padding: 3px 6px !important;
+    }
+
+    .pos-customer-bar {
+        padding: 8px 10px !important;
+        font-size: 0.94rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    .pos-cart .bg-primary {
+        padding: 10px 12px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .pos-active-bills-bar {
+        padding: 6px 10px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .cart-footer {
+        padding: 6px 6px calc(2px + env(safe-area-inset-bottom, 2px)) 6px !important;
+        flex-shrink: 0 !important;
+        -webkit-flex-shrink: 0 !important;
+        margin-top: auto !important;
+        background: #ffffff !important;
+        border-top: 1.5px solid #cbd5e1 !important;
+        position: relative !important;
+        z-index: 100 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .cart-footer .btn {
+        font-size: 0.88rem !important;
+        font-weight: 700 !important;
+        padding: 8px 3px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    .cart-footer .btn span,
+    .cart-footer .btn i {
+        white-space: nowrap !important;
+    }
+    
+    .cart-footer .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        flex-wrap: nowrap !important;
+    }
+}
+
+/* Customer selector & Held orders styling */
+.pos-customer-bar {
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 15px;
+}
+
+.customer-badge {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.held-item-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.held-item-card:hover {
+    border-color: #244886;
+    box-shadow: 0 4px 12px rgba(36, 72, 134, 0.1);
+}
+
+.badge-hold-count {
+    font-size: 0.82rem;
+    padding: 3px 7px;
+    border-radius: 12px;
+}
+
+/* ===== Barcode Scanner Search Bar =====
+   ບັອກສະແກນເປັນສີຂາວສະເໝີ — ບໍ່ປ່ຽນຕາມສີທີມ (js_theme_color.php ບໍ່ແຕະ class ເຫຼົ່ານີ້). */
+.pos-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 16px;
+    padding: 3px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+    transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+/* ປຸ່ມ ຕິດໜີ້ / ຈໍລູກຄ້າ ຂ້າງບັອກສະແກນ — ຂະໜາດທຳມະດາ (btn-sm) */
+.pos-topbar-btn {
+    flex: 0 0 auto;
+    height: 34px;
+    border-radius: 8px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    font-size: 0.85rem;
+}
+@media (max-width: 991.98px) {
+    .pos-topbar-btn { height: 32px; padding: 0 10px; }
+}
+
+.pos-search-wrapper:focus-within {
+    border-color: #9ca3af;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.14);
+}
+
+.pos-search-icon-left {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border-radius: 13px 0 0 13px;
+    color: #111827;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.pos-search-input {
+    flex: 1;
+    height: 44px;
+    background: #ffffff;
+    border: none;
+    outline: none;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1e293b;
+    padding: 0 14px;
+    border-radius: 0;
+    letter-spacing: 0.01em;
+}
+
+.pos-search-input::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+    font-size: 0.96rem;
+}
+
+.pos-search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 44px;
+    background: #f1f5f9;
+    border: none;
+    border-radius: 0;
+    color: #94a3b8;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+    flex-shrink: 0;
+}
+
+.pos-search-clear:hover {
+    color: #ef4444;
+    background: #fee2e2;
+}
+
+.pos-search-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 0.84rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 0 14px;
+    height: 44px;
+    border-radius: 0 13px 13px 0;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+/* ===== ບັອກສະແກນຢູ່ໃນ Navbar (ຈໍ ≥ 992px) =====
+   html.pos-nav-mode ຖືກຕັ້ງໂດຍ home/partials/dashboard/js_pos_navbar.php: iframe ຂອງໜ້າຂາຍ
+   ຖືກຍົກຂຶ້ນໄປຢູ່ໃຕ້ Navbar (ທີ່ໂປ່ງໃສ), ແຖບສີ 64px ນີ້ແທນພື້ນຫຼັງຂອງ Navbar ແລະ ບັອກສະແກນ
+   ວາງຢູ່ຊ່ອງວ່າງລະຫວ່າງປຸ່ມເມນູ (--pos-nav-left) ກັບປຸ່ມທາງຂວາ (--pos-nav-right). */
+html.pos-nav-mode body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: var(--pos-nav-bg, #244886);
+    /* Low on purpose: the scan row lives inside .pos-sticky-topbar (z-index 30), and
+       modal backdrops (1040) must still dim both. */
+    z-index: 1;
+}
+
+html.pos-nav-mode .pos-wrapper {
+    padding-top: 72px !important;
+}
+
+html.pos-nav-mode .pos-search-row {
+    position: fixed;
+    top: 0;
+    left: var(--pos-nav-left, 64px);
+    right: var(--pos-nav-right, 560px);
+    max-width: 720px;
+    height: 64px;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+}
+
+html.pos-nav-mode .pos-search-row > .col-12 {
+    padding: 0 !important;
+}
+
+/* Plain search box in the navbar: always white (whatever the theme colour), magnifier on the left */
+html.pos-nav-mode .pos-search-wrapper {
+    width: 100%;
+    height: 44px;
+    padding: 0;
+    background: #ffffff !important;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.10);
+    overflow: hidden;
+    animation: none;
+}
+
+html.pos-nav-mode .pos-search-wrapper:focus-within {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.45);
+    animation: none;
+}
+
+html.pos-nav-mode .pos-search-icon-left {
+    width: 42px;
+    height: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    color: #111111;
+    font-size: 1.05rem;
+}
+
+/* Same <i> as the barcode icon, drawn as Font Awesome's magnifier (\f002) */
+html.pos-nav-mode .pos-search-icon-left .fa-barcode::before {
+    content: "\f002";
+}
+
+html.pos-nav-mode .pos-search-input {
+    height: 100%;
+    padding: 0 8px 0 0;
+    background: transparent;
+    font-weight: 500;
+}
+
+html.pos-nav-mode .pos-search-input::placeholder {
+    color: #6b7280;
+}
+
+html.pos-nav-mode .pos-search-clear {
+    height: 100%;
+    background: transparent;
+}
+
+html.pos-nav-mode .pos-search-badge {
+    display: none;
+}
+
+/* ===== ໜ້າຈໍໂທລະສັບ (< 768px) =====
+   ບໍ່ສະແດງບັອກສະແກນ (ຄືກັບ Pharmacy) ແລະ ບັດສິນຄ້າຢູ່ໃກ້ກັນ — ຫ່າງກັນ 6px ທັງແນວນອນ ແລະ ແນວຕັ້ງ.
+   ຢູ່ທ້າຍໄຟລ໌ເພື່ອໃຫ້ຊະນະ row-gap/padding ຂອງ @media (max-width: 575.98px) ທາງເທິງ. */
+@media (max-width: 767.98px) {
+    .pos-search-row {
+        display: none !important;
+    }
+
+    .pos-sticky-topbar {
+        padding-top: 4px !important;
+        margin-bottom: 4px !important;
+    }
+
+    #productGrid {
+        margin-left: -3px !important;
+        margin-right: -3px !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        row-gap: 0 !important;
+    }
+
+    #productGrid > .pos-product-col {
+        padding-left: 3px !important;
+        padding-right: 3px !important;
+        margin-bottom: 6px !important;
+    }
+}
+

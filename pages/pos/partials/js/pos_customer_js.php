@@ -34,6 +34,12 @@ function selectCustomer(cus) {
   updateSelectedCustomerUI();
   saveCurrentBillState();
   $('#selectCustomerModal').modal('hide');
+
+  // Came here from the ຕິດໜີ້ button with no customer — continue to the credit payment form.
+  if (window.__posCreditPending) {
+    window.__posCreditPending = false;
+    if (cus && typeof openCreditCheckout === 'function') setTimeout(openCreditCheckout, 450);
+  }
 }
 
 function openCustomerSelectModal() {
@@ -280,4 +286,12 @@ function submitQuickAddCustomer() {
     }
   });
 }
+
+// Closing the customer picker without choosing anyone cancels a pending ຕິດໜີ້ request
+// (selectCustomer() already consumed it when a customer was chosen).
+$(function () {
+  $('#selectCustomerModal').on('hidden.bs.modal', function () {
+    if (!$('#addCustomerModal').hasClass('show')) window.__posCreditPending = false;
+  });
+});
 </script>

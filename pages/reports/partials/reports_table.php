@@ -64,9 +64,10 @@
               <tr style="background-color: #eff6ff; border-top: 1px solid #bfdbfe; border-bottom: 1px solid #bfdbfe;">
                 <td colspan="11" class="py-2 px-3 font-weight-bold" style="color: #1e40af; font-size: 0.88rem;">
                   <i class="fas fa-receipt mr-1 text-primary"></i> Bill: <strong><?php echo htmlspecialchars($bNo); ?></strong> | Date: <strong><?php echo htmlspecialchars($dateOnly); ?></strong>
-                  <?php if ($__curCode !== 'KIP'): ?>
+                  <?php if ($__curCode !== 'KIP' && $__curCode !== 'LAK'): ?>
+                    <?php $__bannerCur = ($__curCode === 'KIP' || $__curCode === 'LAK') ? 'LAK' : $__curCode; ?>
                     <span class="badge border font-weight-bold ml-2" style="color: <?php echo $__curColor; ?>; border-color: <?php echo $__curColor; ?> !important; background: #ffffff; font-size: 0.74rem;" title="<?php echo htmlspecialchars($__curMeta['name']); ?>">
-                      <?php echo htmlspecialchars($__curMeta['symbol'] . ' ' . $__curCode); ?>
+                      <?php echo htmlspecialchars($__bannerCur); ?>
                     </span>
                   <?php endif; ?>
                 </td>
@@ -88,9 +89,7 @@
                     <a href="javascript:void(0)" onclick="viewBillDetails('<?php echo htmlspecialchars($itemRow['bill_no']); ?>')" class="text-primary">
                       <?php echo htmlspecialchars($itemRow['bill_no']); ?>
                     </a>
-                    <?php if (strpos($itemRow['sale_remark'] ?? '', 'Quotation To Sale') !== false): ?>
-                      <span class="badge badge-warning text-dark ml-1" style="font-size: 0.65rem;"><i class="fas fa-file-invoice mr-1"></i> ໃບສະເໜີລາຄາ</span>
-                    <?php endif; ?>
+                    <?php echo reportDebtBadge($pdo, $itemRow['bill_no'], $openDebtByBill); ?>
                   </td>
 
                   <!-- ວັນທີ -->
@@ -141,9 +140,7 @@
                   <a href="javascript:void(0)" onclick="viewBillDetails('<?php echo htmlspecialchars($row['bill_no']); ?>')" class="text-primary" title="<?php echo htmlspecialchars(t('reports.view_detail_title', 'ເບິ່ງລາຍລະອຽດບິນ')); ?>">
                     <?php echo htmlspecialchars($row['bill_no']); ?>
                   </a>
-                  <?php if (strpos($row['sale_remark'] ?? '', 'Quotation To Sale') !== false): ?>
-                    <span class="badge badge-warning text-dark ml-1" style="font-size: 0.65rem;"><i class="fas fa-file-invoice mr-1"></i> ໃບສະເໜີລາຄາ</span>
-                  <?php endif; ?>
+                  <?php echo reportDebtBadge($pdo, $row['bill_no'], $openDebtByBill); ?>
                 </td>
                 <td class="text-left" style="font-size: 0.84rem; color: #475569;"><?php echo htmlspecialchars($row['date_time']); ?></td>
                 <td class="text-left font-weight-bold text-dark" style="font-size: 0.82rem;">
@@ -174,6 +171,8 @@
                         <i class="fas fa-university text-muted" style="font-size: 0.7rem;"></i>
                       </span>
                     <?php endif; ?>
+                  <?php else: ?>
+                    <span class="text-muted font-weight-bold">-</span>
                   <?php endif; ?>
                 </td>
                 <td class="text-center">
@@ -181,9 +180,10 @@
                     $__curCode = strtoupper($row['currency'] ?? 'KIP') ?: 'KIP';
                     $__curMeta = getCurrencyMeta()[$__curCode] ?? ['name' => $__curCode, 'symbol' => $__curCode];
                     $__curColor = ($__curCode === 'THB') ? '#0369a1' : (($__curCode === 'USD') ? '#047857' : (($__curCode === 'CNY') ? '#b91c1c' : '#a16207'));
+                    $__curDisplay = ($__curCode === 'KIP' || $__curCode === 'LAK') ? 'LAK' : $__curCode;
                   ?>
                   <span class="badge border font-weight-bold" style="color: <?php echo $__curColor; ?>; border-color: <?php echo $__curColor; ?> !important; background: #ffffff; font-size: 0.76rem;" title="<?php echo htmlspecialchars($__curMeta['name']); ?>">
-                    <?php echo htmlspecialchars($__curMeta['symbol'] . ' ' . $__curCode); ?>
+                    <?php echo htmlspecialchars($__curDisplay); ?>
                   </span>
                 </td>
                 <td class="text-right font-weight-bold text-info"><?php echo displayMoney($pdo, $row['change'] ?? 0); ?></td>
@@ -195,9 +195,6 @@
                     </button>
                     <button type="button" class="btn btn-sm btn-light border shadow-sm text-info" onclick="printBill('<?php echo htmlspecialchars($row['bill_no']); ?>')" title="<?php echo htmlspecialchars(t('reports.print_bill_title', 'ພິມໃບບິນ')); ?>" style="width: 34px; height: 34px; padding: 0; font-size: 1.05rem;">
                       <i class="fas fa-print"></i>
-                    </button>
-                    <button type="button" class="btn btn-sm btn-light border shadow-sm text-success" onclick="printDeliveryNote('<?php echo htmlspecialchars($row['bill_no']); ?>')" title="<?php echo htmlspecialchars(t('reports.print_delivery_note_title', 'ພິມບິນສົ່ງເຄື່ອງ')); ?>" style="width: 34px; height: 34px; padding: 0; font-size: 1.05rem;">
-                      <i class="fas fa-truck"></i>
                     </button>
                     <?php
                       $canDeleteBill = hasPermission('delete_bills') || ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ';

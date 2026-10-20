@@ -52,7 +52,10 @@
   window.RC_TAXED = (res.tax_type || window.STORE_TAX_TYPE || 'none') !== 'none'
     && (parseFloat(res.vat_rate) || parseFloat(window.STORE_VAT_PERCENT) || 0) > 0;
   $('#rc_subtotal').html(rcMoney(res.subtotal));
-  $('#rc_discount').html(rcMoney(res.discount_amount));
+  // ສ່ວນຫຼຸດແບບ % → ສະແດງເປີເຊັນນຳໜ້າຈຳນວນເງິນ, ເຊັ່ນ "(10%) 5,000 ₭"
+  var rcDiscPct = (typeof getCartDiscountMode === 'function' && getCartDiscountMode() === 'percent')
+    ? (parseFloat($('#cartDiscount').val()) || 0) : 0;
+  $('#rc_discount').html((rcDiscPct > 0 ? '(' + rcDiscPct + '%) ' : '') + rcMoney(res.discount_amount));
 
   var rTaxType = res.tax_type || window.STORE_TAX_TYPE || 'none';
   var rTaxId   = res.tax_id || window.STORE_TAX_ID || '';

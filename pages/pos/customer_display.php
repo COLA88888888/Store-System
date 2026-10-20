@@ -4,6 +4,7 @@
  * ໜ້າຈໍລູກຄ້າ (Customer Display): ເປີດຢູ່ຈໍທີສອງ, ຮັບຂໍ້ມູນກະຕ່າຈາກໜ້າຂາຍຜ່ານ BroadcastChannel/localStorage ແລ້ວສະແດງລາຍການ, ຍອດເງິນ ແລະ QR ຊຳລະ.
  *   - partials/customer_display/styles_layout.php : CSS (1): ໂຄງໜ້າຈໍ ແລະ ຮ້ານ
  *   - partials/customer_display/styles_payment.php : CSS (2): QR ຊຳລະ ແລະ ຍອດລວມ
+ *   - partials/customer_display/styles_theme.php : CSS (3): ໂສມໃໝ່ — ໂລໂກ້/ຊື່ຮ້ານຢູ່ແຖບເທິງ (ທັບ CSS 1–2)
  *   - partials/customer_display/page_body.php : ສ່ວນສະແດງຜົນ
  *   - partials/customer_display/display_js.php : JS ຂອງຈໍລູກຄ້າ
  */
@@ -52,6 +53,7 @@ try {
                 $qr = resolveBankQr($ba['qr_code_img'] ?? '', $ba['bank_code'] ?? '');
                 if ($qr === '') continue; // no QR uploaded -> nothing to scan, skip
                 $cd_bank_accounts[] = [
+                    'id'        => (int)$ba['id'],   // ກົງກັບ bank_account_id ທີ່ໜ້າຂາຍເລືອກ → ເດັ້ງ QR ທະນາຄານນັ້ນ
                     'bank_name' => trim($ba['bank_name'] ?? '') ?: strtoupper(trim($ba['bank_code'] ?? '')),
                     'logo'      => resolveBankLogo($ba['bank_logo'] ?? '', $ba['bank_code'] ?? ''),
                     'qr'        => $qr,
@@ -70,12 +72,19 @@ if (empty($cd_bank_accounts) && !empty($company['qr_img'])) {
     ];
 }
 
+// ສະກຸນເງິນທີ່ສະແດງ — ໃຊ້ທັງແຖບຍອດລວມ (page_body.php) ແລະ JS (display_js.php).
+// ຕ້ອງກຳນົດກ່ອນ page_body: ເມື່ອກ່ອນກຳນົດໃນ display_js ທີ່ໂຫຼດທີຫຼັງ → ສັນຍາລັກເງິນຫວ່າງ + warning ໃນ log.
+$cd = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo)
+    : ['code' => 'KIP', 'symbol' => '₭', 'decimals' => 0, 'rate' => 1];
+
 $base_path = '../../';
 ?>
 <!DOCTYPE html>
-<html lang="lo">
+<html lang="lo" translate="no">
 <head>
   <meta charset="utf-8">
+  <!-- ບໍ່ໃຫ້ Chrome ຂຶ້ນ "ແປໜ້ານີ້ບໍ?" ທຸກເທື່ອທີ່ເປີດຈໍລູກຄ້າ -->
+  <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Customer Display - <?php echo htmlspecialchars($company['com_name']); ?></title>
 
@@ -90,6 +99,7 @@ $base_path = '../../';
 
 <?php require __DIR__ . '/partials/customer_display/styles_layout.php'; /* CSS (1): ໂຄງໜ້າຈໍ ແລະ ຮ້ານ */ ?>
 <?php require __DIR__ . '/partials/customer_display/styles_payment.php'; /* CSS (2): QR ຊຳລະ ແລະ ຍອດລວມ */ ?>
+<?php require __DIR__ . '/partials/customer_display/styles_theme.php'; /* CSS (3): ໂສມໃໝ່ (ທັບ 1–2) */ ?>
 </head>
 <body>
 

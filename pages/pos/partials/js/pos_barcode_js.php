@@ -95,6 +95,50 @@ $(document).on('click', function(e) {
   }
 });
 
+// ຈັບຈັງຫວະການພິມ: ເຄື່ອງສະແກນພິມໄວຫຼາຍ (ຫ່າງກັນບໍ່ເຖິງ ~40ms ຕໍ່ຕົວ), ຄົນພິມຊ້າກວ່າ.
+// ໃຊ້ແຍກ "ສະແກນ" ອອກຈາກ "ພິມຊອກຊື່ສິນຄ້າເປັນພາສາລາວ".
+var barcodeKeyBurst = { start: 0, last: 0, count: 0 };
+$('#barcodeInput').on('keydown', function(e) {
+  if (!e.key || e.key.length !== 1 || e.ctrlKey || e.altKey || e.metaKey) return;
+  var now = Date.now();
+  if (now - barcodeKeyBurst.last > 60) {
+    barcodeKeyBurst.start = now;
+    barcodeKeyBurst.count = 0;
+  }
+  barcodeKeyBurst.count++;
+  barcodeKeyBurst.last = now;
+});
+
+function isLikelyScannerInput() {
+  var b = barcodeKeyBurst;
+  if (b.count < 4) return false;
+  if (Date.now() - b.last > 150) return false; // Enter ຕ້ອງຕາມມາທັນທີ
+  return (b.last - b.start) / (b.count - 1) < 40;
+}
+
+// ມີຕົວອັກສອນນອກ ASCII (ເຊັ່ນ ອັກສອນລາວ/ໄທ) → ແປ້ນພິມບໍ່ແມ່ນພາສາອັງກິດ
+function hasNonEnglishChars(str) {
+  return /[^\x20-\x7E]/.test(str);
+}
+
+function showSwitchKeyboardAlert(code) {
+  Swal.fire({
+    icon: 'warning',
+    title: 'ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດ',
+    html: '<div style="font-size:0.95rem;">ແປ້ນພິມປັດຈຸບັນບໍ່ແມ່ນພາສາອັງກິດ ຈຶ່ງອ່ານບາໂຄ້ດຜິດເປັນ:</div>' +
+          '<div style="font-size:1.1rem; font-weight:700; color:#ef4444; margin:8px 0; word-break:break-all;">' + $('<div>').text(code).html() + '</div>' +
+          '<small class="text-muted d-block">ກົດ <b>Alt + Shift</b> ຫຼື <b>Win + Space</b> ເພື່ອປ່ຽນເປັນ ENG ແລ້ວສະແກນໃໝ່</small>',
+    confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ',
+    confirmButtonColor: '#f59e0b',
+    didClose: function() {
+      $('#barcodeInput').val('');
+      barcodeShowingLastScan = false;
+      _executeFilterGrid();
+      ensureBarcodeInputFocused();
+    }
+  });
+}
+
 $('#barcodeInput').on('keypress', function(e) {
   if (e.which === 13) {
     e.preventDefault();
@@ -110,6 +154,13 @@ function handleBarcodeSubmit() {
   var rawCode = $('#barcodeInput').val().trim();
   ensureBarcodeInputFocused();
   if (!rawCode) return;
+
+  var scanned = isLikelyScannerInput();
+  barcodeKeyBurst.count = 0;
+  if (scanned && hasNonEnglishChars(rawCode)) {
+    showSwitchKeyboardAlert(rawCode);
+    return;
+  }
 
   barcodeShowingLastScan = true;
   var input = document.getElementById('barcodeInput');
@@ -173,6 +224,17 @@ function findAndAddByBarcode(code) {
   if (matchedProduct) {
     playPosBeep();
     addProductToCart(matchedProduct, matchedUnit);
+  } else if (hasNonEnglishChars(code)) {
+    // ເຄື່ອງສະແກນຊ້າ (ບໍ່ຜ່ານການກວດຄວາມໄວ) ແຕ່ຊອກບໍ່ພົບ ແລະ ມີອັກສອນນອກພາສາອັງກິດ → ບອກໃຫ້ກວດແປ້ນພິມນຳ
+    Swal.fire({
+      icon: 'warning',
+      title: 'ບໍ່ພົບສິນຄ້າ!',
+      html: 'ລະຫັດ: ' + $('<div>').text(code).html() +
+            '<small class="text-muted d-block mt-2">ຖ້າສະແກນບາໂຄ້ດ ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດ (ENG) ແລ້ວສະແກນໃໝ່</small>',
+      timer: 3000,
+      showConfirmButton: false,
+      didClose: function() { ensureBarcodeInputFocused(); }
+    });
   } else {
     Swal.fire({
       icon: 'warning',

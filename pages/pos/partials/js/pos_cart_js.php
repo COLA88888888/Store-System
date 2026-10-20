@@ -27,7 +27,7 @@ function broadcastCustomerDisplay(checkoutState, extraData) {
     customer: (typeof selectedCustomer !== 'undefined') ? selectedCustomer : null,
     // Customer display works in KIP — send the discount already converted to KIP.
     // Includes the loyalty-points discount so the customer sees the same total as the cashier.
-    discount: String((window.POSCUR ? POSCUR.toKip($('#cartDiscount').val() || '0') : (parseFloat(($('#cartDiscount').val() || '0').replace(/[^\d]/g, '')) || 0)) + (window.CART_POINTS_DISCOUNT_KIP || 0)),
+    discount: String(Math.round(window.CART_DISCOUNT_KIP || 0) + (window.CART_POINTS_DISCOUNT_KIP || 0)),
     checkoutState: checkoutState || 'shopping',
     ...(extraData || {})
   };

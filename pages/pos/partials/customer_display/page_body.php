@@ -1,7 +1,7 @@
 <?php
 /*
  * ສ່ວນ: ສ່ວນສະແດງຜົນ
- * ໝາຍເລກຄິວ, ແຖບເທິງ (ຊື່ລະບົບ + ເວລາ), ແຜງຂໍ້ມູນຮ້ານ, ແຜງລາຍການສັ່ງຊື້ ແລະ ແຖບຍອດລວມ.
+ * ໝາຍເລກຄິວ, ແຖບເທິງ (ໂລໂກ້ + ຊື່ຮ້ານ + ເວລາ), ແຜງ QR ຊຳລະ, ແຜງລາຍການສັ່ງຊື້ ແລະ ແຖບຍອດລວມ.
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/pos/customer_display.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 ?>  <!-- Queue-number flash (coffee-shop style) — shown briefly on payment success -->
@@ -12,13 +12,43 @@
     <div style="font-size:1.6rem;font-weight:700;color:#cbd5e1;margin-top:10px;">ຂອບໃຈທີ່ມາອຸດໜູນ</div>
   </div>
 
-  <!-- 1. TOP HEADER BAR: SYSTEM NAME (CENTERED) + TIME/DATE, SINGLE ROW, NO BOXES -->
-  <div class="display-header">
-    <div class="header-left-spacer"></div>
+  <!-- QR ທະນາຄານທີ່ພະນັກງານເລືອກຊຳລະ — ເດັ້ງຂຶ້ນຕອນໂອນ/ແຍກຈ່າຍ (renderDisplayData ໃນ display_js.php) -->
+  <div id="bankPayPopup" class="bank-pay-popup" style="display:none;">
+    <div class="bpp-card">
+      <div class="bpp-bank">
+        <img id="bppLogo" src="" alt="" style="display:none;" onerror="this.style.display='none'">
+        <span id="bppBankName"></span>
+      </div>
+      <img id="bppQr" class="bpp-qr" src="" alt="QR" onerror="this.style.visibility='hidden'">
+      <div class="bpp-amount-label">ຈຳນວນເງິນທີ່ຕ້ອງໂອນ</div>
+      <div class="bpp-amount" id="bppAmount">0</div>
+      <div class="bpp-hint"><i class="fas fa-mobile-alt"></i> ສະແກນ QR ດ້ວຍແອັບທະນາຄານ</div>
+    </div>
+  </div>
 
-    <div class="header-system-title">
-      <i class="fas fa-desktop text-warning"></i>
-      <span>Wlaodev POS</span>
+  <!-- 1. ແຖບເທິງ: ໂລໂກ້ + ຊື່ຮ້ານ (ຊ້າຍ), ຄຳຕ້ອນຮັບ (ກາງ), ເວລາ/ວັນທີ (ຂວາ) -->
+  <div class="display-header">
+    <div class="header-brand">
+      <div class="header-logo">
+        <img src="<?php echo htmlspecialchars($company['com_logo']); ?>" alt="Store Logo"
+             onerror="this.style.display='none'; document.getElementById('headerFallbackIcon').style.display='block';">
+        <i class="fas fa-store" id="headerFallbackIcon" style="display:none;"></i>
+      </div>
+      <div class="header-brand-text">
+        <div class="header-store-name"><?php echo htmlspecialchars($company['com_name']); ?></div>
+        <div class="header-store-sub">
+          <?php if(!empty($company['com_tel'])): ?>
+            <span><i class="fas fa-phone-alt"></i> <?php echo htmlspecialchars($company['com_tel']); ?></span>
+          <?php endif; ?>
+          <?php if(!empty($company['com_address'])): ?>
+            <span><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($company['com_address']); ?></span>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-welcome">
+      <i class="fas fa-heart"></i> <span>ຍິນດີຕ້ອນຮັບ</span>
     </div>
 
     <div class="header-datetime">
@@ -30,31 +60,11 @@
   <!-- MAIN DUAL PANEL -->
   <div class="display-main">
 
-    <!-- LEFT PANEL: LARGE STORE LOGO & ADDRESS INFO (40%) -->
+    <!-- LEFT PANEL: QR ຊຳລະເງິນ (ໂລໂກ້ ແລະ ຊື່ຮ້ານ ຍ້າຍຂຶ້ນໄປແຖບເທິງແລ້ວ) -->
     <div class="left-store-panel<?php echo count($cd_bank_accounts) >= 3 ? ' has-3-qr' : ''; ?>">
       <div class="store-card">
         <canvas class="particle-canvas" id="storeCardParticles"></canvas>
         <div class="store-card-content">
-          <!-- Logo on the left, store name/address/tel on the right -->
-          <div class="store-header-row">
-            <div class="large-logo-box">
-              <img src="<?php echo htmlspecialchars($company['com_logo']); ?>" alt="Store Logo" class="large-logo-img"
-                   onerror="this.style.display='none'; document.getElementById('largeFallbackIcon').style.display='block';">
-              <i class="fas fa-store large-fallback-icon" id="largeFallbackIcon" style="display:none;"></i>
-            </div>
-            <div class="store-info-block">
-              <div class="store-name-title"><?php echo htmlspecialchars($company['com_name']); ?></div>
-              <div class="store-info-text">
-                <?php if(!empty($company['com_address'])): ?>
-                  <div class="mb-1"><i class="fas fa-map-marker-alt text-danger mr-2"></i> <?php echo htmlspecialchars($company['com_address']); ?></div>
-                <?php endif; ?>
-                <?php if(!empty($company['com_tel'])): ?>
-                  <div><i class="fas fa-phone-alt text-primary mr-2"></i> ເບີໂທ: <strong><?php echo htmlspecialchars($company['com_tel']); ?></strong></div>
-                <?php endif; ?>
-              </div>
-            </div>
-          </div>
-
           <?php if (!empty($cd_bank_accounts)): ?>
             <!-- Payment QR codes (per bank account). One card -> centred; 2-3 -> in a row. -->
             <div class="pay-qr-heading">

@@ -8,8 +8,11 @@
 ?><script>
 // ===== Display currency (cart data arrives in KIP; shown in the active currency) =====
 <?php
-  $cd = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo)
-      : ['code' => 'KIP', 'symbol' => '₭', 'decimals' => 0, 'rate' => 1];
+  // $cd ກຳນົດໄວ້ແລ້ວໃນ pages/pos/customer_display.php (ກ່ອນ page_body)
+  if (!isset($cd)) {
+    $cd = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo)
+        : ['code' => 'KIP', 'symbol' => '₭', 'decimals' => 0, 'rate' => 1];
+  }
 ?>
 window.CD_CUR = {
   code: <?php echo json_encode($cd['code']); ?>,
@@ -42,11 +45,21 @@ document.addEventListener('fullscreenchange', function() {
   var icon = document.getElementById('fullscreenToggleIcon');
   icon.className = document.fullscreenElement ? 'fas fa-compress' : 'fas fa-expand';
 });
-try {
-  if (document.documentElement.requestFullscreen) {
-    document.documentElement.requestFullscreen().catch(function(){});
-  }
-} catch(e) {}
+function enterFullscreen() {
+  if (document.fullscreenElement || !document.documentElement.requestFullscreen) return;
+  try { document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(function(){}); } catch(e) {}
+}
+// ລອງເຕັມຈໍທັນທີຕອນເປີດ — Chrome ອະນຸຍາດສະເພາະເມື່ອເປີດ "ເຕັມຈໍອັດຕະໂນມັດ" ໃຫ້ເວັບນີ້ແລ້ວ
+// (ການກົດປຸ່ມຈໍລູກຄ້າໃນໜ້າຂາຍ ຖືກໃຊ້ເປີດໜ້າຕ່າງໄປແລ້ວ ໃຊ້ຊ້ຳສັ່ງເຕັມຈໍບໍ່ໄດ້).
+enterFullscreen();
+window.addEventListener('load', enterFullscreen);
+// ບໍ່ດັ່ງນັ້ນ: ແຕະ/ຄລິກບ່ອນໃດກໍ່ໄດ້ ເທື່ອດຽວ → ເຕັມຈໍທັນທີ (ປຸ່ມ ⛶ ມຸມຂວາ ຍັງໃຊ້ສະຫຼັບໄດ້ຄືເກົ່າ)
+['pointerdown', 'touchstart', 'keydown'].forEach(function(ev) {
+  document.addEventListener(ev, function(e) {
+    if (e.target && e.target.closest && e.target.closest('#fullscreenToggleBtn')) return;
+    enterFullscreen();
+  }, true);
+});
 
 // Particle Background — soft drifting dots behind the store logo/info panel
 (function() {
@@ -183,8 +196,33 @@ function loadInitialData() {
 }
 loadInitialData();
 
+// ທະນາຄານຂອງສາຂານີ້ { id: { name, logo, qr } } — QR/ໂລໂກ້ ຈາກຝັ່ງຈໍລູກຄ້າເອງ (path ຖືກຕ້ອງສະເໝີ)
+var CD_BANKS = <?php
+  $__cdBanks = [];
+  foreach ($cd_bank_accounts as $__b) {
+    if (!empty($__b['id'])) $__cdBanks[(int)$__b['id']] = ['name' => $__b['bank_name'], 'logo' => $__b['logo'], 'qr' => $__b['qr']];
+  }
+  echo json_encode((object)$__cdBanks, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+?>;
+
+// ເດັ້ງ QR ທະນາຄານທີ່ພະນັກງານເລືອກ ຕອນລູກຄ້າຊຳລະດ້ວຍການໂອນ (payment_live ຈາກ pos_checkout_js.php)
+function renderBankPopup(data) {
+  var $pop = $('#bankPayPopup');
+  var b = (data && data.checkoutState === 'payment_live') ? data.payBank : null;
+  if (!b) { $pop.hide(); return; }
+  var local = CD_BANKS[b.id] || {};
+  var qr = local.qr || b.qr || '';
+  if (!qr) { $pop.hide(); return; }
+  $('#bppBankName').text(local.name || b.name || '');
+  if (local.logo) $('#bppLogo').attr('src', local.logo).show(); else $('#bppLogo').hide();
+  if ($('#bppQr').attr('src') !== qr) $('#bppQr').css('visibility', 'visible').attr('src', qr);
+  $('#bppAmount').html(cdMoney(data.transferDue || data.qrReceived || 0));
+  $pop.css('display', 'flex');
+}
+
 function renderDisplayData(data) {
   if (!data) return;
+  renderBankPopup(data);
 
   // Queue number flash on payment success (coffee-shop style)
   if (data.checkoutState === 'payment_success' && data.queueNumber) {

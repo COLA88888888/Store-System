@@ -33,6 +33,8 @@ function resetPOS() {
     cart = [];
     selectedCustomer = { customer_id: null, customer_name: 'ລູກຄ້າທົ່ວໄປ', phone: '' };
     currentBillId = null;
+    setCartDiscountMode('amount');
+    $('#cartDiscount').val('0');
     updateCartUI();
     updateActiveBillsUI();
   } else {
@@ -104,7 +106,69 @@ if (window.jQuery) {
   jQuery(function ($) {
     $('#checkoutModal').on('hidden.bs.modal', function () {
       if (window.POSCUR && POSCUR.setCurrency) POSCUR.setCurrency(window.POS_DISPLAY_CURRENCY || 'KIP');
+      // ຍົກເລີກການຊຳລະ (ກະຕ່າຍັງມີສິນຄ້າ) → ລ້າງຍອດເງິນສົດ/ໂອນ ແລະ QR ທະນາຄານ ອອກຈາກຈໍລູກຄ້າ.
+      // ຂາຍສຳເລັດແລ້ວ ກະຕ່າວ່າງ — ຈໍລູກຄ້າສະແດງ payment_success ຢູ່, ບໍ່ແຕະ.
+      if (typeof cart !== 'undefined' && cart.length > 0 && typeof broadcastCustomerDisplay === 'function') {
+        broadcastCustomerDisplay('shopping');
+      }
     });
+  });
+}
+
+// ============================
+// ຈໍລູກຄ້າ ເຣວທາມ: ເງິນສົດ / ເງິນໂອນ / ເງິນທອນ ແລະ QR ທະນາຄານທີ່ເລືອກ — ສົ່ງທຸກຄັ້ງທີ່
+// ພະນັກງານປ້ອນຈຳນວນ, ປ່ຽນວິທີຊຳລະ ຫຼື ເລືອກທະນາຄານ ໃນໜ້າຕ່າງຊຳລະເງິນ.
+// ຍອດເງິນສົ່ງເປັນກີບ (ຈໍລູກຄ້າແປງສະກຸນເອງ). ສະແດງຢູ່ pages/pos/partials/customer_display/.
+// ============================
+function broadcastPaymentLive() {
+  if (typeof broadcastCustomerDisplay !== 'function' || !window.POSCUR) return;
+  if (!$('#checkoutModal').hasClass('show')) return;   // ສົ່ງສະເພາະຕອນໜ້າຕ່າງຊຳລະເປີດຢູ່
+  var totalKip = window.CART_NET_KIP || 0;
+  var cashKip = 0, qrKip = 0;
+  if (currentPayMode === 'split') {
+    cashKip = POSCUR.toKip($('#splitCashAmount').val() || '0');
+    qrKip   = POSCUR.toKip($('#splitQrAmount').val() || '0');
+  } else {
+    var amtKip = POSCUR.toKip($('#cashReceived').val() || '0');
+    if (selectedPayType === 'ເງິນສົດ') cashKip = amtKip; else qrKip = amtKip;
+  }
+  var changeKip = (currentPayMode === 'credit') ? 0 : Math.max(0, cashKip + qrKip - totalKip);
+  var usesTransfer = (currentPayMode === 'split') ? true : (selectedPayType !== 'ເງິນສົດ');
+  var bank = null;
+  if (usesTransfer && window.currentSelectedBankId) {
+    bank = {
+      id: window.currentSelectedBankId,
+      name: window.currentSelectedBankName || '',
+      qr: window.currentSelectedBankQrPath || ''
+    };
+  }
+  broadcastCustomerDisplay('payment_live', {
+    payMode: currentPayMode,
+    paymentType: selectedPayType,
+    cashReceived: cashKip,
+    qrReceived: qrKip,
+    changeAmount: changeKip,
+    // ຈຳນວນທີ່ລູກຄ້າຕ້ອງໂອນ: ແຍກຈ່າຍ = ສ່ວນ QR, ໂອນທັງໝົດ = ຍອດທັງໝົດ
+    transferDue: currentPayMode === 'split' ? qrKip : (usesTransfer ? Math.max(qrKip, totalKip) : 0),
+    payBank: bank
+  });
+}
+
+if (window.jQuery) {
+  jQuery(function () {
+    // ຫໍ່ຟັງຊັນຄິດໄລ່ເງິນ/ເລືອກທະນາຄານ — ທຸກບ່ອນທີ່ເອີ້ນ (ແປ້ນຕົວເລກ, ປຸ່ມລັດ, ພິມເອງ) ສົ່ງໄປຈໍລູກຄ້າດ້ວຍ
+    ['calculateChange', 'calcSplitRemaining', 'calcCredit', 'selectPosBank', 'selectPayTypeTab', 'setPayMode'].forEach(function (fn) {
+      var orig = window[fn];
+      if (typeof orig !== 'function' || orig.__cdLive) return;
+      var wrapped = function () {
+        var r = orig.apply(this, arguments);
+        try { broadcastPaymentLive(); } catch (e) {}
+        return r;
+      };
+      wrapped.__cdLive = true;
+      window[fn] = wrapped;
+    });
+    $('#checkoutModal').on('shown.bs.modal', function () { try { broadcastPaymentLive(); } catch (e) {} });
   });
 }
 

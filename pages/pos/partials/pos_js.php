@@ -165,6 +165,57 @@ function formatMoneyInput(input) {
   input.value = s;
 }
 
+// ສ່ວນຫຼຸດທ້າຍບິນ: ເລືອກໄດ້ 2 ແບບ — 'amount' (ຈຳນວນເງິນ ຕາມສະກຸນເງິນທີ່ສະແດງ) ຫຼື 'percent' (ເປີເຊັນຂອງຍອດລວມ).
+// ໂໝດເກັບໄວ້ໃນ data-mode ຂອງ #cartDiscount; ເຊີບເວີຮັບເປັນຈຳນວນເງິນກີບສະເໝີ (CART_DISCOUNT_KIP).
+function getCartDiscountMode() {
+  return $('#cartDiscount').attr('data-mode') === 'percent' ? 'percent' : 'amount';
+}
+
+function setCartDiscountMode(mode) {
+  mode = (mode === 'percent') ? 'percent' : 'amount';
+  $('#cartDiscount').attr('data-mode', mode);
+  // ປຸ່ມທີ່ເລືອກຢູ່ = ສີຟ້າ, ອີກປຸ່ມ = ຂອບເທົາ
+  $('.cart-disc-mode-btn').each(function() {
+    var on = $(this).attr('data-mode') === mode;
+    $(this).toggleClass('btn-primary', on).toggleClass('btn-outline-secondary', !on);
+  });
+}
+
+// ກົດປຸ່ມ ₭ ຫຼື % → ປ່ຽນໂໝດ ແລະ ລ້າງຄ່າເປັນ 0 (ຕົວເລກເດີມໝາຍຄວາມຄົນລະຢ່າງ)
+function setCartDiscountModeAndReset(mode) {
+  if (getCartDiscountMode() === mode) return;
+  setCartDiscountMode(mode);
+  $('#cartDiscount').val(mode === 'percent' ? '0%' : '0');
+  updateCartUI();
+  var el = document.getElementById('cartDiscount');
+  if (el) { el.focus(); try { el.select(); } catch (e) {} }
+}
+
+// ໂໝດ %: ຊ່ອງສະແດງເຄື່ອງໝາຍ % ຕໍ່ທ້າຍສະເໝີ (ພິມ 1 → "1%"), ແລະ ວາງເຄີເຊີໄວ້ກ່ອນ %
+// ເພື່ອໃຫ້ພິມຕໍ່ ຫຼື ກົດ Backspace ລຶບຕົວເລກໄດ້ປົກກະຕິ.
+function formatCartDiscountInput(input) {
+  if (getCartDiscountMode() !== 'percent') { formatMoneyInput(input); return; }
+  var s = input.value.replace(/[^0-9.]/g, '');
+  var i = s.indexOf('.');
+  if (i !== -1) s = s.slice(0, i + 1) + s.slice(i + 1).replace(/\./g, '').slice(0, 2);
+  s = s.replace(/^0+(?=\d)/, '');
+  if (parseFloat(s) > 100) s = '100';
+  input.value = (s === '' ? '0' : s) + '%';
+  var caret = input.value.length - 1;
+  try { input.setSelectionRange(caret, caret); } catch (e) {}
+}
+
+// ແປງສ່ວນຫຼຸດເປັນກີບ. ໃຊ້ໄດ້ທັງກະຕ່າປັດຈຸບັນ ແລະ ບິນທີ່ເປີດຄ້າງ/ພັກໄວ້ (ສົ່ງ valStr, mode ຂອງບິນນັ້ນ).
+function cartDiscountKip(subtotalKip, valStr, mode) {
+  if (valStr === undefined) valStr = $('#cartDiscount').val() || '0';
+  if (mode === undefined) mode = getCartDiscountMode();
+  if (mode === 'percent') {
+    var pct = Math.min(100, Math.max(0, parseFloat(String(valStr).replace(/[^0-9.]/g, '')) || 0));
+    return Math.round((parseFloat(subtotalKip) || 0) * pct / 100);
+  }
+  return window.POSCUR ? POSCUR.toKip(valStr || '0') : (parseFloat(String(valStr).replace(/\D/g, '')) || 0);
+}
+
 var selectedPayType = 'ເງິນສົດ';
 var selectedCustomer = { customer_id: null, customer_name: 'ລູກຄ້າທົ່ວໄປ', phone: '', address: '', notes: '' };
 var heldOrders = [];

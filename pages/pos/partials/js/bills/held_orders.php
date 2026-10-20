@@ -47,7 +47,8 @@ function holdCurrentOrder() {
   var snapshot = {
     cart: JSON.parse(JSON.stringify(cart)),
     customer: JSON.parse(JSON.stringify(selectedCustomer)),
-    discount: $('#cartDiscount').val()
+    discount: $('#cartDiscount').val(),
+    discount_mode: getCartDiscountMode()
   };
 
   // Re-holding a recalled bill updates it in place (keeps its number and original time).
@@ -66,6 +67,7 @@ function holdCurrentOrder() {
 
   cart = [];
   selectedCustomer = { customer_id: null, customer_name: 'ລູກຄ້າທົ່ວໄປ', phone: '' };
+  setCartDiscountMode('amount');
   $('#cartDiscount').val('0');
 
   updateSelectedCustomerUI();
@@ -145,7 +147,7 @@ function renderHeldOrders() {
     });
     itemsListHtml += '</div>';
 
-    var discountVal = window.POSCUR ? POSCUR.toKip(order.discount || '0') : (parseFloat((order.discount || '0').replace(/\D/g, '')) || 0);
+    var discountVal = cartDiscountKip(totalAmount, order.discount || '0', order.discount_mode || 'amount');
     var netTotal = Math.max(0, totalAmount - discountVal);
 
     var isOpenNow = order.id === openHeldId;
@@ -189,6 +191,7 @@ function restoreHeldOrder(orderId) {
   var order = heldOrders[idx];
   cart = JSON.parse(JSON.stringify(order.cart));
   selectedCustomer = JSON.parse(JSON.stringify(order.customer));
+  setCartDiscountMode(order.discount_mode);
   $('#cartDiscount').val(order.discount || '0');
 
   // Stays in heldOrders until paid — just link the open bill to it.

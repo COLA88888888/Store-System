@@ -37,6 +37,7 @@ function saveCurrentBillState() {
     activeBills[idx].cart = JSON.parse(JSON.stringify(cart));
     activeBills[idx].customer = JSON.parse(JSON.stringify(selectedCustomer));
     activeBills[idx].discount = $('#cartDiscount').val();
+    activeBills[idx].discount_mode = getCartDiscountMode();
     localStorage.setItem('StoreMini.active_bills', JSON.stringify(activeBills));
   }
 }
@@ -48,6 +49,7 @@ function loadBillState(billId) {
   currentBillId = bill.id;
   cart = JSON.parse(JSON.stringify(bill.cart || []));
   selectedCustomer = JSON.parse(JSON.stringify(bill.customer || { customer_id: null, customer_name: 'ລູກຄ້າທົ່ວໄປ', phone: '' }));
+  setCartDiscountMode(bill.discount_mode);
   $('#cartDiscount').val(bill.discount || '0');
 
   updateSelectedCustomerUI();
@@ -245,7 +247,7 @@ function renderActiveBills() {
     });
     itemsListHtml += '</div>';
 
-    var discountVal = window.POSCUR ? POSCUR.toKip(bill.discount || '0') : (parseFloat((bill.discount || '0').replace(/\D/g, '')) || 0);
+    var discountVal = cartDiscountKip(totalAmount, bill.discount || '0', bill.discount_mode || 'amount');
     var netTotal = Math.max(0, totalAmount - discountVal);
     var cusName = posCustomerDisplayName(bill.customer && bill.customer.customer_name);
 

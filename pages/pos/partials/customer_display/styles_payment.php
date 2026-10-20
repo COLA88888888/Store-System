@@ -320,4 +320,5 @@
       .pay-qr-card .pqc-bank { font-size: 0.92rem; }
       .pay-qr-wrap.count-3 .pqc-qr { max-width: 150px; height: auto; }
     }
+
   </style>

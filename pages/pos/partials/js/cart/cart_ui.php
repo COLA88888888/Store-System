@@ -21,7 +21,8 @@ function updateCartUI() {
       </div>
     `);
     window.CART_SUBTOTAL_KIP = 0;
-    window.CART_DISCOUNT_KIP = POSCUR.toKip($('#cartDiscount').val() || '0');
+    window.CART_DISCOUNT_KIP = cartDiscountKip(0);
+    $('#cartDiscountPctHint').hide();
     // An empty cart can't meet any discount reward's minimum purchase — drops those redemptions.
     window.CART_POINTS_DISCOUNT_KIP = (typeof posPointsDiscountKip === 'function') ? posPointsDiscountKip(0, 0) : 0;
     window.CART_VAT_KIP = 0;
@@ -133,8 +134,14 @@ function updateCartUI() {
   window.STORE_TAX_TYPE = '<?php echo $storeTaxType; ?>';
   window.STORE_VAT_PERCENT = <?php echo $storeVatPercent; ?>;
   window.STORE_TAX_ID = '<?php echo htmlspecialchars($company['tax_id'] ?? ''); ?>';
-  // Discount is typed in the display currency; convert it to KIP for all math below.
-  var discountVal  = POSCUR.toKip($('#cartDiscount').val() || '0');
+  // Discount is typed in the display currency or as a % of the subtotal; convert it to KIP for all math below.
+  var discountVal  = Math.min(subtotal, cartDiscountKip(subtotal));
+  var discountPct  = parseFloat(($('#cartDiscount').val() || '').replace(/[^0-9.]/g, '')) || 0;
+  if (getCartDiscountMode() === 'percent' && discountPct > 0) {
+    $('#cartDiscountPctHint').html(discountPct + '% = -' + POSCUR.fmt(discountVal)).show();
+  } else {
+    $('#cartDiscountPctHint').hide();
+  }
   // Discount rewards bought with loyalty points come off after the cashier's own discount.
   var pointsDiscountVal = (typeof posPointsDiscountKip === 'function') ? posPointsDiscountKip(subtotal, discountVal) : 0;
   var taxType      = window.STORE_TAX_TYPE;

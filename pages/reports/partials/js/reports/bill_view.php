@@ -15,10 +15,11 @@ function reprintReceiptAuto() {
   var bt = reportBtPrinter();
   var btCfg = {};
   try { btCfg = JSON.parse(localStorage.getItem('StoreMini.bt_printer_settings') || '{}') || {}; } catch (e) {}
-  var btOn = bt && bt.list && bt.list().length && (btCfg.enabled === undefined ? true : !!btCfg.enabled);
+  var isHandheld = /Android/i.test(navigator.userAgent || '');
+  var btOn = bt && ((bt.list && bt.list().length) || isHandheld) && (btCfg.enabled === undefined ? true : !!btCfg.enabled);
   if (btOn && window.MiniposLanReceipt) {
     var area = document.getElementById('reportReceiptPrintArea');
-    var dots = parseInt(btCfg.paper, 10) === 58 ? 384 : 576;
+    var dots = (parseInt(btCfg.paper, 10) === 58 || (!btCfg.paper && isHandheld)) ? 384 : 576;
     var layoutPx = MiniposLanReceipt.paperPx(80);
     var rendered = MiniposLanReceipt.toCanvas
       ? MiniposLanReceipt.toCanvas(area, layoutPx, '../../', REPORT_RCPT_EXTRA_CSS, dots)

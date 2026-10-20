@@ -41,7 +41,7 @@
           <label class="font-weight-bold small text-dark mb-1">ຂະໜາດເຈ້ຍ</label>
           <select id="btPaper" class="form-control" style="height: 42px;">
             <option value="80">80 mm (ມ້ວນກວ້າງ ~8 cm)</option>
-            <option value="58">58 mm (ມ້ວນກວ້າງ ~5.7 cm)</option>
+            <option value="58">58 mm / 57x40 mm (ເຄື່ອງພິມໃນຕົວ / ມ້ວນ ~5.7 cm)</option>
           </select>
         </div>
         <div class="custom-control custom-switch mb-3">
@@ -64,7 +64,12 @@
   function settings() {
     var s = {};
     try { s = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { s = {}; }
-    return { enabled: (s.enabled === undefined) ? P.list().length > 0 : !!s.enabled, paper: parseInt(s.paper, 10) === 58 ? 58 : 80 };
+    var isHandheld = /Android/i.test(navigator.userAgent || '');
+    var defPaper = isHandheld ? 58 : 80;
+    return {
+      enabled: (s.enabled === undefined) ? (P.list().length > 0 || isHandheld) : !!s.enabled,
+      paper: parseInt(s.paper, 10) === 58 ? 58 : (parseInt(s.paper, 10) === 80 ? 80 : defPaper)
+    };
   }
   function save(patch) {
     var s = settings();

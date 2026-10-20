@@ -12,12 +12,14 @@
 ?>
 var BT_SETTINGS_KEY = 'StoreMini.bt_printer_settings';
 
-// ຕັ້ງຄ່າ (ບັນທຶກຈາກໜ້າຕັ້ງຄ່າເຄື່ອງພິມ): enabled ຖ້າບໍ່ເຄີຍປິດເອງ ແລະ ມີເຄື່ອງພິມໃນລາຍຊື່ → ເປີດໃຊ້
+// ຕັ້ງຄ່າ (ບັນທຶກຈາກໜ້າຕັ້ງຄ່າເຄື່ອງພິມ): enabled ຖ້າບໍ່ເຄີຍປິດເອງ ແລະ ມີເຄື່ອງພິມໃນລາຍຊື່ (ຫຼື ເຄື່ອງ Android ທີ່ມີເຄື່ອງພິມໃນຕົວ 57x40mm) → ເປີດໃຊ້
 function btSettings() {
   var s = {};
   try { s = JSON.parse(localStorage.getItem(BT_SETTINGS_KEY) || '{}') || {}; } catch (e) { s = {}; }
-  var known = !!(window.MiniposBtPrinter && MiniposBtPrinter.list().length);
-  return { enabled: (s.enabled === undefined) ? known : !!s.enabled, paper: parseInt(s.paper, 10) === 58 ? 58 : 80 };
+  var isHandheld = /Android/i.test(navigator.userAgent || '');
+  var known = isHandheld || !!(window.MiniposBtPrinter && MiniposBtPrinter.list().length);
+  var defPaper = isHandheld ? 58 : 80;
+  return { enabled: (s.enabled === undefined) ? known : !!s.enabled, paper: parseInt(s.paper, 10) === 58 ? 58 : (parseInt(s.paper, 10) === 80 ? 80 : defPaper) };
 }
 
 // ແຖວ "ພິມອອກ: …" ໃນໜ້າຕ່າງຊຳລະເງິນ (ສະແດງຢ່າງດຽວ)
@@ -91,8 +93,11 @@ $(function () {
   }
   $('#checkoutModal').on('show.bs.modal', function () {
     btPaintStatus();
-    if (btSettings().enabled && !MiniposBtPrinter.isConnected() && MiniposBtPrinter.list().length) {
-      MiniposBtPrinter.reconnect().then(btPaintStatus);
+    if (btSettings().enabled && window.MiniposBtPrinter) {
+      if (!MiniposBtPrinter.isConnected() && MiniposBtPrinter.list().length) {
+        MiniposBtPrinter.reconnect().then(btPaintStatus);
+      }
+      if (MiniposBtPrinter.warm) MiniposBtPrinter.warm();
     }
   });
 });

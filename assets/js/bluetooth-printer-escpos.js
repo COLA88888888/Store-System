@@ -12,7 +12,7 @@
 (function (window) {
   'use strict';
 
-  var RASTER_BAND = 8;        // 8 ແຖວຈຸດ (1 mm) ຕໍ່ຄຳສັ່ງ GS v 0 — ຫົວພິມເລີ່ມພິມທັນທີທີ່ຮັບຄົບ 384 bytes ຈຶ່ງເລື່ອນເຈ້ຍອອກຕໍ່ເນື່ອງບໍ່ຢຸດເປັນຈັງຫວະ
+  var RASTER_BAND = 24;       // 24 ແຖວຈຸດ (3 mm) ຕໍ່ຄຳສັ່ງ GS v 0 (ພໍດີກັບ Buffer ເຄື່ອງພິມ ບໍ່ໃຫ້ລົ້ນເປັນພາສາຕ່າງດ້າວ)
 
   function concat(parts) {
     var len = parts.reduce(function (n, p) { return n + p.length; }, 0), out = new Uint8Array(len), o = 0;
@@ -60,7 +60,7 @@
       }
     }
 
-    // ສົ່ງເປັນຊຸດ GS v 0 ຄົບທຸກແຖວ (ລວມແຖວຂາວ) ເພື່ອບໍ່ໃຫ້ເຄື່ອງພິມຂ້າມຊ່ອງວ່າງລະຫວ່າງແຖວ (ບໍ່ໃຫ້ໜັງສືຕິດກັນ)
+    // ສົ່ງເປັນຊຸດ GS v 0 ຄວາມກວ້າງຄົງທີ່ (48 bytes = 384 dots) ຄົບທຸກແຖວ ເພື່ອບໍ່ໃຫ້ QR ແລະ ຂໍ້ຄວາມທ້າຍບິນຜິດພ້ຽນ
     var parts = [];
     for (var sRow = 0; sRow < h; sRow += RASTER_BAND) {
       var rows = Math.min(RASTER_BAND, h - sRow);

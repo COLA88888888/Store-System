@@ -341,15 +341,19 @@
     return n;
   }
 
-  // ກວດໃຫ້ຟອນໃນ SVG ໂຫຼດຄົບກ່ອນສົ່ງພິມ (ຫຼຸດເວລາລໍຖ້າຈາກ 250ms ເຫຼືອ 35ms ເພື່ອໃຫ້ບິນອອກໄວທັນທີ)
-  var RENDER_MAX_PASSES = 4, RENDER_PASS_WAIT = 35;
+  // ກວດໃຫ້ຟອນໃນ SVG ໂຫຼດຄົບກ່ອນສົ່ງພິມ (ຖ້າໂຫຼດຟອນແລ້ວ ແຕ້ມພຽງ 1 ຮອບທັນທີ ເພື່ອໃຫ້ບິນອອກໄວທີ່ສຸດ)
+  var RENDER_MAX_PASSES = 3, RENDER_PASS_WAIT = 15, fontsWarmed = false;
   function renderStable(svg, svgUri, widthPx, h, targetDots) {
     var last = -1, pass = 0;
     function once() {
       return decodeSvg(svg, svgUri).then(function (img) {
         var c = inkCanvas(img, widthPx, h, targetDots), n = inkCount(c);
         pass++;
-        if ((n > 0 && n === last) || pass >= RENDER_MAX_PASSES) return c;
+        if (n > 0 && (fontsWarmed || n === last || pass >= RENDER_MAX_PASSES)) {
+          fontsWarmed = true;
+          return c;
+        }
+        if (pass >= RENDER_MAX_PASSES) return c;
         last = n;
         return new Promise(function (r) { setTimeout(r, RENDER_PASS_WAIT); }).then(once);
       });

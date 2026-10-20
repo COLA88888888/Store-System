@@ -6,7 +6,7 @@
 (function (window) {
   'use strict';
 
-  var VERSION = 12;
+  var VERSION = 17;
   var W = (function () { try { return window.top || window; } catch (e) { return window; } })();
 
   try {
@@ -32,26 +32,21 @@
     return (i >= 0 ? src.slice(0, i) : '/Project/StoreMini/') + 'pages/settings/printers/ble_bridge.php';
   })();
 
-  var BLE_SIZES = [244, 180, 100], SPEEDS = { fast: 9500, normal: 9500, slow: 5000 }, CONNECT_TIMEOUT = 8000;
+  var BLE_SIZES = [244, 180, 100], SPEEDS = { fast: 18000, normal: 18000, slow: 8000 }, CONNECT_TIMEOUT = 8000;
   var state = { mode: null, name: '', device: null, ch: null, noResp: false, bridge: false, port: null, writer: null, relinking: false, looping: false, restoreKey: '' };
   var listeners = [], retryTimer = null, busy = false, reconnecting = null;
 
   function isAndroid() { return /Android/i.test((W.navigator && W.navigator.userAgent) || ''); }
   function sendRawBt(bytes) {
     return new Promise(function (resolve) {
-      var b64 = toBase64(bytes);
       var a = document.createElement('a');
-      a.href = 'rawbt:base64,' + b64;
+      a.href = 'rawbt:base64,' + toBase64(bytes);
       a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
-      W.setTimeout(function () {
-        if (a.parentNode) a.parentNode.removeChild(a);
-        resolve(true);
-      }, 150);
+      W.setTimeout(function () { if (a.parentNode) a.parentNode.removeChild(a); resolve(true); }, 150);
     });
   }
-
   function speedName() {
     var v = '';
     try { v = W.localStorage.getItem(SPEED_KEY) || ''; } catch (e) {}
@@ -70,7 +65,6 @@
   function withTimeout(p, ms, msg) {
     return Promise.race([p, new Promise(function (_, rej) { W.setTimeout(function () { rej(new Error(msg || 'timeout')); }, ms); })]);
   }
-
   // ---------- ລາຍຊື່ເຄື່ອງພິມທີ່ຕັ້ງໄວ້ ----------
   function loadList() {
     var list = [];
@@ -99,17 +93,13 @@
     saveList(list);
   }
   function remembered() { return loadList()[0] || null; }
-
   function nav() { return W.navigator || window.navigator; }
   function isSupported(mode) {
     if (isAndroid()) return true;
     var n = nav();
-    if (mode === 'serial') return !!(n && n.serial);
-    return !!(n && n.bluetooth);
+    return mode === 'serial' ? !!(n && n.serial) : !!(n && n.bluetooth);
   }
-  function hasLiveBle() {
-    return !!(state.mode === 'ble' && state.device && state.device.gatt && state.device.gatt.connected && state.ch);
-  }
+  function hasLiveBle() { return !!(state.mode === 'ble' && state.device && state.device.gatt && state.device.gatt.connected && state.ch); }
   function isConnected() {
     if (state.mode === 'rawbt') return !isManualOff();
     if (state.mode === 'ble') return hasLiveBle() || !!state.bridge;
@@ -197,9 +187,9 @@
         : (state.ch.writeValueWithResponse ? state.ch.writeValueWithResponse(part) : state.ch.writeValue(part));
       return withTimeout(w, 3000, 'ble write timeout').then(function () {
         sent += part.length;
-        if (sent <= 2500) return null;
-        var ahead = (sent - 2500) * 1000 / rate - (Date.now() - t0);
-        return ahead > 4 ? sleep(ahead) : null;
+        if (sent <= 3600) return null;
+        var ahead = (sent - 3600) * 1000 / rate - (Date.now() - t0);
+        return ahead > 3 ? sleep(ahead) : null;
       });
     }
     function next() {
@@ -235,6 +225,12 @@
     }
     state.ch = null;
     state.bridge = true;
+  }
+  function warm() {
+    if (isAndroid() || state.mode !== 'ble') return;
+    var name = state.name || (remembered() && remembered().name) || '';
+    if (!name) return;
+    W.fetch(BRIDGE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'warm', name: name }) }).catch(function () {});
   }
   function writeBridge(bytes) {
     var name = state.name || (remembered() && remembered().name) || '';
@@ -317,25 +313,14 @@
     if (reconnecting) return reconnecting;
     var list = loadList();
     if (!list.length) {
-      if (isAndroid()) {
-        state.mode = 'rawbt';
-        state.name = 'ເຄື່ອງພິມໃນຕົວ (57x40mm)';
-        state.restoreKey = 'rawbt:builtin';
-        remember();
-        emit('ເຊື່ອມຕໍ່ແລ້ວ');
-        return Promise.resolve(true);
-      }
-      return Promise.resolve(false);
+      if (!isAndroid()) return Promise.resolve(false);
+      state.mode = 'rawbt'; state.name = 'ເຄື່ອງພິມໃນຕົວ (57x40mm)'; state.restoreKey = 'rawbt:builtin';
+      remember(); emit('ເຊື່ອມຕໍ່ແລ້ວ'); return Promise.resolve(true);
     }
-
     var last = list[0];
     if (last && last.mode === 'rawbt') {
-      state.mode = 'rawbt';
-      state.name = last.name || 'ເຄື່ອງພິມໃນຕົວ (57x40mm)';
-      state.restoreKey = last.key;
-      state.relinking = false;
-      emit('ເຊື່ອມຕໍ່ແລ້ວ');
-      return Promise.resolve(true);
+      state.mode = 'rawbt'; state.name = last.name || 'ເຄື່ອງພິມໃນຕົວ (57x40mm)'; state.restoreKey = last.key;
+      state.relinking = false; emit('ເຊື່ອມຕໍ່ແລ້ວ'); return Promise.resolve(true);
     }
     if (last && last.mode === 'ble') {
       if (isAndroid() && nav() && nav().bluetooth && nav().bluetooth.getDevices) {
@@ -345,13 +330,8 @@
           return withTimeout(attachBle(dev, last.name), CONNECT_TIMEOUT, 'off').then(function () { return true; }, function () { return false; });
         }).catch(function () { return false; });
       }
-      state.mode = 'ble';
-      state.name = last.name || 'Bluetooth Printer';
-      state.restoreKey = last.key;
-      state.bridge = true;
-      state.relinking = false;
-      emit('ເຊື່ອມຕໍ່ແລ້ວ');
-      return Promise.resolve(true);
+      state.mode = 'ble'; state.name = last.name || 'Bluetooth Printer'; state.restoreKey = last.key;
+      state.bridge = true; state.relinking = false; emit('ເຊື່ອມຕໍ່ແລ້ວ'); return Promise.resolve(true);
     }
 
     var ports = isSupported('serial') ? nav().serial.getPorts().catch(function () { return []; }) : Promise.resolve([]);
@@ -506,7 +486,7 @@
     __v: VERSION,
     canRestore: function () { return true; },
     isSupported: isSupported, connect: connect, reconnect: reconnect, disconnect: disconnect, forget: forget, list: list, use: use,
-    isConnected: isConnected, printImage: printImage, printTest: printTest,
+    isConnected: isConnected, printImage: printImage, printTest: printTest, warm: warm,
     speed: function (v) { if (v && SPEEDS[v]) { try { W.localStorage.setItem(SPEED_KEY, v); } catch (e) {} } return speedName(); },
     rasterBytes: rasterBytes,
     info: function () { var m = remembered(); return { mode: state.mode || (m && m.mode), name: state.name || (m && m.name) || '', connected: shownConnected(), remembered: !!m }; },

@@ -1,7 +1,8 @@
 param(
-  [Parameter(Mandatory = $true)][string]$BinFile,
+  [Parameter(Mandatory = $false)][string]$BinFile = '',
   [Parameter(Mandatory = $true)][string]$CacheFile,
-  [Parameter(Mandatory = $true)][string]$PrinterName
+  [Parameter(Mandatory = $true)][string]$PrinterName,
+  [switch]$WarmOnly
 )
 $ErrorActionPreference = 'Stop'
 
@@ -51,18 +52,20 @@ try {
 
   $ch = $null
   $uncached = [Windows.Devices.Bluetooth.BluetoothCacheMode]::Uncached
+  $cached = [Windows.Devices.Bluetooth.BluetoothCacheMode]::Cached
   if ($entry.service -and $entry.char) {
     for ($try = 0; $try -lt 4 -and -not $ch; $try++) {
+      $mode = if ($try -eq 0) { $cached } else { $uncached }
       if ($try -gt 0) {
         if ($svc) { try { $svc.Dispose() } catch {}; $svc = $null }
         if ($ble) { try { $ble.Dispose() } catch {}; $ble = $null }
-        Start-Sleep -Milliseconds 400
+        Start-Sleep -Milliseconds 250
         $ble = Await ([Windows.Devices.Bluetooth.BluetoothLEDevice]::FromIdAsync($entry.id)) ([Windows.Devices.Bluetooth.BluetoothLEDevice])
       }
-      $srvs = Await ($ble.GetGattServicesForUuidAsync([Guid]$entry.service, $uncached)) ([Windows.Devices.Bluetooth.GenericAttributeProfile.GattDeviceServicesResult])
+      $srvs = Await ($ble.GetGattServicesForUuidAsync([Guid]$entry.service, $mode)) ([Windows.Devices.Bluetooth.GenericAttributeProfile.GattDeviceServicesResult])
       if ($srvs.Status -eq 'Success' -and $srvs.Services.Count -gt 0) {
         $svc = $srvs.Services | Select-Object -First 1
-        $chs = Await ($svc.GetCharacteristicsForUuidAsync([Guid]$entry.char, $uncached)) ([Windows.Devices.Bluetooth.GenericAttributeProfile.GattCharacteristicsResult])
+        $chs = Await ($svc.GetCharacteristicsForUuidAsync([Guid]$entry.char, $mode)) ([Windows.Devices.Bluetooth.GenericAttributeProfile.GattCharacteristicsResult])
         if ($chs.Status -eq 'Success' -and $chs.Characteristics.Count -gt 0) {
           $ch = $chs.Characteristics | Select-Object -First 1
         }
@@ -93,6 +96,10 @@ try {
   }
 
   if (-not $ch) { throw 'ERR_NO_CHAR' }
+  if ($WarmOnly -or -not $BinFile -or -not (Test-Path $BinFile)) {
+    Write-Output 'OK'
+    return
+  }
 
   $wm = ([Windows.Devices.Bluetooth.GenericAttributeProfile.GattCharacteristic].GetMethods() | Where-Object {
     $_.Name -eq 'WriteValueAsync' -and $_.GetParameters().Count -eq 2
@@ -103,13 +110,20 @@ try {
     [Windows.Devices.Bluetooth.GenericAttributeProfile.GattWriteOption]::WriteWithResponse
   }
 
+  [Windows.Devices.Bluetooth.GenericAttributeProfile.GattSession, Windows.Devices.Bluetooth, ContentType=WindowsRuntime] | Out-Null
+  $sess = $null
+  try {
+    $sess = Await ([Windows.Devices.Bluetooth.GenericAttributeProfile.GattSession]::FromDeviceIdAsync($ble.BluetoothDeviceId)) ([Windows.Devices.Bluetooth.GenericAttributeProfile.GattSession])
+    if ($sess) { $sess.MaintainConnection = $true }
+  } catch {}
+
   $allBytes = [System.IO.File]::ReadAllBytes($BinFile)
   $sw = [System.Diagnostics.Stopwatch]::StartNew()
   $off = 0
   $sent = 0
-  $burst = 2500.0
-  $rate = 9500.0
-  $chunkSize = 200
+  $burst = 3600.0
+  $rate = 18000.0
+  $chunkSize = 244
 
   while ($off -lt $allBytes.Length) {
     $len = [Math]::Min($chunkSize, $allBytes.Length - $off)
@@ -121,7 +135,7 @@ try {
     $task = $wm.Invoke($ch, @($buf, $writeOpt))
     $st = Await $task ([Windows.Devices.Bluetooth.GenericAttributeProfile.GattCommunicationStatus])
     if ($st -ne 'Success') {
-      Start-Sleep -Milliseconds 80
+      Start-Sleep -Milliseconds 30
       $dw2 = New-Object Windows.Storage.Streams.DataWriter
       $dw2.WriteBytes($part)
       $buf2 = $dw2.DetachBuffer()
@@ -132,13 +146,14 @@ try {
     $sent += $len
     if ($sent -gt $burst) {
       $ahead = (($sent - $burst) * 1000.0 / $rate) - $sw.Elapsed.TotalMilliseconds
-      if ($ahead -gt 4) { Start-Sleep -Milliseconds ([int]$ahead) }
+      if ($ahead -gt 3) { Start-Sleep -Milliseconds ([int]$ahead) }
     }
   }
 
-  Start-Sleep -Milliseconds 220
+  Start-Sleep -Milliseconds 40
   Write-Output 'OK'
 } finally {
+  if ($sess) { try { $sess.Dispose() } catch {} }
   if ($svc) { try { $svc.Dispose() } catch {} }
   if ($ble) { try { $ble.Dispose() } catch {} }
 }

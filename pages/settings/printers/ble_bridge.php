@@ -7,8 +7,20 @@ header('Content-Type: application/json; charset=utf-8');
 
 $raw = file_get_contents('php://input');
 $body = json_decode($raw ?: '{}', true) ?: [];
+$action = trim((string)($body['action'] ?? $_GET['action'] ?? 'print'));
 $name = trim((string)($body['name'] ?? $_GET['name'] ?? ''));
 $b64  = (string)($body['data'] ?? '');
+
+if ($action === 'warm') {
+    $lockFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'storemini_ble_print.lock';
+    $lockFp = @fopen($lockFile, 'c+');
+    if ($lockFp && @flock($lockFp, LOCK_EX | LOCK_NB)) {
+        @flock($lockFp, LOCK_UN);
+        @fclose($lockFp);
+    }
+    echo json_encode(['status' => 'success']);
+    exit;
+}
 
 if ($name === '' || $b64 === '') {
     echo json_encode(['status' => 'error', 'message' => 'ຂໍ້ມູນບໍ່ຄົບ']);

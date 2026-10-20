@@ -1,0 +1,15 @@
+/* ============================================================
+   products-bulk.css
+   ຍ້າຍອອກມາຈາກ <style> ໃນ pages/products/components/add_product/pane_bulk.php — ຖືກເອີ້ນຢູ່ຈຸດເດີມດ້ວຍ themeCssLink()
+   (config/helpers/theme_css.php) ສະນັ້ນ ລຳດັບ cascade ຄືເກົ່າ.
+   ============================================================ */
+        /* ຮູບພາບລາຍແຖວ: ກ່ອງສີ່ຫຼ່ຽມນ້ອຍ ກົດເພື່ອເລືອກຮູບ */
+        .bulk-img-box { position: relative; width: 52px; height: 52px; border: 2px dashed #cbd5e1; border-radius: 8px; background: #f8fafc;
+          display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: visible; transition: border-color .15s; }
+        .bulk-img-box:hover { border-color: #2563eb; }
+        .bulk-img-box.has-img { border-style: solid; border-color: #16a34a; background: #fff; }
+        .bulk-img-ico { color: #94a3b8; font-size: 1.1rem; }
+        .bulk-img-preview { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+        .bulk-img-clear { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; padding: 0; border: none; border-radius: 50%;
+          background: #dc2626; color: #fff; font-size: 14px; line-height: 20px; text-align: center; cursor: pointer; z-index: 2; }
+      

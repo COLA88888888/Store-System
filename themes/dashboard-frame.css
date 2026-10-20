@@ -1,0 +1,14 @@
+/* ============================================================
+   dashboard-frame.css
+   ຍ້າຍອອກມາຈາກ <style> ໃນ home/dashboard.php — ຖືກເອີ້ນຢູ່ຈຸດເດີມດ້ວຍ themeCssLink()
+   (config/helpers/theme_css.php) ສະນັ້ນ ລຳດັບ cascade ຄືເກົ່າ.
+   ============================================================ */
+      .content-wrapper {
+        height: calc(var(--app-vh, 1vh) * 100 - 64px - 42px) !important;
+      }
+      @media (max-width: 991.98px) {
+        .content-wrapper {
+          height: calc(var(--app-vh, 1vh) * 100 - 64px - 42px) !important;
+        }
+      }
+    

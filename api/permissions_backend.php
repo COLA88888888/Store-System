@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         // ລາຍຊື່ຄໍລຳສິດທີ່ອະນຸຍາດໃຫ້ປັບປ່ຽນ (ລວມທັງເມນູຍ່ອຍລາຍງານ)
         $allowed_perms = [
             'dashboard', 'sale', 'item_sales', 'stock', 'categories', 'units', 'products', 'suppliers', 'import_stock', 'import_list',
-            'stock_transfer', 'transfer_history',
+            'stock_check', 'stock_count', 'stock_transfer', 'transfer_history',
             'report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales', 'delete_bills',
             'accounting', 'setup', 'stores', 'print_barcode', 'expiry', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty',
             'users', 'permissions', 'branches', 'edit', 'customers', 'database', 'customer_debt'
@@ -158,6 +158,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                 'item_sales' => 'ສິດ ເບິ່ງລາຍການຂາຍສິນຄ້າ',
                 'customers' => 'ສິດ ຈັດການລູກຄ້າ',
                 'stock' => 'ສິດ ຂໍ້ມູນສິນຄ້າ & ຄັງສິນຄ້າ',
+                'stock_check' => 'ສິດ ເຊັກສະຕັອກ (ຜູ້ຈັດການ)',
+                'stock_count' => 'ສິດ ນັບສະຕັອກ (ພະນັກງານນັບ)',
                 'accounting' => 'ສິດ ຈັດການບັນຊີ',
                 'report' => 'ສິດ ເບິ່ງລາຍງານ',
                 'daily_report' => 'ສິດ ລາຍງານປະຈຳວັນ',
@@ -237,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         $parentPerm = [
             'item_sales' => 'sale', 'customer_debt' => 'customers',
             'categories' => 'stock', 'units' => 'stock', 'products' => 'stock', 'suppliers' => 'stock',
-            'import_stock' => 'stock', 'import_list' => 'stock', 'stock_transfer' => 'stock', 'transfer_history' => 'stock',
+            'import_stock' => 'stock', 'import_list' => 'stock', 'stock_check' => 'stock', 'stock_count' => 'stock', 'stock_transfer' => 'stock', 'transfer_history' => 'stock',
             'daily_report' => 'report', 'all_sales' => 'report', 'best_seller' => 'report', 'profit_cost' => 'report',
             'financial' => 'report', 'category_sales' => 'report', 'delete_bills' => 'report',
             'branches' => 'setup', 'stores' => 'setup', 'print_barcode' => 'setup', 'expiry' => 'setup', 'exchange_rate' => 'setup',

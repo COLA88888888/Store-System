@@ -16,6 +16,7 @@ return [
     'layout.products' => 'Product List',
     'layout.suppliers' => 'Manage Suppliers',
     'layout.import_stock' => 'Import Stock',
+    'layout.stock_check' => 'Stock Check',
     'layout.import_list' => 'Import History',
     'layout.stock_transfer' => 'Stock Transfer Between Branches',
     'layout.transfer_history' => 'Transfer History',

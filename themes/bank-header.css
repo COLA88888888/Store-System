@@ -1,0 +1,36 @@
+/* ============================================================
+   bank-header.css
+   ຍ້າຍອອກມາຈາກ <style> ໃນ pages/bank/partials/bank_header.php — ຖືກເອີ້ນຢູ່ຈຸດເດີມດ້ວຍ themeCssLink()
+   (config/helpers/theme_css.php) ສະນັ້ນ ລຳດັບ cascade ຄືເກົ່າ.
+   ============================================================ */
+  /* ປຸ່ມເພີ່ມບັນຊີ: ຢູ່ຂວາມືແຖວຫົວຂໍ້ ແລະ ໃຫຍ່ກວ່າປຸ່ມທົ່ວໄປ (!important ຊະນະກົດ .btn ນ້ອຍໃນມືຖື) */
+  #btnAddBankAccount {
+    font-size: 0.95rem !important; padding: 9px 18px !important; border-radius: 8px !important;
+    border: none !important; color: #fff !important;
+  }
+  /* Default colour only — class-level, so the theme colour the shell injects
+     (`body .btn-primary{background:…!important}`, home/dashboard.php) wins when one is picked. */
+  .bank-add-btn { background: linear-gradient(135deg, #2c5aa0, #244886) !important; }
+  #btnAddBankAccount i { font-size: 1rem !important; }
+
+  /* ກ່ອງຕົວກອງ — ແບບດຽວກັບໜ້າລາຍງານ (ປ້າຍຢູ່ເທິງຊ່ອງ) */
+  .bank-filter-box { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 14px; box-shadow: 0 3px 12px rgba(0,0,0,.03); padding: 12px 16px; }
+  .bank-filter-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+  .bank-filter-form > div { flex: 0 1 190px; min-width: 0; }
+  .bank-filter-form > div.bf-branch { flex: 0 1 220px; }
+  .bank-filter-form > div.bf-act { flex: 0 0 auto; display: flex; gap: 8px; }
+  .bank-filter-form label { display: block; font-weight: 700; color: #1e293b; font-size: 0.82rem; margin-bottom: 4px; white-space: nowrap; }
+  .bank-filter-form .form-control { height: 38px; border-radius: 8px; font-size: 0.85rem; width: 100%; }
+  .bank-filter-form .btn { height: 38px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; }
+  .bank-filter-form .bf-search { background: linear-gradient(135deg, #2c5aa0, #244886); border: none; padding: 0 18px; white-space: nowrap; }
+  .bank-filter-form .bf-reset { padding: 0 12px; }
+
+  /* ໂທລະສັບ: ວັນທີ 2 ອັນຮຽງກັນ, ສາຂາ ເຕັມແຖວ, ປຸ່ມຄົ້ນຫາ + ລ້າງຄ່າ ເຕັມແຖວ */
+  @media (max-width: 767.98px) {
+    .bank-filter-box { padding: 10px 12px; }
+    .bank-filter-form { gap: 10px 8px; }
+    .bank-filter-form > div.bf-date { flex: 1 1 calc(50% - 4px); }
+    .bank-filter-form > div.bf-branch { flex: 1 1 100%; }
+    .bank-filter-form > div.bf-act { flex: 1 1 100%; }
+    .bank-filter-form .bf-search { flex: 1 1 auto; }
+  }

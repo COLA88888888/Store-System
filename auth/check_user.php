@@ -142,6 +142,8 @@ try {
                 'categories' => $isAdmin ? 1 : (int)($user['categories'] ?? 0),
                 'products' => $isAdmin ? 1 : (int)($user['products'] ?? 0),
                 'import_stock' => $isAdmin ? 1 : (int)($user['import_stock'] ?? 0),
+                'stock_check' => $isAdmin ? 1 : (int)($user['stock_check'] ?? $user['products'] ?? 0),
+                'stock_count' => $isAdmin ? 1 : (int)($user['stock_count'] ?? 0),
                 'import_list' => $isAdmin ? 1 : (int)($user['import_list'] ?? 0),
                 'report' => $isAdmin ? 1 : (int)($user['report'] ?? 0),
                 'daily_report' => $isAdmin ? 1 : (int)($user['daily_report'] ?? 0),

@@ -87,7 +87,9 @@ if ($action === 'get_transfer_details') {
             }
             unset($t);
 
-            $totalCount = count($incomingTransfers) + count($subLowStock) + count($subNewProducts) + count($subExpiry);
+            // ແຈ້ງເຕືອນເຊັກສະຕັອກ: ສົ່ງມາກວດ / ອະນຸມັດແລ້ວ (config/helpers/stock_check_alerts.php)
+            $stockChecks = getStockCheckNotifications($pdo);
+            $totalCount = count($incomingTransfers) + count($subLowStock) + count($subNewProducts) + count($subExpiry) + count($stockChecks);
 
             echo json_encode([
                 'success' => true,
@@ -96,7 +98,8 @@ if ($action === 'get_transfer_details') {
                 'incoming_transfers' => $incomingTransfers,
                 'sub_low_stock' => $subLowStock,
                 'sub_expiry' => $subExpiry,
-                'sub_new_products' => $subNewProducts
+                'sub_new_products' => $subNewProducts,
+                'stock_checks' => $stockChecks
             ]);
             exit();
         } else {
@@ -110,7 +113,8 @@ if ($action === 'get_transfer_details') {
             }
             unset($imp);
 
-            $totalCount = count($lowStockList) + count($subBranchImports) + count($expiryList);
+            $stockChecks = getStockCheckNotifications($pdo);
+            $totalCount = count($lowStockList) + count($subBranchImports) + count($expiryList) + count($stockChecks);
 
             $groupedLowStock = [];
             foreach ($lowStockList as $alert) {
@@ -132,7 +136,8 @@ if ($action === 'get_transfer_details') {
                 'total_count' => $totalCount,
                 'grouped_low_stock' => array_values($groupedLowStock),
                 'sub_branch_imports' => $subBranchImports,
-                'expiry_list' => $expiryList
+                'expiry_list' => $expiryList,
+                'stock_checks' => $stockChecks
             ]);
             exit();
         }

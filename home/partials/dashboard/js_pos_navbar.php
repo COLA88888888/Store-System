@@ -6,15 +6,7 @@
  * ໜ້າຂາຍເອີ້ນ window.setPosNavMode(true/false) ເອງ (ຕອນໂຫຼດ ແລະ ຕອນອອກຈາກໜ້າ).
  * CSS ຂອງຝັ່ງໜ້າຂາຍ: html.pos-nav-mode ໃນ themes/pos/02-mobile-cart-search.css.
  */
-?>  <style>
-    /* The POS page's own 64px band (theme colour) shows through the transparent navbar. */
-    body.pos-nav-mode .main-header.navbar { pointer-events: none; }
-    body.pos-nav-mode .main-header.navbar > * { pointer-events: auto; }
-    body.pos-nav-mode .content-wrapper {
-      margin-top: -64px !important;
-      height: calc(var(--app-vh, 1vh) * 100 - 42px) !important;
-    }
-  </style>
+?>  <?php echo themeCssLink('dashboard-pos-navbar.css'); /* CSS ຍ້າຍໄປ themes/dashboard-pos-navbar.css */ ?>
   <script>
     (function() {
       var posWin = null;   // the POS page's window while it is open in the iframe

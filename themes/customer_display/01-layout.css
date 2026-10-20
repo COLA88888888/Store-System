@@ -1,0 +1,260 @@
+/* ============================================================
+   customer_display/01-layout.css
+   ຍ້າຍອອກມາຈາກ pages/pos/partials/customer_display/styles_layout.php — ເອີ້ນຢູ່ຈຸດເດີມດ້ວຍ themeCssLink()
+   ລຳດັບສຳຄັນ: 01-layout → 02-payment → 03-theme (03 ທັບ 01–02)
+   ============================================================ */
+    @keyframes pulseHeart {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.18); }
+    }
+    @keyframes glowTotal {
+      0%, 100% { box-shadow: 0 6px 20px rgba(5, 150, 105, 0.30); }
+      50% { box-shadow: 0 8px 32px rgba(5, 150, 105, 0.55); }
+    }
+    @keyframes headerShine {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #eef3fb;
+      color: #0f172a;
+      font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .display-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: radial-gradient(circle at 15% 10%, #e3ecfb 0%, #eef3fb 45%, #e8eef9 100%);
+    }
+
+    /* ===== 1. TOP HEADER BAR: SYSTEM BRAND COLOR, SINGLE ROW ===== */
+    .display-header {
+      background: linear-gradient(120deg, #2c5aa0 0%, #244886 50%, #1a3666 100%);
+      background-size: 200% 200%;
+      animation: headerShine 8s ease infinite;
+      padding: 8px 24px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      box-shadow: 0 4px 16px rgba(36, 72, 134, 0.35);
+      z-index: 100;
+    }
+    .header-left-spacer {
+      grid-column: 1;
+    }
+
+    .fullscreen-toggle-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 200;
+      background: rgba(255,255,255,0.18);
+      border: 1.5px solid rgba(255,255,255,0.4);
+      color: #ffffff;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+    .fullscreen-toggle-btn:hover {
+      background: rgba(255,255,255,0.32);
+      transform: scale(1.08);
+    }
+    .header-system-title {
+      grid-column: 2;
+      color: #ffffff;
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    .header-datetime {
+      grid-column: 3;
+      justify-self: end;
+      margin-right: 42px;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      color: #ffffff;
+    }
+    .header-datetime .header-clock {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #ffd45a;
+    }
+    .header-datetime .header-date {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.75);
+    }
+
+    /* ===== MAIN DUAL PANEL (Left = Large Logo & Store Info, Right = Order List & Payment) ===== */
+    .display-main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      padding: 16px;
+      gap: 16px;
+    }
+
+    /* ===== LEFT PANEL: LARGE STORE LOGO & STORE INFO (40%) ===== */
+    .left-store-panel {
+      flex: 0.85;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    /* Give the left panel more width when 3 payment QR cards sit side by side */
+    .left-store-panel.has-3-qr {
+      flex: 1.15;
+    }
+    .store-card {
+      flex: 1;
+      background: linear-gradient(135deg, #eef2fb 0%, #ffffff 50%, #eef2fb 100%);
+      border-radius: 14px;
+      border: 2px solid #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      text-align: center;
+      padding: 28px 22px;
+      box-shadow: 0 10px 28px rgba(2, 99, 255, 0.08);
+      position: relative;
+      z-index: 0;
+      overflow: hidden;   /* customer-facing screen: never show a scrollbar here */
+      scrollbar-width: none !important;
+    }
+    /* Defense in case any descendant still scrolls — kill the bar (beats global-custom.css `::-webkit-scrollbar{width:5px!important}`) */
+    .store-card::-webkit-scrollbar,
+    .store-card *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+    .store-card * { scrollbar-width: none !important; }
+    .particle-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .store-card-content {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin: 0;   /* top-aligned, not vertically centred */
+    }
+
+    .large-logo-box {
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .large-logo-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.12));
+    }
+    .large-fallback-icon {
+      font-size: 5.5rem;
+      color: #0263ff;
+    }
+
+    .store-name-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 8px;
+      line-height: 1.2;
+    }
+    .store-info-text {
+      font-size: 1.1rem;
+      color: #475569;
+      font-weight: 600;
+      max-width: 100%;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    /* Address / phone each stay on a single long line instead of wrapping narrow */
+    .store-info-text > div {
+      white-space: nowrap;
+    }
+
+    .welcome-banner-box {
+      background: linear-gradient(135deg, #eef2fb 0%, #dbe3f3 100%);
+      border: 2px solid #c7d2e8;
+      border-radius: 12px;
+      padding: 20px 24px;
+      width: 92%;
+      margin-top: 15px;
+      box-shadow: 0 6px 20px rgba(36, 72, 134, 0.08);
+      position: relative;
+      z-index: 1;
+    }
+    .welcome-banner-box i.fa-heart {
+      display: inline-block;
+      animation: pulseHeart 1.4s ease-in-out infinite;
+    }
+
+    /* ===== STORE INFO ABOVE THE LOGO ===== */
+    .store-info-block {
+      margin-bottom: 14px;
+    }
+    .store-info-block .store-name-title { margin-bottom: 6px; }
+    .store-info-block .store-info-text { margin-bottom: 0; }
+    /* Logo shrinks once it sits between the info and the QR cards */
+    .large-logo-box.logo-below {
+      width: 150px;
+      height: 150px;
+      margin: 2px 0 10px;
+    }
+
+    /* ===== HEADER ROW: LOGO ON THE LEFT, NAME/ADDRESS/TEL ON THE RIGHT ===== */
+    .store-header-row {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      width: 100%;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .store-header-row .large-logo-box {
+      width: 100px;
+      height: 100px;
+      margin: 0;
+      flex-shrink: 0;
+    }
+    .store-header-row .store-info-block {
+      margin-bottom: 0;
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+    }
+    .store-header-row .store-name-title,
+    .store-header-row .store-info-text {
+      text-align: left;
+    }

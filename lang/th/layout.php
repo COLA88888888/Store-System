@@ -16,6 +16,7 @@ return [
     'layout.products' => 'รายการสินค้า',
     'layout.suppliers' => 'จัดการผู้จัดจำหน่าย',
     'layout.import_stock' => 'นำเข้าสินค้า',
+    'layout.stock_check' => 'เช็กสต็อก',
     'layout.import_list' => 'รายการสินค้ารับเข้า',
     'layout.stock_transfer' => 'โอนสินค้าระหว่างสาขา',
     'layout.transfer_history' => 'ประวัติการโอนสินค้า',

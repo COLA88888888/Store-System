@@ -59,6 +59,8 @@
       if (isEnter) {
         $('#direct_qty').focus().select();
       }
+    } else if (isEnter && window.hasNonEnglishChars && window.hasNonEnglishChars(query) && window.showSwitchKeyboardAlert) {
+      window.showSwitchKeyboardAlert(query, document.getElementById('direct_barcode_input'));
     }
   }
 

@@ -138,7 +138,7 @@ function updateCartUI() {
   var discountVal  = Math.min(subtotal, cartDiscountKip(subtotal));
   var discountPct  = parseFloat(($('#cartDiscount').val() || '').replace(/[^0-9.]/g, '')) || 0;
   if (getCartDiscountMode() === 'percent' && discountPct > 0) {
-    $('#cartDiscountPctHint').html(discountPct + '% = -' + POSCUR.fmt(discountVal)).show();
+    $('#cartDiscountPctHint').html('= -' + POSCUR.fmt(discountVal)).show();
   } else {
     $('#cartDiscountPctHint').hide();
   }

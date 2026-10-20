@@ -93,6 +93,11 @@
       if (selectedProduct) {
         $('#direct_qty').focus().select();
       } else {
+        var rawQ = ($('#direct_barcode_input').val() || '').trim();
+        if (rawQ && window.hasNonEnglishChars && window.hasNonEnglishChars(rawQ) && window.showSwitchKeyboardAlert) {
+          window.showSwitchKeyboardAlert(rawQ, document.getElementById('direct_barcode_input'));
+          return;
+        }
         Swal.fire({ icon: 'warning', title: I18N_STOCK_TRANSFER['stock_transfer.err_product_not_found_title'], text: I18N_STOCK_TRANSFER['stock_transfer.err_product_not_found_text'], confirmButtonColor: '#2563eb' });
       }
     }

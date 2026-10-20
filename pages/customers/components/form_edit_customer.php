@@ -40,7 +40,7 @@
             </div>
           </div>
 
-          <?php if ($canAllBranches): ?>
+          <?php if ($canAllBranches && count($stores) >= 2): ?>
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('customers.field_branch', 'ສາຂາ')); ?></label>
             <select name="store_id" id="edit_store_id" class="form-control" style="border-radius: 8px; height: 42px;">

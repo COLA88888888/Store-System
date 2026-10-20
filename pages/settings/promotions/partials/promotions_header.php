@@ -1,15 +1,4 @@
-<style>
-/* Remove datalist / input dropdown arrow (▼) */
-input::-webkit-calendar-picker-indicator,
-input::-webkit-list-button {
-  display: none !important;
-  -webkit-appearance: none !important;
-  opacity: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
-  pointer-events: none !important;
-}
-</style>
+<?php echo themeCssLink('settings-promotions-header.css'); /* CSS ຍ້າຍໄປ themes/settings-promotions-header.css */ ?>
 
 <!-- Page Header Title -->
 <div class="row mb-3 align-items-center">

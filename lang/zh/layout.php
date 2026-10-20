@@ -16,6 +16,7 @@ return [
     'layout.products' => '商品列表',
     'layout.suppliers' => '供应商管理',
     'layout.import_stock' => '进货',
+    'layout.stock_check' => '库存盘点',
     'layout.import_list' => '进货记录',
     'layout.stock_transfer' => '分店调货',
     'layout.transfer_history' => '调货历史',

@@ -9,6 +9,8 @@
  *   - migrations/schema_company_banks.php : ອັບເດດໂຄງສ້າງ DB (3): ຮ້ານ, ທະນາຄານ, ໂປຣໂມຊັ່ນ
  *   - migrations/schema_settings_sales.php : ອັບເດດໂຄງສ້າງ DB (4): ການຕັ້ງຄ່າ, ການຂາຍ, ໜີ້
  *   - migrations/schema_loyalty.php : ອັບເດດໂຄງສ້າງ DB: ຄະແນນສະສົມ
+ *   - migrations/schema_stock_check.php : ອັບເດດໂຄງສ້າງ DB: ເຊັກສະຕັອກ
+ *   - helpers/theme_css.php : ຟັງຊັນຊ່ວຍ: ລິ້ງໄຟລ໌ CSS ໃນ themes/ (themeCssLink)
  *   - helpers/money_settings.php : ຟັງຊັນຊ່ວຍ: ການຕັ້ງຄ່າ, ເງິນ, ບັນທຶກ
  *   - helpers/permissions.php : ຟັງຊັນຊ່ວຍ: ກວດສິດ
  *   - helpers/bank.php : ຟັງຊັນຊ່ວຍ: ທະນາຄານ
@@ -16,6 +18,7 @@
  *   - helpers/company_alerts.php : ຟັງຊັນຊ່ວຍ: ຂໍ້ມູນຮ້ານ ແລະ ແຈ້ງເຕືອນ
  *   - bootstrap/branch_switcher.php : ສະຫຼັບສາຂາທີ່ກຳລັງເບິ່ງ
  *   - helpers/expiry.php : ຟັງຊັນຊ່ວຍ: ສິນຄ້າໝົດອາຍຸ
+ *   - helpers/stock_check_alerts.php : ຟັງຊັນຊ່ວຍ: ແຈ້ງເຕືອນເຊັກສະຕັອກ
  */
 // ເຊື່ອມຕໍ່ຖານຂໍ້ມູນ
 require __DIR__ . '/bootstrap/connection.php';
@@ -65,6 +68,10 @@ if ($pdo) {
 
 // ອັບເດດໂຄງສ້າງ DB: ຄະແນນສະສົມ
 require __DIR__ . '/migrations/schema_loyalty.php';
+// ອັບເດດໂຄງສ້າງ DB: ເຊັກສະຕັອກ
+require __DIR__ . '/migrations/schema_stock_check.php';
+// ຟັງຊັນຊ່ວຍ: ລິ້ງໄຟລ໌ CSS ໃນ themes/ (themeCssLink)
+require __DIR__ . '/helpers/theme_css.php';
 // ຟັງຊັນຊ່ວຍ: ການຕັ້ງຄ່າ, ເງິນ, ບັນທຶກ
 require __DIR__ . '/helpers/money_settings.php';
 // ຟັງຊັນຊ່ວຍ: ກວດສິດ
@@ -79,3 +86,5 @@ require __DIR__ . '/helpers/company_alerts.php';
 require __DIR__ . '/bootstrap/branch_switcher.php';
 // ຟັງຊັນຊ່ວຍ: ສິນຄ້າໝົດອາຍຸ
 require __DIR__ . '/helpers/expiry.php';
+// ຟັງຊັນຊ່ວຍ: ແຈ້ງເຕືອນເຊັກສະຕັອກ (ສົ່ງກວດ / ອະນຸມັດແລ້ວ)
+require __DIR__ . '/helpers/stock_check_alerts.php';

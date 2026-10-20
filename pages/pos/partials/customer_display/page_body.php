@@ -61,7 +61,12 @@
   <div class="display-main">
 
     <!-- LEFT PANEL: QR ຊຳລະເງິນ (ໂລໂກ້ ແລະ ຊື່ຮ້ານ ຍ້າຍຂຶ້ນໄປແຖບເທິງແລ້ວ) -->
-    <div class="left-store-panel<?php echo count($cd_bank_accounts) >= 3 ? ' has-3-qr' : ''; ?>">
+    <?php
+      // ທະນາຄານຫຼາຍ: 1–3 = ແຖວດຽວ, 4 ຂຶ້ນໄປ = ຕາຂ່າຍ 2 ຖັນ (ຂະໜາດ QR ຫຍໍ້ຕາມຈຳນວນແຖວ ໃຫ້ເຫັນຄົບທຸກທະນາຄານ)
+      $cdBankCount = count($cd_bank_accounts);
+      $cdQrRows = $cdBankCount >= 4 ? (int)ceil($cdBankCount / 2) : 1;
+    ?>
+    <div class="left-store-panel<?php echo $cdBankCount >= 3 ? ' has-3-qr' : ''; ?><?php echo $cdBankCount >= 4 ? ' has-many-qr' : ''; ?>">
       <div class="store-card">
         <canvas class="particle-canvas" id="storeCardParticles"></canvas>
         <div class="store-card-content">
@@ -70,9 +75,11 @@
             <div class="pay-qr-heading">
               <i class="fas fa-qrcode"></i> <span>ສະແກນ QR ເພື່ອຊຳລະເງິນ</span>
             </div>
-            <div class="pay-qr-wrap count-<?php echo count($cd_bank_accounts); ?>">
+            <div class="pay-qr-wrap count-<?php echo min($cdBankCount, 3); ?><?php echo $cdBankCount >= 4 ? ' many' : ''; ?>" id="payQrWrap" style="--qr-rows: <?php echo $cdQrRows; ?>;">
               <?php foreach ($cd_bank_accounts as $ba): ?>
-                <div class="pay-qr-card">
+                <!-- data-bank-id: ໄຮໄລ້ບັດນີ້ເມື່ອພະນັກງານເລືອກທະນາຄານນີ້ຊຳລະ (renderBankPopup ໃນ display_js.php) -->
+                <div class="pay-qr-card" data-bank-id="<?php echo (int)($ba['id'] ?? 0); ?>">
+                  <div class="pqc-selected-tag"><i class="fas fa-hand-point-down"></i> ສະແກນອັນນີ້</div>
                   <div class="pqc-bank">
                     <?php if (!empty($ba['logo'])): ?>
                       <img src="<?php echo htmlspecialchars($ba['logo']); ?>" alt="" onerror="this.style.display='none'">
@@ -103,14 +110,15 @@
       <div class="cart-card">
         <div class="display-table-body">
           <table class="w-100 border-0 mb-0 display-cols-table">
+            <!-- ຖັນຊື່ສິນຄ້າກວ້າງສຸດ ໃຫ້ຊື່ຍາວຢູ່ 1–2 ແຖວ -->
             <colgroup>
               <col style="width: 6%;">
-              <col style="width: 12%;">
-              <col style="width: 21%;">
-              <col style="width: 10%;">
-              <col style="width: 12%;">
+              <col style="width: 8%;">
+              <col style="width: 34%;">
+              <col style="width: 9%;">
+              <col style="width: 9%;">
+              <col style="width: 16%;">
               <col style="width: 18%;">
-              <col style="width: 21%;">
             </colgroup>
             <thead class="display-table-head">
               <tr>
@@ -167,7 +175,7 @@
     </div>
 
     <div class="gt-final">
-      <span class="gt-final-label">ຍອດຊຳລະ (ຍອດລວມ - ສ່ວນຫຼຸດ)</span>
+      <span class="gt-final-label"><i class="fas fa-wallet mr-1"></i> ຍອດທີ່ຕ້ອງຊຳລະ</span>
       <h2 id="displayGrandTotal">0 <?php echo htmlspecialchars($cd['symbol']); ?></h2>
     </div>
   </div>

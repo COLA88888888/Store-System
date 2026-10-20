@@ -205,19 +205,7 @@ require_once __DIR__ . '/../../layouts/header.php';
           </nav>
         </div>
 
-        <style>
-          /* themes/users.css forces .card-footer into a centered column on mobile (for a
-             different page's pagination) — this ID-scoped override always wins over that
-             class-only rule regardless of viewport width, keeping this footer's nav pinned
-             to the right as requested. */
-          #catPagFooter {
-            flex-direction: row !important;
-            text-align: left !important;
-          }
-          #catPagFooter > nav {
-            margin-left: auto !important;
-          }
-        </style>
+        <?php echo themeCssLink('categories-page.css'); /* CSS ຍ້າຍໄປ themes/categories-page.css */ ?>
 
       </div>
 

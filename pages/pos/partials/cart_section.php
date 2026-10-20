@@ -68,8 +68,10 @@
 
     <div class="d-flex justify-content-between align-items-center mb-1">
       <span class="small text-muted"><?php echo htmlspecialchars(t('pos.bill_discount_label', 'ສ່ວນຫຼຸດທ້າຍບິນ:')); ?></span>
-      <div class="input-group input-group-sm" style="width: 165px; height: 26px;">
+      <div class="input-group input-group-sm" style="width: 200px; height: 26px; position: relative;">
         <input type="text" id="cartDiscount" data-mode="amount" class="form-control text-right text-danger font-weight-bold" value="0" style="height: 26px; padding: 2px 6px; font-size: 0.85rem;" oninput="formatCartDiscountInput(this); updateCartUI();">
+        <!-- ໂໝດ %: ຈຳນວນເງິນທີ່ຫຼຸດແທ້ ສະແດງຢູ່ຊ້າຍໃນບັອກດຽວກັນ ເຊັ່ນ "= -390 ₭" (ຕື່ມໂດຍ cart_ui.php) -->
+        <span id="cartDiscountPctHint" class="text-danger" style="display: none; position: absolute; left: 7px; top: 50%; transform: translateY(-50%); z-index: 4; pointer-events: none; font-size: 0.75rem; font-weight: 600; opacity: 0.75; white-space: nowrap;"></span>
         <!-- ເລືອກແບບສ່ວນຫຼຸດ: ກີບ (ຈຳນວນເງິນ) ຫຼື % ຂອງຍອດລວມ (pos_js.php: setCartDiscountModeAndReset) -->
         <div class="input-group-append">
           <button type="button" class="btn btn-primary font-weight-bold cart-disc-mode-btn" data-mode="amount" id="cartDiscountModeBtn" onclick="setCartDiscountModeAndReset('amount')" title="ສ່ວນຫຼຸດເປັນຈຳນວນເງິນ" style="padding: 2px 7px; font-size: 0.8rem; min-width: 28px;"><?php echo htmlspecialchars($posDisplayCurrency['symbol'] ?? '₭'); ?></button>
@@ -77,8 +79,6 @@
         </div>
       </div>
     </div>
-    <!-- ໂໝດ %: ສະແດງຈຳນວນເງິນທີ່ຫຼຸດແທ້ ເຊັ່ນ "10% = -5,000 ₭" (ຕື່ມໂດຍ cart_ui.php) -->
-    <div id="cartDiscountPctHint" class="text-right text-danger font-weight-bold mb-1" style="display: none; font-size: 0.78rem; margin-top: -2px;"></div>
     
     <!-- Loyalty points redeemed on this bill (discount rewards) — filled by pos_loyalty_js.php -->
     <div id="cartPointsRow" class="mb-1" style="display: none;">

@@ -191,6 +191,11 @@
           paintIframeInline(currentColor);
         }
       }
+      // ໃຫ້ໜ້າໃນ iframe ເອີ້ນໃຊ້ໄດ້ຈາກ <head> ຂອງມັນເອງ (layouts/header.php) — ໃສ່ສີທີມກ່ອນໜ້າຈະສະແດງ,
+      // ບໍ່ດັ່ງນັ້ນ ຣີເຟຣດແລ້ວປຸ່ມຈະເປັນສີເລີ່ມຕົ້ນ (ຟ້າ) ໄລຍະໜຶ່ງ ກ່ອນ load event ຈຶ່ງປ່ຽນເປັນສີທີ່ເລືອກ.
+      window.posThemeButtonCSS = function(color) { return buttonCSS(color, true); };
+      window.posThemeReinject = reinjectIframe;
+
       if (window.jQuery) {
         jQuery(function($) {
           $('iframe[name="frame"]').on('load', reinjectIframe);

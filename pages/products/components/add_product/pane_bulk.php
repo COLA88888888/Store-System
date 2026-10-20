@@ -6,17 +6,7 @@
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/products/components/form_add_product.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 ?>      <!-- ============================ PANE 2: BULK ADD ============================ -->
-      <style>
-        /* ຮູບພາບລາຍແຖວ: ກ່ອງສີ່ຫຼ່ຽມນ້ອຍ ກົດເພື່ອເລືອກຮູບ */
-        .bulk-img-box { position: relative; width: 52px; height: 52px; border: 2px dashed #cbd5e1; border-radius: 8px; background: #f8fafc;
-          display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: visible; transition: border-color .15s; }
-        .bulk-img-box:hover { border-color: #2563eb; }
-        .bulk-img-box.has-img { border-style: solid; border-color: #16a34a; background: #fff; }
-        .bulk-img-ico { color: #94a3b8; font-size: 1.1rem; }
-        .bulk-img-preview { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
-        .bulk-img-clear { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; padding: 0; border: none; border-radius: 50%;
-          background: #dc2626; color: #fff; font-size: 14px; line-height: 20px; text-align: center; cursor: pointer; z-index: 2; }
-      </style>
+      <?php echo themeCssLink('products-bulk.css'); /* CSS ຍ້າຍໄປ themes/products-bulk.css */ ?>
       <div class="tab-pane fade" id="pane-add-bulk" role="tabpanel">
       <form id="bulkAddProductForm" novalidate action="" method="POST" onsubmit="return submitBulkAddProduct(event)">
         <input type="hidden" name="action" value="add_products_bulk">

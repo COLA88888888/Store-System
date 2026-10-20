@@ -34,13 +34,7 @@
       var isImage = (file.type && file.type.startsWith('image/')) || allowedExts.includes(ext);
 
       if (!isImage) {
-        Swal.fire({
-          icon: 'error',
-          title: 'ຮູບແບບໄຟລ໌ບໍ່ຖືກຕ້ອງ',
-          text: 'ກະລຸນາເລືອກສະເພາະໄຟລ໌ຮູບພາບ (JPG, PNG, WEBP, GIF, JFIF)',
-          confirmButtonColor: '#2563eb',
-          confirmButtonText: 'ຕົກລົງ'
-        });
+        Swal.fire({ icon: 'error', title: 'ຮູບແບບໄຟລ໌ບໍ່ຖືກຕ້ອງ', text: 'ກະລຸນາເລືອກສະເພາະໄຟລ໌ຮູບພາບ (JPG, PNG, WEBP, GIF, JFIF)', confirmButtonColor: '#2563eb', confirmButtonText: 'ຕົກລົງ' });
         input.value = '';
         return;
       }
@@ -48,13 +42,7 @@
       // 2. ກວດສອບຂະໜາດໄຟລ໌ (ບໍ່ໃຫ້ເກີນ 10MB)
       if (file.size > MAX_IMG_SIZE) {
         var fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
-        Swal.fire({
-          icon: 'warning',
-          title: 'ຂະໜາດຮູບພາບໃຫຍ່ເກີນໄປ',
-          html: 'ຂະໜາດຮູບຂອງທ່ານ: <strong>' + fileSizeMB + ' MB</strong><br>ລະບົບຮອງຮັບຂະໜາດສູງສຸດບໍ່ເກີນ <strong>10 MB</strong>',
-          confirmButtonColor: '#2563eb',
-          confirmButtonText: 'ຕົກລົງ'
-        });
+        Swal.fire({ icon: 'warning', title: 'ຂະໜາດຮູບພາບໃຫຍ່ເກີນໄປ', html: 'ຂະໜາດຮູບຂອງທ່ານ: <strong>' + fileSizeMB + ' MB</strong><br>ລະບົບຮອງຮັບຂະໜາດສູງສຸດບໍ່ເກີນ <strong>10 MB</strong>', confirmButtonColor: '#2563eb', confirmButtonText: 'ຕົກລົງ' });
         input.value = '';
         return;
       }
@@ -458,6 +446,11 @@
 
       if (e.key === 'Enter' || e.keyCode === 13) {
         if (barcodeBuffer.length >= 2) {
+          if (window.hasNonEnglishChars && window.hasNonEnglishChars(barcodeBuffer) && window.showSwitchKeyboardAlert) {
+            var bad = barcodeBuffer; barcodeBuffer = '';
+            window.showSwitchKeyboardAlert(bad, document.getElementById('productSearch'));
+            return;
+          }
           $('#productSearch').val(barcodeBuffer);
           filterProducts();
           $('#productSearch').focus();
@@ -479,20 +472,13 @@
     Swal.fire({
       title: I18N_PRODUCTS['products.confirm_delete_title'],
       html: I18N_PRODUCTS['products.confirm_delete_prefix'] + ' <strong>"' + productName + '"</strong> ' + I18N_PRODUCTS['products.confirm_delete_suffix'],
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#64748b',
-      confirmButtonText: I18N_PRODUCTS['products.confirm_delete_button'],
-      cancelButtonText: I18N_PRODUCTS['products.cancel'],
-      heightAuto: false
+      icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#64748b',
+      confirmButtonText: I18N_PRODUCTS['products.confirm_delete_button'], cancelButtonText: I18N_PRODUCTS['products.cancel'], heightAuto: false
     }).then(function(result) {
       if (result.isConfirmed) {
         var form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '';
-        form.innerHTML = '<input type="hidden" name="action" value="delete_product">'
-                       + '<input type="hidden" name="product_id" value="' + productId + '">';
+        form.method = 'POST'; form.action = '';
+        form.innerHTML = '<input type="hidden" name="action" value="delete_product"><input type="hidden" name="product_id" value="' + productId + '">';
         document.body.appendChild(form);
         form.submit();
       }

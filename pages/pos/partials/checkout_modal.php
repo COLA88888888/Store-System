@@ -20,37 +20,7 @@
           <div class="checkout-left-col">
 
             <!-- Total -->
-            <style>
-              @keyframes checkoutTotalGlow {
-                0%, 100% { box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35), 0 0 0 1px rgba(255,255,255,0.2) inset; }
-                50%      { box-shadow: 0 6px 26px rgba(37, 99, 235, 0.55), 0 0 0 1px rgba(255,255,255,0.3) inset; }
-              }
-              .checkout-total-card {
-                position: relative;
-                overflow: hidden;
-                border-radius: 14px;
-                padding: 14px 16px;
-                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%);
-                animation: checkoutTotalGlow 2.6s ease-in-out infinite;
-              }
-              .checkout-total-card::before {
-                content: '';
-                position: absolute;
-                top: -40%; right: -15%;
-                width: 140px; height: 140px;
-                background: radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 70%);
-                pointer-events: none;
-              }
-              .checkout-total-icon {
-                width: 30px; height: 30px;
-                background: rgba(255,255,255,0.20);
-                border-radius: 50%;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                margin-bottom: 4px;
-              }
-            </style>
+            <?php echo themeCssLink('pos-checkout-modal.css'); /* CSS ຍ້າຍໄປ themes/pos-checkout-modal.css */ ?>
             <div class="text-center text-white checkout-total-card">
               <div class="checkout-total-icon"><i class="fas fa-wallet" style="font-size:0.85rem;color:#fff;"></i></div>
               <div style="color:rgba(255,255,255,0.82);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;position:relative;">

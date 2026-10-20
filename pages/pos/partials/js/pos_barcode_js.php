@@ -124,12 +124,12 @@ function hasNonEnglishChars(str) {
 function showSwitchKeyboardAlert(code) {
   Swal.fire({
     icon: 'warning',
-    title: 'ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດ',
+    title: 'ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ',
     html: '<div style="font-size:0.95rem;">ແປ້ນພິມປັດຈຸບັນບໍ່ແມ່ນພາສາອັງກິດ ຈຶ່ງອ່ານບາໂຄ້ດຜິດເປັນ:</div>' +
           '<div style="font-size:1.1rem; font-weight:700; color:#ef4444; margin:8px 0; word-break:break-all;">' + $('<div>').text(code).html() + '</div>' +
           '<small class="text-muted d-block">ກົດ <b>Alt + Shift</b> ຫຼື <b>Win + Space</b> ເພື່ອປ່ຽນເປັນ ENG ແລ້ວສະແກນໃໝ່</small>',
     confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ',
-    confirmButtonColor: '#f59e0b',
+    confirmButtonColor: '#f59e0b', allowOutsideClick: false, allowEscapeKey: false, allowEnterKey: false, focusConfirm: false,
     didClose: function() {
       $('#barcodeInput').val('');
       barcodeShowingLastScan = false;
@@ -228,20 +228,21 @@ function findAndAddByBarcode(code) {
     // ເຄື່ອງສະແກນຊ້າ (ບໍ່ຜ່ານການກວດຄວາມໄວ) ແຕ່ຊອກບໍ່ພົບ ແລະ ມີອັກສອນນອກພາສາອັງກິດ → ບອກໃຫ້ກວດແປ້ນພິມນຳ
     Swal.fire({
       icon: 'warning',
-      title: 'ບໍ່ພົບສິນຄ້າ!',
+      title: 'ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ',
       html: 'ລະຫັດ: ' + $('<div>').text(code).html() +
-            '<small class="text-muted d-block mt-2">ຖ້າສະແກນບາໂຄ້ດ ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດ (ENG) ແລ້ວສະແກນໃໝ່</small>',
-      timer: 3000,
-      showConfirmButton: false,
+            '<small class="text-muted d-block mt-2">ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ</small>',
+      // ຄ້າງໄວ້ໃຫ້ກົດຕົກລົງເອງ
+      showConfirmButton: true, confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ', confirmButtonColor: '#f59e0b', allowOutsideClick: false, allowEscapeKey: false, allowEnterKey: false, focusConfirm: false,
       didClose: function() { ensureBarcodeInputFocused(); }
     });
   } else {
     Swal.fire({
       icon: 'warning',
+      title: 'ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ',
       title: 'ບໍ່ພົບສິນຄ້າ!',
       text: 'ລະຫັດບາໂຄ້ດ: ' + code,
-      timer: 1500,
-      showConfirmButton: false,
+      // ຄ້າງໄວ້ໃຫ້ກົດຕົກລົງເອງ
+      showConfirmButton: true, confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ', confirmButtonColor: '#f59e0b', allowOutsideClick: false, allowEscapeKey: false, allowEnterKey: false, focusConfirm: false,
       didClose: function() { ensureBarcodeInputFocused(); }
     });
   }

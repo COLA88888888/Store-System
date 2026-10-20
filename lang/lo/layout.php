@@ -16,6 +16,7 @@ return [
     'layout.products' => 'ລາຍການສິນຄ້າ',
     'layout.suppliers' => 'ຈັດການຜູ້ສະໜອງ',
     'layout.import_stock' => 'ນຳເຂົ້າສິນຄ້າ',
+    'layout.stock_check' => 'ເຊັກສະຕັອກ',
     'layout.import_list' => 'ລາຍການສິນຄ້າຮັບເຂົ້າ',
     'layout.stock_transfer' => 'ໂອນສິນຄ້າລະຫວ່າງສາຂາ',
     'layout.transfer_history' => 'ປະຫວັດການໂອນສິນຄ້າ',

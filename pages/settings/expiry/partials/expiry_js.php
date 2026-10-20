@@ -71,6 +71,10 @@ $(function () {
         $msg.text(EX_I18N.found.replace('%s', d.text)).removeClass('text-danger').addClass('text-success');
         $('#exScan').val('');   // scan: pick the product only — don't pop the calendar open
       } else if (!quiet) {
+        if (window.hasNonEnglishChars && window.hasNonEnglishChars(code) && window.showSwitchKeyboardAlert) {
+          window.showSwitchKeyboardAlert(code, document.getElementById('exScan'));
+          return;
+        }
         $msg.text(EX_I18N.not_found.replace('%s', code)).removeClass('text-success').addClass('text-danger');
         $('#exScan').select();
       }

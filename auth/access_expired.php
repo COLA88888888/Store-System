@@ -35,38 +35,7 @@ function highlightBrand($text) {
     <link rel="stylesheet" href="../themes/login.css?v=<?php echo filemtime(__DIR__ . '/../themes/login.css'); ?>">
 
     <!-- Page-specific styling (kept local so login.php / license_expired.php are unaffected) -->
-    <style>
-        .expired-card {
-            animation: expired-card-in 0.45s ease both;
-        }
-        @keyframes expired-card-in {
-            from { opacity: 0; transform: translateY(10px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .expired-subtitle {
-            font-size: 0.92rem;
-            color: #475569;
-            font-weight: 500;
-            line-height: 1.55;
-            margin-top: 6px;
-        }
-        .brand-wd {
-            color: #1d4ed8;
-            font-weight: 800;
-        }
-        .back-to-login-link {
-            display: block;
-            text-align: center;
-            margin-top: 22px;
-            font-size: 0.85rem;
-            color: #64748b !important;
-            text-decoration: none !important;
-        }
-        .back-to-login-link:hover {
-            color: #334155 !important;
-            text-decoration: underline !important;
-        }
-    </style>
+    <?php echo themeCssLink('access_expired.css', '../'); /* CSS ຍ້າຍໄປ themes/access_expired.css */ ?>
 </head>
 <body>
 

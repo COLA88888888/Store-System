@@ -53,6 +53,9 @@
             });
           }
           if (hasAccessWarning) unreadCount++; // persistent, like a low-stock alert
+          // ເຊັກສະຕັອກ: ສົ່ງມາກວດ (ຫົວໜ້າ) / ອະນຸມັດແລ້ວ (ພະນັກງານ) — js_stock_check_notif.php
+          unreadCount += countUnreadStockChecks(res.stock_checks, readKeys);
+          toastNewStockChecks(res.stock_checks, badgeId);
 
           if (lastUnreadCount[badgeId] !== -1 && unreadCount > lastUnreadCount[badgeId]) {
             playNotificationSound();
@@ -81,6 +84,7 @@
             var bodyEl = $('#mainNotifDropdownBody');
             if (bodyEl.length > 0) {
               var html = buildAccessWarningNotifHtml();
+              html += buildStockCheckNotifHtml(res.stock_checks, 'mainNotifBadge', readKeys, true);
 
               // 0. Near-expiry / expired products (all branches, so prefix the branch name)
               html += buildExpiryNotifHtml(res.expiry_list, true);
@@ -147,6 +151,7 @@
             if (bodyEl.length > 0) {
               var currentStoreId = <?php echo intval($_SESSION['store_id'] ?? 1); ?>;
               var html = buildAccessWarningNotifHtml();
+              html += buildStockCheckNotifHtml(res.stock_checks, 'subNotifBadge', readKeys, false);
 
               html += buildExpiryNotifHtml(res.sub_expiry, false);
 

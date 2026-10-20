@@ -196,21 +196,7 @@
     </div>
   </div>
 
-  <style>
-    .metric-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.3px; }
-    .metric-num { font-size: 0.95rem; }
-    .metric-currency { font-size: 1.05rem; font-weight: 800; }
-    .metric-icon-box { width: 30px; height: 30px; }
-    .metric-icon { font-size: 0.9rem; }
-
-    @media (min-width: 992px) {
-      .metric-title { font-size: 0.85rem; letter-spacing: 0.5px; }
-      .metric-num { font-size: 1.4rem; }
-      .metric-currency { font-size: 1.15rem; font-weight: 800; }
-      .metric-icon-box { width: 38px; height: 38px; }
-      .metric-icon { font-size: 1.1rem; }
-    }
-  </style>
+  <?php echo themeCssLink('home-body.css'); /* CSS ຍ້າຍໄປ themes/home-body.css */ ?>
 
   <!-- Row 2: 2 Primary Charts (Monthly Revenue for Selected Year & Yearly Sales Comparison) -->
   <div class="row mb-4">

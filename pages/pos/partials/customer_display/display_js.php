@@ -206,9 +206,20 @@ var CD_BANKS = <?php
 ?>;
 
 // ເດັ້ງ QR ທະນາຄານທີ່ພະນັກງານເລືອກ ຕອນລູກຄ້າຊຳລະດ້ວຍການໂອນ (payment_live ຈາກ pos_checkout_js.php)
+// ໄຮໄລ້ບັດ QR ຂອງທະນາຄານທີ່ເລືອກໃນແຜງ (ອັນອື່ນຈາງລົງ) — ຄຽງຄູ່ກັບ popup QR ໃຫຍ່
+function highlightPayBank(bankId) {
+  var $wrap = $('#payQrWrap');
+  if (!$wrap.length) return;
+  $wrap.find('.pay-qr-card').removeClass('is-selected');
+  var $hit = bankId ? $wrap.find('.pay-qr-card[data-bank-id="' + parseInt(bankId, 10) + '"]') : $();
+  $hit.addClass('is-selected');
+  $wrap.toggleClass('has-selection', $hit.length > 0);
+}
+
 function renderBankPopup(data) {
   var $pop = $('#bankPayPopup');
   var b = (data && data.checkoutState === 'payment_live') ? data.payBank : null;
+  highlightPayBank(b ? b.id : null);
   if (!b) { $pop.hide(); return; }
   var local = CD_BANKS[b.id] || {};
   var qr = local.qr || b.qr || '';
@@ -329,5 +340,6 @@ function renderDisplayData(data) {
   animateNumber('displayCashReceived', cashRec);
   animateNumber('displayQrReceived', qrRec);
   animateNumber('displayChangeAmount', changeAmt);
+
 }
 </script>

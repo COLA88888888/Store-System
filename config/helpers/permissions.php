@@ -84,6 +84,7 @@ if (!function_exists('hasPermission')) {
             'import_stock'     => 'import_stock',
             'import_list'      => 'import_list',
             'stock_check'      => 'stock_check',
+            'stock_count'      => 'stock_count',
             'reports'          => 'report',
             'financial'        => 'financial',
             'daily_report'     => 'report',

@@ -338,6 +338,65 @@
   </td>
 </tr>
 
+<!-- 4.4.1 ເຊັກສະຕັອກ (ຜູ້ຈັດການ): ເບິ່ງ / ເພີ່ມ = ເລີ່ມນັບໃໝ່ / ແກ້ໄຂ = ນັບ + ຢືນຢັນປັບສະຕັອກ / ລົບ = ລຶບໃບທີ່ຍັງບໍ່ຢືນຢັນ -->
+<tr>
+  <td class="pl-4">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-clipboard-check text-success mr-3" style="font-size: 1.2rem; width: 24px;"></i>
+      <div>
+        <div class="font-weight-bold text-dark" style="font-size: 0.95rem;"><?php echo htmlspecialchars(t('permissions.module_stock_check_title', 'ເຊັກສະຕັອກ (ຜູ້ຈັດການ)')); ?></div>
+        <div class="text-muted" style="font-size: 0.8rem;"><?php echo htmlspecialchars(t('permissions.module_stock_check_desc', 'ເພີ່ມ = ເລີ່ມນັບ, ແກ້ໄຂ = ຢືນຢັນປັບສະຕັອກ, ລົບ = ລຶບໃບ')); ?></div>
+      </div>
+    </div>
+  </td>
+  <?php foreach (['view', 'add', 'edit', 'del'] as $scAct): ?>
+  <td class="text-center">
+    <label class="matrix-switch">
+      <input type="checkbox"
+             id="perm_stock_check_<?php echo $scAct; ?>_<?php echo $u['Id']; ?>"
+             data-perm="stock_check"
+             data-user-id="<?php echo $u['Id']; ?>"
+             <?php echo (!empty($u['stock_check']) || $isAdmin) ? 'checked' : ''; ?>
+             <?php echo ($isAdmin) ? 'disabled' : ''; ?>
+             onchange="toggleUserPerm(<?php echo $u['Id']; ?>, 'stock_check', this)">
+      <span class="matrix-slider"></span>
+    </label>
+  </td>
+  <?php endforeach; ?>
+</tr>
+
+<!-- 4.4.2 ນັບສະຕັອກ (ພະນັກງານນັບ): ເບິ່ງ = ເບິ່ງໃບ/ປະຫວັດ + Excel/PDF/ພິມ, ແກ້ໄຂ = ປ້ອນ/ບັນທຶກຈຳນວນຕົວຈິງ.
+     ເລີ່ມນັບ, ຢືນຢັນ ແລະ ລຶບ ບໍ່ມີ — ເປັນຂອງຜູ້ຈັດການ (ແຖວເທິງ). ບໍ່ເຫັນຜົນການນັບຈົນກວ່າໃບຈະຢືນຢັນ. -->
+<tr>
+  <td class="pl-4">
+    <div class="d-flex align-items-center">
+      <i class="fas fa-user-check text-info mr-3" style="font-size: 1.2rem; width: 24px;"></i>
+      <div>
+        <div class="font-weight-bold text-dark" style="font-size: 0.95rem;"><?php echo htmlspecialchars(t('permissions.module_stock_count_title', 'ນັບສະຕັອກ (ພະນັກງານນັບ)')); ?></div>
+        <div class="text-muted" style="font-size: 0.8rem;"><?php echo htmlspecialchars(t('permissions.module_stock_count_desc', 'ປ້ອນຈຳນວນຕົວຈິງ, ສົ່ງອອກ/ພິມລາຍງານ ເທົ່ານັ້ນ')); ?></div>
+      </div>
+    </div>
+  </td>
+  <?php foreach (['view' => true, 'add' => false, 'edit' => true, 'del' => false] as $scAct => $scHas): ?>
+  <td class="text-center">
+    <?php if ($scHas): ?>
+    <label class="matrix-switch">
+      <input type="checkbox"
+             id="perm_stock_count_<?php echo $scAct; ?>_<?php echo $u['Id']; ?>"
+             data-perm="stock_count"
+             data-user-id="<?php echo $u['Id']; ?>"
+             <?php echo (!empty($u['stock_count']) || $isAdmin) ? 'checked' : ''; ?>
+             <?php echo ($isAdmin) ? 'disabled' : ''; ?>
+             onchange="toggleUserPerm(<?php echo $u['Id']; ?>, 'stock_count', this)">
+      <span class="matrix-slider"></span>
+    </label>
+    <?php else: ?>
+    <span class="badge badge-light text-muted"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span>
+    <?php endif; ?>
+  </td>
+  <?php endforeach; ?>
+</tr>
+
 <!-- 4.5 ໂອນສິນຄ້າລະຫວ່າງສາຂາ -->
 <tr>
   <td class="pl-4">

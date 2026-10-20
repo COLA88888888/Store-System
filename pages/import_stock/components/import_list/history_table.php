@@ -164,38 +164,7 @@
           </x:ExcelWorkbook>
         </xml>
         <![endif]-->
-        <style>
-          body, table, td, th {
-            font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-            font-size: 11pt !important;
-          }
-          table {
-            border-collapse: collapse !important;
-            width: 100% !important;
-          }
-          th {
-            background-color: #007bff !important;
-            color: #ffffff !important;
-            font-weight: bold !important;
-            text-align: center !important;
-            padding: 10px 14px !important;
-            border: 1px solid #0056b3 !important;
-            height: 36px !important;
-            vertical-align: middle !important;
-            white-space: nowrap !important;
-          }
-          td {
-            padding: 8px 12px !important;
-            border: 1px solid #cbd5e1 !important;
-            vertical-align: middle !important;
-            white-space: nowrap !important;
-          }
-          .badge {
-            background: none !important;
-            border: none !important;
-            color: inherit !important;
-          }
-        </style>
+        <?php echo themeCssLink('import-list-history.css'); /* CSS ຍ້າຍໄປ themes/import-list-history.css */ ?>
       </head>
       <body>
         ${tableHtml}

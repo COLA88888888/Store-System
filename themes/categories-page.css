@@ -1,0 +1,17 @@
+/* ============================================================
+   categories-page.css
+   ຍ້າຍອອກມາຈາກ <style> ໃນ pages/categories/categories.php — ຖືກເອີ້ນຢູ່ຈຸດເດີມດ້ວຍ themeCssLink()
+   (config/helpers/theme_css.php) ສະນັ້ນ ລຳດັບ cascade ຄືເກົ່າ.
+   ============================================================ */
+          /* themes/users.css forces .card-footer into a centered column on mobile (for a
+             different page's pagination) — this ID-scoped override always wins over that
+             class-only rule regardless of viewport width, keeping this footer's nav pinned
+             to the right as requested. */
+          #catPagFooter {
+            flex-direction: row !important;
+            text-align: left !important;
+          }
+          #catPagFooter > nav {
+            margin-left: auto !important;
+          }
+        

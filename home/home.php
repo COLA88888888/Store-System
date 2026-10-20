@@ -49,14 +49,7 @@ require_once __DIR__ . '/../layouts/header.php';
 
 <link rel="stylesheet" href="../themes/reports.css?v=<?php echo filemtime(__DIR__ . '/../themes/reports.css'); ?>">
 
-<style>
-  .home-period-group { display: inline-flex; height: 38px; padding: 3px; gap: 3px; border-radius: 8px; border: 1.5px solid #2563eb; background: #eff6ff; }
-  .home-period-btn { border: 0; background: transparent; color: #1e40af; font-weight: 700; font-size: 0.82rem; padding: 0 12px; border-radius: 6px; white-space: nowrap; cursor: pointer; transition: background .15s, color .15s; }
-  .home-period-btn:hover { background: #dbeafe; }
-  .home-period-btn.active { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #ffffff; box-shadow: 0 2px 6px rgba(37,99,235,0.3); }
-  .home-period-btn:focus { outline: none; }
-  .home-year-select { width: auto; min-width: 0; padding-right: 26px; }
-</style>
+<?php echo themeCssLink('home.css'); /* CSS ຍ້າຍໄປ themes/home.css */ ?>
 <script>
   // ຕັ້ງຊ່ວງວັນທີຕາມປຸ່ມທີ່ກົດ ແລ້ວສົ່ງຟອມ — ມື້ນີ້/ເດືອນນີ້ ບັງຄັບເປັນປີປັດຈຸບັນ, ທັງປີ ໃຊ້ປີທີ່ເລືອກຢູ່
   function homeSetPeriod(period, form) {

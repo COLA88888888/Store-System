@@ -103,10 +103,7 @@ $canViewReport = hasPermission('report') || hasPermission('expiry');
 require_once __DIR__ . '/../../../layouts/header.php';
 ?>
 
-<style>
-  .ex-card { border-radius: 12px; border: 1.5px solid #e2e8f0 !important; background: #ffffff; }
-  .ex-code-badge { display: inline-block; padding: 2px 10px; border-radius: 6px; background: #eff6ff; color: #1d4ed8; font-weight: 700; font-size: 0.8rem; }
-</style>
+<?php echo themeCssLink('settings-expiry.css'); /* CSS ຍ້າຍໄປ themes/settings-expiry.css */ ?>
 
 <div class="container-fluid p-3 p-md-4">
   <!-- Header -->

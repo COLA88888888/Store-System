@@ -118,6 +118,10 @@ if ($conn && !empty($_SESSION['user_id'])) {
             'products' => $isAdmin ? 1 : (int)($refresh_row['products'] ?? 0),
             'suppliers' => $isAdmin ? 1 : (int)($refresh_row['suppliers'] ?? $refresh_row['products'] ?? 0),
             'import_stock' => $isAdmin ? 1 : (int)($refresh_row['import_stock'] ?? 0),
+            // ເຊັກສະຕັອກ — ກ່ອນມີຄໍລຳຂອງຕົນເອງ ໃຊ້ສິດ products ແທນ
+            'stock_check' => $isAdmin ? 1 : (int)($refresh_row['stock_check'] ?? $refresh_row['products'] ?? 0),
+            // ນັບສະຕັອກ (ພະນັກງານນັບ): ປ້ອນຈຳນວນຕົວຈິງ + ລາຍງານ ເທົ່ານັ້ນ
+            'stock_count' => $isAdmin ? 1 : (int)($refresh_row['stock_count'] ?? 0),
             'import_list' => $isAdmin ? 1 : (int)($refresh_row['import_list'] ?? 0),
             'report' => $isAdmin ? 1 : (int)($refresh_row['report'] ?? 0),
             'daily_report' => $isAdmin ? 1 : (int)($refresh_row['daily_report'] ?? $refresh_row['report'] ?? 0),

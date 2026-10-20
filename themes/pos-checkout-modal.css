@@ -1,0 +1,35 @@
+/* ============================================================
+   pos-checkout-modal.css
+   ຍ້າຍອອກມາຈາກ <style> ໃນ pages/pos/partials/checkout_modal.php — ຖືກເອີ້ນຢູ່ຈຸດເດີມດ້ວຍ themeCssLink()
+   (config/helpers/theme_css.php) ສະນັ້ນ ລຳດັບ cascade ຄືເກົ່າ.
+   ============================================================ */
+              @keyframes checkoutTotalGlow {
+                0%, 100% { box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35), 0 0 0 1px rgba(255,255,255,0.2) inset; }
+                50%      { box-shadow: 0 6px 26px rgba(37, 99, 235, 0.55), 0 0 0 1px rgba(255,255,255,0.3) inset; }
+              }
+              .checkout-total-card {
+                position: relative;
+                overflow: hidden;
+                border-radius: 14px;
+                padding: 14px 16px;
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%);
+                animation: checkoutTotalGlow 2.6s ease-in-out infinite;
+              }
+              .checkout-total-card::before {
+                content: '';
+                position: absolute;
+                top: -40%; right: -15%;
+                width: 140px; height: 140px;
+                background: radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 70%);
+                pointer-events: none;
+              }
+              .checkout-total-icon {
+                width: 30px; height: 30px;
+                background: rgba(255,255,255,0.20);
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 4px;
+              }
+            

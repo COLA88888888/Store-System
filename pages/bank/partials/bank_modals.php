@@ -39,17 +39,7 @@ if (!defined('MINIPOS_APP')) {
             <input type="text" name="account_name" id="form_account_name" class="form-control" placeholder="<?php echo htmlspecialchars(t('bank.placeholder_account_name', 'ກະລຸນາປ້ອນຊື່ບັນຊີທະນາຄານ...')); ?>" required autocomplete="off" style="border-radius: 8px;">
           </div>
 
-          <style>
-            .bank-img-pick { position: relative; width: 84px; height: 84px; padding: 4px; border: 2px dashed #cbd5e1; border-radius: 10px; background: #f8fafc; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-            .bank-img-pick:hover { border-color: #2c5aa0; }
-            .bank-img-pick img { max-width: 100%; max-height: 100%; object-fit: contain; display: none; border-radius: 6px; }
-            .bank-img-pick.has-img { border-style: solid; background: #fff; }
-            .bank-img-pick.has-img img { display: block; }
-            .bank-img-pick.has-img .bank-img-empty { display: none; }
-            .bank-img-empty { color: #94a3b8; text-align: center; font-size: 0.68rem; line-height: 1.2; }
-            .bank-img-remove { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; border: none; background: #dc3545; color: #fff; font-size: 14px; line-height: 20px; padding: 0; display: none; box-shadow: 0 1px 4px rgba(0,0,0,.3); }
-            .bank-img-pick.has-img .bank-img-remove { display: block; }
-          </style>
+          <?php echo themeCssLink('bank-modals.css'); /* CSS ຍ້າຍໄປ themes/bank-modals.css */ ?>
           <div class="row">
             <div class="col-6">
               <div class="form-group mb-0">

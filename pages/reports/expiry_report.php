@@ -115,57 +115,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 ?>
 
 <link rel="stylesheet" href="../../themes/reports.css?v=<?php echo filemtime(__DIR__ . '/../../themes/reports.css'); ?>">
-<style>
-  .exr { font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; color: #1e293b; }
-  .exr-title { font-size: 1.15rem; font-weight: 700; margin: 0; }
-  .exr-sub { font-size: 0.82rem; color: #64748b; }
-
-  /* Summary tiles double as the status filter */
-  .exr-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-  @media (max-width: 767.98px) { .exr-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  .exr-stat { position: relative; display: block; overflow: hidden; background: linear-gradient(135deg, var(--c), var(--d)); border-radius: 12px; padding: 16px 16px 14px; color: #fff; text-decoration: none !important; margin: 5px; box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--c), 0 6px 16px rgba(15, 23, 42, .14); }
-  .exr-stat::after { content: ''; position: absolute; right: -24px; bottom: -34px; width: 110px; height: 110px; border-radius: 50%; background: rgba(255, 255, 255, .1); }
-  .exr-stat:hover { color: #fff; }
-  .exr-stat .top { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-  .exr-stat .lbl { font-size: 0.84rem; font-weight: 700; color: rgba(255, 255, 255, .95); line-height: 1.35; }
-  .exr-stat .ico { width: 42px; height: 42px; flex-shrink: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, .22); color: #fff; font-size: 1.1rem; }
-  .exr-stat .num { font-size: 1.8rem; font-weight: 800; line-height: 1.2; margin-top: 4px; color: #fff; }
-  .exr-stat .num small { font-size: 0.8rem; font-weight: 600; color: rgba(255, 255, 255, .85); margin-left: 4px; }
-  .exr-stat .pct { position: relative; z-index: 1; font-size: 0.76rem; color: rgba(255, 255, 255, .85); margin-top: 6px; }
-  @media (max-width: 767.98px) { .exr-stat .ico { width: 34px; height: 34px; font-size: .9rem; } .exr-stat .num { font-size: 1.4rem; } }
-
-  .exr-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; }
-  .exr-filters { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
-  .exr-filters label { font-size: 0.76rem; color: #64748b; margin-bottom: 3px; display: block; }
-  .exr-filters .form-control { height: 36px; border-radius: 8px; font-size: 0.86rem; border-color: #e2e8f0; }
-  .exr-filters .btn { height: 36px; border-radius: 8px; font-size: 0.86rem; }
-
-  .exr-table { margin: 0; font-size: 0.87rem; }
-  .exr-table thead th { background: #f8fafc; color: #64748b; font-size: 0.78rem; font-weight: 600; border-top: 0; border-bottom: 1px solid #e2e8f0; padding: 10px 12px; white-space: nowrap; }
-  .exr-table td { padding: 10px 12px; vertical-align: middle; border-top: 1px solid #f1f5f9; }
-  .exr-table tbody tr:hover { background: #fafbfc; }
-  .exr-name { font-weight: 600; }
-  .exr-meta { font-size: 0.76rem; color: #94a3b8; }
-  .exr-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
-  .exr-pill.danger  { background: #fef2f2; color: #b91c1c; }
-  .exr-pill.warning { background: #fffbeb; color: #b45309; }
-  .exr-pill.success { background: #f0fdf4; color: #15803d; }
-  .exr-pill.muted   { background: #f1f5f9; color: #64748b; }
-  .exr-remaining { font-weight: 600; white-space: nowrap; }
-
-  .exr-foot { padding: 10px 14px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-  .exr-foot .page-link { border-radius: 6px !important; margin: 0 2px; border-color: #e2e8f0; color: #334155; }
-  .exr-foot .page-item.active .page-link { background: #244886; border-color: #244886; color: #fff; }
-
-  .print-only { display: none; }
-  @media print {
-    .no-print { display: none !important; }
-    .print-only { display: block !important; }
-    .container-fluid { padding: 0 !important; }
-    .exr-panel { border: none !important; }
-    .exr-table { font-size: 11px !important; }
-  }
-</style>
+<?php echo themeCssLink('expiry_report.css'); /* CSS ຍ້າຍໄປ themes/expiry_report.css */ ?>
 
 <?php
 $statColors = ['all' => '#2c5aa0', 'expired' => '#dc2626', 'near' => '#d97706', 'normal' => '#16a34a'];

@@ -52,10 +52,7 @@ require __DIR__ . '/partials/data.php';
 require_once __DIR__ . '/../../../layouts/header.php';
 ?>
 
-<style>
-  .lp-card { border-radius: 12px; border: 1.5px solid #e2e8f0 !important; background: #ffffff; }
-  .lp-code-badge { display: inline-block; padding: 2px 10px; border-radius: 6px; background: #eff6ff; color: #1d4ed8; font-weight: 700; font-size: 0.8rem; }
-</style>
+<?php echo themeCssLink('settings-loyalty.css'); /* CSS ຍ້າຍໄປ themes/settings-loyalty.css */ ?>
 
 <?php require __DIR__ . '/partials/page_body.php'; /* ສ່ວນສະແດງຜົນ */ ?>
 <script>

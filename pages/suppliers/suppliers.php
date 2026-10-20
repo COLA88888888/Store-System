@@ -254,19 +254,7 @@ require_once __DIR__ . '/../../layouts/header.php';
   </section>
 </div>
 
-<style>
-.pagination-circle { display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; }
-.pagination-circle .page-item { margin: 0; }
-.pagination-circle .page-link {
-  width: 38px; height: 38px; border-radius: 50% !important; display: flex; align-items: center; justify-content: center;
-  padding: 0; font-size: 0.95rem; font-weight: 700; color: #94a3b8; background-color: #f8fafc; border: 1px solid #edf2f7;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-decoration: none; cursor: pointer;
-}
-.pagination-circle .page-link:hover { color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15); }
-.pagination-circle .page-item.active .page-link { color: #fff !important; background: #2563eb !important; border-color: #2563eb !important; box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45) !important; transform: scale(1.04); }
-.pagination-circle .page-item.disabled .page-link { color: #cbd5e1 !important; background-color: #f8fafc !important; border-color: #f1f5f9 !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; opacity: 0.9; }
-.pagination-circle .page-link i { font-size: 0.85rem; font-weight: 900; }
-</style>
+<?php echo themeCssLink('suppliers.css'); /* CSS ຍ້າຍໄປ themes/suppliers.css */ ?>
 
 <!-- Add / Edit Supplier Modal -->
 <div class="modal fade" id="supplierModal" tabindex="-1" role="dialog" aria-hidden="true">

@@ -27,7 +27,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../lang/translator.php';
 
 $base_path = '../';
-$site_name = 'Wlaodev POS';
+$site_name = 'Store Wlaodev POS';
 $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
 
 // Own-account access expiry (owner-only field, set from Users Management). Two flavors:
@@ -83,6 +83,8 @@ if (!hasPermission('dashboard')) {
         $default_iframe_src = '../pages/categories/categories.php';
     } elseif (hasPermission('products')) {
         $default_iframe_src = '../pages/products/products.php';
+    } elseif (hasPermission('stock_check') || hasPermission('stock_count')) {
+        $default_iframe_src = '../pages/stock_check/stock_check.php';
     } elseif (hasPermission('import_stock')) {
         $default_iframe_src = '../pages/import_stock/import_stock.php';
     } elseif (hasPermission('import_list')) {
@@ -168,6 +170,7 @@ if (!hasPermission('dashboard')) {
 <?php require __DIR__ . '/partials/dashboard/navbar.php'; /* ແຖບເມນູດ້ານເທິງ (Navbar) */ ?>
 <?php require __DIR__ . '/partials/dashboard/js_language.php'; /* JS: ປ່ຽນພາສາທັນທີ */ ?>
 <?php require __DIR__ . '/partials/dashboard/js_notifications.php'; /* JS: ແຈ້ງເຕືອນ */ ?>
+<?php require __DIR__ . '/partials/dashboard/js_stock_check_notif.php'; /* JS: ແຈ້ງເຕືອນເຊັກສະຕັອກ (ສົ່ງກວດ / ອະນຸມັດແລ້ວ) */ ?>
 <?php require __DIR__ . '/partials/dashboard/js_notification_polling.php'; /* JS: ດຶງແຈ້ງເຕືອນແບບ realtime ແລະ ໂມງ */ ?>
   <!-- /.navbar -->
 
@@ -179,46 +182,7 @@ if (!hasPermission('dashboard')) {
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper" style="background-color: #f4f6f9; position: relative;">
     <!-- Page Loading Spinner Overlay (12-Dot Pulse Circle Spinner from Screenshot) -->
-    <style>
-      .loader-dots-spinner {
-        color: #0263ff;
-        display: inline-block;
-        position: relative;
-        width: 56px;
-        height: 56px;
-      }
-      .loader-dots-spinner div {
-        transform-origin: 28px 28px;
-        animation: loader-dots-spinner-anim 1.2s linear infinite;
-      }
-      .loader-dots-spinner div:after {
-        content: " ";
-        display: block;
-        position: absolute;
-        top: 4px;
-        left: 25px;
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #0263ff;
-      }
-      .loader-dots-spinner div:nth-child(1) { transform: rotate(0deg); animation-delay: -1.1s; }
-      .loader-dots-spinner div:nth-child(2) { transform: rotate(30deg); animation-delay: -1s; }
-      .loader-dots-spinner div:nth-child(3) { transform: rotate(60deg); animation-delay: -0.9s; }
-      .loader-dots-spinner div:nth-child(4) { transform: rotate(90deg); animation-delay: -0.8s; }
-      .loader-dots-spinner div:nth-child(5) { transform: rotate(120deg); animation-delay: -0.7s; }
-      .loader-dots-spinner div:nth-child(6) { transform: rotate(150deg); animation-delay: -0.6s; }
-      .loader-dots-spinner div:nth-child(7) { transform: rotate(180deg); animation-delay: -0.5s; }
-      .loader-dots-spinner div:nth-child(8) { transform: rotate(210deg); animation-delay: -0.4s; }
-      .loader-dots-spinner div:nth-child(9) { transform: rotate(240deg); animation-delay: -0.3s; }
-      .loader-dots-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s; }
-      .loader-dots-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s; }
-      .loader-dots-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s; }
-      @keyframes loader-dots-spinner-anim {
-        0% { opacity: 1; }
-        100% { opacity: 0.15; }
-      }
-    </style>
+    <?php echo themeCssLink('dashboard-preloader.css'); /* CSS ຍ້າຍໄປ themes/dashboard-preloader.css */ ?>
     <div id="iframeLoaderOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.94); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
       <div class="loader-dots-spinner">
         <div></div><div></div><div></div><div></div>
@@ -231,16 +195,7 @@ if (!hasPermission('dashboard')) {
     </div>
 
     <iframe width="100%" height="100%" frameborder="0" name="frame" src="<?php echo $default_iframe_src; ?>" style="background-color: #f4f6f9;"></iframe>
-    <style>
-      .content-wrapper {
-        height: calc(var(--app-vh, 1vh) * 100 - 64px - 42px) !important;
-      }
-      @media (max-width: 991.98px) {
-        .content-wrapper {
-          height: calc(var(--app-vh, 1vh) * 100 - 64px - 42px) !important;
-        }
-      }
-    </style>
+    <?php echo themeCssLink('dashboard-frame.css'); /* CSS ຍ້າຍໄປ themes/dashboard-frame.css */ ?>
     <script>
       // 100vh on tablet/mobile browsers can include area hidden behind the address bar/toolbar,
       // which made the content-wrapper (and anything pinned to its bottom, like the POS action

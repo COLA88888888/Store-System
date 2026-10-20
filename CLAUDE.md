@@ -131,6 +131,8 @@ Third-party libs live in `plugins/` (jQuery, Bootstrap, SweetAlert2, Select2, Fo
 
 Stylesheets are cache-busted with `?v=<?php echo filemtime(__DIR__ . '/../../themes/x.css'); ?>`. A wrong relative depth here doesn't just 404 the stylesheet — `filemtime()` warns into the Apache log and prints into the page.
 
+Page CSS does not live in inline `<style>` blocks any more: it sits in `themes/` and is linked with `<?php echo themeCssLink('x.css'); ?>` (`config/helpers/theme_css.php`), which builds the path from `$base_path` and adds the `filemtime` cache-buster. Each former block is linked at the exact spot it used to be, so cascade order is unchanged — keep new CSS the same way. The only inline `<style>` left is inside JS strings that build a separate document (receipt/kitchen/barcode print windows, Excel/PDF exports in `reports_js.php` and `stock_check/partials/export_js.php`); those must stay inline because an external stylesheet won't load in time in a print iframe or at all in an exported `.xls`.
+
 ## Gotchas
 
 - **`pages/settings/*/` has duplicate entry points.** The sidebar always links to `index.php`. In some folders `index.php` is a shim that requires `<name>.php`; in others (`stores`, `printers`) `index.php` holds the live code and `<name>.php` is a stale near-copy. Trace from `index.php` before editing, or the change won't show up.

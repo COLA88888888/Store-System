@@ -21,7 +21,7 @@ $rcP      = $rcP ?? 'rc_';
           <img src="<?php echo htmlspecialchars($logoPath); ?>" alt="Logo" class="receipt-logo"
             style="max-width:90px;height:auto;max-height:90px;object-fit:contain;margin:10px auto 12px auto;display:block;"
             onerror="this.onerror=null;this.src='<?php echo $base_path; ?>assets/img/logo/logo.png';">
-          <h6 class="mb-0" style="font-size:20px;color:#000;font-weight:400;"><?php echo htmlspecialchars($company['com_name_la']); ?></h6>
+          <h6 class="mb-0 rc-strong" style="font-size:20px;color:#000;font-weight:700;"><?php echo htmlspecialchars($company['com_name_la']); ?></h6>
           <div class="receipt-header-address" style="font-size:15px;font-weight:400;color:#000;line-height:1.4;margin-top:2px;"><?php
             // The province ("ນະຄອນຫຼວງວຽງຈັນ", "ແຂວງ…") always starts its own line, so the address
             // never breaks in the middle of it on narrow paper.
@@ -49,15 +49,15 @@ $rcP      = $rcP ?? 'rc_';
         <table style="width:100%;font-size:15px;color:#000;">
           <thead>
             <tr class="rc-strong" style="border-bottom:1px dashed #000;">
-              <th style="text-align:left;padding-bottom:3px;font-weight:700;color:#000;"><?php echo htmlspecialchars(t('pos.receipt_col_item', 'ລາຍການ')); ?></th>
-              <th style="text-align:center;padding-bottom:3px;font-weight:700;width:50px;color:#000;"><?php echo htmlspecialchars(t('pos.receipt_col_qty', 'ຈຳນວນ')); ?></th>
-              <th style="text-align:right;padding-bottom:3px;font-weight:700;width:75px;color:#000;"><?php echo htmlspecialchars(t('pos.receipt_col_price', 'ລາຄາ')); ?></th>
+              <th style="text-align:left;padding-bottom:3px;font-weight:400;color:#000;"><?php echo htmlspecialchars(t('pos.receipt_col_item', 'ລາຍການ')); ?></th>
+              <th style="text-align:center;padding-bottom:3px;font-weight:400;width:50px;color:#000;"><?php echo htmlspecialchars(t('pos.receipt_col_qty', 'ຈຳນວນ')); ?></th>
+              <th style="text-align:right;padding-bottom:3px;font-weight:400;width:75px;color:#000;"><?php echo htmlspecialchars(t('pos.receipt_col_price', 'ລາຄາ')); ?></th>
             </tr>
           </thead>
           <tbody id="<?php echo $rcP; ?>items" style="color:#000;font-weight:400;"></tbody>
         </table>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-        <div id="<?php echo $rcP; ?>payment_rows" style="color:#000;font-weight:400;">
+        <div id="<?php echo $rcP; ?>payment_rows" class="rc-strong" style="color:#000;font-weight:700;">
           <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>cash_row"><span><?php echo htmlspecialchars(t('pos.receipt_cash_received', 'ຮັບເງິນສົດ:')); ?></span><span id="<?php echo $rcP; ?>cash_amt">0 ₭</span></div>
           <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>qr_row"><span><?php echo htmlspecialchars(t('pos.receipt_transfer_received', 'ຮັບເງິນໂອນ:')); ?></span><span id="<?php echo $rcP; ?>qr_amt">0 ₭</span></div>
           <div class="d-flex justify-content-between rc-strong" id="<?php echo $rcP; ?>credit_row" style="display:none !important;font-weight:700;"><span><?php echo htmlspecialchars(t('pos.receipt_credit', 'ຕິດໜີ້ (ຄ້າງຊຳລະ):')); ?></span><span id="<?php echo $rcP; ?>credit_amt">0 ₭</span></div>
@@ -68,7 +68,7 @@ $rcP      = $rcP ?? 'rc_';
         <div class="d-flex justify-content-between" style="color:#000;font-weight:400;"><span><?php echo htmlspecialchars(t('pos.receipt_discount', 'ສ່ວນຫຼຸດ:')); ?></span><span id="<?php echo $rcP; ?>discount">0 ₭</span></div>
         <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>points_discount_row" style="color:#000;font-weight:400;display:none;font-size:0.92em;"><span>&nbsp;&nbsp;<?php echo htmlspecialchars(t('pos.receipt_points_discount', '(ໃນນັ້ນ ແລກຄະແນນ:')); ?></span><span><span id="<?php echo $rcP; ?>points_discount">0 ₭</span>)</span></div>
         <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>vat_row" style="color:#000;font-weight:400;display:none;"><span id="<?php echo $rcP; ?>vat_label"><?php echo htmlspecialchars(t('pos.receipt_vat', 'ອມພ (VAT):')); ?></span><span id="<?php echo $rcP; ?>vat">0 ₭</span></div>
-        <div class="d-flex justify-content-between font-weight-bold rc-strong" style="font-size:19px;color:#000;font-weight:700;"><span><?php echo htmlspecialchars(t('pos.receipt_net_total', 'ຍອດສຸດທິ:')); ?></span><span id="<?php echo $rcP; ?>total">0 ₭</span></div>
+        <div class="d-flex justify-content-between rc-strong" style="font-size:19px;color:#000;font-weight:400;"><span><?php echo htmlspecialchars(t('pos.receipt_net_total', 'ຍອດສຸດທິ:')); ?></span><span id="<?php echo $rcP; ?>total">0 ₭</span></div>
         <!-- ຍອດຊຳລະສຸດທິ ໃນ 4 ສະກຸນເງິນ (ຄິດຈາກກີບ × ອັດຕາລ່າສຸດ) -->
         <div id="<?php echo $rcP; ?>multicur" style="color:#000;font-weight:400;font-size:14.5px;margin-top:4px;border-top:1px dotted #000;padding-top:4px;">
           <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cur_kip', 'ກີບ (LAK):')); ?></span><span id="<?php echo $rcP; ?>total_kip">0 ₭</span></div>
@@ -77,10 +77,10 @@ $rcP      = $rcP ?? 'rc_';
           <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cur_cny', 'ຢວນ (CNY):')); ?></span><span id="<?php echo $rcP; ?>total_cny">-</span></div>
         </div>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-        <div class="d-flex justify-content-between font-weight-bold rc-strong" style="color:#000;font-weight:700;"><span><?php echo htmlspecialchars(t('pos.change_label', 'ເງິນທອນ:')); ?></span><span id="<?php echo $rcP; ?>change">0 ₭</span></div>
-        <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>points_redeem_row" style="color:#000;font-weight:400;display:none;"><span><?php echo htmlspecialchars(t('pos.receipt_points_redeemed', 'ຄະແນນທີ່ແລກ:')); ?></span><span id="<?php echo $rcP; ?>points_redeemed" style="font-weight:700;">0</span></div>
-        <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>points_row" style="color:#000;font-weight:400;display:none;"><span><?php echo htmlspecialchars(t('pos.receipt_points_earned', 'ຄະແນນທີ່ໄດ້ຮັບ:')); ?></span><span id="<?php echo $rcP; ?>points_earned" style="font-weight:700;">0</span></div>
-        <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>points_balance_row" style="color:#000;font-weight:400;display:none;"><span><?php echo htmlspecialchars(t('pos.receipt_points_balance', 'ຄະແນນຄົງເຫຼືອ:')); ?></span><span id="<?php echo $rcP; ?>points_balance" style="font-weight:700;">0</span></div>
+        <div class="d-flex justify-content-between rc-strong" style="color:#000;font-weight:400;"><span><?php echo htmlspecialchars(t('pos.change_label', 'ເງິນທອນ:')); ?></span><span id="<?php echo $rcP; ?>change">0 ₭</span></div>
+        <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>points_redeem_row" style="color:#000;font-weight:400;display:none;"><span><?php echo htmlspecialchars(t('pos.receipt_points_redeemed', 'ຄະແນນທີ່ແລກ:')); ?></span><span id="<?php echo $rcP; ?>points_redeemed" style="font-weight:400;">0</span></div>
+        <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>points_row" style="color:#000;font-weight:400;display:none;"><span><?php echo htmlspecialchars(t('pos.receipt_points_earned', 'ຄະແນນທີ່ໄດ້ຮັບ:')); ?></span><span id="<?php echo $rcP; ?>points_earned" style="font-weight:400;">0</span></div>
+        <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>points_balance_row" style="color:#000;font-weight:400;display:none;"><span><?php echo htmlspecialchars(t('pos.receipt_points_balance', 'ຄະແນນຄົງເຫຼືອ:')); ?></span><span id="<?php echo $rcP; ?>points_balance" style="font-weight:400;">0</span></div>
         <!-- ໃຕ້ເງິນທອນ ມີເສັ້ນຂີດດຽວ: ເສັ້ນເທິງຂອງຂໍ້ຄວາມຂອບໃຈ (.receipt-footer-msg). ຖ້າມີ QR, ກ່ອງ QR
              ມີເສັ້ນເທິງຂອງມັນເອງ (ຕັ້ງໃນ pages/pos/partials/js/checkout/receipt_ui.php). -->
         <?php
@@ -93,7 +93,7 @@ $rcP      = $rcP ?? 'rc_';
           <img id="<?php echo $rcP; ?>bank_qr_img" <?php if ($storeQrPath !== ''): ?>src="<?php echo htmlspecialchars($storeQrPath); ?>"<?php endif; ?> alt="QR Code" class="receipt-qr-img"
                style="width:50%;max-width:50%;height:auto;object-fit:contain;margin:4px auto 2px auto;display:<?php echo $storeQrPath !== '' ? 'block' : 'none'; ?>;"
                onerror="this.removeAttribute('src');this.style.display='none';">
-          <div id="<?php echo $rcP; ?>bank_name_lbl" style="font-size:15px;font-weight:800;color:#000;margin-top:3px;"><?php echo htmlspecialchars(t('pos.scan_qr_to_pay', 'ສະແກນ QR Code ຊຳລະເງິນ')); ?></div>
+          <div id="<?php echo $rcP; ?>bank_name_lbl" style="font-size:15px;font-weight:400;color:#000;margin-top:3px;"><?php echo htmlspecialchars(t('pos.scan_qr_to_pay', 'ສະແກນ QR Code ຊຳລະເງິນ')); ?></div>
         </div>
         <?php
           // The "receipt footer" (tbcompanyinfo.barcode) is seeded with the default thank-you

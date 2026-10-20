@@ -298,6 +298,18 @@ if (!isset($base_path)) {
                   window.showSwitchKeyboardAlert(bad, el);
               }
           }, true);
+
+          // ກົດ F5 / Ctrl+R ໃນໜ້າຍ່ອຍ (iframe) ໃຫ້ຣີເຟຣດສະເພາະໜ້ານີ້ ເພື່ອຮັກສາການເຊື່ອມຕໍ່ Bluetooth ຂອງໜ້າຫຼັກໄວ້
+          window.addEventListener('keydown', function(e) {
+              var isReload = e.key === 'F5' || ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'r' || e.key === 'R'));
+              if (!isReload) return;
+              try {
+                  if (window.top !== window && window.top.MiniposBtPrinter && window.top.MiniposBtPrinter.list().length) {
+                      e.preventDefault();
+                      window.location.reload();
+                  }
+              } catch (x) {}
+          }, true);
       })();
     </script>
   </body>

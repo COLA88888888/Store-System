@@ -92,9 +92,11 @@ require __DIR__ . '/partials/actions.php';
       <h6 class="m-0 font-weight-bold text-dark"><i class="fas fa-server mr-2 text-primary"></i> <?php echo htmlspecialchars(t('printers.mode_title', 'ຮູບແບບການພິມ')); ?></h6>
     </div>
     <div class="card-body px-4 py-3">
+      <div class="row">
+      <div class="col-lg-6 mb-2">
       <form action="" method="POST" class="form-inline mb-2">
         <input type="hidden" name="action" value="set_print_mode">
-        <select name="print_mode" class="form-control mr-2" style="height: 42px; min-width: 320px;">
+        <select name="print_mode" class="form-control mr-2" style="height: 42px; min-width: 280px;">
           <option value="direct" <?php echo $printMode === 'direct' ? 'selected' : ''; ?>>
             <?php echo htmlspecialchars(t('printers.mode_direct', 'ພິມໂດຍກົງ — ລະບົບແລ່ນຢູ່ຄອມໃນຮ້ານ')); ?>
           </option>
@@ -105,11 +107,12 @@ require __DIR__ . '/partials/actions.php';
         <button type="submit" class="btn btn-primary font-weight-bold px-3" style="height: 42px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;"><?php echo htmlspecialchars(t('printers.btn_save', 'ບັນທຶກ')); ?></button>
       </form>
       <small class="text-muted d-block"><?php echo htmlspecialchars(t('printers.mode_hint', 'ເຊີບເວີນອກຮ້ານຕໍ່ຫາປິ່ນເຕີ 192.168.x.x ບໍ່ໄດ້ — ກໍລະນີນັ້ນຕ້ອງໃຊ້ຕົວແທນພິມ')); ?></small>
+      </div>
+      <div class="col-lg-6 mb-2">
 
       <?php // Shown in both modes on purpose: the token has to be copied into the shop PC
             // BEFORE the agent can work, and hiding it until agent mode is picked sends people
             // hunting for something that isn't on screen yet. ?>
-      <hr>
         <div class="mb-2">
           <span class="font-weight-bold text-dark small"><?php echo htmlspecialchars(t('printers.agent_token', 'ລະຫັດຕົວແທນພິມ (ໃສ່ໃນ tools/print-agent.bat):')); ?></span>
           <code class="d-block mt-1 p-2" style="background:#f1f5f9; border-radius:6px; word-break:break-all; font-size:0.85rem;"><?php echo htmlspecialchars($printAgentToken); ?></code>
@@ -121,9 +124,13 @@ require __DIR__ . '/partials/actions.php';
         <span class="badge <?php echo $pendingPrintJobs > 0 ? 'badge-warning' : 'badge-light border text-muted'; ?> ml-2 px-2 py-1">
           <?php echo htmlspecialchars(t('printers.agent_pending', 'ງານພິມຄ້າງ')); ?>: <?php echo $pendingPrintJobs; ?>
         </span>
+      </div>
+      </div>
     </div>
   </div>
   <?php endif; ?>
+
+<?php require __DIR__ . '/partials/bluetooth_card.php'; /* ເຄື່ອງພິມ Bluetooth: ເຊື່ອມຕໍ່ / ສະຖານະ / ທົດສອບ */ ?>
 
   <div class="card border-0 shadow-sm" style="border-radius: 12px; border: 1.5px solid #e2e8f0; background: #ffffff;">
     <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">

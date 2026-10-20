@@ -5,10 +5,48 @@
  * ລາຍລະອຽດບິນ).
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/reports/partials/js/reports_js.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
-?>function reprintReceiptAuto() {
+?>// ພິມບິນຄືນ: ມີເຄື່ອງພິມ Bluetooth ທີ່ຕັ້ງໄວ້ (ເຊື່ອມຢູ່ ຫຼື ເຊື່ອມຄືນໄດ້) → ອອກເຄື່ອງ Bluetooth ທັນທີ (ຮູບບິນດຽວກັບເຄື່ອງພິມທົ່ວໄປ);
+// ບໍ່ດັ່ງນັ້ນ → LAN → ໜ້າຕ່າງພິມ. ຕົວເຊື່ອມຕໍ່ Bluetooth ຢູ່ໜ້າຫຼັກ (home/dashboard.php)
+function reportBtPrinter() {
+  if (window.MiniposBtPrinter) return window.MiniposBtPrinter;
+  try { return (window.top && window.top.MiniposBtPrinter) || (window.parent && window.parent.MiniposBtPrinter) || null; } catch (e) { return null; }
+}
+function reprintReceiptAuto() {
+  var bt = reportBtPrinter();
+  var btCfg = {};
+  try { btCfg = JSON.parse(localStorage.getItem('StoreMini.bt_printer_settings') || '{}') || {}; } catch (e) {}
+  var btOn = bt && bt.list && bt.list().length && (btCfg.enabled === undefined ? true : !!btCfg.enabled);
+  if (btOn && window.MiniposLanReceipt) {
+    var area = document.getElementById('reportReceiptPrintArea');
+    var dots = parseInt(btCfg.paper, 10) === 58 ? 384 : 576;
+    var layoutPx = MiniposLanReceipt.paperPx(80);
+    var rendered = MiniposLanReceipt.toCanvas
+      ? MiniposLanReceipt.toCanvas(area, layoutPx, '../../', REPORT_RCPT_EXTRA_CSS, dots)
+      : MiniposLanReceipt.toImage(area, layoutPx, '../../', REPORT_RCPT_EXTRA_CSS);
+    var conn = bt.isConnected() ? Promise.resolve(true) : bt.reconnect();
+    conn.then(function (ok) {
+      if (!ok) { reprintReceiptFallback(); return; }
+      return rendered.then(function (img) {
+        return bt.printImage(img, { dots: dots });
+      }).then(function () {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: REPORT_LAN_MSG.sent + ' (Bluetooth)', showConfirmButton: false, timer: 1800 });
+        }
+      }).catch(function (err) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'ພິມຜ່ານ Bluetooth ບໍ່ສຳເລັດ — ພິມແບບປົກກະຕິແທນ', text: (err && err.message) || '', showConfirmButton: false, timer: 4000 });
+        }
+        reprintReceiptFallback();
+      });
+    });
+    return;
+  }
+  reprintReceiptFallback();
+}
+function reprintReceiptFallback() {
   var rp = window.REPORT_RECEIPT_PRINTER;
   if (!rp || rp.printer_type !== 'ip' || !window.MiniposLanReceipt) {
-    doPrintReportReceipt();
+    doPrintReportReceiptDialog();
     return;
   }
   MiniposLanReceipt.print(document.getElementById('reportReceiptPrintArea'), rp, { basePath: '../../', extraCss: REPORT_RCPT_EXTRA_CSS }).then(function (r) {

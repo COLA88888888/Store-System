@@ -370,6 +370,9 @@
                 <span id="btnSubmitCreditLbl" style="display:none;"><?php echo htmlspecialchars(t('pos.credit_submit', 'ບັນທຶກຂາຍຕິດໜີ້')); ?></span>
               </button>
             </div>
+            <!-- ເຄື່ອງພິມທີ່ໃບບິນຈະພິມອອກ (receipt_bluetooth.php → btPaintStatus) — ສະແດງສະຖານະຢ່າງດຽວ;
+                 ເຊື່ອມຕໍ່ເຄື່ອງພິມຢູ່ ຕັ້ງຄ່າ > ເຄື່ອງພິມ -->
+            <div class="bt-printer-line text-center small mt-2"></div>
 
           </div><!-- /RIGHT -->
 

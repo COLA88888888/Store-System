@@ -143,14 +143,16 @@
   var tbody = $(P + 'items');
   tbody.empty();
   (details || []).forEach(function (d) {
-    var displayName = d.save_proname || d.product_name || '';
+    var rawName = d.save_proname || d.product_name || '';
     var qty = parseFloat(d.save_qty) || 0;
     var curUnitPrice = parseFloat(d.save_price) || 0;
     var origUnitPrice = (d.save_orig_price !== null && d.save_orig_price !== undefined && d.save_orig_price !== '')
       ? (parseFloat(d.save_orig_price) || 0) : curUnitPrice;
     var totalAmt = parseFloat(d.save_money) || (curUnitPrice * qty);
     var isReward = parseInt(d.is_reward, 10) === 1;
-    var isGift = curUnitPrice === 0 || displayName.indexOf('(ແຖມ)') !== -1;
+    var isGift = curUnitPrice === 0 || rawName.indexOf('(ແຖມ)') !== -1;
+    // ຕັດຂະໜາດ/ຫົວໜ່ວຍໃນວົງເລັບ () ອອກ ເອົາແຕ່ຊື່ສິນຄ້າສັ້ນໆ
+    var displayName = rawName.replace(/\s*\([^)]*\)/g, '').trim() || rawName;
 
     var nameHtml = displayName;
     var priceHtml;
@@ -167,9 +169,12 @@
     } else {
       priceHtml = fmt(totalAmt);
     }
+    var unitVal = REP_CUR.isKip ? Math.round(curUnitPrice) : (curUnitPrice / REP_CUR.rate);
+    var unitPriceTxt = unitVal.toLocaleString('en-US', { minimumFractionDigits: REP_CUR.decimals, maximumFractionDigits: REP_CUR.decimals });
+    var unitSubHtml = '<div style="font-size:0.9em;color:#000;">' + unitPriceTxt + ' x ' + qty + '</div>';
     tbody.append(
       '<tr>' +
-        '<td>' + nameHtml + '</td>' +
+        '<td>' + nameHtml + unitSubHtml + '</td>' +
         '<td class="text-center">x' + qty + '</td>' +
         '<td class="text-right">' + priceHtml + '</td>' +
       '</tr>'
@@ -199,7 +204,13 @@ function printBill(billNo) {
   });
 }
 
+// ປຸ່ມ "ພິມໃບບິນ" ໃນ popup ໃບບິນ: ເຊື່ອມເຄື່ອງພິມ Bluetooth ຢູ່ → ອອກເຄື່ອງ Bluetooth ທັນທີ;
+// ບໍ່ດັ່ງນັ້ນ LAN → ໜ້າຕ່າງພິມ (ລຳດັບດຽວກັບ reprintReceiptAuto ໃນ bill_view.php)
 function doPrintReportReceipt() {
+  reprintReceiptAuto();
+}
+
+function doPrintReportReceiptDialog() {
   var area = document.getElementById("reportReceiptPrintArea");
   // lan-receipt.js missing (e.g. not uploaded to the server): still print, with the images as-is
   if (!window.MiniposLanReceipt) { printReportReceiptHtml(area.innerHTML); return; }
@@ -244,7 +255,7 @@ function printReportReceiptHtml(printContent) {
          ~2.33em top margin and push the shop name far below the logo. */
       h1,h2,h3,h4,h5,h6 { margin: 0 !important; } h6 { font-size: 20px !important; white-space: nowrap; }
       .text-center { text-align: center !important; } .text-right { text-align: right !important; }
-      .font-weight-bold { font-weight: 700 !important; color: #000 !important; }
+      .font-weight-bold { font-weight: 400 !important; color: #000 !important; }
       .small { font-size: 14px !important; color: #000 !important; font-weight: 400 !important; }
       .d-flex { display: flex; } .justify-content-between { justify-content: space-between; }
       [style*="display: none"], [style*="display:none"], .d-none { display: none !important; }
@@ -258,7 +269,7 @@ function printReportReceiptHtml(printContent) {
       img.receipt-qr-img { width:50%!important; max-width:50%!important; max-height:none!important; height:auto!important; display:block; margin:6px auto 2px auto!important; object-fit:contain!important; }
       table { width:100%; border-collapse:collapse; margin:4px 0; font-size:15px !important; color: #000 !important; }
       td,th { padding:4px 0; vertical-align:top; color: #000 !important; font-weight: 400 !important; }
-      th { font-weight: 700 !important; }
+      th { font-weight: 400 !important; }
       .rc-strong, .rc-strong * { font-weight: 400 !important; -webkit-text-stroke: 0.25px #000; }
       #rc_rep_total { font-size: 19px !important; }
       #rc_rep_multicur { font-size: 14.5px !important; }

@@ -173,13 +173,10 @@
   tbody.empty();
   if (res.details && res.details.length > 0) {
     res.details.forEach(function(d) {
-      var uName = d.unit_name || '';
-      var displayName = d.proname || '';
-      if (uName && !displayName.includes('(')) {
-        displayName += ' (' + uName + ')';
-      }
-
-      var isGift = !!d.is_free_gift || d.price === 0 || displayName.includes('(ແຖມ)');
+      var rawName = d.proname || '';
+      var isGift = !!d.is_free_gift || d.price === 0 || rawName.includes('(ແຖມ)');
+      // ຕັດຂະໜາດ/ຫົວໜ່ວຍໃນວົງເລັບ () ອອກ ເອົາແຕ່ຊື່ສິນຄ້າສັ້ນໆ
+      var displayName = rawName.replace(/\s*\([^)]*\)/g, '').trim() || rawName;
       var origUnitPrice = parseFloat(d.original_price || d.price) || 0;
       var curUnitPrice = parseFloat(d.price) || 0;
       var totalAmt = parseFloat(d.total) || (curUnitPrice * d.qty);
@@ -202,9 +199,12 @@
         priceHtml = `${rcMoney(totalAmt)}`;
       }
 
+      var unitPriceTxt = window.POSCUR ? POSCUR.num(curUnitPrice) : Math.round(curUnitPrice).toLocaleString('en-US');
+      var unitSubHtml = `<div style="font-size:0.9em;color:#000;">${unitPriceTxt} x ${d.qty}</div>`;
+
       tbody.append(`
         <tr>
-          <td>${nameHtml}</td>
+          <td>${nameHtml}${unitSubHtml}</td>
           <td class="text-center">x${d.qty}</td>
           <td class="text-right">${priceHtml}</td>
         </tr>

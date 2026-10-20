@@ -1,0 +1,7 @@
+{
+  "Printer001": {
+    "id": "BluetoothLE#BluetoothLE84:fd:d1:a3:16:3b-10:23:81:b6:bc:03",
+    "service": "000018f0-0000-1000-8000-00805f9b34fb",
+    "char": "00002af1-0000-1000-8000-00805f9b34fb"
+  }
+}

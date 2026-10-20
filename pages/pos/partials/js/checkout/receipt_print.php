@@ -20,6 +20,19 @@
 // the bill printed at the sale and a reprint of it always come out the same.
 var POS_RCPT_EXTRA_CSS = ' #rc_total{font-size:19px !important;} #rc_multicur{font-size:14.5px !important;} #rc_bank_name_lbl{font-size:15px !important;}';
 
+// ເປີດໜ້າຂາຍ: ໂຫຼດຟອນໃບບິນ ແລະ ແປງໂລໂກ້/QR ໄວ້ລ່ວງໜ້າ ຕອນໜ້າວ່າງ — ບິນທຳອິດຫຼັງເປີດໜ້າ ບໍ່ຕ້ອງລໍໂຫຼດ
+// (ໃຊ້ໄດ້ທັງ Bluetooth, LAN ແລະ ໜ້າຕ່າງພິມ). ລໍໃຫ້ໜ້າໂຫຼດແລ້ວກ່ອນ ບໍ່ໃຫ້ເປີດໜ້າຊ້າລົງ.
+(function () {
+  function warm() {
+    if (!window.MiniposLanReceipt || !MiniposLanReceipt.warmUp) return;
+    var paper = (window.POS_RECEIPT_PRINTER || {}).paper_width;
+    MiniposLanReceipt.warmUp(document.getElementById('receiptPrintArea'), MiniposLanReceipt.paperPx(paper), '<?php echo $base_path; ?>', POS_RCPT_EXTRA_CSS);
+  }
+  window.addEventListener('load', function () {
+    if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 4000 }); else setTimeout(warm, 1500);
+  });
+})();
+
 // Render #receiptPrintArea to a PNG data URI `widthPx` CSS pixels wide (see paperPx()).
 function receiptAreaToImage(widthPx) {
   var source = document.getElementById('receiptPrintArea');
@@ -120,7 +133,7 @@ function printReceiptHtml(printContent) {
          ~2.33em top margin and push the shop name far below the logo. */
       h1,h2,h3,h4,h5,h6 { margin: 0 !important; } h6 { font-size: 20px !important; white-space: nowrap; }
       .text-center { text-align: center !important; } .text-right { text-align: right !important; }
-      .font-weight-bold { font-weight: 700 !important; color: #000 !important; }
+      .font-weight-bold { font-weight: 400 !important; color: #000 !important; }
       .small { font-size: 14px !important; color: #000 !important; font-weight: 400 !important; }
       .d-flex { display: flex; } .justify-content-between { justify-content: space-between; }
       [style*="display: none"], [style*="display:none"], .d-none { display: none !important; }
@@ -134,7 +147,7 @@ function printReceiptHtml(printContent) {
       img.receipt-qr-img { width:50%!important; max-width:50%!important; max-height:none!important; height:auto!important; display:block; margin:6px auto 2px auto!important; object-fit:contain!important; }
       table { width:100%; border-collapse:collapse; margin:4px 0; font-size:15px !important; color: #000 !important; }
       td,th { padding:4px 0; vertical-align:top; color: #000 !important; font-weight: 400 !important; }
-      th { font-weight: 700 !important; }
+      th { font-weight: 400 !important; }
       .rc-strong, .rc-strong * { font-weight: 400 !important; -webkit-text-stroke: 0.25px #000; }
       #rc_total { font-size: 19px !important; }
       #rc_multicur { font-size: 14.5px !important; }

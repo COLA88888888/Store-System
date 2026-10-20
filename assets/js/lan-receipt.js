@@ -1,21 +1,9 @@
 /**
- * MiniPos LAN receipt printing (shared) — renders a receipt element to a PNG in the browser
- * (so Lao text is shaped correctly; printer fonts can't draw Lao) and sends it to a Network LAN
- * printer through api/pos_backend.php?action=print_lan_ticket. No print dialog / preview.
- *
- * Same technique as the POS checkout receipt (pages/pos/partials/js/pos_checkout_js.php):
- * clone the receipt → serialize as XHTML into an SVG <foreignObject> with the Lao font embedded
- * → draw onto a canvas → PNG. Used by the report pages to reprint a past bill straight to the
- * shop's receipt printer.
- *
- *   MiniposLanReceipt.print(element, printer, { basePath: '../../' })
- *     → Promise<{ success, message }>
- *   printer = { printer_id, printer_name, printer_type: 'ip', paper_width: 80|58 }
+ * MiniPos LAN & Bluetooth receipt rendering — ແປງໃບບິນ HTML ເປັນຮູບດຳ-ຂາວ ຫຼື Canvas
+ * ເພື່ອໃຫ້ພາສາລາວ, ໂລໂກ້ ແລະ QR ອອກຄືກັບເຄື່ອງພິມທົ່ວໄປທຸກຢ່າງ.
  */
 (function (window, document) {
-  var FONT_FILES = [
-    ['NotoSansLao-Regular.ttf', 'NotoSansLao-Bold.ttf'],
-  ];
+  var FONT_FILES = [['NotoSansLao-Regular.ttf', 'NotoSansLao-Bold.ttf']];
   var fontCache = null;
 
   function fontFaces(basePath) {
@@ -44,7 +32,6 @@
       }).catch(function () { return loadPair(i + 1); });
     }
     return loadPair(0).then(function (b64) {
-      // Same file shipped as Regular and Bold: don't declare it as 700 or bold prints thin.
       var css = face(b64[0], 400);
       if (b64[1] && b64[1] !== b64[0]) css += face(b64[1], 700);
       return latinFontFaces(basePath).then(function (latin) {
@@ -54,9 +41,7 @@
     });
   }
 
-  // Noto Sans Lao has no Latin letters or digits, so English text and every number fell back
-  // to Arial. "Receipt Latin" (Noto Sans, Latin subset) is listed first in the receipt CSS;
-  // Lao characters it doesn't have fall through to "Receipt Lao". Missing files → '' (Arial).
+  // ຟອນຕົວອັກສອນອັງກິດ ແລະ ຕົວເລກ (Receipt Latin) ເພື່ອໃຫ້ຂະໜາດສົມດຸນກັບຟອນລາວ
   var LATIN_FONT_FILES = [['NotoSans-Latin-400.woff2', 400], ['NotoSans-Latin-700.woff2', 700]];
   var latinCache = null;
   var LATIN_LETTERS = 'U+0041-005A,U+0061-007A,U+00C0-024F';
@@ -70,9 +55,6 @@
         var bin = '', bytes = new Uint8Array(buf);
         for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
         var src = 'src:url(data:font/woff2;base64,' + btoa(bin) + ') format("woff2");font-weight:' + f[1] + ';font-style:normal;';
-        // Latin letters are drawn larger than Lao at the same font-size, so an English bill looked
-        // a size bigger than the Lao one. Letters get a second, 90% face (declared last, so it
-        // wins for its range); digits and symbols keep full size to match the Lao bill's numbers.
         return '@font-face{font-family:"Receipt Latin";' + src + '}' +
           '@font-face{font-family:"Receipt Latin";' + src + 'size-adjust:90%;unicode-range:' + LATIN_LETTERS + ';}';
       }).catch(function () { return ''; });
@@ -82,13 +64,11 @@
     });
   }
 
-  // Luminance of pixel i, blended with white paper by alpha so transparent backgrounds stay white.
   function paperLum(p, i) {
     var lum = (p[i] * 299 + p[i + 1] * 587 + p[i + 2] * 114) / 1000;
     return lum * (p[i + 3] / 255) + 255 * (1 - p[i + 3] / 255);
   }
 
-  // Otsu's method: the cut-off that best separates the image's two tones.
   function otsuThreshold(hist, n) {
     var sum = 0, sumB = 0, wB = 0, best = -1, thr = 128;
     for (var t = 0; t < 256; t++) sum += t * hist[t];
@@ -104,13 +84,8 @@
     return thr;
   }
 
-  // Logo -> pure black/white. A thermal head only prints black dots, so light/colored parts of a
-  // logo (e.g. a pale cyan gradient) were dithered into a faint speckle. Every pixel that isn't
-  // near-white (and isn't transparent) becomes solid black; the rest becomes paper white.
-  // A light-on-dark logo (pale lettering on a black square) came out as one solid black block
-  // that way, so when most of the logo is dark it is printed inverted — dark lettering on paper —
-  // split at the Otsu cut-off, since JPEG noise in a dark background would cross a fixed one.
-  var LOGO_BW_THRESHOLD = 215; // 0–255 luminance; darker than this prints black
+  // ແປງໂລໂກ້ເປັນດຳ-ຂາວຄົມຊັດ ສຳລັບຫົວພິມຄວາມຮ້ອນ
+  var LOGO_BW_THRESHOLD = 215;
   function toBlackWhite(ctx, w, h) {
     var d = ctx.getImageData(0, 0, w, h), p = d.data, n = w * h, dark = 0, i;
     var lum = new Float32Array(n), hist = new Array(256).fill(0);
@@ -130,9 +105,7 @@
     ctx.putImageData(d, 0, 0);
   }
 
-  // Bank QR -> hard black/white. Gray, anti-aliased module edges get dithered into speckle by the
-  // printer and the code stops scanning; a small QR is first enlarged in whole-pixel steps so
-  // every module stays a clean square when the receipt is scaled to the printer's dots.
+  // ແປງ QR ທະນາຄານເປັນດຳ-ຂາວຄົມຊັດເພື່ອໃຫ້ສະແກນງ່າຍ
   var QR_MIN_PX = 600;
   function qrCanvas(img) {
     var w = img.naturalWidth || 1, h = img.naturalHeight || 1;
@@ -184,7 +157,17 @@
 
   // Images inside the SVG must be data: URIs or the canvas is tainted and can't be exported.
   // mode 'logo' (see toBlackWhite) or 'qr' (see qrCanvas) also converts it for the thermal head.
+  // ຜົນການແປງໂລໂກ້/QR ຈື່ໄວ້ (ຕາມ src + mode) — ຮູບເດີມທຸກບິນ, ບໍ່ຕ້ອງແປງໃໝ່ທຸກເທື່ອ → ພິມໄວຂຶ້ນ
+  var imageUriCache = {};
   function imageToDataUri(src, mode) {
+    var cacheKey = (mode || '') + '|' + (src || '');
+    if (src && imageUriCache[cacheKey]) return Promise.resolve(imageUriCache[cacheKey]);
+    return imageToDataUriRaw(src, mode).then(function (uri) {
+      if (uri && src && src.indexOf('data:') !== 0) imageUriCache[cacheKey] = uri;
+      return uri;
+    });
+  }
+  function imageToDataUriRaw(src, mode) {
     return new Promise(function (resolve) {
       if (!src || (src.indexOf('data:') === 0 && !mode)) { resolve(src || ''); return; }
       var img = new Image();
@@ -244,7 +227,7 @@
     ' body,.rcpt-root{margin:0;font-size:17px;font-weight:400;line-height:1.5;background:#fff;}' +
     ' h1,h2,h3,h4,h5,h6{margin:0 !important;} h6{font-size:20px !important;white-space:nowrap;line-height:1.3 !important;}' +
     ' .text-center{text-align:center !important;} .text-right{text-align:right !important;}' +
-    ' .font-weight-bold{font-weight:700 !important;color:#000 !important;}' +
+    ' .font-weight-bold{font-weight:400 !important;color:#000 !important;}' +
     ' .small{font-size:14px !important;color:#000 !important;font-weight:400 !important;}' +
     ' .d-flex{display:flex;} .justify-content-between{justify-content:space-between;}' +
     ' [style*="display: none"],[style*="display:none"],.d-none{display:none !important;}' +
@@ -259,24 +242,35 @@
     ' img.receipt-qr-img{width:50% !important;max-width:50% !important;max-height:none !important;height:auto !important;display:block;margin:6px auto 2px auto !important;object-fit:contain !important;}' +
     ' table{width:100%;border-collapse:collapse;margin:4px 0;font-size:15px !important;color:#000 !important;}' +
     ' td,th{padding:4px 0;vertical-align:top;color:#000 !important;font-weight:400 !important;}' +
-    ' th{font-weight:700 !important;}' +
+    ' th{font-weight:400 !important;}' +
     // Headings, net total, change: regular weight + a hair of outline — heavier than the body
     // text but not as thick as Bold (Noto Sans Lao has no weight in between)
-    ' .rc-strong,.rc-strong *{font-weight:400 !important;-webkit-text-stroke:0.25px #000;}';
+    ' .rc-strong,.rc-strong *{font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}';
 
-  // Rasterize the receipt SVG straight at the printer's dot width (576 dots on 80 mm paper, 384 on
-  // 58 mm), so the server has nothing to resample. The SVG is drawn taller than measured (the page
-  // measures the clone with its own, smaller fonts, which cut the footer off), then the blank
-  // paper below the last line is trimmed.
-  // INK_THRESHOLD > 0 turns every pixel pure black/white at that luminance, so text prints as
-  // solid as the old vector (HTML) print did; 0 leaves grey edges to the server's dithering,
-  // which prints thinner. Raise it for bolder text, lower it for thinner.
-  var INK_THRESHOLD = 160;
-  var PAPER_LUM = 250; // lighter than this counts as blank paper when trimming the tail
+  // CSS ເພີ່ມເຕີມສຳລັບບິນ Bluetooth: ຍັບໜັງສືເຂົ້າໃຫ້ກະທັດຮັດພໍດີ ແລະ ຫົວຂໍ້ໜາດຳຂຶ້ນເລັກນ້ອຍ
+  var BT_EXTRA_CSS =
+    ' *{letter-spacing:0px !important;}' +
+    ' body,.rcpt-root{line-height:1.45 !important;}' +
+    ' .rc-strong,.rc-strong *{font-weight:400 !important;-webkit-text-stroke:0.3px #000 !important;}' +
+    ' .receipt-header-address,.receipt-header-tel{line-height:1.38 !important;margin-top:2px !important;}' +
+    ' .d-flex{padding:1px 0 !important;line-height:1.42 !important;}' +
+    ' [style*="dashed"]{margin:6px 0 !important;}' +
+    ' table{margin:4px 0 !important;}' +
+    ' td,th{padding:3px 0 !important;line-height:1.38 !important;}' +
+    ' td:first-child,th:first-child{padding-right:4px !important;}' +
+    ' .receipt-qr-box{margin:6px 0 !important;padding-top:6px !important;}' +
+    ' .receipt-footer-msg{margin-top:8px !important;padding-top:7px !important;line-height:1.42 !important;}';
+
+  // ແປງ SVG ໃບບິນເປັນ canvas ດຳ-ຂາວ ຕາມຄວາມກວ້າງຈຸດຫົວພິມ (targetDots: 576 ສຳລັບ 80mm, 384 ສຳລັບ 58mm)
+  var INK_THRESHOLD = 155;
+  var BT_INK_THRESHOLD = 148;
+  var PAPER_LUM = 250;
+  var PRINT_SHIFT_DOTS = 0;
   function paperDots(widthPx) { return widthPx <= 240 ? 384 : 576; }
-  function svgHeight(h) { return Math.ceil(h * 1.6) + 120; }
-  function inkCanvas(svgImg, widthPx, h) {
-    var dots = paperDots(widthPx), scale = dots / widthPx;
+  function svgHeight(h) { return Math.ceil(h * 1.65) + 140; }
+  function inkCanvas(svgImg, widthPx, h, targetDots) {
+    var dots = targetDots || paperDots(widthPx), scale = dots / widthPx;
+    var thr = targetDots ? BT_INK_THRESHOLD : INK_THRESHOLD;
     var canvas = document.createElement('canvas');
     canvas.width = dots;
     canvas.height = Math.ceil(h * scale);
@@ -286,33 +280,32 @@
     ctx.scale(scale, scale);
     ctx.drawImage(svgImg, 0, 0, widthPx, h);
     var d = ctx.getImageData(0, 0, canvas.width, canvas.height), p = d.data, w = canvas.width;
-    var lastInkRow = 0;
+    var lastInkRow = 0, ink = 0;
     for (var i = 0; i < p.length; i += 4) {
       var lum = paperLum(p, i);
-      if (INK_THRESHOLD > 0) {
-        var v = lum < INK_THRESHOLD ? 0 : 255;
+      if (thr > 0) {
+        var v = lum < thr ? 0 : 255;
         p[i] = p[i + 1] = p[i + 2] = v;
         p[i + 3] = 255;
+        if (v === 0) ink++;
+      } else if (lum < 128) {
+        ink++;
       }
       if (lum < PAPER_LUM) lastInkRow = (i / 4 / w) | 0;
     }
-    var keep = Math.min(canvas.height, lastInkRow + Math.round(16 * scale));
+    var keep = Math.min(canvas.height, lastInkRow + Math.round(18 * scale));
     var out = document.createElement('canvas');
     out.width = w;
     out.height = Math.max(1, keep);
     var octx = out.getContext('2d');
     octx.fillStyle = '#ffffff';
     octx.fillRect(0, 0, out.width, out.height);
-    octx.putImageData(d, centerShift(p, w, keep), 0, 0, 0, w, keep);
+    octx.putImageData(d, centerShift(p, w, keep, !!targetDots), 0, 0, 0, w, keep);
+    out.__inkCount = ink;
     return out;
   }
 
-  // Horizontal centring. The bill came out closer to the right edge than the left: the ink is
-  // moved so the blank paper either side is equal, then nudged by PRINT_SHIFT_DOTS for printers
-  // whose head sits off-centre (8 dots = 1 mm; negative = left, positive = right). Never shifts
-  // any ink off the paper.
-  var PRINT_SHIFT_DOTS = 0;
-  function centerShift(p, w, rows) {
+  function centerShift(p, w, rows, isBt) {
     var minX = w, maxX = -1;
     for (var y = 0; y < rows; y++) {
       for (var x = 0; x < w; x++) {
@@ -324,12 +317,12 @@
     }
     if (maxX < 0) return 0;
     var inkW = maxX - minX + 1;
-    var left = Math.round((w - inkW) / 2) + PRINT_SHIFT_DOTS;
+    // Bluetooth: ຍັບຊ້າຍມືເຂົ້າຊິດ dot 0 (-minX) ເພື່ອຍັບມາທາງຊ້າຍມືອີກ 1 ຂີດ
+    var left = isBt ? 0 : (Math.round((w - inkW) / 2) + PRINT_SHIFT_DOTS);
     left = Math.max(0, Math.min(w - inkW, left));
     return left - minX;
   }
 
-  // Decode the receipt SVG into an <img> ready to draw.
   function decodeSvg(svg, svgUri) {
     return new Promise(function (resolve, reject) {
       var img = new Image();
@@ -342,24 +335,21 @@
   }
 
   function inkCount(canvas) {
+    if (typeof canvas.__inkCount === 'number') return canvas.__inkCount;
     var p = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data, n = 0;
     for (var i = 0; i < p.length; i += 4) if (p[i] < 128) n++;
     return n;
   }
 
-  // The fonts embedded in the SVG load lazily, per face, the first time a glyph needs them —
-  // so a line whose font wasn't loaded yet came out blank. A one-time warm-up per page wasn't
-  // enough: after switching language (Lao → English, …) the new text needs faces the earlier
-  // bills never used, and the first bill printed with only the logo, lines and bold headings.
-  // So every print renders until two passes in a row carry the same amount of ink.
-  var RENDER_MAX_PASSES = 6, RENDER_PASS_WAIT = 250;
-  function renderStable(svg, svgUri, widthPx, h) {
+  // ກວດໃຫ້ຟອນໃນ SVG ໂຫຼດຄົບກ່ອນສົ່ງພິມ (ຫຼຸດເວລາລໍຖ້າຈາກ 250ms ເຫຼືອ 35ms ເພື່ອໃຫ້ບິນອອກໄວທັນທີ)
+  var RENDER_MAX_PASSES = 4, RENDER_PASS_WAIT = 35;
+  function renderStable(svg, svgUri, widthPx, h, targetDots) {
     var last = -1, pass = 0;
     function once() {
       return decodeSvg(svg, svgUri).then(function (img) {
-        var c = inkCanvas(img, widthPx, h), n = inkCount(c);
+        var c = inkCanvas(img, widthPx, h, targetDots), n = inkCount(c);
         pass++;
-        if (n === last || pass >= RENDER_MAX_PASSES) return c;
+        if ((n > 0 && n === last) || pass >= RENDER_MAX_PASSES) return c;
         last = n;
         return new Promise(function (r) { setTimeout(r, RENDER_PASS_WAIT); }).then(once);
       });
@@ -368,9 +358,27 @@
   }
   function loadSvgImage(svg, svgUri) { return decodeSvg(svg, svgUri); }
 
+  // ຄືກັບ toImage ແຕ່ສົ່ງຄືນ canvas (ດຳ-ຂາວ, ກວ້າງເທົ່າຈຸດຫົວພິມ targetDots) — ເຄື່ອງພິມ Bluetooth ໃຊ້ໂດຍກົງ
+  function toCanvas(source, widthPx, basePath, extraCss, targetDots) {
+    return renderReceipt(source, widthPx, basePath, extraCss, targetDots);
+  }
+
   function toImage(source, widthPx, basePath, extraCss) {
+    return renderReceipt(source, widthPx, basePath, extraCss).then(function (canvas) {
+      return canvas.toDataURL('image/png');
+    });
+  }
+
+  // ໂຫຼດຟອນ ແລະ ແປງໂລໂກ້/QR ໄວ້ລ່ວງໜ້າ (ຕອນເປີດໜ້າຂາຍ) — ບິນທຳອິດຂອງວັນບໍ່ຕ້ອງລໍໂຫຼດ
+  function warmUp(source, widthPx, basePath, extraCss) {
+    if (!source) return Promise.resolve();
+    return renderReceipt(source, widthPx, basePath, extraCss).then(function () {}, function () {});
+  }
+
+  function renderReceipt(source, widthPx, basePath, extraCss, targetDots) {
     if (!source) return Promise.reject(new Error('no receipt element'));
-    var renderCss = 'width:' + widthPx + 'px;background:#fff;margin:0;padding:8px 12px;box-sizing:border-box;';
+    var pad = targetDots ? '8px 13px 8px 0px' : '8px 12px';
+    var renderCss = 'width:' + widthPx + 'px;background:#fff;margin:0;padding:' + pad + ';box-sizing:border-box;';
     var clone = source.cloneNode(true);
     clone.removeAttribute('id');
     clone.style.cssText = 'position:fixed;left:-99999px;top:0;display:block;' + renderCss;
@@ -395,40 +403,26 @@
       var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + widthPx + '" height="' + h + '">' +
         '<foreignObject width="100%" height="100%">' +
         '<div xmlns="http://www.w3.org/1999/xhtml" class="rcpt-root">' +
-        '<style>' + fontCss + RECEIPT_CSS + (extraCss || '') + '</style>' +
+        '<style>' + fontCss + RECEIPT_CSS + (targetDots ? BT_EXTRA_CSS : '') + (extraCss || '') + '</style>' +
         html +
         '</div></foreignObject></svg>';
       var svgUri = 'data:image/svg+xml;charset=utf-8;base64,' + btoa(unescape(encodeURIComponent(svg)));
 
-      return renderStable(svg, svgUri, widthPx, h).then(function (canvas) {
-        return canvas.toDataURL('image/png');
-      });
+      return renderStable(svg, svgUri, widthPx, h, targetDots);
     }).catch(function (err) {
       if (clone.parentNode) document.body.removeChild(clone);
       throw err;
     });
   }
 
-  // Render width for a paper size: the full paper width in CSS px (80 mm = 302 px, 58 mm =
-  // 219 px) — the layout the old HTML print had — then printed into the printable width
-  // (72 / 48 mm, see imageHtml; the LAN head's 576 / 384 dots), which scales the text about
-  // 10% smaller than a 1:1 print. Smaller number = bigger text.
   function paperPx(paperWidth) {
     return (parseInt(paperWidth, 10) === 58) ? 219 : 302;
   }
 
-  // The receipt PNG as an <img> for the browser print dialog: printable width, centred on the
-  // page — a full 80 mm image ran off one side of the 72 mm the printer can reach.
-  // USB-only horizontal nudge, in mm (positive = right). The LAN printer gets the image dot for
-  // dot; over USB the printer driver places the page itself and the same bill came out with more
-  // blank paper on the right than the LAN one. This moves only the USB bill so both match.
-  // ບິນ USB: ຍັບຊ້າຍ 0.15 mm (ລົບ = ຊ້າຍ). ວັດຈາກຮູບບິນທີ່ພິມດ້ວຍ −0.5: ຂອບຊ້າຍ ~5.4 mm,
-  // ຂວາ ~6.1 mm → ຍັບຂວາອີກ ~0.35 mm. ຮູບບິນ 72 mm ຢູ່ກາງໜ້າ 80 mm (ຫວ່າງຂ້າງລະ ~4 mm).
-  // LAN ມີຄ່າຂອງມັນເອງ: LAN_PRINT_SHIFT_DOTS ໃນ api/lan_printer.php.
+  // ບິນ USB: ຍັບຊ້າຍ 0.15 mm (ລົບ = ຊ້າຍ). ຮູບບິນ 72 mm ຢູ່ກາງໜ້າ 80 mm.
   var USB_PRINT_SHIFT_MM = -0.15;
   function imageHtml(dataUri, paperWidth) {
     if (isBuiltInPrinterDevice()) {
-      // ເຄື່ອງ POS ທີ່ມີເຄື່ອງພິມໃນຕົວ: ຮູບເຕັມຄວາມກວ້າງເຈ້ຍທີ່ເຄື່ອງລາຍງານ (ບໍ່ລ໋ອກ 72mm ທີ່ລົ້ນຂວາ)
       return '<img class="receipt-print-img" src="' + dataUri + '" alt="" style="display:block;width:100%;max-width:100%;height:auto;margin:0 auto;">';
     }
     var mm = (parseInt(paperWidth, 10) === 58) ? 48 : 72;
@@ -436,17 +430,8 @@
       'mm;max-width:none;height:auto;margin:0 auto;position:relative;left:' + USB_PRINT_SHIFT_MM + 'mm;">';
   }
 
-  // ເຄື່ອງຈໍສຳພັດທີ່ມີເຄື່ອງພິມໃນຕົວ (POS ຕັ້ງໂຕະ Windows, ຫຼື Sunmi/iMin Android) ພິມຜ່ານໜ້າຕ່າງພິມ
-  // ຂອງ browser, ແຕ່ driver ຂອງເຄື່ອງພິມໃນຕົວ ລາຍງານໜ້າເຈ້ຍແຄບກວ່າ 80mm — ບິນທີ່ບັງຄັບ @page 80mm
-  // + ຮູບ 72mm ຈຶ່ງຖືກຕັດດ້ານຂວາ (ລາຄາ, ₭, ເລກບິນ). ໃນເຄື່ອງເຫຼົ່ານີ້ ("ໂໝດພໍດີເຈ້ຍ"): ໃຊ້ຂະໜາດໜ້າ
-  // ທີ່ driver ບອກ ແລ້ວຂະຫຍາຍຮູບບິນໃຫ້ພໍດີຄວາມກວ້າງນັ້ນ. ຄອມທຳມະດາ (USB ນອກ) ແລະ LAN ບໍ່ປ່ຽນ.
-  // ກວດອັດຕະໂນມັດຈາກຈໍສຳພັດ; ບັງຄັບເອງໄດ້ໃນ console ຂອງເຄື່ອງນັ້ນ:
-  //   localStorage.setItem('StoreMini.receipt_fit_paper', '1')   // ເປີດ
-  //   localStorage.setItem('StoreMini.receipt_fit_paper', '0')   // ປິດ
-  //   localStorage.removeItem('StoreMini.receipt_fit_paper')     // ກັບໄປກວດອັດຕະໂນມັດ
-  function isAndroid() {
-    return /Android/i.test(navigator.userAgent || '');
-  }
+  // ເຄື່ອງຈໍສຳພັດທີ່ມີເຄື່ອງພິມໃນຕົວ (POS ຕັ້ງໂຕະ Windows, ຫຼື Sunmi/iMin Android): ໃຊ້ໂໝດພໍດີເຈ້ຍ
+  function isAndroid() { return /Android/i.test(navigator.userAgent || ''); }
   function isBuiltInPrinterDevice() {
     try {
       var forced = window.localStorage && localStorage.getItem('StoreMini.receipt_fit_paper');
@@ -454,22 +439,14 @@
       if (forced === '0') return false;
     } catch (e) {}
     if (isAndroid()) return true;
-    var touch = (navigator.maxTouchPoints || 0) > 0;
-    var coarse = false;
+    var touch = (navigator.maxTouchPoints || 0) > 0, coarse = false;
     try { coarse = !!(window.matchMedia && window.matchMedia('(any-pointer: coarse)').matches); } catch (e) {}
     return touch && coarse;
   }
-  // ຄວາມກວ້າງ (CSS px) ທີ່ໃຊ້ແຕ້ມບິນ ສຳລັບໜ້າຕ່າງພິມຂອງ browser. Android (ສ່ວນຫຼາຍເຈ້ຍ 58mm) ວາງແບບ
-  // 58mm; ຈໍສຳພັດ Windows ໃຊ້ຂະໜາດຕາມການຕັ້ງຄ່າ (80mm) ຄືເກົ່າ — ຂະໜາດໜັງສືຄືບິນ USB/LAN.
   function dialogPaperPx(paperWidth) {
     return isAndroid() && isBuiltInPrinterDevice() ? paperPx(58) : paperPx(paperWidth);
   }
-  // ຍັບບິນຊ້າຍ/ຂວາ ສະເພາະໂໝດພໍດີເຈ້ຍ (ເຄື່ອງພິມໃນຕົວ), ໜ່ວຍ mm: ລົບ = ຊ້າຍ, ບວກ = ຂວາ.
-  // ທົດລອງກັບເຄື່ອງແລ້ວ: 0, −1 = ໜັງສືຍັງຊິດຂວາ → −1.5.
-  // USB ນອກ ແລະ LAN ມີຄ່າຂອງມັນເອງ (USB_PRINT_SHIFT_MM, LAN_PRINT_SHIFT_DOTS).
   var FIT_PRINT_SHIFT_MM = -1.5;
-  // CSS ເພີ່ມທ້າຍ <style> ຂອງ iframe ພິມ — ທັບ @page 80mm ແລະ ຄວາມກວ້າງ body 80mm ສະເພາະເຄື່ອງນີ້.
-  // ຂອບ 1.5mm ສອງຂ້າງ ກັນບໍ່ໃຫ້ຕົກຂອບທີ່ຫົວພິມໄປບໍ່ເຖິງ.
   function dialogPageCss() {
     if (!isBuiltInPrinterDevice()) return '';
     return '@page { size: auto; margin: 0mm; } ' +
@@ -501,5 +478,5 @@
     });
   }
 
-  window.MiniposLanReceipt = { toImage: toImage, print: print, imageToDataUri: imageToDataUri, imageMode: imageMode, printHtml: printHtml, latinFontFaces: latinFontFaces, svgHeight: svgHeight, inkCanvas: inkCanvas, loadSvgImage: loadSvgImage, paperPx: paperPx, imageHtml: imageHtml, isBuiltInPrinterDevice: isBuiltInPrinterDevice, dialogPaperPx: dialogPaperPx, dialogPageCss: dialogPageCss };
+  window.MiniposLanReceipt = { toImage: toImage, toCanvas: toCanvas, warmUp: warmUp, print: print, imageToDataUri: imageToDataUri, imageMode: imageMode, printHtml: printHtml, latinFontFaces: latinFontFaces, svgHeight: svgHeight, inkCanvas: inkCanvas, loadSvgImage: loadSvgImage, paperPx: paperPx, imageHtml: imageHtml, isBuiltInPrinterDevice: isBuiltInPrinterDevice, dialogPaperPx: dialogPaperPx, dialogPageCss: dialogPageCss };
 })(window, document);

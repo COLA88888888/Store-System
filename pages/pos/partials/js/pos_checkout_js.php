@@ -8,10 +8,13 @@
  *   - checkout/receipt_ui.php : ສະແດງໃບບິນຫຼັງຂາຍສຳເລັດ
  *   - checkout/kitchen_tickets.php : ບິນຍ່ອຍຄົວ / ເຄື່ອງພິມຕາມໝວດ
  *   - checkout/receipt_print.php : ພິມໃບບິນ
+ *   - checkout/receipt_bluetooth.php : ພິມໃບບິນຜ່ານ Bluetooth (ໃຊ້ assets/js/bluetooth-printer.js)
  */
 ?>
 
 <script src="<?php echo $base_path; ?>assets/js/lan-receipt.js?v=<?php echo @filemtime(__DIR__ . '/../../../../assets/js/lan-receipt.js'); ?>"></script>
+<script src="<?php echo $base_path; ?>assets/js/bluetooth-printer-escpos.js?v=<?php echo @filemtime(__DIR__ . '/../../../../assets/js/bluetooth-printer-escpos.js'); ?>"></script>
+<script src="<?php echo $base_path; ?>assets/js/bluetooth-printer.js?v=<?php echo @filemtime(__DIR__ . '/../../../../assets/js/bluetooth-printer.js'); ?>"></script>
 <script>
 <?php require __DIR__ . '/checkout/currency_helpers.php'; /* ຂໍ້ຄວາມແປ, ສະກຸນເງິນ ແລະ ອັບເດດສະຕັອກ */ ?>
 <?php require __DIR__ . '/checkout/payment_modes.php'; /* ວິທີຊຳລະ: ດຽວ / ຫຼາຍຊ່ອງ / ຕິດໜີ້ */ ?>
@@ -19,6 +22,7 @@
 <?php require __DIR__ . '/checkout/receipt_ui.php'; /* ສະແດງໃບບິນຫຼັງຂາຍສຳເລັດ */ ?>
 <?php require __DIR__ . '/checkout/kitchen_tickets.php'; /* ບິນຍ່ອຍຄົວ / ເຄື່ອງພິມຕາມໝວດ */ ?>
 <?php require __DIR__ . '/checkout/receipt_print.php'; /* ພິມໃບບິນ */ ?>
+<?php require __DIR__ . '/checkout/receipt_bluetooth.php'; /* ພິມໃບບິນຜ່ານ Bluetooth (ຫໍ່ printReceiptAuto) */ ?>
 // ============================
 // RESET POS
 // ============================

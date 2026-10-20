@@ -157,6 +157,34 @@ if (!hasPermission('dashboard')) {
   <script src="../sweetalert/dist/sweetalert2.all.min.js"></script>
   <script src="../plugins/jquery/jquery.min.js"></script>
   <script src="../plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
+  <!-- ເຄື່ອງພິມ Bluetooth: ການເຊື່ອມຕໍ່ຢູ່ກັບໜ້າຫຼັກນີ້ (ໜ້າໃນ iframe ໃຊ້ຕົວດຽວກັນ) ຈຶ່ງບໍ່ຂາດເວລາປ່ຽນໜ້າ.
+       ເຊື່ອມ/ຕັ້ງຄ່າ ຢູ່ ຕັ້ງຄ່າ > ເຄື່ອງພິມ (pages/settings/printers/partials/bluetooth_card.php) -->
+  <script src="../assets/js/bluetooth-printer-escpos.js?v=<?php echo @filemtime(__DIR__ . '/../assets/js/bluetooth-printer-escpos.js'); ?>"></script>
+  <script src="../assets/js/bluetooth-printer.js?v=<?php echo @filemtime(__DIR__ . '/../assets/js/bluetooth-printer.js'); ?>"></script>
+  <script>
+    // ເປີດລະບົບ: ເຊື່ອມເຄື່ອງພິມ Bluetooth ທີ່ຕັ້ງໄວ້ຄືນອັດຕະໂນມັດທັນທີ ແລະ ກວດຊ້ຳທຸກ 4 ວິ ຖ້າເຄື່ອງພິມຫາກໍ່ເປີດ
+    (function () {
+      if (!window.MiniposBtPrinter) return;
+      var enabled = function () {
+        try { var s = JSON.parse(localStorage.getItem('StoreMini.bt_printer_settings') || '{}') || {}; return s.enabled !== false; } catch (e) { return true; }
+      };
+      var tryIt = function () { if (enabled() && MiniposBtPrinter.list().length && !MiniposBtPrinter.isConnected()) MiniposBtPrinter.reconnect(); };
+      document.addEventListener('DOMContentLoaded', tryIt);
+      setInterval(tryIt, 4000);
+      // ກົດ F5 / Ctrl+R ໃຫ້ຣີເຟຣດສະເພາະໜ້າໃນ iframe ເພື່ອບໍ່ໃຫ້ການເຊື່ອມຕໍ່ Bluetooth ໃນໜ້າຫຼັກຂາດ
+      window.addEventListener('keydown', function (e) {
+        var isReload = e.key === 'F5' || ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'r' || e.key === 'R'));
+        if (!isReload || !MiniposBtPrinter.list().length) return;
+        var fr = document.getElementsByName('frame')[0];
+        if (fr && fr.contentWindow) {
+          e.preventDefault();
+          if (typeof showFastLoader === 'function') showFastLoader();
+          try { fr.contentWindow.location.reload(); } catch (x) { fr.src = fr.src; }
+          setTimeout(function () { if (typeof hideFastLoader === 'function') hideFastLoader(); }, 600);
+        }
+      }, true);
+    })();
+  </script>
 </head>
 <body class="hold-transition sidebar-mini sidebar-no-expand layout-fixed">
 <script>

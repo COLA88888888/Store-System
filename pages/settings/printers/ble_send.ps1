@@ -11,10 +11,10 @@ $asTaskGeneric = ([System.WindowsRuntimeSystemExtensions].GetMethods() | Where-O
   $_.Name -eq 'AsTask' -and $_.GetParameters().Count -eq 1 -and $_.GetParameters()[0].ParameterType.Name -eq 'IAsyncOperation`1'
 })[0]
 
-function Await($WinRtTask, $ResultType) {
+function Await($WinRtTask, $ResultType, [int]$TimeoutMs = 10000) {
   $asTask = $asTaskGeneric.MakeGenericMethod($ResultType)
   $netTask = $asTask.Invoke($null, @($WinRtTask))
-  if (-not $netTask.Wait(10000)) { throw 'ERR_TIMEOUT' }
+  if (-not $netTask.Wait($TimeoutMs)) { throw 'ERR_TIMEOUT' }
   return ,$netTask.Result
 }
 
@@ -38,7 +38,8 @@ if (Test-Path $CacheFile) {
 $entry = $cache[$PrinterName]
 if (-not $entry -or -not $entry.id) {
   $selector = 'System.Devices.Aep.ProtocolId:="{bb7bb05e-5972-42b5-94fc-76eaa7084d49}" AND System.ItemNameDisplay:="' + $PrinterName.Replace('"', '') + '"'
-  $devs = Await ([Windows.Devices.Enumeration.DeviceInformation]::FindAllAsync($selector, $null, [Windows.Devices.Enumeration.DeviceInformationKind]::AssociationEndpoint)) ([Windows.Devices.Enumeration.DeviceInformationCollection])
+  # ເຄື່ອງພິມໃໝ່ທີ່ບໍ່ໄດ້ຈັບຄູ່ໃນ Windows (ເຊັ່ນ XP-480B): Windows ຊອກ ~30 ວິນາທີ → ລໍ 40 ວິ (ເທື່ອທຳອິດເທື່ອດຽວ, ຫຼັງຈາກນັ້ນໃຊ້ ble_cache.json)
+  $devs = Await ([Windows.Devices.Enumeration.DeviceInformation]::FindAllAsync($selector, $null, [Windows.Devices.Enumeration.DeviceInformationKind]::AssociationEndpoint)) ([Windows.Devices.Enumeration.DeviceInformationCollection]) 40000
   $found = $devs | Select-Object -First 1
   if (-not $found) { throw 'ERR_NOT_FOUND' }
   $entry = [PSCustomObject]@{ id = $found.Id; service = ''; char = '' }
@@ -122,7 +123,7 @@ try {
   $off = 0
   $sent = 0
   $burst = 3600.0
-  $rate = 18000.0
+  $rate = 28000.0   # Printer001: 18000 ພິມຖືກ, 42000 Buffer ລົ້ນ → ບິນເປັນຕົວອັກສອນແປກ (ຖ້າ 28000 ເພ ໃຫ້ກັບໄປ 24000)
   $chunkSize = 244
 
   while ($off -lt $allBytes.Length) {

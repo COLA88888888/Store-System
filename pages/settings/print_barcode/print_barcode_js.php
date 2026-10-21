@@ -181,6 +181,15 @@ function togglePageBlockSelect(pId, isChecked) {
   updatePageBarcodeSummary();
 }
 
+// ພິມແລ້ວ: ເອົາເຄື່ອງໝາຍຕິກອອກທັງໝົດ (ຈຳນວນດວງກັບເປັນ 1) — ເອີ້ນຈາກ js/print_execute.php ແລະ js/print_bluetooth.php
+function clearPageBarcodeSelection() {
+  Object.keys(pageBarcodeState).forEach(function(pId) {
+    pageBarcodeState[pId].selected = false;
+    pageBarcodeState[pId].copies = 1;
+  });
+  renderPageBarcodeBlocks();
+}
+
 function selectAllPageProducts(isSelected) {
   // Only touch products that currently match the category filter + search box —
   // "select all" should mean "select all of what I'm looking at", not every product in the shop.
@@ -351,6 +360,7 @@ var BARCODE_SIZE_CONFIGS = {
 };
 
 <?php require __DIR__ . '/js/print_execute.php'; /* ສັ່ງພິມບາໂຄ້ດ */ ?>
+<?php require __DIR__ . '/js/print_bluetooth.php'; /* ພິມບາໂຄ້ດຜ່ານເຄື່ອງພິມ Bluetooth */ ?>
 $(document).ready(function() {
   initPageBarcodeState();
   renderPageBarcodeBlocks();

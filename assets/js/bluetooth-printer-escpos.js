@@ -37,8 +37,21 @@
     });
   }
 
-  // ຮູບ → ESC/POS raster (1 bit ຕໍ່ຈຸດ, ດຳ = ພິມ) ແບບ GS v 0 ຄືກັບເຄື່ອງພິມທົ່ວໄປ/LAN
-  function rasterBytes(canvas, maxDots) {
+  // ຮູບ → TSPL (ເຄື່ອງພິມສະຕິກເກີ ເຊັ່ນ XP-480B ທີ່ບໍ່ຮູ້ຈັກ ESC/POS): 1 ໜ້າ ສູງເທົ່າຮູບ, BITMAP ຂອງ TSPL 0 = ດຳ
+  function tsplBytes(canvas, maxDots, gapMm) {
+    var r = toBits(canvas, maxDots), inv = new Uint8Array(r.bits.length);
+    for (var i = 0; i < inv.length; i++) inv[i] = (~r.bits[i]) & 0xff;
+    var mm = function (d) { return Math.round(d / 8 * 10) / 10; };   // 203dpi = 8 ຈຸດ/mm
+    var ascii = function (s) { var a = new Uint8Array(s.length); for (var k = 0; k < s.length; k++) a[k] = s.charCodeAt(k) & 0xff; return a; };
+    return concat([
+      ascii('SIZE ' + mm(r.bw * 8) + ' mm,' + mm(r.h) + ' mm\r\nGAP ' + (gapMm == null ? 2 : gapMm) + ' mm,0 mm\r\nDIRECTION 1,0\r\nCLS\r\nBITMAP 0,0,' + r.bw + ',' + r.h + ',0,'),
+      inv,
+      ascii('\r\nPRINT 1,1\r\n')
+    ]);
+  }
+
+  // ຮູບ → 1 bit ຕໍ່ຈຸດ (1 = ດຳ), ປັບຄວາມກວ້າງເປັນ maxDots
+  function toBits(canvas, maxDots) {
     var w = canvas.width, h = canvas.height;
     if (maxDots && w !== maxDots) {   // ປັບຄວາມກວ້າງໃຫ້ກົງກັບຈຸດຫົວພິມ (384 ຫຼື 576 dots)
       var s = document.createElement('canvas');
@@ -59,6 +72,12 @@
         }
       }
     }
+    return { bits: bits, bw: bw, h: h };
+  }
+
+  // ຮູບ → ESC/POS raster (1 bit ຕໍ່ຈຸດ, ດຳ = ພິມ) ແບບ GS v 0 ຄືກັບເຄື່ອງພິມທົ່ວໄປ/LAN
+  function rasterBytes(canvas, maxDots) {
+    var r = toBits(canvas, maxDots), bits = r.bits, bw = r.bw, h = r.h;
 
     // ສົ່ງເປັນຊຸດ GS v 0 ຄວາມກວ້າງຄົງທີ່ (48 bytes = 384 dots) ຄົບທຸກແຖວ ເພື່ອບໍ່ໃຫ້ QR ແລະ ຂໍ້ຄວາມທ້າຍບິນຜິດພ້ຽນ
     var parts = [];
@@ -125,7 +144,7 @@
     });
   }
 
-  window.MiniposEscPos = { concat: concat, loadCanvas: loadCanvas, rasterBytes: rasterBytes, testCanvas: testCanvas,
+  window.MiniposEscPos = { concat: concat, loadCanvas: loadCanvas, rasterBytes: rasterBytes, tsplBytes: tsplBytes, testCanvas: testCanvas,
     BLE_SERVICES: BLE_SERVICES, findWritable: findWritable };
   try { if (window.top && window.top !== window) window.top.MiniposEscPos = window.MiniposEscPos; } catch (e) {}
 })(window);

@@ -8,29 +8,25 @@
 $scHistMore = count($scHistory) > $scHistoryLimit;
 
 // ແປງ 1 ແຖວປະຫວັດເປັນຄ່າທີ່ໃຊ້ທັງໜ້າຈໍ ແລະ ລາຍງານ
-// hide = ພະນັກງານນັບ ເບິ່ງແຖວຂອງໃບທີ່ຍັງນັບຢູ່ → ບໍ່ສະແດງຜົນ ແລະ ສ່ວນຕ່າງ
-$scHistFmt = function ($h) use ($scSeeResults) {
+// ພະນັກງານ ບໍ່ໃຫ້ເຫັນຈຳນວນໃນລະບົບ ແລະ ສ່ວນຕ່າງ
+$scHistFmt = function ($h) use ($scCanApprove) {
     $st = $h['status'];
-    $isDone = ($st === 'completed' || $st === 'approved');
+    $isDone = ($st === 'completed');
     $diff = (int)$h['counted_qty'] - (int)$h['system_qty'];
     return [
-        'done'  => $isDone,
-        'hide'  => !$isDone && !$scSeeResults,
-        'diff'  => $diff,
-        'when'  => $h['counted_at'] ? date('d/m/Y H:i', strtotime($h['counted_at'])) : '-',
-        'res'   => $diff === 0 ? 'ຄົບ' : ($diff < 0 ? 'ບໍ່ຄົບ' : 'ເກີນ'),
+        'done'    => $isDone,
+        'hide'    => !$scCanApprove,
+        'showSys' => $scCanApprove,
+        'diff'    => $diff,
+        'when'    => $h['counted_at'] ? date('d/m/Y H:i', strtotime($h['counted_at'])) : '-',
+        'res'     => $diff === 0 ? 'ຄົບ' : ($diff < 0 ? 'ບໍ່ຄົບ' : 'ເກີນ'),
         // ສ່ວນຕ່າງ = ຈຳນວນສະຕັອກ (ບໍ່ແມ່ນເງິນ) ພ້ອມຫົວໜ່ວຍ
-        'qty'   => ($diff > 0 ? '+' : '') . number_format($diff) . (!empty($h['unit']) ? ' ' . $h['unit'] : ''),
+        'qty'     => ($diff > 0 ? '+' : '') . number_format($diff) . (!empty($h['unit']) ? ' ' . $h['unit'] : ''),
     ];
 };
 ?>
-<?php require __DIR__ . '/filter_box.php'; ?>
       <div class="card sc-card">
-        <div class="card-header bg-white py-3 border-0 d-flex align-items-center justify-content-between flex-wrap" style="gap: 8px;">
-          <h6 class="m-0 font-weight-bold sc-card-title">ປະຫວັດການນັບສະຕັອກ (ສິນຄ້າທີ່ນັບແລ້ວ)</h6>
-<?php require __DIR__ . '/export_buttons.php'; ?>
-        </div>
-
+<?php require __DIR__ . '/filter_box.php'; ?>
         <div class="card-body p-0">
           <div class="table-responsive">
             <table class="table table-hover mb-0 text-nowrap sc-table">
@@ -66,9 +62,22 @@ $scHistFmt = function ($h) use ($scSeeResults) {
                     </td>
                     <td>
                       <div class="font-weight-bold text-dark"><?php echo htmlspecialchars($h['product_name']); ?></div>
-                      <div class="small text-muted"><?php echo htmlspecialchars($h['barcode'] ?: '-'); ?><?php echo $h['unit'] ? ' · ' . htmlspecialchars($h['unit']) : ''; ?></div>
+                      <div class="small text-muted">
+                        <?php echo htmlspecialchars($h['barcode'] ?: '-'); ?><?php echo $h['unit'] ? ' · ' . htmlspecialchars($h['unit']) : ''; ?>
+                        <?php
+                          $hZone = trim((string)($h['zone'] ?? ''));
+                          $hShelf = trim((string)($h['shelf'] ?? ''));
+                          $hHasLoc = ($hZone !== '' || $hShelf !== '');
+                          $hZd = $hZone !== '' ? ((mb_stripos($hZone, 'ໂຊນ') === 0) ? $hZone : ('ໂຊນ ' . $hZone)) : 'ໂຊນ: ບໍ່ລະບຸ';
+                          $hSd = $hShelf !== '' ? ((mb_stripos($hShelf, 'ຊັ້ນ') === 0) ? $hShelf : ('ຊັ້ນ ' . $hShelf)) : 'ຊັ້ນ: ບໍ່ລະບຸ';
+                        ?>
+                        · <i class="fas fa-map-marker-alt <?php echo $hHasLoc ? 'text-primary' : 'text-secondary'; ?>"></i>
+                        <span class="<?php echo $hHasLoc ? 'text-secondary' : 'text-muted'; ?>">
+                          <?php echo htmlspecialchars($hZd . ' · ' . $hSd); ?>
+                        </span>
+                      </div>
                     </td>
-                    <td class="text-right"><?php echo $f['done'] ? number_format((int)$h['system_qty']) : '<span class="text-muted">-</span>'; ?></td>
+                    <td class="text-right"><?php echo $f['showSys'] ? number_format((int)$h['system_qty']) : '<span class="text-muted">-</span>'; ?></td>
                     <td class="text-right font-weight-bold"><?php echo number_format((int)$h['counted_qty']); ?></td>
                     <?php if ($f['hide']): ?>
                     <td class="text-center text-muted">ລໍຖ້າກວດ</td>
@@ -104,7 +113,7 @@ $scHistFmt = function ($h) use ($scSeeResults) {
           var rows = <?php echo json_encode(array_map(function ($h, $i) use ($scHistFmt) {
               $f = $scHistFmt($h);
               return [$i + 1, $f['when'], $h['check_no'] . ($f['done'] ? '' : ' (ກຳລັງນັບ)'), $h['product_name'], $h['barcode'] ?: '-',
-                      $f['done'] ? number_format((int)$h['system_qty']) : '-', number_format((int)$h['counted_qty']),
+                      $f['showSys'] ? number_format((int)$h['system_qty']) : '-', number_format((int)$h['counted_qty']),
                       $f['hide'] ? 'ລໍຖ້າກວດ' : $f['res'],
                       $f['hide'] ? '-' : $f['qty'], $h['counted_by_name'] ?? '-', $h['note'] ?? ''];
           }, $scAllRows, array_keys($scAllRows)), JSON_UNESCAPED_UNICODE); ?>;

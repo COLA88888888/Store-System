@@ -98,7 +98,11 @@
           window.showSwitchKeyboardAlert(rawQ, document.getElementById('direct_barcode_input'));
           return;
         }
-        Swal.fire({ icon: 'warning', title: I18N_STOCK_TRANSFER['stock_transfer.err_product_not_found_title'], text: I18N_STOCK_TRANSFER['stock_transfer.err_product_not_found_text'], confirmButtonColor: '#2563eb' });
+        if (rawQ && window.showBarcodeNotFoundAlert) {
+          window.showBarcodeNotFoundAlert(rawQ, document.getElementById('direct_barcode_input'));
+        } else {
+          Swal.fire({ icon: 'warning', title: I18N_STOCK_TRANSFER['stock_transfer.err_product_not_found_title'], text: I18N_STOCK_TRANSFER['stock_transfer.err_product_not_found_text'], confirmButtonColor: '#2563eb' });
+        }
       }
     }
   }

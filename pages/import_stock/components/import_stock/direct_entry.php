@@ -61,6 +61,8 @@
       }
     } else if (isEnter && window.hasNonEnglishChars && window.hasNonEnglishChars(query) && window.showSwitchKeyboardAlert) {
       window.showSwitchKeyboardAlert(query, document.getElementById('direct_barcode_input'));
+    } else if (isEnter && window.showBarcodeNotFoundAlert) {
+      window.showBarcodeNotFoundAlert($('#direct_barcode_input').val().trim(), document.getElementById('direct_barcode_input'));
     }
   }
 

@@ -8,6 +8,11 @@
       <i class="fas fa-info-circle text-primary mr-1"></i> <?php echo htmlspecialchars(t('print_barcode.footer_summary_initial', 'ເລືອກແລ້ວ: 0 ລາຍການ (ລວມ 0 ດວງ)')); ?>
     </div>
 
+    <div class="ml-auto mr-3 d-none align-items-center" id="bcBtTargetWrap">
+      <i class="fab fa-bluetooth-b text-primary mr-2"></i>
+      <select id="bcBtTarget" class="form-control form-control-sm" style="min-width: 260px;"></select>
+    </div>
+
     <button type="button" class="btn btn-primary font-weight-bold px-4 py-2 text-white shadow" style="border-radius: 8px; font-size: 1rem; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;" onclick="executePageBarcodePrint()">
       <i class="fas fa-print mr-2"></i> <?php echo htmlspecialchars(t('print_barcode.print_button', 'ພິມບາໂຄ້ດ')); ?>
     </button>

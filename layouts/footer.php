@@ -185,6 +185,47 @@ if (!isset($base_path)) {
               }
           };
 
+          // ບາໂຄ້ດທີ່ສະແກນ ບໍ່ມີໃນລະບົບ → ເຕືອນດຽວກັນທຸກໜ້າ (ຂາຍ, ນຳເຂົ້າ, ໂອນ, ກວດນັບ, ວັນໝົດອາຍຸ, ປັບລາຄາ)
+          // ກັນເຄື່ອງສະແກນທີ່ຍິງ Enter ຕາມມາປິດກ່ອງເອງ ດ້ວຍ _kbAlertActive ຄືກັບກ່ອງເຕືອນແປ້ນພິມ
+          window.showBarcodeNotFoundAlert = function(code, targetInput, onAfterClose) {
+              if (window._kbAlertActive) return;
+              window._kbAlertActive = true;
+              var restoreEl = targetInput || document.activeElement;
+              if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                  try { document.activeElement.blur(); } catch (e) {}
+              }
+              var safeTxt = document.createElement('div');
+              safeTxt.textContent = String(code || '').trim();
+              var done = function() {
+                  window._kbAlertActive = false;
+                  if (typeof onAfterClose === 'function') {
+                      onAfterClose();
+                  } else if (restoreEl && typeof restoreEl.focus === 'function') {
+                      try { restoreEl.focus(); if (restoreEl.select) restoreEl.select(); } catch (e) {}
+                  }
+              };
+              if (typeof Swal === 'undefined' || !Swal.fire) {
+                  alert('ບາໂຄ້ດນີ້ບໍ່ທັນມີໃນລະບົບ ກະລຸນາປ້ອນລາຍການສິນຄ້າກ່ອນ');
+                  done();
+                  return;
+              }
+              Swal.fire({
+                  icon: 'warning',
+                  title: 'ບາໂຄ້ດນີ້ບໍ່ທັນມີໃນລະບົບ',
+                  html: '<div style="font-size:0.96rem;">ກະລຸນາປ້ອນລາຍການສິນຄ້າກ່ອນ</div>' +
+                        (safeTxt.innerHTML ? '<div style="font-size:1.08rem; font-weight:700; color:#ef4444; margin:8px 0; word-break:break-all;">' + safeTxt.innerHTML + '</div>' : ''),
+                  showConfirmButton: true,
+                  confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ',
+                  confirmButtonColor: '#f59e0b',
+                  allowOutsideClick: false,
+                  allowEscapeKey: false,
+                  allowEnterKey: false,
+                  focusConfirm: false,
+                  heightAuto: false,
+                  didClose: done
+              });
+          };
+
           // ຊ່ອງທີ່ຮັບສະເພາະບາໂຄ້ດ/ຕົວເລກເທົ່ານັ້ນ (ຫ້າມມີພາສາລາວ/ໄທ ເດັດຂາດ)
           function isPureBarcodeInput(el) {
               if (!el || el.tagName !== 'INPUT') return false;

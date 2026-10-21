@@ -21,6 +21,8 @@
 
 .sc-table thead th { font-size: 0.85rem; padding-top: 12px; padding-bottom: 12px; border-top: none; }
 .sc-table td { vertical-align: middle; font-size: 0.92rem; }
+.sc-check-row { cursor: pointer; transition: background-color 0.15s ease; }
+.sc-check-row:hover td { background-color: #f1f5f9 !important; }
 
 /* ຕາຕະລາງນັບ: ສະແດງຍາວລົງມາເຕັມ (ບໍ່ມີສະກໍບາໃນຕາຕະລາງ — ເລື່ອນທັງໜ້າ, ແບ່ງໜ້າລະ 50 ແຖວ) */
 .sc-table-wrap { max-height: none; overflow-y: visible; }
@@ -40,9 +42,13 @@
 /* ບັອກ "ສະແດງ N ລາຍການ" */
 .sc-per-page { width: auto; min-width: 70px; height: 32px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; }
 
-.sc-row.sc-state-short { background: #fef2f2; }
-.sc-row.sc-state-over  { background: #f0fdf4; }
-.sc-row.sc-state-match .sc-counted { border-color: #94a3b8; }
+.sc-row.sc-state-short { background: #fff5f5; }
+.sc-row.sc-state-over  { background: #fffdf5; }
+.sc-row.sc-state-match { background: #f6fef9; }
+.sc-row.sc-state-uncounted { background: #fff; }
+.sc-row.sc-state-match .sc-counted { border-color: #86efac; }
+.sc-row.sc-state-short .sc-counted { border-color: #fca5a5; }
+.sc-row.sc-state-over  .sc-counted { border-color: #fcd34d; }
 .sc-row.sc-flash { background: #fde68a !important; transition: background 0.2s; }
 
 /* ຖັນ "ລາຍການທີ່ນັບ": ແຖບຄວາມຄືບໜ້າ (ນັບແລ້ວ / ທັງໝົດ) */
@@ -88,11 +94,17 @@
     margin-left: 10px;
 }
 
-/* ຜົນການນັບ: ຄົບ / ບໍ່ຄົບ / ເກີນ */
-.sc-res { font-size: 0.82rem; font-weight: 700; padding: 5px 10px; border-radius: 6px; }
-.sc-res-match { background: #e2e8f0; color: #334155; }
-.sc-res-short { background: #fee2e2; color: #b91c1c; }
-.sc-res-over  { background: #dcfce7; color: #15803d; }
+.sc-kpi, .sc-kpi:hover, .sc-kpi-clickable, .sc-kpi-clickable:hover {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* ຜົນການນັບ: ຄົບ (ຂຽວ) / ບໍ່ພໍ (ແດງ) / ເກີນ (ສົ້ມ) / ຍັງບໍ່ນັບ (ເທົາ) */
+.sc-res { font-size: 0.82rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; display: inline-flex; align-items: center; }
+.sc-res-match { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+.sc-res-short { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+.sc-res-over  { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+.sc-res-uncounted { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
 
 /* ປຸ່ມຫຼັກ (ເລີ່ມເຊັກສະຕັອກ / ບັນທຶກ / ຢືນຢັນ) — ແບບດຽວກັບ #btnAddBankAccount ໜ້າທະນາຄານ.
    ສີ .btn-primary ເປັນຄ່າເລີ່ມຕົ້ນລະດັບ class ເທົ່ານັ້ນ, ສະນັ້ນ ສີ theme ທີ່ dashboard ໃສ່ (body .btn-primary) ຊະນະ */
@@ -112,15 +124,21 @@
 
 /* ກ່ອງວັນທີ — ແບບດຽວກັບ .bank-filter-box (ປ້າຍຢູ່ເທິງຊ່ອງ) */
 .sc-filter-box { background: #fff; border: 1.5px solid #e2e8f0; border-radius: 14px; box-shadow: 0 3px 12px rgba(0,0,0,.03); padding: 12px 16px; }
-.sc-filter-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
-.sc-filter-form > div { flex: 0 1 220px; min-width: 0; }
-.sc-filter-form > div.sf-search { flex: 0 1 260px; }
+.sc-filter-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.sc-filter-form > div { min-width: 0; }
+.sc-filter-form > div.sf-search { flex: 1 1 280px; min-width: 240px; max-width: 400px; }
+.sc-filter-form > div.sf-date { flex: 0 1 185px; min-width: 170px; }
 .sc-filter-form > div.sf-act { flex: 0 0 auto; display: flex; gap: 8px; }
 .sc-filter-form label { display: block; font-weight: 700; color: #1e293b; font-size: 0.82rem; margin-bottom: 4px; white-space: nowrap; }
 .sc-filter-form .form-control { height: 38px; border-radius: 8px; font-size: 0.85rem; width: 100%; }
+.sc-filter-form .sf-search .input-group { width: 100%; flex-wrap: nowrap !important; }
+.sc-filter-form .sf-search .input-group-prepend { display: flex; flex-wrap: nowrap; }
+.sc-filter-form .sf-search .input-group-text { height: 38px; border-radius: 8px 0 0 8px; border-color: #cbd5e1; font-size: 1rem; }
+.sc-filter-form .sf-search .form-control { height: 38px; border-radius: 0 8px 8px 0; border-color: #cbd5e1; }
 .sc-filter-form .btn { height: 38px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; }
 .sc-filter-form .sf-search-btn { background: linear-gradient(135deg, #2c5aa0, #244886); border: none; padding: 0 18px; white-space: nowrap; }
 .sc-filter-form .sf-reset { padding: 0 12px; }
+.sc-header-exports { display: flex; align-items: center; align-self: flex-end; margin-bottom: 0; }
 
 .sc-card-title { font-family: 'Noto Sans Lao', 'Souliyo', 'Boon'; color: #0f172a; font-size: 1rem; }
 
@@ -176,11 +194,12 @@
 .sc-filter .btn:hover { filter: brightness(0.96); }
 .sc-filter .btn.active { background: var(--c); color: #fff; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12); }
 .sc-filter .btn[data-filter="all"]       { --c: #2563eb; --bg: #eff6ff; }
-.sc-filter .btn[data-filter="uncounted"] { --c: #64748b; --bg: #f8fafc; }
-.sc-filter .btn[data-filter="counted"]   { --c: #0284c7; --bg: #f0f9ff; }
-.sc-filter .btn[data-filter="match"]     { --c: #475569; --bg: #f1f5f9; }
+.sc-filter .btn[data-filter="mismatch"]  { --c: #ea580c; --bg: #fff7ed; }
+.sc-filter .btn[data-filter="match"]     { --c: #16a34a; --bg: #f0fdf4; }
 .sc-filter .btn[data-filter="short"]     { --c: #dc2626; --bg: #fef2f2; }
-.sc-filter .btn[data-filter="over"]      { --c: #16a34a; --bg: #f0fdf4; }
+.sc-filter .btn[data-filter="over"]      { --c: #d97706; --bg: #fffbeb; }
+.sc-filter .btn[data-filter="uncounted"] { --c: #64748b; --bg: #f8fafc; }
+.sc-system-qty { font-size: 0.95rem; font-weight: 700; color: #475569; }
 
 @media (max-width: 575.98px) {
     .sc-kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }

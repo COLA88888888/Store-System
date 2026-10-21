@@ -61,6 +61,28 @@
       m.setAttribute('content', orig.replace(/,?\s*(maximum-scale|user-scalable)\s*=[^,]*/gi, '') + ', maximum-scale=1, user-scalable=no');
     });
   }
+  // ປະຕິທິນຢູ່ກັບຈໍ (position: fixed — minipos-datepicker.css) ບໍ່ແມ່ນຕໍ່ທ້າຍໜ້າ: ຍາມປະຕິທິນລົ້ນຂອບລຸ່ມ
+  // ໜ້າບໍ່ຍາວຂຶ້ນ ຈຶ່ງບໍ່ມີແຖບເລື່ອນ (scrollbar) ຂວາມືຂຶ້ນມາ. ວາງໃຕ້ບັອກ; ບໍ່ພໍ → ວາງເທິງ; ບໍ່ພໍທັງສອງ → ຊິດຂອບຈໍ.
+  var openPickers = [];
+  function pinCalendar(fp) {
+    var cal = fp && fp.calendarContainer, box = fp && (fp._positionElement || fp.altInput || fp.input);
+    if (!cal || !box || !fp.isOpen || fp.config.inline || fp.config['static']) return;
+    var r = box.getBoundingClientRect(), h = cal.offsetHeight, w = cal.offsetWidth;
+    var vh = window.innerHeight, vw = document.documentElement.clientWidth || window.innerWidth;
+    var below = vh - r.bottom - 2 >= h, above = r.top - 2 >= h;
+    var top = (below || !above) ? r.bottom + 2 : r.top - h - 2;
+    top = Math.max(0, Math.min(top, vh - h));
+    var left = Math.max(0, Math.min(r.left, vw - w));
+    cal.style.top = top + 'px';
+    cal.style.left = left + 'px';
+    cal.style.right = 'auto';
+    cal.classList.toggle('arrowTop', below || !above);
+    cal.classList.toggle('arrowBottom', !(below || !above));
+  }
+  function repinAll() { openPickers.forEach(pinCalendar); }
+  window.addEventListener('resize', repinAll);
+  window.addEventListener('scroll', repinAll, true);
+
   function unlockZoom(fp) {
     if (!fp._mpZoomLocked) return;
     fp._mpZoomLocked = false;
@@ -137,13 +159,25 @@
       allowInput: !readOnly && !TOUCH,
       clickOpens: !readOnly && !el.disabled,
       disableMobile: true,
+      animate: false,   // ປະຕິທິນຂຶ້ນມາຢູ່ຊື່ໆ ບໍ່ເລື່ອນລົງ/ເນັງຕິງ ເວລາຄລິກບັອກວັນທີ
       minDate: el.getAttribute('min') || null,
       maxDate: el.getAttribute('max') || null,
-      onOpen: [function (s, d, inst) { lockZoom(inst); }],
+      onOpen: [function (s, d, inst) {
+        lockZoom(inst);
+        if (openPickers.indexOf(inst) < 0) openPickers.push(inst);
+        pinCalendar(inst);
+        setTimeout(function () { pinCalendar(inst); }, 0);   // flatpickr ວາງຕຳແໜ່ງເອງຫຼັງ onOpen → ວາງຄືນ
+      }],
+      onMonthChange: [function (s, d, inst) { pinCalendar(inst); }],
+      onYearChange: [function (s, d, inst) { pinCalendar(inst); }],
       // Small delay so the tap that closes the calendar can't turn into a double-tap zoom
-      onClose: [function (s, d, inst) { setTimeout(function () { unlockZoom(inst); }, 350); }]
+      onClose: [function (s, d, inst) {
+        openPickers = openPickers.filter(function (p) { return p !== inst; });
+        setTimeout(function () { unlockZoom(inst); }, 350);
+      }]
     });
     if (!fp || !fp.altInput) return;
+    if (fp.calendarContainer) fp.calendarContainer.classList.add('mp-fixed');   // ຕິດກັບຈໍ (pinCalendar)
 
     // Touch: the header's year box would pop the keyboard (and zoom) — change year with its
     // up/down arrows or the month arrows instead.

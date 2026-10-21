@@ -344,6 +344,16 @@ html.pos-nav-mode .pos-wrapper {
     padding-top: 72px !important;
 }
 
+/* ແຈ້ງເຕືອນມຸມເທິງ (Swal toast) ຂອງໜ້າຂາຍ: ລົງມາຢູ່ໃຕ້ Navbar 64px — ບໍ່ດັ່ງນັ້ນ ກະດິ່ງ, ທຸງພາສາ, ຮູບຜູ້ໃຊ້
+   ຂອງໜ້າຫຼັກ (ຢູ່ເທິງ iframe) ບັງແຈ້ງເຕືອນໄວ້ */
+html.pos-nav-mode .swal2-container.swal2-top,
+html.pos-nav-mode .swal2-container.swal2-top-start,
+html.pos-nav-mode .swal2-container.swal2-top-end,
+html.pos-nav-mode .swal2-container.swal2-top-left,
+html.pos-nav-mode .swal2-container.swal2-top-right {
+    top: 64px !important;
+}
+
 html.pos-nav-mode .pos-search-row {
     position: fixed;
     top: 0;

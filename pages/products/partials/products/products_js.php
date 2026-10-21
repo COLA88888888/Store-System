@@ -177,10 +177,8 @@
     $('#edit_cut_qty').prop('checked', (p.cut_qty === undefined || p.cut_qty === null) ? true : (parseInt(p.cut_qty) === 1));
     $('#edit_expiry_date').val(p.expiry_date || '');
     $('#edit_expiry_store_id').val(p.store_id || '');
-
-    // ຜູ້ສະໜອງ (ບໍ່ບັງຄັບ) — ຖ້າຜູ້ສະໜອງເກົ່າຖືກພັກໃຊ້ງານແລ້ວ ຈະບໍ່ມີ option ໃຫ້ ຈຶ່ງວ່າງໄວ້
     $('#edit_supplier_id').val(p.supplier_id ? String(p.supplier_id) : '');
-
+    if (window.applyProductZoneShelf) applyProductZoneShelf(p);
     // Format ລາຄາມີຈຸດ
     var bpriceNum = p.bprice ? Number(p.bprice) : 0;
     var priceNum  = p.price ? Number(p.price) : 0;

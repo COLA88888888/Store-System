@@ -124,10 +124,46 @@
                   </select>
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label class="font-weight-bold text-dark mb-1"><i class="far fa-calendar-alt text-warning mr-1"></i><?php echo htmlspecialchars(t('products.field_expiry_date', 'ວັນໝົດອາຍຸ')); ?></label>
+                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_expiry_date', 'ວັນໝົດອາຍຸ:')); ?></label>
                   <input type="date" id="edit_expiry_date" name="expiry_date" class="form-control" style="height: 40px; border-radius: 6px;">
                   <input type="hidden" id="edit_expiry_store_id" name="expiry_store_id" value="">
                   <small class="text-muted"><?php echo htmlspecialchars(t('products.field_expiry_hint', 'ບໍ່ໃສ່ກໍໄດ້ — ໃສ່ແລ້ວລະບົບຈະແຈ້ງເຕືອນກ່ອນໝົດອາຍຸ')); ?></small>
+                </div>
+              </div>
+
+              <!-- Row 3c: ໂຊນ (Zone) & ຊັ້ນວາງ (Shelf) (ເລືອກຈາກຕາຕະລາງ, ຖ້າບໍ່ເລືອກໂຊນ ບັອກຊັ້ນວາງແມ່ນເຊື່ອງໄວ້) -->
+              <div class="row">
+                <div class="col-md-6 mb-3" id="edit_zone_box">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="font-weight-bold text-dark mb-0">
+                      <?php echo htmlspecialchars(t('products.field_zone', 'ໂຊນ (Zone):')); ?>
+                    </label>
+                    <a href="javascript:void(0)" onclick="quickAddZonePrompt('edit')" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
+                      <i class="fas fa-plus mr-1"></i>ເພີ່ມໂຊນ
+                    </a>
+                  </div>
+                  <select id="edit_zone" name="zone" class="form-control" style="border-radius: 6px; height: 40px;" onchange="onZoneSelectChange('edit')">
+                    <option value=""><?php echo htmlspecialchars(t('products.select_zone_placeholder', '-- ບໍ່ລະບຸ / ເລືອກໂຊນ --')); ?></option>
+                    <?php foreach (($zones ?? []) as $z): ?>
+                      <option value="<?php echo htmlspecialchars($z['zone_name']); ?>" data-id="<?php echo (int)$z['zone_id']; ?>"><?php echo htmlspecialchars($z['zone_name']); ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3" id="edit_shelf_box" style="display: none;">
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="font-weight-bold text-dark mb-0">
+                      <?php echo htmlspecialchars(t('products.field_shelf', 'ຊັ້ນວາງ (Shelf):')); ?>
+                    </label>
+                    <a href="javascript:void(0)" onclick="quickAddShelfPrompt('edit')" class="text-info font-weight-bold" style="font-size: 0.78rem;">
+                      <i class="fas fa-plus mr-1"></i>ເພີ່ມຊັ້ນວາງ
+                    </a>
+                  </div>
+                  <select id="edit_shelf" name="shelf" class="form-control" style="border-radius: 6px; height: 40px;">
+                    <option value=""><?php echo htmlspecialchars(t('products.select_shelf_placeholder', '-- ບໍ່ລະບຸ / ເລືອກຊັ້ນວາງ --')); ?></option>
+                    <?php foreach (($shelves ?? []) as $sh): ?>
+                      <option value="<?php echo htmlspecialchars($sh['shelf_name']); ?>" data-zone-id="<?php echo (int)($sh['zone_id'] ?? 0); ?>" data-zone-name="<?php echo htmlspecialchars($sh['zone_name'] ?? ''); ?>"><?php echo htmlspecialchars($sh['shelf_name']); ?></option>
+                    <?php endforeach; ?>
+                  </select>
                 </div>
               </div>
 

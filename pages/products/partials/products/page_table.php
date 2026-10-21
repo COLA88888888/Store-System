@@ -184,6 +184,20 @@
                       <i class="fas fa-box-open mr-1" style="font-size:0.72rem; color:#94a3b8;"></i><?php echo htmlspecialchars($p['unit']); ?>
                     </span>
                   <?php endif; ?>
+                  <?php
+                    $pZone = trim((string)($p['zone'] ?? ''));
+                    $pShelf = trim((string)($p['shelf'] ?? ''));
+                  ?>
+                  <?php if ($pZone !== '' || $pShelf !== ''): ?>
+                    <span class="badge badge-light border ml-1 px-2 py-0.5" style="font-size:0.76rem; color:#475569; font-weight: 500;" title="ທີ່ຕັ້ງສິນຄ້າ">
+                      <i class="fas fa-map-marker-alt text-primary mr-1" style="font-size:0.72rem;"></i><?php
+                        echo htmlspecialchars(implode(' · ', array_filter([
+                          $pZone !== '' ? ('ໂຊນ ' . $pZone) : '',
+                          $pShelf !== '' ? ('ຊັ້ນ ' . $pShelf) : ''
+                        ])));
+                      ?>
+                    </span>
+                  <?php endif; ?>
                   <?php if (!empty($p['expiry_date'])): ?>
                     <?php
                       $expDaysLeft = (int)floor((strtotime($p['expiry_date']) - strtotime(date('Y-m-d'))) / 86400);

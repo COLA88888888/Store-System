@@ -76,7 +76,8 @@ $(function () {
           return;
         }
         $msg.text(EX_I18N.not_found.replace('%s', code)).removeClass('text-success').addClass('text-danger');
-        $('#exScan').select();
+        if (window.showBarcodeNotFoundAlert) window.showBarcodeNotFoundAlert(code, document.getElementById('exScan'));
+        else $('#exScan').select();
       }
     });
   }

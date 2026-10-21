@@ -136,15 +136,16 @@ function getBankBrandStyle($bankCode) {
       $brand = getBankBrandStyle($bank['bank_code'] ?: $bank['bank_name']);
     ?>
     <div class="col-xl-3 col-lg-4 col-md-6 mb-3">
-      <div class="bank-card p-3 border-0 shadow-sm rounded-lg h-100 d-flex flex-column justify-content-between" style="background: <?php echo $brand['bg']; ?>; color: #ffffff; min-height: 150px; border-radius: 14px !important;">
+      <?php /* ສີກາດ: ຈັບຈາກສີໂລໂກ້ (assets/js/bank-logo-color.js); $brand = ສີສຳຮອງ ຖ້າໂລໂກ້ບໍ່ມີສີ */ ?>
+      <div class="bank-card bank-brand-card p-3 border-0 shadow-sm rounded-lg h-100 d-flex flex-column justify-content-between" style="background: <?php echo $brand['bg']; ?>; color: #ffffff; min-height: 150px; border-radius: 14px !important;">
         <div class="d-flex align-items-start justify-content-between mb-1">
           <div class="d-flex align-items-center" style="gap: 12px;">
-            <img src="<?php echo htmlspecialchars($logoSrc); ?>" alt="Bank Logo" style="width: 48px; height: 48px; object-fit: contain; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: #fff; padding: 2px; flex-shrink: 0;">
+            <img class="bank-brand-logo" src="<?php echo htmlspecialchars($logoSrc); ?>" alt="Bank Logo" style="width: 48px; height: 48px; object-fit: contain; border-radius: 10px; border: 1px solid rgba(255,255,255,0.3); background: #fff; padding: 2px; flex-shrink: 0;">
             <div style="min-width: 0;">
               <h6 class="font-weight-bold text-white mb-0 text-truncate" style="max-width: 200px; font-size: 1.1rem;" title="<?php echo htmlspecialchars($bank['bank_name']); ?>">
                 <?php echo htmlspecialchars($bank['bank_name']); ?>
               </h6>
-              <div class="font-weight-bold" style="font-size: 0.95rem; font-family: monospace; letter-spacing: 0.5px; color: <?php echo $brand['acc_color']; ?>;">
+              <div class="font-weight-bold bank-brand-acc" style="font-size: 0.95rem; font-family: monospace; letter-spacing: 0.5px; color: <?php echo $brand['acc_color']; ?>;">
                 <?php echo htmlspecialchars($bank['account_number']); ?>
               </div>
             </div>
@@ -173,7 +174,7 @@ function getBankBrandStyle($bankCode) {
             </div>
           </div>
           <div class="text-right">
-            <span class="badge text-white px-2 py-1 shadow-xs" style="font-size: 0.8rem; background-color: <?php echo $brand['badge_bg']; ?>; border: 1px solid rgba(255,255,255,0.25);">
+            <span class="badge text-white px-2 py-1 shadow-xs bank-brand-badge" style="font-size: 0.8rem; background-color: <?php echo $brand['badge_bg']; ?>; border: 1px solid rgba(255,255,255,0.25);">
               <?php echo number_format($txCount); ?> <?php echo htmlspecialchars(t('bank.bill_suffix', 'ບິນ')); ?> (<?php echo $pct; ?>%)
             </span>
           </div>
@@ -181,6 +182,7 @@ function getBankBrandStyle($bankCode) {
       </div>
     </div>
   <?php endforeach; ?>
+  <script src="<?php echo $base_path; ?>assets/js/bank-logo-color.js?v=<?php echo @filemtime(__DIR__ . '/../../../assets/js/bank-logo-color.js'); ?>"></script>
 
   <!-- Total Transfer Revenue Summary Card (Moved to the END) -->
   <div class="col-xl-3 col-lg-4 col-md-6 mb-3">

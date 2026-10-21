@@ -206,7 +206,7 @@ function doExportExcel() {
 
   var cloneTable = table.cloneNode(true);
   
-  var noPrints = cloneTable.querySelectorAll('.no-print');
+  var noPrints = cloneTable.querySelectorAll('.no-print, button, input, select');
   noPrints.forEach(function(el) { el.remove(); });
 
   var links = cloneTable.querySelectorAll('a');
@@ -226,19 +226,120 @@ function doExportExcel() {
     }
   });
 
+  var headerThs = cloneTable.querySelectorAll('thead th');
+  var cols = headerThs.length || (cloneTable.querySelector('tr') ? cloneTable.querySelector('tr').children.length : 1);
+
+  var F = "font-family: 'Phetsarath OT', 'Noto Sans Lao', sans-serif;";
+  var B = "border: .5pt solid #000;";
+  var TXT = "mso-number-format: '\\@';";
+
+  // 1. thead
+  cloneTable.querySelectorAll('thead tr').forEach(function(tr) {
+    tr.style.cssText = 'height: 28pt; mso-height-source: userset;';
+    tr.setAttribute('height', '37');
+  });
+  cloneTable.querySelectorAll('thead th').forEach(function(th) {
+    th.style.cssText = F + B + 'height: 28pt; font-size: 13pt; font-weight: bold; text-align: center; vertical-align: middle; background-color: #e5e7eb; padding: 6px 10px; white-space: nowrap;';
+  });
+
+  // 2. tbody
+  cloneTable.querySelectorAll('tbody tr').forEach(function(tr) {
+    tr.style.cssText = 'height: 24pt; mso-height-source: userset;';
+    tr.setAttribute('height', '32');
+  });
+  cloneTable.querySelectorAll('tbody td').forEach(function(td) {
+    var align = 'left';
+    if (td.classList.contains('text-center')) align = 'center';
+    else if (td.classList.contains('text-right')) align = 'right';
+
+    var txt = td.textContent.trim();
+    var isCode = /^\d{8,}$/.test(txt) || /^0\d+$/.test(txt) || /^\d+-\d+/.test(txt);
+
+    td.style.cssText = F + B + 'height: 24pt; font-size: 11pt; vertical-align: middle; padding: 6px 10px; white-space: nowrap; text-align: ' + align + ';' + (isCode ? TXT : '');
+  });
+
+  // 3. tfoot — ເຕັມແຖວ
+  cloneTable.querySelectorAll('tfoot tr').forEach(function(tr) {
+    tr.style.cssText = 'height: 26pt; mso-height-source: userset;';
+    tr.setAttribute('height', '34');
+
+    var cells = Array.from(tr.children);
+    cells.forEach(function(td) {
+      var cs = parseInt(td.getAttribute('colspan') || '1', 10);
+      if (cs > 1) {
+        td.removeAttribute('colspan');
+        for (var i = 0; i < cs - 1; i++) {
+          var emptyTd = document.createElement('td');
+          emptyTd.style.cssText = F + B + 'height: 26pt; background-color: #f3f4f6; vertical-align: middle;';
+          tr.insertBefore(emptyTd, td);
+        }
+      }
+      var isRight = td.classList.contains('text-right') || /[\d,\.]+\s*(?:₭|LAK|THB|USD|%)/.test(td.textContent);
+      td.style.cssText = F + B + 'height: 26pt; font-size: 12pt; font-weight: bold; background-color: #f3f4f6; vertical-align: middle; padding: 6px 10px; white-space: nowrap; text-align: ' + (isRight ? 'right' : 'center') + ';';
+    });
+  });
+
+  // 4. colgroup
+  var colgroupHtml = '<colgroup>';
+  for (var ci = 0; ci < cols; ci++) {
+    var th = headerThs[ci];
+    var thTxt = th ? th.textContent.trim() : '';
+    var w = 120;
+    if (thTxt === '#' || thTxt.indexOf('#') !== -1) w = 45;
+    else if (thTxt.indexOf('ວັນທີ') !== -1) w = 135;
+    else if (thTxt.indexOf('ລູກຄ້າ') !== -1) w = 185;
+    else if (thTxt.indexOf('ເລກບິນ') !== -1) w = 145;
+    else if (thTxt.indexOf('ສິນຄ້າ') !== -1 || thTxt.indexOf('ລາຍການ') !== -1) w = 190;
+    else if (thTxt.indexOf('ໝວດ') !== -1) w = 130;
+    else if (thTxt.indexOf('ສາຂາ') !== -1) w = 110;
+    else if (thTxt.indexOf('ຊ່ອງທາງ') !== -1) w = 115;
+    else if (thTxt.indexOf('ຜູ້ຮັບ') !== -1 || thTxt.indexOf('ຜູ້ຂາຍ') !== -1) w = 105;
+    else if (thTxt.indexOf('ເງິນ') !== -1 || thTxt.indexOf('ຍອດ') !== -1 || thTxt.indexOf('ລາຄາ') !== -1 || thTxt.indexOf('ຕົ້ນທຶນ') !== -1 || thTxt.indexOf('ກຳໄລ') !== -1) w = 130;
+    else if (thTxt.indexOf('ຈຳນວນ') !== -1) w = 85;
+    colgroupHtml += '<col width="' + Math.round(w * 1.33) + '" style="width:' + w + 'pt; mso-width-source:userset;">';
+  }
+  colgroupHtml += '</colgroup>';
+
+  // 5. Title row inside table
+  var titleEl = document.querySelector('h1, h2, h3, h4, .page-title');
+  var repTitle = (titleEl ? titleEl.textContent.trim() : '') || repT('reports.export_title_all_sales');
+  repTitle = repTitle.replace(/\s+/g, ' ');
+
+  var titleRows = '<tr style="height: 32pt; mso-height-source: userset;" height="42">'
+    + '<td colspan="' + cols + '" style="' + F + 'border:none; font-size:16pt; font-weight:bold; text-align:center; vertical-align:middle;">' + repTitle + '</td>'
+    + '</tr>'
+    + '<tr style="height: 12pt; mso-height-source: userset;" height="16">'
+    + '<td colspan="' + cols + '" style="border:none;"></td>'
+    + '</tr>';
+
+  var theadEl = cloneTable.querySelector('thead');
+  if (theadEl) {
+    theadEl.insertAdjacentHTML('afterbegin', titleRows);
+  } else {
+    cloneTable.insertAdjacentHTML('afterbegin', '<thead>' + titleRows + '</thead>');
+  }
+
+  var sheetName = String(repTitle || 'Report').replace(/[\\\/\?\*\[\]:]/g, ' ').slice(0, 31);
+
   var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
-  html += '<head><meta charset="utf-8"><style>';
-  html += '* { font-family: "Noto Sans Lao", "Souliyo", "Boon", sans-serif !important; }';
-  html += 'table { border-collapse: collapse; width: 100%; font-family: "Noto Sans Lao", "Souliyo", "Boon", sans-serif; }';
-  html += 'th, td { border: 1px solid #cbd5e1; padding: 10px 12px; font-family: "Noto Sans Lao", "Souliyo", "Boon", sans-serif; vertical-align: middle; }';
-  html += 'th { background-color: #f1f5f9; font-weight: bold; text-align: center !important; }';
-  html += '.text-right { text-align: right !important; }';
-  html += '.text-center { text-align: center !important; }';
-  html += '.text-left { text-align: left !important; }';
-  html += 'h2 { text-align: center !important; font-family: "Noto Sans Lao", "Souliyo", "Boon", sans-serif; font-size: 18px; margin: 15px 0; }';
+  html += '<head><meta charset="utf-8">';
+  html += '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>' + sheetName + '</x:Name>';
+  html += '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->';
+  html += '<style>';
+  html += '* { font-family: "Phetsarath OT", "Noto Sans Lao", sans-serif !important; }';
+  html += 'body { margin: 0; padding: 10px; font-family: "Phetsarath OT", "Noto Sans Lao", sans-serif; }';
+  html += 'table { border-collapse: collapse; width: 100%; font-family: "Phetsarath OT", "Noto Sans Lao", sans-serif; }';
+  html += 'th, td { font-family: "Phetsarath OT", "Noto Sans Lao", sans-serif; border: .5pt solid #000; padding: 6px 10px; vertical-align: middle; }';
+  html += 'th { background-color: #e5e7eb; font-weight: bold; text-align: center; }';
+  html += 'tfoot td { background-color: #f3f4f6; font-weight: bold; }';
+  html += '.text-right { text-align: right; }';
+  html += '.text-center { text-align: center; }';
+  html += '.text-left { text-align: left; }';
   html += '</style></head><body>';
-  html += '<h2>' + repT('reports.export_title_all_sales') + '</h2>';
-  html += cloneTable.outerHTML;
+  html += '<table style="border-collapse: collapse; width: 100%;">';
+  html += colgroupHtml;
+  html += cloneTable.innerHTML;
+  html += '</table>';
   html += '</body></html>';
 
   var blob = new Blob(['\ufeff' + html], { type: 'application/vnd.ms-excel;charset=utf-8' });

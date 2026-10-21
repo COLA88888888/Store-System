@@ -22,18 +22,17 @@ $scIsAjax = ($_SERVER['REQUEST_METHOD'] === 'POST')
     && in_array($_POST['action'] ?? '', ['save_counts', 'submit_for_approval', 'approve_adjustment', 'reject_adjustment', 'complete_check', 'delete_check'], true);
 
 // ສິດ:
-//   ຜູ້ບໍລິຫານ / ຫົວໜ້າ ($scIsBoss): ອະນຸມັດໃຫ້ປັບສະຕັອກ (approve_adjustment) ຫຼື ຕີກັບໃຫ້ນັບໃໝ່
-//   stock_check (ຜູ້ຈັດການ/ພະນັກງານເຊັກສະຕັອກ): ເລີ່ມນັບໃໝ່, ນັບ, ສົ່ງຂໍອະນຸມັດ, ແລະ ກົດປັບສະຕັອກຫຼັງຈາກຫົວໜ້າອະນຸມັດແລ້ວ
-//   stock_count (ພະນັກງານນັບ): ປ້ອນ/ບັນທຶກຈຳນວນຕົວຈິງ, ສົ່ງຂໍອະນຸມັດ, ແລະ ກົດປັບສະຕັອກຫຼັງຈາກຫົວໜ້າອະນຸມັດແລ້ວ
+//   ຫົວໜ້າ / ຜູ້ບໍລິຫານ ($scIsBoss): ເຫັນຍອດໃນລະບົບ, ເຫັນສ່ວນຕ່າງ, ອະນຸມັດ, ແກ້ໄຂຕົວຈິງ ແລະ ປັບສະຕັອກ (ພະນັກງານບໍ່ໃຫ້ໂຊສະຕັອກໃນລະບົບ)
+//   ພະນັກງານ ($scIsBoss === false): ປ້ອນຈຳນວນຕົວຈິງ, ບັນທຶກ, ແລະ ສົ່ງໃຫ້ຫົວໜ້າກວດສອບ
 $scIsBoss     = !empty($_SESSION['user_id']) && (isOwnerUser() || isAdminAccount($pdo, $_SESSION['user_id']));
 $scIsManager  = !empty($_SESSION['user_id']) && ($scIsBoss || hasPermission('stock_check'));
 $scIsCounter  = !empty($_SESSION['user_id']) && hasPermission('stock_count');
 $scCanStart   = $scIsBoss || ($scIsManager && hasPermission('stock_check', 'add'));
-$scCanConfirm = $scIsBoss || ($scIsManager && hasPermission('stock_check', 'edit'));
-$scCanApprove = $scIsBoss || $scCanConfirm;   // ຫົວໜ້າ/ຜູ້ຈັດການ ທີ່ມີສິດອະນຸມັດໃບເຊັກສະຕັອກ
+$scCanConfirm = $scIsBoss;
+$scCanApprove = $scIsBoss;   // ຫົວໜ້າ/ຜູ້ບໍລິຫານ ເທົ່ານັ້ນ ທີ່ມີສິດອະນຸມັດ ແລະ ເຫັນຍອດໃນລະບົບ
 $scCanDelete  = $scIsBoss || ($scIsManager && hasPermission('stock_check', 'del'));
-$scCanCount   = $scCanConfirm || ($scIsCounter && hasPermission('stock_count', 'edit'));
-$scSeeResults = $scIsManager;   // ເຫັນຜົນການນັບຂອງໃບທີ່ຍັງນັບຢູ່ (ຫຼື ເມື່ອຫົວໜ້າອະນຸມັດແລ້ວ)
+$scCanCount   = $scIsBoss || $scIsManager || $scIsCounter;
+$scSeeResults = $scIsBoss;   // ຫົວໜ້າເທົ່ານັ້ນ ທີ່ເຫັນຍອດໃນລະບົບ ແລະ ສ່ວນຕ່າງ
 
 if (empty($_SESSION['user_id']) || (!$scIsManager && !$scIsCounter)) {
     if ($scIsAjax) {
@@ -193,9 +192,19 @@ if ($scIsAjax) {
             exit();
         }
 
-        // complete_check: ຕ້ອງໄດ້ຮັບອະນຸຍາດຈາກຫົວໜ້າກ່ອນ (status = 'approved') ຈຶ່ງສາມາດປັບສະຕັອກໄດ້
-        if ($check['status'] !== 'approved') {
-            throw new Exception('ຕ້ອງໄດ້ຮັບອະນຸຍາດຈາກຫົວໜ້າກ່ອນ ຈຶ່ງສາມາດປັບສະຕັອກໄດ້!');
+        // complete_check: ຫົວໜ້າກວດສອບແລ້ວ ຈຶ່ງໃຫ້ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ
+        if ($check['status'] === 'draft') {
+            throw new Exception('ກະລຸນາສົ່ງໃຫ້ຫົວໜ້າກວດສອບກ່ອນ ຈຶ່ງສາມາດປັບສະຕັອກໄດ້!');
+        }
+        if ($check['status'] === 'pending') {
+            if (!$scCanApprove) {
+                throw new Exception('ໃບນີ້ກຳລັງລໍຖ້າຫົວໜ້າກວດສອບ ແລະ ອະນຸມັດ!');
+            }
+            // ຫົວໜ້າກວດສອບ ແລະ ປັບສະຕັອກ
+            $pdo->prepare("UPDATE st_stock_checks SET approved_by = ?, approved_at = NOW() WHERE id = ?")
+                ->execute([$scUserId, $checkId]);
+        } elseif ($check['status'] !== 'approved') {
+            throw new Exception('ໃບເຊັກສະຕັອກນີ້ບໍ່ຢູ່ໃນສະຖານະທີ່ສາມາດປັບສະຕັອກໄດ້');
         }
         $rows = $pdo->prepare("SELECT product_id, product_name, system_qty, counted_qty FROM st_stock_check_items
                                WHERE check_id = ? AND counted_qty IS NOT NULL AND counted_qty <> system_qty");
@@ -212,7 +221,7 @@ if ($scIsAjax) {
 
         logActivity($pdo, 'ຢືນຢັນເຊັກສະຕັອກ', 'ເລກທີ: ' . $check['check_no'] . ', ປັບສະຕັອກ ' . $adjusted . ' ລາຍການ');
         echo json_encode(['success' => true, 'adjusted' => $adjusted,
-            'message' => 'ນັບແລ້ວ! ປັບສະຕັອກແລ້ວ ' . $adjusted . ' ລາຍການ']);
+            'message' => 'ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບສຳເລັດແລ້ວ! (' . $adjusted . ' ລາຍການ)']);
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -255,10 +264,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
                 $draftId = (int)$pdo->lastInsertId();
 
                 // ສິນຄ້າບໍລິການ (cut_qty = 0) ບໍ່ມີສະຕັອກ — ບໍ່ຕ້ອງນັບ
-                $pdo->prepare("INSERT INTO st_stock_check_items (check_id, product_id, barcode, product_name, unit, cost_price, system_qty)
-                               SELECT ?, product_id, barcode, product_name, unit, IFNULL(bprice, 0), IFNULL(qty, 0)
+                $pdo->prepare("INSERT INTO st_stock_check_items (check_id, product_id, barcode, product_name, unit, cost_price, system_qty, zone, shelf)
+                               SELECT ?, product_id, barcode, product_name, unit, IFNULL(bprice, 0), IFNULL(qty, 0), zone, shelf
                                FROM st_products WHERE store_id = ? AND IFNULL(cut_qty, 1) <> 0
-                               ORDER BY product_name")
+                               ORDER BY IFNULL(zone, ''), IFNULL(shelf, ''), product_name")
                     ->execute([$draftId, $scStoreId]);
                 $pdo->commit();
                 logActivity($pdo, 'ເລີ່ມເຊັກສະຕັອກ', 'ເລກທີ: ' . $checkNo);
@@ -297,9 +306,19 @@ if (!empty($_GET['id'])) {
     $stmt->execute([intval($_GET['id']), $scStoreId]);
     $scCheck = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     if ($scCheck) {
+        if (in_array($scCheck['status'], ['draft', 'pending'], true)) {
+            try {
+                $pdo->prepare("UPDATE st_stock_check_items i
+                               JOIN st_products p ON p.product_id = i.product_id AND p.store_id = ?
+                               SET i.zone = p.zone, i.shelf = p.shelf
+                               WHERE i.check_id = ? AND (NOT (i.zone <=> p.zone) OR NOT (i.shelf <=> p.shelf))")
+                    ->execute([$scStoreId, $scCheck['id']]);
+            } catch (Throwable $e) {}
+        }
         $it = $pdo->prepare("SELECT i.*, $scUserNameSql AS counted_by_name
                              FROM st_stock_check_items i LEFT JOIN st_tbuser u ON u.Id = i.counted_by
-                             WHERE i.check_id = ? ORDER BY i.product_name, i.id");
+                             WHERE i.check_id = ?
+                             ORDER BY (i.counted_qty IS NOT NULL) DESC, i.counted_at DESC, IFNULL(i.zone, '') ASC, IFNULL(i.shelf, '') ASC, i.product_name ASC, i.id ASC");
         $it->execute([$scCheck['id']]);
         $scItems = $it->fetchAll(PDO::FETCH_ASSOC);
     } else {
@@ -311,7 +330,8 @@ if (!empty($_GET['id'])) {
 // ແຖບ: 'checks' = ລາຍການໃບ, 'history' = ປະຫວັດການນັບລາຍສິນຄ້າ (ທຸກໃບ)
 $scView = (($_GET['view'] ?? '') === 'history') ? 'history' : 'checks';
 $scHistory = [];
-$scHistorySearch = trim($_GET['q'] ?? '');
+$scSearch = trim($_GET['q'] ?? '');
+$scHistorySearch = $scSearch;
 $scHistoryLimit = 5000;   // ເພດານຂໍ້ມູນທີ່ດຶງ (ສະແດງເປັນໜ້າ, Excel/PDF/ພິມ ໃຊ້ທັງໝົດ)
 
 if (!$scCheck && $scView === 'history') {
@@ -322,11 +342,19 @@ if (!$scCheck && $scView === 'history') {
             WHERE c.store_id = ? AND i.counted_qty IS NOT NULL
               AND DATE(COALESCE(i.counted_at, c.created_at)) BETWEEN ? AND ?";
     $params = [$scStoreId, $scDateFrom, $scDateTo];
-    if ($scHistorySearch !== '') {
-        $sql .= " AND (i.product_name LIKE ? OR i.barcode LIKE ? OR i.product_id = ?)";
-        $params[] = '%' . $scHistorySearch . '%';
-        $params[] = '%' . $scHistorySearch . '%';
-        $params[] = $scHistorySearch;
+    if ($scSearch !== '') {
+        if ($scSearch === 'ບໍ່ລະບຸ') {
+            $sql .= " AND (i.zone IS NULL OR i.zone = '' OR i.shelf IS NULL OR i.shelf = '' OR i.product_name LIKE ? OR i.barcode LIKE ?)";
+            $params[] = '%' . $scSearch . '%';
+            $params[] = '%' . $scSearch . '%';
+        } else {
+            $sql .= " AND (i.product_name LIKE ? OR i.barcode LIKE ? OR i.zone LIKE ? OR i.shelf LIKE ? OR i.product_id = ?)";
+            $params[] = '%' . $scSearch . '%';
+            $params[] = '%' . $scSearch . '%';
+            $params[] = '%' . $scSearch . '%';
+            $params[] = '%' . $scSearch . '%';
+            $params[] = $scSearch;
+        }
     }
     $sql .= " ORDER BY COALESCE(i.counted_at, c.created_at) DESC, i.id DESC LIMIT " . ($scHistoryLimit + 1);
     $stmt = $pdo->prepare($sql);
@@ -335,21 +363,95 @@ if (!$scCheck && $scView === 'history') {
 }
 
 if (!$scCheck) {
-    $stmt = $pdo->prepare("SELECT c.*, $scUserNameSql AS created_by_name,
-                                  COUNT(i.id) AS item_count,
-                                  SUM(i.counted_qty IS NOT NULL) AS counted_count,
-                                  SUM(CASE WHEN i.counted_qty < i.system_qty THEN i.system_qty - i.counted_qty ELSE 0 END) AS short_qty,
-                                  SUM(CASE WHEN i.counted_qty > i.system_qty THEN i.counted_qty - i.system_qty ELSE 0 END) AS over_qty,
-                                  SUM(CASE WHEN i.counted_qty IS NOT NULL THEN i.counted_qty - i.system_qty ELSE 0 END) AS diff_qty
-                           FROM st_stock_checks c
-                           LEFT JOIN st_tbuser u ON u.Id = c.user_id
-                           LEFT JOIN st_stock_check_items i ON i.check_id = c.id
-                           WHERE c.store_id = ? AND DATE(c.created_at) BETWEEN ? AND ?
-                           GROUP BY c.id
-                           ORDER BY c.id DESC");
-    $stmt->execute([$scStoreId, $scDateFrom, $scDateTo]);
-    $scChecks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if ($scSearch !== '') {
+        $kw = '%' . $scSearch . '%';
+        $sqlChecks = "SELECT c.*, $scUserNameSql AS created_by_name,
+                             COUNT(i.id) AS item_count,
+                             SUM(i.counted_qty IS NOT NULL) AS counted_count,
+                             SUM(CASE WHEN i.counted_qty < i.system_qty THEN i.system_qty - i.counted_qty ELSE 0 END) AS short_qty,
+                             SUM(CASE WHEN i.counted_qty > i.system_qty THEN i.counted_qty - i.system_qty ELSE 0 END) AS over_qty,
+                             SUM(CASE WHEN i.counted_qty IS NOT NULL THEN i.counted_qty - i.system_qty ELSE 0 END) AS diff_qty,
+                             (SELECT i2.product_name FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_name,
+                             (SELECT i2.barcode FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_barcode,
+                             (SELECT i2.counted_qty FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_qty
+                      FROM st_stock_checks c
+                      LEFT JOIN st_tbuser u ON u.Id = c.user_id
+                      LEFT JOIN st_stock_check_items i ON i.check_id = c.id
+                      WHERE c.store_id = ?
+                        AND (
+                            (DATE(c.created_at) BETWEEN ? AND ?)
+                            OR c.check_no LIKE ?
+                            OR EXISTS (SELECT 1 FROM st_stock_check_items si WHERE si.check_id = c.id AND (si.barcode LIKE ? OR si.product_name LIKE ? OR si.product_id = ?))
+                        )
+                        AND (
+                            c.check_no LIKE ?
+                            OR c.note LIKE ?
+                            OR u.username LIKE ?
+                            OR u.fname LIKE ?
+                            OR u.lname LIKE ?
+                            OR EXISTS (SELECT 1 FROM st_stock_check_items si2 WHERE si2.check_id = c.id AND (si2.barcode LIKE ? OR si2.product_name LIKE ? OR si2.product_id = ?))
+                        )
+                      GROUP BY c.id
+                      ORDER BY c.id DESC";
+        $stmt = $pdo->prepare($sqlChecks);
+        $stmt->execute([
+            $scStoreId,
+            $scDateFrom,
+            $scDateTo,
+            $kw,
+            $kw,
+            $kw,
+            $scSearch,
+            $kw,
+            $kw,
+            $kw,
+            $kw,
+            $kw,
+            $kw,
+            $kw,
+            $scSearch,
+        ]);
+        $scChecks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // ດຶງສິນຄ້າທີ່ກົງກັບຄຳຄົ້ນຫາ ເພື່ອສະແດງໃນຕາຕະລາງໃຫ້ເຫັນທັນທີ (ສະແກນ ຫຼື ຄົ້ນຫາຊື່ສິນຄ້າຕ້ອງເຫັນ)
+        if (!empty($scChecks)) {
+            $checkIds = array_column($scChecks, 'id');
+            $inClause = implode(',', array_map('intval', $checkIds));
+            $stmtItems = $pdo->prepare("SELECT check_id, product_id, barcode, product_name, unit, system_qty, counted_qty
+                                        FROM st_stock_check_items
+                                        WHERE check_id IN ($inClause)
+                                          AND (product_name LIKE ? OR barcode LIKE ? OR product_id = ?)
+                                        ORDER BY id ASC");
+            $stmtItems->execute([$kw, $kw, $scSearch]);
+            $matchedItems = $stmtItems->fetchAll(PDO::FETCH_ASSOC);
+            $scMatchedByCheck = [];
+            foreach ($matchedItems as $mi) {
+                $scMatchedByCheck[$mi['check_id']][] = $mi;
+            }
+            foreach ($scChecks as &$c) {
+                $c['matched_items'] = $scMatchedByCheck[$c['id']] ?? [];
+            }
+            unset($c);
+        }
+    } else {
+        $stmt = $pdo->prepare("SELECT c.*, $scUserNameSql AS created_by_name,
+                                      COUNT(i.id) AS item_count,
+                                      SUM(i.counted_qty IS NOT NULL) AS counted_count,
+                                      SUM(CASE WHEN i.counted_qty < i.system_qty THEN i.system_qty - i.counted_qty ELSE 0 END) AS short_qty,
+                                      SUM(CASE WHEN i.counted_qty > i.system_qty THEN i.counted_qty - i.system_qty ELSE 0 END) AS over_qty,
+                                      SUM(CASE WHEN i.counted_qty IS NOT NULL THEN i.counted_qty - i.system_qty ELSE 0 END) AS diff_qty,
+                                      (SELECT i2.product_name FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_name,
+                                      (SELECT i2.barcode FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_barcode,
+                                      (SELECT i2.counted_qty FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_qty
+                               FROM st_stock_checks c
+                               LEFT JOIN st_tbuser u ON u.Id = c.user_id
+                               LEFT JOIN st_stock_check_items i ON i.check_id = c.id
+                               WHERE c.store_id = ? AND DATE(c.created_at) BETWEEN ? AND ?
+                               GROUP BY c.id
+                               ORDER BY c.id DESC");
+        $stmt->execute([$scStoreId, $scDateFrom, $scDateTo]);
+        $scChecks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
 // ໃບທີ່ກຳລັງດຳເນີນຢູ່ (draft / pending / approved) — ໃຊ້ທັງແຖບແຈ້ງເຕືອນ ແລະ ແຖບເມນູ "ນັບສະຕັອກ" (tabs.php) ໃນທຸກໜ້າ

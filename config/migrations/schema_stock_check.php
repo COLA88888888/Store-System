@@ -10,7 +10,7 @@
  * schema_core.php ແລະ ຈະຖືກ DROP ອັດຕະໂນມັດ.
  */
 
-if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['stock_check_schema_v5'])) {
+if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['stock_check_schema_v7'])) {
     try {
         // ໃບເຊັກສະຕັອກ: draft = ກຳລັງນັບ, pending = ລໍຖ້າຫົວໜ້າອະນຸມັດ, approved = ອະນຸມັດໃຫ້ປັບແລ້ວ, completed = ປິດໃບ (ປັບສະຕັອກແລ້ວ)
         $pdo->exec("CREATE TABLE IF NOT EXISTS `st_stock_checks` (
@@ -84,7 +84,66 @@ if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['stock_check_schema_v5
             $pdo->exec("ALTER TABLE `st_tbuser` ADD COLUMN `stock_count` TINYINT(1) DEFAULT 0");
         }
 
-        $_SESSION['stock_check_schema_v5'] = 1;
+        // v6: ໂຊນ (zone) ແລະ ຊັ້ນວາງ (shelf) ສຳລັບຈັດການຕຳແໜ່ງສິນຄ້າ ແລະ ເຊັກສະຕັອກຕາມໂຊນ/ຊັ້ນ
+        $pCols = $pdo->query("SHOW COLUMNS FROM st_products")->fetchAll(PDO::FETCH_COLUMN);
+        if (!in_array('zone', $pCols)) {
+            $pdo->exec("ALTER TABLE st_products ADD COLUMN `zone` VARCHAR(100) NULL AFTER `unit`");
+        }
+        if (!in_array('shelf', $pCols)) {
+            $pdo->exec("ALTER TABLE st_products ADD COLUMN `shelf` VARCHAR(100) NULL AFTER `zone`");
+        }
+
+        if (!in_array('zone', $sciCols)) {
+            $pdo->exec("ALTER TABLE st_stock_check_items ADD COLUMN `zone` VARCHAR(100) NULL AFTER `unit`");
+        }
+        if (!in_array('shelf', $sciCols)) {
+            $pdo->exec("ALTER TABLE st_stock_check_items ADD COLUMN `shelf` VARCHAR(100) NULL AFTER `zone`");
+        }
+
+        // v7: ຕາຕະລາງໂຊນ (st_zones) ແລະ ຊັ້ນວາງ (st_shelves) ສຳລັບເລືອກໃນຂໍ້ມູນສິນຄ້າ
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `st_zones` (
+            `zone_id` INT AUTO_INCREMENT PRIMARY KEY,
+            `zone_name` VARCHAR(100) COLLATE utf8mb4_general_ci NOT NULL,
+            `description` VARCHAR(255) COLLATE utf8mb4_general_ci NULL,
+            `store_id` INT NOT NULL DEFAULT 1,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_zone_store` (`store_id`, `zone_name`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `st_shelves` (
+            `shelf_id` INT AUTO_INCREMENT PRIMARY KEY,
+            `zone_id` INT NULL,
+            `shelf_name` VARCHAR(100) COLLATE utf8mb4_general_ci NOT NULL,
+            `description` VARCHAR(255) COLLATE utf8mb4_general_ci NULL,
+            `store_id` INT NOT NULL DEFAULT 1,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_shelf_zone` (`zone_id`),
+            INDEX `idx_shelf_store` (`store_id`, `shelf_name`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
+
+        $pdo->exec("ALTER TABLE st_zones CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
+        $pdo->exec("ALTER TABLE st_shelves CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
+
+        // Seed ໂຊນ/ຊັ້ນວາງເລີ່ມຕົ້ນ ຖ້າຍັງບໍ່ມີຂໍ້ມູນ
+        $zCnt = (int)$pdo->query("SELECT COUNT(*) FROM st_zones")->fetchColumn();
+        if ($zCnt === 0) {
+            $firstStoreId = (int)$pdo->query("SELECT store_id FROM st_tbstore ORDER BY is_main DESC, store_id ASC LIMIT 1")->fetchColumn() ?: 1;
+            $pdo->exec("INSERT INTO `st_zones` (`zone_name`, `store_id`) VALUES
+                ('ໂຊນ A', $firstStoreId),
+                ('ໂຊນ B', $firstStoreId),
+                ('ໜ້າຮ້ານ', $firstStoreId),
+                ('ສາງສິນຄ້າ', $firstStoreId)");
+            $zAId = (int)$pdo->query("SELECT zone_id FROM st_zones WHERE zone_name = 'ໂຊນ A' AND store_id = $firstStoreId LIMIT 1")->fetchColumn();
+            $zBId = (int)$pdo->query("SELECT zone_id FROM st_zones WHERE zone_name = 'ໂຊນ B' AND store_id = $firstStoreId LIMIT 1")->fetchColumn();
+            $pdo->exec("INSERT INTO `st_shelves` (`zone_id`, `shelf_name`, `store_id`) VALUES
+                ($zAId, 'ຊັ້ນ 1', $firstStoreId),
+                ($zAId, 'ຊັ້ນ 2', $firstStoreId),
+                ($zAId, 'ຊັ້ນ 3', $firstStoreId),
+                ($zBId, 'ຊັ້ນ 1', $firstStoreId),
+                ($zBId, 'ຊັ້ນ 2', $firstStoreId)");
+        }
+
+        $_SESSION['stock_check_schema_v7'] = 1;
     } catch (Throwable $ex) {
         // Leave the session flag unset so the next request tries again.
         error_log('MiniPos stock_check schema: ' . $ex->getMessage());

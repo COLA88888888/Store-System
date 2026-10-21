@@ -97,6 +97,23 @@ try {
     $supStmt->execute([$selectedStoreId]);
     $suppliers = $supStmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Throwable $e) {}
+
+// ໂຊນ ແລະ ຊັ້ນວາງ ສຳລັບ dropdown ໃນຟອມເພີ່ມ/ແກ້ໄຂສິນຄ້າ
+$zones = [];
+$shelves = [];
+try {
+    $zStmt = $pdo->prepare("SELECT zone_id, zone_name FROM st_zones WHERE store_id = ? ORDER BY zone_name ASC");
+    $zStmt->execute([$selectedStoreId]);
+    $zones = $zStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $shStmt = $pdo->prepare("SELECT s.shelf_id, s.zone_id, s.shelf_name, z.zone_name 
+                             FROM st_shelves s 
+                             LEFT JOIN st_zones z ON z.zone_id = s.zone_id 
+                             WHERE s.store_id = ? 
+                             ORDER BY s.shelf_name ASC");
+    $shStmt->execute([$selectedStoreId]);
+    $shelves = $shStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {}
 $stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 $products_stmt = $pdo->prepare("
@@ -137,6 +154,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 
 
 
+<?php require __DIR__ . '/partials/products/products_zone_shelf_js.php'; /* JS ໂຊນ ແລະ ຊັ້ນວາງ */ ?>
 <?php require __DIR__ . '/partials/products/products_js.php'; /* JS ຂອງໜ້າສິນຄ້າ */ ?>
 
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

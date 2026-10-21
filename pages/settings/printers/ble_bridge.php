@@ -4,6 +4,7 @@
  * ຮອງຮັບການພິມຕໍ່ເນື່ອງຫຼາຍບິນ (ມີ flock ປ້ອງກັນການສົ່ງຊ້ອນກັນ) ໂດຍບໍ່ຕ້ອງກົດເຊື່ອມຕໍ່ໃໝ່ໃນ browser.
  */
 header('Content-Type: application/json; charset=utf-8');
+@set_time_limit(90);   // ເຄື່ອງພິມໃໝ່ທີ່ບໍ່ໄດ້ຈັບຄູ່ໃນ Windows: ble_send.ps1 ຊອກໄດ້ເຖິງ 40 ວິ ໃນເທື່ອທຳອິດ
 
 $raw = file_get_contents('php://input');
 $body = json_decode($raw ?: '{}', true) ?: [];

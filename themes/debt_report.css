@@ -18,16 +18,11 @@
   .dbr-filters { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
   .dbr-filters label { font-size: 0.76rem; color: #64748b; margin-bottom: 3px; display: block; }
   .dbr-filters .form-control, .dbr-filters .btn { height: 36px; border-radius: 8px; font-size: 0.86rem; }
-  /* Tabs: Bootstrap nav-tabs — active tab white with a border, others plain blue text, coloured icon each */
+  /* Tabs: Bootstrap nav-tabs — active tab white with a border, others plain blue text (no icons), corners 2px */
   .dbr-navtabs { padding: 12px 14px 0; border-bottom: 1px solid #dee2e6; flex-wrap: wrap; }
-  .dbr-navtabs .nav-link { font-weight: 700; font-size: 0.92rem; color: #1d6fd8; padding: 0.6rem 1rem; border: 1px solid transparent; border-radius: 8px 8px 0 0; }
+  .dbr-navtabs .nav-link { font-weight: 700; font-size: 0.92rem; color: #1d6fd8; padding: 0.6rem 1rem; border: 1px solid transparent; border-radius: 2px 2px 0 0; }
   .dbr-navtabs .nav-link:hover { border-color: #e9ecef #e9ecef #dee2e6; color: #1558b0; }
   .dbr-navtabs .nav-link.active { color: #1e293b; background: #fff; border-color: #dee2e6 #dee2e6 #fff; }
-  .dbr-aging { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 12px 14px; border-bottom: 1px solid #e2e8f0; }
-  @media (max-width: 767.98px) { .dbr-aging { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  .dbr-aging div { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 10px; }
-  .dbr-aging small { color: #64748b; display: block; font-size: 0.75rem; }
-  .dbr-aging b { font-size: 0.98rem; }
   .dbr-channels { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #e2e8f0; }
   .dbr-channel { display: flex; align-items: center; gap: 10px; min-width: 170px; padding: 8px 12px; border-radius: 8px;
     border: 1px solid #ddd6fe; background: #faf5ff; }
@@ -59,5 +54,16 @@
     .print-only { display: block !important; }
     .container-fluid { padding: 0 !important; }
     .dbr-panel { border: none !important; }
-    .dbr-table { font-size: 11px !important; }
+    /* ພິມອອກເປັນຕາຕະລາງ: ບໍ່ມີບັອກສີ, ທຸກຊ່ອງມີເສັ້ນຂອບ, ຫົວຕາຕະລາງສີເທົາ */
+    .dbr-stats, .dbr-channels, .dbr-pager { display: none !important; }
+    .table-responsive { overflow: visible !important; }
+    .dbr-table { font-size: 11px !important; width: 100% !important; border-collapse: collapse !important; }
+    .dbr-table th, .dbr-table td { border: 1px solid #000 !important; padding: 4px 6px !important; color: #000 !important; white-space: normal !important; }
+    .dbr-table thead th { background: #e5e7eb !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .dbr-table thead { display: table-header-group; }   /* ຫົວຕາຕະລາງຊ້ຳທຸກໜ້າ */
+    .dbr-table tfoot td { background: #f3f4f6 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .dbr-table tr { page-break-inside: avoid; break-inside: avoid; }
+    .dbr-pill { background: none !important; color: #000 !important; padding: 0 !important; }
+    .dbr-meta { color: #333 !important; }
+    .dbr-paybank img { display: none !important; }
   }

@@ -235,16 +235,9 @@ function findAndAddByBarcode(code) {
       showConfirmButton: true, confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ', confirmButtonColor: '#f59e0b', allowOutsideClick: false, allowEscapeKey: false, allowEnterKey: false, focusConfirm: false,
       didClose: function() { ensureBarcodeInputFocused(); }
     });
-  } else {
-    Swal.fire({
-      icon: 'warning',
-      title: 'ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ',
-      title: 'ບໍ່ພົບສິນຄ້າ!',
-      text: 'ລະຫັດບາໂຄ້ດ: ' + code,
-      // ຄ້າງໄວ້ໃຫ້ກົດຕົກລົງເອງ
-      showConfirmButton: true, confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ', confirmButtonColor: '#f59e0b', allowOutsideClick: false, allowEscapeKey: false, allowEnterKey: false, focusConfirm: false,
-      didClose: function() { ensureBarcodeInputFocused(); }
-    });
+  } else if (window.showBarcodeNotFoundAlert) {
+    // ບາໂຄ້ດບໍ່ມີໃນລະບົບ → ເຕືອນໃຫ້ປ້ອນລາຍການສິນຄ້າກ່ອນ (layouts/footer.php)
+    window.showBarcodeNotFoundAlert(code, null, function() { ensureBarcodeInputFocused(); });
   }
 }
 

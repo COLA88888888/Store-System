@@ -65,12 +65,38 @@
           <?php endif; ?>
 
           <?php if (hasPermission('stock_check') || hasPermission('stock_count')): ?>
-          <!-- Menu: ເຊັກສະຕັອກ (ນັບສິນຄ້າຈິງທຽບກັບລະບົບ) — ຜູ້ຈັດການ ຫຼື ພະນັກງານນັບ -->
-          <li class="nav-item">
-            <a href="<?php echo $bp; ?>pages/stock_check/stock_check.php" target="frame" class="nav-link">
+          <!-- Dropdown Treeview: ເຊັກສະຕັອກ & ທີ່ຕັ້ງ (ໂຊນ, ຊັ້ນວາງ) -->
+          <li class="nav-item has-treeview">
+            <a href="#" class="nav-link">
               <i class="nav-icon fas fa-clipboard-check text-success"></i>
-              <p data-i18n="layout.stock_check"><?php echo htmlspecialchars(t('layout.stock_check', 'ເຊັກສະຕັອກ')); ?></p>
+              <p>
+                <span data-i18n="layout.stock_check_group"><?php echo htmlspecialchars(t('layout.stock_check_group', 'ກວດສອບສິນຄ້າ')); ?></span>
+                <i class="right fas fa-angle-right"></i>
+              </p>
             </a>
+            <ul class="nav nav-treeview">
+              <!-- Sub-menu 1: ເຊັກສະຕັອກ -->
+              <li class="nav-item">
+                <a href="<?php echo $bp; ?>pages/stock_check/stock_check.php" target="frame" class="nav-link">
+                  <i class="nav-icon fas fa-clipboard-list text-success"></i>
+                  <p data-i18n="layout.stock_check_list"><?php echo htmlspecialchars(t('layout.stock_check_list', 'ເຊັກສະຕັອກ')); ?></p>
+                </a>
+              </li>
+              <!-- Sub-menu 2: ໂຊນສິນຄ້າ -->
+              <li class="nav-item">
+                <a href="<?php echo $bp; ?>pages/stock_check/zones.php" target="frame" class="nav-link">
+                  <i class="nav-icon fas fa-map-marker-alt text-primary"></i>
+                  <p data-i18n="layout.zones"><?php echo htmlspecialchars(t('layout.zones', 'ໂຊນສິນຄ້າ')); ?></p>
+                </a>
+              </li>
+              <!-- Sub-menu 3: ຊັ້ນວາງສິນຄ້າ -->
+              <li class="nav-item">
+                <a href="<?php echo $bp; ?>pages/stock_check/shelves.php" target="frame" class="nav-link">
+                  <i class="nav-icon fas fa-layer-group text-info"></i>
+                  <p data-i18n="layout.shelves"><?php echo htmlspecialchars(t('layout.shelves', 'ຊັ້ນວາງສິນຄ້າ')); ?></p>
+                </a>
+              </li>
+            </ul>
           </li>
           <?php endif; ?>
 

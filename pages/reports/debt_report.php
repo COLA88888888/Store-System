@@ -1,7 +1,7 @@
 <?php
 // Standalone Page: ລາຍງານໜີ້ລູກຄ້າ (Customer debt report)
 // Read-only. Three views over customer_debts / customer_debt_payments:
-//   outstanding — every bill still owed today, with its age (0-30 / 31-60 / 61-90 / 90+ days)
+//   outstanding — every bill still owed today (optionally only those created between from/to), with its age
 //   payments    — repayments received in the date range
 //   new         — debts created in the date range that are still owed (a fully paid debt drops out)
 session_start();
@@ -59,24 +59,28 @@ try {
     $sum['overdue'] = (float)$row['overdue'];
 } catch (Exception $e) {}
 
+// ໜີ້ຄ້າງຊຳລະ: ກັ່ນຕອງຕາມວັນທີສ້າງໜີ້ — ເລີ່ມຕົ້ນ ວັນທີ 1 ຂອງເດືອນ ຫາ ມື້ນີ້ (ຄືແຖບອື່ນ).
+// ລ້າງບັອກວັນທີໃຫ້ວ່າງ (ສົ່ງ from= / to= ວ່າງ) → ບໍ່ຈຳກັດວັນທີ = ໜີ້ຄ້າງທັງໝົດ
+$outFrom = array_key_exists('from', $_GET) ? ($isDate($_GET['from']) ? $_GET['from'] : '') : $dateFrom;
+$outTo   = array_key_exists('to', $_GET) ? ($isDate($_GET['to']) ? $_GET['to'] : '') : $dateTo;
+if ($outFrom !== '' && $outTo !== '' && $outFrom > $outTo) [$outFrom, $outTo] = [$outTo, $outFrom];
+
 $rows = [];
 $payChannels = [];
-$aging =['0_30' => 0, '31_60' => 0, '61_90' => 0, '90_plus' => 0];
 try {
     if ($view === 'outstanding') {
+        $outSql = '';
+        $outParams = [];
+        if ($outFrom !== '') { $outSql .= ' AND DATE(d.created_at) >= ?'; $outParams[] = $outFrom; }
+        if ($outTo !== '')   { $outSql .= ' AND DATE(d.created_at) <= ?'; $outParams[] = $outTo; }
         $st = $pdo->prepare("SELECT d.*, c.phone, s.store_name, DATEDIFF(CURDATE(), DATE(d.created_at)) AS age_days
                              FROM st_customer_debts d
                              LEFT JOIN st_customers c ON c.customer_id = d.customer_id
                              LEFT JOIN st_tbstore s ON s.store_id = d.store_id
-                             WHERE d.status IN ('unpaid','partial') $storeSql $searchSql
+                             WHERE d.status IN ('unpaid','partial') $storeSql $outSql $searchSql
                              ORDER BY d.customer_name ASC, d.created_at ASC");
-        $st->execute($searchParams);
+        $st->execute(array_merge($outParams, $searchParams));
         $rows = $st->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($rows as $r) {
-            $age = (int)$r['age_days'];
-            $bucket = $age <= 30 ? '0_30' : ($age <= 60 ? '31_60' : ($age <= 90 ? '61_90' : '90_plus'));
-            $aging[$bucket] += (float)$r['balance'];
-        }
     } elseif ($view === 'payments') {
         $st = $pdo->prepare("SELECT p.*, d.customer_name, d.invoice_number, c.phone, s.store_name,
                                     b.bank_logo, b.bank_code, b.account_number AS bank_account_no
@@ -147,11 +151,6 @@ $views = [
     'payments'    => t('debt_report.view_payments', 'ປະຫວັດຮັບຊຳລະ'),
     'new'         => t('debt_report.view_new', 'ໜີ້ໃໝ່ໃນຊ່ວງວັນທີ'),
 ];
-$viewIcons = [
-    'outstanding' => ['fa-hourglass-half', '#d97706'],
-    'payments'    => ['fa-money-bill-wave', '#16a34a'],
-    'new'         => ['fa-file-invoice-dollar', '#0891b2'],
-];
 $statusLabels = [
     'unpaid'    => ['danger', t('customer_debt.status_unpaid', 'ຍັງບໍ່ຊຳລະ')],
     'partial'   => ['warning', t('customer_debt.status_partial', 'ຊຳລະບາງສ່ວນ')],
@@ -160,7 +159,9 @@ $statusLabels = [
 ];
 
 function debtRepUrl($over) {
-    return 'debt_report.php?' . htmlspecialchars(http_build_query(array_merge($_GET, $over)));
+    $q = $_GET;
+    unset($q['print'], $q['export']);   // ລິ້ງອື່ນໆ ບໍ່ສັ່ງພິມ / ອອກໄຟລ໌ຊ້ຳ
+    return 'debt_report.php?' . htmlspecialchars(http_build_query(array_merge($q, $over)));
 }
 
 require_once __DIR__ . '/../../layouts/header.php';
@@ -175,15 +176,25 @@ require_once __DIR__ . '/../../layouts/header.php';
       <h5 class="dbr-title"><i class="fas fa-hand-holding-usd text-danger mr-1"></i> <?php echo htmlspecialchars(t('debt_report.title', 'ລາຍງານໜີ້ລູກຄ້າ')); ?></h5>
       <div class="dbr-sub"><?php echo htmlspecialchars(t('debt_report.subtitle', 'ໜີ້ຄ້າງ, ການຮັບຊຳລະ ແລະ ໜີ້ໃໝ່ຂອງລູກຄ້າ')); ?></div>
     </div>
-    <button type="button" class="btn btn-light border btn-sm px-3" onclick="window.print()" style="border-radius: 8px; height: 36px; white-space: nowrap;">
-      <i class="fas fa-print mr-1 text-muted"></i> <?php echo htmlspecialchars(t('debt_report.print_btn', 'ພິມລາຍງານ')); ?>
-    </button>
+    <?php /* ພິມ / Excel / PDF: ໂຫຼດໜ້າໃໝ່ດ້ວຍລາຍການທັງໝົດ (ບໍ່ແມ່ນແຕ່ໜ້າປັດຈຸບັນ) ແລ້ວເຮັດວຽກເອງ — partials/debt_report/export_js.php */ ?>
+    <div class="d-flex" style="gap: 6px;">
+      <a href="<?php echo debtRepUrl(['per_page' => 'all', 'page' => 1, 'export' => 'excel']); ?>" class="btn btn-success btn-sm px-3 d-flex align-items-center" style="border-radius: 8px; height: 36px; white-space: nowrap;">
+        <i class="fas fa-file-excel mr-1"></i> Excel
+      </a>
+      <a href="<?php echo debtRepUrl(['per_page' => 'all', 'page' => 1, 'export' => 'pdf']); ?>" class="btn btn-danger btn-sm px-3 d-flex align-items-center" style="border-radius: 8px; height: 36px; white-space: nowrap;">
+        <i class="fas fa-file-pdf mr-1"></i> PDF
+      </a>
+      <a href="<?php echo debtRepUrl(['per_page' => 'all', 'page' => 1, 'print' => 1]); ?>" class="btn btn-primary btn-sm px-3 d-flex align-items-center" style="background: #244886; border-color: #244886; border-radius: 8px; height: 36px; white-space: nowrap;">
+        <i class="fas fa-print mr-1"></i> <?php echo htmlspecialchars(t('debt_report.print_btn', 'ພິມລາຍງານ')); ?>
+      </a>
+    </div>
   </div>
 
   <div class="print-only mb-3">
     <h4 class="font-weight-bold mb-1"><?php echo htmlspecialchars(t('debt_report.title', 'ລາຍງານໜີ້ລູກຄ້າ')); ?> — <?php echo htmlspecialchars($views[$view]); ?></h4>
     <div><?php echo htmlspecialchars($storeLabel); ?>
-      <?php if ($view !== 'outstanding'): ?> · <?php echo date('d/m/Y', strtotime($dateFrom)); ?> – <?php echo date('d/m/Y', strtotime($dateTo)); ?><?php endif; ?>
+      <?php if ($view !== 'outstanding'): ?> · <?php echo date('d/m/Y', strtotime($dateFrom)); ?> – <?php echo date('d/m/Y', strtotime($dateTo)); ?>
+      <?php elseif ($outFrom !== '' || $outTo !== ''): ?> · <?php echo $outFrom !== '' ? date('d/m/Y', strtotime($outFrom)) : '…'; ?> – <?php echo $outTo !== '' ? date('d/m/Y', strtotime($outTo)) : '…'; ?><?php endif; ?>
       · <?php echo htmlspecialchars(t('debt_report.printed_at', 'ວັນທີພິມ')); ?>: <?php echo date('d/m/Y H:i'); ?></div>
   </div>
 
@@ -211,7 +222,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <?php foreach ($views as $key => $label): ?>
         <li class="nav-item">
           <a class="nav-link <?php echo $view === $key ? 'active' : ''; ?>" href="<?php echo debtRepUrl(['view' => $key, 'page' => 1]); ?>">
-            <i class="fas <?php echo $viewIcons[$key][0]; ?> mr-1" style="color: <?php echo $viewIcons[$key][1]; ?>;"></i><?php echo htmlspecialchars($label); ?>
+            <?php echo htmlspecialchars($label); ?>
           </a>
         </li>
       <?php endforeach; ?>
@@ -223,19 +234,15 @@ require_once __DIR__ . '/../../layouts/header.php';
         <label><?php echo htmlspecialchars(t('debt_report.search_label', 'ຄົ້ນຫາ:')); ?></label>
         <input type="text" name="q" value="<?php echo htmlspecialchars($search); ?>" class="form-control" placeholder="<?php echo htmlspecialchars(t('customer_debt.search_placeholder', 'ຊື່ລູກຄ້າ, ເບີໂທ, ເລກບິນ...')); ?>">
       </div>
-      <?php if ($view !== 'outstanding'): ?>
+      <?php $isOut = $view === 'outstanding'; /* ໜີ້ຄ້າງ: ບັອກວັນທີວ່າງ = ທັງໝົດ */ ?>
       <div style="flex: 1 1 140px;">
         <label><?php echo htmlspecialchars(t('debt_report.from', 'ແຕ່ວັນທີ:')); ?></label>
-        <input type="date" name="from" value="<?php echo htmlspecialchars($dateFrom); ?>" class="form-control">
+        <input type="date" name="from" value="<?php echo htmlspecialchars($isOut ? $outFrom : $dateFrom); ?>" class="form-control">
       </div>
       <div style="flex: 1 1 140px;">
         <label><?php echo htmlspecialchars(t('debt_report.to', 'ຫາວັນທີ:')); ?></label>
-        <input type="date" name="to" value="<?php echo htmlspecialchars($dateTo); ?>" class="form-control">
+        <input type="date" name="to" value="<?php echo htmlspecialchars($isOut ? $outTo : $dateTo); ?>" class="form-control">
       </div>
-      <?php else: ?>
-        <input type="hidden" name="from" value="<?php echo htmlspecialchars($dateFrom); ?>">
-        <input type="hidden" name="to" value="<?php echo htmlspecialchars($dateTo); ?>">
-      <?php endif; ?>
       <?php if ($multiBranch): ?>
       <div style="flex: 1 1 150px;">
         <label><?php echo htmlspecialchars(t('debt_report.branch_label', 'ສາຂາ:')); ?></label>
@@ -279,15 +286,6 @@ require_once __DIR__ . '/../../layouts/header.php';
             </div>
           </div>
         <?php endforeach; ?>
-      </div>
-    <?php endif; ?>
-
-    <?php if ($view === 'outstanding'): ?>
-      <div class="dbr-aging">
-        <div><small><?php echo htmlspecialchars(t('debt_report.age_0_30', 'ອາຍຸໜີ້ 0–30 ວັນ')); ?></small><b><?php echo formatCurrency($aging['0_30']); ?></b></div>
-        <div><small><?php echo htmlspecialchars(t('debt_report.age_31_60', 'ອາຍຸໜີ້ 31–60 ວັນ')); ?></small><b><?php echo formatCurrency($aging['31_60']); ?></b></div>
-        <div><small><?php echo htmlspecialchars(t('debt_report.age_61_90', 'ອາຍຸໜີ້ 61–90 ວັນ')); ?></small><b class="text-warning"><?php echo formatCurrency($aging['61_90']); ?></b></div>
-        <div><small><?php echo htmlspecialchars(t('debt_report.age_90_plus', 'ອາຍຸໜີ້ ເກີນ 90 ວັນ')); ?></small><b class="text-danger"><?php echo formatCurrency($aging['90_plus']); ?></b></div>
       </div>
     <?php endif; ?>
 
@@ -418,5 +416,7 @@ require_once __DIR__ . '/../../layouts/header.php';
     </div>
   </div>
 </div>
+
+<?php require __DIR__ . '/partials/debt_report/export_js.php'; /* ພິມ / Excel / PDF (ຫຼັງໂຫຼດລາຍການທັງໝົດ) */ ?>
 
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

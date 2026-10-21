@@ -40,3 +40,9 @@ span.flatpickr-weekday { font-weight: 600; font-size: 0.85rem; color: #6b7280; b
 html.mp-dp-on input[type="date"]:not([data-native-date="1"]) { color: transparent !important; }
 html.mp-dp-on input[type="date"]:not([data-native-date="1"])::-webkit-datetime-edit { opacity: 0; }
 html.mp-dp-on input[type="date"]:not([data-native-date="1"])::-webkit-calendar-picker-indicator { opacity: 0; }
+
+/* ປະຕິທິນເປີດຂຶ້ນມາຢູ່ຊື່ໆ: ບໍ່ມີອະນິເມຊັນເລື່ອນລົງ (fpFadeInDown) — ກັນໄວ້ ເຖິງວ່າຈະມີປະຕິທິນທີ່ສ້າງເອງນອກ minipos-datepicker.js */
+.flatpickr-calendar.animate.open { -webkit-animation: none !important; animation: none !important; }
+
+/* ປະຕິທິນທີ່ເປີດຢູ່ ຕິດກັບຈໍ (ບໍ່ເຮັດໃຫ້ໜ້າຍາວຂຶ້ນ → ບໍ່ມີແຖບເລື່ອນຂວາມື). top/left ຕັ້ງໂດຍ pinCalendar() ໃນ minipos-datepicker.js */
+.flatpickr-calendar.mp-fixed.open:not(.inline):not(.static) { position: fixed !important; }

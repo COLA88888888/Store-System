@@ -15,6 +15,8 @@
         // kept in sync from it so existing readers (POS, receipts, reports) still work.
         $unit_id     = intval($_POST['unit_id'] ?? 0) ?: null;
         $supplier_id = intval($_POST['supplier_id'] ?? 0) ?: null;
+        $zone        = trim($_POST['zone'] ?? '') ?: null;
+        $shelf       = trim($_POST['shelf'] ?? '') ?: null;
         $unit        = '';
         if ($unit_id !== null) {
             $unitNameStmt = $pdo->prepare("SELECT unit_name FROM st_units WHERE unit_id = ?");
@@ -84,12 +86,12 @@
                     // Deduct stock on sale? Unchecked = service / made-to-order item.
                     $cut_qty = isset($_POST['cut_qty']) ? 1 : 0;
 
-                    $stmt      = $pdo->prepare("INSERT INTO st_products (product_id, product_name, barcode, category_id, bprice, price, unit, unit_id, supplier_id, img_url, qty, cut_qty, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt      = $pdo->prepare("INSERT INTO st_products (product_id, product_name, barcode, category_id, bprice, price, unit, unit_id, supplier_id, img_url, qty, cut_qty, store_id, zone, shelf) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $existsChk = $pdo->prepare("SELECT 1 FROM st_products WHERE product_id = ? AND store_id = ? LIMIT 1");
 
                     $existsChk->execute([$product_id, $activeStoreId]);
                     if (!$existsChk->fetchColumn()) {
-                        $stmt->execute([$product_id, $name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $supplier_id, $img_name, $qty, $cut_qty, $activeStoreId]);
+                        $stmt->execute([$product_id, $name, $barcode, $category_id, $bprice, $price, $unit, $unit_id, $supplier_id, $img_name, $qty, $cut_qty, $activeStoreId, $zone, $shelf]);
                     }
 
                     // ວັນໝົດອາຍຸ (ບໍ່ບັງຄັບ) — ວ່າງ = ບໍ່ຕິດຕາມ, ຈະບໍ່ແຈ້ງເຕືອນ

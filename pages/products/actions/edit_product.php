@@ -15,6 +15,8 @@
         // kept in sync from it so existing readers (POS, receipts, reports) still work.
         $unit_id     = intval($_POST['unit_id'] ?? 0) ?: null;
         $supplier_id = intval($_POST['supplier_id'] ?? 0) ?: null;
+        $zone        = trim($_POST['zone'] ?? '') ?: null;
+        $shelf       = trim($_POST['shelf'] ?? '') ?: null;
         $unit        = '';
         if ($unit_id !== null) {
             $unitNameStmt = $pdo->prepare("SELECT unit_name FROM st_units WHERE unit_id = ?");
@@ -123,6 +125,15 @@
                             $pdo->prepare("UPDATE st_products SET supplier_id=? WHERE product_id=?")->execute([$supplier_id, $product_id]);
                         } else {
                             $pdo->prepare("UPDATE st_products SET supplier_id=? WHERE product_id=? AND store_id=?")->execute([$supplier_id, $product_id, $userStoreId]);
+                        }
+                    } catch (Throwable $e) {}
+
+                    // ໂຊນ ແລະ ຊັ້ນວາງ
+                    try {
+                        if ($canAllBranches) {
+                            $pdo->prepare("UPDATE st_products SET zone=?, shelf=? WHERE product_id=?")->execute([$zone, $shelf, $product_id]);
+                        } else {
+                            $pdo->prepare("UPDATE st_products SET zone=?, shelf=? WHERE product_id=? AND store_id=?")->execute([$zone, $shelf, $product_id, $userStoreId]);
                         }
                     } catch (Throwable $e) {}
 

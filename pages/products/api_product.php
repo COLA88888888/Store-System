@@ -152,4 +152,47 @@ if ($action === 'check_barcode' && isset($_GET['barcode'])) {
     exit();
 }
 
+// --- Quick Add Zone ---
+if ($action === 'add_zone' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $zoneName = trim($_POST['zone_name'] ?? '');
+    if ($zoneName === '') {
+        echo json_encode(['success' => false, 'message' => 'ກະລຸນາປ້ອນຊື່ໂຊນ']);
+        exit();
+    }
+    $chk = $pdo->prepare("SELECT zone_id, zone_name FROM st_zones WHERE zone_name = ? AND store_id = ? LIMIT 1");
+    $chk->execute([$zoneName, $activeStoreId]);
+    $existing = $chk->fetch(PDO::FETCH_ASSOC);
+    if ($existing) {
+        echo json_encode(['success' => true, 'zone_id' => $existing['zone_id'], 'zone_name' => $existing['zone_name']]);
+        exit();
+    }
+    $ins = $pdo->prepare("INSERT INTO st_zones (zone_name, store_id) VALUES (?, ?)");
+    $ins->execute([$zoneName, $activeStoreId]);
+    $newId = (int)$pdo->lastInsertId();
+    echo json_encode(['success' => true, 'zone_id' => $newId, 'zone_name' => $zoneName]);
+    exit();
+}
+
+// --- Quick Add Shelf ---
+if ($action === 'add_shelf' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $shelfName = trim($_POST['shelf_name'] ?? '');
+    $zoneId = intval($_POST['zone_id'] ?? 0) ?: null;
+    if ($shelfName === '') {
+        echo json_encode(['success' => false, 'message' => 'ກະລຸນາປ້ອນຊື່ຊັ້ນວາງ']);
+        exit();
+    }
+    $chk = $pdo->prepare("SELECT shelf_id, shelf_name FROM st_shelves WHERE shelf_name = ? AND zone_id <=> ? AND store_id = ? LIMIT 1");
+    $chk->execute([$shelfName, $zoneId, $activeStoreId]);
+    $existing = $chk->fetch(PDO::FETCH_ASSOC);
+    if ($existing) {
+        echo json_encode(['success' => true, 'shelf_id' => $existing['shelf_id'], 'shelf_name' => $existing['shelf_name']]);
+        exit();
+    }
+    $ins = $pdo->prepare("INSERT INTO st_shelves (shelf_name, zone_id, store_id) VALUES (?, ?, ?)");
+    $ins->execute([$shelfName, $zoneId, $activeStoreId]);
+    $newId = (int)$pdo->lastInsertId();
+    echo json_encode(['success' => true, 'shelf_id' => $newId, 'shelf_name' => $shelfName]);
+    exit();
+}
+
 echo json_encode(['success' => false, 'message' => 'Invalid Action']);

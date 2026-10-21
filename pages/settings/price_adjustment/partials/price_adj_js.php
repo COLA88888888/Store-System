@@ -27,6 +27,18 @@ $(document).ready(function() {
   $('#priceAdjModal').on('shown.bs.modal', function() {
     $('#quick_search_code').val('').focus();
   });
+
+  // ສະແກນແລ້ວ Enter: ບາໂຄ້ດບໍ່ມີໃນລະບົບ → ເຕືອນໃຫ້ປ້ອນລາຍການສິນຄ້າກ່ອນ (ແລະ ບໍ່ສົ່ງຟອມ)
+  $(document).on('keydown', '#quick_search_code', function(e) {
+    if (e.key !== 'Enter') return;
+    var code = $.trim(this.value);
+    if (!code) return;
+    quickFindProduct(code);
+    if (!$('#product_id_hidden').val()) {
+      e.preventDefault();
+      if (window.showBarcodeNotFoundAlert) window.showBarcodeNotFoundAlert(code, this);
+    }
+  });
 });
 
 function quickFindProduct(val) {

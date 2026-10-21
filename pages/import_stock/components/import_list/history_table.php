@@ -144,6 +144,33 @@
       }
     });
 
+    var F = "font-family: 'Phetsarath OT', 'Noto Sans Lao', sans-serif;";
+    var B = "border: .5pt solid #000;";
+
+    cloneTable.querySelectorAll('thead tr').forEach(function(tr) {
+      tr.style.cssText = 'height: 28pt; mso-height-source: userset;';
+      tr.setAttribute('height', '37');
+    });
+    cloneTable.querySelectorAll('thead th').forEach(function(th) {
+      th.style.cssText = F + B + 'height: 28pt; font-size: 13pt; font-weight: bold; text-align: center; vertical-align: middle; background-color: #e5e7eb; padding: 6px 10px; white-space: nowrap;';
+    });
+
+    cloneTable.querySelectorAll('tbody tr').forEach(function(tr) {
+      tr.style.cssText = 'height: 24pt; mso-height-source: userset;';
+      tr.setAttribute('height', '32');
+    });
+    cloneTable.querySelectorAll('tbody td').forEach(function(td) {
+      td.style.cssText = F + B + 'height: 24pt; font-size: 11pt; vertical-align: middle; padding: 6px 10px; white-space: nowrap;';
+    });
+
+    cloneTable.querySelectorAll('tfoot tr').forEach(function(tr) {
+      tr.style.cssText = 'height: 26pt; mso-height-source: userset;';
+      tr.setAttribute('height', '34');
+    });
+    cloneTable.querySelectorAll('tfoot td').forEach(function(td) {
+      td.style.cssText = F + B + 'height: 26pt; font-size: 12pt; font-weight: bold; background-color: #f3f4f6; vertical-align: middle; padding: 6px 10px; white-space: nowrap;';
+    });
+
     var tableHtml = cloneTable.outerHTML;
 
     var excelDoc = `
@@ -164,7 +191,14 @@
           </x:ExcelWorkbook>
         </xml>
         <![endif]-->
-        <?php echo themeCssLink('import-list-history.css'); /* CSS ຍ້າຍໄປ themes/import-list-history.css */ ?>
+        <style>
+          * { font-family: "Phetsarath OT", "Noto Sans Lao", sans-serif !important; }
+          body { margin: 0; padding: 10px; font-family: "Phetsarath OT", "Noto Sans Lao", sans-serif; }
+          table { border-collapse: collapse; width: 100%; font-family: "Phetsarath OT", "Noto Sans Lao", sans-serif; }
+          th, td { font-family: "Phetsarath OT", "Noto Sans Lao", sans-serif; border: .5pt solid #000; padding: 6px 10px; vertical-align: middle; }
+          th { background-color: #e5e7eb; font-weight: bold; text-align: center; }
+          tfoot td { background-color: #f3f4f6; font-weight: bold; }
+        </style>
       </head>
       <body>
         ${tableHtml}

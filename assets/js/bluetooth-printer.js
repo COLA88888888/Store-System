@@ -438,12 +438,24 @@
   function loadCanvas(src) { return (W.MiniposEscPos || Esc).loadCanvas(src); }
   function rasterBytes(canvas, maxDots) { return (W.MiniposEscPos || Esc).rasterBytes(canvas, maxDots); }
 
+  // ພາສາເຄື່ອງພິມ: 'tspl' (ສະຕິກເກີ ເຊັ່ນ XP-480B) ຫຼື 'escpos' (ບິນ). ເລືອກໄດ້ທີ່ໜ້າພິມບາໂຄ້ດ, ບໍ່ດັ່ງນັ້ນເດົາຈາກຊື່
+  function lang(name) {
+    name = name || state.name || '';
+    var m = {};
+    try { m = JSON.parse(W.localStorage.getItem('StoreMini.bc_bt_lang') || '{}') || {}; } catch (e) {}
+    if (m[name] === 'tspl' || m[name] === 'escpos') return m[name];
+    return /XP-?\d{3}B|TSC|label|sticker/i.test(name) ? 'tspl' : 'escpos';
+  }
+
   function printImage(src, opts) {
     opts = opts || {};
     var prep = isConnected() ? Promise.resolve(true) : reconnect();
     return Promise.all([loadCanvas(src), prep]).then(function (res) {
       var canvas = res[0];
       var maxDots = opts.dots || (canvas.width > 400 ? 576 : 384);
+      if (state.mode !== 'rawbt' && lang() === 'tspl' && (W.MiniposEscPos || Esc).tsplBytes) {
+        return write((W.MiniposEscPos || Esc).tsplBytes(canvas, maxDots));
+      }
       var bytes = concat([
         new Uint8Array([0x1b, 0x40]),                       // ESC @  ລ້າງຄ່າເຄື່ອງພິມ
         new Uint8Array([0x1c, 0x2e]),                       // FS .   ປິດໂໝດຕົວຈີນ
@@ -487,6 +499,8 @@
     canRestore: function () { return true; },
     isSupported: isSupported, connect: connect, reconnect: reconnect, disconnect: disconnect, forget: forget, list: list, use: use,
     isConnected: isConnected, printImage: printImage, printTest: printTest, warm: warm,
+    lang: lang,
+    write: write,   // ສົ່ງຂໍ້ມູນດິບ (ເຊັ່ນ TSPL ສະຕິກເກີບາໂຄ້ດ — pages/settings/print_barcode/js/print_bluetooth.php)
     speed: function (v) { if (v && SPEEDS[v]) { try { W.localStorage.setItem(SPEED_KEY, v); } catch (e) {} } return speedName(); },
     rasterBytes: rasterBytes,
     info: function () { var m = remembered(); return { mode: state.mode || (m && m.mode), name: state.name || (m && m.name) || '', connected: shownConnected(), remembered: !!m }; },

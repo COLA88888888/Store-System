@@ -6,8 +6,8 @@
  * ຖ້າບໍ່ມີໃບຄ້າງເລີຍ ແຖບນີ້ເປັນສີຈາງ (ກົດບໍ່ໄດ້).
  * ຖືກ require ຈາກ list_view.php ແລະ count_view.php (ໃຊ້ $scCheck, $scOpenDraft, $scView, $scDateFrom, $scDateTo).
  */
-$scTabActive = $scCheck ? 'count' : $scView;
-$scTabRange  = 'from=' . urlencode($scDateFrom) . '&to=' . urlencode($scDateTo);
+$scTabActive = $scCheck ? 'count' : ($scTabActive ?? $scView ?? 'checks');
+$scTabRange  = 'from=' . urlencode($scDateFrom ?? date('Y-m-01')) . '&to=' . urlencode($scDateTo ?? date('Y-m-d'));
 $scCountId   = $scCheck ? (int)$scCheck['id'] : ($scOpenDraft ? (int)$scOpenDraft['id'] : 0);
 $scCountNo   = $scCheck ? $scCheck['check_no'] : ($scOpenDraft['check_no'] ?? '');
 ?>

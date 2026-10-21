@@ -1,7 +1,8 @@
 <?php
 /*
  * ສ່ວນ: ສັ່ງພິມບາໂຄ້ດ
- * executePageBarcodePrint: ສ້າງໜ້າພິມຂອງປ້າຍບາໂຄ້ດຕາມຂະໜາດເຈ້ຍ ແລ້ວພິມຜ່ານ iframe.
+ * executePageBarcodePrint: ສ້າງໜ້າພິມຂອງປ້າຍບາໂຄ້ດຕາມຂະໜາດເຈ້ຍ ແລ້ວພິມຜ່ານ iframe
+ * (ຫຼື ສົ່ງໄປເຄື່ອງພິມ Bluetooth ທີ່ເລືອກ — barcodeBluetoothPrint ໃນ js/print_bluetooth.php).
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/settings/print_barcode/print_barcode_js.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 ?>function executePageBarcodePrint() {
@@ -67,6 +68,13 @@
     }
   }
 
+  // ເລືອກພິມຜ່ານເຄື່ອງພິມ Bluetooth ທີ່ເຊື່ອມຕໍ່ຢູ່ → ສົ່ງໄປເຄື່ອງນັ້ນເລີຍ (js/print_bluetooth.php)
+  if (typeof barcodeBluetoothPrint === 'function' && barcodeBluetoothPrint(itemsToPrint, BARCODE_SIZE_CONFIGS[size] || BARCODE_SIZE_CONFIGS['40x30_vert'], {
+    showShop: showShop, showName: showName, showPrice: showPrice, showCode: showCode,
+    barcodeWidthMm: barcodeWidthMm, barcodeHeightMm: barcodeHeightMm,
+    verticalOffsetMm: verticalOffsetMm, labelPitchMm: (cfg.mode === 'single_roll' && labelPitchMm > 0) ? labelPitchMm : 0
+  })) return;
+
   var printDoc = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print Barcodes - MiniPos</title>';
   printDoc += '<script src="' + basePath + 'assets/js/JsBarcode.all.min.js"><\/script>';
   printDoc += '<style>';
@@ -100,7 +108,7 @@
   printDoc += '.barcode-svg-wrap { width: 100%; display: flex; justify-content: center; align-items: center; margin: 0; padding: 0; overflow: hidden; } ';
   printDoc += '.barcode-svg { max-width: ' + barcodeWidthMm + 'mm; max-height: ' + barcodeHeightMm + 'mm; height: auto; display: block; margin: 0 auto; } ';
   // ເລກໃຕ້ບາໂຄ້ດ: ເລີ່ມ 11px ແລ້ວ fitCodeText() (ໃນ doPrint) ຫຍໍ້ລົງຈົນພໍດີກວ້າງບາໂຄ້ດ
-  printDoc += '.barcode-num-text { font-family: monospace, "Courier New", Courier, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.6px; margin-left: auto !important; margin-right: auto !important; text-overflow: clip !important; line-height: 1.1; max-width: ' + barcodeWidthMm + 'mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center; color: #000000; } ';
+  printDoc += '.barcode-num-text { font-family: monospace, "Courier New", Courier, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.6px; margin-left: auto !important; margin-right: auto !important; text-overflow: clip !important; line-height: 1; max-width: ' + barcodeWidthMm + 'mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0.3mm 0 0 0; text-align: center; color: #000000; } ';
   printDoc += '.price-title { ' + cfg.priceTitleCss + ' } ';
   printDoc += '</style></head><body>';
 
@@ -159,11 +167,12 @@
   printDoc += '}';
   printDoc += 'function doPrint() {';
   printDoc += '  var maxMm = ' + barcodeWidthMm + ';';
-  printDoc += '  var heightMm = ' + barcodeHeightMm + ';';
+  printDoc += '  var heightMm = ' + barcodeHeightMm + ' * 50 / 70;';
   printDoc += '  document.querySelectorAll(".barcode-svg").forEach(function(el) {';
   printDoc += '    var code = el.getAttribute("data-barcode");';
   printDoc += '    try {';
-  printDoc += '      JsBarcode(el, code, { format: "CODE128", width: 1, height: 50, displayValue: false, margin: QUIET });';
+  // ຂອບຂາວສະເພາະຊ້າຍ-ຂວາ (ເທິງ-ລຸ່ມ 0) → ເລກບາໂຄ້ດຢູ່ໃກ້ແທ່ງ; ຄວາມສູງແທ່ງເທົ່າເກົ່າ (50/70 ຂອງ heightMm)
+  printDoc += '      JsBarcode(el, code, { format: "CODE128", width: 1, height: 50, displayValue: false, margin: QUIET, marginTop: 0, marginBottom: 0 });';
   printDoc += '      var units = parseFloat((el.getAttribute("viewBox") || "").split(" ")[2]) || 0;';
   printDoc += '      if (!units) return;';
   printDoc += '      var moduleMm = Math.floor(maxMm / units / DOT_MM) * DOT_MM;';
@@ -194,5 +203,6 @@
   ifrDoc.open();
   ifrDoc.write(printDoc);
   ifrDoc.close();
+  clearPageBarcodeSelection();   // ສົ່ງພິມແລ້ວ → ເອົາຕິກອອກ (ເນື້ອຫາຢູ່ໃນ iframe ແລ້ວ ບໍ່ກະທົບການພິມ)
 }
 

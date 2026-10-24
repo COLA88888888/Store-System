@@ -37,9 +37,13 @@ if (!function_exists('canViewAllBranches')) {
     // Seeing or switching between every branch is decided by the user's own branch, not their
     // role: the owner account (Id 1) and any user assigned to the main branch see every branch;
     // any user assigned to a sub-branch (admin or staff) is locked to their own store_id.
+    // ຕຳແໜ່ງ "ຜູ້ຈັດການ" ເຫັນສະເພາະສາຂາຂອງຕົນເອງສະເໝີ — ເຖິງຖືກກຳນົດຢູ່ສາຂາຫຼັກກໍຕາມ.
     function canViewAllBranches($pdo) {
         if (intval($_SESSION['user_id'] ?? 0) === 1) {
             return true;
+        }
+        if (function_exists('isManagerRole') && isManagerRole()) {
+            return false;
         }
         if (!$pdo) {
             return false;
@@ -281,5 +285,19 @@ if (!function_exists('customerCodeLabel')) {
     // ລະຫັດລູກຄ້າ "CUST-<ລະຫັດສາຂາ>-<ລຳດັບ 4 ຫຼັກ>" — ສາຂາ 1 = CUST-1-0001, ສາຂາ 2 = CUST-2-0001
     function customerCodeLabel($pdo, $storeId, $branchNo) {
         return 'CUST-' . branchStoreCode($pdo, $storeId) . '-' . str_pad((string)max(1, (int)$branchNo), 4, '0', STR_PAD_LEFT);
+    }
+}
+if (!function_exists('branchHasShifts')) {
+    // ສາຂານີ້ໃຊ້ລະບົບກະບໍ່: ມີກະທີ່ເປີດໃຊ້ (ຕັ້ງຄ່າ > ກະເຮັດວຽກ) ຫຼື ເຄີຍເປີດກະມາແລ້ວ.
+    // ບໍ່ມີທັງສອງ → ເຊື່ອງເມນູ "ລາຍການຕາມກະ" (layouts/sidebar.php) ແລະ ກັນໜ້າ pages/reports/shift_report.php
+    function branchHasShifts($pdo, $storeId) {
+        try {
+            $st = $pdo->prepare("SELECT (EXISTS(SELECT 1 FROM st_shifts WHERE store_id = ? AND status = 1)
+                                      OR EXISTS(SELECT 1 FROM st_shift_sessions WHERE store_id = ?))");
+            $st->execute([(int)$storeId, (int)$storeId]);
+            return (bool)$st->fetchColumn();
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 }

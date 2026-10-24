@@ -4,7 +4,7 @@ return [
     'exchange_rate.msg_save_success' => 'Exchange rate updated successfully!',
     'exchange_rate.msg_update_success' => 'Exchange rate updated successfully!',
     'exchange_rate.msg_delete_success' => 'Exchange rate history deleted successfully!',
-    'exchange_rate.msg_invalid_rate' => 'Please enter a valid exchange rate!',
+    'exchange_rate.msg_invalid_rate' => 'Please enter valid exchange rates — in kip per 1 unit (e.g. 1 THB = 720, 1 USD = 22,000)',
     'exchange_rate.msg_error_prefix' => 'Error: ',
 
     'exchange_rate.header_title' => 'Exchange Rates',

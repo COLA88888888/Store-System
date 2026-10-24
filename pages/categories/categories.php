@@ -24,7 +24,7 @@ require_once __DIR__ . '/../../layouts/header.php';
           </h5>
         </div>
         <div class="col-12 col-sm-6 text-sm-right">
-          <div class="d-flex flex-wrap justify-content-sm-end" style="gap: 8px;">
+          <div class="page-actions"><?php /* ຊິດຂວາສະເໝີ ລວມທັງໂທລະສັບ (03-controls.css) */ ?>
             <?php if (!empty($catPrinters) && hasPermission('categories', 'edit')): ?>
             <button type="button" class="btn btn-outline-secondary px-3 py-1 font-weight-bold m-0" data-toggle="modal" data-target="#bulkPrinterModal" style="border-radius: 6px;">
               <i class="fas fa-print mr-1"></i> <?php echo htmlspecialchars(t('categories.btn_bulk_printer', 'ຕັ້ງເຄື່ອງພິມທຸກໝວດ')); ?>
@@ -71,7 +71,7 @@ require_once __DIR__ . '/../../layouts/header.php';
     <div class="container-fluid">
 
       <!-- MAIN CATEGORY TABLE CARD -->
-      <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; background: #ffffff;">
+      <div class="card sys-card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; background: #ffffff;">
 
         <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap py-3 border-0" style="gap: 12px;">
           <span class="badge badge-secondary" style="font-size: 0.85rem; padding: 7px 12px;"><span id="catCountNum"><?php echo count($allCategories); ?></span> <?php echo htmlspecialchars(t('categories.count_label', 'ລາຍການ')); ?></span>

@@ -2,8 +2,10 @@
 /*
  * ສ່ວນ: JS ໜ້ານັບສິນຄ້າ — ສະແກນບາໂຄ້ດ
  * scHandleScan(): Enter ໃນຊ່ອງສະແກນ → ຫາແຖວຕາມບາໂຄ້ດ/ລະຫັດ
- * ຖ້າເປີດ "ສະແກນ = ບວກ 1": ບວກ +1 ອັດຕະໂນມັດ ພ້ອມສຽງ beep ແລະ ອັບເດດຜົນ ຄົບ/ບໍ່ພໍ/ເກີນ ທັນທີ
- * ຖ້າປິດ: ໂຟກັສຊ່ອງປ້ອນຕົວເລກຂອງແຖວນັ້ນ ເພື່ອໃຫ້ພິມຈຳນວນໄດ້ໄວ
+ * - ນັບແລ້ວບໍ່ໃຫ້ໂຊຢູ່ນິ: ລາຍການທີ່ນັບແລ້ວຈະໄປຢູ່ "ປະຫວັດການນັບ"
+ * - ຖ້າສະແກນສິນຄ້າທີ່ນັບຄົບແລ້ວ: ແຈ້ງເຕືອນ "ສິນຄ້ານີ້ນັບຄົບແລ້ວ! (ຢູ່ໃນປະຫວັດການນັບ)" ໂດຍບໍ່ເອົາມາໂຊໃນຕາຕະລາງນີ້
+ * - ຖ້າມີການຂາຍ/ຕັດສະຕັອກ: ສະແກນກໍຂຶ້ນມາອີກ ບໍ່ໃຫ້ເຕືອນວ່າຄົບ ເພື່ອໃຫ້ນັບໃໝ່
+ * - ພະນັກງານປ້ອນຈຳນວນຕົວຈິງ ແລ້ວກົດບັນທຶກຈິ່ງສະແດງສ່ວນຕ່າງ
  */
 ?>
 function scHandleScan() {
@@ -21,31 +23,82 @@ function scHandleScan() {
 
   if ($hit.length) {
     $('#scScanInput').val('');
+
+    var cur = scLive($hit);
+    var sys = parseInt($hit.attr('data-system'), 10) || 0;
+    var saved = scSaved($hit);
+    var isAlreadyComplete = (cur !== null && cur === sys && sys > 0 && !scDirty[$hit.attr('data-id')]);
+
+    // 1. ກວດສອບສະຕັອກລ່າສຸດ ແລະ ສະຖານະການຂາຍກັບເຊີບເວີ
+    $.post(SC_BACKEND, { action: 'check_item_stock', check_id: SC_CHECK_ID, barcode: code }, function(res) {
+      if (res && res.success && res.item) {
+        var it = res.item;
+        var liveQty = parseInt(res.live_qty, 10);
+        $hit.attr('data-system', liveQty);
+        $hit.find('.sc-system-qty').text(scFmt(liveQty));
+
+        var curVal = scLive($hit);
+        var isCut = !!res.stock_cut;
+
+        if (isCut) {
+          // ຖ້າມີການຂາຍ ຕັດສະຕັອກ: ສະແກນກໍຂຶ້ນມາອີກ ບໍ່ໃຫ້ເຕືອນວ່າຄົບ!
+          $hit.attr('data-saved', ''); // ຣີເຊັດສະຖານະບັນທຶກ ເພື່ອໃຫ້ນັບໃໝ່
+          scMarkDirty($hit);
+          $hit.detach().prependTo($('#scItemsBody'));
+          scPage = 1;
+          scRender();
+          scGoToRow($hit);
+          scFlash($hit);
+          scBeep();
+          scShowJustScannedBox($hit, curVal);
+
+          Swal.fire({
+            icon: 'info',
+            title: 'ສິນຄ້ານີ້ມີການຂາຍ (ຕັດສະຕັອກ)',
+            html: '<b>' + $('<div>').text(it.product_name).html() + '</b><br>ສະຕັອກປັດຈຸບັນໃນລະບົບ: <b>' + scFmt(liveQty) + ' ' + (it.unit || '') + '</b><br><small class="text-muted">ກະລຸນາກວດນັບຈຳນວນຕົວຈິງແລ້ວກົດບັນທຶກ</small>',
+            timer: 2600,
+            showConfirmButton: false
+          });
+        }
+      }
+    }, 'json');
+
+    // 2. ຖ້ານັບຄົບແລ້ວ ແລະ ບໍ່ໄດ້ມີການຕັດສະຕັອກ: ແຈ້ງເຕືອນວ່າ "ສິນຄ້ານີ້ນັບຄົບແລ້ວ!"
+    if (isAlreadyComplete) {
+      scBeep();
+      scShowJustScannedBox($hit, cur);
+      Swal.fire({
+        icon: 'success',
+        title: 'ສິນຄ້ານີ້ນັບຄົບແລ້ວ!',
+        html: '<b>' + $('<div>').text($.trim($hit.find('.sc-c-name > div:first-child').text() || $hit.find('.sc-c-name').text())).html() + '</b><br>ນັບແລ້ວ: <b>' + scFmt(cur) + '</b>',
+        timer: 1800,
+        showConfirmButton: false
+      });
+      setTimeout(function() { $('#scScanInput').focus().select(); }, 60);
+      return;
+    }
+
+    // 3. ຖ້າເປັນລາຍການທີ່ຍັງບໍ່ທັນນັບ: ເອົາຂຶ້ນມາເທິງສຸດ, ບວກ 1 ແລະ ໝາຍວ່າກຳລັງປ້ອນ
+    $hit.detach().prependTo($('#scItemsBody'));
+    if (SC_EDITABLE) {
+      var next = (cur === null ? 1 : cur + 1);
+      $hit.find('.sc-counted').val(next);
+      scStampCountedBy($hit);
+      scMarkDirty($hit);
+      scPaintRow($hit);
+      scUpdateStats();
+      scShowJustScannedBox($hit, next);
+    } else {
+      scShowJustScannedBox($hit, cur);
+    }
+
+    scPage = 1;
+    scRender();
     scGoToRow($hit);
     scFlash($hit);
     scBeep();
-    if (SC_EDITABLE) {
-      var $inp = $hit.find('.sc-counted');
-      var cur = scLive($hit);
-      var next = (cur === null ? 1 : cur + 1);
-      $inp.val(next);
-      scPaintRow($hit);
-      scStampCountedBy($hit);
-      scMarkDirty($hit);
-      scUpdateStats();
-      scTriggerAutoSave();
-      setTimeout(function() { $('#scScanInput').focus(); }, 50);
-    } else {
-      var curVal = scLive($hit);
-      Swal.fire({
-        icon: 'info',
-        title: 'ສິນຄ້ານີ້: ' + (curVal === null ? 'ຍັງບໍ່ນັບ' : 'ນັບແລ້ວ ' + scFmt(curVal)),
-        text: $.trim($hit.find('.sc-c-name').text()),
-        timer: 1500,
-        showConfirmButton: false,
-        didClose: function() { $('#scScanInput').focus(); }
-      });
-    }
+
+    setTimeout(function() { $('#scScanInput').focus().select(); }, 60);
     return;
   }
 

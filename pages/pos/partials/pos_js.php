@@ -181,11 +181,27 @@ function setCartDiscountMode(mode) {
   });
 }
 
-// ກົດປຸ່ມ ₭ ຫຼື % → ປ່ຽນໂໝດ ແລະ ລ້າງຄ່າເປັນ 0 (ຕົວເລກເດີມໝາຍຄວາມຄົນລະຢ່າງ)
+// ກົດປຸ່ມ ₭ ຫຼື % → ປ່ຽນໂໝດ: ຖ້າມີຄ່າຢູ່ແລ້ວ ໃຫ້ຄິດໄລ່ແປງຄ່າສະຫຼັບລະຫວ່າງ % ແລະ ຈຳນວນເງິນ (ກີບ) ອັດຕະໂນມັດ ພ້ອມໃສ່ເຄື່ອງໝາຍຈຸດ ,
 function setCartDiscountModeAndReset(mode) {
   if (getCartDiscountMode() === mode) return;
+  var oldMode = getCartDiscountMode();
+  var oldVal = $('#cartDiscount').val() || '0';
+  var subtotal = window.CART_SUBTOTAL_KIP || 0;
+
   setCartDiscountMode(mode);
-  $('#cartDiscount').val(mode === 'percent' ? '0%' : '0');
+
+  if (mode === 'amount') {
+    // ສະຫຼັບຈາກ % ໄປເປັນ ຈຳນວນເງິນ (ກີບ): ຄິດໄລ່ຈຳນວນເງິນຈາກເປີເຊັນ ແລະ ໃສ່ເຄື່ອງໝາຍຈຸດ ,
+    var pct = parseFloat(String(oldVal).replace(/[^0-9.]/g, '')) || 0;
+    var amt = (pct > 0 && subtotal > 0) ? Math.round(subtotal * (pct / 100)) : 0;
+    $('#cartDiscount').val(amt > 0 ? (Number(amt).toLocaleString('en-US')) : '0');
+  } else {
+    // ສະຫຼັບຈາກ ຈຳນວນເງິນ ໄປເປັນ %: ຄິດໄລ່ເປີເຊັນ
+    var amt = window.POSCUR ? POSCUR.toKip(oldVal) : (parseFloat(String(oldVal).replace(/\D/g, '')) || 0);
+    var pct = (amt > 0 && subtotal > 0) ? Math.min(100, Math.round((amt / subtotal) * 100 * 10) / 10) : 0;
+    $('#cartDiscount').val((pct > 0 ? pct : 0) + '%');
+  }
+
   updateCartUI();
   var el = document.getElementById('cartDiscount');
   if (el) { el.focus(); try { el.select(); } catch (e) {} }
@@ -247,11 +263,16 @@ require_once __DIR__ . '/js/pos_loyalty_js.php';
 require_once __DIR__ . '/js/pos_cart_js.php';
 require_once __DIR__ . '/js/pos_barcode_js.php';
 require_once __DIR__ . '/js/pos_checkout_js.php';
+require_once __DIR__ . '/js/pos_shift_js.php';
 ?>
 
 <script>
 $(document).ready(function() {
-  updateHeldOrdersBadge();
+  if (typeof loadHeldOrdersFromServer === 'function') {
+    loadHeldOrdersFromServer();
+  } else {
+    updateHeldOrdersBadge();
+  }
   initActiveBills();
 
   // ຕອນໂຫຼດໜ້າໃນ Mobile (≤ 991px): ສະແດງໜ້າ "ເລືອກສິນຄ້າ" ເປັນ Default ເລີຍ
@@ -261,7 +282,23 @@ $(document).ready(function() {
     }
   }
 
+  function syncProductsNavbarEdge() {
+    if (window.innerWidth >= 992) {
+      var prod = document.querySelector('.pos-products');
+      if (prod) {
+        var dist = window.innerWidth - prod.getBoundingClientRect().right;
+        if (dist > 0) {
+          document.documentElement.style.setProperty('--pos-products-right-dist', Math.round(dist) + 'px');
+        }
+      }
+    }
+  }
+  syncProductsNavbarEdge();
+  setTimeout(syncProductsNavbarEdge, 100);
+  setTimeout(syncProductsNavbarEdge, 400);
+
   $(window).on('resize', function() {
+    syncProductsNavbarEdge();
     if (window.innerWidth >= 992) {
       $('.pos-products').removeClass('mobile-hidden').show();
       $('.pos-cart').removeClass('mobile-active').show();

@@ -1,15 +1,145 @@
 /* ============================================================
    products-bulk.css
-   ຍ້າຍອອກມາຈາກ <style> ໃນ pages/products/components/add_product/pane_bulk.php — ຖືກເອີ້ນຢູ່ຈຸດເດີມດ້ວຍ themeCssLink()
-   (config/helpers/theme_css.php) ສະນັ້ນ ລຳດັບ cascade ຄືເກົ່າ.
+   ສະໄຕລ໌ສຳລັບໜ້າເພີ່ມສິນຄ້າຫຼາຍລາຍການ (Bulk Add)
    ============================================================ */
-        /* ຮູບພາບລາຍແຖວ: ກ່ອງສີ່ຫຼ່ຽມນ້ອຍ ກົດເພື່ອເລືອກຮູບ */
-        .bulk-img-box { position: relative; width: 52px; height: 52px; border: 2px dashed #cbd5e1; border-radius: 8px; background: #f8fafc;
-          display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: visible; transition: border-color .15s; }
-        .bulk-img-box:hover { border-color: #2563eb; }
-        .bulk-img-box.has-img { border-style: solid; border-color: #16a34a; background: #fff; }
-        .bulk-img-ico { color: #94a3b8; font-size: 1.1rem; }
-        .bulk-img-preview { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
-        .bulk-img-clear { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; padding: 0; border: none; border-radius: 50%;
-          background: #dc2626; color: #fff; font-size: 14px; line-height: 20px; text-align: center; cursor: pointer; z-index: 2; }
-      
+
+/* ຮູບພາບລາຍແຖວ: ກ່ອງສີ່ຫຼ່ຽມນ້ອຍ ກົດເພື່ອເລືອກຮູບ */
+.bulk-img-box {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border: 2px dashed #94a3b8 !important;
+    border-radius: 8px;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: visible;
+    transition: all 0.2s ease;
+}
+.bulk-img-box:hover {
+    border-color: #2563eb !important;
+    background: #eff6ff;
+}
+.bulk-img-box.has-img {
+    border-style: solid;
+    border-color: #16a34a !important;
+    background: #fff;
+}
+.bulk-img-ico {
+    color: #64748b;
+    font-size: 1.15rem;
+}
+.bulk-img-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+.bulk-img-clear {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #dc2626;
+    color: #fff;
+    font-size: 14px;
+    line-height: 20px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 2;
+}
+
+/* ແຖວສິນຄ້າແຕ່ລະກ່ອງ (Card) */
+.bulk-row {
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    background: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.bulk-row:hover {
+    border-color: #94a3b8 !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+/* ເສັ້ນຂອບບັອກປ້ອນຂໍ້ມູນໃນ Bulk Add — ບໍ່ໃຫ້ຈາງຂາວ ເຫັນຂອບຊັດເຈນ */
+#pane-add-bulk .form-control,
+.bulk-row .form-control {
+    border: 1.5px solid #94a3b8 !important;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#pane-add-bulk .form-control:focus,
+.bulk-row .form-control:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+    outline: none !important;
+}
+
+/* ບັອກບາໂຄ້ດ + ປຸ່ມສ້າງ: ເຊື່ອມຕໍ່ເຂົ້າກັນເປັນບັອກດຽວຢ່າງລຽບນຽນ (Seamless Unified Box) */
+.bulk-row .input-group {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+}
+
+.bulk-row .input-group > .form-control {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-left-radius: 6px !important;
+    border-bottom-left-radius: 6px !important;
+    border-right: none !important;
+    margin-right: 0 !important;
+}
+
+.bulk-row .input-group > .input-group-append {
+    margin-left: 0 !important;
+    display: flex !important;
+}
+
+.bulk-row .input-group > .input-group-append > .btn {
+    border: 1.5px solid #94a3b8 !important;
+    border-left: 1px solid #cbd5e1 !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-top-right-radius: 6px !important;
+    border-bottom-right-radius: 6px !important;
+    color: #2563eb !important;
+    background-color: #f8fafc !important;
+    height: 100% !important;
+    transition: all 0.2s ease;
+}
+
+.bulk-row .input-group > .input-group-append > .btn:hover {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
+}
+
+.bulk-row .input-group > .form-control:focus {
+    z-index: 3;
+    border-color: #2563eb !important;
+}
+
+/* ປຸ່ມລຶບແຖວ */
+.bulk-row .bulk-row-del {
+    border: 1.5px solid #fca5a5 !important;
+    color: #dc2626 !important;
+    background-color: #fef2f2 !important;
+    transition: all 0.2s ease;
+}
+.bulk-row .bulk-row-del:hover {
+    background-color: #dc2626 !important;
+    border-color: #dc2626 !important;
+    color: #ffffff !important;
+}

@@ -44,7 +44,12 @@
           <select id="btPaper" class="form-control" style="height: 42px;">
             <option value="80"><?php echo htmlspecialchars(t('printers.bt_paper_80', '80 mm (ມ້ວນກວ້າງ ~8 cm)')); ?></option>
             <option value="58"><?php echo htmlspecialchars(t('printers.bt_paper_58', '58 mm / 57x40 mm (ເຄື່ອງພິມໃນຕົວ / ມ້ວນ ~5.7 cm)')); ?></option>
+            <?php /* A5/A4: ເຄື່ອງນີ້ພິມບິນເປັນໜ້າເຕັມຜ່ານໜ້າຕ່າງພິມ (ເຄື່ອງພິມ Wi-Fi/ເອກະສານ) ແທນ Bluetooth —
+                     assets/js/lan-receipt.js receiptPaper() */ ?>
+            <option value="148"><?php echo htmlspecialchars(t('printers.paper_a5', 'A5 (ເຈ້ຍແຜ່ນ 148×210 mm)')); ?></option>
+            <option value="210"><?php echo htmlspecialchars(t('printers.paper_a4', 'A4 (ເຈ້ຍແຜ່ນ 210×297 mm)')); ?></option>
           </select>
+          <small class="text-muted d-block mt-1"><?php echo htmlspecialchars(t('printers.bt_paper_page_hint', 'A5/A4: ເຄື່ອງນີ້ພິມບິນເປັນໜ້າເຕັມຜ່ານໜ້າຕ່າງພິມ (ເຄື່ອງພິມ Wi-Fi / ເອກະສານ) ແທນເຄື່ອງພິມ Bluetooth')); ?></small>
         </div>
         <div class="custom-control custom-switch mb-3">
           <input type="checkbox" class="custom-control-input" id="btEnabled">
@@ -86,6 +91,7 @@ var I18N_BT_CARD = <?php echo tjson([
     'printers.bt_testing' => 'ກຳລັງພິມທົດສອບ...',
     'printers.bt_test_sent' => 'ສົ່ງໃບທົດສອບໄປ %s ແລ້ວ',
     'printers.bt_print_fail' => 'ພິມບໍ່ສຳເລັດ',
+    'printers.bt_page_mode' => 'ເລືອກ A5/A4 ແລ້ວ — ໃບບິນຂາຍຈະເປີດໜ້າຕ່າງພິມເປັນໜ້າເຕັມ ໃຫ້ເລືອກເຄື່ອງພິມ Wi-Fi / ເອກະສານ',
 ]); ?>;
 
 (function () {
@@ -106,7 +112,7 @@ var I18N_BT_CARD = <?php echo tjson([
     var defPaper = isHandheld ? 58 : 80;
     return {
       enabled: (s.enabled === undefined) ? (P.list().length > 0 || isHandheld) : !!s.enabled,
-      paper: parseInt(s.paper, 10) === 58 ? 58 : (parseInt(s.paper, 10) === 80 ? 80 : defPaper)
+      paper: [58, 80, 148, 210].indexOf(parseInt(s.paper, 10)) !== -1 ? parseInt(s.paper, 10) : defPaper
     };
   }
   function save(patch) {
@@ -160,30 +166,108 @@ var I18N_BT_CARD = <?php echo tjson([
       $('#btEnabled').prop('checked', true);
       render();
       msg(OK + T('bt_added', name), 'text-success');
+      Swal.fire({
+        icon: 'success',
+        title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີສຳເລັດ',
+        text: name ? 'ເຊື່ອມຕໍ່ກັບ ' + name + ' ແລ້ວ' : '',
+        timer: 2000,
+        showConfirmButton: false
+      });
     }).catch(function (e) {
       render();
-      msg(e && e.name === 'NotFoundError' ? T('bt_not_chosen') : (e && e.message ? esc(e.message) : T('bt_connect_fail')), 'text-danger');
+      if (e && e.name === 'NotFoundError') {
+        msg(T('bt_not_chosen'), 'text-muted');
+        return;
+      }
+      msg(e && e.message ? esc(e.message) : T('bt_connect_fail'), 'text-danger');
+      Swal.fire({
+        icon: 'error',
+        title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ',
+        text: 'ກະລຸນາລອງໃໝ່ອີກຄັ້ງ',
+        confirmButtonText: 'ຕົກລົງ',
+        confirmButtonColor: '#2563eb'
+      });
     });
   }
   $('#btAddBle').on('click', function () { add('ble'); });
   $('#btAddSerial').on('click', function () { add('serial'); });
 
   $('#btScan').on('click', function () {
-    if (!P.list().length) { msg(T('bt_need_add'), 'text-danger'); return; }
+    if (!P.list().length) {
+      msg(T('bt_need_add'), 'text-danger');
+      Swal.fire({
+        icon: 'warning',
+        title: 'ຍັງບໍ່ໄດ້ຕັ້ງເຄື່ອງພິມ',
+        text: 'ກະລຸນາກົດ "ເພີ່ມເຄື່ອງພິມ Bluetooth" ກ່ອນ',
+        confirmButtonText: 'ຕົກລົງ',
+        confirmButtonColor: '#2563eb'
+      });
+      return;
+    }
     busy(T('bt_scanning'));
     P.reconnect(true).then(function (ok) {
       render();
-      msg(ok ? OK + T('bt_connected_msg', P.info().name) : T('bt_none_on'), ok ? 'text-success' : 'text-danger');
+      if (ok) {
+        msg(OK + T('bt_connected_msg', P.info().name), 'text-success');
+        Swal.fire({
+          icon: 'success',
+          title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີສຳເລັດ',
+          text: P.info().name ? 'ເຊື່ອມຕໍ່ກັບ ' + P.info().name + ' ແລ້ວ' : '',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } else {
+        msg(T('bt_none_on'), 'text-danger');
+        Swal.fire({
+          icon: 'error',
+          title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ',
+          text: 'ກະລຸນາລອງໃໝ່ອີກຄັ້ງ',
+          confirmButtonText: 'ຕົກລົງ',
+          confirmButtonColor: '#2563eb'
+        });
+      }
     });
   });
-  $('#btDisconnect').on('click', function () { P.disconnect().then(function () { render(); msg(T('bt_disconnected')); }); });
+
+  $('#btDisconnect').on('click', function () {
+    P.disconnect().then(function () {
+      render();
+      msg(T('bt_disconnected'));
+      Swal.fire({
+        icon: 'info',
+        title: 'ຕັດການເຊື່ອມຕໍ່ແລ້ວ',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    });
+  });
 
   $('#btList').on('click', '.bt-use', function () {
     busy(T('bt_connecting'));
-    P.use($(this).attr('data-key')).then(function (name) {
-      render(); msg(OK + T('bt_connected_msg', name), 'text-success');
-    }).catch(function (e) { render(); msg(e && e.message ? esc(e.message) : T('bt_connect_fail'), 'text-danger'); });
+    var key = $(this).attr('data-key');
+    P.use(key).then(function (name) {
+      render();
+      msg(OK + T('bt_connected_msg', name), 'text-success');
+      Swal.fire({
+        icon: 'success',
+        title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີສຳເລັດ',
+        text: name ? 'ເຊື່ອມຕໍ່ກັບ ' + name + ' ແລ້ວ' : '',
+        timer: 2000,
+        showConfirmButton: false
+      });
+    }).catch(function (e) {
+      render();
+      msg(e && e.message ? esc(e.message) : T('bt_connect_fail'), 'text-danger');
+      Swal.fire({
+        icon: 'error',
+        title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ',
+        text: 'ກະລຸນາລອງໃໝ່ອີກຄັ້ງ',
+        confirmButtonText: 'ຕົກລົງ',
+        confirmButtonColor: '#2563eb'
+      });
+    });
   });
+
   $('#btList').on('click', '.bt-remove', function () {
     var key = $(this).attr('data-key');
     Swal.fire({ icon: 'warning', title: I18N_BT_CARD['printers.bt_remove_confirm'], showCancelButton: true, reverseButtons: true,
@@ -197,6 +281,8 @@ var I18N_BT_CARD = <?php echo tjson([
   });
 
   $('#btTest').on('click', function () {
+    var pw = parseInt($('#btPaper').val(), 10);
+    if (pw === 148 || pw === 210) { msg(T('bt_page_mode'), 'text-info'); return; }   // A5/A4 ບໍ່ສົ່ງ Bluetooth
     if (!P.list().length) { msg(T('bt_test_need'), 'text-danger'); return; }
     busy(T('bt_testing'));
     var dots = parseInt($('#btPaper').val(), 10) === 58 ? 384 : 576;

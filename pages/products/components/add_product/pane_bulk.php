@@ -29,12 +29,12 @@
               <i class="fas fa-download mr-1"></i> ດາວໂຫຼດແບບຟອມ
             </button>
             <input type="file" id="bulk_excel_file" accept=".xlsx,.xls,.csv" class="d-none" onchange="bulkImportExcel(this)">
-            <small class="text-muted" style="font-size: 0.78rem;">ຖັນ: ປະເພດ, ຊື່ສິນຄ້າ, ບາໂຄ້ດ, ຫົວໜ່ວຍ, ລາຄາຊື້, ລາຄາຂາຍ, ຜູ້ສະໜອງ</small>
+            <small class="text-muted" style="font-size: 0.78rem;">ຖັນ: ປະເພດ, ຊື່ສິນຄ້າ, ບາໂຄ້ດ, ຫົວໜ່ວຍ, ລາຄາຊື້, ລາຄາຂາຍ, ຜູ້ສະໜອງ, ໂຊນ, ຊັ້ນວາງ</small>
           </div>
 
-          <!-- ຕັ້ງຄ່າທັງຊຸດ: ຜູ້ສະໜອງ (ບັອກດຽວ) + ບໍ່ຕັດສະຕັອກ -->
-          <div class="row mb-3" style="row-gap: 10px;">
-            <div class="col-md-6">
+          <!-- ຕັ້ງຄ່າທັງຊຸດ: ຜູ້ສະໜອງ (ບັອກດຽວ), ໂຊນ, ຊັ້ນວາງ, ບໍ່ຕັດສະຕັອກ -->
+          <div class="row mb-3" style="row-gap: 12px;">
+            <div class="col-md-4">
               <label class="font-weight-bold text-dark mb-1"><i class="fas fa-truck text-primary mr-1"></i><?php echo htmlspecialchars(t('products.bulk_supplier_all', 'ຜູ້ສະໜອງ (ໃຊ້ກັບທຸກລາຍການ)')); ?></label>
               <select name="bulk_supplier_id" id="bulk_supplier_id" class="form-control" style="height: 40px; border-radius: 6px;">
                 <option value=""><?php echo htmlspecialchars(t('products.select_supplier_placeholder', '-- ບໍ່ລະບຸ / ເລືອກຜູ້ສະໜອງ --')); ?></option>
@@ -42,15 +42,42 @@
                   <option value="<?php echo (int)$sp['supplier_id']; ?>"><?php echo htmlspecialchars($sp['supplier_name']); ?></option>
                 <?php endforeach; ?>
               </select>
-              <small class="text-muted"><?php echo htmlspecialchars(t('products.bulk_supplier_hint', 'ສິນຄ້າຫຼາຍລາຍການມາຈາກຜູ້ສະໜອງດຽວ — ເລືອກບ່ອນນີ້ບ່ອນດຽວ ທຸກລາຍການຈະເປັນຂອງຜູ້ສະໜອງນີ້')); ?></small>
             </div>
-            <div class="col-md-6">
-              <div class="custom-control custom-switch mt-md-4 pt-md-1">
+            <div class="col-md-4">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="font-weight-bold text-dark mb-0"><i class="fas fa-map-marker-alt text-info mr-1"></i>ໂຊນ (ໃຊ້ກັບທຸກລາຍການ)</label>
+                <a href="javascript:void(0)" onclick="quickAddZonePrompt('bulk')" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
+                  <i class="fas fa-plus mr-1"></i>ເພີ່ມໂຊນ
+                </a>
+              </div>
+              <select name="bulk_zone" id="bulk_zone" class="form-control" style="height: 40px; border-radius: 6px;" onchange="onZoneSelectChange('bulk')">
+                <option value="">-- ບໍ່ລະບຸ / ເລືອກໂຊນ --</option>
+                <?php foreach (($zones ?? []) as $z): ?>
+                  <option value="<?php echo htmlspecialchars($z['zone_name']); ?>" data-id="<?php echo (int)$z['zone_id']; ?>"><?php echo htmlspecialchars($z['zone_name']); ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="font-weight-bold text-dark mb-0"><i class="fas fa-layer-group text-warning mr-1"></i>ຊັ້ນວາງ (ໃຊ້ກັບທຸກລາຍການ)</label>
+                <a href="javascript:void(0)" onclick="quickAddShelfPrompt('bulk')" class="text-info font-weight-bold" style="font-size: 0.78rem;">
+                  <i class="fas fa-plus mr-1"></i>ເພີ່ມຊັ້ນວາງ
+                </a>
+              </div>
+              <select name="bulk_shelf" id="bulk_shelf" class="form-control" style="height: 40px; border-radius: 6px;">
+                <option value="">-- ບໍ່ລະບຸ / ເລືອກຊັ້ນວາງ --</option>
+                <?php foreach (($shelves ?? []) as $sh): ?>
+                  <option value="<?php echo htmlspecialchars($sh['shelf_name']); ?>" data-zone-id="<?php echo (int)($sh['zone_id'] ?? 0); ?>" data-zone-name="<?php echo htmlspecialchars($sh['zone_name'] ?? ''); ?>"><?php echo htmlspecialchars($sh['shelf_name']); ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <div class="col-12 mt-1">
+              <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="bulk_no_cut_qty" name="bulk_no_cut_qty" value="1">
                 <label class="custom-control-label font-weight-bold text-dark" for="bulk_no_cut_qty">
                   <?php echo htmlspecialchars(t('products.bulk_no_cut_qty', 'ບໍ່ຕັດສະຕັອກ ສຳລັບທຸກລາຍການໃນຊຸດນີ້')); ?>
                 </label>
-                <br><small class="text-muted"><?php echo htmlspecialchars(t('products.bulk_no_cut_qty_hint', 'ໃຊ້ສຳລັບບໍລິການ / ສິນຄ້າສັ່ງເຮັດ — ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ. ຕັ້ງທີ່ນີ້ຄັ້ງດຽວ ແທນທີ່ຈະໄປແກ້ໄຂເອົາທີລະລາຍການພາຍຫຼັງ')); ?></small>
+                <small class="text-muted d-block"><?php echo htmlspecialchars(t('products.bulk_no_cut_qty_hint', 'ໃຊ້ສຳລັບບໍລິການ / ສິນຄ້າສັ່ງເຮັດ — ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ. ຕັ້ງທີ່ນີ້ຄັ້ງດຽວ ແທນທີ່ຈະໄປແກ້ໄຂເອົາທີລະລາຍການພາຍຫຼັງ')); ?></small>
               </div>
             </div>
           </div>
@@ -67,7 +94,7 @@
         </div>
 
         <div class="modal-footer border-0 pt-0 pb-4 px-4">
-          <button type="button" class="btn btn-light font-weight-bold px-4" style="border-radius: 6px; cursor: pointer;" data-dismiss="modal"><?php echo htmlspecialchars(t('products.cancel', 'ຍົກເລີກ')); ?></button>
+          <button type="button" class="btn btn-light font-weight-bold px-4" style="border-radius: 6px; cursor: pointer;" onclick="cancelAddBulkForm()"><?php echo htmlspecialchars(t('products.cancel', 'ຍົກເລີກ')); ?></button>
           <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 6px; cursor: pointer; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
             <i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('products.bulk_btn_save', 'ບັນທຶກທັງໝົດ')); ?>
           </button>

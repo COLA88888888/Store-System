@@ -55,11 +55,21 @@ if (isset($_SESSION['user_id'])) {
     // on it, same rule check_user.php already uses.
     if (intval($_SESSION['user_id']) !== 1 && $pdo) {
         try {
-            $myAccessStmt = $pdo->prepare("SELECT access_expire_date FROM st_tbuser WHERE Id = ? LIMIT 1");
+            $myAccessStmt = $pdo->prepare("SELECT * FROM st_tbuser WHERE Id = ? LIMIT 1");
             $myAccessStmt->execute([intval($_SESSION['user_id'])]);
-            $myAccessExpire = $myAccessStmt->fetchColumn();
+            $myAccessRow = $myAccessStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+            $myAccessExpire = $myAccessRow['access_expire_date'] ?? null;
         } catch (Throwable $ex) {
+            $myAccessRow = [];
             $myAccessExpire = null;
+        }
+        // ບັນຊີຖືກປິດໃຊ້ງານລະຫວ່າງທີ່ຍັງເຂົ້າລະບົບຢູ່ (ພະນັກງານລາອອກ) → ອອກຈາກລະບົບທັນທີ
+        if (isset($myAccessRow['account_active']) && (int)$myAccessRow['account_active'] === 0) {
+            session_unset();
+            session_destroy();
+            $redirectDisabledPath = $authPrefix . 'auth/login.php?disabled=1';
+            echo "<script>if (window.top) { window.top.location.href = '{$redirectDisabledPath}'; } else { window.location.href = '{$redirectDisabledPath}'; }</script>";
+            exit();
         }
         if (!empty($myAccessExpire) && strtotime($myAccessExpire) <= strtotime(date('Y-m-d'))) {
             session_unset();
@@ -147,7 +157,6 @@ if ($conn && !empty($_SESSION['user_id'])) {
             'branches' => $isAdmin ? 1 : (int)($refresh_row['branches'] ?? 0),
             'edit' => $isAdmin ? 1 : (int)($refresh_row['edit'] ?? 0),
             'customers' => $isAdmin ? 1 : (int)($refresh_row['customers'] ?? 0),
-            'customer_debt' => $isAdmin ? 1 : (int)($refresh_row['customer_debt'] ?? 0),
             'database' => $isAdmin ? 1 : (int)($refresh_row['database'] ?? 0),
             'stock_transfer' => $isAdmin ? 1 : (int)($refresh_row['stock_transfer'] ?? 0),
             'transfer_history' => $isAdmin ? 1 : (int)($refresh_row['transfer_history'] ?? 0)

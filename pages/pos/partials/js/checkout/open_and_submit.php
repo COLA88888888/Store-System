@@ -1,14 +1,37 @@
 <?php
 /*
  * ສ່ວນ: ເປີດຟອມຊຳລະ ແລະ ສົ່ງການຂາຍ
- * openCheckoutModal (ຕັ້ງຄ່າຟອມໃໝ່ທຸກຄັ້ງ), openCreditCheckout (ປຸ່ມຕິດໜີ້), processCheckout
+ * openCheckoutModal (ຕັ້ງຄ່າຟອມໃໝ່ທຸກຄັ້ງ), processCheckout
  * (ກວດຂໍ້ມູນ, ຢືນຢັນ ແລະ ສົ່ງບິນໄປເຊີເວີ).
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/pos/partials/js/pos_checkout_js.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 ?>// ============================
+// HELPER: ສິດການຂາຍເມື່ອມີກະ — ສາຂາທີ່ຕັ້ງກະໄວ້ (ຕັ້ງຄ່າ > ກະເຮັດວຽກ) ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການ
+// ຂາຍບໍ່ໄດ້ (ພະນັກງານຂາຍຕາມກະ); ສາຂາທີ່ບໍ່ມີກະ ຂາຍໄດ້ປົກກະຕິ. ຜູ້ບໍລິຫານຄົນທຳອິດ (Id 1) ຂາຍໄດ້ສະເໝີ.
+// ເຊີເວີກວດຊ້ຳໃນ api/pos_backend.php (action=checkout).
+// ============================
+function checkShiftSalePermission() {
+  if (window.POS_IS_OWNER) return true;
+  if (!window.STORE_HAS_SHIFTS || !window.IS_ADMIN_OR_MANAGER) return true;
+  if (typeof Swal !== 'undefined' && !Swal.isVisible()) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'ບໍ່ສາມາດຂາຍໄດ້',
+      html: 'ສາຂານີ້ມີການຕັ້ງກະເຮັດວຽກແລ້ວ<br><strong>ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການບໍ່ສາມາດຂາຍໄດ້</strong><br>ກະລຸນາໃຫ້ພະນັກງານຂາຍເປີດກະເພື່ອຂາຍ',
+      confirmButtonText: 'ຕົກລົງ',
+      confirmButtonColor: '#244886'
+    });
+  }
+  return false;
+}
+
+// ============================
 // OPEN CHECKOUT MODAL
 // ============================
 function openCheckoutModal() {
+  // ຖ້າມີການຕັ້ງຄ່າກະ: ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການບໍ່ສາມາດຂາຍໄດ້
+  if (!checkShiftSalePermission()) return;
+
   // ກະຕ່າຫວ່າງ: ບໍ່ເປີດ modal ຊຳລະ ແລະ ບໍ່ຕ້ອງມີ popup (ປຸ່ມ ຊຳລະ ຖືກ disable ໄວ້ແລ້ວ)
   if (cart.length === 0) return;
 
@@ -49,6 +72,13 @@ function openCheckoutModal() {
   $('#cashReceived').val(POSCUR.num(netKip));
   calculateChange();
   $('#checkoutModal').modal('show');
+  try {
+    if (window.parent && typeof window.parent.setPosModalOpen === 'function') {
+      window.parent.setPosModalOpen(true);
+    } else if (window.parent && window.parent.document && window.parent.document.body) {
+      window.parent.document.body.classList.add('pos-modal-open');
+    }
+  } catch (e) {}
   if (typeof broadcastCustomerDisplay === 'function') {
     broadcastCustomerDisplay('checkout_modal_open', { paymentType: selectedPayType });
   }
@@ -56,28 +86,12 @@ function openCheckoutModal() {
 }
 
 // ============================
-// ຂາຍຕິດໜີ້ BUTTON (scan bar) — opens the payment form straight in credit mode.
-// No customer yet → pick one first, then the form opens by itself (see selectCustomer).
-// ============================
-function openCreditCheckout() {
-  if (!cart || cart.length === 0) {
-    Swal.fire({ icon: 'warning', title: posT('pos.credit_empty_cart_title'), text: posT('pos.credit_empty_cart_body'), confirmButtonColor: '#244886' });
-    return;
-  }
-  if (!(selectedCustomer && parseInt(selectedCustomer.customer_id, 10) > 0)) {
-    window.__posCreditPending = true;
-    Swal.fire({ toast: true, position: 'top-end', icon: 'info', title: posT('pos.credit_need_customer'), timer: 2200, showConfirmButton: false });
-    if (typeof openCustomerSelectModal === 'function') openCustomerSelectModal();
-    return;
-  }
-  openCheckoutModal();
-  setPayMode('credit');
-}
-
-// ============================
 // PROCESS CHECKOUT
 // ============================
 function processCheckout() {
+  // ຖ້າມີການຕັ້ງຄ່າກະ: ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການບໍ່ສາມາດຂາຍໄດ້
+  if (!checkShiftSalePermission()) return;
+
   // Re-entrancy guard: a fast double-tap on the submit button (common on a touchscreen POS)
   // used to fire two checkout requests before the first response came back, creating two
   // separate bills in the DB and printing a receipt for each. Cleared once the request settles
@@ -96,38 +110,7 @@ function processCheckout() {
   // the exact displayed amount as short by a fraction of a unit.
   var totalUnits = POSCUR.units(total);
 
-  if (currentPayMode === 'credit') {
-    // ຂາຍຕິດໜີ້ — the server re-checks all of this (customer, permission, amount owed).
-    var hasCust = !!(selectedCustomer && parseInt(selectedCustomer.customer_id, 10) > 0);
-    var depUnits = Math.min(POSCUR.parseUnits($('#cashReceived').val()), totalUnits);
-    if (!hasCust || depUnits >= totalUnits) { calcCredit(); return; }
-    var depositKip = Math.min(total, POSCUR.isKip ? depUnits : Math.round(depUnits * POSCUR.rate));
-    if (selectedPayType === 'ເງິນສົດ') { cashReceived = depositKip; qrReceived = 0; }
-    else { cashReceived = 0; qrReceived = depositKip; }
-    paymentType = 'ຕິດໜີ້';
-    change = 0;
-    if (!window.__posCreditConfirmed) {
-      var confirmHtml = posT('pos.credit_confirm_body', $('<b>').text(selectedCustomer.customer_name || '').prop('outerHTML'), '<b style="color:#dc2626">' + POSCUR.fmtUnits(totalUnits - depUnits) + '</b>')
-        + '<div style="margin-top:8px;font-size:0.92rem;color:#475569;">' + $('<span>').text(posT('pos.credit_confirm_due', $('#creditDueLbl').text())).prop('outerHTML') + '</div>';
-      if ($('#creditOldDebtBox').is(':visible')) {
-        confirmHtml += '<div style="margin-top:4px;font-size:0.92rem;color:#7f1d1d;font-weight:700;">' + posT('pos.credit_confirm_total_after', $('#creditTotalAfterLbl').html()) + '</div>';
-      }
-      Swal.fire({
-        icon: 'question',
-        title: posT('pos.credit_confirm_title'),
-        html: confirmHtml,
-        showCancelButton: true,
-        confirmButtonColor: '#dc2626',
-        confirmButtonText: posT('pos.credit_confirm_yes'),
-        cancelButtonText: posT('pos.cancel')
-      }).then(function (r) {
-        if (!r.isConfirmed) return;
-        window.__posCreditConfirmed = true;
-        try { processCheckout(); } finally { window.__posCreditConfirmed = false; }
-      });
-      return;
-    }
-  } else if (currentPayMode === 'split') {
+  if (currentPayMode === 'split') {
     var splitCashUnits = POSCUR.parseUnits($('#splitCashAmount').val());
     var splitQrUnits   = POSCUR.parseUnits($('#splitQrAmount').val());
     var paidUnits      = splitCashUnits + splitQrUnits;
@@ -141,8 +124,9 @@ function processCheckout() {
     qrReceived   = paidUnits > 0 ? Math.round((splitQrUnits / paidUnits) * total) : 0;
     cashReceived = total - qrReceived;
     paymentType  = 'ເງິນສົດ + ໂອນ';
-    var changeUnits = paidUnits - totalUnits;
-    change = POSCUR.isKip ? changeUnits : Math.round(changeUnits * POSCUR.rate);
+    // ເງິນທອນ ຄິດເປັນກີບໂດຍກົງ: ເງິນທີ່ຈ່າຍ (× ເລດ) − ຍອດບິນກີບ — ບໍ່ຄິດຈາກຍອດທີ່ປັດເປັນສະກຸນຕ່າງປະເທດແລ້ວ
+    // (ເຊັ່ນ 10,000₭ = 0.4545$ ປັດເປັນ 0.45$ → ທອນ 0.55$ = 12,100₭ ແທນ 12,000₭ ທີ່ຖືກ)
+    change = POSCUR.isKip ? (paidUnits - totalUnits) : Math.max(0, Math.round(paidUnits * POSCUR.rate) - total);
     cashReceived += change;
   } else {
     var cashUnits = POSCUR.parseUnits($('#cashReceived').val());
@@ -150,11 +134,10 @@ function processCheckout() {
       Swal.fire({ icon: 'error', title: posT('pos.checkout_cash_short_title'), text: posT('pos.checkout_cash_short_body'), confirmButtonColor: '#ef4444' });
       return;
     }
-    // Convert only the change (the part that matters for what's owed back) through the
-    // exchange rate, then derive cash received as total + change so the stored KIP
-    // figures always add up exactly.
-    var changeUnitsOver = cashUnits - totalUnits;
-    change = POSCUR.isKip ? changeUnitsOver : Math.round(changeUnitsOver * POSCUR.rate);
+    // ເງິນທອນ ຄິດເປັນກີບໂດຍກົງ (ເງິນທີ່ຮັບ × ເລດ − ຍອດບິນກີບ), ແລ້ວບັນທຶກເງິນຮັບ = ຍອດບິນ + ເງິນທອນ
+    // ເພື່ອໃຫ້ຕົວເລກກີບໃນຖານຂໍ້ມູນລວມກັນຖືກສະເໝີ. ເມື່ອກ່ອນຄິດຈາກ (ເງິນຮັບ − ຍອດທີ່ປັດແລ້ວ) × ເລດ
+    // ເຊິ່ງຜິດເທົ່າກັບສ່ວນທີ່ປັດ (ສູງສຸດເຄິ່ງໜ່ວຍ: 11,000₭ ສຳລັບ $ ເມື່ອບໍ່ມີຈຸດທົດສະນິຍົມ).
+    change = POSCUR.isKip ? (cashUnits - totalUnits) : Math.max(0, Math.round(cashUnits * POSCUR.rate) - total);
     var rawInput = total + change;
     // The QR/transfer tab's actual value is 'ໂອນເງິນ / QR' (see selectPayTypeTab's button in
     // checkout_modal.php) — comparing against 'ໂອນ' / 'QR' here never matched it, so every
@@ -172,8 +155,7 @@ function processCheckout() {
   }
 
   var isTransferTxn = (currentPayMode === 'split' && qrReceived > 0) ||
-                      (currentPayMode === 'single' && selectedPayType !== 'ເງິນສົດ') ||
-                      (currentPayMode === 'credit' && qrReceived > 0);
+                      (currentPayMode === 'single' && selectedPayType !== 'ເງິນສົດ');
 
   var activeBankId = isTransferTxn ? (window.currentSelectedBankId || $('input[name="pos_selected_bank_id"]:checked').val() || null) : null;
   var activeBankName = isTransferTxn ? (window.currentSelectedBankName || null) : null;
@@ -201,6 +183,9 @@ function processCheckout() {
       cost_price:     parseFloat(item.cost_price) || 0,
       multiplier:     parseInt(item.multiplier, 10) || 1,
       quantity:       parseFloat(item.quantity) || 1,
+      discount:       parseFloat(item.item_discount) || 0,
+      discount_type:  item.item_discount_type || null,
+      discount_val:   parseFloat(item.item_discount_val) || 0,
       is_free_gift:   !!item.is_free_gift,
       reward_id:      item.reward_id ? parseInt(item.reward_id, 10) : null,
       parent_product_id: item.parent_product_id ? parseInt(item.parent_product_id, 10) : null
@@ -234,9 +219,7 @@ function processCheckout() {
     customer_phone:  selectedCustomer ? (selectedCustomer.phone || '') : '',
     // Currency the customer actually tendered on this bill (+ KIP-per-unit rate used).
     paid_currency:   (window.POSCUR && POSCUR.code) ? POSCUR.code : 'KIP',
-    paid_rate:       (window.POSCUR && POSCUR.rate) ? POSCUR.rate : 1,
-    // ຂາຍຕິດໜີ້: the day the customer promised to pay (optional)
-    due_date:        currentPayMode === 'credit' ? ($('#creditDueDate').val() || '') : ''
+    paid_rate:       (window.POSCUR && POSCUR.rate) ? POSCUR.rate : 1
   };
 
   window.__posCheckoutInFlight = true;
@@ -253,6 +236,7 @@ function processCheckout() {
     data: Object.assign({}, payload, {
       action: 'checkout',
       cart: JSON.stringify(cleanCart),
+      held_id: (typeof getCurrentHeldId === 'function') ? (getCurrentHeldId() || '') : '',
       redemptions: JSON.stringify((typeof posRedemptions === 'function') ? posRedemptions().map(function (r) { return r.reward_id; }) : [])
     }),
     dataType: 'json',

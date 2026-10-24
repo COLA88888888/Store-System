@@ -5,6 +5,22 @@
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/settings/stores/index.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 
+// ຂໍ້ຄວາມທ້າຍບິນພາສາອັງກິດ/ໄທ/ຈີນ (ຟອມ page_body.php) → st_tbcompanyinfo.receipt_footer_{en,th,zh}; ຫວ່າງ = NULL (ໃຊ້ພາສາລາວ)
+if (!function_exists('saveReceiptFooterLangs')) {
+    function saveReceiptFooterLangs($pdo, $companyId) {
+        if ($companyId <= 0) return;
+        $vals = [];
+        foreach (['en', 'th', 'zh'] as $l) {
+            $v = trim($_POST['receipt_footer_' . $l] ?? '');
+            $vals[] = $v === '' ? null : mb_substr($v, 0, 255);
+        }
+        $vals[] = $companyId;
+        try {
+            $pdo->prepare("UPDATE st_tbcompanyinfo SET receipt_footer_en = ?, receipt_footer_th = ?, receipt_footer_zh = ? WHERE Id = ?")->execute($vals);
+        } catch (Throwable $e) {}
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -71,6 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($newLogoName) {
                         $sql .= ", img_url = ?";
                         $params[] = $newLogoName;
+                    } elseif (($_POST['remove_logo'] ?? '') === '1') {
+                        // ປຸ່ມ ✕ ສີແດງເທິງຮູບ: ເອົາໂລໂກ້ອອກ (ໄຟລ໌ເກົ່າ cleanupUnusedLogos() ລຶບໃຫ້ເມື່ອບໍ່ມີໃຜໃຊ້)
+                        $sql .= ", img_url = ''";
                     }
                     if ($newQrName) {
                         $sql .= ", qr_img = ?";
@@ -81,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $stmt = $pdo->prepare($sql);
                     $stmt->execute($params);
+                    saveReceiptFooterLangs($pdo, (int)$curComp['Id']);
                 } else {
                     $logo = $newLogoName ? $newLogoName : 'logo.png';
                     $qr = $newQrName ? $newQrName : '';
@@ -91,6 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $stmt = $pdo->prepare("INSERT INTO st_tbcompanyinfo (com_name_la, com_address, com_tel, com_email, tax_id, barcode, img_url, qr_img, tax_type, vat_percent, branch_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         $stmt->execute([$com_name_la, $com_address, $com_tel, $com_email, $tax_id, $receipt_footer, $logo, $qr, $tax_type, $vat_percent, $branch_id_save]);
                     }
+                    saveReceiptFooterLangs($pdo, (int)$pdo->lastInsertId());
                 }
 
                 // ປ່ຽນໂລໂກ້ແລ້ວ — ລົບໄຟລ໌ເກົ່າທີ່ບໍ່ມີສາຂາໃດໃຊ້ແລ້ວອອກຈາກໂຟນເດີ

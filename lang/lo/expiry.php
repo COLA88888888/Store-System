@@ -61,6 +61,8 @@ return [
     'expiry.report_subtitle' => 'ສິນຄ້າທີ່ໝົດອາຍຸແລ້ວ ແລະ ໃກ້ໝົດອາຍຸ (ແຈ້ງເຕືອນກ່ອນ %s ວັນ)',
     'expiry.card_near' => 'ໃກ້ໝົດອາຍຸ (ບໍ່ເກີນ %s ວັນ)',
     'expiry.card_tracked' => 'ສິນຄ້າທີ່ຕິດຕາມວັນໝົດອາຍຸ',
+    'expiry.card_attention' => 'ສິນຄ້າໃກ້ໝົດອາຍຸ ແລະ ໝົດອາຍຸ',
+    'expiry.empty_none_attention' => 'ບໍ່ມີສິນຄ້າໃກ້ໝົດອາຍຸ ຫຼື ໝົດອາຍຸ',
     'expiry.within_label' => 'ຈະໝົດອາຍຸພາຍໃນ:',
     'expiry.within_any' => '-- ທັງໝົດ --',
     'expiry.branch_label' => 'ສາຂາ:',

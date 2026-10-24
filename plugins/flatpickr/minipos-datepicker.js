@@ -131,6 +131,152 @@
     });
   }
 
+  // ບັອກ "ຈາກວັນທີ / ຫາວັນທີ" ເປັນຄູ່: ປະຕິທິນຂອງທັງສອງບັອກ ສະແດງຊ່ວງວັນທີ (ສອງປາຍສີຟ້າ, ລະຫວ່າງກາງແຖບສີເທົາ).
+  // ຍັງເປັນ 2 input ຄືເກົ່າ (backend ບໍ່ປ່ຽນ). ຈັບຄູ່ຈາກ name/id ໃນຟອມດຽວກັນ:
+  // from_date/to_date, start_date/end_date, from/to, filterDateFrom/filterDateTo, fromDateInput/toDateInput, edit_start_date/edit_end_date
+  function rangeRole(el) {
+    var k = String(el.name || el.id || '').toLowerCase();
+    if (/from|start/.test(k)) return 'from';
+    if (/end/.test(k) || /^to|to$/.test(k)) return 'to';
+    return '';
+  }
+  function rangeKey(el, role) {
+    var k = String(el.name || el.id || '').toLowerCase();
+    if (role === 'from') return k.replace(/from|start/, '');
+    return /end/.test(k) ? k.replace(/end/, '') : k.replace(/^to|to$/, '');
+  }
+  function rangePartner(el) {
+    var role = rangeRole(el);
+    if (!role) return null;
+    var key = rangeKey(el, role), want = role === 'from' ? 'to' : 'from';
+    var scope = el.closest('form') || document;
+    for (var i = 0; i < inputs.length; i++) {
+      var c = inputs[i];
+      if (c === el || !c.isConnected || (c.closest('form') || document) !== scope) continue;
+      if (rangeRole(c) === want && rangeKey(c, want) === key) return c;
+    }
+    return null;
+  }
+  function dayNum(d) { return d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : null; }
+  // onDayCreate: ໃສ່ class ຊ່ວງວັນທີໃຫ້ແຕ່ລະມື້ (minipos-datepicker.css: .mp-range-start/.mp-range-end/.mp-in-range)
+  function markRange(el, inst, dayElem) {
+    var partner = rangePartner(el);
+    if (!partner || !partner._flatpickr || !dayElem.dateObj) return;
+    var mine = dayNum(inst.selectedDates[0]), other = dayNum(partner._flatpickr.selectedDates[0]);
+    var from = rangeRole(el) === 'from' ? mine : other, to = rangeRole(el) === 'from' ? other : mine;
+    if (from === null || to === null || from > to) return;
+    var t = dayNum(dayElem.dateObj);
+    if (t === from) dayElem.classList.add('mp-range-start');
+    if (t === to) dayElem.classList.add('mp-range-end');
+    if (t > from && t < to) dayElem.classList.add('mp-in-range');
+  }
+
+  // ເລືອກຊ່ວງໃນປະຕິທິນດຽວ (ບັອກທີ່ມີຄູ່): ຄລິກມື້ເລີ່ມ → ເລື່ອນເມົາເຫັນແຖບ → ຄລິກມື້ສຸດທ້າຍ, ຫຼື ລາກຈາກມື້ໜຶ່ງຫາອີກມື້.
+  // ຜົນ: ບັອກ "ຈາກ" = ມື້ນ້ອຍກວ່າ, ບັອກ "ຫາ" = ມື້ໃຫຍ່ກວ່າ (ທັງສອງ input ຍິງ change ຄືເກົ່າ).
+  // ຄລິກມື້ດຽວແລ້ວປິດປະຕິທິນ = ປ່ຽນແຕ່ບັອກນັ້ນ (ຄືເກົ່າ).
+  var rangeSyncing = false;
+  function paintRange(inst, a, b) {
+    if (!inst.daysContainer) return;
+    var lo = Math.min(dayNum(a), dayNum(b)), hi = Math.max(dayNum(a), dayNum(b));
+    inst.daysContainer.querySelectorAll('.flatpickr-day').forEach(function (day) {
+      day.classList.remove('mp-range-start', 'mp-range-end', 'mp-in-range');
+      var t = dayNum(day.dateObj);
+      if (t === lo) day.classList.add('mp-range-start');
+      if (t === hi) day.classList.add('mp-range-end');
+      if (t > lo && t < hi) day.classList.add('mp-in-range');
+    });
+  }
+  function commitRange(el, inst, a, b) {
+    var partner = rangePartner(el);
+    if (!partner || !partner._flatpickr) return;
+    var lo = dayNum(a) <= dayNum(b) ? a : b, hi = lo === a ? b : a;
+    var fromEl = rangeRole(el) === 'from' ? el : partner, toEl = fromEl === el ? partner : el;
+    rangeSyncing = true;
+    try {
+      fromEl._flatpickr.setDate(lo, true);
+      toEl._flatpickr.setDate(hi, true);
+    } finally { rangeSyncing = false; }
+    inst._mpStep = 0;
+    inst.close();
+  }
+  function dayFromNode(node) {
+    var d = node && node.closest ? node.closest('.flatpickr-day') : null;
+    return d && d.dateObj && !d.classList.contains('flatpickr-disabled') ? d : null;
+  }
+  function setupRangeUI(el, inst) {
+    var box = inst.daysContainer;
+    if (!box) return;
+    var dragFrom = null, dragMoved = false;
+    // ຄລິກແທ້ໃສ່ມື້ (ບໍ່ແມ່ນພິມວັນທີ / ຕັ້ງຈາກໂຄດ) — onChange ຈະເຮັດວຽກແບບຊ່ວງສະເພາະກໍລະນີນີ້
+    box.addEventListener('click', function (e) { if (dayFromNode(e.target)) inst._mpClick = true; }, true);
+    box.addEventListener('mouseover', function (e) {
+      if (!rangePartner(el)) return;
+      var day = dayFromNode(e.target);
+      if (!day) return;
+      if (dragFrom) { if (dayNum(day.dateObj) !== dayNum(dragFrom)) dragMoved = true; paintRange(inst, dragFrom, day.dateObj); }
+      else if (inst._mpStep === 1) paintRange(inst, inst._mpAnchor, day.dateObj);
+    });
+    box.addEventListener('mouseleave', function () {
+      if (!dragFrom && inst._mpStep === 1) paintRange(inst, inst._mpAnchor, inst._mpAnchor);
+    });
+    function start(node) {
+      var day = rangePartner(el) ? dayFromNode(node) : null;
+      dragFrom = day ? day.dateObj : null;
+      dragMoved = false;
+    }
+    function end(node, e) {
+      var from = dragFrom, moved = dragMoved;
+      dragFrom = null; dragMoved = false;
+      var day = dayFromNode(node);
+      if (!from || !moved || !day || dayNum(day.dateObj) === dayNum(from)) return false;   // ບໍ່ໄດ້ລາກ → ໃຫ້ຄລິກທຳມະດາເຮັດວຽກ
+      if (e) e.preventDefault();
+      commitRange(el, inst, from, day.dateObj);
+      return true;
+    }
+    box.addEventListener('mousedown', function (e) { if (e.button === 0) start(e.target); });
+    box.addEventListener('mouseup', function (e) { end(e.target, e); });
+    // ໂທລະສັບ: ລາກນິ້ວໃສ່ມື້ (ກັນໜ້າເລື່ອນຂະນະລາກ)
+    box.addEventListener('touchstart', function (e) { if (e.touches.length === 1) start(e.target); }, { passive: true });
+    box.addEventListener('touchmove', function (e) {
+      if (!dragFrom || !e.touches.length) return;
+      e.preventDefault();
+      var t = e.touches[0], day = dayFromNode(document.elementFromPoint(t.clientX, t.clientY));
+      if (day) { if (dayNum(day.dateObj) !== dayNum(dragFrom)) dragMoved = true; paintRange(inst, dragFrom, day.dateObj); }
+    }, { passive: false });
+    box.addEventListener('touchend', function (e) {
+      var t = e.changedTouches && e.changedTouches[0];
+      if (t) end(document.elementFromPoint(t.clientX, t.clientY), e);
+    }, { passive: false });
+  }
+  // onChange ຂອງບັອກທີ່ມີ role: ຄລິກທີ 1 = ມື້ເລີ່ມ (ປະຕິທິນຍັງເປີດ), ຄລິກທີ 2 = ມື້ສຸດທ້າຍ → ຕັ້ງທັງສອງບັອກ ແລ້ວປິດ
+  function onRangeChange(el, inst, dates) {
+    if (rangeSyncing) return;
+    var clicked = inst._mpClick;
+    inst._mpClick = false;
+    if (!clicked || !dates[0]) return;
+    if (!rangePartner(el)) { inst.close(); return; }   // ບໍ່ມີຄູ່ → ປະຕິທິນທຳມະດາ
+    if (inst._mpStep !== 1) {
+      inst._mpStep = 1;
+      inst._mpAnchor = dates[0];
+      paintRange(inst, dates[0], dates[0]);
+    } else {
+      commitRange(el, inst, inst._mpAnchor, dates[0]);
+    }
+  }
+  // ປິດປະຕິທິນຫຼັງຄລິກແຕ່ມື້ເລີ່ມ: ບັອກນີ້ໄດ້ມື້ນັ້ນແລ້ວ; ຖ້າຊ່ວງກັບກັນ (ຈາກ > ຫາ) ໃຫ້ບັອກຄູ່ເປັນມື້ດຽວກັນ
+  function onRangeClose(el, inst) {
+    if (inst._mpStep !== 1) return;
+    inst._mpStep = 0;
+    var partner = rangePartner(el), a = inst._mpAnchor;
+    if (!partner || !partner._flatpickr) return;
+    var other = partner._flatpickr.selectedDates[0];
+    var bad = !other || (rangeRole(el) === 'from' ? dayNum(a) > dayNum(other) : dayNum(a) < dayNum(other));
+    if (bad) {
+      rangeSyncing = true;
+      try { partner._flatpickr.setDate(a, true); } finally { rangeSyncing = false; }
+    }
+  }
+
   // Typing in the visible box: keep digits only and insert the slashes (24092026 -> 24/09/2026)
   function onAltTyping(e) {
     var box = e.target;
@@ -162,7 +308,12 @@
       animate: false,   // ປະຕິທິນຂຶ້ນມາຢູ່ຊື່ໆ ບໍ່ເລື່ອນລົງ/ເນັງຕິງ ເວລາຄລິກບັອກວັນທີ
       minDate: el.getAttribute('min') || null,
       maxDate: el.getAttribute('max') || null,
+      closeOnSelect: !rangeRole(el),   // ບັອກທີ່ມີຄູ່: ຄລິກມື້ເລີ່ມແລ້ວປະຕິທິນຍັງເປີດ ລໍມື້ສຸດທ້າຍ (onRangeChange)
+      onDayCreate: [function (s, d, inst, dayElem) { markRange(el, inst, dayElem); }],
+      onChange: [function (dates, d, inst) { if (rangeRole(el)) onRangeChange(el, inst, dates); }],
       onOpen: [function (s, d, inst) {
+        inst._mpStep = 0;
+        if (rangePartner(el)) inst.redraw();   // ບັອກຄູ່ອາດປ່ຽນວັນທີແລ້ວ → ແຕ້ມຊ່ວງໃໝ່
         lockZoom(inst);
         if (openPickers.indexOf(inst) < 0) openPickers.push(inst);
         pinCalendar(inst);
@@ -172,12 +323,14 @@
       onYearChange: [function (s, d, inst) { pinCalendar(inst); }],
       // Small delay so the tap that closes the calendar can't turn into a double-tap zoom
       onClose: [function (s, d, inst) {
+        if (rangeRole(el)) onRangeClose(el, inst);
         openPickers = openPickers.filter(function (p) { return p !== inst; });
         setTimeout(function () { unlockZoom(inst); }, 350);
       }]
     });
     if (!fp || !fp.altInput) return;
     if (fp.calendarContainer) fp.calendarContainer.classList.add('mp-fixed');   // ຕິດກັບຈໍ (pinCalendar)
+    if (rangeRole(el)) setupRangeUI(el, fp);   // ຄລິກ/ລາກ ເລືອກຊ່ວງ
 
     // Touch: the header's year box would pop the keyboard (and zoom) — change year with its
     // up/down arrows or the month arrows instead.

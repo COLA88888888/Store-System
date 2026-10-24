@@ -1,0 +1,107 @@
+/* ============================================================
+   report-table.css — ຮູບແບບຕາຕະລາງລາຍງານ ແລະ ປຸ່ມ Excel / PDF / ພິມ ແບບດຽວກັນທົ່ວລະບົບ
+   (ແບບດຽວກັບໜ້າລາຍງານການຂາຍທັງໝົດ: ບັດສີຂາວບໍ່ມີຂອບ, ຫົວຕາຕະລາງຂາວ ໜັງສືເຂັ້ມໜາ,
+   ແຖວສະຫຼັບສີ, ແຖວລວມສີເທົາອ່ອນ).
+   ໃຊ້: <table class="table rpt-table …"> ພາຍໃນ .rpt-card, ແລະ layouts/partials/report/export_buttons.php
+   ໃຊ້ໃນ: ລາຍງານສິນຄ້າໝົດອາຍຸ, ລາຍງານໜີ້ລູກຄ້າ, ເຊັກສະຕັອກ.
+   selector ຂຶ້ນຕົ້ນດ້ວຍ table. ເພື່ອໃຫ້ໜັກກວ່າ CSS ເກົ່າຂອງແຕ່ລະໜ້າ (.exr-table / .dbr-table / .sc-table).
+   ============================================================ */
+
+/* ---- ບັດ ---- */
+.rpt-card {
+  background: #fff;
+  border: none !important;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .06), 0 6px 18px rgba(15, 23, 42, .05);
+  overflow: hidden;
+}
+
+/* ---- ຕາຕະລາງ ---- */
+table.rpt-table { width: 100%; margin: 0; font-size: 0.92rem; color: #1e293b; }
+table.rpt-table thead th {
+  background: #fff;
+  color: #1e293b;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-top: 0;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 14px 12px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+table.rpt-table tbody td {
+  padding: 14px 12px;
+  vertical-align: middle;
+  border-top: 1px solid #eef2f7;
+}
+table.rpt-table tbody tr:nth-of-type(odd) { background: #f8fafc; }
+table.rpt-table tbody tr:nth-of-type(even) { background: #fff; }
+table.rpt-table tbody tr:hover { background: #eef4ff; }
+/* ເຊັກສະຕັອກ: ແຖວນັບມີສີຕາມສະຖານະ (ຂາດ / ເກີນ / ກົງ) — ໃຫ້ສີນັ້ນຊະນະສີສະຫຼັບ */
+table.rpt-table tbody tr.sc-row.sc-state-short { background: #fff5f5; }
+table.rpt-table tbody tr.sc-row.sc-state-over  { background: #fffdf5; }
+table.rpt-table tbody tr.sc-row.sc-state-match { background: #f6fef9; }
+table.rpt-table tfoot td {
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 800;
+  border-top: 2px solid #cbd5e1;
+  padding: 14px 12px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+@media (max-width: 767.98px) {
+  table.rpt-table { font-size: 0.84rem; }
+  table.rpt-table thead th, table.rpt-table tbody td, table.rpt-table tfoot td { padding: 10px 8px; }
+}
+
+/* ---- ປຸ່ມ Excel / PDF / ພິມ ---- */
+.rpt-export { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.btn.rpt-btn {
+  border: none !important;
+  color: #fff !important;
+  font-weight: 700;
+  font-size: 0.86rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 14px;
+  padding-right: 14px;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, .12);
+}
+.btn.rpt-btn:hover { filter: brightness(1.08); color: #fff !important; }
+.btn.rpt-btn i { color: #fff !important; }
+.btn.rpt-btn-excel { background: linear-gradient(135deg, #16a34a, #15803d) !important; }
+.btn.rpt-btn-pdf   { background: linear-gradient(135deg, #dc2626, #b91c1c) !important; }
+.btn.rpt-btn-print { background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; }
+
+/* ---- Shift Report Modal: Full Scrollable & Safe Top Spacing ---- */
+#modalShiftReport,
+#posShiftReportModal {
+  z-index: 1055 !important;
+}
+#modalShiftReport .modal-dialog,
+#posShiftReportModal .modal-dialog {
+  max-height: calc(100vh - 40px) !important;
+  margin: 20px auto !important;
+}
+#modalShiftReport .modal-content,
+#posShiftReportModal .modal-content {
+  max-height: calc(100vh - 40px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+#modalShiftReport .modal-header,
+#posShiftReportModal .modal-header,
+#modalShiftReport .modal-footer,
+#posShiftReportModal .modal-footer {
+  flex-shrink: 0 !important;
+}
+#modalShiftReport .modal-body,
+#posShiftReportModal .modal-body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}

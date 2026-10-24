@@ -184,6 +184,13 @@
     font-size: 1.2rem !important;
 }
 
+/* ປຸ່ມ btn-light ໃນຕາຕະລາງ (ເບິ່ງ/ພິມ/ລຶບ ໃນລາຍການຂາຍສິນຄ້າ ແລະ ລາຍງານ) — ໄອຄອນເທົ່າກັບປຸ່ມ ແກ້ໄຂ/ລົບ ໜ້າປະເພດສິນຄ້າ.
+   ສີມາຈາກ text-primary/text-info/text-danger ຂອງປຸ່ມ */
+.table td .btn-light i,
+.table td .btn-outline-warning i {
+    font-size: 1.2rem !important;
+}
+
 /* Responsive Mobile Typography & Button Scaling */
 @media (max-width: 576px) {
     html, body {
@@ -213,6 +220,14 @@
     .container-fluid.p-4, .container.p-4, .p-4 {
         padding: 0.85rem !important;
     }
+}
+
+/* ===== FORM, MODAL, SAVE & CANCEL BUTTON RADIUS (6PX) ===== */
+.modal-footer .btn,
+.modal-footer button,
+.btn-save,
+.btn-cancel {
+    border-radius: 6px !important;
 }
 
 /* ===== RESPONSIVE NAVBAR LOGOUT BUTTON ===== */
@@ -313,10 +328,12 @@ body {
     .wrapper .content-wrapper {
         margin-top: 0 !important;
         padding-top: 0 !important;
-        height: calc(100vh - 64px - 42px) !important;
-        height: calc(100dvh - 64px - 42px) !important;
-        min-height: calc(100vh - 64px - 42px) !important;
-        min-height: calc(100dvh - 64px - 42px) !important;
+        /* ເຕັມຈໍຮອດລຸ່ມສຸດ (ຫັກແຕ່ Navbar 64px). ເມື່ອກ່ອນຫັກອີກ 42px ໃຫ້ footer ທີ່ບໍ່ມີແລ້ວ →
+           ມີແຖບສີຂາວຫວ່າງຢູ່ລຸ່ມຈໍໂທລະສັບ */
+        height: calc(100vh - 64px) !important;
+        height: calc(100dvh - 64px) !important;
+        min-height: calc(100vh - 64px) !important;
+        min-height: calc(100dvh - 64px) !important;
     }
     .modal-dialog {
         margin: 0.75rem auto !important;

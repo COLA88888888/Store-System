@@ -21,6 +21,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 ?>
 
 <link rel="stylesheet" href="../../themes/stock_check.css?v=<?php echo filemtime(__DIR__ . '/../../themes/stock_check.css'); ?>">
+<?php echo themeCssLink('report-table.css'); /* ຕາຕະລາງ + ປຸ່ມ Excel/PDF/ພິມ ແບບດຽວກັນທົ່ວລະບົບ */ ?>
 
 <div class="content-wrapper bg-light">
 

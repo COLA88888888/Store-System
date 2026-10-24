@@ -77,6 +77,9 @@ if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['loyalty_schema_v3']))
         if (!in_array('is_reward', $lpDetCols)) {
             $pdo->exec("ALTER TABLE st_tbsale_save_detail ADD COLUMN `is_reward` TINYINT(1) NOT NULL DEFAULT 0");
         }
+        if (!in_array('save_discount_item', $lpDetCols)) {
+            $pdo->exec("ALTER TABLE st_tbsale_save_detail ADD COLUMN `save_discount_item` DECIMAL(12,2) DEFAULT 0.00");
+        }
 
         $pdo->exec("INSERT IGNORE INTO st_system_settings (setting_key, setting_value) VALUES
             ('loyalty_enabled', '0'), ('loyalty_spend_amount', '100000'), ('loyalty_points_earned', '1')");

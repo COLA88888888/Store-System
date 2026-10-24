@@ -18,6 +18,8 @@ return [
     'users_manage.status_offline' => '离线',
     'users_manage.role_admin' => '管理员',
     'users_manage.role_employee' => '员工',
+    'users_manage.role_manager' => '经理（本分店）',
+    'users_manage.role_manager_short' => '经理',
     'users_manage.btn_view_title' => '查看详情',
     'users_manage.btn_edit_title' => '编辑',
     'users_manage.btn_delete_title' => '删除',

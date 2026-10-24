@@ -6,6 +6,7 @@ $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
 $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 
 require_once dirname(__DIR__, 2) . '/config/db.php';
+require_once dirname(__DIR__) . '/products/components/product_image_helpers.php';
 
 if (!hasPermission('best_seller') && !hasPermission('report')) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
@@ -93,6 +94,7 @@ $sql = "
         d.save_proid,
         COALESCE(d.save_proname, p.product_name, 'ສິນຄ້າ') AS product_name,
         cat.category_name,
+        MAX(p.img_url) AS img_url,
         SUM(d.save_qty) AS total_qty_sold,
         AVG(d.save_price) AS avg_price,
         SUM(d.save_money) AS total_revenue,
@@ -102,7 +104,7 @@ $sql = "
         ) AS total_discount
     FROM st_tbsale_save_detail d
     INNER JOIN st_tbsale_save s ON d.save_bill = s.sale_save_bill
-    LEFT JOIN st_products p ON (d.save_proid = p.product_id AND p.store_id = s.store_id)
+    LEFT JOIN st_products p ON ((d.save_proid = p.product_id OR d.save_proid = p.barcode) AND (p.store_id = s.store_id OR s.store_id IS NULL))
     LEFT JOIN st_categories cat ON p.category_id = cat.category_id
     WHERE {$whereClause}
     GROUP BY d.save_proid, product_name, cat.category_name
@@ -222,7 +224,7 @@ require_once __DIR__ . '/../../layouts/header.php';
           <option value=""><?php echo htmlspecialchars(t('reports.all_currencies_opt', '-- ທຸກສະກຸນເງິນ --')); ?></option>
           <?php foreach (getCurrencyMeta() as $__cc => $__ci): ?>
             <option value="<?php echo htmlspecialchars($__cc); ?>" <?php echo $currency_filter === $__cc ? 'selected' : ''; ?>>
-              <?php echo htmlspecialchars($__ci['name'] . ' (' . $__ci['symbol'] . ')'); ?>
+              <?php /* ລະຫັດສະກຸນເງິນເທົ່ານັ້ນ (KIP → LAK) ບໍ່ມີສັນຍາລັກ */ echo htmlspecialchars($__cc === 'KIP' ? 'LAK' : $__cc); ?>
             </option>
           <?php endforeach; ?>
         </select>
@@ -250,7 +252,7 @@ require_once __DIR__ . '/../../layouts/header.php';
           <thead style="background-color: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">
             <tr style="background: #ffffff; color: #1e293b;">
               <th class="text-center py-3" style="width: 60px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_no', 'ລຳດັບ')); ?></th>
-              <th class="py-3" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_code_product', 'ລະຫັດສິນຄ້າ')); ?></th>
+              <th class="text-center py-3 col-product-img no-print" style="width: 85px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_image', 'ຮູບພາບ')); ?></th>
               <th class="py-3" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_product_item', 'ລາຍການສິນຄ້າ')); ?></th>
               <th class="text-center py-3" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.col_qty_alt', 'ຈໍານວນ')); ?></th>
               <th class="text-center py-3" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo htmlspecialchars(t('reports.discount_label', 'ສ່ວນຫຼຸດ')); ?></th>
@@ -260,10 +262,10 @@ require_once __DIR__ . '/../../layouts/header.php';
           </thead>
           <tbody>
             <?php if (empty($display_data)): ?>
-              <tr>
-                <td colspan="7" class="text-center py-5 text-muted">
+              <tr class="empty-row" style="background: #ffffff !important;">
+                <td colspan="7" class="text-center py-5 text-muted" style="background: #ffffff !important;">
                   <i class="fas fa-fire fa-3x mb-3 text-secondary opacity-50 d-block"></i>
-                  <?php echo htmlspecialchars(t('reports.no_best_seller_data', 'ບໍ່ພົບຂໍ້ມູນສິນຄ້າຂາຍດີ')); ?>
+                  <span class="text-muted font-weight-bold" style="font-size: 1rem;"><?php echo htmlspecialchars(t('reports.no_best_seller_data', 'ບໍ່ພົບຂໍ້ມູນສິນຄ້າຂາຍດີ')); ?></span>
                 </td>
               </tr>
             <?php else: ?>
@@ -273,7 +275,22 @@ require_once __DIR__ . '/../../layouts/header.php';
                 ?>
                 <tr>
                   <td class="text-center font-weight-bold text-muted"><?php echo $rank; ?></td>
-                  <td class="font-weight-bold text-secondary"><?php echo htmlspecialchars($row['save_proid'] ?: '-'); ?></td>
+                  <td class="text-center py-2 col-product-img no-print" style="width: 85px;">
+                    <?php $imgPath = getProductImagePath($row['img_url'] ?? ''); ?>
+                    <?php if ($imgPath): ?>
+                      <img src="<?php echo htmlspecialchars($imgPath); ?>"
+                           style="width: 60px; height: 60px; object-fit: contain; background: #fff; padding: 2px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.05);"
+                           alt="<?php echo htmlspecialchars($row['product_name']); ?>"
+                           onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+                      <div style="width: 60px; height: 60px; border-radius: 10px; background: #f1f5f9; border: 1px solid #e2e8f0; display: none; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="fas fa-image" style="color: #cbd5e1; font-size: 1.3rem;"></i>
+                      </div>
+                    <?php else: ?>
+                      <div style="width: 60px; height: 60px; border-radius: 10px; background: #f1f5f9; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; justify-content: center; margin: 0 auto;">
+                        <i class="fas fa-image" style="color: #cbd5e1; font-size: 1.3rem;"></i>
+                      </div>
+                    <?php endif; ?>
+                  </td>
                   <td class="font-weight-bold text-dark"><?php echo htmlspecialchars($row['product_name']); ?></td>
                   <td class="text-center font-weight-bold text-dark" style="font-size: 0.92rem;"><?php echo number_format($row['total_qty_sold']); ?></td>
                   <td class="text-center">
@@ -296,7 +313,9 @@ require_once __DIR__ . '/../../layouts/header.php';
           <?php if (!empty($best_sellers)): ?>
             <tfoot style="background: #f8fafc; font-weight: 800; border-top: 2px solid #cbd5e1;">
               <tr style="font-size: 0.92rem; color: #0f172a;">
-                <td colspan="3" class="text-right text-dark py-3"><?php echo htmlspecialchars(t('reports.total_all_label', 'ລວມທັງໝົດ:')); ?></td>
+                <td class="py-3"></td>
+                <td class="col-product-img no-print py-3"></td>
+                <td class="text-right text-dark py-3 font-weight-bold"><?php echo htmlspecialchars(t('reports.total_all_label', 'ລວມທັງໝົດ:')); ?></td>
                 <td class="text-center text-dark py-3"><?php echo number_format($bs_total_qty); ?></td>
                 <td class="text-center py-3">
                   <?php if ($bs_total_discount > 0): ?>
@@ -318,9 +337,13 @@ require_once __DIR__ . '/../../layouts/header.php';
     <!-- Table Card Footer: Circular Blue Pagination Aligned Right -->
     <div class="card-footer bg-white border-top py-3 px-3.5 d-flex flex-column flex-md-row justify-content-between align-items-center no-print" style="row-gap: 12px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
       <div class="d-flex align-items-center">
-        <!-- <small class="text-muted font-weight-bold" style="font-size: 0.85rem;">
-          ສະແດງ <?php echo number_format($offset + 1); ?> ຫາ <?php echo number_format(min($offset + $per_page, $total_records)); ?> ຈາກທັງໝົດ <?php echo number_format($total_records); ?> ລາຍການ
-        </small> -->
+        <small class="text-muted font-weight-bold" style="font-size: 0.85rem;">
+          <?php if ($total_records > 0): ?>
+            <?php echo sprintf(t('reports.showing_items', 'ສະແດງ %s ຫາ %s ຈາກທັງໝົດ %s ລາຍການ'), number_format($offset + 1), number_format(min($offset + $per_page, $total_records)), number_format($total_records)); ?>
+          <?php else: ?>
+            <?php echo t('reports.showing_empty', 'ສະແດງ 0 ຈາກ 0 ລາຍການ'); ?>
+          <?php endif; ?>
+        </small>
       </div>
 
       <nav aria-label="Page navigation" class="ml-auto">

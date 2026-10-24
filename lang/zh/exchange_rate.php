@@ -4,7 +4,7 @@ return [
     'exchange_rate.msg_save_success' => '更新汇率成功!',
     'exchange_rate.msg_update_success' => '汇率修改成功!',
     'exchange_rate.msg_delete_success' => '删除汇率记录成功!',
-    'exchange_rate.msg_invalid_rate' => '请输入正确的汇率!',
+    'exchange_rate.msg_invalid_rate' => '请输入有效汇率 — 以每 1 单位的基普计（例如 1 泰铢 = 720，1 美元 = 22,000）',
     'exchange_rate.msg_error_prefix' => '错误: ',
 
     'exchange_rate.header_title' => '汇率设置',

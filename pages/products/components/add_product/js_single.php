@@ -23,8 +23,8 @@ var I18N_ADD_PRODUCT = <?php echo tjson([
     'products.duplicate_in_db_text' => 'ລະຫັດບາໂຄ້ດ "{value}" ນີ້ມີໃນລະບົບແລ້ວ!',
     'products.unit_row_name_label' => 'ຊື່ຫົວໜ່ວຍ:',
     'products.unit_row_name_placeholder' => 'ເຊັ່ນ: ແພັກ, ແກັດ...',
-    'products.unit_row_qty_label' => 'ຈຳນວນ:',
-    'products.unit_row_qty_placeholder' => 'ເຊັ່ນ: 6',
+    'products.unit_row_qty_label' => 'ຈຳນວນທີ່ຕັດສະຕັອກ:',
+    'products.unit_row_qty_placeholder' => '0',
     'products.unit_row_bprice_label' => 'ລາຄາຊື້:',
     'products.unit_row_price_label' => 'ລາຄາຂາຍ:',
     'products.unit_row_barcode_label' => 'ບາໂຄ້ດ:',
@@ -80,56 +80,205 @@ $(document).on('change', '#add_unit', function() {
 });
 
 $('#addProductModal').on('show.bs.modal', function() {
-  $('#add_category_id').val('');
-  $('#add_product_id').val('');
-  $('#add_product_id_display').html('<span class="text-muted" style="font-family: inherit; font-size: 0.88rem; font-weight: normal;"><?php echo htmlspecialchars(t('products.product_code_placeholder', 'ເລືອກປະເພດສິນຄ້າ...')); ?></span>');
+  // ຖ້າຍັງບໍ່ມີລະຫັດສິນຄ້າ (ຍັງບໍ່ໄດ້ເລືອກປະເພດ) ໃຫ້ສະແດງຂໍ້ຄວາມແນະນຳ
+  if (!$('#add_product_id').val()) {
+    $('#add_product_id_display').html('<span class="text-muted" style="font-family: inherit; font-size: 0.88rem; font-weight: normal;"><?php echo htmlspecialchars(t('products.product_code_placeholder', 'ເລືອກປະເພດສິນຄ້າ...')); ?></span>');
+  }
 
-  if (LAST_ADD_UNIT_ID && $('#add_unit option[value="' + LAST_ADD_UNIT_ID + '"]').length > 0) {
+  if (!$('#add_unit').val() && LAST_ADD_UNIT_ID && $('#add_unit option[value="' + LAST_ADD_UNIT_ID + '"]').length > 0) {
     $('#add_unit').val(LAST_ADD_UNIT_ID);
   }
 });
 
+// Escape HTML string
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+window.ALL_UNITS = <?php echo json_encode($units ?? [], JSON_UNESCAPED_UNICODE); ?>;
+
+// ເພີ່ມຫົວໜ່ວຍໃໝ່ແບບດ່ວນ
+function quickAddUnitPrompt(mode, btn) {
+  Swal.fire({
+    title: 'ເພີ່ມຫົວໜ່ວຍໃໝ່',
+    input: 'text',
+    inputPlaceholder: 'ປ້ອນຊື່ຫົວໜ່ວຍ ເຊັ່ນ: ລັງ, ແກັດ, ແພັກ...',
+    showCancelButton: true,
+    confirmButtonText: 'ບັນທຶກ',
+    cancelButtonText: 'ຍົກເລີກ',
+    confirmButtonColor: '#2563eb',
+    inputValidator: function(v) {
+      if (!v || !v.trim()) return 'ກະລຸນາປ້ອນຊື່ຫົວໜ່ວຍ!';
+    }
+  }).then(function(res) {
+    if (res.isConfirmed && res.value) {
+      var name = res.value.trim();
+      $.post('api_product.php', { action: 'add_unit', unit_name: name }, function(data) {
+        if (data && data.success) {
+          if (!window.ALL_UNITS) window.ALL_UNITS = [];
+          var exists = window.ALL_UNITS.some(function(u) { return (u.unit_name || '').trim() === name; });
+          if (!exists) {
+            window.ALL_UNITS.push({ unit_id: data.unit_id, unit_name: name });
+          }
+
+          // ອັບເດດ dropdown ຫົວໜ່ວຍຫຼັກ (#add_unit ແລະ #edit_unit)
+          ['add', 'edit'].forEach(function(m) {
+            var $sel = $('#' + m + '_unit');
+            if ($sel.length && !$sel.find('option[value="' + data.unit_id + '"]').length) {
+              $sel.append($('<option>', { value: data.unit_id, text: name }));
+            }
+          });
+
+          // ອັບເດດ dropdown ຫົວໜ່ວຍເພີ່ມເຕີມທຸກແຖວ
+          $('.extra-unit-select').each(function() {
+            var $s = $(this);
+            if (!$s.find('option[value="' + name + '"]').length) {
+              $s.append($('<option>', { value: name, text: name }));
+            }
+          });
+
+          // ຖ້າກົດເພີ່ມຈາກແຖວໃດ ໃຫ້ເລືອກຫົວໜ່ວຍໃໝ່ນັ້ນໃນແຖວນັ້ນທັນທີ
+          if (btn && $(btn).closest('.unit-row').length) {
+            $(btn).closest('.unit-row').find('.extra-unit-select').val(name);
+          } else if (mode) {
+            $('#' + mode + '_unit').val(data.unit_id);
+          }
+
+          Swal.fire({ icon: 'success', title: 'ເພີ່ມຫົວໜ່ວຍສຳເລັດ', timer: 1200, showConfirmButton: false });
+        } else {
+          Swal.fire({ icon: 'error', title: 'ບໍ່ສຳເລັດ', text: (data && data.message) || 'ບໍ່ສາມາດເພີ່ມຫົວໜ່ວຍໄດ້' });
+        }
+      }, 'json').fail(function() {
+        Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້' });
+      });
+    }
+  });
+}
+
+// ຄຳນວນລາຄາຊື້ ແລະ ລາຄາຂາຍເມື່ອປ້ອນຈຳນວນຕັດສະຕັອກ
+function onExtraUnitMultiplierChange(input, mode) {
+  var row = $(input).closest('.unit-row');
+  var multVal = parseFloat($(input).val()) || 0;
+  if (multVal <= 0) return;
+
+  var baseBpriceStr = $('#' + mode + '_bprice').val() || '0';
+  var basePriceStr = $('#' + mode + '_price').val() || '0';
+
+  var baseBprice = parseFloat(baseBpriceStr.replace(/,/g, '')) || 0;
+  var basePrice = parseFloat(basePriceStr.replace(/,/g, '')) || 0;
+
+  var calcBprice = Math.round(baseBprice * multVal);
+  var calcPrice = Math.round(basePrice * multVal);
+
+  var bpriceInput = row.find('input[name="extra_unit_bprice[]"]');
+  var priceInput = row.find('input[name="extra_unit_price[]"]');
+
+  bpriceInput.val(calcBprice > 0 ? Number(calcBprice).toLocaleString('en-US') : '0');
+  priceInput.val(calcPrice > 0 ? Number(calcPrice).toLocaleString('en-US') : '0');
+}
+
+// ====== ຟັງຊັນ ສ້າງລະຫັດບາໂຄ້ດ EAN-13 (13 ຫຼັກ) ======
+function generateEAN13Value() {
+  var code = '20';
+  for (var i = 0; i < 10; i++) {
+    code += Math.floor(Math.random() * 10);
+  }
+  var sum = 0;
+  for (var i = 0; i < 12; i++) {
+    var digit = parseInt(code.charAt(i), 10);
+    sum += (i % 2 === 0) ? digit : digit * 3;
+  }
+  var checksum = (10 - (sum % 10)) % 10;
+  return code + checksum;
+}
+
+window.generateEAN13 = function(target) {
+  var finalBarcode = generateEAN13Value();
+  if (typeof target === 'string') {
+    $('#' + target).val(finalBarcode).trigger('change');
+  } else if (target && (target instanceof HTMLElement || target.jquery)) {
+    $(target).closest('.input-group').find('input').val(finalBarcode).trigger('change');
+  }
+  return finalBarcode;
+};
+
 // ເພີ່ມແຖວຫົວໜ່ວຍເພີ່ມເຕີມ
 function addUnitRow(mode, data) {
   var container = mode === 'add' ? $('#add_multi_units_container') : $('#edit_multi_units_container');
-  var unitName   = data ? data.unit_name : '';
+  var unitName   = data ? (data.unit_name || '') : '';
   var multiplier = data ? data.multiplier : '';
   var bprice     = data && data.bprice > 0 ? Number(data.bprice).toLocaleString('en-US') : '';
   var price      = data && data.price > 0 ? Number(data.price).toLocaleString('en-US') : '';
-  var barcode    = data ? (data.barcode || '') : '';
+  var barcode    = (data && data.barcode) ? data.barcode : '';
+
+  // ດຶງລາຍການຫົວໜ່ວຍຈາກລະບົບມາໃສ່ dropdown
+  var unitOpts = '<option value="">' + (I18N_ADD_PRODUCT['products.unit_row_name_placeholder'] || '-- ເລືອກຫົວໜ່ວຍ --') + '</option>';
+  var matchedUnit = false;
+  (window.ALL_UNITS || []).forEach(function(u) {
+    var uName = (u.unit_name || '').trim();
+    var isSel = (unitName && unitName.trim() === uName) ? 'selected' : '';
+    if (isSel) matchedUnit = true;
+    unitOpts += '<option value="' + escapeHtml(uName) + '" ' + isSel + '>' + escapeHtml(uName) + '</option>';
+  });
+  if (unitName && !matchedUnit) {
+    unitOpts = '<option value="' + escapeHtml(unitName) + '" selected>' + escapeHtml(unitName) + '</option>' + unitOpts;
+  }
 
   var rowHtml = `
-    <div class="card bg-light border-0 mb-2 p-2 unit-row shadow-none" style="border-radius: 8px;">
-      <div class="row align-items-center">
-        <div class="col-md-3 col-6 mb-2 mb-md-0">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_ADD_PRODUCT['products.unit_row_name_label']} <span class="text-danger">*</span></label>
-          <input type="text" name="extra_unit_name[]" class="form-control form-control-sm" placeholder="${I18N_ADD_PRODUCT['products.unit_row_name_placeholder']}" value="${unitName}" required>
+    <div class="card mb-2.5 p-3 unit-row shadow-xs" style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px;">
+      <div class="row align-items-end">
+        <div class="col-lg-3 col-md-6 col-12 mb-2 mb-lg-0">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <label class="font-weight-bold text-dark mb-0" style="font-size: 0.88rem;">
+              ${I18N_ADD_PRODUCT['products.unit_row_name_label']} <span class="text-danger">*</span>
+            </label>
+            <a href="javascript:void(0)" onclick="quickAddUnitPrompt('${mode}', this)" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
+              <i class="fas fa-plus mr-1"></i>ເພີ່ມຫົວໜ່ວຍ
+            </a>
+          </div>
+          <select name="extra_unit_name[]" class="form-control extra-unit-select font-weight-bold text-dark" style="height: 40px; border-radius: 6px; font-size: 0.92rem;" required>
+            ${unitOpts}
+          </select>
         </div>
-        <div class="col-md-2 col-6 mb-2 mb-md-0">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_ADD_PRODUCT['products.unit_row_qty_label']}</label>
-          <input type="number" name="extra_unit_multiplier[]" class="form-control form-control-sm text-center" placeholder="1" min="1" value="${multiplier}">
+        <div class="col-lg-2 col-md-6 col-6 mb-2 mb-lg-0">
+          <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
+            ${I18N_ADD_PRODUCT['products.unit_row_qty_label']} <span class="text-danger">*</span>
+          </label>
+          <input type="text" inputmode="numeric" pattern="[0-9]*" name="extra_unit_multiplier[]" class="form-control text-center font-weight-bold extra-unit-multiplier text-primary no-spin" placeholder="0" value="${multiplier}" style="height: 40px; border-radius: 6px; font-size: 0.95rem;" oninput="this.value = this.value.replace(/[^0-9]/g, ''); onExtraUnitMultiplierChange(this, '${mode}');" required>
         </div>
-        <div class="col-md-2 col-6 mb-2 mb-md-0">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_ADD_PRODUCT['products.unit_row_bprice_label']}</label>
-          <input type="text" name="extra_unit_bprice[]" class="form-control form-control-sm text-right price-input" placeholder="0" value="${bprice}" oninput="formatPriceInput(this)">
+        <div class="col-lg-2 col-md-6 col-6 mb-2 mb-lg-0">
+          <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
+            ${I18N_ADD_PRODUCT['products.unit_row_bprice_label']}
+          </label>
+          <input type="text" name="extra_unit_bprice[]" class="form-control text-right price-input extra-unit-bprice" placeholder="0" value="${bprice}" style="height: 40px; border-radius: 6px; font-size: 0.95rem; color: #475569;" oninput="formatPriceInput(this)">
         </div>
-        <div class="col-md-2 col-6 mb-2 mb-md-0">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_ADD_PRODUCT['products.unit_row_price_label']} </label>
-<input type="text" name="extra_unit_price[]" class="form-control form-control-sm text-right font-weight-bold text-success price-input" placeholder="0" value="${price}" oninput="formatPriceInput(this)" >
+        <div class="col-lg-2 col-md-6 col-6 mb-2 mb-lg-0">
+          <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
+            ${I18N_ADD_PRODUCT['products.unit_row_price_label']} <span class="text-danger">*</span>
+          </label>
+          <input type="text" name="extra_unit_price[]" class="form-control text-right font-weight-bold text-success price-input extra-unit-price" placeholder="0" value="${price}" style="height: 40px; border-radius: 6px; font-size: 0.95rem;" oninput="formatPriceInput(this)" required>
         </div>
-        <div class="col-md-2 col-10 mb-2 mb-md-0">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_ADD_PRODUCT['products.unit_row_barcode_label']}</label>
-          <div class="input-group input-group-sm">
-            <input type="text" name="extra_unit_barcode[]" class="form-control form-control-sm" placeholder="${I18N_ADD_PRODUCT['products.unit_row_barcode_placeholder']}" value="${barcode}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <div class="col-lg-2.5 col-md-5 col-10 mb-2 mb-lg-0" style="flex: 1;">
+          <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
+            ${I18N_ADD_PRODUCT['products.unit_row_barcode_label']}
+          </label>
+          <div class="input-group">
+            <input type="text" name="extra_unit_barcode[]" class="form-control font-weight-bold" placeholder="${I18N_ADD_PRODUCT['products.unit_row_barcode_placeholder']}" value="${barcode}" style="height: 40px; border-radius: 6px 0 0 6px; font-size: 0.92rem;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             <div class="input-group-append">
-              <button type="button" class="btn btn-outline-primary" onclick="generateEAN13(this)" title="${I18N_ADD_PRODUCT['products.gen_barcode_title']}">
-                <i class="fas fa-barcode"></i>
+              <button type="button" class="btn btn-outline-primary font-weight-bold px-2.5" onclick="generateEAN13(this)" title="${I18N_ADD_PRODUCT['products.gen_barcode_title']}" style="height: 40px; border-radius: 0 6px 6px 0; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="fas fa-barcode"></i> <span>ສ້າງ</span>
               </button>
             </div>
           </div>
         </div>
-        <div class="col-md-1 col-2 text-right pt-md-3">
-          <button type="button" class="btn btn-sm btn-outline-danger border-0" title="${I18N_ADD_PRODUCT['products.unit_row_delete_title']}" onclick="$(this).closest('.unit-row').remove();">
+        <div class="col-auto text-right mb-2 mb-lg-0 pl-1">
+          <button type="button" class="btn btn-outline-danger shadow-xs" title="${I18N_ADD_PRODUCT['products.unit_row_delete_title']}" onclick="$(this).closest('.unit-row').remove();" style="height: 40px; width: 40px; border-radius: 6px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
             <i class="fas fa-trash-alt"></i>
           </button>
         </div>
@@ -206,13 +355,13 @@ function submitAddProduct(e) {
   // Dynamic multi-unit validation
   var validExtra = true;
   $('#add_multi_units_container .unit-row').each(function() {
-    var uName  = $(this).find('input[name="extra_unit_name[]"]').val().trim();
-    var uMult  = $(this).find('input[name="extra_unit_multiplier[]"]').val().trim();
-    var uPrice = $(this).find('input[name="extra_unit_price[]"]').val().trim();
+    var uName  = ($(this).find('[name="extra_unit_name[]"]').val() || '').trim();
+    var uMult  = ($(this).find('[name="extra_unit_multiplier[]"]').val() || '').trim();
+    var uPrice = ($(this).find('[name="extra_unit_price[]"]').val() || '').trim();
 
     if (uName === '') {
       if (e) e.preventDefault();
-      var inputEl = $(this).find('input[name="extra_unit_name[]"]');
+      var inputEl = $(this).find('[name="extra_unit_name[]"]');
       Swal.fire({
         icon: 'warning',
         title: I18N_ADD_PRODUCT['products.alert_notice_title'],
@@ -341,26 +490,31 @@ $(document).on('change blur', '#addProductForm input[name="extra_unit_barcode[]"
   checkBarcodeDuplicate(this, 0);
 });
 
-// Reset add modal on close (ລ້າງສະເພາະຂໍ້ມູນສິນຄ້າ, ຄົງໝວດໝູ່ ແລະ ຫົວໜ່ວຍຫຼ້າສຸດໄວ້ ເພື່ອໃຫ້ເພີ່ມສິນຄ້າໄວขึ้น)
-$('#addProductModal').on('hidden.bs.modal', function() {
-    // ບໍ່ບັນທຶກໝວດໝູ່ເກົ່າໄວ້ ເພື່ອໃຫ້ຜູ້ໃຊ້ຕ້ອງເລືອກໃໝ່ທຸກຄັ້ງ
-    var savedUnit = $('#add_unit').val() || LAST_ADD_UNIT_ID;
+// ຍົກເລີກຟອມເພີ່ມທີລະລາຍການ: ລ້າງຂໍ້ມູນ ແລະ ປິດ modal
+window.cancelAddSingleForm = function() {
+  var $f = $('#addProductForm');
+  if ($f.length) $f[0].reset();
+  $('#add_category_id').val('');
+  $('#add_product_id').val('');
+  $('#add_product_id_display').html('<span class="text-muted" style="font-family: inherit; font-size: 0.88rem; font-weight: normal;"><?php echo htmlspecialchars(t('products.product_code_placeholder', 'ເລືອກປະເພດສິນຄ້າ...')); ?></span>');
+  $('#add_product_name').val('');
+  $('#add_barcode').val('');
+  $('#add_bprice').val('');
+  $('#add_price').val('');
+  $('#add_qty').val('0');
+  $('#add_supplier_id').val('');
+  $('#add_expiry_date').val('');
+  $('#add_zone').val('').trigger('change');
+  $('#add_shelf').val('');
+  $('#add_multi_units_container').empty();
+  removeProductImg('add');
 
-    $('#add_product_name').val('');
-    $('#add_barcode').val('');
-    $('#add_bprice').val('');
-    $('#add_price').val('');
-    $('#add_qty').val('0');
-    $('#add_supplier_id').val('');
-    $('#add_category_id').val('');
-    $('#add_multi_units_container').empty();
-    removeProductImg('add');
-    onAddCategoryChange(); // ອັບເດດລະຫັດສິນຄ້າໃຫ້ກາຍເປັນຄ່າວ່າງ
-
-    if (savedUnit && $('#add_unit option[value="' + savedUnit + '"]').length > 0) {
-      $('#add_unit').val(savedUnit);
-    }
-});
+  if (LAST_ADD_UNIT_ID && $('#add_unit option[value="' + LAST_ADD_UNIT_ID + '"]').length > 0) {
+    $('#add_unit').val(LAST_ADD_UNIT_ID);
+  }
+  $('#addProductModal').modal('hide');
+};
+// ເມື່ອປິດ modal ໂດຍບໍ່ບັນທຶກ: ບໍ່ລ້າງຄ່າ (ຄ້າງຂໍ້ມູນໄວ້ຕາມຄວາມຕ້ອງການ)
 
 // Prevent Enter key in barcode inputs from prematurely submitting form
 $(document).on('keydown', '#add_barcode, input[name="extra_unit_barcode[]"], #bulkAddProductForm input[name="b_barcode[]"]', function(e) {

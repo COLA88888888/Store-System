@@ -162,7 +162,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <?php endif; ?>
 
       <!-- 1. DIRECT ENTRY FORM CARD (ຟອມບັນທຶກຮັບສິນຄ້າເຂົ້າ ໃນໜ້າຈໍເລີຍ) -->
-      <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
+      <div class="card sys-card shadow-sm border-0 mb-4" style="border-radius: 16px;">
 
         <div class="card-body p-4">
           <form id="directImportForm" action="" method="POST">
@@ -252,7 +252,9 @@ require_once __DIR__ . '/../../layouts/header.php';
               </div>
 
               <!-- Add Item Button (buy/sell price are edited inline in the items table below) -->
-              <div class="col-md-2">
+              <div class="col-md-2 mt-2 mt-md-0">
+                <?php /* ປ້າຍວ່າງ: ໃຫ້ປຸ່ມຢູ່ລະດັບດຽວກັບຊ່ອງປ້ອນຂ້າງໆ (ທີ່ມີປ້າຍຢູ່ເທິງ) ໃນຈໍໃຫຍ່ */ ?>
+                <label class="font-weight-bold mb-1 d-none d-md-block" style="visibility: hidden;">&nbsp;</label>
                 <button type="button" class="btn btn-primary font-weight-bold btn-block shadow-sm" style="height: 42px; border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;" onclick="addCurrentItemToCart()">
                   <i class="fas fa-plus-circle mr-1"></i> <?php echo htmlspecialchars(t('import_stock.add_item_button', 'ເພີ່ມລາຍການ')); ?>
                 </button>
@@ -313,7 +315,7 @@ require_once __DIR__ . '/../../layouts/header.php';
               <!-- Table Footer Action Bar: Save Stock Button (Right Aligned) -->
               <div class="card-footer bg-light border-top p-3 d-flex align-items-center justify-content-end" style="border-color: #e2e8f0 !important;">
                 <?php if (hasPermission('import_stock', 'add')): ?>
-                  <button type="button" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="height: 38px; border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;" onclick="submitDirectImportBill()">
+                  <button type="button" class="btn btn-primary font-weight-bold px-4 shadow-sm btn-mobile-block" style="height: 38px; border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;" onclick="submitDirectImportBill()">
                     <i class="fas fa-save mr-1.5" style="font-size: 1.1rem;"></i> <?php echo htmlspecialchars(t('import_stock.save_stock_button', 'ບັນທຶກສະຕັອກ')); ?>
                   </button>
                 <?php else: ?>

@@ -61,6 +61,8 @@ return [
     'expiry.report_subtitle' => 'Expired and expiring products (alert %s days before)',
     'expiry.card_near' => 'Expiring soon (within %s days)',
     'expiry.card_tracked' => 'Products with an expiry date',
+    'expiry.card_attention' => 'Expiring soon & expired',
+    'expiry.empty_none_attention' => 'No products are expired or expiring soon',
     'expiry.within_label' => 'Expires within:',
     'expiry.within_any' => '-- Any time --',
     'expiry.branch_label' => 'Branch:',

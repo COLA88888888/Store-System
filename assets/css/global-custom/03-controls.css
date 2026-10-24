@@ -1,0 +1,211 @@
+/*
+ * ສ່ວນ: ມາດຕະຖານປຸ່ມ ແລະ ບັອກປ້ອນຂໍ້ມູນທົ່ວລະບົບ
+ * ປຸ່ມທຸກປຸ່ມ, ບັອກເລືອກ (select / select2), ບັອກວັນທີ (flatpickr) ແລະ ບັອກຄົ້ນຫາ
+ * → ມຸມມົນ 6px ແລະ ສູງ 38px ເທົ່າກັນທັງໝົດ.
+ * ໂຫຼດຫຼັງ 01/02 ໃນ layouts/header.php (ສະເພາະໜ້າໃນ iframe — ບໍ່ແຕະ shell/navbar).
+ *
+ * ໝາຍເຫດ: CSS ຂອງແຕ່ລະໜ້າ (themes/*.css) ໂຫຼດຫຼັງໄຟລ໌ນີ້ ແລະ ຫຼາຍບ່ອນໃຊ້ !important,
+ * ສະນັ້ນທຸກກົດຢູ່ນີ້ຕໍ່ທ້າຍດ້ວຍ :not(#__z) — ເພີ່ມນ້ຳໜັກລະດັບ id ໃຫ້ຊະນະກົດແບບ class
+ * ໂດຍບໍ່ຂຶ້ນກັບລຳດັບໄຟລ໌. (#__z ບໍ່ມີຢູ່ຈິງ, ມີໄວ້ເພີ່ມ specificity ເທົ່ານັ້ນ.)
+ */
+
+/* ===== 1. ມຸມມົນ 6px: ປຸ່ມ ===== */
+.btn:not(.rounded-circle):not(.rounded-pill):not(.rounded-0):not([class*="circle"]):not(.close):not(#__z),
+button:not(.rounded-circle):not(.rounded-pill):not(.rounded-0):not([class*="circle"]):not(.close):not(.swal2-close):not(.navbar-toggler):not(.flatpickr-day):not(#__z),
+input[type="button"]:not(#__z),
+input[type="submit"]:not(#__z),
+input[type="reset"]:not(#__z) {
+    border-radius: 6px !important;
+}
+
+/* ===== 2. ມຸມມົນ 6px: ບັອກເລືອກ, ວັນທີ, ຄົ້ນຫາ, ປ້ອນຂໍ້ມູນ ===== */
+.form-control:not(.rounded-pill):not(.rounded-0):not(#__z),
+.custom-select:not(.rounded-pill):not(.rounded-0):not(#__z),
+select:not([multiple]):not(.rounded-0):not(#__z),
+input[type="text"]:not(.rounded-0):not(#__z),
+input[type="search"]:not(.rounded-0):not(#__z),
+input[type="number"]:not(.rounded-0):not(#__z),
+input[type="date"]:not(.rounded-0):not(#__z),
+input[type="email"]:not(.rounded-0):not(#__z),
+input[type="tel"]:not(.rounded-0):not(#__z),
+input[type="password"]:not(.rounded-0):not(#__z),
+input.flatpickr-input:not([type="hidden"]):not(#__z),
+.input-group-text:not(#__z),
+.select2-container .select2-selection:not(#__z),
+.select2-container--bootstrap4 .select2-selection:not(#__z) {
+    border-radius: 6px !important;
+}
+
+/* ຖ້າເປີດ dropdown ຂອງ select2 — ມຸມທີ່ຕິດກັບລາຍການໃຫ້ຮາບ */
+.select2-container--open.select2-container--below .select2-selection:not(#__z) {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+.select2-container--open.select2-container--above .select2-selection:not(#__z) {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+}
+
+/* ===== 3. input-group / btn-group: ມຸມດ້ານໃນທີ່ຕິດກັນຕ້ອງຮາບ (ຕາມ Bootstrap) ===== */
+.input-group > .form-control:not(:last-child):not(#__z),
+.input-group > .custom-select:not(:last-child):not(#__z),
+.input-group > .flatpickr-input:not(:last-child):not(#__z),
+.input-group > .input-group-prepend > .btn:not(#__z),
+.input-group > .input-group-prepend > .input-group-text:not(#__z),
+.input-group > .input-group-append:not(:last-child) > .btn:not(#__z),
+.input-group > .input-group-append:not(:last-child) > .input-group-text:not(#__z),
+.input-group > .input-group-append:last-child > .btn:not(:last-child):not(.dropdown-toggle):not(#__z),
+.input-group > .input-group-append:last-child > .input-group-text:not(:last-child):not(#__z),
+.btn-group > .btn:not(:last-child):not(.dropdown-toggle):not(#__z),
+.btn-group > .btn-group:not(:last-child) > .btn:not(#__z) {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+.input-group > .form-control:not(:first-child):not(#__z),
+.input-group > .custom-select:not(:first-child):not(#__z),
+.input-group > .flatpickr-input:not(:first-child):not(#__z),
+.input-group > .input-group-append > .btn:not(#__z),
+.input-group > .input-group-append > .input-group-text:not(#__z),
+.input-group > .input-group-prepend:not(:first-child) > .btn:not(#__z),
+.input-group > .input-group-prepend:not(:first-child) > .input-group-text:not(#__z),
+.input-group > .input-group-prepend:first-child > .btn:not(:first-child):not(#__z),
+.input-group > .input-group-prepend:first-child > .input-group-text:not(:first-child):not(#__z),
+.btn-group > .btn:not(:first-child):not(#__z),
+.btn-group > .btn-group:not(:first-child) > .btn:not(#__z) {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+/* ===== 4. ຄວາມສູງເທົ່າກັນ 38px =====
+   ບໍ່ແຕະ: ໃນຕາຕະລາງ (ປຸ່ມໄອຄອນ/ແກ້ໄຂໃນແຖວ), pagination, ຫົວ modal, dropdown, ປະຕິທິນ
+   flatpickr, SweetAlert, ໜ້າ POS (ປຸ່ມສຳຜັດອອກແບບສະເພາະ), textarea ແລະ select ຫຼາຍແຖວ.
+   ໃຊ້ :not(.table *) ຯລຯ ແທນການຂຽນກົດຄືນຄ່າ — ບໍ່ດັ່ງນັ້ນຈະທັບຄວາມສູງທີ່ແຕ່ລະໜ້າຕັ້ງໄວ້. */
+body:not(.pos-page) .form-control:not(textarea):not([multiple]):not([size]):not([type="file"]):not([type="color"]):not(.form-control-lg):not(.table *):not(.flatpickr-calendar *):not(.swal2-container *):not(#__z),
+body:not(.pos-page) .custom-select:not([multiple]):not([size]):not(.custom-select-lg):not(.table *):not(.swal2-container *):not(#__z),
+body:not(.pos-page) select:not([multiple]):not([size]):not(.table *):not(.flatpickr-calendar *):not(.swal2-container *):not(#__z),
+body:not(.pos-page) input.flatpickr-input:not([type="hidden"]):not(.table *):not(#__z),
+body:not(.pos-page) .input-group-text:not(.table *):not(#__z) {
+    height: 38px !important;
+    min-height: 38px !important;
+}
+
+body:not(.pos-page) .select2-container:not(.table *) .select2-selection--single:not(#__z) {
+    height: 38px !important;
+    min-height: 38px !important;
+}
+body:not(.pos-page) .select2-container:not(.table *) .select2-selection--single .select2-selection__rendered:not(#__z) {
+    line-height: 36px !important;
+}
+body:not(.pos-page) .select2-container:not(.table *) .select2-selection--single .select2-selection__arrow:not(#__z) {
+    height: 36px !important;
+}
+
+body:not(.pos-page) .btn:not(.btn-xs):not(.btn-lg):not(.btn-tool):not(.btn-link):not(.close):not(.dropdown-item):not(.table *):not(.pagination *):not(.modal-header *):not(.dropdown-menu *):not(.btn-group-vertical *):not(.swal2-container *):not(#__z) {
+    height: 38px !important;
+    min-height: 38px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 36px !important;
+}
+
+/* ===== 5. ກາດແບບລະບົບ (.sys-card) =====
+   ກາດຫຼັກຂອງໜ້າຈັດການ (ປະເພດສິນຄ້າ, ກະເຮັດວຽກ, ນຳເຂົ້າສິນຄ້າ, ເຊັກສະຕັອກ)
+   - ຫົວກາດສີຂາວສະອາດ, ບໍ່ມີແຖບສີຢູ່ສ່ວນເທິງ (No colored top border/header)
+   - ເອົາຂະໜາດ ແລະ ຮູບແບບມາດຕະຖານຕາມໜ້າປະເພດສິນຄ້າ (Categories) ເປັນຫຼັກ */
+.card.sys-card:not(#__z) {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04) !important;
+    overflow: hidden;
+    background: #ffffff !important;
+}
+.card.sys-card > .card-header:not(#__z) {
+    background: #ffffff !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+.card.sys-card > .card-header .card-title:not(#__z),
+.card.sys-card > .card-header h5:not(#__z),
+.card.sys-card > .card-header h6:not(#__z) {
+    color: #1e293b !important;
+}
+.card.sys-card > .card-footer:not(#__z) {
+    background: #ffffff !important;
+    border-top: 1px solid #f1f5f9 !important;
+}
+
+/* ===== 6. ກຸ່ມປຸ່ມຫົວໜ້າ (.page-actions): ຊິດຂວາສະເໝີ — ໂທລະສັບ ລົງແຖວໃໝ່ກໍຢູ່ຂວາ ===== */
+.page-actions:not(#__z) { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin-left: auto; }
+@media (max-width: 575.98px) {
+    .page-actions:not(#__z) { width: 100%; }
+    /* ໂທລະສັບ: ປຸ່ມແບ່ງເທົ່າກັນ (ສູງສຸດ 2 ປຸ່ມຕໍ່ແຖວ) ບໍ່ໃຫ້ກະຈັດກະຈາຍ */
+    .page-actions.page-actions-grid:not(#__z) > .btn { flex: 1 1 calc(50% - 8px); justify-content: center; }
+    .btn-mobile-block:not(#__z) { width: 100%; justify-content: center; }
+}
+
+/* ===== 7. ປ້ອງກັນການຊູມເຂົ້າອັດຕະໂນມັດໃນມືຖື (Prevent Mobile Auto-Zoom on Input Focus) ທຸກໜ້າ =====
+   iOS Safari ແລະ Mobile Chrome ຈະຊູມໜ້າຈໍເຂົ້າອັດຕະໂນມັດ ເມື່ອຊ່ອງປ້ອນ/ຄົ້ນຫາມີ font-size ນ້ອຍກວ່າ 16px.
+   ການກຳນົດ font-size: 16px ໃນຈໍມືຖື (<= 768px) ຈະປ້ອງກັນບໍ່ໃຫ້ໜ້າຈໍຊູມເຂົ້າຢ່າງຖາວອນ ທຸກໜ້າ. */
+@media screen and (max-width: 768px) {
+    input:not(#__z),
+    select:not(#__z),
+    textarea:not(#__z),
+    .form-control:not(#__z),
+    .custom-select:not(#__z),
+    .select2-search__field:not(#__z),
+    .search-box input:not(#__z),
+    .search-box-wrap input:not(#__z),
+    .user-search-box input:not(#__z),
+    input[type="text"]:not(#__z),
+    input[type="search"]:not(#__z),
+    input[type="number"]:not(#__z),
+    input[type="password"]:not(#__z),
+    input[type="email"]:not(#__z),
+    input[type="tel"]:not(#__z) {
+        font-size: 16px !important;
+    }
+}
+
+/* ປ້ອງກັນ Double-tap to zoom ເມື່ອກົດປຸ່ມ ຫຼື ຊ່ອງຄົ້ນຫາ */
+button:not(#__z),
+input:not(#__z),
+select:not(#__z),
+textarea:not(#__z),
+a:not(#__z),
+.btn:not(#__z),
+.page-link:not(#__z),
+.input-group-text:not(#__z) {
+    touch-action: manipulation !important;
+}
+
+/* ===== 8. Pagination ໃນໂທລະສັບ (< 768px) ທຸກໜ້າ: ຊິດຂວາ ແລະ ຂະໜາດເທົ່າໜ້າປະເພດສິນຄ້າ =====
+   ຂະໜາດອີງໜ້າປະເພດສິນຄ້າ (themes/users.css): ວົງມົນ 36px, ຕົວເລກ 0.88rem, ຫ່າງ 6px.
+   ຫຼາຍໜ້າວາງ footer ເປັນ "flex-column flex-md-row align-items-center" ແລະ themes/users.css ເຮັດ .card-footer
+   ເປັນຖັນກາງ → ໃນໂທລະສັບ pagination ໄປຢູ່ເຄິ່ງກາງ. :not(#__z) ເພີ່ມນ້ຳໜັກໃຫ້ຊະນະ CSS ຂອງແຕ່ລະໜ້າ (ໂຫຼດທີຫຼັງ). */
+@media (max-width: 767.98px) {
+    .pagination:not(#__z) {
+        gap: 6px !important;
+        justify-content: flex-end !important;
+        flex-wrap: wrap !important;
+    }
+    .pagination .page-item:not(#__z) {
+        margin: 0 !important;
+    }
+    .pagination .page-link:not(#__z) {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        font-size: 0.88rem !important;
+    }
+    /* ກ່ອງທີ່ຫໍ່ pagination (ສະເພາະຫໍ່ກົງ 1–2 ຊັ້ນ: div/nav > ul ຫຼື div > nav > ul) ຢູ່ໃນ footer ແບບຖັນ → ຍູ້ໄປຂວາ.
+       ບໍ່ໃຊ້ :has(.pagination) ແບບເລິກ — ຈະໄປຈັບກ່ອງໃຫຍ່ທີ່ຫໍ່ທັງກາດ ແລ້ວບີບກາດໄປຂວາ. */
+    .flex-column > .pagination:not(#__z),
+    .flex-column > :has(> .pagination):not(#__z),
+    .flex-column > :has(> nav > .pagination):not(#__z),
+    .card-footer > .pagination:not(#__z),
+    .card-footer > :has(> .pagination):not(#__z),
+    .card-footer > :has(> nav > .pagination):not(#__z) {
+        align-self: flex-end !important;
+        margin-left: auto !important;
+        margin-right: 0 !important;
+    }
+}

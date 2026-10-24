@@ -351,7 +351,7 @@
         </div>
         <div class="modal-footer border-0 bg-light p-3">
           <button type="button" class="btn btn-light font-weight-bold px-4" style="border-radius: 6px;" data-dismiss="modal" data-i18n-key="loyalty.cancel_btn"><?php echo htmlspecialchars(t('loyalty.cancel_btn', 'ຍົກເລີກ')); ?></button>
-          <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 8px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;"><i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('loyalty.save_btn', 'ບັນທຶກ')); ?></button>
+          <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;"><i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('loyalty.save_btn', 'ບັນທຶກ')); ?></button>
         </div>
       </form>
     </div>

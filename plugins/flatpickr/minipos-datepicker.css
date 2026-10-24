@@ -44,5 +44,22 @@ html.mp-dp-on input[type="date"]:not([data-native-date="1"])::-webkit-calendar-p
 /* ປະຕິທິນເປີດຂຶ້ນມາຢູ່ຊື່ໆ: ບໍ່ມີອະນິເມຊັນເລື່ອນລົງ (fpFadeInDown) — ກັນໄວ້ ເຖິງວ່າຈະມີປະຕິທິນທີ່ສ້າງເອງນອກ minipos-datepicker.js */
 .flatpickr-calendar.animate.open { -webkit-animation: none !important; animation: none !important; }
 
+/* ຊ່ວງວັນທີ (ບັອກຈາກ/ຫາ ເປັນຄູ່ — markRange ໃນ minipos-datepicker.js): ສອງປາຍເປັນສີຟ້າ ມົນດ້ານນອກ,
+   ມື້ລະຫວ່າງກາງເປັນແຖບສີເທົາຕໍ່ກັນ (box-shadow ຖົມຊ່ອງຫວ່າງລະຫວ່າງມື້) */
+.flatpickr-day.mp-in-range,
+.flatpickr-day.mp-in-range:hover,
+.flatpickr-day.mp-in-range:focus {
+  background: #e6e6e6; border-color: #e6e6e6; color: #393939; border-radius: 0;
+  box-shadow: -5px 0 0 #e6e6e6, 5px 0 0 #e6e6e6;
+}
+.flatpickr-day.mp-range-start, .flatpickr-day.mp-range-start:hover, .flatpickr-day.mp-range-start:focus,
+.flatpickr-day.mp-range-end, .flatpickr-day.mp-range-end:hover, .flatpickr-day.mp-range-end:focus {
+  background: #569ff7; border-color: #569ff7; color: #ffffff;
+}
+.flatpickr-day.mp-range-start:not(.mp-range-end) { border-radius: 50px 0 0 50px; box-shadow: 5px 0 0 #e6e6e6; }
+.flatpickr-day.mp-range-end:not(.mp-range-start) { border-radius: 0 50px 50px 0; box-shadow: -5px 0 0 #e6e6e6; }
+.flatpickr-day.mp-range-start.mp-range-end { border-radius: 50%; box-shadow: none; }
+.flatpickr-day.mp-in-range.prevMonthDay, .flatpickr-day.mp-in-range.nextMonthDay { color: #9ca3af; }
+
 /* ປະຕິທິນທີ່ເປີດຢູ່ ຕິດກັບຈໍ (ບໍ່ເຮັດໃຫ້ໜ້າຍາວຂຶ້ນ → ບໍ່ມີແຖບເລື່ອນຂວາມື). top/left ຕັ້ງໂດຍ pinCalendar() ໃນ minipos-datepicker.js */
 .flatpickr-calendar.mp-fixed.open:not(.inline):not(.static) { position: fixed !important; }

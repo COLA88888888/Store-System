@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             'stock_check', 'stock_count', 'stock_transfer', 'transfer_history',
             'report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales', 'delete_bills',
             'accounting', 'setup', 'stores', 'print_barcode', 'expiry', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty',
-            'users', 'permissions', 'branches', 'edit', 'customers', 'database', 'customer_debt'
+            'users', 'permissions', 'branches', 'edit', 'customers', 'database'
         ];
 
         $switchKeyPattern = '/^perm_[a-z0-9_]+_' . preg_quote((string)$user_id, '/') . '$/i';
@@ -237,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
 
         // ເມນູຍ່ອຍບໍ່ມີຄ່າໃນ Preset ໂດຍກົງ — ໃຫ້ຮັບຄ່າຈາກໂມດູນແມ່
         $parentPerm = [
-            'item_sales' => 'sale', 'customer_debt' => 'customers',
+            'item_sales' => 'sale',
             'categories' => 'stock', 'units' => 'stock', 'products' => 'stock', 'suppliers' => 'stock',
             'import_stock' => 'stock', 'import_list' => 'stock', 'stock_check' => 'stock', 'stock_count' => 'stock', 'stock_transfer' => 'stock', 'transfer_history' => 'stock',
             'daily_report' => 'report', 'all_sales' => 'report', 'best_seller' => 'report', 'profit_cost' => 'report',

@@ -54,7 +54,8 @@ $rcP      = $rcP ?? 'rc_';
               <th style="text-align:right;padding-bottom:3px;font-weight:400;width:75px;color:#000;"><?php echo htmlspecialchars(t('pos.receipt_col_price', 'ລາຄາ')); ?></th>
             </tr>
           </thead>
-          <tbody id="<?php echo $rcP; ?>items" style="color:#000;font-weight:400;"></tbody>
+          <?php /* ແຖວສິນຄ້າ: ຊື່, x1, ລາຄາ ແລະ ແຖວ "22,000 x 1" ຂະໜາດດຽວກັນ (0.9em ຂອງຕາຕະລາງ — ແຖວຍ່ອຍໃຊ້ 1em ຢູ່ receipt_ui.php / reprint_receipt.php) */ ?>
+          <tbody id="<?php echo $rcP; ?>items" style="color:#000;font-weight:400;font-size:0.9em;"></tbody>
         </table>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
         <div id="<?php echo $rcP; ?>payment_rows" class="rc-strong" style="color:#000;font-weight:700;">
@@ -106,9 +107,36 @@ $rcP      = $rcP ?? 'rc_';
             '感谢惠顾，欢迎下次光临！',
           ];
           $footerRaw = trim((string)($company['barcode'] ?? ''));
-          $footerMsg = ($footerRaw === '' || in_array($footerRaw, $footerDefaults, true))
-            ? t('pos.receipt_thank_you', 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!')
-            : $footerRaw;
+          $footerIsDefault = ($footerRaw === '' || in_array($footerRaw, $footerDefaults, true));
+          // ຂໍ້ຄວາມທີ່ຮ້ານຕັ້ງເອງ ແຍກຕາມພາສາ: barcode = ລາວ, receipt_footer_{en,th,zh} = ພາສາອື່ນ (ຫວ່າງ = ໃຊ້ລາວ).
+          // ທຸກພາສາຝັງໄວ້ໃນ data-footer-* ເພື່ອໃຫ້ກົດທຸງແລ້ວປ່ຽນທັນທີໂດຍບໍ່ໂຫຼດໜ້າ (pages/pos/pos.php, pos:langchange).
+          $footerByLang = [];
+          foreach (['lo', 'en', 'th', 'zh'] as $__fl) {
+              if ($footerIsDefault) {
+                  $__fd = loadLangDictionary($__fl);
+                  $footerByLang[$__fl] = $__fd['pos.receipt_thank_you'] ?? 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!';
+              } else {
+                  $__fv = $__fl === 'lo' ? '' : trim((string)($company['receipt_footer_' . $__fl] ?? ''));
+                  $footerByLang[$__fl] = $__fv !== '' ? $__fv : $footerRaw;
+              }
+          }
+          $footerMsg = $footerByLang[getCurrentLang()] ?? $footerByLang['lo'];
+          $footerDataAttrs = '';
+          foreach ($footerByLang as $__fl => $__fv) {
+              $footerDataAttrs .= ' data-footer-' . $__fl . '="' . htmlspecialchars($__fv) . '"';
+          }
         ?>
-        <div class="text-center receipt-footer-msg" style="margin-top:10px !important; padding-top:8px; border-top:1px dashed #000; font-size:15px; font-weight:400; color:#000; text-align:center;"><?php echo htmlspecialchars($footerMsg); ?></div>
+        <div class="text-center receipt-footer-msg"<?php echo $footerDataAttrs; ?> style="margin-top:10px !important; padding-top:8px; border-top:1px dashed #000; font-size:15px; font-weight:400; color:#000; text-align:center;"><?php echo htmlspecialchars($footerMsg); ?></div>
+        <script>
+          // ກົດທຸງພາສາ (home/partials/dashboard/js_language.php → pos:langchange) → ປ່ຽນຂໍ້ຄວາມທ້າຍບິນທັນທີ (ລົງທະບຽນຄັ້ງດຽວຕໍ່ໜ້າ)
+          if (!window.__rcFooterLangHook) {
+            window.__rcFooterLangHook = true;
+            window.addEventListener('pos:langchange', function (e) {
+              var lang = (e && e.detail && e.detail.lang) || 'lo';
+              document.querySelectorAll('.receipt-footer-msg[data-footer-lo]').forEach(function (el) {
+                el.textContent = el.getAttribute('data-footer-' + lang) || el.getAttribute('data-footer-lo');
+              });
+            });
+          }
+        </script>
       </div>

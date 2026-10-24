@@ -367,7 +367,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
 
           <!-- Submit Button (Aligned to the Right) -->
           <div class="pt-3 border-top text-right d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary px-4 py-2 font-weight-bold shadow-sm" style="border-radius: 8px;">
+            <button type="submit" class="btn btn-primary px-4 py-2 font-weight-bold shadow-sm" style="border-radius: 6px;">
               <i class="fas fa-save mr-2"></i> ບັນທຶກຂໍ້ມູນຮ້ານຄ້າ
             </button>
           </div>

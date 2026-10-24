@@ -8,7 +8,6 @@ return [
     'layout.pos_sell' => 'Sell Products',
     'layout.pos_item_sales' => 'Sales Items',
     'layout.customers' => 'Customer Management',
-    'layout.customer_debt' => 'Customer Debts',
     'layout.products_group' => 'Product Information',
     'layout.stock_intake_group' => 'Stock Intake',
     'layout.categories' => 'Categories',
@@ -90,5 +89,5 @@ return [
     'layout.cancel' => 'Cancel',
     'layout.expiry' => 'Product Expiry',
     'layout.expiry_report' => 'Expiry Report',
-    'layout.debt_report' => 'Customer Debt Report',
+    'layout.shift_report' => 'Report by Shift',
 ];

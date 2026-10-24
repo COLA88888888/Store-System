@@ -41,14 +41,12 @@ function receiptAreaToImage(widthPx) {
   return MiniposLanReceipt.toImage(source, widthPx, '<?php echo $base_path; ?>', POS_RCPT_EXTRA_CSS);
 }
 
-// Send the receipt to its LAN printer. Resolves true only when the printer actually accepted
-// it — false in every other case (no LAN receipt printer configured, rendering broke, the
-// printer didn't respond) so the caller falls back to the browser dialog. A sale must never
-// end with no receipt at all just because the network printer had a bad moment; a failure
-// still surfaces as a toast so staff know the printer needs attention.
+// Send the receipt to its LAN/USB printer. Resolves true only when the printer actually accepted
+// it — false in every other case (no LAN/USB receipt printer configured, rendering broke, the
+// printer didn't respond) so the caller falls back to the browser dialog.
 function printReceiptLan() {
   var rp = window.POS_RECEIPT_PRINTER;
-  if (!rp || rp.printer_type !== 'ip') return Promise.resolve(false);
+  if (!rp || (rp.printer_type !== 'ip' && rp.printer_type !== 'usb')) return Promise.resolve(false);
 
   var widthPx = window.MiniposLanReceipt ? MiniposLanReceipt.paperPx(rp.paper_width) : ((parseInt(rp.paper_width, 10) === 58) ? 219 : 302);
   return receiptAreaToImage(widthPx).then(function (dataUri) {
@@ -68,21 +66,40 @@ function printReceiptLan() {
   });
 }
 
-// Called after the receipt DOM is fully populated. When a LAN receipt printer is configured,
-// the shop has deliberately opted out of the browser dialog — a failed LAN attempt shows an
-// error toast (see printReceiptLan) but must NOT pop the OS print dialog as a "fallback": that
-// dialog lists the cashier's own local/USB printers and interrupts every sale waiting on it,
-// which is worse than a rare failed LAN print. The browser dialog is only used when no LAN
-// receipt printer is set.
-// Resolves once the receipt has actually been handed off to the printer, so the caller can
-// hold the kitchen tickets back until then and keep the money bill first on the roll.
+// Called after the receipt DOM is fully populated. When a LAN or USB receipt printer is configured,
+// the shop has deliberately opted out of the browser dialog — a failed attempt shows an
+// error toast (see printReceiptLan) but must NOT pop the OS print dialog as a "fallback".
 function printReceiptAuto() {
   var rp = window.POS_RECEIPT_PRINTER;
-  if (rp && rp.printer_type === 'ip') {
+  // ເຈ້ຍ A4/A5 (ຕັ້ງຄ່າ > ເຄື່ອງພິມ): ພິມຜ່ານໜ້າຕ່າງພິມເປັນໜ້າເຕັມສະເໝີ — ເຄື່ອງພິມ LAN/USB ຄວາມຮ້ອນພິມ A4/A5 ບໍ່ໄດ້
+  var rpPaper = window.MiniposLanReceipt && MiniposLanReceipt.receiptPaper ? MiniposLanReceipt.receiptPaper((rp || {}).paper_width) : (rp || {}).paper_width;
+  if (window.MiniposLanReceipt && MiniposLanReceipt.isPagePaper && MiniposLanReceipt.isPagePaper(rpPaper)) {
+    printReceipt();
+    return Promise.resolve(true);
+  }
+  if (rp && (rp.printer_type === 'ip' || rp.printer_type === 'usb')) {
     return printReceiptLan();
   }
-  printReceipt();
-  return Promise.resolve(true);
+
+  // ຖ້າ window.POS_RECEIPT_PRINTER ຍັງບໍ່ທັນຖືກໂຫຼດ (ຫຼື ຍັງບໍ່ໄດ້ reload ໜ້າ), ກວດສອບຈາກ backend ລ້າສຸດ
+  return $.ajax({
+    url: window.POS_BACKEND_URL || '../../api/pos_backend.php',
+    type: 'GET',
+    data: { action: 'get_receipt_printer' },
+    dataType: 'json',
+    timeout: 3000
+  }).then(function (res) {
+    if (res && res.printer && (res.printer.printer_type === 'ip' || res.printer.printer_type === 'usb')) {
+      window.POS_RECEIPT_PRINTER = res.printer;
+      return printReceiptLan();
+    }
+    // ຖ້າບໍ່ມີເຄື່ອງພິມ USB/LAN ຈຶ່ງເປີດໜ້າຕ່າງພິມ browser
+    printReceipt();
+    return true;
+  }).catch(function () {
+    printReceipt();
+    return true;
+  });
 }
 
 // ============================
@@ -94,7 +111,12 @@ function printReceipt() {
   if (!window.MiniposLanReceipt) { printReceiptHtml(area.innerHTML); return; }
   // Print the very image the LAN printer gets (receiptAreaToImage), so the dialog's bill is
   // identical to a LAN bill; the HTML version is only a fallback if rendering the image fails.
-  var paper = (window.POS_RECEIPT_PRINTER || {}).paper_width;
+  var paper = MiniposLanReceipt.receiptPaper ? MiniposLanReceipt.receiptPaper((window.POS_RECEIPT_PRINTER || {}).paper_width) : (window.POS_RECEIPT_PRINTER || {}).paper_width;
+  // A4/A5: ພິມ HTML ເຕັມໜ້າ (ບໍ່ແມ່ນຮູບບິນແຄບ) — ຂະໜາດໜ້າມາຈາກ MiniposLanReceipt.dialogPageCss(paper)
+  if (MiniposLanReceipt.isPagePaper && MiniposLanReceipt.isPagePaper(paper)) {
+    Promise.resolve(MiniposLanReceipt.printHtml(area)).then(printReceiptHtml);
+    return;
+  }
   // dialogPaperPx: ເຄື່ອງພິມໃນຕົວ (Android) ວາງບິນແບບ 58mm ບໍ່ໃຫ້ຖືກຕັດຂວາ; ເຄື່ອງອື່ນຄືເກົ່າ
   var dialogPx = MiniposLanReceipt.dialogPaperPx ? MiniposLanReceipt.dialogPaperPx(paper) : MiniposLanReceipt.paperPx(paper);
   receiptAreaToImage(dialogPx).then(function (uri) {
@@ -159,7 +181,7 @@ function printReceiptHtml(printContent) {
         * { color: #000 !important; }
         body:has(.receipt-print-img) { padding: 0 !important; }
       }
-      ${(window.MiniposLanReceipt && MiniposLanReceipt.dialogPageCss) ? MiniposLanReceipt.dialogPageCss() : ''}
+      ${(window.MiniposLanReceipt && MiniposLanReceipt.dialogPageCss) ? MiniposLanReceipt.dialogPageCss(MiniposLanReceipt.receiptPaper ? MiniposLanReceipt.receiptPaper((window.POS_RECEIPT_PRINTER || {}).paper_width) : (window.POS_RECEIPT_PRINTER || {}).paper_width) : ''}
     </style>
   </head><body>${printContent}</body></html>`);
   iframeDoc.close();

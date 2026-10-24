@@ -8,9 +8,11 @@
   .exr-sub { font-size: 0.82rem; color: #64748b; }
 
   /* Summary tiles double as the status filter */
-  .exr-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-  @media (max-width: 767.98px) { .exr-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  .exr-stat { position: relative; display: block; overflow: hidden; background: linear-gradient(135deg, var(--c), var(--d)); border-radius: 12px; padding: 16px 16px 14px; color: #fff; text-decoration: none !important; margin: 5px; box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--c), 0 6px 16px rgba(15, 23, 42, .14); }
+  .exr-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  @media (max-width: 767.98px) { .exr-stats { grid-template-columns: 1fr; } }
+  /* ກາດທຳມະດາ: ບໍ່ມີຂອບ — ໃບທີ່ບໍ່ໄດ້ເລືອກຈາງລົງໜ້ອຍໜຶ່ງ ເພື່ອໃຫ້ຮູ້ວ່າກຳລັງກັ່ນຕອງອັນໃດ */
+  .exr-stat { position: relative; display: block; overflow: hidden; background: linear-gradient(135deg, var(--c), var(--d)); border-radius: 12px; padding: 16px 16px 14px; color: #fff; text-decoration: none !important; box-shadow: 0 4px 12px rgba(15, 23, 42, .10); opacity: .78; transition: opacity .15s ease; }
+  .exr-stat.active, .exr-stat:hover { opacity: 1; }
   .exr-stat::after { content: ''; position: absolute; right: -24px; bottom: -34px; width: 110px; height: 110px; border-radius: 50%; background: rgba(255, 255, 255, .1); }
   .exr-stat:hover { color: #fff; }
   .exr-stat .top { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
@@ -21,18 +23,20 @@
   .exr-stat .pct { position: relative; z-index: 1; font-size: 0.76rem; color: rgba(255, 255, 255, .85); margin-top: 6px; }
   @media (max-width: 767.98px) { .exr-stat .ico { width: 34px; height: 34px; font-size: .9rem; } .exr-stat .num { font-size: 1.4rem; } }
 
-  .exr-panel { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; }
+  .exr-panel { background: #fff; border-radius: 12px; }   /* ເງົາ/ບໍ່ມີຂອບ: .rpt-card (themes/report-table.css) */
   .exr-filters { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
-  .exr-filters label { font-size: 0.76rem; color: #64748b; margin-bottom: 3px; display: block; }
-  .exr-filters .form-control { height: 36px; border-radius: 8px; font-size: 0.86rem; border-color: #e2e8f0; }
-  .exr-filters .btn { height: 36px; border-radius: 8px; font-size: 0.86rem; }
+  /* ຕົວໜັງສືໃນຕົວກັ່ນຕອງ: ເຂັ້ມ ແລະ ໜາ ໃຫ້ອ່ານແຈ້ງ (ຄືໜ້າລາຍງານໜີ້) */
+  .exr-filters label { font-size: 0.84rem; font-weight: 700; color: #1e293b; margin-bottom: 4px; display: block; }
+  .exr-filters .form-control { height: 36px; border-radius: 8px; font-size: 0.9rem; border-color: #cbd5e1; color: #0f172a; font-weight: 600; }
+  .exr-filters .form-control::placeholder { color: #64748b; font-weight: 500; opacity: 1; }
+  .exr-filters .btn { height: 36px; border-radius: 8px; font-size: 0.9rem; }
 
-  .exr-table { margin: 0; font-size: 0.87rem; }
-  .exr-table thead th { background: #f8fafc; color: #64748b; font-size: 0.78rem; font-weight: 600; border-top: 0; border-bottom: 1px solid #e2e8f0; padding: 10px 12px; white-space: nowrap; }
+  .exr-table { margin: 0; font-size: 0.9rem; color: #0f172a; }
+  .exr-table thead th { background: #ffffff; color: #1e293b; font-size: 0.86rem; font-weight: 700; border-top: 0; border-bottom: 2px solid #e2e8f0; padding: 12px; white-space: nowrap; }
   .exr-table td { padding: 10px 12px; vertical-align: middle; border-top: 1px solid #f1f5f9; }
   .exr-table tbody tr:hover { background: #fafbfc; }
   .exr-name { font-weight: 600; }
-  .exr-meta { font-size: 0.76rem; color: #94a3b8; }
+  .exr-meta { font-size: 0.78rem; color: #64748b; }
   .exr-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.76rem; font-weight: 600; white-space: nowrap; }
   .exr-pill.danger  { background: #fef2f2; color: #b91c1c; }
   .exr-pill.warning { background: #fffbeb; color: #b45309; }
@@ -40,9 +44,10 @@
   .exr-pill.muted   { background: #f1f5f9; color: #64748b; }
   .exr-remaining { font-weight: 600; white-space: nowrap; }
 
-  .exr-foot { padding: 10px 14px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-  .exr-foot .page-link { border-radius: 6px !important; margin: 0 2px; border-color: #e2e8f0; color: #334155; }
-  .exr-foot .page-item.active .page-link { background: #244886; border-color: #244886; color: #fff; }
+  .exr-table tbody tr.empty-row,
+  .exr-table tbody tr.empty-row td {
+    background: #ffffff !important;
+  }
 
   .print-only { display: none; }
   @media print {

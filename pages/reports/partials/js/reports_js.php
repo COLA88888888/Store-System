@@ -11,12 +11,21 @@
   try {
       $__rpStmt = $pdo->prepare("SELECT id, name, type, paper_width FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 AND branch_id = ? LIMIT 1");
       $__rpStmt->execute([getActiveStoreId($pdo)]);
-      if ($__rpRow = $__rpStmt->fetch(PDO::FETCH_ASSOC)) {
+      $__rpRow = $__rpStmt->fetch(PDO::FETCH_ASSOC);
+      if (!$__rpRow) {
+          $fbStmt = $pdo->query("SELECT id, name, type, paper_width FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 ORDER BY (type = 'usb') DESC, id DESC LIMIT 1");
+          $__rpRow = $fbStmt ? $fbStmt->fetch(PDO::FETCH_ASSOC) : null;
+      }
+      if (!$__rpRow) {
+          $fbUsb = $pdo->query("SELECT id, name, type, paper_width FROM st_tbl_printer WHERE type = 'usb' AND status = 1 ORDER BY id DESC LIMIT 1");
+          $__rpRow = $fbUsb ? $fbUsb->fetch(PDO::FETCH_ASSOC) : null;
+      }
+      if ($__rpRow) {
           $__repReceiptPrinter = [
               'printer_id'   => (int)$__rpRow['id'],
               'printer_name' => $__rpRow['name'],
-              'printer_type' => in_array($__rpRow['type'] ?? '', ['ip', 'usb'], true) ? 'ip' : 'browser', // direct (LAN or USB)
-              'paper_width'  => intval($__rpRow['paper_width'] ?? 80) === 58 ? 58 : 80,
+              'printer_type' => in_array($__rpRow['type'] ?? '', ['ip', 'usb'], true) ? $__rpRow['type'] : 'browser', // direct (LAN or USB)
+              'paper_width'  => in_array(intval($__rpRow['paper_width'] ?? 80), [58, 80, 148, 210], true) ? intval($__rpRow['paper_width']) : 80,   // 148 = A5, 210 = A4
           ];
       }
   } catch (Throwable $e) {}
@@ -229,6 +238,11 @@ function doExportExcel() {
   var headerThs = cloneTable.querySelectorAll('thead th');
   var cols = headerThs.length || (cloneTable.querySelector('tr') ? cloneTable.querySelector('tr').children.length : 1);
 
+  cloneTable.querySelectorAll('tbody td[colspan]').forEach(function(td) {
+    var cs = parseInt(td.getAttribute('colspan') || '1', 10);
+    if (cs > cols) td.setAttribute('colspan', cols);
+  });
+
   var F = "font-family: 'Phetsarath OT', 'Noto Sans Lao', sans-serif;";
   var B = "border: .5pt solid #000;";
   var TXT = "mso-number-format: '\\@';";
@@ -388,6 +402,12 @@ function doExportPDF() {
 
     var noPrints = cloneTable.querySelectorAll('.no-print');
     noPrints.forEach(function(el) { el.remove(); });
+
+    var cols = cloneTable.querySelectorAll('thead th').length;
+    cloneTable.querySelectorAll('tbody td[colspan]').forEach(function(td) {
+      var cs = parseInt(td.getAttribute('colspan') || '1', 10);
+      if (cs > cols) td.setAttribute('colspan', cols);
+    });
 
     wrapper.appendChild(title);
     wrapper.appendChild(cloneTable);

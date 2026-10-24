@@ -65,6 +65,14 @@ var BULK_SUPPLIER_OPTIONS = <?php echo json_encode(implode('', array_map(functio
     return '<option value="' . (int)$sp['supplier_id'] . '">' . htmlspecialchars($sp['supplier_name']) . '</option>';
 }, $suppliers ?? [])), JSON_UNESCAPED_UNICODE); ?>;
 
+var BULK_ZONE_OPTIONS = <?php echo json_encode(implode('', array_map(function ($z) {
+    return '<option value="' . htmlspecialchars($z['zone_name']) . '" data-id="' . (int)$z['zone_id'] . '">' . htmlspecialchars($z['zone_name']) . '</option>';
+}, $zones ?? [])), JSON_UNESCAPED_UNICODE); ?>;
+
+var BULK_SHELF_OPTIONS = <?php echo json_encode(implode('', array_map(function ($sh) {
+    return '<option value="' . htmlspecialchars($sh['shelf_name']) . '" data-zone-id="' . (int)($sh['zone_id'] ?? 0) . '" data-zone-name="' . htmlspecialchars($sh['zone_name'] ?? '') . '">' . htmlspecialchars($sh['shelf_name']) . '</option>';
+}, $shelves ?? [])), JSON_UNESCAPED_UNICODE); ?>;
+
 var BULK_DEFAULT_ROWS = 10;
 
 function bulkRenumber() {
@@ -76,14 +84,12 @@ function bulkRenumber() {
 function bulkAddRow(data) {
   data = data || {};
   var html = `
-  <div class="card border mb-2 bulk-row" style="border-radius: 10px;">
-    <div class="card-body p-2">
-      <div class="row align-items-end" style="row-gap: 8px;">
-        <div class="col-auto d-flex align-items-center" style="padding-bottom: 6px;">
-          <span class="badge badge-light border font-weight-bold bulk-row-idx" style="font-size: 0.8rem;">0</span>
-        </div>
-        <div class="col-auto">
-          <label class="small text-muted font-weight-bold mb-1 d-block">${I18N_BULK.img}</label>
+  <div class="card border mb-2.5 bulk-row shadow-xs" style="border-radius: 10px; background: #fff; border-color: #cbd5e1 !important;">
+    <div class="card-body p-2.5">
+      <div class="d-flex align-items-start" style="gap: 12px;">
+        <!-- Left: Index + Photo -->
+        <div class="d-flex flex-column align-items-center" style="gap: 6px; padding-top: 2px;">
+          <span class="badge badge-light border font-weight-bold bulk-row-idx" style="font-size: 0.8rem; min-width: 26px;">0</span>
           <div class="bulk-img-box" title="${I18N_BULK.img_ph}">
             <input type="file" class="d-none bulk-img-file" accept="image/*">
             <input type="hidden" class="bulk-img" value="">
@@ -93,37 +99,66 @@ function bulkAddRow(data) {
             <button type="button" class="bulk-img-clear" title="${I18N_BULK.del}" style="display:none;">&times;</button>
           </div>
         </div>
-        <div class="col-md col-6">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.cat} <span class="text-danger">*</span></label>
-          <select name="b_category_id[]" class="form-control form-control-sm bulk-cat"><option value="">${I18N_BULK.cat_ph}</option>${BULK_CAT_OPTIONS}</select>
-        </div>
-        <div class="col-md col-6">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.name} <span class="text-danger">*</span></label>
-          <input type="text" name="b_name[]" class="form-control form-control-sm bulk-name" placeholder="${I18N_BULK.name_ph}">
-        </div>
-        <div class="col-md col-8">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.barcode}</label>
-          <div class="input-group input-group-sm">
-            <input type="text" name="b_barcode[]" class="form-control form-control-sm bulk-barcode" placeholder="${I18N_BULK.barcode_ph}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-            <div class="input-group-append">
-              <button type="button" class="btn btn-outline-primary" title="${I18N_BULK.gen}" onclick="generateEAN13(this)"><i class="fas fa-barcode"></i></button>
+
+        <!-- Right: 2 Rows -->
+        <div class="flex-grow-1" style="min-width: 0;">
+          <!-- Row 1: ໝວດໝູ່, ຊື່ສິນຄ້າ, ບາໂຄ້ດ, ຫົວໜ່ວຍ -->
+          <div class="row align-items-end mb-2" style="row-gap: 8px;">
+            <div class="col-lg-3 col-md-6 col-12">
+              <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.cat} <span class="text-danger">*</span></label>
+              <select name="b_category_id[]" class="form-control form-control-sm bulk-cat" style="height: 38px; border-radius: 6px;"><option value="">${I18N_BULK.cat_ph}</option>${BULK_CAT_OPTIONS}</select>
+            </div>
+            <div class="col-lg-4 col-md-6 col-12">
+              <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.name} <span class="text-danger">*</span></label>
+              <input type="text" name="b_name[]" class="form-control form-control-sm bulk-name" placeholder="${I18N_BULK.name_ph}" style="height: 38px; border-radius: 6px;">
+            </div>
+            <div class="col-lg-3 col-md-7 col-8">
+              <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.barcode}</label>
+              <div class="input-group input-group-sm">
+                <input type="text" name="b_barcode[]" class="form-control form-control-sm bulk-barcode" placeholder="${I18N_BULK.barcode_ph}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="height: 38px; border-radius: 6px 0 0 6px;">
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-outline-primary font-weight-bold px-2" title="${I18N_BULK.gen}" onclick="generateEAN13(this)" style="height: 38px; border-radius: 0 6px 6px 0; display: inline-flex; align-items: center; gap: 3px;">
+                    <i class="fas fa-barcode"></i> <span style="font-size: 0.8rem;">ສ້າງ</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-2 col-md-5 col-4">
+              <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.unit} <span class="text-danger">*</span></label>
+              <select name="b_unit_id[]" class="form-control form-control-sm bulk-unit" style="height: 38px; border-radius: 6px;"><option value="">${I18N_BULK.unit_ph}</option>${BULK_UNIT_OPTIONS}</select>
             </div>
           </div>
-        </div>
-        <div class="col-md col-4">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.unit} <span class="text-danger">*</span></label>
-          <select name="b_unit_id[]" class="form-control form-control-sm bulk-unit"><option value="">${I18N_BULK.unit_ph}</option>${BULK_UNIT_OPTIONS}</select>
-        </div>
-        <div class="col-md col-6">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.bprice}</label>
-          <input type="text" name="b_bprice[]" class="form-control form-control-sm text-right price-input bulk-bprice" placeholder="0" oninput="formatPriceInput(this)">
-        </div>
-        <div class="col-md col-6">
-          <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.price} </label>
-<input type="text" name="b_price[]" class="form-control form-control-sm text-right font-weight-bold text-success price-input bulk-price" placeholder="0" oninput="formatPriceInput(this)">
-        </div>
-        <div class="col-auto text-right" style="padding-bottom: 4px;">
-          <button type="button" class="btn btn-sm btn-outline-danger border-0 bulk-row-del" title="${I18N_BULK.del}"><i class="fas fa-trash-alt"></i></button>
+
+          <!-- Row 2: ລາຄາຊື້, ລາຄາຂາຍ, ໂຊນ, ຊັ້ນວາງ, ປຸ່ມລົບ -->
+          <div class="row align-items-end" style="row-gap: 8px;">
+            <div class="col-lg-3 col-md-6 col-6">
+              <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.bprice}</label>
+              <input type="text" name="b_bprice[]" class="form-control form-control-sm text-right price-input bulk-bprice" placeholder="0" oninput="formatPriceInput(this)" style="height: 38px; border-radius: 6px;">
+            </div>
+            <div class="col-lg-3 col-md-6 col-6">
+              <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.price} <span class="text-danger">*</span></label>
+              <input type="text" name="b_price[]" class="form-control form-control-sm text-right font-weight-bold text-success price-input bulk-price" placeholder="0" oninput="formatPriceInput(this)" style="height: 38px; border-radius: 6px;">
+            </div>
+            <div class="col-lg-2.5 col-md-5 col-5" style="flex: 1;">
+              <label class="small text-muted font-weight-bold mb-1">ໂຊນ</label>
+              <select name="b_zone[]" class="form-control form-control-sm bulk-zone" style="height: 38px; border-radius: 6px;">
+                <option value="">-- ໂຊນ --</option>
+                ${BULK_ZONE_OPTIONS}
+              </select>
+            </div>
+            <div class="col-lg-2.5 col-md-5 col-5" style="flex: 1;">
+              <label class="small text-muted font-weight-bold mb-1">ຊັ້ນວາງ</label>
+              <select name="b_shelf[]" class="form-control form-control-sm bulk-shelf" style="height: 38px; border-radius: 6px;">
+                <option value="">-- ຊັ້ນວາງ --</option>
+                ${BULK_SHELF_OPTIONS}
+              </select>
+            </div>
+            <div class="col-auto text-right pl-1">
+              <button type="button" class="btn btn-outline-danger bulk-row-del" title="${I18N_BULK.del}" style="height: 38px; width: 38px; border-radius: 6px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -131,6 +166,8 @@ function bulkAddRow(data) {
   var $row = $(html);
   if (data.category_id) $row.find('.bulk-cat').val(String(data.category_id));
   if (data.unit_id) $row.find('.bulk-unit').val(String(data.unit_id));
+  if (data.zone) $row.find('.bulk-zone').val(String(data.zone));
+  if (data.shelf) $row.find('.bulk-shelf').val(String(data.shelf));
   // Per-row supplier only comes from an Excel import; the batch box at the top wins when set.
   $row.data('supplier', data.supplier_id ? String(data.supplier_id) : '');
   $('#bulk_rows_container').append($row);
@@ -218,10 +255,12 @@ var BULK_EXCEL_HEADERS = {
   unit:     ['ຫົວໜ່ວຍ', 'ຫົວໜ່ວຍນັບ', 'unit'],
   bprice:   ['ລາຄາຊື້', 'ຕົ້ນທຶນ', 'ລາຄາຕົ້ນທຶນ', 'bprice', 'cost', 'buyprice'],
   price:    ['ລາຄາຂາຍ', 'ລາຄາ', 'price', 'sellprice'],
-  supplier: ['ຜູ້ສະໜອງ', 'supplier']
+  supplier: ['ຜູ້ສະໜອງ', 'supplier'],
+  zone:     ['ໂຊນ', 'zone'],
+  shelf:    ['ຊັ້ນວາງ', 'ຊັ້ນ', 'shelf']
 };
 // ລຳດັບຖັນຂອງແບບຟອມ — ໃຊ້ເມື່ອໄຟລ໌ບໍ່ມີແຖວຫົວຖັນ
-var BULK_EXCEL_ORDER = ['cat', 'name', 'barcode', 'unit', 'bprice', 'price', 'supplier'];
+var BULK_EXCEL_ORDER = ['cat', 'name', 'barcode', 'unit', 'bprice', 'price', 'supplier', 'zone', 'shelf'];
 
 // NFKC: "ຳ" ພິມໄດ້ 2 ແບບ (U+0EB3 ຫຼື ໍ+າ) — ໃຫ້ຖືວ່າເທົ່າກັນ ເວລາທຽບຊື່ປະເພດ/ຫົວໜ່ວຍ
 function bulkNorm(s) {

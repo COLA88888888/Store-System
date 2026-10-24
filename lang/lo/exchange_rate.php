@@ -5,7 +5,7 @@ return [
     'exchange_rate.msg_save_success' => 'ອັບເດດອັດຕາແລກປ່ຽນເງິນສຳເລັດແລ້ວ!',
     'exchange_rate.msg_update_success' => 'ດຳເນີນການອັບເດດອັດຕາແລກປ່ຽນສຳເລັດ!',
     'exchange_rate.msg_delete_success' => 'ລຶບປະຫວັດອັດຕາແລກປ່ຽນສຳເລັດແລ້ວ!',
-    'exchange_rate.msg_invalid_rate' => 'ກະລຸນາປ້ອນອັດຕາແລກປ່ຽນທີ່ຖືກຕ້ອງ!',
+    'exchange_rate.msg_invalid_rate' => 'ກະລຸນາປ້ອນອັດຕາແລກປ່ຽນທີ່ຖືກຕ້ອງ — ເປັນກີບຕໍ່ 1 ໜ່ວຍ (ເຊັ່ນ 1 ບາດ = 720, 1 ໂດລາ = 22,000)',
     'exchange_rate.msg_error_prefix' => 'ຜິດພາດ: ',
 
     // exchange_rate_header.php

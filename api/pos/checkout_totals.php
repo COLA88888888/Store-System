@@ -1,8 +1,8 @@
 <?php
 /**
  * ສ່ວນ: Checkout (1): ຄິດຍອດເງິນ
- * ພາຍໃນ transaction: ຍອດລວມ, ແລກຄະແນນສະສົມ, VAT, ເງິນທອນ, ຂາຍຕິດໜີ້ (ມັດຈຳ/ຍອດໜີ້), ເລກບິນ
- * (ລະຫັດສາຂານຳໜ້າສຳລັບບິນຕິດໜີ້) ແລະ ທະນາຄານທີ່ຮັບໂອນ.
+ * ພາຍໃນ transaction: ຍອດລວມ, ແລກຄະແນນສະສົມ, VAT, ເງິນທອນ, ເລກບິນ
+ * (ລະຫັດສາຂານຳໜ້າ) ແລະ ທະນາຄານທີ່ຮັບໂອນ.
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ api/pos_backend.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 
@@ -122,37 +122,12 @@
         $total_paid = $cash_received + $qr_received;
         $change = max(0, $total_paid - $net_total);
 
-        // ===== ຂາຍຕິດໜີ້ (credit sale) =====
-        // Whatever was paid now is a deposit; the rest becomes a customer_debts row (inserted
-        // below, inside this same transaction). Needs a real customer and the add right.
-        $credit_amount = 0.00;
-        if ($pay_mode === 'credit') {
-            $creditFail = function ($msg) use ($pdo) {
-                if ($pdo->inTransaction()) $pdo->rollBack();
-                echo json_encode(['success' => false, 'message' => $msg]);
-                exit();
-            };
-            if (!hasPermission('customer_debt', 'add')) {
-                $creditFail(t('pos.credit_err_permission', 'ທ່ານບໍ່ມີສິດຂາຍຕິດໜີ້!'));
-            }
-            $credCust = $pdo->prepare("SELECT customer_id FROM st_customers WHERE customer_id = ? AND (store_id = ? OR store_id = 0)");
-            $credCust->execute([intval($customer_id), getPosStoreId()]);
-            if (intval($customer_id) <= 0 || !$credCust->fetchColumn()) {
-                $creditFail(t('pos.credit_err_customer', 'ກະລຸນາເລືອກລູກຄ້າກ່ອນຂາຍຕິດໜີ້'));
-            }
-            $deposit = min($total_paid, $net_total);
-            $credit_amount = round($net_total - $deposit, 2);
-            if ($credit_amount <= 0) {
-                $creditFail(t('pos.credit_err_nothing', 'ເງິນມັດຈຳຄົບຍອດບິນແລ້ວ — ກະລຸນາໃຊ້ການຊຳລະປົກກະຕິ'));
-            }
-            // Deposit never produces change; keep cash/qr summing to the deposit exactly.
-            if ($total_paid > $deposit) {
-                $qr_received   = min($qr_received, $deposit);
-                $cash_received = $deposit - $qr_received;
-            }
-            $total_paid   = $deposit;
-            $change       = 0;
-            $payment_type = 'ຕິດໜີ້';
+        // ຂາຍຕິດໜີ້ ຖືກລຶບອອກຈາກລະບົບແລ້ວ (ໂມດູນລູກຄ້າຕິດໜີ້) — ຄຳຂໍທີ່ຍັງສົ່ງ pay_mode=credit
+        // (ເຊັ່ນ ແທັບເກົ່າທີ່ເປີດຄ້າງ) ຖືກປະຕິເສດ ບໍ່ໃຫ້ກາຍເປັນບິນທີ່ຈ່າຍບໍ່ຄົບ.
+        if ($pay_mode === 'credit' || $payment_type === 'ຕິດໜີ້') {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            echo json_encode(['success' => false, 'message' => 'ການຂາຍຕິດໜີ້ຖືກປິດແລ້ວ — ກະລຸນາໂຫຼດໜ້າຂາຍໃໝ່ ແລ້ວຊຳລະແບບປົກກະຕິ']);
+            exit();
         }
 
         // Net bill value expressed in the tendered currency (KIP amount / rate).

@@ -13,15 +13,16 @@ function onZoneSelectChange(mode) {
   var selectedOpt = zoneSelect.find('option:selected');
   var selectedZoneId = selectedOpt.attr('data-id') || '';
 
+  // ບັອກຊັ້ນວາງສະແດງຕະຫຼອດເວລາ ບໍ່ເຊື່ອງ
+  shelfBox.show();
+
   if (!selectedZone) {
-    // ຖ້າບໍ່ໄດ້ປ້ອນ / ບໍ່ໄດ້ເລືອກໂຊນ: ບັອກແມ່ນເຊື່ອງໄວ້
-    shelfSelect.val('');
-    shelfBox.hide();
+    // ຖ້າບໍ່ໄດ້ເລືອກໂຊນ: ສະແດງທຸກຊັ້ນວາງໃຫ້ເລືອກໄດ້ຕາມສະບາຍ
+    shelfSelect.find('option').show().prop('disabled', false);
     return;
   }
 
-  // ຖ້າມີການເລືອກໂຊນ: ສະແດງບັອກຊັ້ນວາງ
-  shelfBox.show();
+  // ຖ້າມີການເລືອກໂຊນ: ກັ່ນຕອງສະເພາະຊັ້ນວາງໃນໂຊນນັ້ນ (ຫຼື ຊັ້ນວາງທົ່ວໄປທີ່ບໍ່ມີໂຊນ)
   var curShelfVal = shelfSelect.val();
   shelfSelect.find('option:not(:first)').each(function() {
     var $opt = $(this);
@@ -41,15 +42,16 @@ function onZoneSelectChange(mode) {
 }
 
 function applyProductZoneShelf(p) {
+  $('#edit_shelf_box').show();
   if (p && p.zone) {
     $('#edit_zone').val(p.zone);
     onZoneSelectChange('edit');
-    if (p.shelf) {
-      $('#edit_shelf').val(p.shelf);
-    }
   } else {
     $('#edit_zone').val('');
-    onZoneSelectChange('edit'); // ຖ້າບໍ່ໄດ້ປ້ອນ ບັອກແມ່ນເຊື່ອງໄວ້
+    onZoneSelectChange('edit');
+  }
+  if (p && p.shelf) {
+    $('#edit_shelf').val(p.shelf);
   }
 }
 
@@ -70,14 +72,26 @@ function quickAddZonePrompt(mode) {
       var name = res.value.trim();
       $.post('api_product.php', { action: 'add_zone', zone_name: name }, function(data) {
         if (data && data.success) {
-          ['add', 'edit'].forEach(function(m) {
+          ['add', 'edit', 'bulk'].forEach(function(m) {
             var $sel = $('#' + m + '_zone');
-            if (!$sel.find('option[value="' + name + '"]').length) {
+            if ($sel.length && !$sel.find('option[value="' + name + '"]').length) {
               $sel.append($('<option>', { value: name, text: name, 'data-id': data.zone_id }));
             }
           });
-          $('#' + mode + '_zone').val(name);
-          onZoneSelectChange(mode);
+          $('.bulk-zone').each(function() {
+            var $bz = $(this);
+            if (!$bz.find('option[value="' + name + '"]').length) {
+              $bz.append($('<option>', { value: name, text: name, 'data-id': data.zone_id }));
+            }
+          });
+          if (typeof BULK_ZONE_OPTIONS !== 'undefined') {
+            BULK_ZONE_OPTIONS += '<option value="' + $('<div>').text(name).html() + '" data-id="' + data.zone_id + '">' + $('<div>').text(name).html() + '</option>';
+          }
+
+          if (mode) {
+            $('#' + mode + '_zone').val(name);
+            onZoneSelectChange(mode);
+          }
           Swal.fire({ icon: 'success', title: 'ເພີ່ມໂຊນສຳເລັດ', timer: 1200, showConfirmButton: false });
         } else {
           Swal.fire({ icon: 'error', title: 'ບໍ່ສຳເລັດ', text: (data && data.message) || 'ບໍ່ສາມາດເພີ່ມໂຊນໄດ້' });
@@ -89,8 +103,8 @@ function quickAddZonePrompt(mode) {
 
 function quickAddShelfPrompt(mode) {
   var zoneSelect = $('#' + mode + '_zone');
-  var zoneName = zoneSelect.val() || '';
-  var zoneId = zoneSelect.find('option:selected').attr('data-id') || 0;
+  var zoneName = zoneSelect.length ? (zoneSelect.val() || '') : '';
+  var zoneId = zoneSelect.length ? (zoneSelect.find('option:selected').attr('data-id') || 0) : 0;
 
   Swal.fire({
     title: 'ເພີ່ມຊັ້ນວາງໃໝ່' + (zoneName ? ' (' + zoneName + ')' : ''),
@@ -108,9 +122,9 @@ function quickAddShelfPrompt(mode) {
       var name = res.value.trim();
       $.post('api_product.php', { action: 'add_shelf', shelf_name: name, zone_id: zoneId }, function(data) {
         if (data && data.success) {
-          ['add', 'edit'].forEach(function(m) {
+          ['add', 'edit', 'bulk'].forEach(function(m) {
             var $sel = $('#' + m + '_shelf');
-            if (!$sel.find('option[value="' + name + '"]').length) {
+            if ($sel.length && !$sel.find('option[value="' + name + '"]').length) {
               $sel.append($('<option>', {
                 value: name,
                 text: name,
@@ -119,7 +133,24 @@ function quickAddShelfPrompt(mode) {
               }));
             }
           });
-          $('#' + mode + '_shelf').val(name);
+          $('.bulk-shelf').each(function() {
+            var $bsh = $(this);
+            if (!$bsh.find('option[value="' + name + '"]').length) {
+              $bsh.append($('<option>', {
+                value: name,
+                text: name,
+                'data-zone-id': zoneId,
+                'data-zone-name': zoneName
+              }));
+            }
+          });
+          if (typeof BULK_SHELF_OPTIONS !== 'undefined') {
+            BULK_SHELF_OPTIONS += '<option value="' + $('<div>').text(name).html() + '" data-zone-id="' + zoneId + '" data-zone-name="' + $('<div>').text(zoneName).html() + '">' + $('<div>').text(name).html() + '</option>';
+          }
+
+          if (mode) {
+            $('#' + mode + '_shelf').val(name);
+          }
           Swal.fire({ icon: 'success', title: 'ເພີ່ມຊັ້ນວາງສຳເລັດ', timer: 1200, showConfirmButton: false });
         } else {
           Swal.fire({ icon: 'error', title: 'ບໍ່ສຳເລັດ', text: (data && data.message) || 'ບໍ່ສາມາດເພີ່ມຊັ້ນວາງໄດ້' });

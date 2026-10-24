@@ -190,7 +190,19 @@ function loadInitialData() {
   var raw = localStorage.getItem('StoreMini.customer_display_data');
   if (raw) {
     try {
-      renderDisplayData(JSON.parse(raw));
+      var d = JSON.parse(raw);
+      // ຖ້າຂໍ້ມູນເກົ່າທີ່ບັນທຶກໄວ້ເປັນ payment_success ທີ່ຈົບໄປແລ້ວ: ໃຫ້ປັບເປັນ shopping (ລ້າງຄ່າເປັນ 0 ທັງໝົດ)
+      // ເພື່ອບໍ່ໃຫ້ຕອນຣີເຟຣຊໜ້າຈໍແລ້ວມີຄ່າເກົ່າຄ້າງ ຫຼື ເດັ້ງປັອບອັບໃບບິນເກົ່າຂຶ້ນມາຊ້ຳ
+      if (d && d.checkoutState === 'payment_success') {
+        d.checkoutState = 'shopping';
+        d.cart = [];
+        d.cashReceived = 0;
+        d.qrReceived = 0;
+        d.changeAmount = 0;
+        d.totalAmount = 0;
+        d.paidAmount = 0;
+      }
+      renderDisplayData(d);
     } catch(e) {}
   }
 }
@@ -231,12 +243,243 @@ function renderBankPopup(data) {
   $pop.css('display', 'flex');
 }
 
+// Audio Context unlock for browser autoplay policy
+var _audioUnlockedCtx = null;
+function getAudioContext() {
+  try {
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    if (!_audioUnlockedCtx) {
+      _audioUnlockedCtx = new AudioCtx();
+    }
+    if (_audioUnlockedCtx.state === 'suspended') {
+      _audioUnlockedCtx.resume();
+    }
+    return _audioUnlockedCtx;
+  } catch(e) {
+    return null;
+  }
+}
+['pointerdown', 'touchstart', 'click', 'keydown'].forEach(function(ev) {
+  document.addEventListener(ev, function() { getAudioContext(); }, { passive: true });
+});
+
+// Realistic Cash Register / Money Received Sound ("Cha-ching! 💰") via Web Audio API
+function playMoneyReceivedSound() {
+  try {
+    var ctx = getAudioContext();
+    if (!ctx) return;
+    var now = ctx.currentTime;
+
+    var masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.72, now);
+    masterGain.connect(ctx.destination);
+
+    // 1. Mechanical cash drawer "Ka-thunk / click"
+    var clickOsc = ctx.createOscillator();
+    var clickGain = ctx.createGain();
+    clickOsc.type = 'triangle';
+    clickOsc.frequency.setValueAtTime(320, now);
+    clickOsc.frequency.exponentialRampToValueAtTime(140, now + 0.04);
+    clickGain.gain.setValueAtTime(0.45, now);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    clickOsc.connect(clickGain);
+    clickGain.connect(masterGain);
+    clickOsc.start(now);
+    clickOsc.stop(now + 0.05);
+
+    // 2. Loud, resonant cash register bells ("Ching!")
+    var bellStart = now + 0.035;
+    var bellFreqs = [2093.0, 2793.8, 3135.9, 4186.0];
+    bellFreqs.forEach(function(freq, idx) {
+      var bellOsc = ctx.createOscillator();
+      var bellGain = ctx.createGain();
+      bellOsc.type = 'sine';
+      bellOsc.frequency.setValueAtTime(freq, bellStart);
+      var initGain = (idx === 0) ? 0.38 : (0.24 / idx);
+      bellGain.gain.setValueAtTime(initGain, bellStart);
+      bellGain.gain.exponentialRampToValueAtTime(0.0001, bellStart + 0.95);
+      bellOsc.connect(bellGain);
+      bellGain.connect(masterGain);
+      bellOsc.start(bellStart);
+      bellOsc.stop(bellStart + 1.0);
+    });
+
+    // 3. Coins dropping / clinking inside the drawer
+    var coinDelays = [0.08, 0.16, 0.24, 0.32];
+    var coinFreqs = [3500, 4200, 3900, 4800];
+    coinDelays.forEach(function(delay, i) {
+      var coinOsc = ctx.createOscillator();
+      var coinGain = ctx.createGain();
+      coinOsc.type = 'sine';
+      coinOsc.frequency.setValueAtTime(coinFreqs[i], now + delay);
+      coinGain.gain.setValueAtTime(0.20, now + delay);
+      coinGain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.14);
+      coinOsc.connect(coinGain);
+      coinGain.connect(masterGain);
+      coinOsc.start(now + delay);
+      coinOsc.stop(now + delay + 0.15);
+    });
+  } catch(e) {}
+}
+
+var _paySuccessTimer = null;
+function showPaymentSuccessModal(data) {
+  var $overlay = $('#paymentSuccessOverlay');
+  if (!$overlay.length) return;
+
+  var total = parseFloat(data.totalAmount || data.paidAmount || 0);
+  $('#paySuccessAmount').html(cdMoney(total));
+
+  var cash = parseFloat(data.cashReceived || 0);
+  var qr = parseFloat(data.qrReceived || 0);
+  var change = parseFloat(data.changeAmount || 0);
+  var payType = data.paymentType || '';
+  var payMode = data.payMode || '';
+
+  // Determine Bank: lookup from CD_BANKS if id/name available
+  var bankId = data.bankId ? parseInt(data.bankId, 10) : null;
+  var bank = (bankId && CD_BANKS && CD_BANKS[bankId]) ? CD_BANKS[bankId] : null;
+  if (!bank && data.bankName && typeof CD_BANKS === 'object') {
+    for (var bid in CD_BANKS) {
+      if (CD_BANKS[bid].name === data.bankName || (data.bankName && data.bankName.includes(CD_BANKS[bid].name))) {
+        bank = CD_BANKS[bid];
+        break;
+      }
+    }
+  }
+  var bankName = bank ? bank.name : (data.bankName || '');
+  var bankLogo = bank ? bank.logo : '';
+
+  // Determine payment method display
+  var isSplit = (payMode === 'split') || (cash > 0 && qr > 0);
+  var isTransfer = (qr > 0) || (payType && (payType.includes('ໂອນ') || payType.includes('QR')));
+
+  if (isSplit) {
+    $('#paySuccessMethodIcon').html('<i class="fas fa-coins text-warning"></i>');
+    $('#paySuccessMethodText').text('ຊຳລະດ້ວຍ: ແຍກຈ່າຍ (ເງິນສົດ + ໂອນ)');
+  } else if (isTransfer) {
+    $('#paySuccessMethodIcon').html('<i class="fas fa-qrcode text-primary"></i>');
+    $('#paySuccessMethodText').text('ຊຳລະດ້ວຍ: ໂອນຜ່ານທະນາຄານ');
+  } else {
+    $('#paySuccessMethodIcon').html('<i class="fas fa-money-bill-wave text-success"></i>');
+    $('#paySuccessMethodText').text('ຊຳລະດ້ວຍ: ເງິນສົດ');
+  }
+
+  // Bank Info section in badge
+  if ((isTransfer || isSplit) && (bankName || bankLogo)) {
+    if (bankLogo) {
+      $('#paySuccessBankLogo').attr('src', bankLogo).show();
+    } else {
+      $('#paySuccessBankLogo').hide();
+    }
+    $('#paySuccessBankName').text(bankName ? ('ທະນາຄານ ' + bankName) : '').show();
+    $('#paySuccessBankWrap').css('display', 'flex');
+  } else {
+    $('#paySuccessBankWrap').hide();
+  }
+
+  // Detailed Breakdown rows
+  // 1. Cash row
+  if (cash > 0 || (!isTransfer && !isSplit)) {
+    $('#paySuccessCashAmt').html(cdMoney(cash > 0 ? cash : total));
+    $('#paySuccessCashRow').show();
+  } else {
+    $('#paySuccessCashRow').hide();
+  }
+
+  // 2. QR Transfer row
+  if (qr > 0 || isTransfer) {
+    var qrAmtVal = qr > 0 ? qr : total;
+    $('#paySuccessQrAmt').html(cdMoney(qrAmtVal));
+    $('#paySuccessQrBankInline').text(bankName ? ('(' + bankName + ')') : '');
+    $('#paySuccessQrRow').show();
+  } else {
+    $('#paySuccessQrRow').hide();
+  }
+
+  // 3. Change row
+  $('#paySuccessChange').html(cdMoney(change));
+  $('#paySuccessChangeRow').show();
+
+  // Invoice Number
+  if (data.invoiceNumber) {
+    $('#paySuccessInvoiceNo').text('ເລກທີໃບບິນ: ' + data.invoiceNumber).show();
+  } else {
+    $('#paySuccessInvoiceNo').text('ເລກທີໃບບິນ: -').show();
+  }
+
+  // Queue Number
+  if (data.queueNumber) {
+    $('#paySuccessQueueNo').text(data.queueNumber);
+    $('#paySuccessQueueBadge').show();
+  } else {
+    $('#paySuccessQueueBadge').hide();
+  }
+
+  $('#bankPayPopup').hide();
+
+  // Reset and animate countdown progress bar (6 seconds)
+  var $bar = $('#paySuccessProgressBar');
+  if ($bar.length) {
+    $bar.stop().css({ width: '100%', transition: 'none' });
+    void $bar[0].offsetWidth; // force DOM reflow
+    $bar.css({ transition: 'width 6s linear', width: '0%' });
+  }
+
+  $overlay.stop(true, true).css('display', 'flex').hide().fadeIn(250);
+  playMoneyReceivedSound();
+
+  if (_paySuccessTimer) clearTimeout(_paySuccessTimer);
+  _paySuccessTimer = setTimeout(function() {
+    $overlay.fadeOut(600, function() {
+      resetDisplayTotals();
+    });
+  }, 6000);
+}
+
+function resetDisplayTotals() {
+  $('#displayItemCount').text('0 ລາຍການ / 0 ອັນ');
+  ['displaySubtotal', 'displayDiscount', 'displayGrandTotal', 'displayCashReceived', 'displayQrReceived', 'displayChangeAmount'].forEach(function(id) {
+    $('#' + id).html(cdFmt(0));
+  });
+  highlightPayBank(null);
+  $('#bankPayPopup').hide();
+  $('#displayCartBody').empty();
+  $('#displayCartEmpty').show();
+
+  try {
+    var cleanPayload = {
+      checkoutState: 'shopping',
+      cart: [],
+      customer: null,
+      discount: '0',
+      cashReceived: 0,
+      qrReceived: 0,
+      changeAmount: 0,
+      totalAmount: 0,
+      paidAmount: 0
+    };
+    localStorage.setItem('StoreMini.customer_display_data', JSON.stringify(cleanPayload));
+  } catch(e) {}
+}
+
 function renderDisplayData(data) {
   if (!data) return;
   renderBankPopup(data);
 
-  // Queue number flash on payment success (coffee-shop style)
-  if (data.checkoutState === 'payment_success' && data.queueNumber) {
+  // Trigger payment success overlay with amount paid
+  if (data.checkoutState === 'payment_success') {
+    showPaymentSuccessModal(data);
+  } else if (data.checkoutState === 'checkout_modal_open') {
+    $('#paymentSuccessOverlay').hide();
+  } else if (data.checkoutState === 'shopping' && data.cart && data.cart.length > 0) {
+    if (_paySuccessTimer) clearTimeout(_paySuccessTimer);
+    $('#paymentSuccessOverlay').hide();
+  }
+
+  // Queue number flash on payment success (if standalone queue flash is desired)
+  if (data.checkoutState === 'payment_success' && data.queueNumber && !$('#paymentSuccessOverlay').length) {
     showQueueFlash(data.queueNumber);
   }
 
@@ -263,10 +506,22 @@ function renderDisplayData(data) {
       var idx = origIndex.get(item);
       var isNewest = (i === 0);
       var isGift = !!item.is_free_gift;
-      var itemTotal = isGift ? cdMoney(0) : cdMoney(item.quantity * item.unit_price);
-      var unitPriceStr = isGift ? cdMoney(0) : cdMoney(item.unit_price);
+      var origUnitPrice = parseFloat(item.original_price || item.unit_price) || 0;
+      var curUnitPrice = parseFloat(item.unit_price) || 0;
+      var itemDisc = parseFloat(item.item_discount) || 0;
+      var hasLineDisc = (itemDisc > 0 || origUnitPrice > curUnitPrice) && !isGift;
+
+      var itemTotal = isGift ? cdMoney(0) : cdMoney(item.quantity * curUnitPrice);
+      var unitPriceStr = isGift 
+        ? cdMoney(0) 
+        : (hasLineDisc && origUnitPrice > curUnitPrice
+            ? `<del style="color:#94a3b8; font-size:0.85em; text-decoration:line-through; font-weight:normal;" class="mr-1">${cdMoney(origUnitPrice)}</del><span class="text-danger font-weight-bold">${cdMoney(curUnitPrice)}</span>`
+            : cdMoney(curUnitPrice));
       var unitNameStr = item.unit_name ? item.unit_name : 'ອັນ';
       var giftBadgeHtml = isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.82rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i>ແຖມຟຣີ</span>` : '';
+      var discBadgeHtml = hasLineDisc 
+        ? `<span class="badge badge-danger font-weight-bold ml-1" style="font-size:0.80rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-tag mr-1"></i>-${item.item_discount_text || cdMoney(origUnitPrice - curUnitPrice)}</span>` 
+        : '';
 
       var rawImg = item.image || item.img_url || '';
       var imgName = rawImg ? rawImg.split('/').pop().split('\\').pop() : 'image.jpg';
@@ -279,7 +534,7 @@ function renderDisplayData(data) {
             <img src="${imgSrc}" alt="${item.product_name}" class="display-pro-img" onerror="this.src='../../assets/img/image.jpg';">
           </td>
           <td class="font-weight-bold text-dark" style="font-size: 1.1rem;">
-            ${item.product_name} ${giftBadgeHtml}
+            ${item.product_name} ${giftBadgeHtml} ${discBadgeHtml}
             <small class="text-muted d-block font-weight-normal" style="font-size:0.80rem; ${item.barcode ? '' : 'visibility:hidden;'}">${item.barcode || ' '}</small>
           </td>
           <td class="text-center font-weight-bold text-primary">${unitNameStr}</td>
@@ -333,9 +588,12 @@ function renderDisplayData(data) {
   animateNumber('displayGrandTotal', netGrandTotal);
 
   // 3. Cash, QR, and Change Breakdown
-  var cashRec = parseFloat(data.cashReceived || 0);
-  var qrRec = parseFloat(data.qrReceived || 0);
-  var changeAmt = parseFloat(data.changeAmount || 0);
+  // ຄ່າເຫຼົ່ານີ້ສະແດງສະເພາະຕອນພະນັກງານກຳລັງປ້ອນເງິນໃນໜ້າຕ່າງຊຳລະ (payment_live).
+  // ເມື່ອຊຳລະສຳເລັດ (payment_success) ຫຼື ຢູ່ໜ້າຂາຍປົກກະຕິ (shopping) ຕ້ອງລ້າງເປັນ 0 ບໍ່ໃຫ້ຄ້າງ.
+  var isPayLive = (data.checkoutState === 'payment_live');
+  var cashRec   = isPayLive ? parseFloat(data.cashReceived || 0) : 0;
+  var qrRec     = isPayLive ? parseFloat(data.qrReceived || 0) : 0;
+  var changeAmt = isPayLive ? parseFloat(data.changeAmount || 0) : 0;
 
   animateNumber('displayCashReceived', cashRec);
   animateNumber('displayQrReceived', qrRec);

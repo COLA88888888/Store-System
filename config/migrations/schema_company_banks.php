@@ -29,6 +29,13 @@
             $pdo->exec("ALTER TABLE `st_tbcompanyinfo` ADD COLUMN `license_expire_date` DATE DEFAULT '2026-12-31'");
         }
 
+        // ຂໍ້ຄວາມທ້າຍໃບບິນ ຕາມພາສາ: barcode = ພາສາລາວ (ເດີມ), ຖັນເຫຼົ່ານີ້ = ອັງກິດ/ໄທ/ຈີນ (ຫວ່າງ = ໃຊ້ພາສາລາວ)
+        foreach (['receipt_footer_en', 'receipt_footer_th', 'receipt_footer_zh'] as $__fcol) {
+            if (!$pdo->query("SHOW COLUMNS FROM `st_tbcompanyinfo` LIKE '{$__fcol}'")->fetch()) {
+                $pdo->exec("ALTER TABLE `st_tbcompanyinfo` ADD COLUMN `{$__fcol}` VARCHAR(255) DEFAULT NULL");
+            }
+        }
+
         $compCount = (int)$pdo->query("SELECT COUNT(*) FROM st_tbcompanyinfo")->fetchColumn();
         if ($compCount === 0) {
             $pdo->exec("INSERT INTO st_tbcompanyinfo (com_name_la, com_address, com_tel, barcode, img_url, license_start_date, license_expire_date, branch_id) VALUES 

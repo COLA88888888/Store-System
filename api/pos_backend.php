@@ -2,7 +2,6 @@
 /**
  * ໂຄງສ້າງໄຟລ໌ (ແຍກເປັນໄຟລ໌ຍ່ອຍເພື່ອໃຫ້ອ່ານງ່າຍ — ແຕ່ລະໄຟລ໌ບໍ່ເກີນ 500 ແຖວ):
  * Backend ຂອງໜ້າຂາຍ: ຈັດການ AJAX (ສະຕັອກສົດ, ພິມ LAN, ຂາຍ/checkout, ເພີ່ມລູກຄ້າ) ແລະ ກຽມຂໍ້ມູນໃຫ້ pages/pos/pos.php. ທຸກການກະທຳ AJAX ຈະ exit() ກ່ອນສ່ວນດຶງຂໍ້ມູນໜ້າ.
- *   - pos/customer_debt_info.php : AJAX: ໜີ້ເກົ່າຂອງລູກຄ້າ (ຟອມຂາຍຕິດໜີ້)
  *   - pos/print_lan_ticket.php : AJAX: ພິມບິນຍ່ອຍ LAN
  *   - pos/checkout_totals.php : Checkout (1): ຄິດຍອດເງິນ
  *   - pos/checkout_save.php : Checkout (2): ບັນທຶກບິນ
@@ -61,15 +60,65 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_live_stocks') {
     exit();
 }
 
-// AJAX: ໜີ້ເກົ່າຂອງລູກຄ້າ (ຟອມຂາຍຕິດໜີ້)
-require __DIR__ . '/pos/customer_debt_info.php';
+// Receipt Printer Polling / Lookup Handler
+if (isset($_GET['action']) && $_GET['action'] === 'get_receipt_printer') {
+    header('Content-Type: application/json');
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    $activeStoreId = getPosStoreId();
+    $rp = null;
+    try {
+        $rpStmt = $pdo->prepare("SELECT id, name, type, paper_width, ip_address FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 AND branch_id = ? LIMIT 1");
+        $rpStmt->execute([$activeStoreId]);
+        $rpRow = $rpStmt->fetch(PDO::FETCH_ASSOC);
+        if (!$rpRow) {
+            $fbStmt = $pdo->query("SELECT id, name, type, paper_width, ip_address FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 ORDER BY (type = 'usb') DESC, id DESC LIMIT 1");
+            $rpRow = $fbStmt ? $fbStmt->fetch(PDO::FETCH_ASSOC) : null;
+        }
+        if (!$rpRow) {
+            $fbUsb = $pdo->query("SELECT id, name, type, paper_width, ip_address FROM st_tbl_printer WHERE type = 'usb' AND status = 1 ORDER BY id DESC LIMIT 1");
+            $rpRow = $fbUsb ? $fbUsb->fetch(PDO::FETCH_ASSOC) : null;
+        }
+        if ($rpRow) {
+            $rp = [
+                'printer_id'   => (int)$rpRow['id'],
+                'printer_name' => $rpRow['name'],
+                'printer_type' => in_array($rpRow['type'] ?? '', ['ip', 'usb'], true) ? $rpRow['type'] : 'browser',
+                'paper_width'  => in_array(intval($rpRow['paper_width'] ?? 80), [58, 80, 148, 210], true) ? intval($rpRow['paper_width']) : 80,
+            ];
+        }
+    } catch (Throwable $e) {}
+    echo json_encode(['success' => true, 'printer' => $rp], JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
 // AJAX: ພິມບິນຍ່ອຍ LAN
 require __DIR__ . '/pos/print_lan_ticket.php';
+
+// AJAX: ຈັດການບິນທີ່ພັກໄວ້ (Held Orders API)
+require __DIR__ . '/pos/held_orders_api.php';
 // 1. AJAX handler for Checkout
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'checkout') {
     ob_start();
     header('Content-Type: application/json');
-    $cart = json_decode($_POST['cart'] ?? '[]', true);
+
+    // ສາຂາທີ່ຕັ້ງກະໄວ້: ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການຂາຍບໍ່ໄດ້ (ພະນັກງານຂາຍຕາມກະ). ສາຂາບໍ່ມີກະ = ຂາຍໄດ້ປົກກະຕິ.
+    // ຜູ້ບໍລິຫານຄົນທຳອິດ (Id 1) ຂາຍໄດ້ສະເໝີ. ໜ້າຂາຍກວດກ່ອນແລ້ວ (checkShiftSalePermission) — ອັນນີ້ກັນແທັບເກົ່າ/ການຍິງ API ກົງ.
+    $__posUid = intval($_SESSION['user_id'] ?? 0);
+    $__posStatus = $_SESSION['status'] ?? '';
+    if ($__posUid !== 1 && ($__posStatus === 'ຜູ້ບໍລິຫານ' || isManagerRole($__posStatus))) {
+        $__hasShifts = false;
+        try {
+            $__shStmt = $pdo->prepare("SELECT COUNT(*) FROM st_shifts WHERE store_id = ? AND status = 1");
+            $__shStmt->execute([getPosStoreId()]);
+            $__hasShifts = intval($__shStmt->fetchColumn()) > 0;
+        } catch (Throwable $e) {}
+        if ($__hasShifts) {
+            echo json_encode(['success' => false, 'message' => 'ສາຂານີ້ມີການຕັ້ງກະເຮັດວຽກແລ້ວ — ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການບໍ່ສາມາດຂາຍໄດ້']);
+            exit();
+        }
+    }
+
+    $cart =json_decode($_POST['cart'] ?? '[]', true);
     $cash_received = floatval($_POST['cash_received'] ?? 0.00);
     $qr_received   = floatval($_POST['qr_received']   ?? 0.00);
     $payment_type  = $_POST['payment_type'] ?? 'ເງິນສົດ';
@@ -91,7 +140,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if (!in_array($paid_currency, $allowed_currencies, true)) $paid_currency = 'KIP';
     $paid_rate = ($paid_currency === 'KIP') ? 1.0 : (float)($_POST['paid_rate'] ?? 0);
     if ($paid_rate <= 0) { $paid_currency = 'KIP'; $paid_rate = 1.0; }
-    
+    // ເລດທີ່ໜ້າຂາຍໃຊ້ຄິດ ຕ້ອງເທົ່າກັບເລດປັດຈຸບັນ (ຕັ້ງຄ່າ > ອັດຕາແລກປ່ຽນ). ຖ້າຜູ້ບໍລິຫານປ່ຽນເລດຂະນະໜ້າຂາຍເປີດຄ້າງ,
+    // ແທັບເກົ່າຍັງຄິດເງິນຮັບ/ເງິນທອນດ້ວຍເລດເກົ່າ — ປະຕິເສດ ໃຫ້ໂຫຼດໜ້າໃໝ່ ແທນການບັນທຶກບິນດ້ວຍເລດທີ່ລ້າສະໄໝ.
+    if ($paid_currency !== 'KIP') {
+        $__srvRate = (float)(getExchangeRates($pdo)[$paid_currency] ?? 0);
+        if ($__srvRate <= 0 || abs($paid_rate - $__srvRate) > 0.000001 * $__srvRate) {
+            echo json_encode(['success' => false, 'message' => 'ອັດຕາແລກປ່ຽນ ' . $paid_currency . ' ຖືກປ່ຽນແລ້ວ (ປັດຈຸບັນ 1 = ' . number_format($__srvRate) . ' ₭) — ກະລຸນາໂຫຼດໜ້າຂາຍໃໝ່ ແລ້ວຊຳລະອີກຄັ້ງ']);
+            exit();
+        }
+    }
+
     if (empty($cart)) {
         echo json_encode(['success' => false, 'message' => 'ກະຕ່າສິນຄ້າຫວ່າງເປົ່າ!']);
         exit();

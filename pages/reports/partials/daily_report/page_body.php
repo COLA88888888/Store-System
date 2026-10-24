@@ -60,7 +60,7 @@
           <option value=""><?php echo htmlspecialchars(t('reports.all_currencies_opt', '-- ທຸກສະກຸນເງິນ --')); ?></option>
           <?php foreach (getCurrencyMeta() as $__curCode => $__curInfo): ?>
             <option value="<?php echo htmlspecialchars($__curCode); ?>" <?php echo $currency_filter === $__curCode ? 'selected' : ''; ?>>
-              <?php echo htmlspecialchars($__curInfo['name'] . ' (' . $__curInfo['symbol'] . ')'); ?>
+              <?php /* ລະຫັດສະກຸນເງິນເທົ່ານັ້ນ (KIP → LAK) ບໍ່ມີສັນຍາລັກ */ echo htmlspecialchars($__curCode === 'KIP' ? 'LAK' : $__curCode); ?>
             </option>
           <?php endforeach; ?>
         </select>

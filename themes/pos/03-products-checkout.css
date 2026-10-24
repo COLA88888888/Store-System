@@ -54,8 +54,8 @@
     height: 100% !important;
     max-width: 100% !important;
     max-height: 100% !important;
-    object-fit: cover !important;
-    padding: 0 !important;
+    object-fit: contain !important;
+    padding: 2px !important;
     background: #ffffff !important;
     display: block !important;
     margin: 0 !important;
@@ -121,8 +121,8 @@
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
-    gap: 10px !important;
-    padding: 4px 4px 6px 4px !important;
+    gap: 12px !important;
+    padding: 10px 6px 8px 6px !important;
     margin-bottom: 4px !important;
     width: 100% !important;
     -webkit-overflow-scrolling: touch !important;
@@ -158,6 +158,7 @@
 .category-pills-bar .category-pill-btn,
 button.category-pill-btn,
 .category-pill-btn {
+    position: relative !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -168,7 +169,7 @@ button.category-pill-btn,
     font-weight: 700 !important;
     font-size: 0.88rem !important;
     padding: 5px 16px !important;
-    border-radius: 10px !important;
+    border-radius: 4px !important;
     white-space: nowrap !important;
     cursor: pointer !important;
     transition: all 0.15s ease-in-out !important;
@@ -213,6 +214,31 @@ button.category-pill-btn.active,
 button.category-pill-btn.active i,
 .category-pill-btn.active i {
     color: #ffffff !important;
+}
+
+/* ບັອກວົງມົນສີແດງ ຕົວເລກສີຂາວ ຢູ່ເທິງບັອກໝວດໝູ່ (ມຸມເທິງຂວາ) */
+.category-count-badge {
+    position: absolute !important;
+    top: -8px !important;
+    right: -5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 20px !important;
+    height: 20px !important;
+    padding: 0 5px !important;
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    font-size: 0.70rem !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    border-radius: 999px !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25) !important;
+    vertical-align: middle !important;
+    flex-shrink: 0 !important;
+    z-index: 10 !important;
+    pointer-events: none !important;
 }
 
 /* Stock Info Pill Wrapper ("ເຫຼືອ: XX...") — Top-Right Badge on Product Image. Its own color
@@ -284,57 +310,193 @@ button.category-pill-btn.active i,
 
 /* ===== Responsive Checkout Modal Styling ===== */
 .checkout-modal-dialog {
-    max-width: 780px !important;
+    max-width: 980px !important;
     width: 96% !important;
-    margin: 10px auto !important;
+    margin: 1.2rem auto !important;
 }
 
 .checkout-grid {
     display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1.08fr 0.92fr !important;
     gap: 0 !important;
     min-height: 0 !important;
+    align-items: stretch !important;
 }
 
 .checkout-left-col {
-    padding: 16px 14px 14px 16px;
+    padding: 14px 18px 14px 18px !important;
     border-right: 1.5px solid #e2e8f0;
     background: #f8fafc;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px !important;
 }
 
 .checkout-right-col {
-    padding: 16px 16px 14px 14px;
+    padding: 14px 18px 14px 18px !important;
     background: #ffffff;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px !important;
+    justify-content: space-between !important;
 }
 
-/* Desktop Only (≥ 992px): Keep original larger fonts & spacing for PC */
+/* ປ້ອງກັນຂອບມຸມຊ້າຍເທິງ-ລຸ່ມຂອງກ່ອງຈຳນວນເງິນບໍ່ໃຫ້ຂາດ ຫຼື ຖືກຕັດ */
+#cashReceived {
+    border-top-left-radius: 10px !important;
+    border-bottom-left-radius: 10px !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border: 2px solid #244886 !important;
+    border-right: none !important;
+    box-sizing: border-box !important;
+}
+#cashReceived:focus {
+    border-color: #244886 !important;
+    box-shadow: 0 0 0 3px rgba(36, 72, 134, 0.20) !important;
+    background: #ffffff !important;
+    outline: none !important;
+}
+
+#splitCashAmount {
+    border-top-left-radius: 10px !important;
+    border-bottom-left-radius: 10px !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border: 2px solid #22c55e !important;
+    border-right: none !important;
+    box-sizing: border-box !important;
+}
+#splitCashAmount:focus {
+    border-color: #22c55e !important;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.20) !important;
+    background: #f0fdf4 !important;
+    outline: none !important;
+}
+
+#splitQrAmount {
+    border-top-left-radius: 10px !important;
+    border-bottom-left-radius: 10px !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border: 2px solid #a78bfa !important;
+    border-right: none !important;
+    box-sizing: border-box !important;
+}
+#splitQrAmount:focus {
+    border-color: #7c3aed !important;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.20) !important;
+    background: #faf5ff !important;
+    outline: none !important;
+}
+
+/* Bank Selection Options: Short & Compact Cards */
+.pos-bank-option {
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 6px !important;
+    min-height: 36px !important;
+    padding: 3px 8px !important;
+}
+.pos-bank-option:hover {
+    border-color: #94a3b8 !important;
+    background: #f8fafc !important;
+}
+.pos-bank-option.selected-bank {
+    background: #f0f9ff !important;
+    border-color: #0284c7 !important;
+    box-shadow: 0 1px 4px rgba(2, 132, 199, 0.15) !important;
+}
+
+/* ຄອມ/ແທັບເລັດ: ໂລໂກ້ທະນາຄານໃຫຍ່ຂຶ້ນ (ເດີມ 22px) */
+@media (min-width: 576px) {
+    .pos-bank-option .pos-bank-logo {
+        width: 30px !important;
+        height: 30px !important;
+        border-radius: 6px !important;
+    }
+    .pos-bank-option .pos-bank-logo-icon { font-size: 1.3rem !important; }
+    .pos-bank-option { min-height: 42px !important; }
+}
+
+/* ໂທລະສັບ: ສະແດງແຕ່ໂລໂກ້ໃຫຍ່ (ບໍ່ມີກາດອ້ອມ, ເຊື່ອງຊື່ ແລະ ວົງມົນ radio) — ທີ່ເລືອກແລ້ວເບິ່ງຈາກຂອບສີຟ້າຂອງໂລໂກ້ */
+@media (max-width: 575.98px) {
+    .pos-bank-option,
+    .pos-bank-option:hover,
+    .pos-bank-option.selected-bank {
+        justify-content: center !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border-width: 0 !important; /* inline border-color !important ໃນ markup ຊະນະ border-color, ຈຶ່ງຕັດຄວາມໜາແທນ */
+        box-shadow: none !important;
+    }
+    /* ຮຽງຊິດກັນຈາກຊ້າຍ (ບໍ່ແບ່ງ 4 ຖັນເທົ່າກັນທີ່ເຮັດໃຫ້ຫວ່າງ) */
+    #posBankSelectGrid {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        column-gap: 10px;
+        row-gap: 8px !important;
+    }
+    #posBankSelectGrid > .col-3 {
+        flex: 0 0 64px;
+        max-width: 64px;
+        padding: 0 !important;
+    }
+    /* ໂລໂກ້ຢູ່ເທິງ, ຊື່ທະນາຄານຢູ່ລຸ່ມ */
+    .pos-bank-option > div {
+        flex-direction: column;
+        justify-content: center;
+        gap: 1px !important;
+        width: 100%;
+    }
+    .pos-bank-option .pos-bank-name {
+        font-size: 0.7rem !important;
+        line-height: 1.2;
+        max-width: 100%;
+        text-align: center;
+    }
+    .pos-bank-option.selected-bank .pos-bank-name { color: #0284c7 !important; }
+    .pos-bank-option .pos-bank-radio { display: none !important; }
+    .pos-bank-option .pos-bank-logo {
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 8px !important;
+        border: 1.5px solid #cbd5e1 !important;
+        padding: 3px !important;
+        transition: all 0.15s ease-in-out;
+    }
+    .pos-bank-option .pos-bank-logo-icon { font-size: 1.8rem !important; padding: 8px 0; }
+    .pos-bank-option.selected-bank .pos-bank-logo {
+        border: 2px solid #0284c7 !important;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.25) !important;
+    }
+}
+
+/* Desktop Only (≥ 992px): Balanced heights & clean fonts for POS screens */
 @media (min-width: 992px) {
     #checkoutTotalDisplay {
-        font-size: 1.85rem !important;
+        font-size: 1.6rem !important;
     }
     #cashReceived {
-        height: 48px !important;
-        font-size: 1.45rem !important;
+        height: 42px !important;
+        font-size: 1.3rem !important;
     }
     #changeDisplay {
-        font-size: 1.55rem !important;
+        font-size: 1.4rem !important;
     }
     #splitRemainingDisplay {
-        font-size: 1.40rem !important;
+        font-size: 1.3rem !important;
     }
     #splitCashAmount, #splitQrAmount {
-        height: 44px !important;
-        font-size: 1.25rem !important;
+        height: 40px !important;
+        font-size: 1.15rem !important;
     }
     .checkout-numpad-btn {
-        height: 46px !important;
-        font-size: 1.15rem !important;
+        height: 38px !important;
+        font-size: 1.05rem !important;
     }
 }
 

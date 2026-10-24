@@ -56,19 +56,36 @@
       }
     }
 
-    var loaderSafetyTimer = null;
+    var loaderSafetyTimer = null; 
+    var slowNetHintTimer = null;
 
     function showFastLoader() {
       clearTimeout(loaderSafetyTimer);
-      $('#iframeLoaderOverlay').stop(true, true).show();
+      clearTimeout(slowNetHintTimer);
+      document.body.classList.add('is-loading');
+      if (typeof window.refreshPosNavMode === 'function') window.refreshPosNavMode();
+      $('#systemLoaderSlowHint').removeClass('show');
+      $('#iframeLoaderOverlay').stop(true, true).css({ opacity: 1 }).show();
+
+      // ຖ້າເນັດຊ້າເກີນ 2.2 ວິນາທີ ໃຫ້ໂຊຄຳແນະນຳ
+      slowNetHintTimer = setTimeout(function() {
+        $('#systemLoaderSlowHint').addClass('show');
+      }, 2200);
+
+      // Failsafe 25 ວິນາທີ ບໍ່ໃຫ້ຕັດໄວເກີນໄປ ເພື່ອໃຫ້ໂຫຼດຕາມອິນເຕີເນັດຕົວຈິງ
       loaderSafetyTimer = setTimeout(function() {
-        $('#iframeLoaderOverlay').stop(true, true).fadeOut(120);
-      }, 1200);
+        hideFastLoader();
+      }, 25000);
     }
 
     function hideFastLoader() {
       clearTimeout(loaderSafetyTimer);
-      $('#iframeLoaderOverlay').stop(true, true).fadeOut(120);
+      clearTimeout(slowNetHintTimer);
+      $('#systemLoaderSlowHint').removeClass('show');
+      $('#iframeLoaderOverlay').stop(true, true).fadeOut(220, function() {
+        document.body.classList.remove('is-loading');
+        if (typeof window.refreshPosNavMode === 'function') window.refreshPosNavMode();
+      });
     }
 
     // ===== Exclusive Active Menu Highlight =====
@@ -78,9 +95,9 @@
     var currentSrc = sessionStorage.getItem('StoreMini.currentIframeSrc') || $('iframe[name="frame"]').attr('src');
     if (currentSrc) {
       var normSrc = currentSrc.replace(/\\/g, '/');
-      $('.nav-sidebar .nav-link[target="frame"]').each(function() {
-        var href = $(this).attr('href');
-        if (!href || href === '#') return;
+      $('.nav-sidebar .nav-link').each(function() {
+        var href = $(this).attr('href') || $(this).attr('data-href');
+        if (!href || href === '#' || href === 'javascript:void(0);') return;
         var normHref = href.replace(/\\/g, '/');
         if (normHref === normSrc || normSrc.endsWith(normHref) || normHref.endsWith(normSrc)) {
           $('.nav-sidebar .nav-link').removeClass('active');
@@ -95,12 +112,28 @@
       });
     }
 
-    $sidebar.on('click', '.nav-link', function() {
-      var href = $(this).attr('href');
+    // ປ້ອງກັນບໍ່ໃຫ້ Browser ສະແດງ URL tooltip (status bubble) ຢູ່ແຈລຸ່ມຊ້າຍ ເຊິ່ງຈະໄປບັງ "Wlaodev Pos System V 3.8.26"
+    // ຍ້າຍ href → data-href ເທື່ອດຽວຕອນໂຫຼດ ແລະ ບໍ່ໃສ່ຄືນ: ເມື່ອກ່ອນສະຫຼັບໄປມາທຸກເທື່ອ mouseenter/mouseleave
+    // ເຮັດໃຫ້ browser ຄິດສະໄຕລ໌ລິ້ງໃໝ່ (:link ↔ ບໍ່ແມ່ນລິ້ງ) ຕົວໜັງສືເມນູຈຶ່ງກະພິບ. ເມນູແມ່ (dropdown) ບໍ່ມີ href
+    // ຈຶ່ງນິ່ງມາຕະຫຼອດ. ການກົດທຸກບ່ອນອ່ານ attr('href') || attr('data-href') ຢູ່ແລ້ວ.
+    function stripSidebarHref(el) {
+      var h = $(el).attr('href');
+      if (h) {
+        $(el).attr('data-href', h).removeAttr('href').css('cursor', 'pointer');
+      }
+    }
+    $('.main-sidebar a[href]').each(function() { stripSidebarHref(this); });
+    // ລິ້ງທີ່ເພີ່ມເຂົ້າມາພາຍຫຼັງ
+    $(document).on('mouseenter', '.main-sidebar a[href]', function() { stripSidebarHref(this); });
+
+    $sidebar.on('click', '.nav-link', function(e) {
+      var href = $(this).attr('href') || $(this).attr('data-href');
       
-      if (!href || href === '#' || $(this).closest('.nav-item').hasClass('has-treeview')) {
+      if (!href || href === '#' || href === 'javascript:void(0);' || $(this).closest('.nav-item').hasClass('has-treeview')) {
         return;
       }
+
+      e.preventDefault();
 
       // Reset manual toggle flag on new menu navigation
       posUserToggledManual = false;
@@ -120,6 +153,7 @@
       }
 
       sessionStorage.setItem('StoreMini.currentIframeSrc', href);
+      $('iframe[name="frame"]').attr('src', href);
 
       if (href && (href.indexOf('pos.php') !== -1 || href.indexOf('/pos/') !== -1)) {
         $('html, body').addClass('sidebar-collapse').removeClass('sidebar-closed sidebar-open');
@@ -141,6 +175,16 @@
           }
           sessionStorage.setItem('StoreMini.sidebarScrollTop', scrollTop);
         }
+      }
+    });
+
+    $(document).on('click', 'a.brand-link', function(e) {
+      var href = $(this).attr('href') || $(this).attr('data-href');
+      if (href && href !== '#' && href !== 'javascript:void(0);') {
+        e.preventDefault();
+        showFastLoader();
+        sessionStorage.setItem('StoreMini.currentIframeSrc', href);
+        $('iframe[name="frame"]').attr('src', href);
       }
     });
 
@@ -248,7 +292,7 @@
           var normPath = path.replace(/\\/g, '/');
           // Only try to re-match if the current active item doesn't already match the actual loaded path
           var $currentActive = $('.nav-sidebar .nav-link.active[target="frame"]');
-          var currentActiveHref = $currentActive.length ? $currentActive.attr('href').replace(/\\/g, '/') : '';
+          var currentActiveHref = $currentActive.length ? ($currentActive.attr('href') || $currentActive.attr('data-href') || '').replace(/\\/g, '/') : '';
 
           // Check if the currently highlighted menu already matches the loaded page
           var alreadyMatches = currentActiveHref && (
@@ -261,9 +305,9 @@
             var matched = false;
 
             // Exact path match first
-            $('.nav-sidebar .nav-link[target="frame"]').each(function() {
-              var href = $(this).attr('href');
-              if (!href || href === '#') return;
+            $('.nav-sidebar .nav-link').each(function() {
+              var href = $(this).attr('href') || $(this).attr('data-href');
+              if (!href || href === '#' || href === 'javascript:void(0);') return;
               var normHref = href.replace(/\\/g, '/');
 
               // Must match specifically — use full path ending, not partial indexOf
@@ -285,9 +329,9 @@
 
             if (!matched) {
               // Fallback: match by filename only (no cross-folder matching)
-              $('.nav-sidebar .nav-link[target="frame"]').each(function() {
-                var href = $(this).attr('href');
-                if (!href || href === '#') return;
+              $('.nav-sidebar .nav-link').each(function() {
+                var href = $(this).attr('href') || $(this).attr('data-href');
+                if (!href || href === '#' || href === 'javascript:void(0);') return;
                 var hrefNorm = href.replace(/\\/g, '/');
                 var hrefPage = hrefNorm.substring(hrefNorm.lastIndexOf('/') + 1);
                 if (hrefPage && hrefPage !== 'index.php' && hrefPage === page) {
@@ -379,8 +423,8 @@
     // ເຊື່ອງ sidebar ອັດຕະໂນມັດ ເມື່ອກົດ menu ໃນໜ້າຈໍ mobile (≤992px)
     $(document).on('click', '.nav-sidebar .nav-link', function() {
       var isMobile = window.innerWidth <= 992;
-      var href = $(this).attr('href');
-      var isLeafItem = href && href !== '#' && !$(this).closest('.nav-item').hasClass('has-treeview');
+      var href = $(this).attr('href') || $(this).attr('data-href');
+      var isLeafItem = href && href !== '#' && href !== 'javascript:void(0);' && !$(this).closest('.nav-item').hasClass('has-treeview');
 
       if (isMobile && isLeafItem) {
         $('body').removeClass('sidebar-open sidebar-is-opening');

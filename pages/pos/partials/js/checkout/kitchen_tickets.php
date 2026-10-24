@@ -55,8 +55,8 @@ function kitchenTicketHtml(group, meta) {
 // right printer (Chrome/Edge remember the destination per print after the first setup).
 function printKitchenTickets(allGroups, meta) {
   if (!allGroups || !allGroups.length) return;
-  sendKitchenTicketsLan(allGroups.filter(function (g) { return g.type === 'ip'; }), meta);
-  var groups = allGroups.filter(function (g) { return g.type !== 'ip'; });
+  sendKitchenTicketsLan(allGroups.filter(function (g) { return g.type === 'ip' || g.type === 'usb'; }), meta);
+  var groups = allGroups.filter(function (g) { return g.type !== 'ip' && g.type !== 'usb'; });
   if (!groups.length) return;
   var frame = document.getElementById('posKitchenIframe');
   if (!frame) {

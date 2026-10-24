@@ -6,6 +6,9 @@
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/pos/partials/js/pos_checkout_js.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 ?>function handleOnlineCheckoutReceiptUI(res) {
+  // Flag checkout completion to prevent hidden.bs.modal or cart resets from wiping customer display
+  window.__isCheckoutSuccessFinishing = true;
+
   // Idempotency guard: if this exact invoice already ran through here once (e.g. a duplicate
   // success callback, or the ajax success firing after the checkout button's own re-entrancy
   // guard let a second request slip through some other way), never repeat the stock update,
@@ -52,10 +55,15 @@
   window.RC_TAXED = (res.tax_type || window.STORE_TAX_TYPE || 'none') !== 'none'
     && (parseFloat(res.vat_rate) || parseFloat(window.STORE_VAT_PERCENT) || 0) > 0;
   $('#rc_subtotal').html(rcMoney(res.subtotal));
-  // ສ່ວນຫຼຸດແບບ % → ສະແດງເປີເຊັນນຳໜ້າຈຳນວນເງິນ, ເຊັ່ນ "(10%) 5,000 ₭"
+  // ສ່ວນຫຼຸດແບບ % → ສະແດງເປີເຊັນນຳໜ້າຈຳນວນເງິນ, ພ້ອມເຄື່ອງໝາຍ - ທາງຊ້າຍ ເຊັ່ນ "(10%) -5,000 ₭" ຫຼື "-5,000 ₭"
   var rcDiscPct = (typeof getCartDiscountMode === 'function' && getCartDiscountMode() === 'percent')
     ? (parseFloat($('#cartDiscount').val()) || 0) : 0;
-  $('#rc_discount').html((rcDiscPct > 0 ? '(' + rcDiscPct + '%) ' : '') + rcMoney(res.discount_amount));
+  var discVal = parseFloat(res.discount_amount) || 0;
+  if (discVal > 0) {
+    $('#rc_discount').html((rcDiscPct > 0 ? '(' + rcDiscPct + '%) ' : '') + '-' + rcMoney(discVal));
+  } else {
+    $('#rc_discount').html(rcMoney(0));
+  }
 
   var rTaxType = res.tax_type || window.STORE_TAX_TYPE || 'none';
   var rTaxId   = res.tax_id || window.STORE_TAX_ID || '';
@@ -200,7 +208,7 @@
       }
 
       var unitPriceTxt = window.POSCUR ? POSCUR.num(curUnitPrice) : Math.round(curUnitPrice).toLocaleString('en-US');
-      var unitSubHtml = `<div style="font-size:0.9em;color:#000;">${unitPriceTxt} x ${d.qty}</div>`;
+      var unitSubHtml = `<div style="color:#000;">${unitPriceTxt} x ${d.qty}</div>`;
 
       tbody.append(`
         <tr>
@@ -213,8 +221,22 @@
   }
 
   if (typeof broadcastCustomerDisplay === 'function') {
-    broadcastCustomerDisplay('payment_success', { cashReceived: res.cash_received, qrReceived: res.qr_received, changeAmount: res.change, queueNumber: (window.POS_QUEUE_ENABLED ? res.queue_number : null) });
+    broadcastCustomerDisplay('payment_success', {
+      totalAmount: res.total_amount,
+      paidAmount: res.total_amount,
+      cashReceived: res.cash_received,
+      qrReceived: res.qr_received,
+      changeAmount: res.change,
+      paymentType: res.payment_type || (typeof selectedPayType !== 'undefined' ? selectedPayType : ''),
+      payMode: res.pay_mode || (typeof currentPayMode !== 'undefined' ? currentPayMode : ''),
+      bankId: res.bank_account_id || window.currentSelectedBankId || null,
+      bankName: res.bank_name || window.currentSelectedBankName || '',
+      bankQrImg: res.bank_qr_img || window.currentSelectedBankQrPath || '',
+      invoiceNumber: res.invoice_number,
+      queueNumber: (window.POS_QUEUE_ENABLED ? res.queue_number : null)
+    });
   }
+  playPosCashRegisterSound();
   // The customer's payment receipt always goes to the printer first. Kitchen / counter tickets
   // only go out once it has been sent — rendering the receipt to an image takes a moment, and
   // firing both at once let the (instant) kitchen tickets jump ahead of it on the roll.
@@ -224,6 +246,72 @@
   printReceiptAuto().then(function () {
     printKitchenTickets(pendingTickets, ticketMeta);
   });
+  window.__suppressCustomerBroadcast = true;
   resetPOS();
+  window.__suppressCustomerBroadcast = false;
+  setTimeout(function() {
+    window.__isCheckoutSuccessFinishing = false;
+  }, 1000);
+}
+
+// Realistic Cash Register / Money Received Sound for cashier POS
+function playPosCashRegisterSound() {
+  try {
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    var ctx = new AudioCtx();
+    if (ctx.state === 'suspended') ctx.resume();
+    var now = ctx.currentTime;
+
+    var masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.72, now);
+    masterGain.connect(ctx.destination);
+
+    // 1. Drawer latch click
+    var clickOsc = ctx.createOscillator();
+    var clickGain = ctx.createGain();
+    clickOsc.type = 'triangle';
+    clickOsc.frequency.setValueAtTime(320, now);
+    clickOsc.frequency.exponentialRampToValueAtTime(140, now + 0.04);
+    clickGain.gain.setValueAtTime(0.45, now);
+    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    clickOsc.connect(clickGain);
+    clickGain.connect(masterGain);
+    clickOsc.start(now);
+    clickOsc.stop(now + 0.05);
+
+    // 2. Resonant bells ("Ching!")
+    var bellStart = now + 0.035;
+    var bellFreqs = [2093.0, 2793.8, 3135.9, 4186.0];
+    bellFreqs.forEach(function(freq, idx) {
+      var bellOsc = ctx.createOscillator();
+      var bellGain = ctx.createGain();
+      bellOsc.type = 'sine';
+      bellOsc.frequency.setValueAtTime(freq, bellStart);
+      var initGain = (idx === 0) ? 0.38 : (0.24 / idx);
+      bellGain.gain.setValueAtTime(initGain, bellStart);
+      bellGain.gain.exponentialRampToValueAtTime(0.0001, bellStart + 0.95);
+      bellOsc.connect(bellGain);
+      bellGain.connect(masterGain);
+      bellOsc.start(bellStart);
+      bellOsc.stop(bellStart + 1.0);
+    });
+
+    // 3. Coins dropping inside drawer
+    var coinDelays = [0.08, 0.16, 0.24, 0.32];
+    var coinFreqs = [3500, 4200, 3900, 4800];
+    coinDelays.forEach(function(delay, i) {
+      var coinOsc = ctx.createOscillator();
+      var coinGain = ctx.createGain();
+      coinOsc.type = 'sine';
+      coinOsc.frequency.setValueAtTime(coinFreqs[i], now + delay);
+      coinGain.gain.setValueAtTime(0.20, now + delay);
+      coinGain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.14);
+      coinOsc.connect(coinGain);
+      coinGain.connect(masterGain);
+      coinOsc.start(now + delay);
+      coinOsc.stop(now + delay + 0.15);
+    });
+  } catch(e) {}
 }
 

@@ -37,6 +37,8 @@
     var catTxt = bulkCellText(get(r, 'cat'));
     var unitTxt = bulkCellText(get(r, 'unit'));
     var supTxt = bulkCellText(get(r, 'supplier'));
+    var zoneTxt = bulkCellText(get(r, 'zone'));
+    var shelfTxt = bulkCellText(get(r, 'shelf'));
     items.push({
       name: name,
       catTxt: catTxt, category_id: catMap[bulkNorm(catTxt)] || '',
@@ -44,7 +46,9 @@
       supTxt: supTxt, supplier_id: supMap[bulkNorm(supTxt)] || '',
       barcode: bulkCellBarcode(get(r, 'barcode')),
       bprice: bulkCellPrice(get(r, 'bprice')),
-      price: bulkCellPrice(get(r, 'price'))
+      price: bulkCellPrice(get(r, 'price')),
+      zone: zoneTxt,
+      shelf: shelfTxt
     });
   }
 
@@ -63,7 +67,7 @@
 
   var missCat = {}, missUnit = {}, missSup = {}, badRows = 0;
   items.forEach(function (it) {
-    bulkAddRow({ category_id: it.category_id, unit_id: it.unit_id, supplier_id: it.supplier_id });
+    bulkAddRow({ category_id: it.category_id, unit_id: it.unit_id, supplier_id: it.supplier_id, zone: it.zone, shelf: it.shelf });
     var $row = $('#bulk_rows_container .bulk-row').last();
     $row.find('.bulk-name').val(it.name);
     $row.find('.bulk-barcode').val(it.barcode);
@@ -100,23 +104,25 @@ $(document).on('change input', '#bulk_rows_container .is-invalid', function () {
   if ($row.find('.is-invalid').length === 0) $row.removeClass('border-danger');
 });
 
-// ແບບຟອມ Excel: sheet ທີ 1 = ຟອມປ້ອນ, sheet ທີ 2 = ລາຍຊື່ ປະເພດ/ຫົວໜ່ວຍ/ຜູ້ສະໜອງ ທີ່ມີໃນລະບົບ (ຕ້ອງສະກົດໃຫ້ກົງ)
+// ແບບຟອມ Excel: sheet ທີ 1 = ຟອມປ້ອນ, sheet ທີ 2 = ລາຍຊື່ ປະເພດ/ຫົວໜ່ວຍ/ຜູ້ສະໜອງ/ໂຊນ/ຊັ້ນວາງ ທີ່ມີໃນລະບົບ (ຕ້ອງສະກົດໃຫ້ກົງ)
 function bulkDownloadExcelTemplate() {
   bulkLoadXlsx(function () {
     var names = function (html) { return $('<select>' + html + '</select>').find('option').map(function () { return $(this).text(); }).get(); };
     var cats = names(BULK_CAT_OPTIONS), units = names(BULK_UNIT_OPTIONS), sups = names(BULK_SUPPLIER_OPTIONS);
+    var zns = (typeof BULK_ZONE_OPTIONS !== 'undefined') ? names(BULK_ZONE_OPTIONS) : [];
+    var shs = (typeof BULK_SHELF_OPTIONS !== 'undefined') ? names(BULK_SHELF_OPTIONS) : [];
 
     var form = XLSX.utils.aoa_to_sheet([
-      ['ປະເພດ', 'ຊື່ສິນຄ້າ', 'ບາໂຄ້ດ', 'ຫົວໜ່ວຍ', 'ລາຄາຊື້', 'ລາຄາຂາຍ', 'ຜູ້ສະໜອງ'],
-      [cats[0] || 'ເຄື່ອງດື່ມ', 'ຕົວຢ່າງ: ນ້ຳດື່ມ 600ml', '8850999320014', units[0] || 'ຂວດ', 3000, 5000, sups[0] || '']
+      ['ປະເພດ', 'ຊື່ສິນຄ້າ', 'ບາໂຄ້ດ', 'ຫົວໜ່ວຍ', 'ລາຄາຊື້', 'ລາຄາຂາຍ', 'ຜູ້ສະໜອງ', 'ໂຊນ', 'ຊັ້ນວາງ'],
+      [cats[0] || 'ເຄື່ອງດື່ມ', 'ຕົວຢ່າງ: ນ້ຳດື່ມ 600ml', '8850999320014', units[0] || 'ຂວດ', 3000, 5000, sups[0] || '', zns[0] || '', shs[0] || '']
     ]);
-    form['!cols'] = [{ wch: 18 }, { wch: 30 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 20 }];
+    form['!cols'] = [{ wch: 18 }, { wch: 30 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 20 }, { wch: 15 }, { wch: 15 }];
 
-    var n = Math.max(cats.length, units.length, sups.length, 1);
-    var ref = [['ປະເພດ', 'ຫົວໜ່ວຍ', 'ຜູ້ສະໜອງ']];
-    for (var i = 0; i < n; i++) ref.push([cats[i] || '', units[i] || '', sups[i] || '']);
+    var n = Math.max(cats.length, units.length, sups.length, zns.length, shs.length, 1);
+    var ref = [['ປະເພດ', 'ຫົວໜ່ວຍ', 'ຜູ້ສະໜອງ', 'ໂຊນ', 'ຊັ້ນວາງ']];
+    for (var i = 0; i < n; i++) ref.push([cats[i] || '', units[i] || '', sups[i] || '', zns[i] || '', shs[i] || '']);
     var refWs = XLSX.utils.aoa_to_sheet(ref);
-    refWs['!cols'] = [{ wch: 22 }, { wch: 16 }, { wch: 24 }];
+    refWs['!cols'] = [{ wch: 22 }, { wch: 16 }, { wch: 24 }, { wch: 18 }, { wch: 18 }];
 
     var wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, form, 'ສິນຄ້າ');
@@ -223,17 +229,32 @@ function submitBulkAddProduct(e) {
 
   // ສົ່ງແຖວທັງໝົດເປັນ JSON ກ້ອນດຽວ — ຖ້າສົ່ງເປັນ b_name[] ... PHP ຈະຕັດທິ້ມເກີນ max_input_vars
   // (1000 ຊ່ອງ ≈ 140 ແຖວ) ໂດຍບໍ່ແຈ້ງເຕືອນ, ເຊິ່ງການນຳເຂົ້າຈາກ Excel ເກີນໄດ້ງ່າຍ.
+  var topZone = $('#bulk_zone').val() || '';
+  var topShelf = $('#bulk_shelf').val() || '';
+
   var payload = [];
   $('#bulk_rows_container .bulk-row').each(function () {
     var $r = $(this);
+    var cat  = $r.find('.bulk-cat').val();
+    var name = $r.find('.bulk-name').val().trim();
+    var bc   = $r.find('.bulk-barcode').val().trim();
+    var unit = $r.find('.bulk-unit').val();
+    var bp   = $r.find('.bulk-bprice').val().trim();
+    var pr   = $r.find('.bulk-price').val().trim();
+
+    var isBlank = (!cat && !name && !bc && !unit && (bp === '' || bp === '0') && (pr === '' || pr === '0'));
+    if (isBlank) return; // unused box — skip
+
     payload.push({
-      category_id: $r.find('.bulk-cat').val() || '',
-      name:        $r.find('.bulk-name').val(),
-      barcode:     $r.find('.bulk-barcode').val(),
-      unit_id:     $r.find('.bulk-unit').val() || '',
-      bprice:      $r.find('.bulk-bprice').val(),
-      price:       $r.find('.bulk-price').val(),
+      category_id: cat || '',
+      name:        name,
+      barcode:     bc,
+      unit_id:     unit || '',
+      bprice:      bp,
+      price:       pr,
       supplier_id: $r.data('supplier') || '',      // Excel only; the batch box overrides on the server
+      zone:        $r.find('.bulk-zone').val() || topZone,
+      shelf:       $r.find('.bulk-shelf').val() || topShelf,
       img:         $r.find('.bulk-img').val() || ''
     });
   });
@@ -244,12 +265,18 @@ function submitBulkAddProduct(e) {
   return true;
 }
 
-// Seed 10 boxes the first time the modal opens, and re-seed on close
+// ຍົກເລີກຟອມເພີ່ມຫຼາຍລາຍການ: ລ້າງຂໍ້ມູນ ແລະ ປິດ modal
+window.cancelAddBulkForm = function () {
+  $('#bulk_supplier_id').val('');
+  $('#bulk_zone').val('').trigger('change');
+  $('#bulk_shelf').val('');
+  $('#bulk_no_cut_qty').prop('checked', false);
+  bulkResetRows();
+  $('#addProductModal').modal('hide');
+};
+
+// Seed 10 boxes the first time the modal opens if container is empty
 $('#addProductModal').on('show.bs.modal', function () {
   if ($('#bulk_rows_container .bulk-row').length === 0) bulkResetRows();
 });
-$('#addProductModal').on('hidden.bs.modal', function () {
-  $('#tab-add-single').tab('show');
-  $('#bulk_supplier_id').val('');
-  bulkResetRows();
-});
+// ເມື່ອປິດ modal ໂດຍບໍ່ບັນທຶກ: ບໍ່ລ້າງຄ່າ (ຄ້າງຂໍ້ມູນໄວ້ຕາມຄວາມຕ້ອງການ)

@@ -70,6 +70,7 @@ return [
 
     // Table headers (shared: reports_table.php / all_sales_table.php)
     'reports.col_no'                 => 'ລຳດັບ',
+    'reports.col_image'              => 'ຮູບພາບ',
     'reports.col_bill'               => 'ບິນ',
     'reports.col_bill_no'            => 'ເລກບິນ',
     'reports.col_date'               => 'ວັນທີ',

@@ -81,9 +81,9 @@ if ($currency_filter !== '' && $hasCurrencyCol) {
 
 $whereClause = implode(" AND ", $where);
 
-// A credit bill not yet fully paid (ຕິດໜີ້ ຍັງບໍ່ຈ່າຍ / ຍັງບໍ່ຄົບ) only counts toward the sales total,
-// bill count and item counts — never toward the money / discount cards.
-$openDebtSql = "EXISTS (SELECT 1 FROM st_customer_debts cd WHERE cd.invoice_number = s.sale_save_bill AND cd.status IN ('unpaid','partial'))";
+// ໂມດູນລູກຄ້າຕິດໜີ້ ຖືກລຶບອອກແລ້ວ (ຕາຕະລາງ st_customer_debts ບໍ່ມີແລ້ວ): ບໍ່ມີບິນໃດເປັນ "ໜີ້ຄ້າງ".
+// ເກັບຕົວແປໄວ້ເປັນ 0 (= false ໃນ SQL) ເພາະ query ຂ້າງລຸ່ມຍັງໃຊ້ມັນ — ຖ້າຍັງອ້າງຕາຕະລາງເກົ່າ ລາຍງານທັງໜ້າຈະເປັນ 0.
+$openDebtSql = "0";
 
 // Fetch 10 Daily Metrics
 $daily_gross_sales     = 0;
@@ -202,31 +202,9 @@ try {
     $daily_cash_payments   = (float)($dailyStats['total_cash_received'] ?? 0);
     $daily_qr_payments     = (float)($dailyStats['total_qr_received'] ?? 0);
 
-    // ລູກຄ້າຕິດໜີ້: repayments received in this date range (by the day the money came in, not the
-    // day of the sale) are real income too — added to ເງິນສົດ / ເງິນໂອນ by channel. Debts are
-    // always in KIP, so they only count when no other tender currency is being filtered.
+    // (ການຊຳລະໜີ້ລູກຄ້າ ຖືກລຶບອອກພ້ອມໂມດູນຕິດໜີ້ — ບໍ່ມີລາຍຮັບຈາກການຊຳລະໜີ້ອີກແລ້ວ)
     $daily_debt_repaid_cash = 0;
     $daily_debt_repaid_qr   = 0;
-    if ($currency_filter === '' || $currency_filter === 'KIP') {
-        try {
-            $rpWhere  = ['1=1'];
-            $rpParams = [];
-            if (!empty($from_date)) { $rpWhere[] = 'DATE(p.paid_at) >= ?'; $rpParams[] = $from_date; }
-            if (!empty($to_date))   { $rpWhere[] = 'DATE(p.paid_at) <= ?'; $rpParams[] = $to_date; }
-            if ($filter_store_id > 0) { $rpWhere[] = 'p.store_id = ?'; $rpParams[] = $filter_store_id; }
-            $rpStmt = $pdo->prepare("
-                SELECT COALESCE(SUM(CASE WHEN p.bank_account_id IS NULL AND p.payment_method = 'ເງິນສົດ' THEN p.amount ELSE 0 END), 0) AS cash,
-                       COALESCE(SUM(CASE WHEN p.bank_account_id IS NULL AND p.payment_method = 'ເງິນສົດ' THEN 0 ELSE p.amount END), 0) AS qr
-                FROM st_customer_debt_payments p
-                WHERE " . implode(' AND ', $rpWhere));
-            $rpStmt->execute($rpParams);
-            $rp = $rpStmt->fetch(PDO::FETCH_ASSOC);
-            $daily_debt_repaid_cash = (float)($rp['cash'] ?? 0);
-            $daily_debt_repaid_qr   = (float)($rp['qr'] ?? 0);
-        } catch (Throwable $e) {}
-    }
-    $daily_cash_payments += $daily_debt_repaid_cash;
-    $daily_qr_payments   += $daily_debt_repaid_qr;
     $daily_tips_sum        = (float)($dailyStats['total_tips_sum'] ?? 0);
 
     // Promotion & Free Gift Statistics

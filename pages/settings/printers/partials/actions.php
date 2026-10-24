@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $name = trim($_POST['name'] ?? '');
         $ip_address = trim($_POST['ip_address'] ?? '');
         $type = in_array($_POST['type'] ?? '', ['ip', 'browser', 'usb'], true) ? $_POST['type'] : 'browser';
-        $paper_width = intval($_POST['paper_width'] ?? 80) === 58 ? 58 : 80;
+        $paper_width = in_array(intval($_POST['paper_width'] ?? 80), [58, 80, 148, 210], true) ? intval($_POST['paper_width']) : 80;   // 148 = A5, 210 = A4
 
         if ($name !== '') {
             try {
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $name = trim($_POST['name'] ?? '');
         $ip_address = trim($_POST['ip_address'] ?? '');
         $type = in_array($_POST['type'] ?? '', ['ip', 'browser', 'usb'], true) ? $_POST['type'] : 'browser';
-        $paper_width = intval($_POST['paper_width'] ?? 80) === 58 ? 58 : 80;
+        $paper_width = in_array(intval($_POST['paper_width'] ?? 80), [58, 80, 148, 210], true) ? intval($_POST['paper_width']) : 80;   // 148 = A5, 210 = A4
 
         if ($id > 0 && $name !== '') {
             try {

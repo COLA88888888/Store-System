@@ -4,10 +4,84 @@
    (config/helpers/theme_css.php) ສະນັ້ນ ລຳດັບ cascade ຄືເກົ່າ.
    ============================================================ */
     /* The POS page's own 64px band (theme colour) shows through the transparent navbar. */
-    body.pos-nav-mode .main-header.navbar { pointer-events: none; }
+    body.pos-nav-mode .main-header.navbar {
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
     body.pos-nav-mode .main-header.navbar > * { pointer-events: auto; }
     body.pos-nav-mode .content-wrapper {
       margin-top: -64px !important;
-      height: calc(var(--app-vh, 1vh) * 100 - 42px) !important;
+      height: calc(var(--app-vh, 1vh) * 100) !important;
+    }
+
+    /* ເມື່ອມີ Modal ຫຼື Popup ເປີດໃນໜ້າ POS: ໃຫ້ສະແດງ Navbar ແຕ່ເປັນສີເບຣີ (Blur) ມົວລົງຕາມທີ່ຜູ້ໃຊ້ຕ້ອງການ */
+    body.pos-nav-mode.pos-modal-open .main-header.navbar {
+      filter: blur(3px) brightness(0.65) !important;
+      -webkit-filter: blur(3px) brightness(0.65) !important;
+      opacity: 0.65 !important;
+      pointer-events: none !important;
+      transition: filter 0.2s ease, opacity 0.2s ease !important;
+    }
+    body.pos-nav-mode.pos-modal-open .main-header.navbar > * {
+      pointer-events: none !important;
+    }
+
+    /* While loading, keep the navbar visible and keep the loader below the 64px navbar */
+    body.pos-nav-mode .system-loader-overlay {
+      top: 64px !important;
+      height: calc(100% - 64px) !important;
+    }
+    body.is-loading .main-header.navbar,
+    body.pos-nav-mode.is-loading .main-header.navbar {
+      pointer-events: auto !important;
     }
   
+
+    /* ບັອກສະແກນ + ປຸ່ມຈໍລູກຄ້າ "ຕົວແທນ" (navbar.php #posNavGhost): ສະແດງຂະນະໜ້າຂາຍກຳລັງໂຫຼດ ໃນຕຳແໜ່ງ ແລະ
+       ໜ້າຕາດຽວກັບບັອກແທ້ (themes/pos/02-mobile-cart-search.css html.pos-nav-mode) — ບັອກບໍ່ຫາຍຕອນຣີເຟຣດ.
+       left/right ມາຈາກ js_pos_navbar.php (ຈື່ໄວ້ໃນ localStorage). ກົດບໍ່ໄດ້ (pointer-events: none). */
+    .pos-nav-ghost {
+      position: absolute;
+      top: 0;
+      left: 72px;
+      right: 660px;
+      height: 64px;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .pos-nav-ghost.show { display: flex !important; }
+    @media (max-width: 991.98px) { .pos-nav-ghost.show { display: none !important; } }
+    .pos-nav-ghost-search {
+      flex: 1 1 0%;
+      min-width: 160px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+      color: #64748b;
+      font-size: 0.85rem;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .pos-nav-ghost-search i { width: 36px; text-align: center; color: #475569; font-size: 0.95rem; flex-shrink: 0; }
+    .pos-nav-ghost-search span { overflow: hidden; text-overflow: ellipsis; }
+    .pos-nav-ghost-btn {
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 14px;
+      background: #ffffff;
+      color: #1e293b;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .pos-nav-ghost-btn i { color: #2563eb; margin-right: 8px; font-size: 0.95rem; }

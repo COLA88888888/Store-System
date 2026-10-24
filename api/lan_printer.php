@@ -57,6 +57,26 @@ function lanPrinterSend($host, $port, $bytes, $timeout = 4) {
     $errstr = '';
     $fp = @fsockopen($host, (int)$port, $errno, $errstr, $timeout);
     if (!$fp) {
+        // ຖ້າໃສ່ IP ຂອງຄອມເຄື່ອງນີ້ (127.0.0.1, localhost, ຫຼື 192.168.1.11) ທີ່ບໍ່ໄດ້ສຽບສາຍແລນ ແຕ່ຕໍ່ຜ່ານ USB
+        $localIps = ['127.0.0.1', 'localhost', '::1'];
+        $hostLower = strtolower(trim($host));
+        $myIp = @getHostByName(@getHostName());
+        if ($myIp) $localIps[] = strtolower($myIp);
+        $localIps[] = '192.168.1.11';
+
+        if (in_array($hostLower, $localIps, true)) {
+            require_once __DIR__ . '/usb_printer.php';
+            global $pdo;
+            $usbName = 'XP-80C';
+            if (isset($pdo)) {
+                try {
+                    $st = $pdo->query("SELECT ip_address FROM st_tbl_printer WHERE type = 'usb' AND status = 1 ORDER BY id DESC LIMIT 1");
+                    $r = $st ? $st->fetch(PDO::FETCH_ASSOC) : null;
+                    if ($r && !empty($r['ip_address'])) $usbName = trim($r['ip_address']);
+                } catch (Throwable $e) {}
+            }
+            return usbPrinterSend($usbName, $bytes);
+        }
         return [false, $errstr !== '' ? $errstr : ('connection failed (' . $errno . ')')];
     }
     stream_set_timeout($fp, $timeout);

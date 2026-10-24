@@ -70,6 +70,7 @@ return [
 
     // Table headers (shared: reports_table.php / all_sales_table.php)
     'reports.col_no'                 => 'No.',
+    'reports.col_image'              => 'Image',
     'reports.col_bill'               => 'Bill',
     'reports.col_bill_no'            => 'Bill No.',
     'reports.col_date'               => 'Date',

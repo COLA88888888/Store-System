@@ -86,7 +86,7 @@
         </div>
       </div>
       <div class="modal-footer bg-light py-2 px-4">
-        <button type="button" class="btn btn-secondary btn-sm font-weight-bold px-3" data-dismiss="modal" style="border-radius: 8px;">
+        <button type="button" class="btn btn-secondary btn-sm font-weight-bold px-3" data-dismiss="modal" style="border-radius: 6px;">
           <?php echo htmlspecialchars(t('reports.close_btn', 'ປິດ')); ?>
         </button>
       </div>

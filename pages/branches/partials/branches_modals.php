@@ -25,18 +25,19 @@ if (!defined('MINIPOS_APP')) {
           </div>
           <div class="form-group">
             <label class="font-weight-bold"><?php echo htmlspecialchars(t('branches.label_store_name', 'ຊື່ສາຂາ:')); ?><span class="text-danger">*</span></label>
-            <input type="text" name="store_name" class="form-control" placeholder="<?php echo htmlspecialchars(t('branches.placeholder_store_name', 'ເຊັ່ນ: ສາຂາ ດົງໂດກ, ສາຂາ ຫຼວງພະບາງ')); ?>" required>
+            <?php /* $addBranchPrefill (api/branches_backend.php): ສາຂາທຳອິດ = ຂໍ້ມູນຮ້ານ, ສາຂາທີ 2 ຂຶ້ນໄປ = ວ່າງ */ ?>
+            <input type="text" name="store_name" class="form-control" value="<?php echo htmlspecialchars($addBranchPrefill['name'] ?? ''); ?>" placeholder="<?php echo htmlspecialchars(t('branches.placeholder_store_name', 'ເຊັ່ນ: ສາຂາ ດົງໂດກ, ສາຂາ ຫຼວງພະບາງ')); ?>" required>
           </div>
           <div class="form-group">
             <label class="font-weight-bold"><?php echo htmlspecialchars(t('branches.label_tel', 'ເບີໂທຕິດຕໍ່ສາຂາ:')); ?></label>
-            <input type="text" name="tel" class="form-control" placeholder="<?php echo htmlspecialchars(t('branches.placeholder_tel', '020 xxxxxxxx')); ?>">
+            <input type="text" name="tel" class="form-control" value="<?php echo htmlspecialchars($addBranchPrefill['tel'] ?? ''); ?>" placeholder="<?php echo htmlspecialchars(t('branches.placeholder_tel', '020 xxxxxxxx')); ?>">
           </div>
           <div class="form-group">
             <label class="font-weight-bold"><?php echo htmlspecialchars(t('branches.label_address', 'ທີ່ຢູ່ສາຂາ:')); ?></label>
-            <textarea name="address" class="form-control" rows="2" placeholder="<?php echo htmlspecialchars(t('branches.placeholder_address', 'ບ້ານ, ເມືອງ, ແຂວງ...')); ?>"></textarea>
+            <textarea name="address" class="form-control" rows="2" placeholder="<?php echo htmlspecialchars(t('branches.placeholder_address', 'ບ້ານ, ເມືອງ, ແຂວງ...')); ?>"><?php echo htmlspecialchars($addBranchPrefill['address'] ?? ''); ?></textarea>
           </div>
           <div class="form-group form-check">
-            <input type="checkbox" name="is_main" value="1" class="form-check-input" id="add_is_main">
+            <input type="checkbox" name="is_main" value="1" class="form-check-input" id="add_is_main"<?php echo !empty($addBranchPrefill['is_main']) ? ' checked' : ''; ?>>
             <label class="form-check-input-label font-weight-bold text-dark" for="add_is_main"><?php echo htmlspecialchars(t('branches.label_is_main', 'ຕັ້ງເປັນສາຂາໃຫຍ່')); ?></label>
           </div>
         </div>

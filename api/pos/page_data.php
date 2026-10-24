@@ -20,12 +20,20 @@ try {
     $rpStmt = $pdo->prepare("SELECT id, name, type, paper_width, ip_address FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 AND branch_id = ? LIMIT 1");
     $rpStmt->execute([$activeStoreId]);
     $rpRow = $rpStmt->fetch();
+    if (!$rpRow) {
+        $fbStmt = $pdo->query("SELECT id, name, type, paper_width, ip_address FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 ORDER BY (type = 'usb') DESC, id DESC LIMIT 1");
+        $rpRow = $fbStmt ? $fbStmt->fetch() : null;
+    }
+    if (!$rpRow) {
+        $fbUsb = $pdo->query("SELECT id, name, type, paper_width, ip_address FROM st_tbl_printer WHERE type = 'usb' AND status = 1 ORDER BY id DESC LIMIT 1");
+        $rpRow = $fbUsb ? $fbUsb->fetch() : null;
+    }
     if ($rpRow) {
         $posReceiptPrinter = [
             'printer_id'   => (int)$rpRow['id'],
             'printer_name' => $rpRow['name'],
-            'printer_type' => in_array($rpRow['type'] ?? '', ['ip', 'usb'], true) ? 'ip' : 'browser', // 'ip' = direct (LAN or USB)
-            'paper_width'  => intval($rpRow['paper_width'] ?? 80) === 58 ? 58 : 80,
+            'printer_type' => in_array($rpRow['type'] ?? '', ['ip', 'usb'], true) ? $rpRow['type'] : 'browser', // direct (LAN or USB)
+            'paper_width'  => in_array(intval($rpRow['paper_width'] ?? 80), [58, 80, 148, 210], true) ? intval($rpRow['paper_width']) : 80,   // 148 = A5, 210 = A4
         ];
         $posReceiptPrinterIp = strtolower(trim((string)($rpRow['ip_address'] ?? '')));
     }

@@ -73,13 +73,6 @@ if ($reqAction === 'delete_bill') {
             }
         }
 
-        // 4b. A credit sale's debt goes with the bill. Repayments already taken on it stay in
-        // customer_debt_payments as a record of money received (refund it by hand if needed).
-        $pdo->prepare("UPDATE st_customer_debts SET status = 'cancelled', balance = 0,
-                              note = CONCAT_WS(' · ', NULLIF(note, ''), ?)
-                       WHERE invoice_number = ? AND status <> 'cancelled'")
-            ->execute(['ລົບບິນ ' . date('d/m/Y H:i'), $billNo]);
-
         // 5. Update sale_status = 'CANCEL'
         $stmtCancel = $pdo->prepare("UPDATE st_tbsale_save SET sale_status = 'CANCEL' WHERE sale_save_bill = :bill");
         $stmtCancel->execute([':bill' => $billNo]);

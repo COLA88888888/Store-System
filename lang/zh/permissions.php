@@ -55,11 +55,6 @@ return [
     'permissions.module_customers_title' => '客户管理',
     'permissions.module_customers_desc' => '添加、编辑和管理客户/会员信息',
 
-    // section_customer_debt.php
-    'permissions.section_customer_debt' => '客户欠款',
-    'permissions.module_customer_debt_title' => '客户欠款',
-    'permissions.module_customer_debt_desc' => '在收银台赊账销售、收取还款并管理客户欠款',
-    'permissions.module_debt_report_title' => '客户欠款报表',
 
     // section_inventory.php
     'permissions.section_inventory' => '4. 商品与库存',

@@ -22,14 +22,14 @@ require_once __DIR__ . '/../../layouts/header.php';
 <!-- 3. ໂຫຼດ Theme CSS ສະເພາະຂອງໜ້າກຳນົດສິດ -->
 <link rel="stylesheet" href="../../themes/permissions.css?v=<?php echo filemtime(__DIR__ . '/../../themes/permissions.css'); ?>">
 
-<!-- 4. Container ຫຼັກຂອງໜ້າກຳນົດສິດ -->
-<div class="container-fluid p-3 p-md-4">
+<!-- 4. Container ຫຼັກຂອງໜ້າກຳນົດສິດ (Full-Height Layout ລົງສຸດຈໍ) -->
+<div class="container-fluid permissions-page-container">
   
   <!-- ສ່ວນຫົວຂໍ້ໜ້າ (Header Title & Quick Action Link) -->
   <?php require_once __DIR__ . '/partials/permissions_header.php'; ?>
 
   <!-- ສ່ວນ Master-Detail Grid (ແບ່ງເປັນ 2 ຄໍລຳ: ຊ້າຍລາຍຊື່ຜູ້ໃຊ້, ຂວາຕາຕະລາງສິດ) -->
-  <div class="row">
+  <div class="row permissions-main-row">
     
     <!-- ຄໍລຳຊ້າຍ: ລາຍຊື່ຜູ້ນຳໃຊ້ ແລະ ຊ່ອງຄົ້ນຫາ -->
     <?php require_once __DIR__ . '/partials/user_list_sidebar.php'; ?>

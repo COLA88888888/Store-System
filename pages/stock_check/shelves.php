@@ -201,7 +201,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   </tr>
                 <?php else: foreach ($shelves as $idx => $sh): ?>
                   <tr class="shelf-row">
-                    <td class="text-center text-muted"><?php echo $idx + 1; ?></td>
+                    <td class="text-center text-muted row-no"><?php echo $idx + 1; ?></td>
                     <td class="font-weight-bold text-dark shelf-name-cell">
                       <i class="fas fa-layer-group text-info mr-1"></i> <?php echo htmlspecialchars($sh['shelf_name']); ?>
                     </td>
@@ -235,6 +235,23 @@ require_once __DIR__ . '/../../layouts/header.php';
             </table>
           </div>
         </div>
+
+        <!-- Pagination Footer (ແບບດຽວກັບໜ້າປະເພດສິນຄ້າ — assets/js/table-pager.js) -->
+        <div id="shelfPagFooter" class="card-footer table-pager-footer bg-white border-top d-flex align-items-center justify-content-between py-3 px-3 px-md-4" style="border-radius: 0 0 12px 12px; gap: 10px; flex-wrap: wrap;">
+          <div class="d-flex align-items-center text-muted" style="gap: 8px; font-size: 0.85rem;">
+            <span class="text-muted font-weight-bold">ສະແດງ <span data-pager-start>0</span>-<span data-pager-end>0</span> ລາຍການ</span>
+            <select data-pager-size class="form-control form-control-sm font-weight-bold" style="width: auto; border-radius: 6px;">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="all">ທັງໝົດ</option>
+            </select>
+          </div>
+          <nav aria-label="Shelf Pagination" class="ml-auto">
+            <ul class="pagination pagination-circle mb-0 justify-content-end" data-pager-ul></ul>
+          </nav>
+        </div>
+        <?php echo themeCssLink('table-pager.css'); ?>
       </div>
     </div>
   </section>
@@ -331,13 +348,20 @@ require_once __DIR__ . '/../../layouts/header.php';
   <input type="hidden" name="shelf_id" id="delete_shelf_id">
 </form>
 
+<script src="<?php echo $base_path; ?>assets/js/table-pager.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/table-pager.js'); ?>"></script>
 <script>
+// ຄົ້ນຫາ + ແບ່ງໜ້າ: ຄຳຄົ້ນຫາເລືອກແຖວທີ່ກົງ ແລ້ວ pager ສະແດງເທື່ອລະໜ້າ
+var shelfPager = TablePager.create({
+  rows: '#shelfTable tbody tr.shelf-row',
+  footer: '#shelfPagFooter',
+  filter: function(tr) {
+    var q = ($('#shelfSearchInput').val() || '').toLowerCase().trim();
+    return !q || $(tr).find('.shelf-name-cell').text().toLowerCase().indexOf(q) !== -1;
+  }
+});
+
 function filterShelfTable() {
-  var q = ($('#shelfSearchInput').val() || '').toLowerCase().trim();
-  $('#shelfTable tbody tr.shelf-row').each(function() {
-    var txt = $(this).find('.shelf-name-cell').text().toLowerCase();
-    $(this).toggle(!q || txt.indexOf(q) !== -1);
-  });
+  shelfPager.refresh();
 }
 
 function openEditShelfModal(sh) {

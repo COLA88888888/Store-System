@@ -12,7 +12,7 @@
 ?>
 
 <!-- LEFT COLUMN: Users List Card (ຄໍລຳທາງຊ້າຍ) -->
-<div class="col-lg-4 col-xl-4 mb-4">
+<div class="col-lg-4 col-xl-4 permissions-col">
   <div class="user-list-card">
     
     <!-- 1. Header ຂອງ Card ລາຍຊື່ຜູ້ໃຊ້ -->
@@ -47,7 +47,7 @@
             $uStatus = $u['status'] ?? $u['userstatus'] ?? '';
             $isAdmin = (strtolower($uStatus) === 'admin' || $uStatus === 'ຜູ້ບໍລິຫານ' || $u['Id'] == 1);
             $displayName = htmlspecialchars($u['username'] ?? 'User');
-            $isActiveFirst = ($index === 0);
+            $isActiveFirst = ($index === 0); // ເລືອກເຈົ້າຂອງລະບົບ (ຄົນທຳອິດ) ເປັນຄ່າເລີ່ມຕົ້ນ
             
             // ຄຳນວນຈຳນວນສິດທີ່ເປີດຢູ່ທັງໝົດ
             $permCount = 0;

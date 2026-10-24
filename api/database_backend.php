@@ -34,32 +34,20 @@ function normalizeCollationSQL($createSql) {
     return $createSql;
 }
 
-// Export database function (ທຸກຕາຕະລາງ + ຂໍ້ມູນທັງໝົດ + View, ເປັນ utf8mb4_general_ci)
+// Export database: ສະເພາະ ຕາຕະລາງ (DROP + CREATE) ແລະ ຂໍ້ມູນ (INSERT) — ບໍ່ມີ comment, SET, View ຫຼື ອື່ນໆ.
+// ໂຄງສ້າງທຸກຕາຕະລາງເປັນ utf8mb4_general_ci (normalizeCollationSQL). ຖານຂໍ້ມູນນີ້ບໍ່ມີ foreign key / view /
+// trigger / procedure ແລະ ບໍ່ມີ id ອໍໂຕ້ = 0, ສະນັ້ນບໍ່ຕ້ອງໃຊ້ SET FOREIGN_KEY_CHECKS / SQL_MODE ຕອນ restore.
 function exportDatabaseSQL($pdo, $dbname, $outputPath) {
     $fh = @fopen($outputPath, 'wb');
     if (!$fh) return false;
 
     try {
-        fwrite($fh, "-- MiniPOS Database Backup\n");
-        fwrite($fh, "-- Generated: " . date('Y-m-d H:i:s') . "\n");
-        fwrite($fh, "-- Database: {$dbname}\n");
-        fwrite($fh, "-- Collation: utf8mb4_general_ci\n\n");
-        fwrite($fh, "SET NAMES utf8mb4 COLLATE utf8mb4_general_ci;\n");
-        fwrite($fh, "SET FOREIGN_KEY_CHECKS=0;\n");
-        fwrite($fh, "SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';\n\n");
+        $objects = $pdo->query("SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'")->fetchAll(PDO::FETCH_NUM);
 
-        $objects = $pdo->query("SHOW FULL TABLES")->fetchAll(PDO::FETCH_NUM);
-        $views = [];
-
-        foreach ($objects as [$table, $type]) {
-            if ($type === 'VIEW') {
-                $views[] = $table;
-                continue;
-            }
+        foreach ($objects as [$table]) {
             $createStmt = $pdo->query("SHOW CREATE TABLE `{$table}`")->fetch(PDO::FETCH_NUM);
             if (!$createStmt) continue;
 
-            fwrite($fh, "-- Table: {$table}\n");
             fwrite($fh, "DROP TABLE IF EXISTS `{$table}`;\n");
             fwrite($fh, normalizeCollationSQL($createStmt[1]) . ";\n\n");
 
@@ -103,17 +91,6 @@ function exportDatabaseSQL($pdo, $dbname, $outputPath) {
             fwrite($fh, "\n");
         }
 
-        foreach ($views as $view) {
-            $createView = $pdo->query("SHOW CREATE VIEW `{$view}`")->fetch(PDO::FETCH_NUM);
-            if (!$createView) continue;
-            // ຕັດ DEFINER ອອກ ເພື່ອໃຫ້ restore ໄດ້ໃນເຄື່ອງອື່ນ
-            $viewSql = preg_replace('/\sDEFINER=`[^`]*`@`[^`]*`/', '', $createView[1]);
-            fwrite($fh, "-- View: {$view}\n");
-            fwrite($fh, "DROP VIEW IF EXISTS `{$view}`;\n");
-            fwrite($fh, normalizeCollationSQL($viewSql) . ";\n\n");
-        }
-
-        fwrite($fh, "SET FOREIGN_KEY_CHECKS=1;\n");
         fclose($fh);
         return true;
     } catch (Throwable $e) {

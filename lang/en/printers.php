@@ -42,6 +42,11 @@ return [
 
     // LAN printing
     'printers.field_paper_width' => 'Paper width:',
+    'printers.paper_a5' => 'A5 (sheet 148×210 mm)',
+    'printers.paper_a4' => 'A4 (sheet 210×297 mm)',
+    'printers.paper_hint' => '58/80 mm = receipt printer (roll); A5/A4 = document printer — prints the bill as a full page via the print dialog',
+    'printers.bt_paper_page_hint' => 'A5/A4: this device prints bills as a full page via the print dialog (Wi-Fi / document printer) instead of Bluetooth',
+    'printers.bt_page_mode' => 'A5/A4 selected — sale bills open the print dialog as a full page; choose a Wi-Fi / document printer',
     'printers.lan_hint' => 'Network LAN printers receive kitchen tickets directly — no print dialog. Enter the printer IP (port 9100 by default, or IP:port).',
     'printers.btn_test' => 'Test print',
     'printers.test_ok' => 'Test page sent to %s',

@@ -1,7 +1,7 @@
 <?php
 /**
- * ສ່ວນ: ອັບເດດໂຄງສ້າງ DB (4): ການຕັ້ງຄ່າ, ການຂາຍ, ໜີ້
- * ສ້າງ system_settings, ລູກຄ້າຕິດໜີ້ (customer_debts / customer_debt_payments), ຕາຕະລາງບິນຂາຍ
+ * ສ່ວນ: ອັບເດດໂຄງສ້າງ DB (4): ການຕັ້ງຄ່າ, ການຂາຍ
+ * ສ້າງ system_settings, ຕາຕະລາງບິນຂາຍ
  * tbsale_save / tbsale_save_detail / sales ແລະ ສະວິດສິດຂອງຜູ້ໃຊ້.
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ config/db.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
@@ -30,52 +30,6 @@
         $pdo->exec("INSERT IGNORE INTO st_system_settings (setting_key, setting_value) VALUES ('display_currency', 'KIP')");
         // Show a daily-resetting queue number on the receipt (coffee-shop style). '0' = off.
         $pdo->exec("INSERT IGNORE INTO st_system_settings (setting_key, setting_value) VALUES ('queue_enabled', '0')");
-    } catch (Throwable $ex) {}
-
-    // ລູກຄ້າຕິດໜີ້ (customer debts). One row per bill sold on credit at the POS
-    // (invoice_number set) or per opening balance entered by hand (invoice_number NULL).
-    // amount = what was put on credit (bill total minus any deposit paid at the till);
-    // paid_amount / balance move as repayments land in customer_debt_payments.
-    // status: unpaid | partial | paid | cancelled (cancelled when the sale bill is deleted).
-    try {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `st_customer_debts` (
-          `id` INT NOT NULL AUTO_INCREMENT,
-          `store_id` INT NOT NULL DEFAULT 1,
-          `customer_id` INT NOT NULL,
-          `customer_name` VARCHAR(150) DEFAULT NULL,
-          `invoice_number` VARCHAR(50) DEFAULT NULL,
-          `bill_amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
-          `deposit_amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
-          `amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
-          `paid_amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
-          `balance` DECIMAL(15,2) NOT NULL DEFAULT 0,
-          `status` VARCHAR(20) NOT NULL DEFAULT 'unpaid',
-          `due_date` DATE DEFAULT NULL,
-          `note` VARCHAR(255) DEFAULT NULL,
-          `created_by` VARCHAR(100) DEFAULT NULL,
-          `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-          PRIMARY KEY (`id`),
-          KEY `idx_debts_store_customer` (`store_id`, `customer_id`),
-          KEY `idx_debts_invoice` (`invoice_number`),
-          KEY `idx_debts_status` (`store_id`, `status`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
-
-        $pdo->exec("CREATE TABLE IF NOT EXISTS `st_customer_debt_payments` (
-          `id` INT NOT NULL AUTO_INCREMENT,
-          `debt_id` INT NOT NULL,
-          `store_id` INT NOT NULL DEFAULT 1,
-          `customer_id` INT NOT NULL,
-          `amount` DECIMAL(15,2) NOT NULL DEFAULT 0,
-          `payment_method` VARCHAR(50) NOT NULL DEFAULT 'ເງິນສົດ',
-          `bank_account_id` INT DEFAULT NULL,
-          `bank_name` VARCHAR(100) DEFAULT NULL,
-          `note` VARCHAR(255) DEFAULT NULL,
-          `received_by` VARCHAR(100) DEFAULT NULL,
-          `paid_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-          PRIMARY KEY (`id`),
-          KEY `idx_debt_pay_debt` (`debt_id`),
-          KEY `idx_debt_pay_store_date` (`store_id`, `paid_at`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci");
     } catch (Throwable $ex) {}
 
     // Auto Migration for tbsale_save, tbsale_save_detail & sales view

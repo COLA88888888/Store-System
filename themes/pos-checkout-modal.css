@@ -10,8 +10,8 @@
               .checkout-total-card {
                 position: relative;
                 overflow: hidden;
-                border-radius: 14px;
-                padding: 14px 16px;
+                border-radius: 12px;
+                padding: 10px 14px;
                 background: linear-gradient(135deg, #3b82f6 0%, #2563eb 55%, #1d4ed8 100%);
                 animation: checkoutTotalGlow 2.6s ease-in-out infinite;
               }
@@ -24,12 +24,12 @@
                 pointer-events: none;
               }
               .checkout-total-icon {
-                width: 30px; height: 30px;
+                width: 26px; height: 26px;
                 background: rgba(255,255,255,0.20);
                 border-radius: 50%;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                margin-bottom: 4px;
+                margin-bottom: 2px;
               }
             

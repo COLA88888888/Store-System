@@ -7,7 +7,6 @@
       <div class="modal-header bg-primary py-2 px-4">
         <h5 class="modal-title font-weight-bold d-flex align-items-center mb-0" style="font-size: 18px; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <span id="checkoutTitlePay"><?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?></span>
-          <span id="checkoutTitleCredit" style="display:none;"><i class="fas fa-hand-holding-usd mr-2"></i><?php echo htmlspecialchars(t('pos.credit_summary', 'ຂາຍຕິດໜີ້')); ?></span>
         </h5>
         <button type="button" class="close text-white" data-dismiss="modal" style="opacity:0.9;font-size:1.4rem;"><span>&times;</span></button>
       </div>
@@ -29,7 +28,7 @@
               <div class="font-weight-bold" id="checkoutTotalDisplay" style="font-size:1.55rem;color:#fff;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;line-height:1.2;word-break:break-all;text-shadow:0 2px 8px rgba(0,0,0,0.15);position:relative;">0 ₭</div>
             </div>
 
-            <!-- Pay Mode (hidden in credit mode — that is opened from the ຕິດໜີ້ button on the scan bar) -->
+            <!-- Pay Mode -->
             <div id="payModeRow">
               <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><?php echo htmlspecialchars(t('pos.pay_method_label', 'ວິທີຊຳລະ')); ?></div>
               <div class="d-flex" style="gap:7px;">
@@ -60,7 +59,7 @@
             </div>
 
             <!-- SINGLE: Bank Selection & QR Code Display Container (When payType is QR Pay) -->
-            <div id="singleQrSection" style="display:none;" class="p-3 my-2 rounded border bg-white shadow-sm">
+            <div id="singleQrSection" style="display:none;" class="p-2.5 my-1.5 rounded border bg-white shadow-sm">
               <?php 
                 $pos_bank_accounts = [];
                 try {
@@ -73,12 +72,12 @@
                 $defaultQrPath = resolveBankQr($company['qr_img'] ?? '');
               ?>
 
-              <div class="font-weight-bold mb-2 text-dark" style="font-size:0.85rem;">
+              <div class="font-weight-bold mb-1.5 text-dark" style="font-size:0.80rem;">
                 <i class="fas fa-university text-primary mr-1"></i> <?php echo htmlspecialchars(t('pos.select_receiving_bank', 'ເລືອກທະນາຄານຮັບເງິນ:')); ?>
               </div>
 
               <?php if (!empty($pos_bank_accounts)): ?>
-                <div class="row mb-2" style="row-gap: 8px; margin-left: -4px; margin-right: -4px;" id="posBankSelectGrid">
+                <div class="row mb-1" style="row-gap: 6px; margin-left: -4px; margin-right: -4px;" id="posBankSelectGrid">
                   <?php foreach ($pos_bank_accounts as $bIdx => $bAccount): ?>
                     <?php 
                       $bLogo = resolveBankLogo($bAccount['bank_logo'] ?? '', $bAccount['bank_code'] ?? '');
@@ -88,21 +87,21 @@
                       $displayLabel = $bName;
                       $bColor = (strpos($code, 'BCEL') !== false) ? '#002d72' : ((strpos($code, 'LDB') !== false) ? '#047857' : ((strpos($code, 'JDB') !== false) ? '#6b21a8' : ((strpos($code, 'STB') !== false) ? '#ea580c' : ((strpos($code, 'APB') !== false) ? '#15803d' : ((strpos($code, 'LVB') !== false) ? '#b91c1c' : '#0284c7')))));
                     ?>
-                    <div class="col-6 px-1">
-                      <div class="pos-bank-option px-2.5 py-1.5 rounded border d-flex align-items-center justify-content-between" 
-                           style="cursor: pointer; transition: all 0.15s; background: #ffffff; border-color: #cbd5e1 !important; min-height: 38px;"
+                    <div class="col-3 px-1">
+                      <div class="pos-bank-option px-2 py-1.5 rounded border d-flex align-items-center justify-content-between" 
+                           style="cursor: pointer; transition: all 0.15s; background: #ffffff; border-color: #cbd5e1 !important; min-height: 36px; border-radius: 6px !important;"
                            onclick="selectPosBank(<?php echo $bAccount['id']; ?>, '<?php echo htmlspecialchars(addslashes($displayLabel)); ?>', '<?php echo htmlspecialchars($bQr); ?>', '<?php echo htmlspecialchars(addslashes($bAccount['account_number'] ?? '')); ?>', '<?php echo htmlspecialchars(addslashes($bAccount['account_name'] ?? '')); ?>', this)">
-                        <div class="d-flex align-items-center text-truncate" style="gap: 6px;">
+                        <div class="d-flex align-items-center text-truncate" style="gap: 5px;">
                           <?php if (!empty($bLogo)): ?>
-                            <img src="<?php echo htmlspecialchars($bLogo); ?>" style="width: 24px; height: 24px; object-fit: contain; border-radius: 5px; border: 1px solid #e2e8f0; background: #fff; padding: 1px; flex-shrink: 0;">
+                            <img class="pos-bank-logo" src="<?php echo htmlspecialchars($bLogo); ?>" style="width: 22px; height: 22px; object-fit: contain; border-radius: 4px; border: 1px solid #e2e8f0; background: #fff; padding: 1px; flex-shrink: 0;">
                           <?php else: ?>
-                            <i class="fas fa-university text-primary" style="font-size: 1.1rem; flex-shrink: 0;"></i>
+                            <i class="fas fa-university text-primary pos-bank-logo-icon" style="font-size: 1rem; flex-shrink: 0;"></i>
                           <?php endif; ?>
-                          <div class="font-weight-bold text-dark text-truncate" style="font-size: 0.80rem; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;" title="<?php echo htmlspecialchars($displayLabel); ?>">
+                          <div class="pos-bank-name font-weight-bold text-dark text-truncate" style="font-size: 0.80rem; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;" title="<?php echo htmlspecialchars($displayLabel); ?>">
                             <?php echo htmlspecialchars($displayLabel); ?>
                           </div>
                         </div>
-                        <input type="radio" name="pos_selected_bank_id" value="<?php echo $bAccount['id']; ?>" style="accent-color: <?php echo $bColor; ?>; width: 14px; height: 14px; cursor: pointer; flex-shrink: 0;">
+                        <input type="radio" class="pos-bank-radio" name="pos_selected_bank_id" value="<?php echo $bAccount['id']; ?>" style="accent-color: <?php echo $bColor; ?>; width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; margin-left: 3px;">
                       </div>
                     </div>
                   <?php endforeach; ?>
@@ -143,27 +142,32 @@
                   if (!empty($__coRates[$__cc]) && (float)$__coRates[$__cc] > 0) $__coCurrencies[] = $__cc;
               }
             ?>
-            <div id="checkoutCurrencyRow"<?php echo count($__coCurrencies) < 2 ? ' style="display:none;"' : ''; ?>>
-              <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><?php echo htmlspecialchars(t('pos.tender_currency_label', 'ສະກຸນເງິນທີ່ຮັບ')); ?></div>
-              <select id="checkoutCurrency" class="form-control font-weight-bold mb-2" style="height:40px;border:2px solid #244886;border-radius:8px;color:#1a3666;" onchange="onCheckoutCurrencyChange(this.value)">
-                <?php foreach ($__coCurrencies as $__cc): ?>
-                  <option value="<?php echo $__cc; ?>"><?php echo htmlspecialchars(($__coMeta[$__cc]['name'] ?? $__cc) . ' (' . ($__coMeta[$__cc]['symbol'] ?? $__cc) . ')'); ?></option>
-                <?php endforeach; ?>
-              </select>
-            </div>
 
-            <!-- SINGLE: cash input -->
+            <!-- SINGLE: currency + cash input side-by-side -->
             <div id="singlePaySection">
-              <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;">
-                <span id="singleAmountLbl"><?php echo htmlspecialchars(t('pos.amount_received_label', 'ຈຳນວນທີ່ຮັບ')); ?> <span class="text-danger">*</span></span>
-                <span id="creditDepositLbl" style="display:none;"><?php echo htmlspecialchars(t('pos.credit_deposit_label', 'ເງິນມັດຈຳ (ຖ້າມີ)')); ?> <small class="text-muted font-weight-normal"><?php echo htmlspecialchars(t('pos.credit_deposit_hint', '— ບໍ່ຈ່າຍເລີຍ ໃຫ້ປ່ອຍເປັນ 0')); ?></small></span>
-              </div>
-              <div class="input-group" style="border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(36,72,134,0.10);">
-                <input type="text" id="cashReceived" class="form-control text-right font-weight-bold"
-                  placeholder="0" oninput="formatMoneyInput(this);calculateChange();"
-                  style="height:42px;font-size:1.2rem;color:#1a3666;background:#fff;border:2px solid #244886;border-right:none;">
-                <div class="input-group-append">
-                  <span class="input-group-text font-weight-bold text-white" style="background:#244886;border:2px solid #244886;border-left:none;padding:0 14px;font-size:1rem;">₭</span>
+              <div class="d-flex" style="gap:8px;align-items:flex-end;">
+                <!-- Currency (left) -->
+                <div id="checkoutCurrencyRow" style="flex:0 0 145px;<?php echo count($__coCurrencies) < 2 ? 'display:none;' : ''; ?>">
+                  <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><?php echo htmlspecialchars(t('pos.tender_currency_label', 'ສະກຸນເງິນທີ່ຮັບ')); ?></div>
+                  <select id="checkoutCurrency" class="form-control font-weight-bold" style="height:42px;border:2px solid #244886;border-radius:10px;color:#1a3666;font-size:0.90rem;" onchange="onCheckoutCurrencyChange(this.value)">
+                    <?php foreach ($__coCurrencies as $__cc): ?>
+                      <option value="<?php echo $__cc; ?>"><?php echo htmlspecialchars(($__coMeta[$__cc]['name'] ?? $__cc) . ' (' . ($__coMeta[$__cc]['symbol'] ?? $__cc) . ')'); ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <!-- Amount received (right) -->
+                <div style="flex:1;min-width:0;">
+                  <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;">
+                    <span id="singleAmountLbl"><?php echo htmlspecialchars(t('pos.amount_received_label', 'ຈຳນວນທີ່ຮັບ')); ?> <span class="text-danger">*</span></span>
+                  </div>
+                  <div class="input-group" style="border-radius:10px;box-shadow:0 2px 8px rgba(36,72,134,0.10);">
+                    <input type="text" inputmode="decimal" id="cashReceived" class="form-control text-right font-weight-bold"
+                      placeholder="0" oninput="formatMoneyInput(this);calculateChange();"
+                      style="height:42px;font-size:1.2rem;color:#1a3666;background:#fff;border:2px solid #244886 !important;border-right:none !important;border-top-left-radius:10px !important;border-bottom-left-radius:10px !important;border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                    <div class="input-group-append">
+                      <span class="input-group-text font-weight-bold text-white" style="background:#244886;border:2px solid #244886 !important;border-left:none !important;padding:0 14px;font-size:1rem;border-top-right-radius:10px !important;border-bottom-right-radius:10px !important;border-top-left-radius:0 !important;border-bottom-left-radius:0 !important;">₭</span>
+                    </div>
+                  </div>
                 </div>
               </div>
               <!-- Shortcuts -->
@@ -179,65 +183,51 @@
               </div>
             </div>
 
-            <!-- CREDIT: when the customer promises to pay (ກຳນົດຊຳລະ) — optional -->
-            <div id="creditDueSection" style="display:none;">
-              <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><i class="far fa-calendar-alt text-danger mr-1"></i><?php echo htmlspecialchars(t('pos.credit_due_label', 'ກຳນົດຊຳລະ (ມື້ທີ່ຈະມາຈ່າຍ)')); ?></div>
-              <input type="date" id="creditDueDate" class="form-control font-weight-bold" onchange="calcCredit()" style="height:40px;border:2px solid #fca5a5;border-radius:8px;color:#b91c1c;">
-              <div class="d-flex flex-wrap mt-1" style="gap:5px;">
-                <?php foreach ([7, 15, 30] as $__dd): ?>
-                  <button type="button" class="btn btn-sm font-weight-bold" onclick="setCreditDueIn(<?php echo $__dd; ?>)"
-                    style="background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:6px;font-size:0.8rem;padding:3px 10px;">
-                    +<?php echo $__dd; ?> <?php echo htmlspecialchars(t('pos.credit_due_days', 'ວັນ')); ?>
-                  </button>
-                <?php endforeach; ?>
-                <button type="button" class="btn btn-sm font-weight-bold" onclick="$('#creditDueDate').val(''); calcCredit();"
-                  style="background:#fff;color:#64748b;border:1px solid #cbd5e1;border-radius:6px;font-size:0.8rem;padding:3px 10px;">
-                  <?php echo htmlspecialchars(t('pos.credit_due_none', 'ບໍ່ກຳນົດ')); ?>
-                </button>
-              </div>
-            </div>
-
-            <!-- SPLIT: cash + qr inputs -->
+            <!-- SPLIT: cash + qr inputs side-by-side -->
             <div id="splitPaySection" style="display:none;">
-              <!-- Cash -->
-              <div class="mb-2">
-                <div class="font-weight-bold mb-1 d-flex align-items-center" style="font-size:0.80rem;color:#16a34a;">
-                  <?php echo htmlspecialchars(t('pos.pay_type_cash', 'ເງິນສົດ')); ?>
-                </div>
-                <div class="input-group" style="border-radius:9px;overflow:hidden;">
-                  <input type="text" id="splitCashAmount" class="form-control text-right font-weight-bold"
-                    placeholder="0" oninput="formatMoneyInput(this);calcSplitRemaining();"
-                    style="height:40px;font-size:1.1rem;color:#16a34a;border:2px solid #22c55e;border-right:none;background:#f0fdf4;">
-                  <div class="input-group-append">
-                    <span class="input-group-text font-weight-bold text-white" style="background:#22c55e;border:2px solid #22c55e;border-left:none;padding:0 12px;font-size:0.95rem;">₭</span>
+              <div class="row" style="margin-left: -5px; margin-right: -5px;">
+                <!-- Cash (Left) -->
+                <div class="col-6" style="padding-left: 5px; padding-right: 5px;">
+                  <div class="font-weight-bold mb-1 d-flex align-items-center" style="font-size:0.80rem;color:#16a34a;">
+                    <i class="fas fa-money-bill-wave mr-1"></i> <?php echo htmlspecialchars(t('pos.pay_type_cash', 'ເງິນສົດ')); ?>
+                  </div>
+                  <div class="input-group" style="border-radius:10px;box-shadow:0 1px 5px rgba(34,197,94,0.12);">
+                    <input type="text" inputmode="decimal" id="splitCashAmount" class="form-control text-right font-weight-bold"
+                      placeholder="0" oninput="formatMoneyInput(this);calcSplitRemaining();"
+                      style="height:40px;font-size:1.1rem;color:#16a34a;background:#f0fdf4;border:2px solid #22c55e !important;border-right:none !important;border-top-left-radius:10px !important;border-bottom-left-radius:10px !important;border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                    <div class="input-group-append">
+                      <span class="input-group-text font-weight-bold text-white" style="background:#22c55e;border:2px solid #22c55e !important;border-left:none !important;padding:0 12px;font-size:0.95rem;border-top-right-radius:10px !important;border-bottom-right-radius:10px !important;border-top-left-radius:0 !important;border-bottom-left-radius:0 !important;">₭</span>
+                    </div>
+                  </div>
+                  <div class="d-flex flex-wrap" style="gap:4px; margin-top: 8px;">
+                    <button type="button" onclick="setSplitCashExact()" style="background:#dcfce7;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.78rem;font-weight:700;padding:4px 8px;cursor:pointer;white-space:nowrap;">
+                      <?php echo htmlspecialchars(t('pos.exact_amount_all', 'ພໍດີທັງໝົດ')); ?>
+                    </button>
+                    <button type="button" onclick="addSplitCash(20000)" style="background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.76rem;font-weight:700;padding:4px 6px;cursor:pointer;">+20K</button>
+                    <button type="button" onclick="addSplitCash(50000)" style="background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.76rem;font-weight:700;padding:4px 6px;cursor:pointer;">+50K</button>
+                    <button type="button" onclick="addSplitCash(100000)" style="background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.76rem;font-weight:700;padding:4px 6px;cursor:pointer;">+100K</button>
+                    <button type="button" onclick="addSplitCash(500000)" style="background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.76rem;font-weight:700;padding:4px 6px;cursor:pointer;">+500K</button>
                   </div>
                 </div>
-                <div class="d-flex flex-wrap mt-1" style="gap:4px;">
-                  <button onclick="setSplitCashExact()" style="flex:1;background:#dcfce7;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.84rem;font-weight:700;padding:4px 6px;cursor:pointer;">
-                    <?php echo htmlspecialchars(t('pos.exact_amount_all', 'ພໍດີທັງໝົດ')); ?>
-                  </button>
-                  <button onclick="addSplitCash(20000)" style="flex:1;background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.84rem;font-weight:700;padding:4px 5px;cursor:pointer;">+20K</button>
-                  <button onclick="addSplitCash(50000)" style="flex:1;background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.84rem;font-weight:700;padding:4px 5px;cursor:pointer;">+50K</button>
-                  <button onclick="addSplitCash(100000)" style="flex:1;background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.84rem;font-weight:700;padding:4px 5px;cursor:pointer;">+100K</button>
-                  <button onclick="addSplitCash(500000)" style="flex:1;background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.84rem;font-weight:700;padding:4px 5px;cursor:pointer;">+500K</button>
-                </div>
-              </div>
-              <!-- QR -->
-              <div>
-                <div class="font-weight-bold mb-1 d-flex align-items-center" style="font-size:0.80rem;color:#7c3aed;">
-                  <?php echo htmlspecialchars(t('pos.pay_type_qr', 'ໂອນ / QR')); ?>
-                </div>
-                <div class="input-group" style="border-radius:9px;overflow:hidden;">
-                  <input type="text" id="splitQrAmount" class="form-control text-right font-weight-bold"
-                    placeholder="0" oninput="formatMoneyInput(this);calcSplitRemaining();"
-                    style="height:40px;font-size:1.1rem;color:#7c3aed;border:2px solid #a78bfa;border-right:none;background:#faf5ff;">
-                  <div class="input-group-append">
-                    <span class="input-group-text font-weight-bold text-white" style="background:#7c3aed;border:2px solid #7c3aed;border-left:none;padding:0 12px;font-size:0.95rem;">₭</span>
+                <!-- QR (Right) -->
+                <div class="col-6" style="padding-left: 5px; padding-right: 5px;">
+                  <div class="font-weight-bold mb-1 d-flex align-items-center" style="font-size:0.80rem;color:#7c3aed;">
+                    <i class="fas fa-qrcode mr-1"></i> <?php echo htmlspecialchars(t('pos.pay_type_qr', 'ໂອນ / QR')); ?>
+                  </div>
+                  <div class="input-group" style="border-radius:10px;box-shadow:0 1px 5px rgba(124,58,237,0.12);">
+                    <input type="text" inputmode="decimal" id="splitQrAmount" class="form-control text-right font-weight-bold"
+                      placeholder="0" oninput="formatMoneyInput(this);calcSplitRemaining();"
+                      style="height:40px;font-size:1.1rem;color:#7c3aed;background:#faf5ff;border:2px solid #a78bfa !important;border-right:none !important;border-top-left-radius:10px !important;border-bottom-left-radius:10px !important;border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                    <div class="input-group-append">
+                      <span class="input-group-text font-weight-bold text-white" style="background:#7c3aed;border:2px solid #a78bfa !important;border-left:none !important;padding:0 12px;font-size:0.95rem;border-top-right-radius:10px !important;border-bottom-right-radius:10px !important;border-top-left-radius:0 !important;border-bottom-left-radius:0 !important;">₭</span>
+                    </div>
+                  </div>
+                  <div class="d-flex" style="margin-top: 8px;">
+                    <button type="button" onclick="fillSplitQrRemaining()" style="background:#f3e8ff;color:#7c3aed;border:1.5px solid #c4b5fd;border-radius:6px;font-size:0.80rem;font-weight:700;padding:5px 12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;">
+                      <i class="fas fa-magic mr-1.5" style="font-size:0.75rem;"></i> <?php echo htmlspecialchars(t('pos.fill_remaining_amount', 'ຕື່ມຍອດທີ່ຍັງຄ້າງ')); ?>
+                    </button>
                   </div>
                 </div>
-                <button onclick="fillSplitQrRemaining()" style="margin-top:5px;background:#f3e8ff;color:#7c3aed;border:1px solid #c4b5fd;border-radius:6px;font-size:0.84rem;font-weight:700;padding:4px 10px;cursor:pointer;">
-                  <?php echo htmlspecialchars(t('pos.fill_remaining_amount', 'ຕື່ມຍອດທີ່ຍັງຄ້າງ')); ?>
-                </button>
               </div>
             </div>
 
@@ -248,88 +238,44 @@
 
             <!-- SINGLE: change display -->
             <div id="singleSummary">
-              <div style="background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;padding:14px 16px;">
-                <div style="font-size:0.9rem;color:#64748b;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;"><?php echo htmlspecialchars(t('pos.payment_summary', 'ສຳຫຼວດການຊຳລະ')); ?></div>
-                <div class="d-flex justify-content-between mb-2" style="font-size:1.05rem;">
+              <div style="background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;padding:10px 14px;">
+                <div style="font-size:0.82rem;color:#64748b;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;"><?php echo htmlspecialchars(t('pos.payment_summary', 'ສຳຫຼວດການຊຳລະ')); ?></div>
+                <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.total_label', 'ລວມ:')); ?></span>
                   <span class="font-weight-bold text-dark text-truncate ml-2" id="singleTotalLbl">0 ₭</span>
                 </div>
-                <div class="d-flex justify-content-between mb-1" style="font-size:1.05rem;">
+                <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.received_label', 'ຮັບມາ:')); ?></span>
                   <span class="font-weight-bold text-primary text-truncate ml-2" id="singleCashLbl">0 ₭</span>
                 </div>
-                <div style="border-top:1px dashed #e2e8f0;margin:8px 0;"></div>
+                <div style="border-top:1px dashed #e2e8f0;margin:6px 0;"></div>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
-                  <span class="font-weight-bold" style="font-size:1.05rem;"><?php echo htmlspecialchars(t('pos.change_label', 'ເງິນທອນ:')); ?></span>
-                  <span class="font-weight-bold text-success" id="changeDisplay" style="font-size:1.5rem;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">0 ₭</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- CREDIT: summary (ຂາຍຕິດໜີ້) -->
-            <div id="creditSummary" style="display:none;">
-              <div style="background:#fef2f2;border-radius:12px;border:1.5px solid #fecaca;padding:14px 16px;">
-                <div style="font-size:0.9rem;color:#b91c1c;font-weight:700;margin-bottom:8px;letter-spacing:.4px;"><i class="fas fa-hand-holding-usd mr-1"></i><?php echo htmlspecialchars(t('pos.credit_summary', 'ຂາຍຕິດໜີ້')); ?></div>
-                <div class="d-flex justify-content-between mb-2" style="font-size:1rem;">
-                  <span class="text-muted"><?php echo htmlspecialchars(t('pos.credit_customer', 'ລູກຄ້າ:')); ?></span>
-                  <span class="font-weight-bold text-dark text-truncate ml-2" id="creditCustomerLbl">-</span>
-                </div>
-                <div class="d-flex justify-content-between mb-1" style="font-size:1rem;">
-                  <span class="text-muted"><?php echo htmlspecialchars(t('pos.credit_bill_total', '① ຍອດບິນນີ້:')); ?></span>
-                  <span class="font-weight-bold text-dark text-truncate ml-2" id="creditTotalLbl">0 ₭</span>
-                </div>
-                <div class="d-flex justify-content-between mb-1" style="font-size:1rem;">
-                  <span class="text-muted"><?php echo htmlspecialchars(t('pos.credit_deposit_today', '② ຈ່າຍມັດຈຳມື້ນີ້:')); ?></span>
-                  <span class="font-weight-bold text-primary text-truncate ml-2" id="creditDepositDisplay">0 ₭</span>
-                </div>
-                <div style="border-top:1px dashed #fecaca;margin:8px 0;"></div>
-                <div class="d-flex justify-content-between align-items-center flex-wrap">
-                  <span class="font-weight-bold" style="font-size:1rem;color:#b91c1c;"><?php echo htmlspecialchars(t('pos.credit_owed_this_bill', 'ຕິດໜີ້ບິນນີ້ (① − ②):')); ?></span>
-                  <span class="font-weight-bold" id="creditOwedDisplay" style="font-size:1.5rem;color:#dc2626;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">0 ₭</span>
-                </div>
-                <!-- Customer's other unpaid bills (api/pos/customer_debt_info.php) -->
-                <div id="creditOldDebtBox" style="display:none;margin-top:8px;padding-top:8px;border-top:1px dashed #fecaca;">
-                  <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
-                    <span class="text-muted"><?php echo htmlspecialchars(t('pos.credit_old_debt', 'ໜີ້ເກົ່າທີ່ຍັງຄ້າງ:')); ?> <small id="creditOldDebtBills"></small></span>
-                    <span class="font-weight-bold text-dark text-truncate ml-2" id="creditOldDebtLbl">0 ₭</span>
-                  </div>
-                  <div class="d-flex justify-content-between" style="font-size:1rem;">
-                    <span class="font-weight-bold" style="color:#7f1d1d;"><?php echo htmlspecialchars(t('pos.credit_total_after', 'ໜີ້ລວມຫຼັງບິນນີ້:')); ?></span>
-                    <span class="font-weight-bold text-truncate ml-2" id="creditTotalAfterLbl" style="color:#7f1d1d;">0 ₭</span>
-                  </div>
-                  <div id="creditOverdueLbl" class="mt-1 font-weight-bold" style="display:none;font-size:0.82rem;color:#b45309;"></div>
-                </div>
-                <div class="d-flex justify-content-between mt-2" style="font-size:0.95rem;">
-                  <span class="text-muted"><i class="far fa-calendar-alt mr-1"></i><?php echo htmlspecialchars(t('pos.credit_due_short', 'ກຳນົດຊຳລະ:')); ?></span>
-                  <span class="font-weight-bold text-dark ml-2" id="creditDueLbl">-</span>
-                </div>
-                <div id="creditWarning" class="mt-2 font-weight-bold" style="display:none;font-size:0.85rem;color:#b91c1c;"></div>
-                <div class="mt-2" style="font-size:0.78rem;color:#7f1d1d;line-height:1.45;background:#fff;border-radius:8px;padding:6px 8px;border:1px solid #fecaca;">
-                  <i class="fas fa-info-circle mr-1"></i><?php echo htmlspecialchars(t('pos.credit_explain', 'ສິນຄ້າຈະຖືກຕັດສະຕັອກທັນທີ. ຍອດ "ຕິດໜີ້ບິນນີ້" ຈະຖືກບັນທຶກເປັນໜີ້ຂອງລູກຄ້າ — ເມື່ອລູກຄ້າມາຈ່າຍ ໃຫ້ຮັບເງິນຢູ່ເມນູ ລູກຄ້າຕິດໜີ້.')); ?>
+                  <span class="font-weight-bold" style="font-size:0.95rem;"><?php echo htmlspecialchars(t('pos.change_label', 'ເງິນທອນ:')); ?></span>
+                  <span class="font-weight-bold text-success" id="changeDisplay" style="font-size:1.4rem;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">0 ₭</span>
                 </div>
               </div>
             </div>
 
             <!-- SPLIT: summary -->
             <div id="splitSummary" style="display:none;">
-              <div style="background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;padding:14px 16px;">
-                <div style="font-size:0.9rem;color:#64748b;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;"><?php echo htmlspecialchars(t('pos.payment_summary', 'ສຳຫຼວດການຊຳລະ')); ?></div>
-                <div class="d-flex justify-content-between mb-2" style="font-size:1.05rem;">
+              <div style="background:#f8fafc;border-radius:12px;border:1.5px solid #e2e8f0;padding:10px 14px;">
+                <div style="font-size:0.82rem;color:#64748b;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;"><?php echo htmlspecialchars(t('pos.payment_summary', 'ສຳຫຼວດການຊຳລະ')); ?></div>
+                <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.grand_total_label', 'ຍອດທັງໝົດ:')); ?></span>
                   <span class="font-weight-bold text-dark text-truncate ml-2" id="splitTotal">0 ₭</span>
                 </div>
-                <div class="d-flex justify-content-between mb-2" style="font-size:1.05rem;">
+                <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.pay_type_cash', 'ເງິນສົດ')); ?>:</span>
                   <span class="font-weight-bold text-success text-truncate ml-2" id="splitCashDisplay">0 ₭</span>
                 </div>
-                <div class="d-flex justify-content-between mb-1" style="font-size:1.05rem;">
+                <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.pay_type_qr', 'ໂອນ / QR')); ?>:</span>
                   <span class="font-weight-bold text-truncate ml-2" style="color:#7c3aed;" id="splitQrDisplay">0 ₭</span>
                 </div>
-                <div style="border-top:1px dashed #e2e8f0;margin:8px 0;"></div>
+                <div style="border-top:1px dashed #e2e8f0;margin:6px 0;"></div>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
-                  <span class="font-weight-bold" style="font-size:1.05rem;" id="splitStatusLabel"><?php echo htmlspecialchars(t('pos.split_status_remaining', 'ຍັງຄ້າງ:')); ?></span>
-                  <span class="font-weight-bold" style="font-size:1.45rem;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;" id="splitRemainingDisplay">0 ₭</span>
+                  <span class="font-weight-bold" style="font-size:0.95rem;" id="splitStatusLabel"><?php echo htmlspecialchars(t('pos.split_status_remaining', 'ຍັງຄ້າງ:')); ?></span>
+                  <span class="font-weight-bold" style="font-size:1.35rem;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;" id="splitRemainingDisplay">0 ₭</span>
                 </div>
               </div>
             </div>
@@ -360,14 +306,13 @@
             <!-- Action Buttons -->
             <div class="d-flex" style="gap:8px;margin-top:4px;">
               <button type="button" class="btn btn-light font-weight-bold flex-fill py-2" data-dismiss="modal"
-                style="border-radius:9px;border:1.5px solid #cbd5e1;color:#475569;font-size:0.86rem;">
+                style="border-radius:6px;border:1.5px solid #cbd5e1;color:#475569;font-size:0.86rem;">
                 <?php echo htmlspecialchars(t('pos.cancel', 'ຍົກເລີກ')); ?>
               </button>
               <button type="button" class="btn font-weight-bold flex-fill py-2 text-white" id="btnSubmitPayment"
                 onclick="processCheckout()"
-                style="background:linear-gradient(135deg,#244886,#1a3666);border:none;border-radius:9px;font-size:0.90rem;box-shadow:0 4px 14px rgba(36,72,134,0.35);">
+                style="background:linear-gradient(135deg,#244886,#1a3666);border:none;border-radius:6px;font-size:0.90rem;box-shadow:0 4px 14px rgba(36,72,134,0.35);">
                 <span id="btnSubmitPayLbl"><?php echo htmlspecialchars(t('pos.confirm_payment', 'ຢືນຢັນຊຳລະ')); ?></span>
-                <span id="btnSubmitCreditLbl" style="display:none;"><?php echo htmlspecialchars(t('pos.credit_submit', 'ບັນທຶກຂາຍຕິດໜີ້')); ?></span>
               </button>
             </div>
             <!-- ເຄື່ອງພິມທີ່ໃບບິນຈະພິມອອກ (receipt_bluetooth.php → btPaintStatus) — ສະແດງສະຖານະຢ່າງດຽວ;
@@ -422,7 +367,7 @@
         </p>
       </div>
       <div class="modal-footer border-0 bg-light p-2.5 justify-content-center">
-        <button type="button" class="btn btn-secondary font-weight-bold px-4 py-2" data-dismiss="modal" style="border-radius: 10px;"><?php echo htmlspecialchars(t('pos.close', 'ປິດ')); ?></button>
+        <button type="button" class="btn btn-secondary font-weight-bold px-4 py-2" data-dismiss="modal" style="border-radius: 6px;"><?php echo htmlspecialchars(t('pos.close', 'ປິດ')); ?></button>
       </div>
     </div>
   </div>

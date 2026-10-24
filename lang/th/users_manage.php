@@ -18,6 +18,8 @@ return [
     'users_manage.status_offline' => 'ไม่ได้ใช้งาน',
     'users_manage.role_admin' => 'ผู้ดูแลระบบ',
     'users_manage.role_employee' => 'พนักงาน',
+    'users_manage.role_manager' => 'ผู้จัดการ (สาขาตัวเอง)',
+    'users_manage.role_manager_short' => 'ผู้จัดการ',
     'users_manage.btn_view_title' => 'ดูรายละเอียด',
     'users_manage.btn_edit_title' => 'แก้ไข',
     'users_manage.btn_delete_title' => 'ลบ',

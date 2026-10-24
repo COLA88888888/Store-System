@@ -9,6 +9,24 @@
     $('#direct_barcode_input').focus();
   });
 
+  function playImportBeep() {
+    try {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      var ctx = new AudioCtx();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1400, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.12);
+    } catch (e) {}
+  }
+
   function onDirectBarcodeKeyDown(e) {
     if (e.key === 'Enter' || e.keyCode === 13) {
       e.preventDefault();
@@ -29,20 +47,26 @@
 
     var exactMatch = null;
     var partialMatches = [];
+    var matchedUnit = null;
 
     PRODUCTS_LIST.forEach(function(p) {
       var pBarcode = (p.barcode || "").toLowerCase();
       var pId = p.product_id.toString();
       var pName = (p.product_name || "").toLowerCase();
 
-      var extraBarcodes = [];
+      var unitMatch = null;
       if (PRODUCTS_UNITS[p.product_id]) {
         PRODUCTS_UNITS[p.product_id].forEach(function(u) {
-          if (u.barcode) extraBarcodes.push(u.barcode.toLowerCase());
+          if (u.barcode && u.barcode.toLowerCase() === query) {
+            unitMatch = u;
+          }
         });
       }
 
-      if (pBarcode === query || extraBarcodes.includes(query) || pId === query) {
+      if (unitMatch) {
+        exactMatch = p;
+        matchedUnit = unitMatch;
+      } else if (pBarcode === query || pId === query) {
         exactMatch = p;
       } else if (pBarcode.includes(query) || pName.includes(query)) {
         partialMatches.push(p);
@@ -55,15 +79,89 @@
     }
 
     if (targetProduct) {
-      setDirectSelectedProduct(targetProduct);
       if (isEnter) {
-        $('#direct_qty').focus().select();
+        // ສະແກນແລ້ວເດັ້ງເຂົ້າລາຍການທັນທີ (Instant scan & add to cart)
+        addScannedProductToCart(targetProduct, matchedUnit);
+      } else {
+        setDirectSelectedProduct(targetProduct);
       }
     } else if (isEnter && window.hasNonEnglishChars && window.hasNonEnglishChars(query) && window.showSwitchKeyboardAlert) {
       window.showSwitchKeyboardAlert(query, document.getElementById('direct_barcode_input'));
     } else if (isEnter && window.showBarcodeNotFoundAlert) {
       window.showBarcodeNotFoundAlert($('#direct_barcode_input').val().trim(), document.getElementById('direct_barcode_input'));
     }
+  }
+
+  function addScannedProductToCart(p, unitObj) {
+    var qty = parseInt($('#direct_qty').val() || 1, 10);
+    if (isNaN(qty) || qty <= 0) qty = 1;
+
+    var baseUnit = p.unit || I18N_IMPORT_STOCK['import_stock.default_unit'];
+    var unitKey = 'base';
+    var unitName = baseUnit;
+    var multiplier = 1;
+    var costPrice = parseFloat(p.bprice || 0);
+    var sellPrice = parseFloat(p.price || 0);
+
+    var targetUnit = unitObj;
+    var selUnitVal = $('#direct_unit_key').val();
+    if (!targetUnit && selUnitVal && selUnitVal !== 'base' && PRODUCTS_UNITS[p.product_id]) {
+      targetUnit = PRODUCTS_UNITS[p.product_id].find(function(u) { return u.id == selUnitVal; });
+    }
+
+    if (targetUnit) {
+      unitKey = targetUnit.id;
+      unitName = targetUnit.unit_name;
+      multiplier = parseInt(targetUnit.multiplier || 1, 10);
+      if (targetUnit.bprice && parseFloat(targetUnit.bprice) > 0) {
+        costPrice = parseFloat(targetUnit.bprice);
+      }
+      if (targetUnit.price && parseFloat(targetUnit.price) > 0) {
+        sellPrice = parseFloat(targetUnit.price);
+      }
+    }
+
+    var expiryDate = ($('#direct_expiry_date').val() || '').trim();
+
+    // Check if item already exists in cart with same product_id, unit_key, expiry_date
+    var existingIdx = cartItems.findIndex(function(item) {
+      return item.product_id == p.product_id && item.unit_key == unitKey && item.expiry_date == expiryDate;
+    });
+
+    if (existingIdx !== -1) {
+      cartItems[existingIdx].quantity += qty;
+      var existingItem = cartItems.splice(existingIdx, 1)[0];
+      cartItems.unshift(existingItem);
+    } else {
+      cartItems.unshift({
+        product_id: p.product_id,
+        product_name: p.product_name,
+        barcode: (targetUnit && targetUnit.barcode) ? targetUnit.barcode : (p.barcode || '-'),
+        base_unit: baseUnit,
+        unit_key: unitKey,
+        unit_name: unitName,
+        multiplier: multiplier,
+        quantity: qty,
+        cost_price: costPrice,
+        sell_price: sellPrice,
+        expiry_date: expiryDate
+      });
+    }
+
+    playImportBeep();
+    cartCurrentPage = 1;
+    renderCartTable();
+    resetDirectSelection();
+
+    // Visual feedback: brief highlight on the newly added top row
+    var $firstRow = $('#cart_table_body tr:first');
+    $firstRow.css('background-color', '#dcfce7');
+    setTimeout(function() {
+      $firstRow.css('transition', 'background-color 0.8s ease').css('background-color', '');
+    }, 400);
+
+    // Keep cursor on barcode input ready for next scan
+    $('#direct_barcode_input').val('').focus();
   }
 
   function selectProductFromModal(productId) {
@@ -222,8 +320,10 @@
       cartItems[existingIdx].quantity += qty;
       cartItems[existingIdx].cost_price = costPrice;
       cartItems[existingIdx].sell_price = sellPrice;
+      var updated = cartItems.splice(existingIdx, 1)[0];
+      cartItems.unshift(updated);
     } else {
-      cartItems.push({
+      cartItems.unshift({
         product_id: selectedProduct.product_id,
         product_name: selectedProduct.product_name,
         barcode: selectedProduct.barcode || '-',
@@ -238,8 +338,17 @@
       });
     }
 
+    playImportBeep();
+    cartCurrentPage = 1;
     resetDirectSelection();
     renderCartTable();
+
+    var $firstRow = $('#cart_table_body tr:first');
+    $firstRow.css('background-color', '#dcfce7');
+    setTimeout(function() {
+      $firstRow.css('transition', 'background-color 0.8s ease').css('background-color', '');
+    }, 400);
+
     $('#direct_barcode_input').focus();
   }
 

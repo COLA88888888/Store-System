@@ -207,6 +207,38 @@ if ($filter_store_id > 0 && $hasStoreIdCol) {
     $params[':filter_store_id'] = $filter_store_id;
 }
 
+// ພະນັກງານ (ຕຳແໜ່ງ "ພະນັກງານ"): ເຫັນສະເພາະບິນທີ່ຕົນເອງຂາຍ (user_receive = username, api/pos/checkout_totals.php).
+// ສາຂາທີ່ໃຊ້ກະ: ສະເພາະກະປັດຈຸບັນ (ກະທີ່ເປີດຢູ່; ບໍ່ມີ → ກະຫຼ້າສຸດທີ່ຕົນເອງເປີດ) ແລະ ບໍ່ອີງວັນທີ
+// (ກະຂ້າມຄືນບໍ່ຂາດ). ຜູ້ຈັດການ/ຜູ້ບໍລິຫານ ເຫັນທັງໝົດຄືເກົ່າ.
+$staffScope = null;   // ['user' => ..., 'shift' => [...] | null] — ໃຫ້ໜ້າສະແດງປ້າຍບອກ
+if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSION['user_id'] ?? 0) !== 1) {
+    $staffUser = (string)($_SESSION['username'] ?? '');
+    $where[] = "s.user_receive = :staff_user";
+    $params[':staff_user'] = $staffUser;
+    $staffScope = ['user' => $staffUser, 'shift' => null];
+
+    if (branchHasShifts($pdo, $userStoreId)) {
+        $scSt = $pdo->prepare("SELECT id, shift_name, open_time, close_time, status FROM st_shift_sessions
+                               WHERE store_id = ? AND (status = 'open' OR opened_by_user_id = ?)
+                               ORDER BY (status = 'open') DESC, id DESC LIMIT 1");
+        $scSt->execute([$userStoreId, intval($_SESSION['user_id'])]);
+        $staffShift = $scSt->fetch(PDO::FETCH_ASSOC);
+        // ຕັດເງື່ອນໄຂວັນທີອອກ: ກະກຳນົດຊ່ວງແທນ
+        foreach ($where as $wi => $wc) {
+            if (strpos($wc, ':from_date') !== false || strpos($wc, ':to_date') !== false) unset($where[$wi]);
+        }
+        unset($params[':from_date'], $params[':to_date']);
+        $where = array_values($where);
+        if ($staffShift) {
+            $where[] = "s.shift_session_id = :staff_shift";
+            $params[':staff_shift'] = (int)$staffShift['id'];
+        } else {
+            $where[] = "1 = 0";   // ຍັງບໍ່ເຄີຍມີກະ → ບໍ່ມີລາຍການ
+        }
+        $staffScope['shift'] = $staffShift ?: null;
+    }
+}
+
 $whereClause = implode(" AND ", $where);
 
 // Data variables

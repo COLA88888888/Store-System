@@ -45,10 +45,10 @@
         <div id="customerPager" class="d-flex justify-content-between align-items-center flex-wrap mt-3" style="gap: 8px;"></div>
       </div>
       <div class="modal-footer border-0 bg-light p-3">
-        <button type="button" class="btn btn-primary font-weight-bold px-3 py-2" onclick="selectCustomer(null)" data-dismiss="modal" style="border-radius: 8px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none; box-shadow: 0 3px 10px rgba(36, 72, 134, 0.30);">
+        <button type="button" class="btn btn-primary font-weight-bold px-3 py-2" onclick="selectCustomer(null)" data-dismiss="modal" style="border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none; box-shadow: 0 3px 10px rgba(36, 72, 134, 0.30);">
           <i class="fas fa-user-check mr-1.5"></i> <?php echo htmlspecialchars(t('pos.select_general_customer', 'ເລືອກລູກຄ້າທົ່ວໄປ')); ?>
         </button>
-        <button type="button" class="btn btn-secondary font-weight-bold px-3 py-2" data-dismiss="modal" style="border-radius: 8px;"><?php echo htmlspecialchars(t('pos.close', 'ປິດ')); ?></button>
+        <button type="button" class="btn btn-secondary font-weight-bold px-3 py-2" data-dismiss="modal" style="border-radius: 6px;"><?php echo htmlspecialchars(t('pos.close', 'ປິດ')); ?></button>
       </div>
     </div>
   </div>

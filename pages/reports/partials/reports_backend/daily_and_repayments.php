@@ -83,22 +83,7 @@ if ($type === 'daily') {
     } catch (Exception $e) {}
 }
 
-// ຂາຍຕິດໜີ້: repayments taken later on the ລູກຄ້າຕິດໜີ້ page, per bill and per channel. They are
-// added onto the bill's own ເງິນສົດ / ໂອນ figures below, so a bill shows how it was actually paid
-// in the end — cash in the cash column, transfers in the transfer column (both when mixed).
+// ໂມດູນລູກຄ້າຕິດໜີ້ ຖືກລຶບອອກແລ້ວ — ບໍ່ມີການຊຳລະໜີ້ຍ້ອນຫຼັງ ($debtRepaidByBill ຫວ່າງ,
+// sales_rows.php ຍັງອ່ານຕົວແປນີ້ ຈຶ່ງເກັບໄວ້).
 $debtRepaidByBill = [];
-try {
-    $rq = $pdo->query("
-        SELECT d.invoice_number,
-               SUM(CASE WHEN p.bank_account_id IS NULL AND p.payment_method = 'ເງິນສົດ' THEN p.amount ELSE 0 END) AS cash,
-               SUM(CASE WHEN p.bank_account_id IS NULL AND p.payment_method = 'ເງິນສົດ' THEN 0 ELSE p.amount END) AS qr,
-               MAX(p.bank_account_id) AS bank_account_id, MAX(p.bank_name) AS bank_name
-        FROM st_customer_debt_payments p
-        JOIN st_customer_debts d ON d.id = p.debt_id
-        WHERE d.invoice_number IS NOT NULL AND d.status <> 'cancelled'
-        GROUP BY d.invoice_number");
-    foreach ($rq->fetchAll(PDO::FETCH_ASSOC) as $rr) {
-        $debtRepaidByBill[$rr['invoice_number']] = $rr;
-    }
-} catch (Throwable $e) {}
 

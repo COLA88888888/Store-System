@@ -140,7 +140,9 @@
         'profile_img' => "VARCHAR(255) DEFAULT 'default.png'",
         'last_activity' => "DATETIME DEFAULT NULL",
         'accounting' => "TINYINT(1) DEFAULT 0",
-        'customers' => "TINYINT(1) DEFAULT 1"
+        'customers' => "TINYINT(1) DEFAULT 1",
+        // ສະຖານະບັນຊີ: 0 = ປິດໃຊ້ງານ (ພະນັກງານລາອອກແລ້ວ) — ເຂົ້າລະບົບບໍ່ໄດ້ ແຕ່ປະຫວັດການຂາຍຍັງຢູ່
+        'account_active' => "TINYINT(1) NOT NULL DEFAULT 1"
     ];
     foreach ($userCols as $col => $def) {
         try {

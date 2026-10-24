@@ -18,6 +18,8 @@ return [
     'users_manage.status_offline' => 'ບໍ່ໄດ້ໃຊ້ງານ',
     'users_manage.role_admin' => 'ຜູ້ບໍລິຫານ',
     'users_manage.role_employee' => 'ພະນັກງານ',
+    'users_manage.role_manager' => 'ຜູ້ຈັດການ (ສາຂາຕົນເອງ)',
+    'users_manage.role_manager_short' => 'ຜູ້ຈັດການ',
     'users_manage.btn_view_title' => 'ເບິ່ງລາຍລະອຽດ',
     'users_manage.btn_edit_title' => 'ແກ້ໄຂ',
     'users_manage.btn_delete_title' => 'ລົບ',

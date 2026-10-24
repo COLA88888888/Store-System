@@ -19,7 +19,7 @@ $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
 <html lang="<?php echo htmlspecialchars(getCurrentLang()); ?>" translate="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
     <title>Wlaodev POS</title>
     <link rel="shortcut icon" href="<?php echo $site_logo; ?>" type="image/x-icon">
@@ -151,6 +151,7 @@ $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
             'login.err_username_required' => 'ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້ງານ!',
             'login.err_password_required' => 'ກະລຸນາປ້ອນລະຫັດຜ່ານ!',
             'login.err_invalid' => 'ລະຫັດບໍ່ຖືກຕ້ອງ ກະລຸນາລອງໃໝ່',
+            'login.err_account_disabled' => 'ບັນຊີນີ້ຖືກປິດໃຊ້ງານແລ້ວ ກະລຸນາຕິດຕໍ່ຜູ້ບໍລິຫານ',
         ]); ?>;
 
         $(document).ready(function() {
@@ -183,6 +184,20 @@ $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
                 icon: 'warning',
                 title: I18N_LOGIN['login.token_expired_title'],
                 text: I18N_LOGIN['login.token_expired_text'],
+                confirmButtonColor: '#007bff',
+                confirmButtonText: I18N_LOGIN['login.ok'],
+                heightAuto: false
+            }).then(function() {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            });
+            <?php endif; ?>
+
+            // ບັນຊີຖືກປິດໃຊ້ງານລະຫວ່າງໃຊ້ງານ (ພະນັກງານລາອອກ)
+            <?php if (isset($_GET['disabled'])): ?>
+            Swal.fire({
+                icon: 'error',
+                title: I18N_LOGIN['login.warning_title'],
+                text: I18N_LOGIN['login.err_account_disabled'],
                 confirmButtonColor: '#007bff',
                 confirmButtonText: I18N_LOGIN['login.ok'],
                 heightAuto: false

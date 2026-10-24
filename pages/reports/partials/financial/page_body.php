@@ -98,7 +98,7 @@
           <option value=""><?php echo htmlspecialchars(t('reports.all_currencies_opt', '-- ທຸກສະກຸນເງິນ --')); ?></option>
           <?php foreach (getCurrencyMeta() as $__cc => $__ci): ?>
             <option value="<?php echo htmlspecialchars($__cc); ?>" <?php echo $currency_filter === $__cc ? 'selected' : ''; ?>>
-              <?php echo htmlspecialchars($__ci['name'] . ' (' . $__ci['symbol'] . ')'); ?>
+              <?php /* ລະຫັດສະກຸນເງິນເທົ່ານັ້ນ (KIP → LAK) ບໍ່ມີສັນຍາລັກ */ echo htmlspecialchars($__cc === 'KIP' ? 'LAK' : $__cc); ?>
             </option>
           <?php endforeach; ?>
         </select>
@@ -148,32 +148,9 @@
               </tr>
             <?php else: ?>
               <?php
-                // ຂາຍຕິດໜີ້: debt state per bill on this page — paid so far (deposit + repayments)
-                // and what is still owed. Cancelled debts are ignored (the bill shows ຍົກເລີກ).
+                // ໂມດູນລູກຄ້າຕິດໜີ້ ຖືກລຶບອອກແລ້ວ — ບໍ່ມີສະຖານະໜີ້ / ການຊຳລະຍ້ອນຫຼັງ (ຕົວແປຫວ່າງ ໃຊ້ຕໍ່ຂ້າງລຸ່ມ)
                 $finDebts = [];
                 $finRepaid = [];
-                $finBills = array_values(array_filter(array_column($finances, 'sale_save_bill')));
-                if ($finBills) {
-                    try {
-                        $fd = $pdo->prepare("SELECT invoice_number, SUM(deposit_amount + paid_amount) AS paid, SUM(balance) AS balance,
-                                                    SUM(status IN ('unpaid','partial')) AS open_cnt, SUM(paid_amount) AS repaid
-                                             FROM st_customer_debts WHERE status <> 'cancelled'
-                                               AND invoice_number IN (" . implode(',', array_fill(0, count($finBills), '?')) . ")
-                                             GROUP BY invoice_number");
-                        $fd->execute($finBills);
-                        foreach ($fd->fetchAll(PDO::FETCH_ASSOC) as $d) $finDebts[$d['invoice_number']] = $d;
-
-                        // Repayments since the sale, per channel — added to the bill's ເງິນສົດ / ໂອນ below
-                        $fr = $pdo->prepare("SELECT d.invoice_number,
-                                                    SUM(CASE WHEN p.bank_account_id IS NULL AND p.payment_method = 'ເງິນສົດ' THEN p.amount ELSE 0 END) AS cash,
-                                                    SUM(CASE WHEN p.bank_account_id IS NULL AND p.payment_method = 'ເງິນສົດ' THEN 0 ELSE p.amount END) AS qr
-                                             FROM st_customer_debt_payments p JOIN st_customer_debts d ON d.id = p.debt_id
-                                             WHERE d.status <> 'cancelled' AND d.invoice_number IN (" . implode(',', array_fill(0, count($finBills), '?')) . ")
-                                             GROUP BY d.invoice_number");
-                        $fr->execute($finBills);
-                        foreach ($fr->fetchAll(PDO::FETCH_ASSOC) as $d) $finRepaid[$d['invoice_number']] = $d;
-                    } catch (Throwable $e) {}
-                }
               ?>
               <?php foreach ($finances as $idx => $row): ?>
                 <?php
@@ -205,7 +182,9 @@
                   }
 
                   $change  = max(0, $ret);
-                  $received = max(0, $pay);
+                  // ຮັບຈິງ = ເງິນທີ່ຮັບຈາກລູກຄ້າແທ້ (ເງິນສົດ + ເງິນໂອນ). sale_pay ເກັບແຕ່ເງິນສົດທີ່ຍື່ນໃຫ້ —
+                  // ບິນໂອນ/QR ຈຶ່ງເຄີຍສະແດງ 0 ທັງທີ່ຮັບເງິນມາແລ້ວ.
+                  $received = max(0, $pay, $cash + $qr);
                   // Credit bill: repayments taken since count in their own column (cash / transfer)
                   if ($typePay === 'ຕິດໜີ້' && isset($finRepaid[$row['sale_save_bill']])) {
                       $rp = $finRepaid[$row['sale_save_bill']];

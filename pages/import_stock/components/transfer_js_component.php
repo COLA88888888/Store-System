@@ -387,18 +387,68 @@
 
     $('#cart_json_input').val(JSON.stringify(cartItems));
 
+    // ກວດສອບສາຂາປາຍທາງ: ຕ້ອງມີສິນຄ້າ, ປະເພດດຽວກັນ, ຫົວໜ່ວຍດຽວກັນ
+    var fromStore = $('#from_store_id').val();
+    
     Swal.fire({
-      title: I18N_STOCK_TRANSFER['stock_transfer.confirm_transfer_title'],
-      text: I18N_STOCK_TRANSFER['stock_transfer.confirm_transfer_text'],
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#10b981',
-      cancelButtonColor: '#64748b',
-      confirmButtonText: I18N_STOCK_TRANSFER['stock_transfer.confirm_transfer_button'],
-      cancelButtonText: I18N_STOCK_TRANSFER['stock_transfer.cancel_button']
-    }).then(function(result) {
-      if (result.isConfirmed) {
-        $('#directTransferForm').submit();
+      title: 'ກຳລັງກວດສອບຂໍ້ມູນສິນຄ້າ...',
+      allowOutsideClick: false,
+      didOpen: function() {
+        Swal.showLoading();
+      }
+    });
+
+    $.ajax({
+      url: '../../api/stock_transfer_backend.php?action=validate_transfer_products',
+      type: 'POST',
+      dataType: 'json',
+      data: {
+        from_store_id: fromStore,
+        to_store_id: toStore,
+        items: JSON.stringify(cartItems)
+      },
+      success: function(res) {
+        if (!res.success) {
+          Swal.fire({
+            icon: 'error',
+            title: 'ບໍ່ສາມາດໂອນສິນຄ້າໄດ້',
+            html: '<div style="text-align: left; font-size: 0.92rem; max-height: 250px; overflow-y: auto; white-space: pre-line; color: #b91c1c; background: #fef2f2; padding: 12px; border-radius: 8px; border: 1px solid #fecaca;">' + escapeHtml(res.message) + '</div><div class="mt-2 text-muted small text-left">* ສາຂາປາຍທາງຕ້ອງມີສິນຄ້າດຽວກັນ, ປະເພດສິນຄ້າດຽວກັນ ແລະ ຫົວໜ່ວຍດຽວກັນ ຈຶ່ງສາມາດໂອນໄດ້.</div>',
+            confirmButtonColor: '#2563eb',
+            confirmButtonText: 'ຮັບຊາບ'
+          });
+          return;
+        }
+
+        Swal.fire({
+          title: I18N_STOCK_TRANSFER['stock_transfer.confirm_transfer_title'],
+          text: I18N_STOCK_TRANSFER['stock_transfer.confirm_transfer_text'],
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#10b981',
+          cancelButtonColor: '#64748b',
+          confirmButtonText: I18N_STOCK_TRANSFER['stock_transfer.confirm_transfer_button'],
+          cancelButtonText: I18N_STOCK_TRANSFER['stock_transfer.cancel_button']
+        }).then(function(result) {
+          if (result.isConfirmed) {
+            $('#directTransferForm').submit();
+          }
+        });
+      },
+      error: function() {
+        Swal.fire({
+          title: I18N_STOCK_TRANSFER['stock_transfer.confirm_transfer_title'],
+          text: I18N_STOCK_TRANSFER['stock_transfer.confirm_transfer_text'],
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#10b981',
+          cancelButtonColor: '#64748b',
+          confirmButtonText: I18N_STOCK_TRANSFER['stock_transfer.confirm_transfer_button'],
+          cancelButtonText: I18N_STOCK_TRANSFER['stock_transfer.cancel_button']
+        }).then(function(result) {
+          if (result.isConfirmed) {
+            $('#directTransferForm').submit();
+          }
+        });
       }
     });
   }

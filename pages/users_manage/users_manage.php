@@ -99,8 +99,11 @@ require_once __DIR__ . '/../../layouts/header.php';
                     // An admin may still edit their OWN row (self-service), just never someone else's.
                     $canEditRow = isOwnerUser() || !$rowIsAdmin || $isOwnRow;
                     $canDeleteRow = isOwnerUser() || !$rowIsAdmin;
+                    // ບັນຊີຖືກປິດໃຊ້ງານ (ພະນັກງານລາອອກ) — ເຂົ້າລະບົບບໍ່ໄດ້
+                    $isAccountActive = intval($u['account_active'] ?? 1) === 1;
+                    $canToggleActive = hasPermission('users', 'edit') && intval($u['Id']) !== 1 && !$isOwnRow && (isOwnerUser() || !$rowIsAdmin);
                   ?>
-                    <tr>
+                    <tr<?php echo $isAccountActive ? '' : ' class="user-row-disabled" style="opacity: 0.6;"'; ?>>
                       <td class="text-center align-middle font-weight-bold text-muted"><?php echo $idx++; ?></td>
                       <td class="align-middle text-secondary font-weight-bold"><?php echo $u['user_code'] !== '' && $u['user_code'] !== null ? branchCodeHtml($u['user_code']) : '-'; ?></td>
                       <td class="text-center align-middle">
@@ -118,7 +121,11 @@ require_once __DIR__ . '/../../layouts/header.php';
                       
                       <!-- COLUMN 1: ສະຖານະ (Online / Offline) -->
                       <td class="text-center align-middle user-online-status-td" data-user-id="<?php echo $u['Id']; ?>">
-                        <?php if ($isOnline): ?>
+                        <?php if (!$isAccountActive): ?>
+                          <span class="badge badge-dark px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;">
+                            <i class="fas fa-user-slash mr-1"></i> <?php echo htmlspecialchars(t('users_manage.status_disabled', 'ປິດໃຊ້ງານ (ລາອອກ)')); ?>
+                          </span>
+                        <?php elseif ($isOnline): ?>
                           <span class="badge badge-success px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;">
                             <i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> <?php echo htmlspecialchars(t('users_manage.status_online', 'ໃຊ້ງານຢູ່')); ?>
                           </span>
@@ -133,6 +140,8 @@ require_once __DIR__ . '/../../layouts/header.php';
                       <td class="text-center align-middle">
                         <?php if ($userStatus === 'ຜູ້ບໍລິຫານ' || strtolower($userStatus) === 'admin'): ?>
                           <span class="badge badge-primary px-2.5 py-1.5" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-user-shield mr-1"></i> <?php echo htmlspecialchars(t('users_manage.role_admin', 'ຜູ້ບໍລິຫານ')); ?></span>
+                        <?php elseif (isManagerRole($userStatus)): ?>
+                          <span class="badge badge-info px-2.5 py-1.5" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-user-tie mr-1"></i> <?php echo htmlspecialchars(t('users_manage.role_manager_short', 'ຜູ້ຈັດການ')); ?></span>
                         <?php else: ?>
                           <span class="badge badge-secondary px-2.5 py-1.5" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-user mr-1"></i> <?php echo htmlspecialchars(t('users_manage.role_employee', 'ພະນັກງານ')); ?></span>
                         <?php endif; ?>
@@ -167,6 +176,14 @@ require_once __DIR__ . '/../../layouts/header.php';
                             <!-- Edit Button -->
                             <button type="button" class="btn btn-outline-warning" title="<?php echo htmlspecialchars(t('users_manage.btn_edit_title', 'ແກ້ໄຂ')); ?>" onclick='openEditModal(<?php echo $userJson; ?>)'>
                               <i class="fas fa-edit"></i>
+                            </button>
+                          <?php endif; ?>
+                          <?php if ($canToggleActive): ?>
+                            <!-- ເປີດ / ປິດໃຊ້ງານບັນຊີ (ພະນັກງານລາອອກ) -->
+                            <button type="button" class="btn <?php echo $isAccountActive ? 'btn-outline-secondary' : 'btn-outline-success'; ?>"
+                                    title="<?php echo htmlspecialchars($isAccountActive ? t('users_manage.btn_disable_title', 'ປິດໃຊ້ງານ (ພະນັກງານລາອອກ)') : t('users_manage.btn_enable_title', 'ເປີດໃຊ້ງານຄືນ')); ?>"
+                                    onclick="toggleUserActive(<?php echo $u['Id']; ?>, '<?php echo htmlspecialchars(addslashes($u['username'])); ?>', <?php echo $isAccountActive ? 0 : 1; ?>)">
+                              <i class="fas <?php echo $isAccountActive ? 'fa-user-slash' : 'fa-user-check'; ?>"></i>
                             </button>
                           <?php endif; ?>
                           <?php if (hasPermission('users', 'del') && intval($u['Id']) !== 1 && $canDeleteRow && !$isOwnRow): ?>
@@ -236,8 +253,10 @@ require_once __DIR__ . '/components/form_edit_user.php';
   var I18N_USERS = <?php echo tjson([
     'users_manage.status_online' => 'ໃຊ້ງານຢູ່',
     'users_manage.status_offline' => 'ບໍ່ໄດ້ໃຊ້ງານ',
+    'users_manage.status_disabled' => 'ປິດໃຊ້ງານ (ລາອອກ)',
     'users_manage.role_admin' => 'ຜູ້ບໍລິຫານ',
     'users_manage.role_employee' => 'ພະນັກງານ',
+    'users_manage.role_manager_short' => 'ຜູ້ຈັດການ',
   ]); ?>;
   // ອີງກົດເກນດຽວກັນກັບປຸ່ມແກ້ໄຂໃນຕາຕະລາງ: ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດ (Id 1) ເທົ່ານັ້ນທີ່ແກ້ໄຂ
   // ບັນຊີທີ່ມີສະຖານະຜູ້ບໍລິຫານຄົນອື່ນໄດ້ — ໃຊ້ຄວບຄຸມປຸ່ມ "ແກ້ໄຂ" ໃນ modal ເບິ່ງລາຍລະອຽດນຳ.

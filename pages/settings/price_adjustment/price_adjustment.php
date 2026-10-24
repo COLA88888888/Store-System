@@ -39,7 +39,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
         </form>
       <?php endif; ?>
       <?php if (hasPermission('price_adjustment', 'add')): ?>
-        <button type="button" class="btn btn-primary font-weight-bold text-white shadow-sm px-3 py-2" data-toggle="modal" data-target="#priceAdjModal" style="border-radius: 8px; font-size: 0.88rem; height: 38px; white-space: nowrap; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
+        <button type="button" class="btn btn-primary font-weight-bold text-white shadow-sm px-3 py-2" data-toggle="modal" data-target="#priceAdjModal" style="border-radius: 6px; font-size: 0.88rem; height: 38px; white-space: nowrap; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
           <i class="fas fa-plus-circle mr-1.5"></i> <?php echo htmlspecialchars(t('price_adjustment.btn_add_new', 'ປັບລາຄາສິນຄ້າໃໝ່')); ?>
         </button>
       <?php endif; ?>

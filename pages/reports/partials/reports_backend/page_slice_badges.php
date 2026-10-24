@@ -25,29 +25,11 @@ if ($per_page === 'all') {
     $end_record = min($offset + $per_page, $total_records);
 }
 
-// ຕິດໜີ້: bills on this page that still have an unpaid credit balance. Once the debt is paid
-// in full (or cancelled) the bill drops out of this map and shows as a normal bill again.
+// ໂມດູນລູກຄ້າຕິດໜີ້ ຖືກລຶບອອກແລ້ວ (ຕາຕະລາງ st_customer_debts ບໍ່ມີແລ້ວ) — ບໍ່ມີປ້າຍໜີ້ຄ້າງ;
+// ຕົວແປຍັງຢູ່ (ຫວ່າງ) ເພາະຕາຕະລາງລາຍງານສົ່ງໃຫ້ reportDebtBadge / reportBillStatusBadge ຂ້າງລຸ່ມ.
 $openDebtByBill = [];
-$debtStatusByBill = []; // invoice => unpaid | partial | paid (credit bills only, cancelled debts ignored)
-$debtPaidByBill = [];   // invoice => deposit + repayments so far
-$__pageBills = array_values(array_unique(array_filter(array_column($display_data, 'bill_no'))));
-if (!empty($__pageBills)) {
-    try {
-        $dq = $pdo->prepare("SELECT invoice_number, SUM(balance) AS balance, SUM(paid_amount) AS paid,
-                                    SUM(deposit_amount + paid_amount) AS paid_total,
-                                    SUM(status IN ('unpaid','partial')) AS open_cnt
-                             FROM st_customer_debts
-                             WHERE status <> 'cancelled' AND invoice_number IN (" . implode(',', array_fill(0, count($__pageBills), '?')) . ")
-                             GROUP BY invoice_number");
-        $dq->execute($__pageBills);
-        foreach ($dq->fetchAll(PDO::FETCH_ASSOC) as $dr) {
-            $open = (int)$dr['open_cnt'] > 0;
-            if ($open) $openDebtByBill[$dr['invoice_number']] = (float)$dr['balance'];
-            $debtStatusByBill[$dr['invoice_number']] = !$open ? 'paid' : ((float)$dr['paid'] > 0 ? 'partial' : 'unpaid');
-            $debtPaidByBill[$dr['invoice_number']] = (float)$dr['paid_total']; // deposit + repayments
-        }
-    } catch (Throwable $e) {}
-}
+$debtStatusByBill = [];
+$debtPaidByBill = [];
 if (!function_exists('reportBillStatusBadge')) {
     // Status column: a credit bill reads ຍັງບໍ່ທັນຈ່າຍ / ຍັງບໍ່ຄົບ until its debt is fully paid —
     // with "ຈ່າຍແລ້ວ: X / ຄ້າງ: Y" under it — then ຈ່າຍແລ້ວ like any other bill.

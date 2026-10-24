@@ -329,3 +329,87 @@ label.font-weight-bold {
 .barcode-modal-header {
     background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
 }
+
+
+/* ============================================================
+   Disable Number Spin Arrows
+   ============================================================ */
+input.no-spin::-webkit-outer-spin-button,
+input.no-spin::-webkit-inner-spin-button,
+input.extra-unit-multiplier::-webkit-outer-spin-button,
+input.extra-unit-multiplier::-webkit-inner-spin-button,
+input[type="number"].no-spin::-webkit-outer-spin-button,
+input[type="number"].no-spin::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+input.no-spin,
+input.extra-unit-multiplier,
+input[type="number"].no-spin {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+}
+
+
+/* ============================================================
+   Clearer Form Control Borders for Unit Rows
+   ============================================================ */
+.unit-row .form-control {
+    border: 1.5px solid #94a3b8 !important;
+}
+.unit-row .form-control:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+}
+
+
+/* ============================================================
+   Unified Barcode Input Group (ບັອກບາໂຄ້ດ ແລະ ປຸ່ມສ້າງ ເປັນບັອກດຽວກັນ)
+   ============================================================ */
+.unit-row .input-group,
+#addProductModal .input-group,
+#editProductModal .input-group {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+}
+
+.unit-row .input-group > .form-control,
+#addProductModal .input-group > .form-control,
+#editProductModal .input-group > .form-control {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-left-radius: 6px !important;
+    border-bottom-left-radius: 6px !important;
+    border-right: none !important;
+    margin-right: 0 !important;
+}
+
+.unit-row .input-group > .input-group-append,
+#addProductModal .input-group > .input-group-append,
+#editProductModal .input-group > .input-group-append {
+    margin-left: 0 !important;
+    display: flex !important;
+}
+
+.unit-row .input-group > .input-group-append > .btn,
+#addProductModal .input-group > .input-group-append > .btn,
+#editProductModal .input-group > .input-group-append > .btn {
+    border: 1.5px solid #94a3b8 !important;
+    border-left: 1px solid #cbd5e1 !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-top-right-radius: 6px !important;
+    border-bottom-right-radius: 6px !important;
+    background-color: #f8fafc !important;
+    height: 100% !important;
+    transition: all 0.2s ease;
+}
+
+.unit-row .input-group > .input-group-append > .btn:hover,
+#addProductModal .input-group > .input-group-append > .btn:hover,
+#editProductModal .input-group > .input-group-append > .btn:hover {
+    background-color: #2563eb !important;
+    border-color: #2563eb !important;
+    color: #ffffff !important;
+}

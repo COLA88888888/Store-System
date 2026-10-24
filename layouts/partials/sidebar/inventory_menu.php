@@ -12,7 +12,7 @@
           <?php if (hasPermission('categories') || hasPermission('units') || hasPermission('products') || hasPermission('suppliers')): ?>
           <!-- Dropdown Treeview: ຂໍ້ມູນສິນຄ້າ -->
           <li class="nav-item has-treeview">
-            <a href="#" class="nav-link">
+            <a class="nav-link" role="button" style="cursor: pointer;">
               <i class="nav-icon fas fa-boxes text-primary"></i>
               <p>
                 <span data-i18n="layout.products_group"><?php echo htmlspecialchars(t('layout.products_group', 'ຂໍ້ມູນສິນຄ້າ')); ?></span>
@@ -67,7 +67,7 @@
           <?php if (hasPermission('stock_check') || hasPermission('stock_count')): ?>
           <!-- Dropdown Treeview: ເຊັກສະຕັອກ & ທີ່ຕັ້ງ (ໂຊນ, ຊັ້ນວາງ) -->
           <li class="nav-item has-treeview">
-            <a href="#" class="nav-link">
+            <a class="nav-link" role="button" style="cursor: pointer;">
               <i class="nav-icon fas fa-clipboard-check text-success"></i>
               <p>
                 <span data-i18n="layout.stock_check_group"><?php echo htmlspecialchars(t('layout.stock_check_group', 'ກວດສອບສິນຄ້າ')); ?></span>
@@ -103,7 +103,7 @@
           <?php if (hasPermission('import_stock') || hasPermission('import_list') || hasPermission('stock_transfer') || hasPermission('transfer_history')): ?>
           <!-- Dropdown Treeview: ນຳສິນຄ້າເຂົ້າສາງ -->
           <li class="nav-item has-treeview">
-            <a href="#" class="nav-link">
+            <a class="nav-link" role="button" style="cursor: pointer;">
               <i class="nav-icon fas fa-warehouse text-warning"></i>
               <p>
                 <span data-i18n="layout.stock_intake_group"><?php echo htmlspecialchars(t('layout.stock_intake_group', 'ນຳສິນຄ້າເຂົ້າສາງ')); ?></span>

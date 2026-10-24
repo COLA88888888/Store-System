@@ -93,7 +93,9 @@ $logoDir  = __DIR__ . '/../../../assets/img/logo/';
 if (!is_dir($logoDir)) {
     mkdir($logoDir, 0777, true);
 }
-if ($logoImg && file_exists($logoDir . $logoImg)) {
+$hasCustomLogo = $logoImg && file_exists($logoDir . $logoImg);   // ສະແດງປຸ່ມ ✕ ລຶບໂລໂກ້ (partials/page_body.php)
+$defaultLogoPath = $base_path . 'assets/img/image.jpg';
+if ($hasCustomLogo) {
     // ?v=mtime: the browser can never show a cached copy of an older logo
     $logoPath = $base_path . 'assets/img/logo/' . $logoImg . '?v=' . @filemtime($logoDir . $logoImg);
 } else {
@@ -133,7 +135,30 @@ function previewStoreLogo(input) {
       };
     };
     reader.readAsDataURL(file);
+    // ເລືອກຮູບໃໝ່ = ບໍ່ລຶບແລ້ວ, ສະແດງປຸ່ມ ✕ ໃຫ້ເອົາອອກໄດ້
+    document.getElementById('remove_logo').value = '0';
+    document.getElementById('logo_remove_btn').style.setProperty('display', 'flex', 'important');
   }
+}
+
+// ປຸ່ມ ✕ ສີແດງເທິງຮູບ: ເອົາໂລໂກ້ອອກ (ລຶບແທ້ຕອນກົດບັນທຶກ — partials/actions.php)
+function removeStoreLogo() {
+  Swal.fire({
+    icon: 'warning',
+    title: 'ລຶບຮູບໂລໂກ້?',
+    text: 'ໂລໂກ້ຈະຖືກເອົາອອກ ເມື່ອກົດບັນທຶກ',
+    showCancelButton: true,
+    confirmButtonText: 'ຕົກລົງ',
+    cancelButtonText: 'ຍົກເລີກ',
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#64748b'
+  }).then(function(r) {
+    if (!r.isConfirmed) return;
+    document.getElementById('logo_input').value = '';
+    document.getElementById('remove_logo').value = '1';
+    document.getElementById('logo_preview').src = <?php echo json_encode($defaultLogoPath); ?>;
+    document.getElementById('logo_remove_btn').style.setProperty('display', 'none', 'important');
+  });
 }
 
 function previewStoreQr(input) {

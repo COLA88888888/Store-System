@@ -76,26 +76,42 @@ try {
 $selfUrl = 'index.php' . (!empty($_GET) ? '?' . http_build_query($_GET) : '');
 
 function exPager($total, $page, $perPage) {
-    if ($total <= 0) return '';
-    $pages = (int)ceil($total / $perPage);
-    $from = ($page - 1) * $perPage + 1;
-    $to   = min($total, $page * $perPage);
-    $html = '<div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap py-2 px-3 no-print" style="gap: 8px;">'
-          . '<small class="text-muted">' . htmlspecialchars(sprintf(t('expiry.pager_showing', 'ສະແດງ %s–%s ຈາກ %s ລາຍການ'), number_format($from), number_format($to), number_format($total))) . '</small>';
-    if ($pages > 1) {
-        $url = function ($p) { return 'index.php?' . htmlspecialchars(http_build_query(array_merge($_GET, ['page' => $p]))); };
-        $item = function ($p, $label, $disabled = false, $active = false) use ($url) {
-            return '<li class="page-item' . ($disabled ? ' disabled' : '') . ($active ? ' active' : '') . '">'
-                 . '<a class="page-link" href="' . ($disabled || $active ? '#' : $url($p)) . '">' . $label . '</a></li>';
-        };
-        $html .= '<ul class="pagination pagination-sm mb-0 ml-auto">' . $item($page - 1, '<i class="fas fa-chevron-left" style="font-size:0.72rem;"></i>', $page <= 1);
-        $start = max(1, $page - 2); $end = min($pages, $page + 2);
-        if ($start > 1) { $html .= $item(1, '1'); if ($start > 2) $html .= '<li class="page-item disabled"><span class="page-link">…</span></li>'; }
-        for ($p = $start; $p <= $end; $p++) $html .= $item($p, (string)$p, false, $p === $page);
-        if ($end < $pages) { if ($end < $pages - 1) $html .= '<li class="page-item disabled"><span class="page-link">…</span></li>'; $html .= $item($pages, (string)$pages); }
-        $html .= $item($page + 1, '<i class="fas fa-chevron-right" style="font-size:0.72rem;"></i>', $page >= $pages) . '</ul>';
+    $pages = $perPage > 0 ? max(1, (int)ceil($total / $perPage)) : 1;
+    $from = $total === 0 ? 0 : ($perPage > 0 ? ($page - 1) * $perPage + 1 : 1);
+    $to   = $perPage > 0 ? min($total, $page * $perPage) : $total;
+    $html = '<div class="card-footer bg-white border-top py-3 px-3.5 d-flex flex-column flex-md-row justify-content-between align-items-center no-print" style="row-gap: 12px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">'
+          . '<div class="d-flex align-items-center">'
+          . '<small class="text-muted font-weight-bold" style="font-size: 0.85rem;">'
+          . ($total > 0
+              ? htmlspecialchars(sprintf(t('reports.showing_items', 'ສະແດງ %s ຫາ %s ຈາກທັງໝົດ %s ລາຍການ'), number_format($from), number_format($to), number_format($total)))
+              : htmlspecialchars(t('reports.showing_empty', 'ສະແດງ 0 ຈາກ 0 ລາຍການ')))
+          . '</small>'
+          . '</div>';
+    $url = function ($p) { return 'index.php?' . htmlspecialchars(http_build_query(array_merge($_GET, ['page' => $p]))); };
+    $html .= '<nav aria-label="Page navigation" class="ml-auto">'
+          . '<ul class="pagination report-pagination mb-0">'
+          . '<li class="page-item' . ($page <= 1 ? ' disabled' : '') . '">'
+          . '<a class="page-link" href="' . ($page <= 1 ? '#' : $url(max(1, $page - 1))) . '" aria-label="Previous"><i class="fas fa-chevron-left" style="font-size:0.76rem;"></i></a>'
+          . '</li>';
+    $start = max(1, $page - 2); $end = min($pages, $page + 2);
+    if ($start > 1) {
+        $html .= '<li class="page-item"><a class="page-link" href="' . $url(1) . '">1</a></li>';
+        if ($start > 2) $html .= '<li class="page-item disabled"><span class="page-link" style="border:none; background:transparent;">...</span></li>';
     }
-    return $html . '</div>';
+    for ($p = $start; $p <= $end; $p++) {
+        $html .= '<li class="page-item' . ($p === $page ? ' active' : '') . '"><a class="page-link" href="' . ($p === $page ? '#' : $url($p)) . '">' . $p . '</a></li>';
+    }
+    if ($end < $pages) {
+        if ($end < $pages - 1) $html .= '<li class="page-item disabled"><span class="page-link" style="border:none; background:transparent;">...</span></li>';
+        $html .= '<li class="page-item"><a class="page-link" href="' . $url($pages) . '">' . $pages . '</a></li>';
+    }
+    $html .= '<li class="page-item' . ($page >= $pages ? ' disabled' : '') . '">'
+          . '<a class="page-link" href="' . ($page >= $pages ? '#' : $url(min($pages, $page + 1))) . '" aria-label="Next"><i class="fas fa-chevron-right" style="font-size:0.76rem;"></i></a>'
+          . '</li>'
+          . '</ul>'
+          . '</nav>'
+          . '</div>';
+    return $html;
 }
 
 $canViewReport = hasPermission('report') || hasPermission('expiry');
@@ -257,7 +273,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
         </div>
         <div class="modal-footer border-0 bg-light p-3">
           <button type="button" class="btn btn-light font-weight-bold px-4" style="border-radius: 6px;" data-dismiss="modal"><?php echo htmlspecialchars(t('expiry.cancel_btn', 'ຍົກເລີກ')); ?></button>
-          <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 8px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;"><i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('expiry.save_btn', 'ບັນທຶກ')); ?></button>
+          <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;"><i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('expiry.save_btn', 'ບັນທຶກ')); ?></button>
         </div>
       </form>
     </div>

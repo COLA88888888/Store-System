@@ -23,6 +23,32 @@ if ($action === 'warm') {
     exit;
 }
 
+// ກວດສອບວ່າເຄື່ອງພິມເປີດຢູ່ ແລະ ເຊື່ອມຕໍ່ໄດ້ຫຼືບໍ່
+if ($action === 'ping' || $action === 'check') {
+    if ($name === '') {
+        echo json_encode(['status' => 'error', 'message' => 'ບໍ່ມີຊື່ເຄື່ອງພິມ']);
+        exit;
+    }
+    $ps1   = __DIR__ . DIRECTORY_SEPARATOR . 'ble_send.ps1';
+    $cache = __DIR__ . DIRECTORY_SEPARATOR . 'ble_cache.json';
+    $cmd = sprintf(
+        'powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File %s -WarmOnly -CacheFile %s -PrinterName %s 2>&1',
+        escapeshellarg($ps1),
+        escapeshellarg($cache),
+        escapeshellarg($name)
+    );
+    $out = [];
+    $code = 0;
+    exec($cmd, $out, $code);
+    $text_out = trim(implode("\n", $out));
+    if ($code === 0 && strpos($text_out, 'OK') !== false) {
+        echo json_encode(['status' => 'success', 'message' => 'ເຊື່ອມຕໍ່ປິ່ນເຕີສຳເລັດ']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ ກະລຸນາລອງໃໝ່ອີກຄັ້ງ', 'detail' => $text_out]);
+    }
+    exit;
+}
+
 if ($name === '' || $b64 === '') {
     echo json_encode(['status' => 'error', 'message' => 'ຂໍ້ມູນບໍ່ຄົບ']);
     exit;

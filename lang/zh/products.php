@@ -8,6 +8,11 @@ return [
     'products.store_main_suffix' => '(总仓)',
     'products.store_branch_suffix' => '(分店)',
     'products.category_filter_placeholder' => '-- 选择分类 --',
+    'products.stock_filter_all' => '-- 全部库存 --',
+    'products.stock_filter_low' => '库存不足',
+    'products.stock_filter_out' => '已售罄',
+    'products.focus_showing' => '仅显示：',
+    'products.focus_show_all' => '显示全部',
     'products.search_placeholder' => '搜索名称、条码...',
 
     // Table
@@ -91,6 +96,8 @@ return [
     'products.supplier_empty_hint' => '暂无供应商 — 可在"供应商管理"菜单中添加',
     'products.field_qty' => '库存数量:',
     'products.field_qty_optional' => '(可选)',
+    'products.field_zone' => '分区:',
+    'products.field_shelf' => '货架:',
     'products.field_bprice' => '进货价:',
     'products.field_price' => '销售价:',
     'products.field_price_retail' => '零售价',
@@ -102,9 +109,9 @@ return [
 
     // Multi-unit row template
     'products.unit_row_name_label' => '单位名称:',
-    'products.unit_row_name_placeholder' => '例如：包、箱...',
-    'products.unit_row_qty_label' => '数量:',
-    'products.unit_row_qty_placeholder' => '例如：6',
+    'products.unit_row_name_placeholder' => '选择单位...',
+    'products.unit_row_qty_label' => '扣减库存数量:',
+    'products.unit_row_qty_placeholder' => '例如：12',
     'products.unit_row_bprice_label' => '进货价:',
     'products.unit_row_price_label' => '销售价:',
     'products.unit_row_barcode_label' => '条码:',

@@ -76,7 +76,7 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 // === 0. GET LIVE USER STATUSES (Real-time Polling) ===
 if ($action === 'get_live_user_statuses') {
     try {
-        $stmt = $pdo->query("SELECT Id, status, last_activity FROM st_tbuser" . ($canAllBranches ? '' : ' WHERE store_id = ' . $userStoreId));
+        $stmt = $pdo->query("SELECT Id, status, last_activity, account_active FROM st_tbuser" . ($canAllBranches ? '' : ' WHERE store_id = ' . $userStoreId));
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $result = [];
         $now = time();
@@ -91,6 +91,7 @@ if ($action === 'get_live_user_statuses') {
             $result[] = [
                 'id' => (int)$u['Id'],
                 'is_online' => $isOnline,
+                'account_active' => (int)($u['account_active'] ?? 1),
                 'status' => trim($u['status'] ?? $u['userstatus'] ?? 'ພະນັກງານ')
             ];
         }
@@ -160,6 +161,13 @@ if ($action === 'add_user') {
         }
 
         $store_id = $canAllBranches ? intval($_POST['store_id'] ?? 1) : $userStoreId;
+        // ສາຂາທີ່ສົ່ງມາຕ້ອງມີຢູ່ຈິງ (ບໍ່ດັ່ງນັ້ນຜູ້ໃຊ້ຈະຢູ່ສາຂາທີ່ບໍ່ມີ ແລະ ບໍ່ເຫັນຂໍ້ມູນຫຍັງເລີຍ)
+        $__stOk = $pdo->prepare("SELECT COUNT(*) FROM st_tbstore WHERE store_id = ?");
+        $__stOk->execute([$store_id]);
+        if (!$__stOk->fetchColumn()) {
+            echo json_encode(['status' => 'error', 'message' => 'ກະລຸນາເລືອກສາຂາໃຫ້ຖືກຕ້ອງ']);
+            exit();
+        }
         $profile_img = handleUserProfileUpload('profile_img', 'default.png');
         [, $accessExpireDate] = resolveAccessExpireDate($_POST['access_days'] ?? '');
 
@@ -173,6 +181,10 @@ if ($action === 'add_user') {
 
         $stmt = $pdo->prepare("INSERT INTO st_tbuser (user_code, fname, lname, gender, dob, tel, status, username, password, address, notes, profile_img, sale, stock, report, accounting, setup, users, edit, store_id, branch_no, access_expire_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, password_hash($password, PASSWORD_DEFAULT), $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $userBranchNo, $accessExpireDate]);
+        // ຕຳແໜ່ງຜູ້ຈັດການ: ໃສ່ສິດເລີ່ມຕົ້ນຂອງຜູ້ຈັດການ (config/helpers/permissions.php)
+        if (isManagerRole($userstatus)) {
+            applyManagerPermissions($pdo, (int)$pdo->lastInsertId());
+        }
 
         logActivity($pdo, "ເພີ່ມຜູ້ໃຊ້", "ຊື່: $username, ຕຳແໜ່ງ: $userstatus");
         echo json_encode(['status' => 'success', 'message' => 'ເພີ່ມຜູ້ໃຊ້ງານໃໝ່ສຳເລັດແລ້ວ!']);
@@ -225,7 +237,7 @@ if ($action === 'edit_user') {
             exit();
         }
 
-        $cStmt = $pdo->prepare("SELECT profile_img, sale, stock, report, accounting, setup, users, edit, store_id, access_expire_date FROM st_tbuser WHERE Id = ?");
+        $cStmt = $pdo->prepare("SELECT profile_img, status, sale, stock, report, accounting, setup, users, edit, store_id, access_expire_date FROM st_tbuser WHERE Id = ?");
         $cStmt->execute([$user_id]);
         $currUser = $cStmt->fetch();
         if (!$currUser || (!$canAllBranches && intval($currUser['store_id']) !== $userStoreId)) {
@@ -257,6 +269,10 @@ if ($action === 'edit_user') {
         }
 
         $store_id = $canAllBranches ? intval($_POST['store_id'] ?? 1) : $userStoreId;
+        // ສາຂາທີ່ສົ່ງມາຕ້ອງມີຢູ່ຈິງ (ບໍ່ດັ່ງນັ້ນຜູ້ໃຊ້ຈະຢູ່ສາຂາທີ່ບໍ່ມີ ແລະ ບໍ່ເຫັນຂໍ້ມູນຫຍັງເລີຍ)
+        $__stOk = $pdo->prepare("SELECT COUNT(*) FROM st_tbstore WHERE store_id = ?");
+        $__stOk->execute([$store_id]);
+        if (!$__stOk->fetchColumn()) $store_id = intval($currUser['store_id']);   // ສາຂາບໍ່ມີ → ຮັກສາສາຂາເດີມ
 
         // Id 1 can never be given an expiry; anyone else's is only touched when the current
         // user is the owner and actually posted the (owner-only) access_days field.
@@ -273,6 +289,16 @@ if ($action === 'edit_user') {
         } else {
             $stmt = $pdo->prepare("UPDATE st_tbuser SET user_code = ?, fname = ?, lname = ?, gender = ?, dob = ?, tel = ?, status = ?, username = ?, address = ?, notes = ?, profile_img = ?, sale = ?, stock = ?, report = ?, accounting = ?, setup = ?, users = ?, edit = ?, store_id = ?, access_expire_date = ? WHERE Id = ?");
             $stmt->execute([$user_code, $fname, $lname, $gender, $dob, $tel, $userstatus, $username, $address, $notes, $profile_img, $sale, $stock, $report, $accounting, $setup, $users_perm, $edit, $store_id, $accessExpireDate, $user_id]);
+        }
+
+        // ປ່ຽນຕຳແໜ່ງ: ເປັນຜູ້ຈັດການ → ໃສ່ສິດຜູ້ຈັດການ; ຈາກຜູ້ຈັດການເປັນພະນັກງານ → ເອົາສິດຄືນ.
+        // ບໍ່ປ່ຽນຕຳແໜ່ງ = ບໍ່ແຕະສິດ (ສິດທີ່ຜູ້ບໍລິຫານປັບລາຍຄົນໄວ້ຍັງຢູ່).
+        $wasManager = isManagerRole($currUser['status'] ?? '');
+        $isManagerNow = isManagerRole($userstatus);
+        if ($isManagerNow && !$wasManager) {
+            applyManagerPermissions($pdo, $user_id);
+        } elseif ($wasManager && !$isManagerNow && !isAdminAccount($pdo, $user_id)) {
+            revokeManagerPermissions($pdo, $user_id);
         }
 
         logActivity($pdo, "ແກ້ໄຂຜູ້ໃຊ້", "ID: $user_id, ຊື່: $username");
@@ -325,6 +351,47 @@ if ($action === 'delete_user') {
         $stmt->execute([$user_id]);
         logActivity($pdo, "ລົບຜູ້ໃຊ້", "ID: $user_id");
         echo json_encode(['status' => 'success', 'message' => 'ລົບຜູ້ໃຊ້ງານສຳເລັດແລ້ວ!']);
+        exit();
+    } catch (Exception $e) {
+        echo json_encode(['status' => 'error', 'message' => 'ຜິດພາດ: ' . $e->getMessage()]);
+        exit();
+    }
+}
+
+// === 4. ເປີດ / ປິດໃຊ້ງານບັນຊີ (ພະນັກງານລາອອກ) ===
+// ປິດແທນການລົບ: ເຂົ້າລະບົບບໍ່ໄດ້ອີກ ແຕ່ປະຫວັດການຂາຍ/ບິນທີ່ຜູກກັບ user ນີ້ຍັງຢູ່ຄົບ
+if ($action === 'toggle_user_active' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $user_id = intval($_POST['user_id'] ?? 0);
+    $active = intval($_POST['active'] ?? 0) === 1 ? 1 : 0;
+    if (!hasPermission('users', 'edit') || $user_id <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'ທ່ານບໍ່ມີສິດໃນການດຳເນີນການນີ້!']);
+        exit();
+    }
+    if ($user_id === 1) {
+        echo json_encode(['status' => 'error', 'message' => 'ບໍ່ສາມາດປິດໃຊ້ງານຜູ້ບໍລິຫານຄົນທຳອິດ (ID: 1) ໄດ້!']);
+        exit();
+    }
+    if ($user_id === intval($_SESSION['user_id'] ?? 0)) {
+        echo json_encode(['status' => 'error', 'message' => 'ບໍ່ສາມາດປິດໃຊ້ງານບັນຊີຂອງຕົນເອງໄດ້!']);
+        exit();
+    }
+    if (!isOwnerUser() && isAdminAccount($pdo, $user_id)) {
+        echo json_encode(['status' => 'error', 'message' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດປິດໃຊ້ງານຜູ້ບໍລິຫານຄົນອື່ນໄດ້!']);
+        exit();
+    }
+
+    try {
+        $uStmt = $pdo->prepare("SELECT username, store_id FROM st_tbuser WHERE Id = ?");
+        $uStmt->execute([$user_id]);
+        $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
+        if (!$uRow || (!$canAllBranches && intval($uRow['store_id']) !== $userStoreId)) {
+            echo json_encode(['status' => 'error', 'message' => 'ບໍ່ພົບຜູ້ໃຊ້ງານນີ້!']);
+            exit();
+        }
+
+        $pdo->prepare("UPDATE st_tbuser SET account_active = ? WHERE Id = ?")->execute([$active, $user_id]);
+        logActivity($pdo, $active ? "ເປີດໃຊ້ງານບັນຊີຜູ້ໃຊ້" : "ປິດໃຊ້ງານບັນຊີຜູ້ໃຊ້", "ID: $user_id, ຊື່: " . $uRow['username']);
+        echo json_encode(['status' => 'success', 'message' => $active ? 'ເປີດໃຊ້ງານບັນຊີສຳເລັດ!' : 'ປິດໃຊ້ງານບັນຊີສຳເລັດ!']);
         exit();
     } catch (Exception $e) {
         echo json_encode(['status' => 'error', 'message' => 'ຜິດພາດ: ' . $e->getMessage()]);

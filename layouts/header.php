@@ -13,7 +13,11 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
 <html lang="<?php echo htmlspecialchars(function_exists('getCurrentLang') ? getCurrentLang() : 'lo'); ?>" translate="no">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <script>
+      // ປ້ອງກັນການຊູມໜ້າຈໍອັດຕະໂນມັດເມື່ອກົດປຸ່ມ ຫຼື ຊ່ອງຄົ້ນຫາເທິງມືຖື (iOS Safari & Chrome)
+      document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+    </script>
     <meta name="google" content="notranslate">
     <title><?php echo htmlspecialchars($header_site_name); ?></title>
     <link rel="shortcut icon" href="<?php echo htmlspecialchars($header_site_logo); ?>" type="image/jpeg">
@@ -36,6 +40,7 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
     <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/global-custom/01-base.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/global-custom/02-components.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/global-custom/03-controls.css?v=<?php echo time(); ?>">
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
     <!-- Select2 Searchable Dropdown -->
@@ -85,7 +90,7 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
       })();
     </script>
   </head>
-  <body class="hold-transition sidebar-mini layout-fixed">
+  <body class="hold-transition sidebar-mini layout-fixed<?php echo !empty($pos_page) ? ' pos-page' : ''; ?>">
     <script>
       // Pages load inside the dashboard iframe, where there's no sidebar. AdminLTE only adds
       // body.iframe-mode (content-wrapper margin-left: 0) once its JS runs at the end of the
@@ -97,17 +102,25 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
     <!-- Smart Delayed Global Preloader: Triggers only if live server latency > 600ms -->
     <div id="global-preloader">
         <div class="preloader-content">
-            <div class="lao-dots-spinner">
-              <div></div><div></div><div></div><div></div>
-              <div></div><div></div><div></div><div></div>
+            <div class="system-loader-wrapper">
+                <div class="system-loader-pulse-ring"></div>
+                <?php $wlao_ver = @filemtime(dirname(__DIR__) . '/assets/img/logosystem/Wlaodev.png') ?: 1; ?>
+                <img src="<?php echo $base_path; ?>assets/img/logosystem/Wlaodev.png?v=<?php echo $wlao_ver; ?>" alt="WLaodev" class="system-loader-logo">
             </div>
-            <span class="preloader-text"><?php echo htmlspecialchars(t('layout.loading', 'ກຳລັງດຶງຂໍ້ມູນ...')); ?></span>
+            <span class="preloader-text">
+                <span><?php echo htmlspecialchars(t('layout.loading', 'ກຳລັງດຶງຂໍ້ມູນ')); ?></span><span class="loader-dot d1">.</span><span class="loader-dot d2">.</span><span class="loader-dot d3">.</span>
+            </span>
+            <div class="system-loader-slow-hint" id="globalPreloaderSlowHint">ກະລຸນາລໍຖ້າຈັກໜ່ອຍ... ລະບົບກຳລັງປະມວນຜົນ</div>
         </div>
     </div>
     <script>
       window._slowNetPreloaderTimer = setTimeout(function() {
         var p = document.getElementById('global-preloader');
         if (p) p.classList.add('show-slow-net');
+        setTimeout(function() {
+          var h = document.getElementById('globalPreloaderSlowHint');
+          if (h) h.classList.add('show');
+        }, 1600);
       }, 600);
       // Failsafe: footer.php normally hides it, but if the page never reaches the footer (a PHP
       // error mid-page, a script that fails to load) the overlay covered the page forever.
@@ -118,7 +131,7 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
           if (p) { p.classList.remove('show-slow-net'); p.style.display = 'none'; }
         }
         window.addEventListener('load', hideGlobalPreloader);
-        setTimeout(hideGlobalPreloader, 8000);
+        setTimeout(hideGlobalPreloader, 25000);
       })();
     </script>
     <?php endif; ?>

@@ -10,22 +10,14 @@
       <div class="row align-items-center">
         <div class="col-sm-6">
           <h5 class="m-0 font-weight-bold text-dark sc-title">
-            <i class="fas fa-clipboard-check text-success mr-2"></i> ເຊັກສະຕັອກ
+            <i class="fas fa-history text-primary mr-2"></i> ປະຫວັດໃບເຊັກສະຕັອກ
           </h5>
-          <small class="text-muted">ນັບສິນຄ້າຈິງໃນຮ້ານ ທຽບກັບຈຳນວນໃນລະບົບ ແລ້ວປັບສະຕັອກໃຫ້ຖືກຕ້ອງ</small>
+          <small class="text-muted">ກວດເບິ່ງລາຍການ ແລະ ປະຫວັດການເຊັກສະຕັອກທີ່ຜ່ານມາ</small>
         </div>
         <div class="col-sm-6 text-right mt-2 mt-sm-0">
-          <?php if ($scCanStart || ($scOpenDraft && $scCanCount)): ?>
-          <form method="post" class="d-inline" id="scCreateForm">
-            <input type="hidden" name="action" value="create_check">
-            <input type="hidden" name="note" id="scCreateNote" value="">
-            <!-- ແບບດຽວກັບປຸ່ມ "ເພີ່ມບັນຊີທະນາຄານ" (btn-primary → ຮັບສີ theme ຂອງລະບົບ) -->
-            <button type="button" id="scBtnStart" class="btn btn-primary sc-add-btn font-weight-bold shadow-sm" onclick="scStartNew()">
-              <i class="fas fa-plus-circle mr-1"></i>
-              <?php echo $scOpenDraft ? 'ເປີດໃບທີ່ກຳລັງນັບ' : 'ເລີ່ມເຊັກສະຕັອກໃໝ່'; ?>
-            </button>
-          </form>
-          <?php endif; ?>
+          <a href="stock_check.php" class="btn btn-primary sc-add-btn font-weight-bold shadow-sm">
+            <i class="fas fa-barcode mr-1"></i> ໄປໜ້ານັບສະຕັອກ
+          </a>
         </div>
       </div>
     </div>
@@ -52,11 +44,11 @@
       <?php if ($scView === 'history'): ?>
 <?php require __DIR__ . '/history_view.php'; ?>
       <?php else: ?>
-      <div class="card sc-card">
+      <div class="card sc-card rpt-card sys-card">
 <?php require __DIR__ . '/filter_box.php'; ?>
         <div class="card-body p-0">
           <div class="table-responsive">
-            <table class="table table-hover mb-0 text-nowrap sc-table">
+            <table class="table rpt-table mb-0 text-nowrap sc-table">
               <thead class="bg-light text-secondary">
                 <tr>
                   <th class="text-center" style="width: 60px;">ລຳດັບ</th>
@@ -235,27 +227,9 @@
       if (url) window.location.href = url;
     });
 
-    // ເລີ່ມໃບໃໝ່ (ຖາມໝາຍເຫດກ່ອນ) — ຖ້າມີໃບຄ້າງຢູ່ ໄປເປີດໃບນັ້ນເລີຍ
+    // ໄປໜ້ານັບສະຕັອກທັນທີ
     function scStartNew() {
-      <?php if ($scOpenDraft): ?>
-      window.location.href = 'stock_check.php?id=<?php echo (int)$scOpenDraft['id']; ?>';
-      <?php else: ?>
-      Swal.fire({
-        title: 'ເລີ່ມເຊັກສະຕັອກໃໝ່?',
-        html: '<div class="text-muted small mb-2">ລະບົບຈະບັນທຶກຈຳນວນສິນຄ້າໃນລະບົບ ນາທີນີ້ ໄວ້ທຽບກັບຈຳນວນທີ່ນັບໄດ້</div>',
-        input: 'text',
-        inputPlaceholder: 'ໝາຍເຫດ (ບໍ່ບັງຄັບ) ເຊັ່ນ: ນັບປະຈຳເດືອນ',
-        showCancelButton: true,
-        confirmButtonText: '<i class="fas fa-play mr-1"></i> ເລີ່ມນັບ',
-        cancelButtonText: 'ຍົກເລີກ',
-        confirmButtonColor: '#16a34a',
-        cancelButtonColor: '#64748b'
-      }).then(function(r) {
-        if (!r.isConfirmed) return;
-        document.getElementById('scCreateNote').value = r.value || '';
-        document.getElementById('scCreateForm').submit();
-      });
-      <?php endif; ?>
+      window.location.href = 'stock_check.php';
     }
 
     function scDeleteCheck(id, checkNo) {

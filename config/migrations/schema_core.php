@@ -49,7 +49,7 @@
     }
 
     // Ensure all permission columns exist in tbuser
-    $allPermCols = ['dashboard', 'sale', 'stock', 'report', 'accounting', 'setup', 'users', 'permissions', 'edit', 'customers', 'customer_debt', 'branches', 'database'];
+    $allPermCols = ['dashboard', 'sale', 'stock', 'report', 'accounting', 'setup', 'users', 'permissions', 'edit', 'customers', 'branches', 'database'];
     foreach ($allPermCols as $pCol) {
         try {
             $hasCol = $pdo->query("SHOW COLUMNS FROM `st_tbuser` LIKE '{$pCol}'")->fetch();
@@ -210,7 +210,9 @@
         'tbreceive', 'tbreceive_detail', 'tbsale_save_data', 'stock_adjustments', 'stock_adjustment_items',
         'price_adjustment_items', 'promotion_items', 'tb_delete_bill_log',
         // ໃບສະເໜີລາຄາ — module removed in v15
-        'quotations', 'quotation_details'
+        'quotations', 'quotation_details',
+        // ລູກຄ້າຕິດໜີ້ — module removed in v18 (backup: backups/debts_before_removal_*.sql)
+        'customer_debts', 'customer_debt_payments'
     ];
     foreach ($unusedTables as $uTbl) {
         try {
@@ -220,6 +222,12 @@
     try {
         if ($pdo->query("SHOW COLUMNS FROM `st_tbuser` LIKE 'quotations'")->fetch()) {
             $pdo->exec("ALTER TABLE `st_tbuser` DROP COLUMN `quotations`");
+        }
+    } catch (Throwable $ex) {}
+    // v18: ສິດ "ລູກຄ້າຕິດໜີ້" ລຶບພ້ອມໂມດູນ
+    try {
+        if ($pdo->query("SHOW COLUMNS FROM `st_tbuser` LIKE 'customer_debt'")->fetch()) {
+            $pdo->exec("ALTER TABLE `st_tbuser` DROP COLUMN `customer_debt`");
         }
     } catch (Throwable $ex) {}
 

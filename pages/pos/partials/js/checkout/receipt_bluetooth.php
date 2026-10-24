@@ -65,6 +65,10 @@ function btNotice(icon, title, text) {
     var self = this, args = arguments;
     var normal = function () { return original.apply(self, args); };
     if (!btSettings().enabled || !window.MiniposBtPrinter || !MiniposBtPrinter.list().length) return normal();
+    // ເຄື່ອງພິມໃບບິນຕັ້ງເປັນ A4/A5 → ພິມເປັນໜ້າເຕັມ (ບໍ່ສົ່ງເຄື່ອງ Bluetooth ທີ່ເປັນມ້ວນ)
+    var rpPaper = (window.POS_RECEIPT_PRINTER || {}).paper_width;
+    if (window.MiniposLanReceipt && MiniposLanReceipt.receiptPaper) rpPaper = MiniposLanReceipt.receiptPaper(rpPaper);   // A5/A4 ທີ່ເລືອກໃນເຄື່ອງນີ້ມາກ່ອນ
+    if (window.MiniposLanReceipt && MiniposLanReceipt.isPagePaper && MiniposLanReceipt.isPagePaper(rpPaper)) return normal();
     var rendered = renderReceiptBluetoothCanvas();
     var conn = MiniposBtPrinter.isConnected() ? Promise.resolve(true) : MiniposBtPrinter.reconnect();
     return conn.then(function (ok) {

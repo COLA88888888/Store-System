@@ -79,6 +79,32 @@
       }
     ?>
 
+    <!-- ບັອກສະແກນ + ປຸ່ມຈໍລູກຄ້າ "ຕົວແທນ" ຂອງໜ້າຂາຍ: ສະແດງໃນ Navbar ຂະນະໜ້າຂາຍກຳລັງໂຫຼດ (ຣີເຟຣດ / ເປີດໜ້າຂາຍ)
+         ບໍ່ໃຫ້ບັອກສະແກນຫາຍໄປ — ໜ້າຂາຍໂຫຼດແລ້ວ ບັອກແທ້ (ໃນ iframe) ຂຶ້ນແທນທີ່ ແລະ ຕົວນີ້ເຊື່ອງ.
+         ຄວບຄຸມໂດຍ js_pos_navbar.php (apply), CSS: themes/dashboard-pos-navbar.css -->
+    <div id="posNavGhost" class="pos-nav-ghost" aria-hidden="true" style="display: none;">
+      <div class="pos-nav-ghost-search">
+        <i class="fas fa-search"></i>
+        <span><?php echo htmlspecialchars(t('pos.search_placeholder', 'ສະແກນບາໂຄ້ດ ຫຼື ພິມຊື່ສິນຄ້າ...')); ?></span>
+      </div>
+      <div class="pos-nav-ghost-btn">
+        <i class="fas fa-desktop"></i> <?php echo htmlspecialchars(t('pos.customer_display_btn', 'ຈໍລູກຄ້າ')); ?>
+      </div>
+    </div>
+    <script>
+      // ສະແດງທັນທີຕັ້ງແຕ່ໜ້າເລີ່ມແຕ້ມ ຖ້າໜ້າທີ່ກຳລັງເປີດແມ່ນໜ້າຂາຍ (ກ່ອນ js_pos_navbar.php ໂຫຼດ)
+      (function () {
+        try {
+          var g = document.getElementById('posNavGhost');
+          var src = sessionStorage.getItem('StoreMini.currentIframeSrc') || '';
+          var l = localStorage.getItem('StoreMini.pos_nav_left'), r = localStorage.getItem('StoreMini.pos_nav_right_dist');
+          if (l) g.style.left = l + 'px';
+          if (r) g.style.right = r + 'px';
+          if (window.innerWidth >= 992 && /pos\/pos\.php/.test(src)) g.classList.add('show');
+        } catch (e) {}
+      })();
+    </script>
+
     <!-- Right side: Subscription Days Remaining + Notifications Bell + Logout -->
     <ul class="navbar-nav ml-auto align-items-center" style="gap: 12px; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
       
@@ -121,7 +147,7 @@
                       $badgeClass = $isOutOfStock ? 'badge-danger' : 'badge-warning text-dark';
                       $qtyLabel = $isOutOfStock ? t('layout.out_of_stock', 'ໝົດແລ້ວ (0)') : t('layout.remaining', 'ເຫຼືອ') . ' ' . $alert['qty'] . ' ' . htmlspecialchars($alert['unit'] ?: t('layout.default_unit', 'ອັນ'));
                     ?>
-                    <div id="notif_item_main_<?php echo $alert['product_id']; ?>" onclick="markItemAsRead('main_<?php echo $alert['product_id']; ?>', 'mainNotifBadge')" class="dropdown-item py-2 px-3 d-flex align-items-center justify-content-between border-bottom flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden;">
+                    <div id="notif_item_main_<?php echo $alert['product_id']; ?>" onclick="markItemAsRead('main_<?php echo $alert['product_id']; ?>', 'mainNotifBadge'); goToStockList(<?php echo (int)($alert['store_id'] ?? 0); ?>, <?php echo $isOutOfStock ? 'true' : 'false'; ?>, '<?php echo htmlspecialchars(addslashes((string)$alert['product_id'])); ?>')" class="dropdown-item py-2 px-3 d-flex align-items-center justify-content-between border-bottom flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden;">
                       <div class="d-flex align-items-center text-nowrap mr-2" style="overflow: hidden; text-overflow: ellipsis; min-width: 0;">
                         <i class="fas fa-exclamation-circle <?php echo $isOutOfStock ? 'text-danger' : 'text-warning'; ?> mr-1.5" style="font-size: 0.82rem;"></i>
                         <strong class="text-dark text-truncate" style="font-size: 0.82rem;" title="<?php echo htmlspecialchars($alert['product_name']); ?>"><?php echo htmlspecialchars($alert['product_name']); ?></strong>
@@ -211,7 +237,7 @@
                     $lbl = $isZero ? 'ໝົດແລ້ວ (0)' : 'ເຫຼືອ ' . $stk['qty'] . ' ' . htmlspecialchars($stk['unit'] ?: 'ອັນ');
                     $icoClass = $isZero ? 'text-danger' : 'text-warning';
                   ?>
-                  <div id="notif_item_stk_<?php echo $stk['product_id']; ?>" onclick="markItemAsRead('stk_<?php echo $stk['product_id']; ?>', 'subNotifBadge')" class="dropdown-item py-2 px-3 border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden;">
+                  <div id="notif_item_stk_<?php echo $stk['product_id']; ?>" onclick="markItemAsRead('stk_<?php echo $stk['product_id']; ?>', 'subNotifBadge'); goToStockList(<?php echo (int)($stk['store_id'] ?? 0); ?>, <?php echo $isZero ? 'true' : 'false'; ?>, '<?php echo htmlspecialchars(addslashes((string)$stk['product_id'])); ?>')" class="dropdown-item py-2 px-3 border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden;">
                     <div class="d-flex align-items-center text-nowrap mr-2" style="overflow: hidden; text-overflow: ellipsis; min-width: 0;">
                       <i class="fas fa-exclamation-circle <?php echo $icoClass; ?> mr-1.5" style="font-size: 0.82rem;"></i>
                       <span class="text-dark font-weight-bold text-truncate" style="font-size: 0.82rem;" title="<?php echo htmlspecialchars($stk['product_name']); ?>"><?php echo htmlspecialchars($stk['product_name']); ?></span>

@@ -77,11 +77,12 @@ if (!function_exists('getCurrencyMeta')) {
     {
         // decimals 0 everywhere: amounts show whole numbers with a comma thousands
         // separator and no decimal point (e.g. "1,234 $").
+        // ຊື່ສະກຸນເງິນຕາມພາສາທີ່ເລືອກ (lang/*/currency.php) — ສະແດງໃນໜ້າຂາຍ, ລາຍງານ, ຕັ້ງຄ່າ ທຸກບ່ອນທີ່ໃຊ້ meta ນີ້
         return [
-            'KIP' => ['name' => 'ກີບ',  'symbol' => '₭', 'decimals' => 0],
-            'THB' => ['name' => 'ບາດ',  'symbol' => '฿', 'decimals' => 0],
-            'USD' => ['name' => 'ໂດລາ', 'symbol' => '$', 'decimals' => 0],
-            'CNY' => ['name' => 'ຢວນ',  'symbol' => '¥', 'decimals' => 0],
+            'KIP' => ['name' => t('currency.kip', 'ກີບ'),  'symbol' => '₭', 'decimals' => 0],
+            'THB' => ['name' => t('currency.thb', 'ບາດ'),  'symbol' => '฿', 'decimals' => 0],
+            'USD' => ['name' => t('currency.usd', 'ໂດລາ'), 'symbol' => '$', 'decimals' => 0],
+            'CNY' => ['name' => t('currency.cny', 'ຢວນ'),  'symbol' => '¥', 'decimals' => 0],
         ];
     }
 }

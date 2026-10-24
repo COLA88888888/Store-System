@@ -109,7 +109,21 @@ function onCheckoutCurrencyChange(code) {
 if (window.jQuery) {
   jQuery(function ($) {
     $('#checkoutModal').on('hidden.bs.modal', function () {
+      try {
+        if (window.parent && typeof window.parent.setPosModalOpen === 'function') {
+          window.parent.setPosModalOpen(false);
+        } else if (window.parent && window.parent.document && window.parent.document.body) {
+          window.parent.document.body.classList.remove('pos-modal-open');
+        }
+      } catch (e) {}
       if (window.POSCUR && POSCUR.setCurrency) POSCUR.setCurrency(window.POS_DISPLAY_CURRENCY || 'KIP');
+
+      // ຖ້າຫາກ modal ປິດຍ້ອນຊຳລະເງິນສຳເລັດ: ຫ້າມສົ່ງ 'shopping' ໄປທັບໜ້າຈໍລູກຄ້າ (ໃຫ້ຈໍລູກຄ້າສະແດງຍອດຊຳລະສຳເລັດຄ້າງໄວ້)
+      if (window.__isCheckoutSuccessFinishing) {
+        window.__isCheckoutSuccessFinishing = false;
+        return;
+      }
+
       // ຍົກເລີກການຊຳລະ (ກະຕ່າຍັງມີສິນຄ້າ) → ລ້າງຍອດເງິນສົດ/ໂອນ ແລະ QR ທະນາຄານ ອອກຈາກຈໍລູກຄ້າ.
       // ຂາຍສຳເລັດແລ້ວ ກະຕ່າວ່າງ — ຈໍລູກຄ້າສະແດງ payment_success ຢູ່, ບໍ່ແຕະ.
       if (typeof cart !== 'undefined' && cart.length > 0 && typeof broadcastCustomerDisplay === 'function') {

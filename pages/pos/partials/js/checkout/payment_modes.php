@@ -1,73 +1,20 @@
 <?php
 /*
- * ສ່ວນ: ວິທີຊຳລະ: ດຽວ / ຫຼາຍຊ່ອງ / ຕິດໜີ້
- * ສະຫຼັບໂໝດຊຳລະ, ກຳນົດວັນຊຳລະໜີ້, ແປ້ນຕົວເລກ, ເລືອກທະນາຄານອັດຕະໂນມັດ, ເງິນສົດ/ໂອນ, ຄິດເງິນທອນ,
- * ຍອດຕິດໜີ້ ແລະ ຊຳລະຫຼາຍຊ່ອງ (ເງິນສົດ + ໂອນ).
+ * ສ່ວນ: ວິທີຊຳລະ: ດຽວ / ຫຼາຍຊ່ອງ
+ * ສະຫຼັບໂໝດຊຳລະ, ແປ້ນຕົວເລກ, ເລືອກທະນາຄານອັດຕະໂນມັດ, ເງິນສົດ/ໂອນ, ຄິດເງິນທອນ
+ * ແລະ ຊຳລະຫຼາຍຊ່ອງ (ເງິນສົດ + ໂອນ). (ໂໝດຂາຍຕິດໜີ້ ຖືກລຶບອອກແລ້ວ)
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/pos/partials/js/pos_checkout_js.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 ?>// ============================
 // PAYMENT MODE & TYPE STATE
 // ============================
-var currentPayMode = 'single'; // 'single' | 'split' | 'credit' (ຂາຍຕິດໜີ້)
+var currentPayMode = 'single'; // 'single' | 'split'
 
-// Highlight the active pay-mode button. The credit button only exists when the user
-// has the customer_debt add right (see checkout_modal.php).
+// Highlight the active pay-mode button.
 function paintPayModeButtons(mode) {
   var off = { 'border-color': '#cbd5e1', 'background': '#ffffff', 'color': '#64748b' };
   $('#payModeSingleBtn').css(mode === 'single' ? { 'border-color': '#244886', 'background': '#eef2fb', 'color': '#1a3666' } : off);
   $('#payModeSplitBtn').css(mode === 'split' ? { 'border-color': '#7c3aed', 'background': '#faf5ff', 'color': '#7c3aed' } : off);
-  $('#payModeRow').toggle(mode !== 'credit');
-  $('#singleAmountLbl').toggle(mode !== 'credit');
-  $('#creditDepositLbl').toggle(mode === 'credit');
-  $('#creditSummary').toggle(mode === 'credit');
-  $('#creditDueSection').toggle(mode === 'credit');
-  // Modal title + submit button say what will actually happen
-  $('#checkoutTitlePay, #btnSubmitPayLbl').toggle(mode !== 'credit');
-  $('#checkoutTitleCredit, #btnSubmitCreditLbl').toggle(mode === 'credit');
-  $('#btnSubmitPayment').css('background', mode === 'credit'
-    ? 'linear-gradient(135deg,#dc2626,#b91c1c)' : 'linear-gradient(135deg,#244886,#1a3666)');
-}
-
-// Local date as yyyy-mm-dd, `days` from today
-function posYmdIn(days) {
-  var d = new Date();
-  d.setDate(d.getDate() + days);
-  var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-}
-
-// ກຳນົດຊຳລະ quick picks: today + N days
-function setCreditDueIn(days) {
-  $('#creditDueDate').val(posYmdIn(days));
-  calcCredit();
-}
-
-// The server ignores a due date in the past, so the calendar doesn't offer one.
-function limitCreditDueToToday() {
-  var el = document.getElementById('creditDueDate');
-  if (!el) return;
-  el.setAttribute('min', posYmdIn(0));
-  if (el._flatpickr) el._flatpickr.set('minDate', posYmdIn(0));
-}
-
-// Customer's other unpaid bills, so the cashier sees the whole debt before adding more.
-// Cached per customer for the open form; null = not loaded (row stays hidden).
-var creditOldDebt = null;
-function loadCreditOldDebt() {
-  creditOldDebt = null;
-  var cid = selectedCustomer ? parseInt(selectedCustomer.customer_id, 10) : 0;
-  if (!(cid > 0)) { calcCredit(); return; }
-  $.ajax({
-    url: (window.POS_BACKEND_URL || '../../api/pos_backend.php'),
-    data: { action: 'customer_debt_info', customer_id: cid },
-    dataType: 'json',
-    cache: false,
-    success: function (res) {
-      var still = selectedCustomer && parseInt(selectedCustomer.customer_id, 10) === cid;
-      if (res && res.success && still) creditOldDebt = res;
-      if (currentPayMode === 'credit') calcCredit();
-    }
-  });
 }
 
 function recalcPayment() {
@@ -122,27 +69,9 @@ function autoSelectPosBank() {
 }
 
 function setPayMode(mode) {
-  var prevMode = currentPayMode;
+  if (mode !== 'split') mode = 'single';
   currentPayMode = mode;
   paintPayModeButtons(mode);
-  if (mode === 'credit') {
-    $('#singlePaySection').show();
-    $('#splitPaySection').hide();
-    $('#payTypeRow').show();
-    $('#singleSummary').hide();
-    $('#splitSummary').hide();
-    if (selectedPayType === 'ເງິນສົດ') $('#singleQrSection').hide(); else $('#singleQrSection').show();
-    // Deposit starts at 0 — the whole bill goes on credit unless the cashier types an amount.
-    $('#cashReceived').val('0');
-    $('#creditDueDate').val(''); // no due date until the cashier picks one
-    limitCreditDueToToday();
-    loadCreditOldDebt();
-    calcCredit();
-    return;
-  }
-  if (prevMode === 'credit' && mode === 'single') {
-    $('#cashReceived').val(POSCUR.num(window.CART_NET_KIP || 0));
-  }
   if (mode === 'single') {
     $('#singlePaySection').show();
     $('#splitPaySection').hide();
@@ -199,44 +128,7 @@ function addCashShortcut(amountKip) {
   calculateChange();
 }
 
-// ຂາຍຕິດໜີ້: the typed amount is an optional deposit; whatever is left goes on credit.
-// Submit needs a selected customer and something actually left owing.
-function calcCredit() {
-  var totalKip   = window.CART_NET_KIP || 0;
-  var totalUnits = POSCUR.units(totalKip);
-  var depUnits   = POSCUR.parseUnits($('#cashReceived').val());
-  var owedUnits  = Math.max(0, totalUnits - depUnits);
-  var hasCustomer = !!(selectedCustomer && parseInt(selectedCustomer.customer_id, 10) > 0);
-
-  $('#creditCustomerLbl').text(hasCustomer ? (selectedCustomer.customer_name || '') : '-');
-  $('#creditTotalLbl').html(posFmtTotal(totalKip));
-  $('#creditDepositDisplay').html(POSCUR.fmtUnits(Math.min(depUnits, totalUnits)));
-  $('#creditOwedDisplay').html(POSCUR.fmtUnits(owedUnits));
-
-  // Old debt + total after this bill (KIP, same conversion processCheckout uses)
-  var oldBal = creditOldDebt ? (parseFloat(creditOldDebt.balance) || 0) : 0;
-  if (hasCustomer && creditOldDebt && oldBal > 0) {
-    var depKip  = Math.min(totalKip, POSCUR.isKip ? Math.min(depUnits, totalUnits) : Math.round(Math.min(depUnits, totalUnits) * POSCUR.rate));
-    var owedKip = Math.max(0, totalKip - depKip);
-    $('#creditOldDebtLbl').html(posFmtTotal(oldBal));
-    $('#creditOldDebtBills').text('(' + posT('pos.credit_old_bills', creditOldDebt.bills) + ')');
-    $('#creditTotalAfterLbl').html(posFmtTotal(oldBal + owedKip));
-    $('#creditOverdueLbl').text(creditOldDebt.overdue > 0 ? posT('pos.credit_overdue_warn', creditOldDebt.overdue) : '').toggle(creditOldDebt.overdue > 0);
-    $('#creditOldDebtBox').show();
-  } else {
-    $('#creditOldDebtBox').hide();
-  }
-
-  var due = $('#creditDueDate').val() || '';
-  $('#creditDueLbl').text(/^\d{4}-\d{2}-\d{2}$/.test(due) ? due.split('-').reverse().join('/') : posT('pos.credit_due_none_lbl'));
-
-  var warn = !hasCustomer ? posT('pos.credit_need_customer') : (owedUnits <= 0 ? posT('pos.credit_full_deposit') : '');
-  $('#creditWarning').text(warn).toggle(!!warn);
-  $('#btnSubmitPayment').prop('disabled', !!warn);
-}
-
 function calculateChange() {
-  if (currentPayMode === 'credit') return calcCredit();
   if (currentPayMode !== 'single') return;
   var totalKip = window.CART_NET_KIP || 0;
   // Judge "enough / short / change" in the tender currency's own rounded units — the

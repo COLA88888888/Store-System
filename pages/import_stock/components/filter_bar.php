@@ -53,15 +53,15 @@
       </div>
 
       <!-- 5. Currency Selector — view the cost figures converted into a chosen currency -->
-      <div style="flex: 1 1 150px; min-width: 140px;">
+      <div style="flex: 0 0 120px; width: 120px;">
         <label class="form-label font-weight-bold text-dark mb-1" style="font-size: 0.88rem; white-space: nowrap;">
           <i class="fas fa-coins text-warning mr-1"></i> <?php echo htmlspecialchars(t('reports.currency_label', 'ສະກຸນເງິນ:')); ?>
         </label>
         <select name="currency_filter" class="form-control font-weight-bold" style="height: 38px; border-radius: 8px; border: 1.5px solid #a16207; color: #854d0e; background: #fefce8; width: 100%;" onchange="this.form.submit()">
-          <option value=""><?php echo htmlspecialchars(t('home.default_currency_opt', '-- ຄ່າເລີ່ມຕົ້ນຮ້ານ --')); ?></option>
+          <option value=""><?php echo htmlspecialchars(t('home.default_currency_short', 'ຄ່າເລີ່ມຕົ້ນ')); ?></option>
           <?php foreach (getCurrencyMeta() as $__cc => $__ci): ?>
             <option value="<?php echo htmlspecialchars($__cc); ?>" <?php echo $currency_filter === $__cc ? 'selected' : ''; ?>>
-              <?php echo htmlspecialchars($__ci['name'] . ' (' . $__ci['symbol'] . ')'); ?>
+              <?php /* ລະຫັດສະກຸນເງິນເທົ່ານັ້ນ (KIP → LAK) ບໍ່ມີສັນຍາລັກ */ echo htmlspecialchars($__cc === 'KIP' ? 'LAK' : $__cc); ?>
             </option>
           <?php endforeach; ?>
         </select>

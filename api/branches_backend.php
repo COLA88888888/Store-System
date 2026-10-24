@@ -166,6 +166,47 @@ if ($canManageBranches && isset($_GET['delete_branch_id'])) {
     }
 }
 
+// ສາຂາທຳອິດ (ສາຂາໃຫຍ່) ໃຊ້ຂໍ້ມູນຮ້ານ (ຕັ້ງຄ່າ › ຂໍ້ມູນຮ້ານ = st_tbcompanyinfo): ຊື່/ເບີໂທ/ທີ່ຢູ່ ທີ່ຍັງວ່າງ
+// ຫຼື ຍັງເປັນຄ່າຕົວຢ່າງຕອນຕິດຕັ້ງ (config/migrations/schema_core.php, schema_company_banks.php) → ດຶງຈາກຂໍ້ມູນຮ້ານ.
+// ສາຂາທີ 2 ເປັນຕົ້ນໄປ ປ້ອນເອງໃນຟອມເພີ່ມສາຂາ.
+$branchShopInfo = null;
+try {
+    $mainSt = $pdo->query("SELECT store_id, store_name, tel, address FROM st_tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+    $compSt = $pdo->prepare("SELECT com_name_la, com_tel, com_address FROM st_tbcompanyinfo
+                             WHERE TRIM(IFNULL(com_name_la, '')) <> ''
+                             ORDER BY (branch_id = ?) DESC, Id ASC LIMIT 1");
+    $compSt->execute([$mainSt ? (int)$mainSt['store_id'] : 0]);
+    $branchShopInfo = $compSt->fetch(PDO::FETCH_ASSOC) ?: null;
+
+    if ($mainSt && $branchShopInfo) {
+        $seedVals = [
+            'store_name' => ['', 'ສາຂາໃຫຍ່ ວຽງຈັນ (HQ)', 'Mini POS Store'],
+            'tel'        => ['', '020-55555555'],
+            'address'    => ['', 'ນະຄອນຫຼວງວຽງຈັນ'],
+        ];
+        $fromShop = ['store_name' => 'com_name_la', 'tel' => 'com_tel', 'address' => 'com_address'];
+        $sets = []; $vals = [];
+        foreach ($fromShop as $col => $compCol) {
+            $shopVal = trim((string)($branchShopInfo[$compCol] ?? ''));
+            if ($shopVal !== '' && in_array(trim((string)$mainSt[$col]), $seedVals[$col], true)) {
+                $sets[] = "`$col` = ?";
+                $vals[] = $shopVal;
+            }
+        }
+        if ($sets) {
+            $vals[] = (int)$mainSt['store_id'];
+            $pdo->prepare("UPDATE st_tbstore SET " . implode(', ', $sets) . " WHERE store_id = ?")->execute($vals);
+        }
+    }
+} catch (Throwable $e) {}
+
+// ຟອມເພີ່ມສາຂາ (branches_modals.php): ຍັງບໍ່ມີສາຂາຈັກແຫ່ງ → ເຕີມຂໍ້ມູນຮ້ານ ແລະ ຕັ້ງເປັນສາຂາໃຫຍ່ໃຫ້;
+// ມີສາຂາແລ້ວ → ຟອມວ່າງ ໃຫ້ປ້ອນເອງ
+$branchCountAll = (int)$pdo->query("SELECT COUNT(*) FROM st_tbstore")->fetchColumn();
+$addBranchPrefill = ($branchCountAll === 0 && $branchShopInfo)
+    ? ['name' => $branchShopInfo['com_name_la'], 'tel' => $branchShopInfo['com_tel'], 'address' => $branchShopInfo['com_address'], 'is_main' => true]
+    : ['name' => '', 'tel' => '', 'address' => '', 'is_main' => $branchCountAll === 0];
+
 // Fetch all branch stores
 if ($canManageBranches) {
     // ຮຽງຕາມລະຫັດສາຂາ (1, 2, 3 …) — ລະຫັດສາຂາເປັນຫຼັກ, ບໍ່ແມ່ນ store_id ພາຍໃນ

@@ -39,7 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $usd_rate = floatval(str_replace(',', '', $_POST['ex_kip_us'] ?? '0'));
         $cny_rate = floatval(str_replace(',', '', $_POST['ex_kip_cn'] ?? '0'));
 
-        if ($thb_rate > 0 && $usd_rate > 0) {
+        // ເລດ = ກີບຕໍ່ 1 ໜ່ວຍ: ບາດ/ໂດລາ/ຢວນ ມີຄ່າຫຼາຍກວ່າ 1 ກີບສະເໝີ — ຕ່ຳກວ່າ 1 ແມ່ນປ້ອນກັບດ້ານ (ເຊັ່ນ 0.0014) ຈະເຮັດໃຫ້ການແລກປ່ຽນຜິດທັງລະບົບ
+        if ($thb_rate >= 1 && $usd_rate >= 1 && ($cny_rate == 0 || $cny_rate >= 1)) {
             try {
                 $stmt = $pdo->prepare("INSERT INTO st_tbexchange (ex_date, ex_time, ex_kip_bath, ex_kip_us, ex_kip_cn, ex_status, ex_userlogin, branch_id) VALUES (CURDATE(), CURTIME(), ?, ?, ?, 'Active', ?, ?)");
                 $stmt->execute([$thb_rate, $usd_rate, $cny_rate, $username, $myRateStoreId]);
@@ -60,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $usd_rate = floatval(str_replace(',', '', $_POST['ex_kip_us'] ?? '0'));
         $cny_rate = floatval(str_replace(',', '', $_POST['ex_kip_cn'] ?? '0'));
 
-        if ($rate_id > 0 && $thb_rate > 0 && $usd_rate > 0) {
+        if ($rate_id > 0 && $thb_rate >= 1 && $usd_rate >= 1 && ($cny_rate == 0 || $cny_rate >= 1)) {
             try {
                 $sql = "UPDATE st_tbexchange SET ex_kip_bath = ?, ex_kip_us = ?, ex_kip_cn = ?, ex_userlogin = ? WHERE Id = ?";
                 $params = [$thb_rate, $usd_rate, $cny_rate, $username, $rate_id];

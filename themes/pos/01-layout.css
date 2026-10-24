@@ -57,6 +57,10 @@ html, body {
 }
 
 /* Unify every default Bootstrap primary button/badge on the POS page with the sidebar/navbar navy brand color */
+.btn {
+    border-radius: 4px !important;
+}
+
 .btn-primary {
     background: linear-gradient(135deg, #2c5aa0, #244886) !important;
     border-color: #244886 !important;

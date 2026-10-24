@@ -13,6 +13,7 @@ return [
     'home.search' => 'Search',
     'home.clear' => 'Clear',
     'home.default_currency_opt' => '-- Store default --',
+    'home.default_currency_short' => 'Default',
     'home.card_total_sales' => 'Total Sales',
     'home.card_total_cost' => 'Total Goods Cost',
     'home.card_cogs' => 'Cost of Sales',

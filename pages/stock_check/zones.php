@@ -174,7 +174,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   </tr>
                 <?php else: foreach ($zones as $idx => $z): ?>
                   <tr class="zone-row">
-                    <td class="text-center text-muted"><?php echo $idx + 1; ?></td>
+                    <td class="text-center text-muted row-no"><?php echo $idx + 1; ?></td>
                     <td class="font-weight-bold text-dark zone-name-cell">
                       <i class="fas fa-map-marker-alt text-primary mr-1"></i> <?php echo htmlspecialchars($z['zone_name']); ?>
                     </td>
@@ -204,6 +204,23 @@ require_once __DIR__ . '/../../layouts/header.php';
             </table>
           </div>
         </div>
+
+        <!-- Pagination Footer (ແບບດຽວກັບໜ້າປະເພດສິນຄ້າ — assets/js/table-pager.js) -->
+        <div id="zonePagFooter" class="card-footer table-pager-footer bg-white border-top d-flex align-items-center justify-content-between py-3 px-3 px-md-4" style="border-radius: 0 0 12px 12px; gap: 10px; flex-wrap: wrap;">
+          <div class="d-flex align-items-center text-muted" style="gap: 8px; font-size: 0.85rem;">
+            <span class="text-muted font-weight-bold">ສະແດງ <span data-pager-start>0</span>-<span data-pager-end>0</span> ລາຍການ</span>
+            <select data-pager-size class="form-control form-control-sm font-weight-bold" style="width: auto; border-radius: 6px;">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="all">ທັງໝົດ</option>
+            </select>
+          </div>
+          <nav aria-label="Zone Pagination" class="ml-auto">
+            <ul class="pagination pagination-circle mb-0 justify-content-end" data-pager-ul></ul>
+          </nav>
+        </div>
+        <?php echo themeCssLink('table-pager.css'); ?>
       </div>
     </div>
   </section>
@@ -278,13 +295,20 @@ require_once __DIR__ . '/../../layouts/header.php';
   <input type="hidden" name="zone_id" id="delete_zone_id">
 </form>
 
+<script src="<?php echo $base_path; ?>assets/js/table-pager.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/table-pager.js'); ?>"></script>
 <script>
+// ຄົ້ນຫາ + ແບ່ງໜ້າ: ຄຳຄົ້ນຫາເລືອກແຖວທີ່ກົງ ແລ້ວ pager ສະແດງເທື່ອລະໜ້າ
+var zonePager = TablePager.create({
+  rows: '#zoneTable tbody tr.zone-row',
+  footer: '#zonePagFooter',
+  filter: function(tr) {
+    var q = ($('#zoneSearchInput').val() || '').toLowerCase().trim();
+    return !q || $(tr).find('.zone-name-cell').text().toLowerCase().indexOf(q) !== -1;
+  }
+});
+
 function filterZoneTable() {
-  var q = ($('#zoneSearchInput').val() || '').toLowerCase().trim();
-  $('#zoneTable tbody tr.zone-row').each(function() {
-    var txt = $(this).find('.zone-name-cell').text().toLowerCase();
-    $(this).toggle(!q || txt.indexOf(q) !== -1);
-  });
+  zonePager.refresh();
 }
 
 function openEditZoneModal(z) {

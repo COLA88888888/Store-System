@@ -8,6 +8,11 @@ return [
     'products.store_main_suffix' => '(ສາງຫຼັກ)',
     'products.store_branch_suffix' => '(ສາຂາຍ່ອຍ)',
     'products.category_filter_placeholder' => '--ເລືອກປະເພດ--',
+    'products.stock_filter_all' => '-- ທຸກສະຕັອກ --',
+    'products.stock_filter_low' => 'ໃກ້ໝົດ',
+    'products.stock_filter_out' => 'ໝົດແລ້ວ',
+    'products.focus_showing' => 'ສະແດງສະເພາະ:',
+    'products.focus_show_all' => 'ສະແດງທັງໝົດ',
     'products.search_placeholder' => 'ຄົ້ນຫາ ຊື່, ບາໂຄ້ດ...',
 
     // Table
@@ -91,6 +96,8 @@ return [
     'products.supplier_empty_hint' => 'ຍັງບໍ່ມີຜູ້ສະໜອງ — ເພີ່ມໄດ້ທີ່ເມນູ "ຈັດການຜູ້ສະໜອງ"',
     'products.field_qty' => 'ຈຳນວນສະຕັອກ:',
     'products.field_qty_optional' => '(ຖ້າມີ)',
+    'products.field_zone' => 'ໂຊນ:',
+    'products.field_shelf' => 'ຊັ້ນວາງ:',
     'products.field_bprice' => 'ລາຄາຊື້:',
     'products.field_price' => 'ລາຄາຂາຍ:',
     'products.field_price_retail' => 'ລາຄາຂາຍຍ່ອຍ',
@@ -102,9 +109,9 @@ return [
 
     // Multi-unit row template
     'products.unit_row_name_label' => 'ຊື່ຫົວໜ່ວຍ:',
-    'products.unit_row_name_placeholder' => 'ເຊັ່ນ: ແພັກ, ແກັດ...',
-    'products.unit_row_qty_label' => 'ຈຳນວນ:',
-    'products.unit_row_qty_placeholder' => 'ເຊັ່ນ: 6',
+    'products.unit_row_name_placeholder' => 'ເລືອກຫົວໜ່ວຍ...',
+    'products.unit_row_qty_label' => 'ຈຳນວນທີ່ຕັດສະຕັອກ:',
+    'products.unit_row_qty_placeholder' => '0',
     'products.unit_row_bprice_label' => 'ລາຄາຊື້:',
     'products.unit_row_price_label' => 'ລາຄາຂາຍ:',
     'products.unit_row_barcode_label' => 'ບາໂຄ້ດ:',

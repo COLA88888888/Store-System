@@ -4,7 +4,7 @@ return [
     'exchange_rate.msg_save_success' => 'อัปเดตอัตราแลกเปลี่ยนเงินสำเร็จแล้ว!',
     'exchange_rate.msg_update_success' => 'ดำเนินการอัปเดตอัตราแลกเปลี่ยนสำเร็จ!',
     'exchange_rate.msg_delete_success' => 'ลบประวัติอัตราแลกเปลี่ยนสำเร็จแล้ว!',
-    'exchange_rate.msg_invalid_rate' => 'กรุณากรอกอัตราแลกเปลี่ยนให้ถูกต้อง!',
+    'exchange_rate.msg_invalid_rate' => 'กรุณาป้อนอัตราแลกเปลี่ยนที่ถูกต้อง — เป็นกีบต่อ 1 หน่วย (เช่น 1 บาท = 720, 1 ดอลลาร์ = 22,000)',
     'exchange_rate.msg_error_prefix' => 'ผิดพลาด: ',
 
     'exchange_rate.header_title' => 'อัตราแลกเปลี่ยนเงิน',

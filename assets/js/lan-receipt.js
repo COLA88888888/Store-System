@@ -451,7 +451,45 @@
     return isAndroid() && isBuiltInPrinterDevice() ? paperPx(58) : paperPx(paperWidth);
   }
   var FIT_PRINT_SHIFT_MM = -1.5;
-  function dialogPageCss() {
+
+  // ເຈ້ຍແຜ່ນ A5 (148) / A4 (210) — ຕັ້ງຢູ່ ຕັ້ງຄ່າ > ເຄື່ອງພິມ (st_tbl_printer.paper_width ເປັນ mm).
+  // ເຄື່ອງພິມຄວາມຮ້ອນ (LAN/Bluetooth) ພິມໄດ້ແຕ່ມ້ວນ 58/80, ສະນັ້ນ A4/A5 ພິມຜ່ານໜ້າຕ່າງພິມສະເໝີ
+  // ເປັນ HTML ເຕັມໜ້າ (ບໍ່ແມ່ນຮູບແຄບ 72 mm) — ຕາຕະລາງຂະຫຍາຍເຕັມຄວາມກວ້າງຂອງເຈ້ຍ.
+  function isPagePaper(paperWidth) {
+    var w = parseInt(paperWidth, 10);
+    return w === 148 || w === 210;
+  }
+  // ເຄື່ອງນີ້ເລືອກ A5/A4 ໄວ້ໃນ ຕັ້ງຄ່າ > ເຄື່ອງພິມ > Bluetooth ("ຂະໜາດເຈ້ຍ", ເກັບໃນ localStorage ຂອງເຄື່ອງ —
+  // ສ່ວນຫຼາຍແມ່ນໂທລະສັບ) → ຄືນ 148/210, ບໍ່ດັ່ງນັ້ນ null.
+  function devicePagePaper() {
+    try {
+      var s = JSON.parse(localStorage.getItem('StoreMini.bt_printer_settings') || '{}') || {};
+      return isPagePaper(s.paper) ? parseInt(s.paper, 10) : null;
+    } catch (e) { return null; }
+  }
+  // ຂະໜາດເຈ້ຍໃບບິນທີ່ໃຊ້ແທ້ໃນເຄື່ອງນີ້: A5/A4 ທີ່ເລືອກໄວ້ໃນເຄື່ອງ ມາກ່ອນ, ບໍ່ດັ່ງນັ້ນຂອງເຄື່ອງພິມໃບບິນຂອງສາຂາ
+  function receiptPaper(serverPaper) {
+    return devicePagePaper() || serverPaper;
+  }
+  function pagePaperCss(paperWidth) {
+    var a4 = parseInt(paperWidth, 10) === 210;
+    var base = a4 ? 16 : 14;   // px
+    return '@page { size: ' + (a4 ? 'A4' : 'A5') + ' portrait; margin: ' + (a4 ? 14 : 10) + 'mm; } ' +
+      'html, body { width: auto !important; max-width: none !important; margin: 0 !important; padding: 0 !important; font-size: ' + base + 'px !important; } ' +
+      'body:has(.receipt-print-img) { padding: 0 !important; } ' +
+      'h6 { font-size: ' + (base + 8) + 'px !important; white-space: normal !important; } ' +
+      '.small, .receipt-header-address, .receipt-header-tel, .receipt-footer-msg { font-size: ' + (base - 1) + 'px !important; } ' +
+      'table { font-size: ' + base + 'px !important; margin: 8px 0 !important; } ' +
+      'td, th { padding: 6px 4px !important; } ' +
+      'thead th, tr:first-child th { border-bottom: 1px solid #000 !important; } ' +
+      'img.receipt-logo { max-width: ' + (a4 ? 32 : 26) + 'mm !important; max-height: ' + (a4 ? 32 : 26) + 'mm !important; } ' +
+      'img.receipt-qr-img { width: ' + (a4 ? 40 : 32) + 'mm !important; max-width: ' + (a4 ? 40 : 32) + 'mm !important; } ' +
+      '#rc_total, #rc_rep_total { font-size: ' + (base + 6) + 'px !important; }';
+  }
+
+  // CSS ທ້າຍສຸດຂອງ iframe ພິມ: A4/A5 → ໜ້າເຕັມ; ເຄື່ອງພິມໃນຕົວ → ພໍດີເຈ້ຍ; ອື່ນໆ → ບໍ່ເພີ່ມ
+  function dialogPageCss(paperWidth) {
+    if (isPagePaper(paperWidth)) return pagePaperCss(paperWidth);
     if (!isBuiltInPrinterDevice()) return '';
     return '@page { size: auto; margin: 0mm; } ' +
       'html, body { width: 100% !important; max-width: 100% !important; margin: 0 !important; } ' +
@@ -466,6 +504,9 @@
     var basePath = opts.basePath || '../../';
     if (!printer || printer.printer_type !== 'ip') {
       return Promise.resolve({ success: false, message: 'no LAN receipt printer' });
+    }
+    if (isPagePaper(printer.paper_width)) {
+      return Promise.resolve({ success: false, message: 'A4/A5 prints through the print dialog' });
     }
     var widthPx = paperPx(printer.paper_width);
     return toImage(source, widthPx, basePath, opts.extraCss).then(function (dataUri) {
@@ -482,5 +523,5 @@
     });
   }
 
-  window.MiniposLanReceipt = { toImage: toImage, toCanvas: toCanvas, warmUp: warmUp, print: print, imageToDataUri: imageToDataUri, imageMode: imageMode, printHtml: printHtml, latinFontFaces: latinFontFaces, svgHeight: svgHeight, inkCanvas: inkCanvas, loadSvgImage: loadSvgImage, paperPx: paperPx, imageHtml: imageHtml, isBuiltInPrinterDevice: isBuiltInPrinterDevice, dialogPaperPx: dialogPaperPx, dialogPageCss: dialogPageCss };
+  window.MiniposLanReceipt = { toImage: toImage, toCanvas: toCanvas, warmUp: warmUp, print: print, imageToDataUri: imageToDataUri, imageMode: imageMode, printHtml: printHtml, latinFontFaces: latinFontFaces, svgHeight: svgHeight, inkCanvas: inkCanvas, loadSvgImage: loadSvgImage, paperPx: paperPx, imageHtml: imageHtml, isBuiltInPrinterDevice: isBuiltInPrinterDevice, dialogPaperPx: dialogPaperPx, dialogPageCss: dialogPageCss, isPagePaper: isPagePaper, receiptPaper: receiptPaper };
 })(window, document);

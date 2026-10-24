@@ -105,12 +105,30 @@ if (!hasPermission('dashboard')) {
         $default_iframe_src = '../pages/branches/branches.php';
     }
 }
+
+// ພະນັກງານເຂົ້າລະບົບ + ສາຂາມີກະ ແຕ່ຍັງບໍ່ມີກະເປີດ → ໄປໜ້າຂາຍສະເໝີ (ໜ້າຂາຍເດັ້ງຟອມປ້ອນເງິນລິ້ນຊັກ = ເປີດກະ,
+// pages/pos/partials/js/pos_shift_js.php) ທັບໜ້າທີ່ເປີດຄ້າງໄວ້ໃນ sessionStorage
+$forceShiftOpen = false;
+if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSION['user_id'] ?? 0) !== 1 && hasPermission('sale')) {
+    try {
+        $fsStore = intval($_SESSION['store_id'] ?? 0);
+        $fsSt = $pdo->prepare("SELECT EXISTS(SELECT 1 FROM st_shifts WHERE store_id = ? AND status = 1)
+                                  AND NOT EXISTS(SELECT 1 FROM st_shift_sessions WHERE store_id = ? AND status = 'open')");
+        $fsSt->execute([$fsStore, $fsStore]);
+        $forceShiftOpen = (bool)$fsSt->fetchColumn();
+    } catch (Throwable $e) {}
+    if ($forceShiftOpen) $default_iframe_src = '../pages/pos/pos.php';
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(getCurrentLang()); ?>" translate="no">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <script>
+    // ປ້ອງກັນການຊູມໜ້າຈໍອັດຕະໂນມັດເມື່ອກົດປຸ່ມ ຫຼື ຊ່ອງຄົ້ນຫາເທິງມືຖື (iOS Safari & Chrome)
+    document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+  </script>
   <meta name="google" content="notranslate">
   <title><?php echo htmlspecialchars($site_name); ?></title>
   <link rel="shortcut icon" href="<?php echo htmlspecialchars($site_logo); ?>" type="image/jpeg">
@@ -180,13 +198,12 @@ if (!hasPermission('dashboard')) {
           e.preventDefault();
           if (typeof showFastLoader === 'function') showFastLoader();
           try { fr.contentWindow.location.reload(); } catch (x) { fr.src = fr.src; }
-          setTimeout(function () { if (typeof hideFastLoader === 'function') hideFastLoader(); }, 600);
         }
       }, true);
     })();
   </script>
 </head>
-<body class="hold-transition sidebar-mini sidebar-no-expand layout-fixed">
+<body class="hold-transition sidebar-mini sidebar-no-expand layout-fixed is-loading">
 <script>
   if (document.documentElement.classList.contains('sidebar-collapse')) {
     document.body.classList.add('sidebar-collapse');
@@ -209,26 +226,23 @@ if (!hasPermission('dashboard')) {
 <?php require __DIR__ . '/partials/dashboard/js_pos_navbar.php'; /* JS: ບັອກສະແກນຂອງໜ້າຂາຍຢູ່ໃນ Navbar */ ?>
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper" style="background-color: #f4f6f9; position: relative;">
-    <!-- Page Loading Spinner Overlay (12-Dot Pulse Circle Spinner from Screenshot) -->
+    <!-- Page Loading Logo Overlay -->
     <?php echo themeCssLink('dashboard-preloader.css'); /* CSS ຍ້າຍໄປ themes/dashboard-preloader.css */ ?>
-    <div id="iframeLoaderOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.94); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
-      <div class="loader-dots-spinner">
-        <div></div><div></div><div></div><div></div>
-        <div></div><div></div><div></div><div></div>
-        <div></div><div></div><div></div><div></div>
+    <div id="iframeLoaderOverlay" class="system-loader-overlay">
+      <div class="system-loader-wrapper">
+        <div class="system-loader-pulse-ring"></div>
+        <?php $wlao_ver = @filemtime(__DIR__ . '/../assets/img/logosystem/Wlaodev.png') ?: 1; ?>
+        <img src="../assets/img/logosystem/Wlaodev.png?v=<?php echo $wlao_ver; ?>" alt="WLaodev" class="system-loader-logo">
       </div>
-      <div style="margin-top: 18px; font-weight: 700; color: #1e293b; font-size: 1.05rem; letter-spacing: 0.5px;" data-i18n="layout.loading_data">
-        <?php echo htmlspecialchars(t('layout.loading_data', 'ກຳລັງໂຫຼດຂໍ້ມູນ...')); ?>
+      <div class="system-loader-text" data-i18n="layout.loading_data">
+        <span><?php echo htmlspecialchars(t('layout.loading_data', 'ກຳລັງໂຫຼດຂໍ້ມູນ')); ?></span><span class="loader-dot d1">.</span><span class="loader-dot d2">.</span><span class="loader-dot d3">.</span>
       </div>
+      <div class="system-loader-slow-hint" id="systemLoaderSlowHint">ກະລຸນາລໍຖ້າຈັກໜ່ອຍ... ລະບົບກຳລັງປະມວນຜົນ</div>
     </div>
 
-    <iframe width="100%" height="100%" frameborder="0" name="frame" src="<?php echo $default_iframe_src; ?>" style="background-color: #f4f6f9;"></iframe>
+    <iframe id="mainContentFrame" width="100%" height="100%" frameborder="0" name="frame" src="<?php echo $default_iframe_src; ?>" onload="if (typeof hideFastLoader === 'function') hideFastLoader();" style="background-color: #f4f6f9;"></iframe>
     <?php echo themeCssLink('dashboard-frame.css'); /* CSS ຍ້າຍໄປ themes/dashboard-frame.css */ ?>
     <script>
-      // 100vh on tablet/mobile browsers can include area hidden behind the address bar/toolbar,
-      // which made the content-wrapper (and anything pinned to its bottom, like the POS action
-      // buttons) taller than what's actually visible with no way to scroll to it. Measure the
-      // real visible height with window.innerHeight instead and drive the CSS off that.
       (function () {
         function setAppVh() {
           document.documentElement.style.setProperty('--app-vh', (window.innerHeight * 0.01) + 'px');
@@ -237,47 +251,68 @@ if (!hasPermission('dashboard')) {
         window.addEventListener('resize', setAppVh);
         window.addEventListener('orientationchange', setAppVh);
       })();
+
+      var loaderSafetyTimer = null;
+      var slowNetHintTimer = null;
+
       function hideFastLoader() {
+        clearTimeout(loaderSafetyTimer);
+        clearTimeout(slowNetHintTimer);
+        var hint = document.getElementById('systemLoaderSlowHint');
+        if (hint) hint.classList.remove('show');
         var loader = document.getElementById('iframeLoaderOverlay');
         if (loader) {
           loader.style.opacity = '0';
           loader.style.transition = 'opacity 0.25s ease';
-          setTimeout(function() { loader.style.display = 'none'; }, 250);
+          setTimeout(function() {
+            loader.style.display = 'none';
+            document.body.classList.remove('is-loading');
+            if (typeof window.refreshPosNavMode === 'function') window.refreshPosNavMode();
+          }, 250);
+        } else {
+          document.body.classList.remove('is-loading');
+          if (typeof window.refreshPosNavMode === 'function') window.refreshPosNavMode();
         }
       }
+
       function showFastLoader() {
+        clearTimeout(loaderSafetyTimer);
+        clearTimeout(slowNetHintTimer);
+        document.body.classList.add('is-loading');
+        if (typeof window.refreshPosNavMode === 'function') window.refreshPosNavMode();
+        var hint = document.getElementById('systemLoaderSlowHint');
+        if (hint) hint.classList.remove('show');
         var loader = document.getElementById('iframeLoaderOverlay');
         if (loader) {
           loader.style.display = 'flex';
           loader.style.opacity = '1';
         }
+        // ຖ້າເນັດຊ້າເກີນ 2.2 ວິນາທີ ໃຫ້ໂຊຄຳແນະນຳ
+        slowNetHintTimer = setTimeout(function() {
+          var h = document.getElementById('systemLoaderSlowHint');
+          if (h) h.classList.add('show');
+        }, 2200);
+        // Failsafe ຍາວ 25 ວິນາທີ ເພື່ອໃຫ້ໂຫຼດຕາມຄວາມໄວອິນເຕີເນັດຕົວຈິງ
+        loaderSafetyTimer = setTimeout(hideFastLoader, 25000);
       }
+
       (function() {
         var defaultSrc = '<?php echo $default_iframe_src; ?>';
         var hasDashboardPerm = <?php echo hasPermission('dashboard') ? 'true' : 'false'; ?>;
         var savedSrc = sessionStorage.getItem('StoreMini.currentIframeSrc');
-        if (!hasDashboardPerm && (!savedSrc || savedSrc === 'home.php' || savedSrc.endsWith('/home.php'))) {
+        var forceShiftOpen = <?php echo $forceShiftOpen ? 'true' : 'false'; ?>;   // ພະນັກງານຕ້ອງເປີດກະກ່ອນ → ໜ້າຂາຍ
+        if (forceShiftOpen || (!hasDashboardPerm && (!savedSrc || savedSrc === 'home.php' || savedSrc.endsWith('/home.php')))) {
           savedSrc = defaultSrc;
           sessionStorage.setItem('StoreMini.currentIframeSrc', defaultSrc);
         }
         if (savedSrc) {
           document.getElementsByName('frame')[0].src = savedSrc;
         }
-        // Safety timeout: automatically hide loading spinner after 600ms
-        setTimeout(hideFastLoader, 600);
+        // Failsafe ສຳລັບການເປີດໜ້າທຳອິດ
+        loaderSafetyTimer = setTimeout(hideFastLoader, 15000);
       })();
     </script>
   </div>
-
-  <!-- Main Footer -->
-  <footer class="main-footer" style="background: #ffffff; border-top: 1px solid #cbd5e1; color: #475569; padding: 0 20px; font-size: 0.88rem; height: 42px; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box;">
-    <div style="font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 6px;">
-      <span>Wlaodev Pos System</span>
-    </div>
-    <div style="font-weight: 700; color: #64748b;">
-      <span>Version 3.8.26</span>
-    </div>
-  </footer>
 
 </div>
 <!-- ./wrapper -->

@@ -59,7 +59,7 @@
         </div>
       </div>
       <div class="modal-footer bg-light p-3">
-        <button type="button" class="btn btn-secondary font-weight-bold px-4" data-dismiss="modal" style="border-radius: 8px;"><?php echo htmlspecialchars(t('transfer_history.modal_close_btn', 'ປິດ')); ?></button>
+        <button type="button" class="btn btn-secondary font-weight-bold px-4" data-dismiss="modal" style="border-radius: 6px;"><?php echo htmlspecialchars(t('transfer_history.modal_close_btn', 'ປິດ')); ?></button>
       </div>
     </div>
   </div>

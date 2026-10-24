@@ -14,6 +14,12 @@
     }
 }
 
+/* ມາດຕະຖານມຸມປຸ່ມ ແລະ ຟອມ 4px */
+.btn,
+.form-control {
+    border-radius: 4px !important;
+}
+
 .report-card {
     border-radius: 12px;
     border: none;

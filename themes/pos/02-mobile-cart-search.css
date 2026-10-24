@@ -69,7 +69,22 @@
         padding: 5px 12px !important;
         font-size: 0.9rem !important;
         font-weight: 700 !important;
-        border-radius: 9px !important;
+        border-radius: 4px !important;
+    }
+
+    .category-pills-bar {
+        padding-top: 10px !important;
+    }
+
+    .category-count-badge {
+        position: absolute !important;
+        top: -7px !important;
+        right: -4px !important;
+        min-width: 18px !important;
+        height: 18px !important;
+        font-size: 0.65rem !important;
+        padding: 0 4px !important;
+        margin-left: 0 !important;
     }
 
     #productGrid {
@@ -216,6 +231,11 @@
     padding: 3px 7px;
     border-radius: 12px;
 }
+/* ຈຳນວນບິນທີ່ພັກ: ສີແດງ ໜັງສືຂາວ (ບໍ່ໃຫ້ສີປຸ່ມ/ສີທີມທັບ) */
+#heldCountBadge {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+}
 
 /* ===== Barcode Scanner Search Bar =====
    ບັອກສະແກນເປັນສີຂາວສະເໝີ — ບໍ່ປ່ຽນຕາມສີທີມ (js_theme_color.php ບໍ່ແຕະ class ເຫຼົ່ານີ້). */
@@ -232,17 +252,20 @@
     transition: box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
-/* ປຸ່ມ ຕິດໜີ້ / ຈໍລູກຄ້າ ຂ້າງບັອກສະແກນ — ຂະໜາດທຳມະດາ (btn-sm) */
+/* ປຸ່ມ ຕິດໜີ້ / ຈໍລູກຄ້າ ຂ້າງບັອກສະແກນ — ຂະໜາດທຳມະດາ (btn-sm) ມຸມ 4px */
 .pos-topbar-btn {
     flex: 0 0 auto;
     height: 34px;
-    border-radius: 8px;
+    border-radius: 4px;
     padding: 0 12px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     white-space: nowrap;
     font-size: 0.85rem;
+}
+.pos-topbar-btn i {
+    margin-right: 8px !important;
 }
 @media (max-width: 991.98px) {
     .pos-topbar-btn { height: 32px; padding: 0 10px; }
@@ -358,45 +381,56 @@ html.pos-nav-mode .pos-search-row {
     position: fixed;
     top: 0;
     left: var(--pos-nav-left, 64px);
-    right: var(--pos-nav-right, 560px);
-    max-width: 720px;
+    right: var(--pos-products-right-dist, calc(640px + 20px));
     height: 64px;
     margin: 0 !important;
     display: flex;
     align-items: center;
+    z-index: 1045;
+}
+
+/* ເມື່ອມີ Modal ເປີດ: ບັອກສະແກນໃນ Navbar ໃຫ້ຢູ່ກ້ອງ Backdrop (z-index 1030) ແລະ ປິດການຄລິກຊົ່ວຄາວ */
+body.modal-open .pos-search-row {
+    z-index: 1030 !important;
+    pointer-events: none !important;
 }
 
 html.pos-nav-mode .pos-search-row > .col-12 {
     padding: 0 !important;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
 }
 
-/* Plain search box in the navbar: always white (whatever the theme colour), magnifier on the left */
+/* Plain search box in the navbar: adapts to width, aligned with product grid */
 html.pos-nav-mode .pos-search-wrapper {
-    width: 100%;
-    height: 44px;
+    flex: 1 1 0%;
+    min-width: 160px;
+    height: 38px;
     padding: 0;
     background: #ffffff !important;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.10);
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
     overflow: hidden;
     animation: none;
 }
 
 html.pos-nav-mode .pos-search-wrapper:focus-within {
     border-color: #ffffff;
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.45);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55);
     animation: none;
 }
 
 html.pos-nav-mode .pos-search-icon-left {
-    width: 42px;
+    width: 36px;
     height: 100%;
     background: transparent;
     border: none;
     border-radius: 0;
-    color: #111111;
-    font-size: 1.05rem;
+    color: #475569;
+    font-size: 0.95rem;
 }
 
 /* Same <i> as the barcode icon, drawn as Font Awesome's magnifier (\f002) */
@@ -408,20 +442,37 @@ html.pos-nav-mode .pos-search-input {
     height: 100%;
     padding: 0 8px 0 0;
     background: transparent;
+    font-size: 0.88rem;
     font-weight: 500;
 }
 
 html.pos-nav-mode .pos-search-input::placeholder {
-    color: #6b7280;
+    color: #64748b;
+    font-size: 0.85rem;
 }
 
 html.pos-nav-mode .pos-search-clear {
     height: 100%;
+    width: 32px;
     background: transparent;
+    font-size: 0.85rem;
+    color: #94a3b8;
 }
 
 html.pos-nav-mode .pos-search-badge {
     display: none;
+}
+
+html.pos-nav-mode .pos-topbar-btn {
+    height: 38px;
+    border-radius: 4px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* ===== ໜ້າຈໍໂທລະສັບ (< 768px) =====

@@ -61,6 +61,8 @@ return [
     'expiry.report_subtitle' => '已过期和即将过期的商品（提前 %s 天提醒）',
     'expiry.card_near' => '即将过期（%s 天内）',
     'expiry.card_tracked' => '跟踪到期的商品',
+    'expiry.card_attention' => '即将过期和已过期商品',
+    'expiry.empty_none_attention' => '没有即将过期或已过期的商品',
     'expiry.within_label' => '到期时间在：',
     'expiry.within_any' => '-- 全部 --',
     'expiry.branch_label' => '分店：',

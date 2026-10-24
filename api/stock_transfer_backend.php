@@ -145,6 +145,108 @@ if ($action === 'get_transfer_details') {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         exit();
     }
+} elseif ($action === 'validate_transfer_products') {
+    try {
+        $from_store_id = intval($_POST['from_store_id'] ?? 0);
+        $to_store_id = intval($_POST['to_store_id'] ?? 0);
+        $items_raw = $_POST['items'] ?? '[]';
+        $items = is_array($items_raw) ? $items_raw : json_decode($items_raw, true);
+
+        // 1. Check if system has at least 2 active branches
+        $activeStoreCount = (int)$pdo->query("SELECT COUNT(*) FROM st_tbstore WHERE status = 'active'")->fetchColumn();
+        if ($activeStoreCount < 2) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'ລະບົບຕ້ອງມີຢ່າງໜ້ອຍ 2 ສາຂາຂຶ້ນໄປ ຈຶ່ງສາມາດໂອນສິນຄ້າລະຫວ່າງສາຂາໄດ້!'
+            ]);
+            exit();
+        }
+
+        if ($from_store_id <= 0 || $to_store_id <= 0) {
+            echo json_encode(['success' => false, 'message' => 'ກະລຸນາເລືອກສາຂາຕົ້ນທາງ ແລະ ສາຂາປາຍທາງ!']);
+            exit();
+        }
+
+        if ($from_store_id === $to_store_id) {
+            echo json_encode(['success' => false, 'message' => 'ສາຂາຕົ້ນທາງ ແລະ ສາຂາປາຍທາງ ຕ້ອງບໍ່ແມ່ນສາຂາດຽວກັນ!']);
+            exit();
+        }
+
+        if (empty($items) || !is_array($items)) {
+            echo json_encode(['success' => false, 'message' => 'ກະລຸນາເພີ່ມສິນຄ້າໃສ່ລາຍການໂອນຢ່າງນ້ອຍ 1 ລາຍການ!']);
+            exit();
+        }
+
+        // 2. Validate each product in destination branch
+        $errors = [];
+        foreach ($items as $itm) {
+            $pId = intval($itm['product_id'] ?? 0);
+            if ($pId <= 0) continue;
+
+            // Fetch source product with its category
+            $stmtSrc = $pdo->prepare("
+                SELECT p.*, c.category_name 
+                FROM st_products p 
+                LEFT JOIN st_categories c ON p.category_id = c.category_id 
+                WHERE p.product_id = ? AND p.store_id = ?
+            ");
+            $stmtSrc->execute([$pId, $from_store_id]);
+            $src = $stmtSrc->fetch(PDO::FETCH_ASSOC);
+            if (!$src) continue;
+
+            $pName = $src['product_name'] ?: "ID #{$pId}";
+
+            // Fetch destination product by product_id OR barcode
+            $stmtDst = $pdo->prepare("
+                SELECT p.*, c.category_name 
+                FROM st_products p 
+                LEFT JOIN st_categories c ON p.category_id = c.category_id 
+                WHERE (p.product_id = ? OR (p.barcode = ? AND p.barcode != '' AND p.barcode != '-'))
+                  AND p.store_id = ?
+            ");
+            $stmtDst->execute([$pId, $src['barcode'] ?? '', $to_store_id]);
+            $dst = $stmtDst->fetch(PDO::FETCH_ASSOC);
+
+            // Must exist in destination branch
+            if (!$dst) {
+                $errors[] = "• ສິນຄ້າ \"{$pName}\" ຍັງບໍ່ມີໃນສາຂາປາຍທາງ! ຕ້ອງໄດ້ເພີ່ມເຂົ້າທາງນັ້ນກ່ອນ ຈຶ່ງສາມາດໂອນໄດ້.";
+                continue;
+            }
+
+            // Must have same category
+            $srcCat = trim($src['category_name'] ?? '');
+            $dstCat = trim($dst['category_name'] ?? '');
+            if (mb_strtolower($srcCat) !== mb_strtolower($dstCat)) {
+                $srcCatShow = $srcCat ?: 'ບໍ່ມີປະເພດ';
+                $dstCatShow = $dstCat ?: 'ບໍ່ມີປະເພດ';
+                $errors[] = "• ສິນຄ້າ \"{$pName}\" ມີປະເພດບໍ່ຕົງກັນ (ຕົ້ນທາງ: \"{$srcCatShow}\", ປາຍທາງ: \"{$dstCatShow}\")! ຕ້ອງເປັນປະເພດສິນຄ້າດຽວກັນ.";
+            }
+
+            // Must have same unit
+            $srcUnit = trim($src['unit'] ?? '');
+            $dstUnit = trim($dst['unit'] ?? '');
+            if (mb_strtolower($srcUnit) !== mb_strtolower($dstUnit)) {
+                $srcUnitShow = $srcUnit ?: 'ອັນ';
+                $dstUnitShow = $dstUnit ?: 'ອັນ';
+                $errors[] = "• ສິນຄ້າ \"{$pName}\" ມີຫົວໜ່ວຍບໍ່ຕົງກັນ (ຕົ້ນທາງ: \"{$srcUnitShow}\", ປາຍທາງ: \"{$dstUnitShow}\")! ຕ້ອງເປັນຫົວໜ່ວຍດຽວກັນ.";
+            }
+        }
+
+        if (!empty($errors)) {
+            echo json_encode([
+                'success' => false,
+                'message' => implode("\n", $errors),
+                'errors' => $errors
+            ]);
+            exit();
+        }
+
+        echo json_encode(['success' => true]);
+        exit();
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        exit();
+    }
 } else {
     echo json_encode(['success' => false, 'message' => 'Invalid action']);
     exit();

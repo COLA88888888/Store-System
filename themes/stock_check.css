@@ -46,9 +46,11 @@
 .sc-row.sc-state-over  { background: #fffdf5; }
 .sc-row.sc-state-match { background: #f6fef9; }
 .sc-row.sc-state-uncounted { background: #fff; }
+.sc-row.sc-state-dirty { background: #fffdf5; }
 .sc-row.sc-state-match .sc-counted { border-color: #86efac; }
 .sc-row.sc-state-short .sc-counted { border-color: #fca5a5; }
 .sc-row.sc-state-over  .sc-counted { border-color: #fcd34d; }
+.sc-row.sc-state-dirty .sc-counted { border-color: #f59e0b; }
 .sc-row.sc-flash { background: #fde68a !important; transition: background 0.2s; }
 
 /* ຖັນ "ລາຍການທີ່ນັບ": ແຖບຄວາມຄືບໜ້າ (ນັບແລ້ວ / ທັງໝົດ) */
@@ -61,37 +63,65 @@
 
 .sc-draft-alert { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; color: #78350f; }
 
-/* ບັດສະຫຼຸບ — ແບບດຽວກັບ .kpi-card-item ໃນ themes/reports.css (ພື້ນໄລ່ສີ + ໄອຄອນ) */
+/* ບັດສະຫຼຸບ — ພື້ນສີເຕັມ (ສີດຽວ ບໍ່ໄລ່ສີ), ໜັງສື + ໄອຄອນສີຂາວ.
+   ສີຕັ້ງຢູ່ markup (partials/count_view.php): --k = ສີພື້ນຂອງບັດ */
 .sc-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
+    margin-bottom: 20px !important;
 }
 .sc-kpi {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: var(--k, #475569);
     color: #fff;
     border-radius: 12px;
-    padding: 22px 24px;
-    min-height: 110px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 20px 24px;
+    min-height: 108px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, .12);
     font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
 }
-.sc-kpi-title { font-size: 0.92rem; font-weight: 700; color: rgba(255, 255, 255, 0.95); }
-.sc-kpi-val { font-size: clamp(1.5rem, 1.7vw, 1.9rem); font-weight: 800; line-height: 1.25; margin-top: 4px; white-space: nowrap; }
-.sc-kpi-sub { font-size: 0.8rem; color: rgba(255, 255, 255, 0.85); font-weight: 600; }
+.sc-kpi-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.sc-kpi-val { font-size: 2.1rem; font-weight: 800; line-height: 1.15; white-space: nowrap; color: #fff; }
+.sc-kpi-sub { font-size: 0.85rem; color: rgba(255, 255, 255, 0.9); font-weight: 600; margin-top: 2px; }
 .sc-kpi-icon {
-    width: 52px;
-    height: 52px;
+    width: 56px;
+    height: 56px;
     border-radius: 12px;
     background: rgba(255, 255, 255, 0.22);
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.55rem;
     flex-shrink: 0;
-    margin-left: 10px;
+    margin-left: 12px;
+}
+
+.sc-kpi-compact {
+    min-height: 108px;
+    padding: 20px 24px;
+    border-radius: 12px;
+}
+.sc-kpi-compact .sc-kpi-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+.sc-kpi-compact .sc-kpi-val {
+    font-size: 2.1rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-top: 0;
+}
+.sc-kpi-compact .sc-kpi-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 1.55rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.22);
 }
 
 .sc-kpi, .sc-kpi:hover, .sc-kpi-clickable, .sc-kpi-clickable:hover {
@@ -144,6 +174,23 @@
 
 /* ປຸ່ມ Excel / PDF / ພິມ — ແບບໜ້າລາຍງານ */
 .sc-export-btns { gap: 5px; }
+/* ໜ້ານັບ: ຈໍກວ້າງ — ຊ່ອງສະແກນ, ໂຊນ, ປຸ່ມກັ່ນຕອງ ແລະ ປຸ່ມ Excel/PDF/ພິມ ຢູ່ແຖວດຽວກັນ (ຊ່ອງສະແກນຫຍໍ້ລົງໃຫ້ພໍ);
+   ຈໍແຄບກວ່ານີ້ ລົງແຖວໃໝ່ຄືເກົ່າ */
+@media (min-width: 1200px) {
+    .sc-count-head, .sc-count-left { flex-wrap: nowrap !important; }
+    .sc-count-left { min-width: 0; }
+    .sc-count-left .sc-scan-group { flex: 1 1 260px; width: auto; min-width: 140px; }
+    .sc-count-left .sc-filter { flex-wrap: nowrap; flex-shrink: 0; }
+    .sc-count-left .sc-zone-wrap { flex-shrink: 0; }
+    .sc-count-head > .ml-auto { flex-shrink: 0; }
+    .sc-count-head #scSaveStatus { white-space: nowrap; }
+}
+/* 1200–1399px: ຫຍໍ້ໂຊນ ແລະ ປຸ່ມລົງໜ້ອຍໜຶ່ງ ໃຫ້ຢູ່ແຖວດຽວພໍດີ (ເນື້ອທີ່ໃນ iframe ຫຼັງຫັກ sidebar) */
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+    .sc-count-left .sc-zone-wrap { width: 125px !important; }
+    .sc-count-left .sc-filter .btn { padding-left: 9px; padding-right: 9px; }
+    .sc-count-head .btn.sc-exp-btn { padding-left: 10px; padding-right: 10px; }   /* ໜັກກວ່າ .btn.rpt-btn (report-table.css ໂຫຼດທີຫຼັງ) */
+}
 .sc-exp-btn { border: none !important; color: #fff !important; border-radius: 6px; height: 32px; font-size: 0.8rem; padding: 0 10px; display: inline-flex; align-items: center; }
 /* ໂທລະສັບ: ແຖວປຸ່ມ Excel / PDF / ພິມ ລຸ່ມສຸດຂອງບັດ, 3 ປຸ່ມເທົ່າກັນເຕັມຄວາມກວ້າງ */
 .sc-export-mobile { gap: 8px; padding: 12px 14px; border-top: 1px solid #e2e8f0; background: #fff; }
@@ -207,13 +254,23 @@
     .sc-kpi-title { font-size: 0.78rem; }
     .sc-kpi-val { font-size: 1.15rem; }
     .sc-kpi-icon { width: 38px; height: 38px; font-size: 1rem; border-radius: 8px; }
+    /* ບັດໃນໜ້ານັບເປັນ .sc-kpi-compact (selector ໜັກກວ່າ) — ຕ້ອງຂຽນຊ້ຳ ບໍ່ດັ່ງນັ້ນໂທລະສັບຍັງໃຊ້ຂະໜາດຈໍໃຫຍ່
+       (ຕົວເລກ 2.1rem, ໄອຄອນ 56px) ຈົນຫົວຂໍ້ "ນັບແລ້ວ" ລົ້ນອອກນອກບັດ */
+    .sc-kpi.sc-kpi-compact { padding: 12px 12px; min-height: 84px; gap: 8px; }
+    .sc-kpi-compact > div:first-child { min-width: 0; flex: 1 1 auto; }
+    .sc-kpi-compact .sc-kpi-title { font-size: 0.8rem; margin-bottom: 2px; white-space: normal; line-height: 1.3; overflow-wrap: anywhere; }
+    .sc-kpi-compact .sc-kpi-val { font-size: 1.45rem; }
+    .sc-kpi-compact .sc-kpi-icon { width: 34px; height: 34px; min-width: 34px; font-size: 0.95rem; border-radius: 8px; margin-left: 0; }
     .sc-filter-form > div.sf-date { flex: 1 1 calc(50% - 5px); }
     .sc-filter-form > div.sf-search, .sc-filter-form > div.sf-act { flex: 1 1 100%; }
     .sc-filter-form .sf-search-btn { flex: 1 1 auto; }
     .sc-pagination .page-link { width: 32px; height: 32px; }
     .sc-scan-group { width: 100%; }
     .sc-filter { width: 100%; }
-    .sc-filter .btn { flex: 1 1 calc(33.333% - 6px); justify-content: center; padding: 0 8px; font-size: 0.85rem; }
+    /* 2 ປຸ່ມຕໍ່ແຖວ (2×2) ແລະ ໜັງສືແຖວດຽວ — ເມື່ອກ່ອນ 3 ປຸ່ມ/ແຖວ ຄັບເກີນ: "ນັບແລ້ວ" ແຕກເປັນ 2 ແຖວ
+       ລົ້ນອອກນອກປຸ່ມ ແລະ "ຍັງບໍ່ນັບ" ຕົກລົງແຖວໃໝ່ຄົນດຽວ */
+    .sc-filter .btn { flex: 1 1 calc(50% - 6px); justify-content: center; padding: 0 8px; font-size: 0.85rem; white-space: nowrap; gap: 4px; }
+    .sc-filter .btn .badge { margin-left: 4px !important; }
     .sc-table-wrap { max-height: none; }
 }
 

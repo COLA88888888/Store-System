@@ -14,11 +14,14 @@ function pollLiveUserStatuses() {
         var i18n = typeof I18N_USERS !== 'undefined' ? I18N_USERS : {};
         var onlineText = i18n['users_manage.status_online'] || 'ໃຊ້ງານຢູ່';
         var offlineText = i18n['users_manage.status_offline'] || 'ບໍ່ໄດ້ໃຊ້ງານ';
+        var disabledText = i18n['users_manage.status_disabled'] || 'ປິດໃຊ້ງານ (ລາອອກ)';
         res.users.forEach(function(u) {
           var statusTd = $('td.user-online-status-td[data-user-id="' + u.id + '"]');
           if (statusTd.length > 0) {
             var html = '';
-            if (u.is_online) {
+            if (u.account_active === 0) {
+              html = '<span class="badge badge-dark px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-user-slash mr-1"></i> ' + disabledText + '</span>';
+            } else if (u.is_online) {
               html = '<span class="badge badge-success px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + onlineText + '</span>';
             } else {
               html = '<span class="badge badge-danger px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + offlineText + '</span>';

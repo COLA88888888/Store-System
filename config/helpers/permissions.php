@@ -104,14 +104,14 @@ if (!function_exists('hasPermission')) {
             'price_adjustment' => 'setup',
             'printers'         => 'setup',
             'loyalty'          => 'setup',
+            'shifts'           => 'setup',
             'branches'         => 'branches',
             'database'         => 'database',
             'permissions'      => 'permissions',
             'user_manage'      => 'users',
             'users'            => 'users',
             'customers'        => 'customers',
-            'customer_debt'    => 'customer_debt',
-            'debt_report'      => 'report',
+            'shift_report'     => 'report',
             'stock_transfer'   => 'stock_transfer',
             'transfer_history' => 'transfer_history'
         ];
@@ -195,3 +195,72 @@ if (!function_exists('getPermissionLimit')) {
     }
 }
 
+
+// ຕຳແໜ່ງ "ຜູ້ຈັດການ" (st_tbuser.status): ຈັດການວຽກປະຈຳວັນຂອງຮ້ານ ແຕ່ເຫັນ/ຈັດການໄດ້ສະເພາະສາຂາຂອງຕົນເອງ
+// (canViewAllBranches() ຄືນ false ສະເໝີ, ເຖິງຢູ່ສາຂາຫຼັກ). ບໍ່ແມ່ນຜູ້ບໍລິຫານ — ໃຊ້ສິດຕາມຖັນຂ້າງລຸ່ມ.
+if (!function_exists('managerRoleName')) {
+    function managerRoleName() { return 'ຜູ້ຈັດການ'; }
+}
+if (!function_exists('isManagerRole')) {
+    function isManagerRole($status = null) {
+        if ($status === null) $status = $_SESSION['status'] ?? '';
+        return trim((string)$status) === managerRoleName();
+    }
+}
+if (!function_exists('managerDefaultPermissions')) {
+    // ສິດເລີ່ມຕົ້ນຂອງຜູ້ຈັດການ — ເປີດວຽກປະຈຳວັນ (ຂາຍ, ລູກຄ້າ/ໜີ້, ສິນຄ້າ/ສະຕັອກ + ອະນຸມັດເຊັກສະຕັອກ, ລາຍງານ,
+    // ບັນຊີ, ໂປຣໂມຊັ່ນ/ປັບລາຄາ/ເຄື່ອງພິມ/ບາໂຄ້ດ/ສະສົມແຕ້ມ); ປິດສິ່ງທີ່ກະທົບທັງລະບົບ (ຜູ້ໃຊ້, ສິດ, ຖານຂໍ້ມູນ,
+    // ສາຂາ, ຂໍ້ມູນຮ້ານ, ອັດຕາແລກປ່ຽນ, ລຶບບິນ). ຜູ້ບໍລິຫານປັບເພີ່ມ/ຫຼຸດລາຍຄົນໄດ້ໃນໜ້າກຳນົດສິດ.
+    function managerDefaultPermissions() {
+        $on = ['dashboard', 'sale', 'item_sales', 'customers',
+               'stock', 'edit', 'products', 'categories', 'units', 'suppliers', 'import_stock', 'import_list',
+               'stock_check', 'stock_count', 'stock_transfer', 'transfer_history',
+               'report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales',
+               'accounting', 'setup', 'promotions', 'price_adjustment', 'printers', 'print_barcode', 'loyalty'];
+        $off = ['users', 'permissions', 'database', 'branches', 'stores', 'exchange_rate', 'delete_bills'];
+        return array_fill_keys($on, 1) + array_fill_keys($off, 0);
+    }
+}
+if (!function_exists('applyManagerPermissions')) {
+    // ໃສ່ສິດເລີ່ມຕົ້ນຂອງຜູ້ຈັດການໃຫ້ຜູ້ໃຊ້ (ສະເພາະຖັນທີ່ມີໃນ st_tbuser) ແລະ ລຶບສິດລາຍຄົນເກົ່າ
+    // (st_user_permission_switch_states) ທີ່ຈະທັບຄ່າໃໝ່. ເອີ້ນຕອນເພີ່ມຜູ້ໃຊ້ ຫຼື ປ່ຽນຕຳແໜ່ງເປັນຜູ້ຈັດການ.
+    function applyManagerPermissions($pdo, $userId) {
+        $userId = intval($userId);
+        if ($userId <= 1 || !$pdo) return;
+        try {
+            $cols = [];
+            foreach ($pdo->query("SHOW COLUMNS FROM st_tbuser")->fetchAll(PDO::FETCH_ASSOC) as $c) $cols[$c['Field']] = true;
+            $set = []; $vals = [];
+            foreach (managerDefaultPermissions() as $col => $v) {
+                if (isset($cols[$col])) { $set[] = "`$col` = ?"; $vals[] = $v; }
+            }
+            if ($set) {
+                $vals[] = $userId;
+                $pdo->prepare("UPDATE st_tbuser SET " . implode(', ', $set) . " WHERE Id = ?")->execute($vals);
+            }
+            $pdo->prepare("DELETE FROM st_user_permission_switch_states WHERE user_id = ? AND switch_key LIKE 'perm\\_%'")->execute([$userId]);
+        } catch (Throwable $e) {}
+    }
+}
+if (!function_exists('revokeManagerPermissions')) {
+    // ປ່ຽນຕຳແໜ່ງຈາກຜູ້ຈັດການເປັນພະນັກງານ: ເອົາສິດຜູ້ຈັດການຄືນ → ເທົ່າກັບພະນັກງານໃໝ່
+    // (ຂາຍ, ສິນຄ້າ/ສະຕັອກ, ແກ້ໄຂ, ລູກຄ້າ; ອື່ນໆປິດ) — ບໍ່ໃຫ້ຄົນທີ່ຖືກປົດຍັງຖືສິດເກົ່າ.
+    function revokeManagerPermissions($pdo, $userId) {
+        $userId = intval($userId);
+        if ($userId <= 1 || !$pdo) return;
+        $keep = ['sale' => 1, 'stock' => 1, 'edit' => 1, 'customers' => 1];
+        try {
+            $cols = [];
+            foreach ($pdo->query("SHOW COLUMNS FROM st_tbuser")->fetchAll(PDO::FETCH_ASSOC) as $c) $cols[$c['Field']] = true;
+            $set = []; $vals = [];
+            foreach (array_keys(managerDefaultPermissions()) as $col) {
+                if (isset($cols[$col])) { $set[] = "`$col` = ?"; $vals[] = $keep[$col] ?? 0; }
+            }
+            if ($set) {
+                $vals[] = $userId;
+                $pdo->prepare("UPDATE st_tbuser SET " . implode(', ', $set) . " WHERE Id = ?")->execute($vals);
+            }
+            $pdo->prepare("DELETE FROM st_user_permission_switch_states WHERE user_id = ? AND switch_key LIKE 'perm\\_%'")->execute([$userId]);
+        } catch (Throwable $e) {}
+    }
+}

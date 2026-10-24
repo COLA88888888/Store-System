@@ -6,10 +6,18 @@
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ api/pos_backend.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 
+        // Find active work shift session for this store if any
+        $activeShiftSessionId = null;
+        try {
+            $shiftStmt = $pdo->prepare("SELECT id FROM st_shift_sessions WHERE store_id = ? AND status = 'open' ORDER BY id DESC LIMIT 1");
+            $shiftStmt->execute([$activeStoreId]);
+            $activeShiftSessionId = $shiftStmt->fetchColumn() ?: null;
+        } catch (Throwable $ex) {}
+
         // Insert into tbsale_save
         $stmtSave = $pdo->prepare("
-            INSERT INTO st_tbsale_save (sale_save_bill, sale_date, sale_time, user_receive, customer_id, customer_name, ip_address, sale_qty, sale_amount, sale_discount_bill, sale_barlance, sale_pay, sale_return, type_pay, bank_account_id, bank_name, sale_status, store_id, paid_currency, paid_rate, paid_amount_foreign, queue_no, cash_received, qr_received)
-            VALUES (:invoice_no, CURDATE(), CURTIME(), :user_id, :customer_id, :customer_name, :ip_address, :sale_qty, :sale_amount, :discount_bill, :net_total, :cash_received, :change, :payment_type, :bank_account_id, :bank_name, 'SUCCESS', :store_id, :paid_currency, :paid_rate, :paid_amount_foreign, :queue_no, :cash_received_col, :qr_received_col)
+            INSERT INTO st_tbsale_save (sale_save_bill, sale_date, sale_time, user_receive, customer_id, customer_name, ip_address, sale_qty, sale_amount, sale_discount_bill, sale_barlance, sale_pay, sale_return, type_pay, bank_account_id, bank_name, sale_status, store_id, shift_session_id, paid_currency, paid_rate, paid_amount_foreign, queue_no, cash_received, qr_received)
+            VALUES (:invoice_no, CURDATE(), CURTIME(), :user_id, :customer_id, :customer_name, :ip_address, :sale_qty, :sale_amount, :discount_bill, :net_total, :cash_received, :change, :payment_type, :bank_account_id, :bank_name, 'SUCCESS', :store_id, :shift_session_id, :paid_currency, :paid_rate, :paid_amount_foreign, :queue_no, :cash_received_col, :qr_received_col)
         ");
         $stmtSave->execute([
             ':invoice_no'      => $invoice_no,
@@ -28,6 +36,7 @@
             ':bank_account_id' => $bank_account_id,
             ':bank_name'       => $bank_name,
             ':store_id'        => $activeStoreId,
+            ':shift_session_id' => $activeShiftSessionId,
             ':paid_currency'      => $paid_currency,
             ':paid_rate'         => $paid_rate,
             ':paid_amount_foreign' => $paid_amount_foreign,
@@ -67,8 +76,8 @@
         
         // Insert into tbsale_save_detail and update inventory
         $stmtDetail = $pdo->prepare("
-            INSERT INTO st_tbsale_save_detail (save_bill, save_date, save_time, save_proid, save_proname, save_qty, save_price, save_orig_price, is_reward, cost_price, save_money, save_net_money, user_receives, multiplier)
-            VALUES (:save_bill, CURDATE(), CURTIME(), :save_proid, :save_proname, :save_qty, :save_price, :save_orig_price, :is_reward, :cost_price, :save_money, :save_net_money, :user_receives, :multiplier)
+            INSERT INTO st_tbsale_save_detail (save_bill, save_date, save_time, save_proid, save_proname, save_qty, save_price, save_orig_price, save_discount_item, is_reward, cost_price, save_money, save_net_money, user_receives, multiplier)
+            VALUES (:save_bill, CURDATE(), CURTIME(), :save_proid, :save_proname, :save_qty, :save_price, :save_orig_price, :save_discount_item, :is_reward, :cost_price, :save_money, :save_net_money, :user_receives, :multiplier)
         ");
         
         $stmtUpdateStock = $pdo->prepare("
@@ -129,21 +138,26 @@
                 }
             }
             
+            $item_disc = floatval($item['discount'] ?? 0);
+            $item_disc_total = $item_disc * $qty;
+            $orig_unit_price = floatval($item['original_price'] ?? ($price + $item_disc));
+
             $stmtDetail->execute([
-                ':save_bill'    => $invoice_no,
-                ':save_proid'   => $pid,
-                ':save_proname' => $proname,
-                ':save_qty'     => $qty,
-                ':save_price'   => $price,
+                ':save_bill'          => $invoice_no,
+                ':save_proid'         => $pid,
+                ':save_proname'       => $proname,
+                ':save_qty'           => $qty,
+                ':save_price'         => $price,
                 // pre-promotion unit price + reward flag, so a reprint draws this line exactly
                 // like the checkout receipt did (struck-through price / [reward] tag)
-                ':save_orig_price' => floatval($item['original_price'] ?? $price),
-                ':is_reward'    => !empty($is_reward_line) ? 1 : 0,
-                ':cost_price'   => $cost,
-                ':save_money'   => $total_item,
-                ':save_net_money'=> $total_item,
-                ':user_receives'=> $user_receive_name,
-                ':multiplier'   => $multiplier
+                ':save_orig_price'    => $orig_unit_price,
+                ':save_discount_item' => $item_disc_total,
+                ':is_reward'          => !empty($is_reward_line) ? 1 : 0,
+                ':cost_price'         => $cost,
+                ':save_money'         => $total_item,
+                ':save_net_money'     => $total_item,
+                ':user_receives'      => $user_receive_name,
+                ':multiplier'         => $multiplier
             ]);
             
             $newStock = $currentDbStock;
@@ -165,7 +179,7 @@
 
             $unit_name = trim($item['unit_name'] ?? '');
             $proname = $item['product_name'] . ($unit_name !== '' ? ' (' . $unit_name . ')' : '');
-            $orig_price = floatval($item['original_price'] ?? $price);
+            $orig_price = $orig_unit_price;
             $is_gift = !empty($item['is_free_gift']) || $price == 0 || strpos($item['product_name'], '(ແຖມ)') !== false;
 
             $details_summary[] = [
@@ -174,26 +188,13 @@
                 'qty'            => $qty,
                 'price'          => $price,
                 'original_price' => $orig_price,
+                'discount'       => $item_disc_total,
                 'is_free_gift'   => $is_gift,
                 'is_reward'      => $is_reward_line,
                 'total'          => $total_item
             ];
         }
         
-        // ===== ລູກຄ້າຕິດໜີ້: record the unpaid part of a credit sale =====
-        // Not wrapped in a try/catch: a credit sale without its debt row must roll back.
-        $credit_due_date = null;
-        if ($credit_amount > 0) {
-            // ກຳນົດຊຳລະ (optional): a real yyyy-mm-dd date, not in the past
-            $dueIn = trim((string)($_POST['due_date'] ?? ''));
-            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dueIn) && strtotime($dueIn) !== false && $dueIn >= date('Y-m-d')) {
-                $credit_due_date = $dueIn;
-            }
-            $pdo->prepare("INSERT INTO st_customer_debts (store_id, customer_id, customer_name, invoice_number, bill_amount, deposit_amount, amount, paid_amount, balance, status, due_date, note, created_by, created_at)
-                           VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, 'unpaid', ?, NULL, ?, NOW())")
-                ->execute([$activeStoreId, intval($customer_id), $customer_name, $invoice_no, $net_total, $total_paid, $credit_amount, $credit_amount, $credit_due_date, $user_receive_name]);
-        }
-
         // ===== CUSTOMER LOYALTY POINTS =====
         // 1. Spend the redeemed points (validated + locked above). Not wrapped in a
         //    try/catch: if this fails the whole sale must roll back, or the customer would
@@ -208,8 +209,7 @@
         }
         // 2. Earn Y points for every X kip actually paid — $net_total is already after the
         //    points discount, so a redeemed discount doesn't earn points back on itself.
-        //    ຂາຍຕິດໜີ້: only the deposit paid today counts; the part on credit isn't paid yet.
-        $points_base = ($credit_amount > 0) ? $total_paid : $net_total;
+        $points_base = $net_total;
         if (!empty($customer_id) && intval($customer_id) > 0) {
             if (getSetting($pdo, 'loyalty_enabled', '0') === '1') {
                 $loyalty_active = 1;
@@ -230,6 +230,15 @@
                 $cpStmt = $pdo->prepare("SELECT points FROM st_customers WHERE customer_id = ?");
                 $cpStmt->execute([intval($customer_id)]);
                 $customer_points_balance = (int)$cpStmt->fetchColumn();
+            } catch (Throwable $e) {}
+        }
+
+        // ໝາຍບິນທີ່ພັກໄວ້ (Held Order) ວ່າຊຳລະສຳເລັດແລ້ວ
+        $heldIdPaid = trim($_POST['held_id'] ?? '');
+        if ($heldIdPaid !== '') {
+            try {
+                $stmtHeldPaid = $pdo->prepare("UPDATE st_held_orders SET status = 'paid', updated_at = NOW() WHERE id = ? AND store_id = ?");
+                $stmtHeldPaid->execute([$heldIdPaid, $activeStoreId]);
             } catch (Throwable $e) {}
         }
 
@@ -261,8 +270,6 @@
             'qr_received'    => $qr_received,
             'pay_mode'       => $pay_mode,
             'change'         => $change,
-            'credit_amount'  => $credit_amount,
-            'credit_due_date'=> $credit_due_date ? date('d/m/Y', strtotime($credit_due_date)) : '',
             'payment_type'   => $payment_type,
             'bank_account_id'=> $bank_account_id,
             'bank_name'      => $bank_name,

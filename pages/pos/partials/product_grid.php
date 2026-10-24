@@ -29,10 +29,10 @@
            data-id="<?php echo $p['product_id']; ?>"
            style="border-radius: 4px !important; border: none !important; background: <?php echo $showOut ? '#fff5f5' : '#ffffff'; ?>; transition: transform 0.15s ease, box-shadow 0.15s ease; <?php echo $showOut ? 'opacity: 0.82;' : ''; ?>;">
         
-        <div class="product-img-wrap" style="position: relative; width: 100%; height: 135px; overflow: hidden; background: #ffffff; padding: 0 !important; display: block; border-radius: 4px 4px 0 0; border-bottom: 1px solid #e2e8f0;">
+        <div class="product-img-wrap" style="position: relative; width: 100%; height: 135px; overflow: hidden; background: #ffffff; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; border-radius: 4px 4px 0 0; border-bottom: 1px solid #e2e8f0;">
           <img src="<?php echo htmlspecialchars($imgPath); ?>" 
                class="product-img-full"
-               style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: cover !important; padding: 0 !important; background: #ffffff !important; display: block !important; border-radius: 4px 4px 0 0;"
+               style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; padding: 6px !important; background: #ffffff !important; display: block !important; border-radius: 4px 4px 0 0;"
                onerror="this.src='<?php echo $base_path; ?>assets/img/image.jpg';">
           
           <?php if ($tracksStock): ?>

@@ -12,6 +12,13 @@ function reportBtPrinter() {
   try { return (window.top && window.top.MiniposBtPrinter) || (window.parent && window.parent.MiniposBtPrinter) || null; } catch (e) { return null; }
 }
 function reprintReceiptAuto() {
+  // ເຄື່ອງພິມໃບບິນຕັ້ງເປັນ A4/A5 → ໜ້າຕ່າງພິມເປັນໜ້າເຕັມສະເໝີ (ບໍ່ສົ່ງ Bluetooth / LAN ທີ່ເປັນມ້ວນ)
+  var rpPage = window.REPORT_RECEIPT_PRINTER;
+  var rpPagePaper = window.MiniposLanReceipt && MiniposLanReceipt.receiptPaper ? MiniposLanReceipt.receiptPaper((rpPage || {}).paper_width) : (rpPage || {}).paper_width;
+  if (window.MiniposLanReceipt && MiniposLanReceipt.isPagePaper && MiniposLanReceipt.isPagePaper(rpPagePaper)) {
+    doPrintReportReceiptDialog();
+    return;
+  }
   var bt = reportBtPrinter();
   var btCfg = {};
   try { btCfg = JSON.parse(localStorage.getItem('StoreMini.bt_printer_settings') || '{}') || {}; } catch (e) {}
@@ -46,7 +53,7 @@ function reprintReceiptAuto() {
 }
 function reprintReceiptFallback() {
   var rp = window.REPORT_RECEIPT_PRINTER;
-  if (!rp || rp.printer_type !== 'ip' || !window.MiniposLanReceipt) {
+  if (!rp || (rp.printer_type !== 'ip' && rp.printer_type !== 'usb') || !window.MiniposLanReceipt) {
     doPrintReportReceiptDialog();
     return;
   }

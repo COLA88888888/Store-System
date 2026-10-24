@@ -3,8 +3,13 @@
  * ເຊັກສະຕັອກ — controller ຂອງ pages/stock_check/stock_check.php ແລະ ເປົ້າໝາຍ AJAX ໃນໄຟລ໌ດຽວກັນ.
  *
  * ຂັ້ນຕອນ: ເລີ່ມນັບ (create_check) → ລະບົບຖ່າຍຈຳນວນໃນລະບົບ (system_qty) ຂອງທຸກສິນຄ້າທີ່ຕັດສະຕັອກໄວ້
- * → ພະນັກງານປ້ອນ/ສະແກນຈຳນວນທີ່ນັບໄດ້ ແລະ ບັນທຶກ (save_counts) ໄດ້ຫຼາຍເທື່ອ
- * → ຢືນຢັນ (complete_check): ປັບ st_products.qty ດ້ວຍສ່ວນຕ່າງ (counted - system) ຂອງລາຍການທີ່ນັບແລ້ວ.
+ * → ພະນັກງານປ້ອນ/ສະແກນຈຳນວນທີ່ນັບໄດ້ ແລະ ບັນທຶກ (save_counts) ໄດ້ຫຼາຍເທື່ອ            [draft]
+ * → ສົ່ງໃຫ້ຫົວໜ້າ/ຜູ້ຈັດການກວດສອບ (submit_for_approval) — ພະນັກງານແກ້ຕົວເລກບໍ່ໄດ້ອີກ   [pending]
+ * → ຫົວໜ້າກົດ "ອະນຸມັດ ແລະ ປັບສະຕັອກ" (approve_adjustment) — ອະນຸມັດ + ປັບສະຕັອກໃນຂັ້ນດຽວ [completed]
+ *   ຫຼື ສົ່ງກັບໃຫ້ນັບໃໝ່ (reject_adjustment → draft).
+ *   ຫົວໜ້າແກ້ຕົວເລກໄດ້ໃນ pending, ແລະ ອະນຸມັດໃບທີ່ຕົນເອງນັບ (draft) ໄດ້ເລີຍ ບໍ່ຕ້ອງສົ່ງ.
+ *   ປັບ st_products.qty ດ້ວຍສ່ວນຕ່າງ (counted - system) ຂອງລາຍການທີ່ນັບແລ້ວ (scAdjustStock).
+ *   complete_check ຍັງຮັບໄວ້ສຳລັບໃບເກົ່າທີ່ຄ້າງຢູ່ສະຖານະ 'approved' (ກ່ອນລວມເປັນຂັ້ນດຽວ).
  *   ໃຊ້ສ່ວນຕ່າງແທນການຕັ້ງຄ່າທັບ ເພື່ອບໍ່ໃຫ້ລົບລ້າງການຂາຍ/ນຳເຂົ້າທີ່ເກີດຂຶ້ນລະຫວ່າງນັບ.
  *   ລາຍການທີ່ບໍ່ໄດ້ນັບ (counted_qty = NULL) ບໍ່ຖືກແຕະ.
  * ໃບທີ່ຍັງບໍ່ຢືນຢັນ ລຶບໄດ້ (delete_check); ໃບທີ່ຢືນຢັນແລ້ວ ເບິ່ງ/ພິມໄດ້ຢ່າງດຽວ.
@@ -19,20 +24,31 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 require_once __DIR__ . '/../config/db.php';
 
 $scIsAjax = ($_SERVER['REQUEST_METHOD'] === 'POST')
-    && in_array($_POST['action'] ?? '', ['save_counts', 'submit_for_approval', 'approve_adjustment', 'reject_adjustment', 'complete_check', 'delete_check'], true);
+    && in_array($_POST['action'] ?? '', ['save_counts', 'submit_for_approval', 'approve_adjustment', 'reject_adjustment', 'complete_check', 'delete_check', 'check_item_stock'], true);
 
 // ສິດ:
-//   ຫົວໜ້າ / ຜູ້ບໍລິຫານ ($scIsBoss): ເຫັນຍອດໃນລະບົບ, ເຫັນສ່ວນຕ່າງ, ອະນຸມັດ, ແກ້ໄຂຕົວຈິງ ແລະ ປັບສະຕັອກ (ພະນັກງານບໍ່ໃຫ້ໂຊສະຕັອກໃນລະບົບ)
-//   ພະນັກງານ ($scIsBoss === false): ປ້ອນຈຳນວນຕົວຈິງ, ບັນທຶກ, ແລະ ສົ່ງໃຫ້ຫົວໜ້າກວດສອບ
-$scIsBoss     = !empty($_SESSION['user_id']) && (isOwnerUser() || isAdminAccount($pdo, $_SESSION['user_id']));
-$scIsManager  = !empty($_SESSION['user_id']) && ($scIsBoss || hasPermission('stock_check'));
-$scIsCounter  = !empty($_SESSION['user_id']) && hasPermission('stock_count');
-$scCanStart   = $scIsBoss || ($scIsManager && hasPermission('stock_check', 'add'));
-$scCanConfirm = $scIsBoss;
-$scCanApprove = $scIsBoss;   // ຫົວໜ້າ/ຜູ້ບໍລິຫານ ເທົ່ານັ້ນ ທີ່ມີສິດອະນຸມັດ ແລະ ເຫັນຍອດໃນລະບົບ
-$scCanDelete  = $scIsBoss || ($scIsManager && hasPermission('stock_check', 'del'));
-$scCanCount   = $scIsBoss || $scIsManager || $scIsCounter;
-$scSeeResults = $scIsBoss;   // ຫົວໜ້າເທົ່ານັ້ນ ທີ່ເຫັນຍອດໃນລະບົບ ແລະ ສ່ວນຕ່າງ
+//   ພະນັກງານທົ່ວໄປ: ບໍ່ໃຫ້ເຫັນຍອດໃນລະບົບ (Blind count) ໃຫ້ເຫັນແຕ່ຈຳນວນຕົວຈິງ, ແລະ ບໍ່ຕ້ອງສົ່ງຂໍອະນຸມັດ — ກົດບັນທຶກປັບສະຕັອກໄດ້ເລີຍ
+//   ຫົວໜ້າ/ຜູ້ບໍລິຫານ: ເຫັນຍອດໃນລະບົບ, ສ່ວນຕ່າງ (ຄົບ/ບໍ່ພໍ/ເກີນ), ແລະ ຈັດການໃບເຊັກສະຕັອກໄດ້
+$scLoggedIn   = !empty($_SESSION['user_id']);
+$userStatus   = trim($_SESSION['status'] ?? '');
+$isBossRole   = in_array($userStatus, ['admin', 'Admin', 'super admin', 'Super Admin', 'ຜູ້ບໍລິຫານ']);
+$isMgrRole    = in_array($userStatus, ['manager', 'Manager', 'ຜູ້ຈັດການ']);
+$scIsBoss     = $scLoggedIn && (isOwnerUser() || $isBossRole || isAdminAccount($pdo, $_SESSION['user_id']));
+$scIsManager  = $scLoggedIn && ($scIsBoss || $isMgrRole || isManagerRole());
+$scIsStaff    = ($scLoggedIn && !$scIsBoss && !$scIsManager); // ພະນັກງານທົ່ວໄປ
+
+$scIsCounter  = $scLoggedIn && ($scIsManager || hasPermission('stock_check') || hasPermission('stock_count'));
+$scCanStart   = $scIsCounter;
+$scCanConfirm = $scIsCounter;
+$scCanApprove = $scIsCounter; // ບໍ່ຕ້ອງສົ່ງໃຫ້ຫົວໜ້າອະນຸມັດ — ພະນັກງານກໍສາມາດກົດບັນທຶກ ແລະ ປັບສະຕັອກໄດ້ເລີຍ
+$scCanDelete  = $scIsManager;
+$scCanCount   = $scIsCounter;
+
+// ພະນັກງານບໍ່ໃຫ້ເຫັນໃນລະບົບ ໃຫ້ເຫັນແຕ່ຈຳນວນຕົວຈິງ (Blind stock take)
+// ສະເພາະຫົວໜ້າ/ຜູ້ບໍລິຫານຈຶ່ງເຫັນຍອດໃນລະບົບ ແລະ ສ່ວນຕ່າງ
+$scShowSystem = !$scIsStaff;
+$scShowDiff   = !$scIsStaff;
+$scSeeResults = !$scIsStaff;
 
 if (empty($_SESSION['user_id']) || (!$scIsManager && !$scIsCounter)) {
     if ($scIsAjax) {
@@ -46,6 +62,40 @@ if (empty($_SESSION['user_id']) || (!$scIsManager && !$scIsCounter)) {
 
 $scStoreId = getActiveStoreId($pdo);
 $scUserId  = intval($_SESSION['user_id']);
+
+// ສ້າງໃບເຊັກສະຕັອກໃໝ່ ແລະ ດຶງສິນຄ້າທັງໝົດທີ່ຕັດສະຕັອກເຂົ້າມາພ້ອມ
+function scCreateCheckInternal($pdo, $storeId, $userId, $note = '') {
+    $sc = $pdo->prepare("SELECT store_code FROM st_tbstore WHERE store_id = ?");
+    $sc->execute([$storeId]);
+    $storeCode = preg_replace('/[^0-9A-Za-z]/', '', (string)$sc->fetchColumn());
+    if ($storeCode === '') $storeCode = (string)$storeId;
+    $prefix = 'SC-' . date('Ymd') . '-' . $storeCode;
+
+    $mx = $pdo->prepare("SELECT MAX(CAST(SUBSTRING(check_no, ?) AS UNSIGNED)) FROM st_stock_checks
+                         WHERE store_id = ? AND check_no LIKE ? AND CHAR_LENGTH(check_no) = ?");
+    $mx->execute([strlen($prefix) + 1, $storeId, $prefix . '%', strlen($prefix) + 4]);
+    $checkNo = $prefix . str_pad((string)((int)$mx->fetchColumn() + 1), 4, '0', STR_PAD_LEFT);
+
+    $pdo->prepare("INSERT INTO st_stock_checks (check_no, store_id, status, note, user_id, created_at) VALUES (?, ?, 'draft', ?, ?, NOW())")
+        ->execute([$checkNo, $storeId, mb_substr(trim($note), 0, 255) ?: null, $userId]);
+    $draftId = (int)$pdo->lastInsertId();
+
+    $pdo->prepare("INSERT INTO st_stock_check_items (check_id, product_id, barcode, product_name, unit, cost_price, system_qty, zone, shelf)
+                   SELECT ?, product_id, barcode, product_name, unit, IFNULL(bprice, 0), IFNULL(qty, 0), zone, shelf
+                   FROM st_products WHERE store_id = ? AND IFNULL(cut_qty, 1) <> 0
+                   ORDER BY IFNULL(zone, ''), IFNULL(shelf, ''), product_name")
+        ->execute([$draftId, $storeId]);
+
+    // ບໍ່ເອີ້ນ logActivity() ຢູ່ນີ້: ມັນ CREATE TABLE IF NOT EXISTS (DDL) ເຊິ່ງ MySQL commit transaction ທີ່ເປີດຢູ່ໃຫ້ເອງ
+    // ແລ້ວ $pdo->commit() ຂອງຜູ້ເອີ້ນຈະ throw "There is no active transaction". ຜູ້ເອີ້ນ log ຫຼັງ commit ດ້ວຍ scLogCreated().
+    return $draftId;
+}
+
+function scLogCreated($pdo, $checkId) {
+    $no = $pdo->prepare("SELECT check_no FROM st_stock_checks WHERE id = ?");
+    $no->execute([intval($checkId)]);
+    logActivity($pdo, 'ເລີ່ມເຊັກສະຕັອກ', 'ເລກທີ: ' . $no->fetchColumn());
+}
 
 // ໂຫຼດໃບເຊັກສະຕັອກຂອງສາຂານີ້ (ບໍ່ໃຫ້ເປີດໃບຂອງສາຂາອື່ນຜ່ານ id)
 function scLoadCheck($pdo, $checkId, $storeId, $forUpdate = false) {
@@ -94,14 +144,33 @@ function scSaveItems($pdo, $checkId, array $items, $userId) {
     }
     if (!$ids) return [];
     $in = implode(',', array_map('intval', array_unique($ids)));
-    $rows = $pdo->query("SELECT i.id, i.counted_qty, i.counted_at,
+    $rows = $pdo->query("SELECT i.id, i.system_qty, i.counted_qty, (i.counted_qty - i.system_qty) AS diff, i.counted_at,
                                 COALESCE(NULLIF(TRIM(CONCAT(IFNULL(u.fname,''), ' ', IFNULL(u.lname,''))), ''), u.username) AS counted_by_name
                          FROM st_stock_check_items i LEFT JOIN st_tbuser u ON u.Id = i.counted_by
                          WHERE i.check_id = " . intval($checkId) . " AND i.id IN ($in)")->fetchAll(PDO::FETCH_ASSOC);
     foreach ($rows as &$r) {
         $r['counted_at'] = $r['counted_at'] ? date('d/m H:i', strtotime($r['counted_at'])) : null;
+        $r['system_qty'] = (int)$r['system_qty'];
+        $r['counted_qty'] = ($r['counted_qty'] === null) ? null : (int)$r['counted_qty'];
+        $r['diff'] = ($r['counted_qty'] === null) ? null : ((int)$r['counted_qty'] - (int)$r['system_qty']);
     }
     return $rows;
+}
+
+// ປັບສະຕັອກໃຫ້ຕົງກັບຈຳນວນຕົວຈິງ ແລະ ປິດໃບ (ຕ້ອງຢູ່ໃນ transaction ຂອງຜູ້ເອີ້ນ). ສົ່ງຄືນຈຳນວນລາຍການທີ່ປັບ.
+function scAdjustStock($pdo, $checkId, $storeId, $userId) {
+    $rows = $pdo->prepare("SELECT product_id, system_qty, counted_qty FROM st_stock_check_items
+                           WHERE check_id = ? AND counted_qty IS NOT NULL AND counted_qty <> system_qty");
+    $rows->execute([$checkId]);
+    $adj = $pdo->prepare("UPDATE st_products SET qty = qty + ? WHERE product_id = ? AND store_id = ?");
+    $adjusted = 0;
+    foreach ($rows->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $adj->execute([intval($r['counted_qty']) - intval($r['system_qty']), $r['product_id'], $storeId]);
+        $adjusted++;
+    }
+    $pdo->prepare("UPDATE st_stock_checks SET status = 'completed', completed_by = ?, completed_at = NOW() WHERE id = ?")
+        ->execute([$userId, $checkId]);
+    return $adjusted;
 }
 
 // =====================================================================
@@ -121,6 +190,7 @@ if ($scIsAjax) {
         'reject_adjustment'   => $scCanApprove,
         'complete_check'      => $scCanCount || $scCanConfirm,
         'delete_check'        => $scCanDelete,
+        'check_item_stock'    => $scCanCount,
     ][$action] ?? false;
     if (!$allowed) {
         echo json_encode(['success' => false, 'message' => 'ທ່ານບໍ່ມີສິດເຮັດລາຍການນີ້']);
@@ -137,6 +207,51 @@ if ($scIsAjax) {
             throw new Exception('ໃບເຊັກສະຕັອກນີ້ນັບແລ້ວ (ປັບສະຕັອກແລ້ວ) ບໍ່ສາມາດແກ້ໄຂໄດ້');
         }
 
+        // ກວດສອບສະຕັອກລ່າສຸດຂອງສິນຄ້າ (ກວດວ່າມີການຂາຍ/ຕັດສະຕັອກເກີດຂຶ້ນ ຫຼື ບໍ່)
+        if ($action === 'check_item_stock') {
+            $code = trim($_POST['barcode'] ?? '');
+            $stmt = $pdo->prepare("SELECT i.id, i.product_id, i.barcode, i.product_name, i.unit, i.system_qty, i.counted_qty,
+                                          p.qty AS live_qty
+                                   FROM st_stock_check_items i
+                                   JOIN st_products p ON p.product_id = i.product_id AND p.store_id = ?
+                                   WHERE i.check_id = ? AND (LOWER(i.barcode) = LOWER(?) OR i.product_id = ?)
+                                   LIMIT 1");
+            $stmt->execute([$scStoreId, $checkId, $code, $code]);
+            $item = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$item) {
+                echo json_encode(['success' => false, 'message' => 'ບໍ່ພົບສິນຄ້າ']);
+                exit();
+            }
+
+            $liveQty = intval($item['live_qty']);
+            $sysQty  = intval($item['system_qty']);
+            $stockCut = ($liveQty < $sysQty); // ມີການຂາຍ / ຕັດສະຕັອກ
+            $stockChanged = ($liveQty !== $sysQty);
+
+            if ($stockChanged) {
+                // ອັບເດດ system_qty ໃນໃບເຊັກສະຕັອກໃຫ້ກົງກັບສະຕັອກລ່າສຸດທີ່ຖືກຕັດ
+                $pdo->prepare("UPDATE st_stock_check_items SET system_qty = ? WHERE id = ?")
+                    ->execute([$liveQty, $item['id']]);
+                $item['system_qty'] = $liveQty;
+            }
+            $pdo->commit();
+
+            $counted = ($item['counted_qty'] === null) ? null : intval($item['counted_qty']);
+            // ຖ້ານັບຄົບແລ້ວ ແລະ ບໍ່ມີການຕັດສະຕັອກ
+            $isComplete = ($counted !== null && $counted === $liveQty && !$stockCut);
+
+            echo json_encode([
+                'success'       => true,
+                'item'          => $item,
+                'live_qty'      => $liveQty,
+                'old_sys_qty'   => $sysQty,
+                'stock_cut'     => $stockCut,
+                'stock_changed' => $stockChanged,
+                'is_complete'   => $isComplete
+            ]);
+            exit();
+        }
+
         if ($action === 'delete_check') {
             $pdo->prepare("DELETE FROM st_stock_check_items WHERE check_id = ?")->execute([$checkId]);
             $pdo->prepare("DELETE FROM st_stock_checks WHERE id = ?")->execute([$checkId]);
@@ -146,8 +261,36 @@ if ($scIsAjax) {
             exit();
         }
 
-        $savedRows = !empty($items) ? scSaveItems($pdo, $checkId, $items, $scUserId) : [];
-        if (isset($_POST['note'])) {
+        // ໃຜແກ້ຕົວເລກໄດ້ຕອນນີ້: draft = ຜູ້ນັບ, pending/approved = ຫົວໜ້າເທົ່ານັ້ນ (ສົ່ງແລ້ວ ພະນັກງານແກ້ບໍ່ໄດ້)
+        $st = $check['status'];
+        $canEditNow = ($st === 'draft' && $scCanCount) || (in_array($st, ['pending', 'approved'], true) && $scCanApprove);
+
+        // ລຳດັບຂັ້ນຕອນ: ກວດສະຖານະກ່ອນບັນທຶກຫຍັງ
+        if ($action === 'save_counts' && !$canEditNow) {
+            throw new Exception('ໃບນີ້ສົ່ງໃຫ້ຫົວໜ້າກວດສອບແລ້ວ — ແກ້ໄຂຕົວເລກບໍ່ໄດ້ ຈົນກວ່າຫົວໜ້າຈະສົ່ງກັບ');
+        }
+        if ($action === 'submit_for_approval' && $st !== 'draft') {
+            throw new Exception('ໃບນີ້ສົ່ງໃຫ້ຫົວໜ້າກວດສອບແລ້ວ');
+        }
+        if ($action === 'approve_adjustment' && !in_array($st, ['draft', 'pending', 'approved'], true)) {
+            throw new Exception('ໃບນີ້ປັບສະຕັອກແລ້ວ');
+        }
+        if ($action === 'reject_adjustment' && !in_array($st, ['pending', 'approved'], true)) {
+            throw new Exception('ໃບນີ້ຍັງບໍ່ໄດ້ສົ່ງກວດສອບ');
+        }
+        if ($action === 'complete_check' && $st !== 'approved') {
+            throw new Exception('ຕ້ອງໃຫ້ຫົວໜ້າ ຫຼື ຜູ້ຈັດການຮ້ານກວດສອບ ແລະ ອະນຸມັດກ່ອນ ຈຶ່ງປັບສະຕັອກໄດ້');
+        }
+        if ($action === 'approve_adjustment') {
+            $cnt = (int)$pdo->query("SELECT COUNT(*) FROM st_stock_check_items WHERE check_id = " . intval($checkId) . " AND counted_qty IS NOT NULL")->fetchColumn();
+            if ($cnt <= 0 && empty($items)) {
+                throw new Exception('ໃບນີ້ຍັງບໍ່ມີລາຍການທີ່ນັບ');
+            }
+        }
+
+        // ລາຍການທີ່ສົ່ງມາພ້ອມ: ບັນທຶກສະເພາະຜູ້ທີ່ແກ້ໄດ້ໃນສະຖານະນີ້ (ຄົນອື່ນ — ບໍ່ສົນ ບໍ່ປ່ຽນຕົວເລກ)
+        $savedRows = (!empty($items) && $canEditNow) ? scSaveItems($pdo, $checkId, $items, $scUserId) : [];
+        if (isset($_POST['note']) && $canEditNow) {
             $pdo->prepare("UPDATE st_stock_checks SET note = ? WHERE id = ?")
                 ->execute([mb_substr(trim($_POST['note']), 0, 255), $checkId]);
         }
@@ -172,13 +315,15 @@ if ($scIsAjax) {
             exit();
         }
 
-        // ຫົວໜ້າອະນຸຍາດໃຫ້ພະນັກງານປັບສະຕັອກໃຫ້ຕົງກັນ
+        // ຫົວໜ້າ "ອະນຸມັດ ແລະ ປັບສະຕັອກ" — ຂັ້ນດຽວ, transaction ດຽວ
         if ($action === 'approve_adjustment') {
-            $pdo->prepare("UPDATE st_stock_checks SET status = 'approved', approved_by = ?, approved_at = NOW() WHERE id = ?")
+            $pdo->prepare("UPDATE st_stock_checks SET approved_by = ?, approved_at = NOW() WHERE id = ?")
                 ->execute([$scUserId, $checkId]);
+            $adjusted = scAdjustStock($pdo, $checkId, $scStoreId, $scUserId);
             $pdo->commit();
-            logActivity($pdo, 'ຫົວໜ້າອະນຸມັດໃບເຊັກສະຕັອກ', 'ເລກທີ: ' . $check['check_no']);
-            echo json_encode(['success' => true, 'message' => 'ອະນຸຍາດແລ້ວ! ຕອນນີ້ສາມາດກົດປັບສະຕັອກໃຫ້ຕົງກັນໄດ້ເລີຍ']);
+            logActivity($pdo, 'ປັບສະຕັອກໃຫ້ຕົງ', 'ເລກທີ: ' . $check['check_no'] . ', ປັບສະຕັອກ ' . $adjusted . ' ລາຍການ');
+            echo json_encode(['success' => true, 'adjusted' => $adjusted,
+                'message' => 'ປັບສະຕັອກໃຫ້ຕົງສຳເລັດ! (' . $adjusted . ' ລາຍການ)']);
             exit();
         }
 
@@ -192,36 +337,14 @@ if ($scIsAjax) {
             exit();
         }
 
-        // complete_check: ຫົວໜ້າກວດສອບແລ້ວ ຈຶ່ງໃຫ້ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ
-        if ($check['status'] === 'draft') {
-            throw new Exception('ກະລຸນາສົ່ງໃຫ້ຫົວໜ້າກວດສອບກ່ອນ ຈຶ່ງສາມາດປັບສະຕັອກໄດ້!');
-        }
-        if ($check['status'] === 'pending') {
-            if (!$scCanApprove) {
-                throw new Exception('ໃບນີ້ກຳລັງລໍຖ້າຫົວໜ້າກວດສອບ ແລະ ອະນຸມັດ!');
-            }
-            // ຫົວໜ້າກວດສອບ ແລະ ປັບສະຕັອກ
-            $pdo->prepare("UPDATE st_stock_checks SET approved_by = ?, approved_at = NOW() WHERE id = ?")
-                ->execute([$scUserId, $checkId]);
-        } elseif ($check['status'] !== 'approved') {
-            throw new Exception('ໃບເຊັກສະຕັອກນີ້ບໍ່ຢູ່ໃນສະຖານະທີ່ສາມາດປັບສະຕັອກໄດ້');
-        }
-        $rows = $pdo->prepare("SELECT product_id, product_name, system_qty, counted_qty FROM st_stock_check_items
-                               WHERE check_id = ? AND counted_qty IS NOT NULL AND counted_qty <> system_qty");
-        $rows->execute([$checkId]);
-        $adj = $pdo->prepare("UPDATE st_products SET qty = qty + ? WHERE product_id = ? AND store_id = ?");
-        $adjusted = 0;
-        foreach ($rows->fetchAll(PDO::FETCH_ASSOC) as $r) {
-            $adj->execute([intval($r['counted_qty']) - intval($r['system_qty']), $r['product_id'], $scStoreId]);
-            $adjusted++;
-        }
-        $pdo->prepare("UPDATE st_stock_checks SET status = 'completed', completed_by = ?, completed_at = NOW() WHERE id = ?")
-            ->execute([$scUserId, $checkId]);
+        // complete_check (ໃບເກົ່າທີ່ຄ້າງ 'approved' — ກວດຢູ່ຂ້າງເທິງ): ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ
+        $adjusted = scAdjustStock($pdo, $checkId, $scStoreId, $scUserId);
         $pdo->commit();
 
         logActivity($pdo, 'ຢືນຢັນເຊັກສະຕັອກ', 'ເລກທີ: ' . $check['check_no'] . ', ປັບສະຕັອກ ' . $adjusted . ' ລາຍການ');
         echo json_encode(['success' => true, 'adjusted' => $adjusted,
             'message' => 'ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບສຳເລັດແລ້ວ! (' . $adjusted . ' ລາຍການ)']);
+        exit();
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -241,36 +364,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
         $sc_message_type = 'danger';
     } else {
         try {
-            $draft = $pdo->prepare("SELECT id FROM st_stock_checks WHERE store_id = ? AND status IN ('draft', 'pending', 'approved') ORDER BY id DESC LIMIT 1");
-            $draft->execute([$scStoreId]);
-            $draftId = $draft->fetchColumn();
+            $forceNew = !empty($_POST['force_new']);
+            $draftId = null;
+            if (!$forceNew) {
+                $draft = $pdo->prepare("SELECT id FROM st_stock_checks WHERE store_id = ? AND status IN ('draft', 'pending', 'approved') ORDER BY id DESC LIMIT 1");
+                $draft->execute([$scStoreId]);
+                $draftId = $draft->fetchColumn();
+            }
             if (!$draftId) {
                 $pdo->beginTransaction();
-                // ເລກທີ SC-ປີເດືອນວັນ-<ລະຫັດສາຂາ><ລຳດັບ 4 ຫຼັກຂອງມື້ນັ້ນ>
-                // ເຊັ່ນ ສາຂາ 1 → SC-20261020-10001, ສາຂາ 2 → SC-20261020-20001
-                $sc = $pdo->prepare("SELECT store_code FROM st_tbstore WHERE store_id = ?");
-                $sc->execute([$scStoreId]);
-                $storeCode = preg_replace('/[^0-9A-Za-z]/', '', (string)$sc->fetchColumn());
-                if ($storeCode === '') $storeCode = (string)$scStoreId;
-                $prefix = 'SC-' . date('Ymd') . '-' . $storeCode;
-                // ລຳດັບຖັດໄປ = ເລກສູງສຸດຂອງມື້ນີ້ + 1 (ບໍ່ໃຊ້ COUNT ເພາະໃບທີ່ລຶບອອກຈະເຮັດໃຫ້ເລກຊ້ຳ)
-                $mx = $pdo->prepare("SELECT MAX(CAST(SUBSTRING(check_no, ?) AS UNSIGNED)) FROM st_stock_checks
-                                     WHERE store_id = ? AND check_no LIKE ? AND CHAR_LENGTH(check_no) = ?");
-                $mx->execute([strlen($prefix) + 1, $scStoreId, $prefix . '%', strlen($prefix) + 4]);
-                $checkNo = $prefix . str_pad((string)((int)$mx->fetchColumn() + 1), 4, '0', STR_PAD_LEFT);
-
-                $pdo->prepare("INSERT INTO st_stock_checks (check_no, store_id, status, note, user_id, created_at) VALUES (?, ?, 'draft', ?, ?, NOW())")
-                    ->execute([$checkNo, $scStoreId, mb_substr(trim($_POST['note'] ?? ''), 0, 255) ?: null, $scUserId]);
-                $draftId = (int)$pdo->lastInsertId();
-
-                // ສິນຄ້າບໍລິການ (cut_qty = 0) ບໍ່ມີສະຕັອກ — ບໍ່ຕ້ອງນັບ
-                $pdo->prepare("INSERT INTO st_stock_check_items (check_id, product_id, barcode, product_name, unit, cost_price, system_qty, zone, shelf)
-                               SELECT ?, product_id, barcode, product_name, unit, IFNULL(bprice, 0), IFNULL(qty, 0), zone, shelf
-                               FROM st_products WHERE store_id = ? AND IFNULL(cut_qty, 1) <> 0
-                               ORDER BY IFNULL(zone, ''), IFNULL(shelf, ''), product_name")
-                    ->execute([$draftId, $scStoreId]);
+                $draftId = scCreateCheckInternal($pdo, $scStoreId, $scUserId, $_POST['note'] ?? '');
                 $pdo->commit();
-                logActivity($pdo, 'ເລີ່ມເຊັກສະຕັອກ', 'ເລກທີ: ' . $checkNo);
+                scLogCreated($pdo, $draftId);
             }
             header('Location: stock_check.php?id=' . intval($draftId));
             exit();
@@ -295,7 +400,32 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $scDateTo))   $scDateTo   = date('Y-m-d
 
 $scUserNameSql = "COALESCE(NULLIF(TRIM(CONCAT(IFNULL(u.fname,''), ' ', IFNULL(u.lname,''))), ''), u.username)";
 
-if (!empty($_GET['id'])) {
+// ໃບທີ່ກຳລັງດຳເນີນຢູ່ (draft / pending / approved)
+$od = $pdo->prepare("SELECT id, check_no, status, created_at FROM st_stock_checks WHERE store_id = ? AND status IN ('draft', 'pending', 'approved') ORDER BY id DESC LIMIT 1");
+$od->execute([$scStoreId]);
+$scOpenDraft = $od->fetch(PDO::FETCH_ASSOC) ?: null;
+
+// ຖ້າບໍ່ມີ id ແລະ ບໍ່ໄດ້ກົດເບິ່ງປະຫວັດ (?view=checks ຫຼື ?view=history)
+// ໃຫ້ເປີດໜ້ານັບສິນຄ້າທັນທີ (ເຂົ້າເຖິງງ່າຍ ເຫັນສິນຄ້າໂລດ ບໍ່ຕ້ອງກົດຫຼາຍຂັ້ນຕອນ)
+if (empty($_GET['id']) && empty($_GET['view'])) {
+    if ($scOpenDraft) {
+        $_GET['id'] = $scOpenDraft['id'];
+    } else {
+        try {
+            $pdo->beginTransaction();
+            $newDraftId = scCreateCheckInternal($pdo, $scStoreId, $scUserId);
+            $pdo->commit();
+            scLogCreated($pdo, $newDraftId);
+            $_GET['id'] = $newDraftId;
+            $od->execute([$scStoreId]);
+            $scOpenDraft = $od->fetch(PDO::FETCH_ASSOC) ?: null;
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+        }
+    }
+}
+
+if (!empty($_GET['id']) && empty($_GET['view'])) {
     $stmt = $pdo->prepare("SELECT c.*, $scUserNameSql AS created_by_name,
                                   (SELECT COALESCE(NULLIF(TRIM(CONCAT(IFNULL(au.fname,''), ' ', IFNULL(au.lname,''))), ''), au.username)
                                      FROM st_tbuser au WHERE au.Id = c.approved_by) AS approved_by_name,

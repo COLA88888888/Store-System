@@ -53,7 +53,11 @@
   // VAT on this bill → every amount on the receipt gets 2 decimals, same as at checkout
   if ((b.tax_type || 'none') !== 'none' && (parseFloat(b.vat_rate) || 0) > 0) fmt = fmtExact;
   $(P + 'subtotal').html(fmt(subtotal));
-  $(P + 'discount').html(fmt(discount));
+  if (discount > 0) {
+    $(P + 'discount').html('-' + fmt(discount));
+  } else {
+    $(P + 'discount').html(fmt(0));
+  }
 
   var rTaxType = b.tax_type || 'none';
   var rTaxId   = b.tax_id || '';
@@ -171,7 +175,7 @@
     }
     var unitVal = REP_CUR.isKip ? Math.round(curUnitPrice) : (curUnitPrice / REP_CUR.rate);
     var unitPriceTxt = unitVal.toLocaleString('en-US', { minimumFractionDigits: REP_CUR.decimals, maximumFractionDigits: REP_CUR.decimals });
-    var unitSubHtml = '<div style="font-size:0.9em;color:#000;">' + unitPriceTxt + ' x ' + qty + '</div>';
+    var unitSubHtml = '<div style="color:#000;">' + unitPriceTxt + ' x ' + qty + '</div>';
     tbody.append(
       '<tr>' +
         '<td>' + nameHtml + unitSubHtml + '</td>' +
@@ -216,7 +220,12 @@ function doPrintReportReceiptDialog() {
   if (!window.MiniposLanReceipt) { printReportReceiptHtml(area.innerHTML); return; }
   // Print the very image the LAN printer gets, so the dialog's bill is identical to a LAN
   // bill; the HTML version is only a fallback if rendering the image fails.
-  var paper = (window.REPORT_RECEIPT_PRINTER || {}).paper_width;
+  var paper = MiniposLanReceipt.receiptPaper ? MiniposLanReceipt.receiptPaper((window.REPORT_RECEIPT_PRINTER || {}).paper_width) : (window.REPORT_RECEIPT_PRINTER || {}).paper_width;
+  // A4/A5: ພິມ HTML ເຕັມໜ້າ (ບໍ່ແມ່ນຮູບບິນແຄບ) — ຂະໜາດໜ້າມາຈາກ MiniposLanReceipt.dialogPageCss(paper)
+  if (MiniposLanReceipt.isPagePaper && MiniposLanReceipt.isPagePaper(paper)) {
+    Promise.resolve(MiniposLanReceipt.printHtml(area)).then(printReportReceiptHtml);
+    return;
+  }
   // dialogPaperPx: ເຄື່ອງພິມໃນຕົວ (Android) ວາງບິນແບບ 58mm ບໍ່ໃຫ້ຖືກຕັດຂວາ; ເຄື່ອງອື່ນຄືເກົ່າ
   var dialogPx = MiniposLanReceipt.dialogPaperPx ? MiniposLanReceipt.dialogPaperPx(paper) : MiniposLanReceipt.paperPx(paper);
   MiniposLanReceipt.toImage(area, dialogPx, '../../', REPORT_RCPT_EXTRA_CSS).then(function (uri) {
@@ -281,7 +290,7 @@ function printReportReceiptHtml(printContent) {
         * { color: #000 !important; }
         body:has(.receipt-print-img) { padding: 0 !important; }
       }
-      ${(window.MiniposLanReceipt && MiniposLanReceipt.dialogPageCss) ? MiniposLanReceipt.dialogPageCss() : ''}
+      ${(window.MiniposLanReceipt && MiniposLanReceipt.dialogPageCss) ? MiniposLanReceipt.dialogPageCss(MiniposLanReceipt.receiptPaper ? MiniposLanReceipt.receiptPaper((window.REPORT_RECEIPT_PRINTER || {}).paper_width) : (window.REPORT_RECEIPT_PRINTER || {}).paper_width) : ''}
     </style>
   </head><body>${printContent}</body></html>`);
   iframeDoc.close();

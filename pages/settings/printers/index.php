@@ -58,7 +58,7 @@ require __DIR__ . '/partials/actions.php';
     </div>
     <div class="col-sm-6 text-right">
       <?php if (hasPermission('printers', 'add')): ?>
-        <button type="button" class="btn btn-primary px-3.5 font-weight-bold text-white shadow-sm" data-toggle="modal" data-target="#addPrinterModal" style="border-radius: 8px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
+        <button type="button" class="btn btn-primary px-3.5 font-weight-bold text-white shadow-sm" data-toggle="modal" data-target="#addPrinterModal" style="border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
           <i class="fas fa-plus-circle mr-1.5"></i> <?php echo htmlspecialchars(t('printers.add_new', 'ເພີ່ມເຄື່ອງພິມໃໝ່')); ?>
         </button>
       <?php endif; ?>
@@ -83,7 +83,7 @@ require __DIR__ . '/partials/actions.php';
 
   <div class="alert alert-light border d-flex align-items-start" style="border-radius: 10px; font-size: 0.85rem;">
     <i class="fas fa-info-circle text-primary mr-2 mt-1"></i>
-    <div><?php echo htmlspecialchars(t('printers.receipt_hint', 'ໝາຍເຫດ: ຖ້າຕັ້ງເຄື່ອງພິມໃບບິນຫຼັກໄວ້ (ໄອຄອນໃບບິນສີຂຽວ), ໃບບິນລູກຄ້າຈະພິມຜ່ານ LAN ໂດຍກົງ ບໍ່ຂຶ້ນປັອບອັບພິມຂອງບຣາວເຊີ. ຖ້າບໍ່ຕັ້ງ, ໃບບິນຈະພິມຜ່ານບຣາວເຊີຄືເກົ່າ.')); ?></div>
+    <div><?php echo htmlspecialchars(t('printers.receipt_hint', 'ໝາຍເຫດ: ຖ້າຕັ້ງເຄື່ອງພິມໃບບິນຫຼັກໄວ້ (ໄອຄອນໃບບິນສີຂຽວ) ສຳລັບທັງ Network LAN ຫຼື USB, ໃບບິນລູກຄ້າຈະພິມອອກໂດຍກົງທັນທີ ໂດຍບໍ່ຂຶ້ນໜ້າຕ່າງພຣີວິວພິມຂອງບຣາວເຊີ. ຖ້າບໍ່ຕັ້ງ, ໃບບິນຈະພິມຜ່ານບຣາວເຊີຄືເກົ່າ.')); ?></div>
   </div>
 
   <?php if (hasPermission('printers', 'edit')): ?>
@@ -166,7 +166,7 @@ require __DIR__ . '/partials/actions.php';
                   <span class="badge <?php echo $pr['type'] === 'ip' ? 'badge-primary' : ($pr['type'] === 'usb' ? 'badge-info' : 'badge-secondary'); ?> px-2.5 py-1" style="font-size: 0.78rem; white-space: nowrap;">
                     <?php echo $pr['type'] === 'usb' ? '<i class="fab fa-usb mr-1"></i> USB' : ($pr['type'] === 'ip' ? '<i class="fas fa-network-wired mr-1"></i> Network IP' : '<i class="fas fa-desktop mr-1"></i> Browser'); ?>
                   </span>
-                  <small class="text-muted font-weight-bold ml-1"><?php echo intval($pr['paper_width'] ?? 80) === 58 ? '58 mm' : '80 mm'; ?></small>
+                  <small class="text-muted font-weight-bold ml-1"><?php $__pw = intval($pr['paper_width'] ?? 80); echo $__pw === 210 ? 'A4' : ($__pw === 148 ? 'A5' : ($__pw === 58 ? '58 mm' : '80 mm')); ?></small>
                 </td>
                 <td class="font-weight-bold" style="font-family: monospace; color: #2563eb; font-size: 0.9rem; white-space: nowrap;">
                   <?php echo !empty($pr['ip_address']) ? htmlspecialchars($pr['ip_address']) : '<span class="text-muted font-weight-normal">-</span>'; ?>
@@ -192,12 +192,12 @@ require __DIR__ . '/partials/actions.php';
                 <td class="text-center" style="white-space: nowrap;">
                   <?php if (hasPermission('printers', 'edit') || hasPermission('printers', 'del')): ?>
                     <div class="btn-group btn-group-sm" role="group">
-                      <?php if ($pr['type'] === 'ip' && !empty($pr['ip_address'])): ?>
+                      <?php if (in_array($pr['type'], ['ip', 'usb'], true) && !empty($pr['ip_address'])): ?>
                         <button type="button" class="btn btn-outline-success btn-sm px-2" title="<?php echo htmlspecialchars(t('printers.btn_test', 'ທົດສອບພິມ')); ?>" onclick="testPrinter(<?php echo (int)$pr['id']; ?>, this)">
                           <i class="fas fa-vial"></i>
                         </button>
                       <?php endif; ?>
-                      <?php if ($pr['type'] === 'ip' && !empty($pr['ip_address']) && hasPermission('printers', 'edit')): ?>
+                      <?php if (in_array($pr['type'], ['ip', 'usb'], true) && !empty($pr['ip_address']) && hasPermission('printers', 'edit')): ?>
                         <form action="" method="POST" style="display:inline;">
                           <input type="hidden" name="action" value="<?php echo !empty($pr['is_receipt_printer']) ? 'unset_receipt_printer' : 'set_receipt_printer'; ?>">
                           <input type="hidden" name="id" value="<?php echo $pr['id']; ?>">
@@ -209,7 +209,7 @@ require __DIR__ . '/partials/actions.php';
                       <?php endif; ?>
                       <?php if (hasPermission('printers', 'edit')): ?>
                         <button type="button" class="btn btn-outline-primary btn-sm px-2" title="<?php echo htmlspecialchars(t('printers.edit', 'ແກ້ໄຂ')); ?>"
-                                onclick="editPrinter(<?php echo $pr['id']; ?>, '<?php echo htmlspecialchars(addslashes($pr['name'])); ?>', '<?php echo htmlspecialchars(addslashes($pr['type'])); ?>', '<?php echo htmlspecialchars(addslashes($pr['ip_address'] ?? '')); ?>', <?php echo intval($pr['paper_width'] ?? 80) === 58 ? 58 : 80; ?>)">
+                                onclick="editPrinter(<?php echo $pr['id']; ?>, '<?php echo htmlspecialchars(addslashes($pr['name'])); ?>', '<?php echo htmlspecialchars(addslashes($pr['type'])); ?>', '<?php echo htmlspecialchars(addslashes($pr['ip_address'] ?? '')); ?>', <?php echo in_array(intval($pr['paper_width'] ?? 80), [58, 80, 148, 210], true) ? intval($pr['paper_width']) : 80; ?>)">
                           <i class="fas fa-edit"></i>
                         </button>
                       <?php endif; ?>
@@ -253,17 +253,17 @@ require __DIR__ . '/partials/actions.php';
           </div>
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_type', 'ປະເພດການເຊື່ອມຕໍ່:')); ?> <span class="text-danger">*</span></label>
-            <select name="type" class="form-control" style="height: 42px;">
-              <option value="browser">Browser / Windows Driver / USB</option>
+            <select name="type" id="add_printer_type" class="form-control" style="height: 42px;" onchange="updatePrinterModalFields('add')">
+              <option value="usb" selected>USB — <?php echo htmlspecialchars(t('printers.type_usb_direct', 'ພິມກົງ ຄືກັບ LAN (ໃສ່ຊື່ເຄື່ອງພິມ Windows)')); ?></option>
               <option value="ip">Network LAN / WiFi (IP Address)</option>
-              <option value="usb">USB — <?php echo htmlspecialchars(t('printers.type_usb_direct', 'ພິມກົງ ຄືກັບ LAN (ໃສ່ຊື່ເຄື່ອງພິມ Windows)')); ?></option>
+              <option value="browser">Browser / Windows Driver</option>
             </select>
           </div>
           <div class="form-group mb-0">
-            <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_ip', 'IP Address ເຄື່ອງພິມ (ຖ້າເປັນ Network IP):')); ?></label>
+            <label class="font-weight-bold text-dark small mb-1" id="add_printer_ip_label">ຊື່ເຄື່ອງພິມໃນ Windows (USB Printer): <span class="text-danger">*</span></label>
             <div class="input-group">
-              <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-network-wired text-muted"></i></span></div>
-              <input type="text" name="ip_address" list="winPrinterList" autocomplete="off" class="form-control font-weight-bold text-primary" placeholder="<?php echo htmlspecialchars(t('printers.field_ip_placeholder', '192.168...')); ?>" style="height: 42px;">
+              <div class="input-group-prepend"><span class="input-group-text" id="add_printer_icon"><i class="fab fa-usb text-primary"></i></span></div>
+              <input type="text" name="ip_address" id="add_printer_ip" list="winPrinterList" autocomplete="off" class="form-control font-weight-bold text-primary" placeholder="ເລືອກ ຫຼື ພິມຊື່ເຊັ່ນ: XP-80C" style="height: 42px;">
             </div>
             <small class="text-muted d-block mt-1"><?php echo htmlspecialchars(t('printers.lan_hint', 'ເຄື່ອງພິມ Network LAN ຈະໄດ້ຮັບໃບຍ່ອຍໂດຍກົງ ບໍ່ຕ້ອງກົດພິມ. ໃສ່ IP ຂອງເຄື່ອງພິມ (ພອດ 9100 ເປັນຄ່າເລີ່ມຕົ້ນ ຫຼື IP:ພອດ)')); ?></small>
             <small class="text-info d-block mt-1"><i class="fab fa-usb mr-1"></i><?php echo htmlspecialchars(t('printers.usb_hint', 'USB: ໃສ່ຊື່ເຄື່ອງພິມໃນ Windows (ເລືອກຈາກລາຍການໄດ້). ໃບບິນຈະອອກຄືກັບ LAN ທຸກຢ່າງ, ບໍ່ມີໜ້າຕ່າງພິມ.')); ?></small>
@@ -273,7 +273,10 @@ require __DIR__ . '/partials/actions.php';
             <select name="paper_width" class="form-control" style="height: 42px;">
               <option value="80">80 mm</option>
               <option value="58">58 mm</option>
+              <option value="148"><?php echo htmlspecialchars(t('printers.paper_a5', 'A5 (ເຈ້ຍແຜ່ນ 148×210 mm)')); ?></option>
+              <option value="210"><?php echo htmlspecialchars(t('printers.paper_a4', 'A4 (ເຈ້ຍແຜ່ນ 210×297 mm)')); ?></option>
             </select>
+            <small class="text-muted d-block mt-1"><?php echo htmlspecialchars(t('printers.paper_hint', '58/80 mm = ເຄື່ອງພິມໃບບິນ (ມ້ວນ); A5/A4 = ເຄື່ອງພິມເອກະສານ — ພິມບິນເປັນໜ້າເຕັມຜ່ານໜ້າຕ່າງພິມ')); ?></small>
           </div>
         </div>
         <div class="modal-footer border-0 pb-4 px-4 pt-0">
@@ -305,16 +308,16 @@ require __DIR__ . '/partials/actions.php';
           </div>
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_type', 'ປະເພດການເຊື່ອມຕໍ່:')); ?> <span class="text-danger">*</span></label>
-            <select name="type" id="edit_printer_type" class="form-control" style="height: 42px;">
-              <option value="browser">Browser / Windows Driver / USB</option>
-              <option value="ip">Network LAN / WiFi (IP Address)</option>
+            <select name="type" id="edit_printer_type" class="form-control" style="height: 42px;" onchange="updatePrinterModalFields('edit')">
               <option value="usb">USB — <?php echo htmlspecialchars(t('printers.type_usb_direct', 'ພິມກົງ ຄືກັບ LAN (ໃສ່ຊື່ເຄື່ອງພິມ Windows)')); ?></option>
+              <option value="ip">Network LAN / WiFi (IP Address)</option>
+              <option value="browser">Browser / Windows Driver</option>
             </select>
           </div>
           <div class="form-group mb-0">
-            <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('printers.field_ip_edit', 'IP Address ເຄື່ອງພິມ:')); ?></label>
+            <label class="font-weight-bold text-dark small mb-1" id="edit_printer_ip_label"><?php echo htmlspecialchars(t('printers.field_ip_edit', 'IP Address / ຊື່ເຄື່ອງພິມ Windows:')); ?></label>
             <div class="input-group">
-              <div class="input-group-prepend"><span class="input-group-text"><i class="fas fa-network-wired text-muted"></i></span></div>
+              <div class="input-group-prepend"><span class="input-group-text" id="edit_printer_icon"><i class="fas fa-network-wired text-muted"></i></span></div>
               <input type="text" name="ip_address" id="edit_printer_ip" list="winPrinterList" autocomplete="off" class="form-control font-weight-bold text-primary" placeholder="192.168.1.200" style="height: 42px;">
             </div>
             <small class="text-muted d-block mt-1"><?php echo htmlspecialchars(t('printers.lan_hint', 'ເຄື່ອງພິມ Network LAN ຈະໄດ້ຮັບໃບຍ່ອຍໂດຍກົງ ບໍ່ຕ້ອງກົດພິມ. ໃສ່ IP ຂອງເຄື່ອງພິມ (ພອດ 9100 ເປັນຄ່າເລີ່ມຕົ້ນ ຫຼື IP:ພອດ)')); ?></small>
@@ -325,7 +328,10 @@ require __DIR__ . '/partials/actions.php';
             <select name="paper_width" id="edit_printer_paper" class="form-control" style="height: 42px;">
               <option value="80">80 mm</option>
               <option value="58">58 mm</option>
+              <option value="148"><?php echo htmlspecialchars(t('printers.paper_a5', 'A5 (ເຈ້ຍແຜ່ນ 148×210 mm)')); ?></option>
+              <option value="210"><?php echo htmlspecialchars(t('printers.paper_a4', 'A4 (ເຈ້ຍແຜ່ນ 210×297 mm)')); ?></option>
             </select>
+            <small class="text-muted d-block mt-1"><?php echo htmlspecialchars(t('printers.paper_hint', '58/80 mm = ເຄື່ອງພິມໃບບິນ (ມ້ວນ); A5/A4 = ເຄື່ອງພິມເອກະສານ — ພິມບິນເປັນໜ້າເຕັມຜ່ານໜ້າຕ່າງພິມ')); ?></small>
           </div>
         </div>
         <div class="modal-footer border-0 pb-4 px-4 pt-0">
@@ -357,12 +363,35 @@ require __DIR__ . '/partials/actions.php';
 </script>
 
 <script>
+function updatePrinterModalFields(prefix) {
+  var typeEl = document.getElementById(prefix + '_printer_type');
+  var labelEl = document.getElementById(prefix + '_printer_ip_label');
+  var inputEl = document.getElementById(prefix + '_printer_ip');
+  var iconEl = document.getElementById(prefix + '_printer_icon');
+  if (!typeEl || !inputEl) return;
+  var val = typeEl.value;
+  if (val === 'usb') {
+    if (labelEl) labelEl.innerHTML = 'ຊື່ເຄື່ອງພິມໃນ Windows (USB Printer): <span class="text-danger">*</span>';
+    inputEl.placeholder = 'ເລືອກ ຫຼື ພິມຊື່ເຊັ່ນ: XP-80C';
+    if (iconEl) iconEl.innerHTML = '<i class="fab fa-usb text-primary"></i>';
+  } else if (val === 'ip') {
+    if (labelEl) labelEl.innerHTML = 'IP Address ເຄື່ອງພິມ (Network LAN): <span class="text-danger">*</span>';
+    inputEl.placeholder = '192.168.1.200';
+    if (iconEl) iconEl.innerHTML = '<i class="fas fa-network-wired text-primary"></i>';
+  } else {
+    if (labelEl) labelEl.innerHTML = 'IP Address ຫຼື ຊື່ (ຖ້າມີ):';
+    inputEl.placeholder = '-';
+    if (iconEl) iconEl.innerHTML = '<i class="fas fa-print text-muted"></i>';
+  }
+}
+
 function editPrinter(id, name, type, ip, paper) {
   document.getElementById('edit_printer_id').value = id;
   document.getElementById('edit_printer_name').value = name;
   document.getElementById('edit_printer_type').value = type;
   document.getElementById('edit_printer_ip').value = ip;
   document.getElementById('edit_printer_paper').value = String(paper || 80);
+  updatePrinterModalFields('edit');
   $('#editPrinterModal').modal('show');
 }
 

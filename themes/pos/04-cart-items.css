@@ -85,6 +85,50 @@
     color: #475569;
     white-space: nowrap;
 }
+.cart-item-disc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 22px;
+    padding: 0 7px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    cursor: pointer;
+    line-height: 1;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+.cart-item-disc-btn:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #94a3b8;
+}
+.cart-item-disc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 22px;
+    padding: 0 7px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    cursor: pointer;
+    line-height: 1;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+.cart-item-disc-badge:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
 .cart-item-actions-wrap {
     margin-left: auto;
     flex-shrink: 0;
@@ -147,10 +191,19 @@
 }
 .cart-item-currency-prefix { display: none; }
 .cart-item-currency-suffix { display: inline; }
+.cart-item-tools-col {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    margin-left: 6px;
+}
 .cart-item-del-btn {
     flex-shrink: 0;
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     border: none;
     background: transparent;
     color: #ef4444;
@@ -160,8 +213,45 @@
     justify-content: center;
     padding: 0;
     border-radius: 6px;
+    transition: all 0.15s ease;
 }
-.cart-item-del-btn i { font-size: 1.1rem; }
+.cart-item-del-btn:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.cart-item-del-btn i { font-size: 0.95rem; }
+
+.cart-item-disc-icon-btn {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border: 1px dashed #cbd5e1;
+    background: #f8fafc;
+    color: #64748b;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 6px;
+    font-size: 0.80rem;
+    transition: all 0.15s ease;
+}
+.cart-item-disc-icon-btn:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #2563eb;
+}
+.cart-item-disc-icon-btn.active {
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #dc2626;
+}
+.cart-item-disc-icon-btn.active:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
 
 /* ===== ໂທລະສັບ (< 768px) ===== */
 @media (max-width: 767.98px) {
@@ -177,32 +267,70 @@
         max-height: none !important;
     }
 
-    /* ແຖບ ຕິດໜີ້ / ເປີດບິນໃໝ່ / ບິນທີ່ເປີດຢູ່: ເຕັມແຖວ, ຕິດໜີ້ ເຫຼືອແຕ່ໄອຄອນ */
+    /* ແຖບ ປິດກະ / ເປີດບິນໃໝ່ / ບິນທີ່ເປີດຢູ່ ໃນໂທລະສັບ: ເຕັມແຖວດຽວ */
     .pos-active-bills-bar {
-        gap: 6px !important;
-        padding: 6px 8px !important;
+        gap: 5px !important;
+        padding: 5px 6px !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
     }
     .pos-active-bills-bar > div {
-        gap: 6px !important;
+        gap: 5px !important;
+        display: flex !important;
+        align-items: center !important;
     }
-    .pos-active-bills-bar > div:first-child:not(:has(#btnCreditSale)) {
-        display: none !important;
+    .pos-active-bills-bar > div:first-child {
+        flex-shrink: 0 !important;
+        display: flex !important;
     }
     .pos-active-bills-bar > div:last-child {
         flex: 1 1 auto !important;
         min-width: 0 !important;
         display: flex !important;
+        justify-content: flex-end !important;
     }
-    .pos-active-bills-bar > div:last-child .btn {
-        flex: 1 1 0 !important;
-        min-width: 0 !important;
-        font-size: 0.84rem !important;
-        padding: 6px 6px !important;
+    .pos-active-bills-bar .btn {
+        font-size: 0.80rem !important;
+        padding: 5px 7px !important;
         min-height: 36px !important;
-        display: flex !important;
+        display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         white-space: nowrap !important;
+        font-weight: 700 !important;
+        border-radius: 4px !important;
+    }
+    .pos-active-bills-bar #btnPosShiftAction {
+        display: inline-flex !important;
+    }
+    .pos-active-bills-bar #btnPosShiftAction.d-none {
+        display: none !important;
+    }
+
+    /* ປຸ່ມກົດບັນທຶກຕອນເປີດກະໃໝ່ໃນໂທລະສັບ: ໃຫຍ່ຂຶ້ນອີກ */
+    #posShiftOpenModal #btnPosSubmitOpenShift {
+        min-height: 56px !important;
+        height: 56px !important;
+        font-size: 1.25rem !important;
+        font-weight: 800 !important;
+        padding: 12px 20px !important;
+        border-radius: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 4px 15px rgba(36, 72, 134, 0.35) !important;
+    }
+    #posShiftOpenModal #posInitialCashInput {
+        height: 56px !important;
+        font-size: 1.6rem !important;
+        font-weight: 800 !important;
+    }
+    #posShiftOpenModal .input-group-text {
+        font-size: 1.35rem !important;
+        font-weight: 800 !important;
+        padding: 0 18px !important;
     }
     #btnCreditSale {
         min-height: 36px !important;
@@ -268,6 +396,13 @@
         margin-left: 4px !important;
     }
     .cart-item-desktop-sub {
+        display: flex !important;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+    }
+    .cart-item-unit-spec {
         display: none !important;
     }
     .cart-item-actions-wrap {
@@ -311,8 +446,17 @@
     .cart-item-currency-suffix {
         display: none !important;
     }
+    .cart-item-tools-col {
+        margin-left: 6px !important;
+        flex-direction: row !important;
+        gap: 4px !important;
+    }
     .cart-item-del-btn {
         display: none !important;
+    }
+    .cart-item-disc-icon-btn {
+        width: 28px !important;
+        height: 28px !important;
     }
 }
 
@@ -425,8 +569,52 @@
 }
 
 @media (max-width: 767.98px) {
-    /* ບັດສິນຄ້າແຖວສຸດທ້າຍ ບໍ່ໃຫ້ຖືກແຖບລອຍບັງ */
+    /* ກະຕ່າວ່າງ (ແຖບລອຍເຊື່ອງ) → ບໍ່ເຫຼືອບ່ອນຫວ່າງລຸ່ມ */
     #productGrid {
+        padding-bottom: 8px !important;
+    }
+    /* ແຖບລອຍສະແດງຢູ່ (jQuery fadeIn/hide ຂຽນ display ໃນ style) → ເວັ້ນບ່ອນໃຫ້ບັດແຖວສຸດທ້າຍບໍ່ຖືກບັງ */
+    body:has(#mobileFloatingCartBar:not([style*="none"])) #productGrid {
         padding-bottom: 76px !important;
     }
+
+    /* ໂທລະສັບ: ປຸ່ມປະເພດສິນຄ້າຊິດກັນ ແລະ ຍັບຂຶ້ນໃກ້ແຖບ ເລືອກສິນຄ້າ/ລາຍການຂາຍ; ບັດສິນຄ້າຊິດກັນ.
+       ຢູ່ໄຟລ໌ສຸດທ້າຍເພື່ອຊະນະ gap 12px / margin-right 4px ຂອງ 03-products-checkout.css. */
+    .pos-mobile-nav {
+        margin-bottom: 0 !important;
+    }
+    .pos-sticky-topbar {
+        padding-top: 0 !important;
+        padding-bottom: 2px !important;
+        margin-bottom: 2px !important;
+    }
+    .category-pills-bar {
+        gap: 6px !important;
+        padding: 8px 2px 4px 2px !important; /* ເທິງ 8px ພໍໃຫ້ປ້າຍຈຳນວນ (top: -7px) ບໍ່ຖືກຕັດ */
+        margin-bottom: 0 !important;
+    }
+    .category-pills-bar .category-pill-btn {
+        margin-right: 0 !important;
+        padding: 5px 12px !important;
+    }
+
+    #productGrid {
+        margin-left: -2px !important;
+        margin-right: -2px !important;
+    }
+    #productGrid > .pos-product-col {
+        padding-left: 2px !important;
+        padding-right: 2px !important;
+        margin-bottom: 4px !important;
+    }
 }
+
+/* ===== ປຸ່ມກະ (cart_section.php #btnPosShiftAction) =====
+   ພື້ນຂາວ + ຂອບ/ໜັງສືຕາມສະຖານະ. Hover ເປັນສີອ່ອນ ໜັງສືຍັງເຫັນ — ເມື່ອກ່ອນເປັນ btn-outline + inline
+   background:#fff ⇒ hover ໜັງສືເປັນສີຂາວເທິງພື້ນຂາວ (ຫາຍ). */
+.btn.pos-shift-btn { background: #ffffff !important; border: 1.5px solid currentColor !important; }
+.btn.pos-shift-btn.is-closed { color: #dc2626 !important; }   /* ຍັງບໍ່ເປີດກະ */
+.btn.pos-shift-btn.is-open   { color: #15803d !important; }   /* ກະເປີດຢູ່ → ກົດເພື່ອປິດກະ */
+.btn.pos-shift-btn i, .btn.pos-shift-btn span, .btn.pos-shift-btn strong { color: inherit !important; }
+.btn.pos-shift-btn.is-closed:hover, .btn.pos-shift-btn.is-closed:focus { background: #fef2f2 !important; color: #b91c1c !important; }
+.btn.pos-shift-btn.is-open:hover,   .btn.pos-shift-btn.is-open:focus   { background: #f0fdf4 !important; color: #166534 !important; }

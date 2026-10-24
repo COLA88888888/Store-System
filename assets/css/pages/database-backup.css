@@ -86,18 +86,40 @@
     color: #15803d;
 }
 
-/* Backup File Card Styling */
-.backup-file-card {
-    border-radius: 8px;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+/* ລາຍການໄຟລ໌ສຳຮອງ: ຫົວຂໍ້ທຳມະດາ (ບໍ່ມີກາດຫຸ້ມ) + ແຕ່ລະໄຟລ໌ເປັນກາດຂອງມັນເອງ */
+.backup-section-head { padding: 4px 2px 12px; }
+.backup-list { display: flex; flex-direction: column; gap: 10px; }
+.backup-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    padding: 14px 16px;
     background: #ffffff;
-    transition: box-shadow 0.3s ease;
-    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #244886;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.backup-file-card:hover {
-    box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+.backup-row:hover { box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08); border-color: #cbd5e1; border-left-color: #244886; }
+.backup-empty { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; }
+.backup-row-icon {
+    width: 40px; height: 40px; min-width: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; font-size: 1.15rem;
 }
+.backup-row-info { flex: 1 1 220px; min-width: 0; }
+.backup-row-name {
+    font-weight: 700; color: #1e293b; font-size: 0.9rem;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.backup-row-meta {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
+    margin-top: 3px; color: #64748b; font-size: 0.78rem;
+}
+.backup-row-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 
 /* Backup Action Buttons (Prevent wrapping on mobile) */
 .btn-backup-action {
@@ -168,4 +190,7 @@
     .btn-backup-action.delete {
         width: 30px;
     }
+    /* ໂທລະສັບ: ປຸ່ມລົງແຖວໃໝ່ເຕັມຄວາມກວ້າງ ໃຕ້ຊື່ໄຟລ໌ */
+    .backup-row-actions { flex: 1 1 100%; margin-left: 0; }
+    .backup-row-actions .btn-backup-action:not(.delete) { flex: 1 1 0; }
 }

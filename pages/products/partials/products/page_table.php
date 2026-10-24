@@ -82,6 +82,15 @@
           </select>
         </div>
 
+        <!-- Dropdown: ສະຖານະສະຕັອກ (ກົດແຈ້ງເຕືອນສິນຄ້າໃກ້ໝົດ/ໝົດ ເປີດມາດ້ວຍ ?stock=low|out) -->
+        <div class="prod-filter-wrap" style="width: 160px;">
+          <select id="stockFilter" class="form-control" onchange="filterProducts()">
+            <option value=""><?php echo htmlspecialchars(t('products.stock_filter_all', '-- ທຸກສະຕັອກ --')); ?></option>
+            <option value="low"><?php echo htmlspecialchars(t('products.stock_filter_low', 'ໃກ້ໝົດ')); ?></option>
+            <option value="out"><?php echo htmlspecialchars(t('products.stock_filter_out', 'ໝົດແລ້ວ')); ?></option>
+          </select>
+        </div>
+
         <!-- Search: ບັອກຄົ້ນຫາ -->
         <div class="search-box-wrap" style="width: 250px;">
           <i class="fas fa-search"></i>
@@ -89,6 +98,12 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- ເປີດມາຈາກແຈ້ງເຕືອນ (?product=ID): ສະແດງສະເພາະສິນຄ້ານັ້ນ — products_js.php ໃສ່ຊື່ ແລະ ສະແດງແຖບນີ້ -->
+    <div id="focusProductBar" class="d-none align-items-center justify-content-between flex-wrap px-3 py-2" style="gap: 8px; background: #fffbeb; border-bottom: 1px solid #fde68a; font-size: 0.88rem;">
+      <span><i class="fas fa-filter text-warning mr-1"></i> <?php echo htmlspecialchars(t('products.focus_showing', 'ສະແດງສະເພາະ:')); ?> <b id="focusProductName"></b></span>
+      <button type="button" class="btn btn-sm btn-warning font-weight-bold" onclick="clearFocusProduct()"><i class="fas fa-list mr-1"></i> <?php echo htmlspecialchars(t('products.focus_show_all', 'ສະແດງທັງໝົດ')); ?></button>
     </div>
 
     <!-- Table -->
@@ -101,6 +116,8 @@
             <th class="text-center" style="width: 105px;"><?php echo htmlspecialchars(t('products.col_code', 'ລະຫັດ')); ?></th>
             <th style="width: 175px;"><?php echo htmlspecialchars(t('products.col_barcode', 'ບາໂຄ້ດ')); ?></th>
             <th style="min-width: 200px;"><?php echo htmlspecialchars(t('products.col_name', 'ຊື່ສິນຄ້າ')); ?></th>
+            <th class="text-center" style="width: 100px;"><?php echo htmlspecialchars(t('products.field_zone', 'ໂຊນ')); ?></th>
+            <th class="text-center" style="width: 100px;"><?php echo htmlspecialchars(t('products.field_shelf', 'ຊັ້ນວາງ')); ?></th>
             <th class="text-right" style="width: 125px;"><?php echo htmlspecialchars(t('products.col_bprice', 'ລາຄາຊື້')); ?></th>
             <th class="text-right" style="width: 125px;"><?php echo htmlspecialchars(t('products.col_price', 'ລາຄາຂາຍ')); ?></th>
             <?php if ($isAdmin): ?>
@@ -112,7 +129,7 @@
         <tbody>
           <!-- ບັອກສະແດງເມື່ອບໍ່ມີຂໍ້ມູນສິນຄ້າ ຫຼື ຄົ້ນຫາ/ເລືອກປະເພດແລ້ວບໍ່ພົບ -->
           <tr id="noProductDataRow" style="<?php echo empty($products) ? '' : 'display: none;'; ?>">
-            <td colspan="<?php echo $isAdmin ? 9 : 8; ?>" class="text-center py-5 text-muted">
+            <td colspan="<?php echo $isAdmin ? 11 : 10; ?>" class="text-center py-5 text-muted">
               <i class="fas fa-box-open fa-2x mb-2 d-block text-secondary"></i>
               <span class="font-weight-bold d-block" style="font-size: 1.05rem; color: #64748b;"><?php echo htmlspecialchars(t('products.empty_state', 'ບໍ່ມີຂໍ້ມູນສິນຄ້າ')); ?></span>
             </td>
@@ -130,8 +147,16 @@
                 }
                 $allBarcodes = array_filter(array_merge([$p['barcode'] ?? ''], $extraBarcodes));
               ?>
-              <?php $rowQty = (float)($p['qty'] ?? 0); ?>
-              <tr class="product-row" data-category="<?php echo $p['category_id']; ?>" data-barcodes="<?php echo htmlspecialchars(strtolower(implode(',', $allBarcodes))); ?>" data-bval="<?php echo convertFromKip((float)($p['bprice'] ?? 0) * $rowQty, $__pdc['code'], $__pdc['rates']); ?>" data-pval="<?php echo convertFromKip((float)($p['price'] ?? 0) * $rowQty, $__pdc['code'], $__pdc['rates']); ?>">
+              <?php
+                $rowQty = (float)($p['qty'] ?? 0);
+                // ສະຖານະສະຕັອກ (ກົດດຽວກັບ getLowStockAlerts ຂອງກະດິ່ງແຈ້ງເຕືອນ): out = ໝົດ, low = ເຫຼືອ 10 ລົງໄປ, ok
+                $rowStock = 'ok';
+                if ((int)($p['cut_qty'] ?? 1) !== 0) {
+                    if ($rowQty <= 0) $rowStock = 'out';
+                    elseif ($rowQty <= 10) $rowStock = 'low';
+                }
+              ?>
+              <tr class="product-row" data-stock="<?php echo $rowStock; ?>" data-pid="<?php echo htmlspecialchars((string)$p['product_id']); ?>" data-category="<?php echo $p['category_id']; ?>" data-barcodes="<?php echo htmlspecialchars(strtolower(implode(',', $allBarcodes))); ?>" data-bval="<?php echo convertFromKip((float)($p['bprice'] ?? 0) * $rowQty, $__pdc['code'], $__pdc['rates']); ?>" data-pval="<?php echo convertFromKip((float)($p['price'] ?? 0) * $rowQty, $__pdc['code'], $__pdc['rates']); ?>">
 
                 <!-- ລຳດັບ -->
                 <td class="text-center">
@@ -184,20 +209,6 @@
                       <i class="fas fa-box-open mr-1" style="font-size:0.72rem; color:#94a3b8;"></i><?php echo htmlspecialchars($p['unit']); ?>
                     </span>
                   <?php endif; ?>
-                  <?php
-                    $pZone = trim((string)($p['zone'] ?? ''));
-                    $pShelf = trim((string)($p['shelf'] ?? ''));
-                  ?>
-                  <?php if ($pZone !== '' || $pShelf !== ''): ?>
-                    <span class="badge badge-light border ml-1 px-2 py-0.5" style="font-size:0.76rem; color:#475569; font-weight: 500;" title="ທີ່ຕັ້ງສິນຄ້າ">
-                      <i class="fas fa-map-marker-alt text-primary mr-1" style="font-size:0.72rem;"></i><?php
-                        echo htmlspecialchars(implode(' · ', array_filter([
-                          $pZone !== '' ? ('ໂຊນ ' . $pZone) : '',
-                          $pShelf !== '' ? ('ຊັ້ນ ' . $pShelf) : ''
-                        ])));
-                      ?>
-                    </span>
-                  <?php endif; ?>
                   <?php if (!empty($p['expiry_date'])): ?>
                     <?php
                       $expDaysLeft = (int)floor((strtotime($p['expiry_date']) - strtotime(date('Y-m-d'))) / 86400);
@@ -206,6 +217,32 @@
                     <span class="badge <?php echo $expClass; ?> ml-1 px-2 py-0.5" style="font-size:0.76rem; font-weight: 600;" title="<?php echo htmlspecialchars(t('products.field_expiry_date', 'ວັນໝົດອາຍຸ')); ?>">
                       <i class="far fa-calendar-alt mr-1"></i>EXP <?php echo date('d/m/Y', strtotime($p['expiry_date'])); ?>
                     </span>
+                  <?php endif; ?>
+                </td>
+
+                <?php
+                  $pZone = trim((string)($p['zone'] ?? ''));
+                  $pShelf = trim((string)($p['shelf'] ?? ''));
+                ?>
+                <!-- ໂຊນ -->
+                <td class="text-center product-zone-cell" style="white-space: nowrap;">
+                  <?php if ($pZone !== ''): ?>
+                    <span class="badge badge-light border px-2 py-1 font-weight-bold" style="font-size: 0.8rem; color: #0284c7; background: #f0f9ff; border-color: #bae6fd !important;">
+                      <i class="fas fa-map-marker-alt text-info mr-1"></i><?php echo htmlspecialchars($pZone); ?>
+                    </span>
+                  <?php else: ?>
+                    <span class="text-muted font-weight-bold">-</span>
+                  <?php endif; ?>
+                </td>
+
+                <!-- ຊັ້ນວາງ -->
+                <td class="text-center product-shelf-cell" style="white-space: nowrap;">
+                  <?php if ($pShelf !== ''): ?>
+                    <span class="badge badge-light border px-2 py-1 font-weight-bold" style="font-size: 0.8rem; color: #d97706; background: #fffbeb; border-color: #fde68a !important;">
+                      <i class="fas fa-layer-group text-warning mr-1"></i><?php echo htmlspecialchars($pShelf); ?>
+                    </span>
+                  <?php else: ?>
+                    <span class="text-muted font-weight-bold">-</span>
                   <?php endif; ?>
                 </td>
 
@@ -279,7 +316,7 @@
           ?>
           <tfoot>
             <tr style="background:#f8fafc; font-weight:800; border-top:2px solid #cbd5e1;">
-              <td colspan="5" class="text-right" style="color:#0f172a; white-space: nowrap;"><?php echo htmlspecialchars(t('products.grand_total', 'ລວມທັງໝົດ:')); ?></td>
+              <td colspan="7" class="text-right" style="color:#0f172a; white-space: nowrap;"><?php echo htmlspecialchars(t('products.grand_total', 'ລວມທັງໝົດ:')); ?></td>
               <td class="text-right" id="totalBprice" style="color:#64748b; white-space: nowrap;"><?php echo displayMoney($pdo, $sumBprice); ?></td>
               <td class="text-right" id="totalPrice" style="color:#16a34a; white-space: nowrap;"><?php echo displayMoney($pdo, $sumPrice); ?></td>
               <?php if ($isAdmin): ?><td></td><?php endif; ?>

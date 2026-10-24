@@ -3,7 +3,7 @@
  * ສ່ວນ: JS: ແຈ້ງເຕືອນເຊັກສະຕັອກ
  * ຂໍ້ມູນມາຈາກ poll_notifications (res.stock_checks — config/helpers/stock_check_alerts.php):
  *   review   → ຫົວໜ້າ: "ພະນັກງານສົ່ງໃບ SC-… ມາກວດສອບ"
- *   approved → ພະນັກງານ: "ຫົວໜ້າອະນຸມັດແລ້ວ — ປັບສະຕັອກໄດ້"
+ *   approved → ພະນັກງານ: "ຫົວໜ້າອະນຸມັດ ແລະ ປັບສະຕັອກແລ້ວ"
  * - buildStockCheckNotifHtml(): ສ່ວນໃນກະດິ່ງແຈ້ງເຕືອນ (ກົດ → ເປີດໃບນັ້ນໃນ iframe ແລະ ໝາຍວ່າອ່ານແລ້ວ)
  * - countUnreadStockChecks(): ນັບທີ່ຍັງບໍ່ອ່ານ ລວມເຂົ້າຕົວເລກເທິງກະດິ່ງ (ສຽງດັງຕາມລະບົບເດີມ)
  * - toastNewStockChecks(): ປ໊ອບອັບມຸມຂວາເທິງ ຄັ້ງດຽວຕໍ່ແຈ້ງເຕືອນ (ຈື່ໄວ້ໃນ localStorage)
@@ -14,8 +14,8 @@
       review:   { head: 'ສົ່ງມາກວດສອບ (ເຊັກສະຕັອກ)', icon: 'fa-user-clock', color: '#d97706', bg: '#fffbeb',
                   line: function(n) { return 'ພະນັກງານສົ່ງໃບ ' + n.check_no + ' ມາກວດສອບ'; },
                   sub:  function(n) { return 'ສົ່ງໂດຍ ' + (n.who || '-') + ' · ນັບ ' + n.counted + ' ລາຍການ'; } },
-      approved: { head: 'ອະນຸມັດແລ້ວ — ປັບສະຕັອກໄດ້', icon: 'fa-user-check', color: '#0284c7', bg: '#f0f9ff',
-                  line: function(n) { return 'ຫົວໜ້າອະນຸມັດໃບ ' + n.check_no + ' ແລ້ວ — ປັບສະຕັອກໄດ້'; },
+      approved: { head: 'ອະນຸມັດ ແລະ ປັບສະຕັອກແລ້ວ', icon: 'fa-user-check', color: '#16a34a', bg: '#f0fdf4',
+                  line: function(n) { return 'ຫົວໜ້າອະນຸມັດໃບ ' + n.check_no + ' ແລະ ປັບສະຕັອກແລ້ວ'; },
                   sub:  function(n) { return 'ອະນຸມັດໂດຍ ' + (n.who || '-'); } }
     };
 

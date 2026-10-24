@@ -8,6 +8,11 @@ return [
     'products.store_main_suffix' => '(Main Warehouse)',
     'products.store_branch_suffix' => '(Sub-branch)',
     'products.category_filter_placeholder' => '-- Select Category --',
+    'products.stock_filter_all' => '-- All stock --',
+    'products.stock_filter_low' => 'Low stock',
+    'products.stock_filter_out' => 'Out of stock',
+    'products.focus_showing' => 'Showing only:',
+    'products.focus_show_all' => 'Show all',
     'products.search_placeholder' => 'Search name, barcode...',
 
     // Table
@@ -91,6 +96,8 @@ return [
     'products.supplier_empty_hint' => 'No suppliers yet — add them in the "Manage Suppliers" menu',
     'products.field_qty' => 'Stock Quantity:',
     'products.field_qty_optional' => '(optional)',
+    'products.field_zone' => 'Zone:',
+    'products.field_shelf' => 'Shelf:',
     'products.field_bprice' => 'Cost Price:',
     'products.field_price' => 'Sale Price:',
     'products.field_price_retail' => 'Retail Sale Price',
@@ -102,9 +109,9 @@ return [
 
     // Multi-unit row template
     'products.unit_row_name_label' => 'Unit Name:',
-    'products.unit_row_name_placeholder' => 'e.g. pack, carton...',
-    'products.unit_row_qty_label' => 'Quantity:',
-    'products.unit_row_qty_placeholder' => 'e.g. 6',
+    'products.unit_row_name_placeholder' => 'Select unit...',
+    'products.unit_row_qty_label' => 'Cut stock qty:',
+    'products.unit_row_qty_placeholder' => 'e.g. 12',
     'products.unit_row_bprice_label' => 'Cost Price:',
     'products.unit_row_price_label' => 'Sale Price:',
     'products.unit_row_barcode_label' => 'Barcode:',

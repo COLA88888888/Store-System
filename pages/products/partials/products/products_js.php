@@ -227,6 +227,29 @@
       }
     } catch(e) {}
 
+    // ເປີດມາຈາກແຈ້ງເຕືອນສິນຄ້າໃກ້ໝົດ/ໝົດ (?stock=low|out): ກັ່ນຕອງຕາມນັ້ນ ແລະ ລ້າງໝວດທີ່ຈື່ໄວ້
+    // ບໍ່ໃຫ້ລາຍການຖືກເຊື່ອງ
+    try {
+      var qs = new URLSearchParams(window.location.search);
+      var stockParam = qs.get('stock');
+      if (stockParam === 'low' || stockParam === 'out') {
+        $('#stockFilter').val(stockParam);
+        $('#categoryFilter').val('');
+      }
+      // ?product=ID: ສະແດງສະເພາະສິນຄ້າທີ່ກົດໃນແຈ້ງເຕືອນ (ບໍ່ກັ່ນສະຕັອກ/ໝວດ ເພື່ອໃຫ້ເຫັນແນ່ນອນ)
+      var pidParam = qs.get('product');
+      if (pidParam) {
+        var $row = $('.product-row[data-pid="' + pidParam.replace(/"/g, '') + '"]');
+        if ($row.length) {
+          focusPid = pidParam;
+          $('#stockFilter').val('');
+          $('#categoryFilter').val('');
+          $('#focusProductName').text($.trim($row.find('.product-name-cell').text()));
+          $('#focusProductBar').removeClass('d-none').addClass('d-flex');
+        }
+      }
+    } catch(e) {}
+
     // Restore the "show N per page" choice so a page reload (e.g. right after adding a
     // product) keeps it instead of snapping back to 10.
     try {
@@ -369,9 +392,25 @@
   }
 
   // ====== Combined filter: category + search ======
+  // ສິນຄ້າດຽວທີ່ເປີດມາຈາກແຈ້ງເຕືອນ (?product=ID) — null = ບໍ່ກັ່ນ
+  var focusPid = null;
+  function clearFocusProduct() {
+    focusPid = null;
+    $('#focusProductBar').removeClass('d-flex').addClass('d-none');
+    try {
+      var u = new URL(window.location.href);
+      u.searchParams.delete('product');
+      history.replaceState(null, '', u.toString());
+    } catch (e) {}
+    filterProducts();
+  }
+  window.clearFocusProduct = clearFocusProduct;
+
   function filterProducts() {
     var search   = document.getElementById('productSearch').value.toLowerCase().trim();
     var catId    = document.getElementById('categoryFilter').value;
+    var stockSel = document.getElementById('stockFilter');
+    var stockF   = stockSel ? stockSel.value : '';   // '' | 'low' | 'out'
     try {
       localStorage.setItem('StoreMini.minipos_product_category_filter', catId);
     } catch(e) {}
@@ -384,11 +423,16 @@
       var barCell = row.querySelector('.product-barcode-cell') ? row.querySelector('.product-barcode-cell').textContent.toLowerCase() : '';
       var barAttr = (row.getAttribute('data-barcodes') || '').toLowerCase();
       var code    = row.querySelector('.product-code-cell') ? row.querySelector('.product-code-cell').textContent.toLowerCase() : '';
+      var zoneCell = row.querySelector('.product-zone-cell') ? row.querySelector('.product-zone-cell').textContent.toLowerCase() : '';
+      var shelfCell = row.querySelector('.product-shelf-cell') ? row.querySelector('.product-shelf-cell').textContent.toLowerCase() : '';
 
       var matchCat    = (catId === '' || rowCat === catId);
-      var matchSearch = (search === '' || name.includes(search) || barCell.includes(search) || barAttr.includes(search) || code.includes(search));
+      var matchSearch = (search === '' || name.includes(search) || barCell.includes(search) || barAttr.includes(search) || code.includes(search) || zoneCell.includes(search) || shelfCell.includes(search));
 
-      if (matchCat && matchSearch) {
+      var matchStock  = (stockF === '' || row.getAttribute('data-stock') === stockF);
+      var matchFocus  = (focusPid === null || row.getAttribute('data-pid') === focusPid);
+
+      if (matchCat && matchSearch && matchStock && matchFocus) {
         filteredRows.push(row);
       }
     });

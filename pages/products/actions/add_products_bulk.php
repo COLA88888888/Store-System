@@ -13,12 +13,14 @@
         $bBprice = $_POST['b_bprice'] ?? [];
         $bPrice  = $_POST['b_price'] ?? [];
         $bSupplierId = $_POST['b_supplier_id'] ?? [];
+        $bZones  = $_POST['b_zone'] ?? [];
+        $bShelves = $_POST['b_shelf'] ?? [];
         $bImgs   = [];
 
         // ຟອມສົ່ງແຖວມາເປັນ JSON (bulk_json) ເພື່ອບໍ່ໃຫ້ຊົນ max_input_vars ເວລານຳເຂົ້າຈາກ Excel ຫຼາຍແຖວ
         if (isset($_POST['bulk_json'])) {
             $bulkRows = json_decode((string)$_POST['bulk_json'], true);
-            $bCats = $bNames = $bBars = $bUnits = $bBprice = $bPrice = $bSupplierId = $bImgs = [];
+            $bCats = $bNames = $bBars = $bUnits = $bBprice = $bPrice = $bSupplierId = $bZones = $bShelves = $bImgs = [];
             foreach (is_array($bulkRows) ? $bulkRows : [] as $br) {
                 if (!is_array($br)) continue;
                 $bCats[]       = (string)($br['category_id'] ?? '');
@@ -28,12 +30,16 @@
                 $bBprice[]     = (string)($br['bprice'] ?? '');
                 $bPrice[]      = (string)($br['price'] ?? '');
                 $bSupplierId[] = (string)($br['supplier_id'] ?? '');
+                $bZones[]      = (string)($br['zone'] ?? '');
+                $bShelves[]    = (string)($br['shelf'] ?? '');
                 $bImgs[]       = (string)($br['img'] ?? '');
             }
         }
 
-        // ຜູ້ສະໜອງ ບັອກດຽວ ສຳລັບທັງຊຸດ — ເລືອກແລ້ວໃຊ້ກັບທຸກລາຍການ (ທັບຄ່າລາຍແຖວຈາກ Excel)
+        // ຕັ້ງຄ່າທັງຊຸດ (Batch Header): ຜູ້ສະໜອງ, ໂຊນ, ຊັ້ນວາງ
         $batchSupplierId = intval($_POST['bulk_supplier_id'] ?? 0) ?: null;
+        $batchZone       = trim($_POST['bulk_zone'] ?? '') ?: null;
+        $batchShelf      = trim($_POST['bulk_shelf'] ?? '') ?: null;
 
         // ຮູບພາບລາຍແຖວ (ບໍ່ບັງຄັບ) ຖືກອັບໂຫຼດໄວ້ກ່ອນແລ້ວຜ່ານ api_product.php?action=upload_image —
         // ຮັບສະເພາະຊື່ໄຟລ໌ທີ່ລະບົບສ້າງ ແລະ ມີຢູ່ຈິງໃນ assets/product_img ເທົ່ານັ້ນ.
@@ -63,7 +69,7 @@
                 }
             } catch (Throwable $e) {}
 
-            $insStmt   = $pdo->prepare("INSERT INTO st_products (product_id, product_name, barcode, category_id, bprice, price, unit, unit_id, supplier_id, img_url, qty, store_id, cut_qty) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)");
+            $insStmt   = $pdo->prepare("INSERT INTO st_products (product_id, product_name, barcode, category_id, bprice, price, unit, unit_id, supplier_id, img_url, qty, store_id, cut_qty, zone, shelf) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)");
             $dupStmt   = $pdo->prepare("
                 SELECT p.product_name FROM st_products p WHERE p.barcode = ? AND p.store_id = ?
                 UNION ALL
@@ -132,9 +138,11 @@
                 $product_id = generateProductId($pdo, $category_id, $activeStoreId);
 
                 $unitName = $unit_id !== null ? ($unitNames[$unit_id] ?? '') : '';
+                $zone     = trim($bZones[$i] ?? '') ?: $batchZone;
+                $shelf    = trim($bShelves[$i] ?? '') ?: $batchShelf;
 
                 try {
-                    $insStmt->execute([$product_id, $name, $barcode, $category_id, $bprice, $price, $unitName, $unit_id, $supplier_id, $img_name, $activeStoreId, $batchCutQty]);
+                    $insStmt->execute([$product_id, $name, $barcode, $category_id, $bprice, $price, $unitName, $unit_id, $supplier_id, $img_name, $activeStoreId, $batchCutQty, $zone, $shelf]);
                     if ($barcode !== '') {
                         $batchBarcodes[$barcode] = true;
                     }

@@ -12,17 +12,13 @@
 ?>
 
 <!-- RIGHT COLUMN (DETAIL): Menu Permissions Matrix Table -->
-<div class="col-lg-8 col-xl-8 mb-4">
+<div class="col-lg-8 col-xl-8 permissions-col">
   <div class="perm-detail-card">
     
-    <?php if (empty($users)): ?>
-      <div class="p-5 text-center text-muted">
-        <i class="fas fa-info-circle fa-2x mb-2"></i>
-        <p><?php echo htmlspecialchars(t('permissions.select_user_prompt', 'ກະລຸນາເລືອກຜູ້ນຳໃຊ້ຈາກລາຍຊື່ທາງຊ້າຍເພື່ອຕັ້ງຄ່າສິດ')); ?></p>
-      </div>
-    <?php else: ?>
+    <?php if (!empty($users)): ?>
       <?php foreach ($users as $index => $u): ?>
         <?php
+          $isFirstUser = ($index === 0);
           $uStatus = $u['status'] ?? $u['userstatus'] ?? '';
           // Cosmetic role check — also used below to decide switch editability.
           $isRoleAdmin = (strtolower($uStatus) === 'admin' || strtolower($uStatus) === 'super admin' || $uStatus === 'ຜູ້ບໍລິຫານ');
@@ -31,12 +27,11 @@
           // viewer gets disabled switches here too, even though they can still see this user.
           $isAdmin = (($u['Id'] ?? 0) == 1) || (!isOwnerUser() && $isRoleAdmin);
           $displayName = htmlspecialchars($u['username'] ?? 'User');
-          $isActiveFirst = ($index === 0);
         ?>
-        <!-- Panel ຕາຕະລາງສິດຂອງແຕ່ລະຜູ້ນຳໃຊ້ (ສະແດງສະເພາະຄົນທີ່ເລືອກ) -->
+        <!-- Panel ຕາຕະລາງສິດຂອງແຕ່ລະຜູ້ນຳໃຊ້ (ເລີ່ມຕົ້ນສະແດງຄົນທຳອິດ/ເຈົ້າຂອງລະບົບ, ຄົນອື່ນເຊື່ອງໄວ້) -->
         <div class="user-detail-panel w-100 flex-column" 
              id="user-detail-<?php echo $u['Id']; ?>" 
-             style="display: <?php echo $isActiveFirst ? 'flex' : 'none'; ?>;">
+             style="<?php echo $isFirstUser ? 'display: flex;' : 'display: none;'; ?>">
           
           <!-- 1. Detail Header (ຂໍ້ມູນຜູ້ນຳໃຊ້ + ສາຂາ + ປຸ່ມກຳນົດສິດດ່ວນ) -->
           <?php require __DIR__ . '/matrix_header_component.php'; ?>
@@ -60,7 +55,6 @@
                     require __DIR__ . '/sections/section_main_menu.php';
                     require __DIR__ . '/sections/section_pos_sales.php';
                     require __DIR__ . '/sections/section_customers.php';
-                    require __DIR__ . '/sections/section_customer_debt.php';
                     require __DIR__ . '/sections/section_inventory.php';
                     require __DIR__ . '/sections/section_accounting.php';
                     require __DIR__ . '/sections/section_reports.php';

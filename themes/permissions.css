@@ -12,9 +12,70 @@
   --perm-edit: #e11d48;
 }
 
-body {
+html, body {
+  margin: 0;
+  padding: 0;
   background-color: #f8fafc;
   font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* === DESKTOP LAYOUT (>= 992px): Full-Height Split Screen === */
+@media (min-width: 992px) {
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .permissions-page-container {
+    height: 100vh;
+    max-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 16px 12px 16px !important;
+    box-sizing: border-box;
+    overflow: hidden;
+    background-color: #f8fafc;
+  }
+
+  .permissions-page-header {
+    flex: 0 0 auto;
+    margin-bottom: 8px !important;
+  }
+
+  .permissions-main-row {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-left: -8px !important;
+    margin-right: -8px !important;
+    margin-bottom: 0 !important;
+    display: flex;
+  }
+
+  .permissions-col {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .user-list-card,
+  .perm-detail-card {
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+    height: 100% !important;
+    min-height: 0 !important;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0 !important;
+  }
 }
 
 .user-list-card {
@@ -23,8 +84,6 @@ body {
   background: #ffffff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
   overflow: hidden;
-  height: calc(100vh - 140px);
-  min-height: 480px;
   display: flex;
   flex-direction: column;
 }
@@ -38,24 +97,29 @@ body {
 .user-items-scroll {
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y;
+  padding: 8px;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #94a3b8 #f1f5f9;
 }
 .user-items-scroll::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 .user-items-scroll::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f1f5f9;
+  border-radius: 8px;
+  margin: 4px 0;
 }
 .user-items-scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #94a3b8;
   border-radius: 8px;
+  border: 2px solid #f1f5f9;
 }
 .user-items-scroll::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #64748b;
 }
 
 .user-search-box {
@@ -152,16 +216,19 @@ body {
   background: #ffffff;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
   overflow: hidden;
-  height: calc(100vh - 140px);
-  min-height: 480px;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  margin-bottom: 0 !important;
 }
 
 .user-detail-panel {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -170,41 +237,53 @@ body {
 .perm-detail-header {
   padding: 14px 20px;
   background: #ffffff;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .perm-detail-body {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
-  padding: 16px 20px;
+  padding: 0 !important;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .perm-matrix-table-wrapper {
   background: #ffffff;
-  border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  flex: 1;
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: calc(100vh - 250px);
-  -webkit-overflow-scrolling: touch;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: 0 !important;
+  border: none !important;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-x pan-y;
+  box-shadow: none !important;
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
 }
 .perm-matrix-table-wrapper::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
+}
+.perm-matrix-table-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
 }
 .perm-matrix-table-wrapper::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: #94a3b8;
+  border-radius: 8px;
+  border: 2px solid #f1f5f9;
 }
 .perm-matrix-table-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #64748b;
 }
 
 .perm-matrix-table {
@@ -219,18 +298,19 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  background-color: #f1f5f9 !important;
+  background-color: #f8fafc !important;
   color: #1e293b;
   font-weight: 700;
   font-size: 0.85rem;
-  padding: 12px;
-  border-bottom: 2px solid #cbd5e1;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+  padding: 12px 16px;
+  border-top: none;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   vertical-align: middle;
 }
 
 .perm-matrix-table td {
-  padding: 10px 12px;
+  padding: 10px 16px;
   border-bottom: 1px solid #f1f5f9;
   vertical-align: middle !important;
   text-align: center;
@@ -390,54 +470,160 @@ html, body {
 }
 
 @media (max-width: 991.98px) {
-  .user-list-card, .perm-detail-card {
-    height: auto;
-    max-height: 520px;
-    min-height: auto;
+  html, body {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
+
+  .permissions-page-container {
+    height: auto !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 10px 10px 30px 10px !important;
+    display: block !important;
+  }
+
+  .permissions-page-header {
+    margin-bottom: 8px !important;
+  }
+
+  .permissions-main-row {
+    display: block !important;
+    flex: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .permissions-col {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-bottom: 12px !important;
+  }
+
+  /* User list card: fits 5 users cleanly */
   .user-list-card {
-    max-height: 280px;
+    height: auto !important;
+    max-height: 440px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin-bottom: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .user-items-scroll {
+    max-height: 335px !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-y !important;
+  }
+
+  /* Permissions Detail Card: full natural height down the page */
+  .perm-detail-card {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: visible !important;
+    margin-bottom: 40px !important;
+  }
+
+  .user-detail-panel {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+  .user-detail-panel[style*="display: none"] {
+    display: none !important;
+  }
+  .user-detail-panel[style*="display: flex"] {
+    display: flex !important;
+  }
+
+  .perm-detail-body {
+    display: flex !important;
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  /* Permissions Matrix Table Wrapper on mobile:
+     Horizontal swipe for columns (ເບິ່ງ, ເພີ່ມ, ແກ້ໄຂ, ລົບ)
+     while vertical rows flow naturally down the page */
+  .perm-matrix-table-wrapper {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x pan-y !important;
+  }
+
+  .perm-matrix-table-wrapper table.perm-matrix-table {
+    min-width: 520px !important;
+    width: 100% !important;
+  }
+
+  .perm-matrix-table th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    background-color: #f8fafc !important;
   }
 }
 
 @media (max-width: 575.98px) {
-  .container-fluid {
-    padding: 8px !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
+  .user-list-card {
+    height: auto !important;
+    max-height: 440px !important;
   }
-  .row {
-    margin-left: -4px !important;
-    margin-right: -4px !important;
-  }
-  .col-12, [class*='col-'] {
-    padding-left: 4px !important;
-    padding-right: 4px !important;
+  .user-items-scroll {
+    max-height: 335px !important;
   }
   .perm-detail-header {
-    padding: 8px 10px;
+    padding: 12px 16px;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
   }
-  .perm-detail-body {
-    padding: 6px 4px !important;
-  }
+  /* ຂະໜາດຕາຕະລາງ ແລະ ຕົວໜັງສືໃນມືຖື ອີງຕາມມາດຕະຖານໜ້າ Categories */
   .perm-matrix-table th, .perm-matrix-table td {
-    padding: 6px 6px !important;
+    padding: 12px 14px !important;
+    font-size: 0.90rem !important;
   }
   .perm-module-info {
-    gap: 6px;
+    gap: 10px;
   }
   .perm-module-icon {
-    width: 26px;
-    height: 26px;
-    min-width: 26px;
-    font-size: 0.8rem;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    font-size: 0.92rem;
   }
   .perm-module-title {
-    font-size: 0.78rem;
+    font-size: 0.92rem;
   }
   .perm-module-desc {
-    font-size: 0.66rem;
+    font-size: 0.78rem;
   }
 }

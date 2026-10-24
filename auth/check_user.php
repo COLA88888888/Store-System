@@ -92,6 +92,11 @@ try {
                 respond_json(['success' => false, 'expired' => true, 'redirect' => 'access_expired.php']);
             }
 
+            // ບັນຊີຖືກປິດໃຊ້ງານ (ພະນັກງານລາອອກແລ້ວ) — Id 1 ປິດບໍ່ໄດ້
+            if (($user['Id'] ?? 0) != 1 && isset($user['account_active']) && (int)$user['account_active'] === 0) {
+                respond_json(['success' => false, 'message' => t('login.err_account_disabled', 'ບັນຊີນີ້ຖືກປິດໃຊ້ງານແລ້ວ ກະລຸນາຕິດຕໍ່ຜູ້ບໍລິຫານ')]);
+            }
+
             $userStatusVal = $user['status'] ?? $user['userstatus'] ?? '';
             $isAdmin = (
                 ($user['Id'] ?? 0) == 1 ||
@@ -162,8 +167,7 @@ try {
                 'customers' => $isAdmin ? 1 : (int)($user['customers'] ?? 0),
                 'database' => $isAdmin ? 1 : (int)($user['database'] ?? 0),
                 'stock_transfer' => $isAdmin ? 1 : (int)($user['stock_transfer'] ?? 0),
-                'transfer_history' => $isAdmin ? 1 : (int)($user['transfer_history'] ?? 0),
-                'customer_debt' => $isAdmin ? 1 : (int)($user['customer_debt'] ?? 0)
+                'transfer_history' => $isAdmin ? 1 : (int)($user['transfer_history'] ?? 0)
             ];
             
             $_SESSION['profile_img'] = 'default.png';

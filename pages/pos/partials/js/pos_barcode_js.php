@@ -266,6 +266,8 @@ $(document).on('click', '.product-card', function(e) {
 
 function addProductToCart(product, specificUnit) {
   if (!product) return;
+  // ສາຂາມີກະ: ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການຂາຍບໍ່ໄດ້ — ແຈ້ງເຕືອນທັນທີທີ່ກົດສິນຄ້າ (checkout/open_and_submit.php)
+  if (typeof checkShiftSalePermission === 'function' && !checkShiftSalePermission()) return;
 
   var cutQty = getProductCutQty(product.product_id);
   var remaining = getProductRemainingStock(product.product_id);

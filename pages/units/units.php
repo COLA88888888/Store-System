@@ -93,7 +93,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                     $unitProductCount = intval($unit['product_count'] ?? 0);
                   ?>
                     <tr class="unit-row">
-                      <td class="align-middle text-center text-muted font-weight-bold"><?php echo $uIdx++; ?></td>
+                      <td class="align-middle text-center text-muted font-weight-bold row-no"><?php echo $uIdx++; ?></td>
 
                       <td class="align-middle text-center font-weight-bold">
                         <span class="badge badge-light border px-2 py-1" style="font-size: 0.85rem; color: #2563eb; background-color: #eff6ff; border-color: #bfdbfe !important;"><?php echo branchCodeHtml($unit['display_code'] ?? $unit['unit_id']); ?></span>
@@ -148,6 +148,28 @@ require_once __DIR__ . '/../../layouts/header.php';
             </table>
           </div>
         </div>
+
+        <!-- Pagination Footer (ແບບດຽວກັບໜ້າປະເພດສິນຄ້າ) -->
+        <div id="unitPagFooter" class="card-footer table-pager-footer bg-white border-top d-flex align-items-center justify-content-between py-3 px-3 px-md-4" style="border-radius: 0 0 12px 12px; gap: 10px; flex-wrap: wrap;">
+          <div class="d-flex align-items-center text-muted" style="gap: 8px; font-size: 0.85rem;">
+            <span class="text-muted font-weight-bold">
+              <?php echo htmlspecialchars(t('units.page_showing', 'ສະແດງ')); ?>
+              <span data-pager-start>0</span>-<span data-pager-end>0</span>
+              <?php echo htmlspecialchars(t('units.page_items', 'ລາຍການ')); ?>
+            </span>
+            <select data-pager-size class="form-control form-control-sm font-weight-bold" style="width: auto; border-radius: 6px;">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="all"><?php echo htmlspecialchars(t('units.page_all', 'ທັງໝົດ')); ?></option>
+            </select>
+          </div>
+          <nav aria-label="Unit Pagination" class="ml-auto">
+            <ul class="pagination pagination-circle mb-0 justify-content-end" data-pager-ul></ul>
+          </nav>
+        </div>
+
+        <?php echo themeCssLink('table-pager.css'); ?>
 
       </div>
 
@@ -240,4 +262,10 @@ require_once __DIR__ . '/components/form_edit_unit.php';
       }
     });
   }
+
+  // ແບ່ງໜ້າ (assets/js/table-pager.js — ແບບດຽວກັບໜ້າປະເພດສິນຄ້າ)
+  document.addEventListener('DOMContentLoaded', function() {
+    TablePager.create({ rows: '#unitTable tbody tr.unit-row', footer: '#unitPagFooter' });
+  });
 </script>
+<script src="<?php echo $base_path; ?>assets/js/table-pager.js?v=<?php echo filemtime(__DIR__ . '/../../assets/js/table-pager.js'); ?>"></script>

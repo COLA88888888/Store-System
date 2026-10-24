@@ -11,7 +11,7 @@ REM      "Let Windows manage my default printer".
 REM   2. Edit POS_URL below if your address is different.
 REM ============================================================
 
-set "POS_URL=http://localhost/MiniPos/"
+set "POS_URL=http://localhost/Project/StoreMini/pages/pos/pos.php"
 
 set "CHROME=C:\Program Files\Google\Chrome\Application\chrome.exe"
 if not exist "%CHROME%" set "CHROME=C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"

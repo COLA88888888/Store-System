@@ -21,7 +21,7 @@
       </form>
     <?php endif; ?>
     <?php if (hasPermission('promotions', 'add')): ?>
-      <button type="button" class="btn btn-primary px-3.5 font-weight-bold text-white shadow-sm" data-toggle="modal" data-target="#addPromoModal" style="border-radius: 8px; height: 38px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
+      <button type="button" class="btn btn-primary px-3.5 font-weight-bold text-white shadow-sm" data-toggle="modal" data-target="#addPromoModal" style="border-radius: 6px; height: 38px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
         <i class="fas fa-plus-circle mr-1.5"></i> <?php echo htmlspecialchars(t('promotions.new_promo_btn', 'ສ້າງໂປຣໂມຊັ່ນໃໝ່')); ?>
       </button>
     <?php endif; ?>

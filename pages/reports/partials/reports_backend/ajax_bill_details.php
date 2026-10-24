@@ -71,14 +71,8 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_bill_details') {
             } catch (Throwable $e) {}
         }
 
-        // ຂາຍຕິດໜີ້: the promised payment date, for the reprinted receipt
+        // (ກຳນົດຊຳລະໜີ້ ມາຈາກໂມດູນຕິດໜີ້ທີ່ຖືກລຶບແລ້ວ — ບໍ່ມີອີກ)
         $billData['credit_due_date'] = '';
-        try {
-            $cdStmt = $pdo->prepare("SELECT due_date FROM st_customer_debts WHERE invoice_number = ? AND status <> 'cancelled' AND due_date IS NOT NULL LIMIT 1");
-            $cdStmt->execute([$billNo]);
-            $cdDue = $cdStmt->fetchColumn();
-            if ($cdDue) $billData['credit_due_date'] = date('d/m/Y', strtotime($cdDue));
-        } catch (Throwable $e) {}
 
         $billData['customer_phone']   = '';
         if (!empty($billData['customer_id'])) {

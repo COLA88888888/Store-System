@@ -50,10 +50,26 @@ function selectUser(userId) {
     panel.style.display = 'none';
   });
   
+  // ຊ່ອນ Placeholder ທີ່ແຈ້ງໃຫ້ເລືອກຜູ້ໃຊ້
+  var placeholder = document.getElementById('noUserSelectedPlaceholder');
+  if (placeholder) {
+    placeholder.style.display = 'none';
+  }
+
   // ສະແດງ Panel ຕາຕະລາງສິດຂອງຄົນທີ່ເລືອກ
   var targetPanel = document.getElementById('user-detail-' + userId);
   if (targetPanel) {
     targetPanel.style.display = 'flex';
+
+    // ໃນຈໍໂທລະສັບ (Mobile) ເມື່ອເລືອກແລ້ວ ໃຫ້ເລື່ອນຈໍລົງມາຫາກາດກຳນົດສິດອັດຕະໂນມັດ
+    if (window.innerWidth < 992) {
+      setTimeout(function() {
+        var detailCard = document.querySelector('.perm-detail-card');
+        if (detailCard) {
+          detailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
   }
 }
 

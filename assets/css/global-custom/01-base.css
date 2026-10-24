@@ -45,6 +45,44 @@ input[type="button"]:not(:disabled):not(.disabled):hover,
     cursor: pointer !important;
 }
 
+/* ===== UNIVERSAL FORM, MODAL, SAVE & CANCEL BUTTON RADIUS (6PX) ===== */
+.modal-footer .btn,
+.modal-footer button,
+.modal-footer a.btn,
+.modal-content form button,
+.modal-content form .btn,
+.modal-body form button,
+.modal-body form .btn,
+form button,
+form .btn,
+form button[type="submit"],
+form button[type="button"].btn-primary,
+form button[type="button"].btn-secondary,
+form button[type="button"].btn-light,
+form button[type="button"].btn-success,
+form button[type="button"].btn-danger,
+form button[type="button"].btn-warning,
+form button[type="button"].btn-info,
+form button.btn-save,
+form button.btn-cancel,
+form .btn-primary,
+form .btn-secondary,
+form .btn-light,
+form .btn-success,
+form .btn-danger,
+form .btn-warning,
+form .btn-info,
+button[type="submit"],
+input[type="submit"],
+button[type="reset"],
+input[type="reset"],
+.btn-save,
+.btn-cancel,
+.btn-submit,
+.swal2-actions button.swal2-styled {
+    border-radius: 6px !important;
+}
+
 /* ===== DISABLED BUTTON CURSOR NOT-ALLOWED ===== */
 button:disabled,
 button[disabled],
@@ -336,5 +374,32 @@ div[style*="overflow"]::-webkit-scrollbar-thumb {
         text-align: left !important;
         justify-content: flex-start !important;
     }
+}
+
+/* ===== ປ້ອງກັນການຊູມເຂົ້າອັດຕະໂນມັດໃນມືຖື (Prevent Mobile Auto-Zoom on Focus) ===== */
+@media screen and (max-width: 768px) {
+    input,
+    select,
+    textarea,
+    .form-control,
+    .custom-select,
+    .select2-search__field,
+    .search-box input,
+    .search-box-wrap input,
+    .user-search-box input {
+        font-size: 16px !important;
+    }
+}
+
+/* ປ້ອງກັນ Double-tap to zoom ເມື່ອກົດປຸ່ມ ຫຼື ຊ່ອງຄົ້ນຫາ */
+button,
+input,
+select,
+textarea,
+a,
+.btn,
+.page-link,
+.input-group-text {
+    touch-action: manipulation !important;
 }
 

@@ -124,7 +124,7 @@ if (!function_exists('getLowStockAlerts')) {
                 $sql = "SELECT p.*, s.store_name, s.is_main
                         FROM st_products p
                         JOIN st_tbstore s ON p.store_id = s.store_id
-                        WHERE (p.qty <= 10 OR (p.min_qty IS NOT NULL AND p.min_qty > 0 AND p.qty <= p.min_qty) OR p.qty <= 0)
+                        WHERE p.qty <= 10   -- ໃກ້ໝົດ = ເຫຼືອ 10 ລົງໄປ (ລວມໝົດແລ້ວ 0)
                           AND p.cut_qty != 0
                           AND s.status = 'active'
                           AND p.store_id = ?
@@ -136,7 +136,7 @@ if (!function_exists('getLowStockAlerts')) {
                 $sql = "SELECT p.*, s.store_name, s.is_main
                         FROM st_products p
                         JOIN st_tbstore s ON p.store_id = s.store_id
-                        WHERE (p.qty <= 10 OR (p.min_qty IS NOT NULL AND p.min_qty > 0 AND p.qty <= p.min_qty) OR p.qty <= 0)
+                        WHERE p.qty <= 10   -- ໃກ້ໝົດ = ເຫຼືອ 10 ລົງໄປ (ລວມໝົດແລ້ວ 0)
                           AND p.cut_qty != 0
                           AND s.status = 'active'
                         ORDER BY s.is_main ASC, p.qty ASC";

@@ -19,6 +19,7 @@
  *   - bootstrap/branch_switcher.php : ສະຫຼັບສາຂາທີ່ກຳລັງເບິ່ງ
  *   - helpers/expiry.php : ຟັງຊັນຊ່ວຍ: ສິນຄ້າໝົດອາຍຸ
  *   - helpers/stock_check_alerts.php : ຟັງຊັນຊ່ວຍ: ແຈ້ງເຕືອນເຊັກສະຕັອກ
+ *   - helpers/shift_auto.php : ຟັງຊັນຊ່ວຍ: ກະເຮັດວຽກ (ໂມງປິດກະ, ການໃຊ້ງານ, ປິດກະອໍໂຕ້)
  */
 // ເຊື່ອມຕໍ່ຖານຂໍ້ມູນ
 require __DIR__ . '/bootstrap/connection.php';
@@ -54,7 +55,11 @@ if ($pdo) {
     // dropped); customer_debts + customer_debt_payments + tbuser.customer_debt added.
     // v16: categories.branch_no / units.branch_no — per-branch code "<store_code>-<branch_no>".
     // v17: branch_no also on customers, suppliers, tbuser, bank_accounts, promotions, products.
-    $schemaFlagFile = __DIR__ . '/.db_schema_v17';
+    // v18: customer-debt module removed — customer_debts + customer_debt_payments dropped,
+    // tbuser.customer_debt dropped (backup: backups/debts_before_removal_*.sql).
+    // v19: tbuser.account_active — ປິດໃຊ້ງານບັນຊີພະນັກງານທີ່ລາອອກ (ເຂົ້າລະບົບບໍ່ໄດ້).
+    // v20: tbcompanyinfo.receipt_footer_{en,th,zh} — ຂໍ້ຄວາມທ້າຍໃບບິນຕາມພາສາ.
+    $schemaFlagFile = __DIR__ . '/.db_schema_v20';
     if (!file_exists($schemaFlagFile)) {
         // ແລ່ນຄັ້ງດຽວຕໍ່ເວີຊັນ: ອັບເດດໂຄງສ້າງ DB ທັງ 4 ສ່ວນ ຕາມລຳດັບ ແລ້ວຂຽນໄຟລ໌ flag ໄວ້
         require __DIR__ . '/migrations/schema_core.php';             // (1) ພື້ນຖານ
@@ -70,6 +75,10 @@ if ($pdo) {
 require __DIR__ . '/migrations/schema_loyalty.php';
 // ອັບເດດໂຄງສ້າງ DB: ເຊັກສະຕັອກ
 require __DIR__ . '/migrations/schema_stock_check.php';
+// ອັບເດດໂຄງສ້າງ DB: ຈັດການກະເຮັດວຽກ
+require __DIR__ . '/migrations/schema_shifts.php';
+// ອັບເດດໂຄງສ້າງ DB: ບິນທີ່ພັກໄວ້ (ຄ້າງໄວ້ບໍ່ໃຫ້ຫາຍ)
+require __DIR__ . '/migrations/schema_held_orders.php';
 // ຟັງຊັນຊ່ວຍ: ລິ້ງໄຟລ໌ CSS ໃນ themes/ (themeCssLink)
 require __DIR__ . '/helpers/theme_css.php';
 // ຟັງຊັນຊ່ວຍ: ການຕັ້ງຄ່າ, ເງິນ, ບັນທຶກ
@@ -88,3 +97,5 @@ require __DIR__ . '/bootstrap/branch_switcher.php';
 require __DIR__ . '/helpers/expiry.php';
 // ຟັງຊັນຊ່ວຍ: ແຈ້ງເຕືອນເຊັກສະຕັອກ (ສົ່ງກວດ / ອະນຸມັດແລ້ວ)
 require __DIR__ . '/helpers/stock_check_alerts.php';
+// ຟັງຊັນຊ່ວຍ: ກະເຮັດວຽກ (ໂມງປິດກະ, ການໃຊ້ງານ, ປິດກະອໍໂຕ້)
+require __DIR__ . '/helpers/shift_auto.php';

@@ -70,6 +70,7 @@
                   <select name="status" class="form-control" required>
                     <option value=""><?php echo htmlspecialchars(t('users_manage.option_select_role', '-- ເລືອກຕຳແໜ່ງ --')); ?></option>
                     <option value="ຜູ້ບໍລິຫານ"><?php echo htmlspecialchars(t('users_manage.role_admin', 'ຜູ້ບໍລິຫານ')); ?></option>
+                    <option value="ຜູ້ຈັດການ"><?php echo htmlspecialchars(t('users_manage.role_manager', 'ຜູ້ຈັດການ (ສາຂາຕົນເອງ)')); ?></option>
                     <option value="ພະນັກງານ"><?php echo htmlspecialchars(t('users_manage.role_employee', 'ພະນັກງານ')); ?></option>
                   </select>
                 </div>

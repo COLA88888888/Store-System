@@ -1,7 +1,7 @@
 <?php
 // Standalone Page: ລາຍງານສິນຄ້າໝົດອາຍຸ (Product expiry report)
-// Read-only report of every product that has an expiry date (products.expiry_date): expired,
-// expiring soon (within EXPIRY_ALERT_DAYS) and the rest, with the time left shown as
+// Read-only report of products that need attention: already expired, or expiring within
+// EXPIRY_ALERT_DAYS. Products further out than that are not listed. Time left is shown as
 // years / months / days ("1 ເດືອນ 1 ວັນ"). Dates are set on Settings > ຈັດການສິນຄ້າໝົດອາຍຸ.
 session_start();
 
@@ -28,17 +28,20 @@ $filterStore = $multiBranch
     : getActiveStoreId($pdo);
 
 $status = $_GET['status'] ?? 'all';
-if (!in_array($status, ['all', 'expired', 'near', 'normal'], true)) $status = 'all';
+if (!in_array($status, ['all', 'expired', 'near'], true)) $status = 'all';
+// "ຈະໝົດອາຍຸພາຍໃນ N ວັນ" — only spans shorter than the alert window still narrow the list
+$withinOptions = array_values(array_filter([1, 3, 7, 15, 30, 60, 90], function ($d) use ($alertDays) { return $d < $alertDays; }));
 $within = (int)($_GET['within'] ?? 0);                 // 0 = any; else expires within N days (incl. expired)
-if (!in_array($within, [0, 7, 15, 30, 60, 90], true)) $within = 0;
+if (!in_array($within, $withinOptions, true)) $within = 0;
 $search = trim($_GET['q'] ?? '');
 $perPageRaw = $_GET['per_page'] ?? '25';
 $perPage = $perPageRaw === 'all' ? 0 : max(5, min(500, (int)$perPageRaw));
 $page = max(1, (int)($_GET['page'] ?? 1));
 
-// Base filter (branch + search + "within N days"); the status tab is applied on top.
-$baseWhere = "p.expiry_date IS NOT NULL";
-$baseParams = [];
+// Base filter: only expired + expiring within the alert window, then branch + search +
+// "within N days"; the status card is applied on top.
+$baseWhere = "p.expiry_date IS NOT NULL AND p.expiry_date <= DATE_ADD(CURDATE(), INTERVAL ? DAY)";
+$baseParams = [$alertDays];
 if ($filterStore > 0) {
     $baseWhere .= " AND p.store_id = ?";
     $baseParams[] = $filterStore;
@@ -53,17 +56,16 @@ if ($within > 0) {
     $baseParams[] = $within;
 }
 
-$counts = ['all' => 0, 'expired' => 0, 'near' => 0, 'normal' => 0];
+$counts = ['all' => 0, 'expired' => 0, 'near' => 0];
 try {
     $c = $pdo->prepare("
         SELECT COUNT(*) AS all_cnt,
                COALESCE(SUM(p.expiry_date < CURDATE()), 0) AS expired_cnt,
-               COALESCE(SUM(p.expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)), 0) AS near_cnt,
-               COALESCE(SUM(p.expiry_date > DATE_ADD(CURDATE(), INTERVAL ? DAY)), 0) AS normal_cnt
+               COALESCE(SUM(p.expiry_date >= CURDATE()), 0) AS near_cnt
         FROM st_products p WHERE $baseWhere");
-    $c->execute(array_merge([$alertDays, $alertDays], $baseParams));
+    $c->execute($baseParams);
     $row = $c->fetch(PDO::FETCH_ASSOC);
-    $counts = ['all' => (int)$row['all_cnt'], 'expired' => (int)$row['expired_cnt'], 'near' => (int)$row['near_cnt'], 'normal' => (int)$row['normal_cnt']];
+    $counts = ['all' => (int)$row['all_cnt'], 'expired' => (int)$row['expired_cnt'], 'near' => (int)$row['near_cnt']];
 } catch (Exception $e) {}
 
 $where = $baseWhere;
@@ -71,11 +73,7 @@ $params = $baseParams;
 if ($status === 'expired') {
     $where .= " AND p.expiry_date < CURDATE()";
 } elseif ($status === 'near') {
-    $where .= " AND p.expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)";
-    $params[] = $alertDays;
-} elseif ($status === 'normal') {
-    $where .= " AND p.expiry_date > DATE_ADD(CURDATE(), INTERVAL ? DAY)";
-    $params[] = $alertDays;
+    $where .= " AND p.expiry_date >= CURDATE()";   // upper bound is already in $baseWhere
 }
 
 $total = $counts[$status];
@@ -101,14 +99,15 @@ $storeLabel = t('expiry.all_branches', '-- ທຸກສາຂາ --');
 foreach ($branchesList as $b) if ((int)$b['store_id'] === $filterStore) $storeLabel = $b['store_name'];
 
 function expRepUrl($over) {
-    return 'expiry_report.php?' . htmlspecialchars(http_build_query(array_merge($_GET, $over)));
+    $q = $_GET;
+    unset($q['print'], $q['export']);   // ລິ້ງອື່ນໆ ບໍ່ສັ່ງພິມ / ອອກໄຟລ໌ຊ້ຳ
+    return 'expiry_report.php?' . htmlspecialchars(http_build_query(array_merge($q, $over)));
 }
 
 $tabs = [
     'all'     => ['label' => t('expiry.tab_all', 'ທັງໝົດ'),        'icon' => 'fa-list',                 'color' => 'secondary'],
     'expired' => ['label' => t('expiry.tab_expired', 'ໝົດອາຍຸແລ້ວ'), 'icon' => 'fa-times-circle',         'color' => 'danger'],
     'near'    => ['label' => t('expiry.tab_near', 'ໃກ້ໝົດອາຍຸ'),    'icon' => 'fa-exclamation-triangle', 'color' => 'warning'],
-    'normal'  => ['label' => t('expiry.tab_normal', 'ປົກກະຕິ'),     'icon' => 'fa-check-circle',         'color' => 'success'],
 ];
 
 require_once __DIR__ . '/../../layouts/header.php';
@@ -116,16 +115,16 @@ require_once __DIR__ . '/../../layouts/header.php';
 
 <link rel="stylesheet" href="../../themes/reports.css?v=<?php echo filemtime(__DIR__ . '/../../themes/reports.css'); ?>">
 <?php echo themeCssLink('expiry_report.css'); /* CSS ຍ້າຍໄປ themes/expiry_report.css */ ?>
+<?php echo themeCssLink('report-table.css'); /* ຕາຕະລາງ + ປຸ່ມ Excel/PDF/ພິມ ແບບດຽວກັນທົ່ວລະບົບ */ ?>
 
 <?php
-$statColors = ['all' => '#2c5aa0', 'expired' => '#dc2626', 'near' => '#d97706', 'normal' => '#16a34a'];
-$statDarks  = ['all' => '#1e3a70', 'expired' => '#991b1b', 'near' => '#b45309', 'normal' => '#15803d'];
-$statIcons  = ['all' => 'fa-clipboard-list', 'expired' => 'fa-times-circle', 'near' => 'fa-hourglass-half', 'normal' => 'fa-check-circle'];
+$statColors = ['all' => '#2c5aa0', 'expired' => '#dc2626', 'near' => '#d97706'];
+$statDarks  = ['all' => '#1e3a70', 'expired' => '#991b1b', 'near' => '#b45309'];
+$statIcons  = ['all' => 'fa-clipboard-list', 'expired' => 'fa-times-circle', 'near' => 'fa-hourglass-half'];
 $statLabels = [
-    'all'     => t('expiry.card_tracked', 'ສິນຄ້າທີ່ຕິດຕາມວັນໝົດອາຍຸ'),
+    'all'     => t('expiry.card_attention', 'ສິນຄ້າໃກ້ໝົດອາຍຸ ແລະ ໝົດອາຍຸ'),
     'expired' => t('expiry.tab_expired', 'ໝົດອາຍຸແລ້ວ'),
     'near'    => sprintf(t('expiry.card_near', 'ໃກ້ໝົດອາຍຸ (ບໍ່ເກີນ %s ວັນ)'), $alertDays),
-    'normal'  => t('expiry.tab_normal', 'ປົກກະຕິ'),
 ];
 ?>
 
@@ -136,9 +135,7 @@ $statLabels = [
       <h5 class="exr-title"><?php echo htmlspecialchars(t('expiry.report_title', 'ລາຍງານສິນຄ້າໝົດອາຍຸ')); ?></h5>
       <div class="exr-sub"><?php echo htmlspecialchars(sprintf(t('expiry.report_subtitle', 'ສິນຄ້າທີ່ໝົດອາຍຸແລ້ວ ແລະ ໃກ້ໝົດອາຍຸ (ແຈ້ງເຕືອນກ່ອນ %s ວັນ)'), $alertDays)); ?></div>
     </div>
-    <button type="button" class="btn btn-light border btn-sm px-3" onclick="window.print()" style="border-radius: 8px; height: 36px; white-space: nowrap;">
-      <i class="fas fa-print mr-1 text-muted"></i> <?php echo htmlspecialchars(t('expiry.print_btn', 'ພິມລາຍງານ')); ?>
-    </button>
+    <?php require __DIR__ . '/../../layouts/partials/report/export_buttons.php'; /* Excel / PDF / ພິມ */ ?>
   </div>
 
   <div class="print-only mb-3">
@@ -148,7 +145,7 @@ $statLabels = [
 
   <!-- Summary / status filter -->
   <div class="exr-stats mb-3 no-print">
-    <?php foreach (['all', 'expired', 'near', 'normal'] as $key): ?>
+    <?php foreach (['all', 'expired', 'near'] as $key): ?>
       <?php $pct = $counts['all'] > 0 ? round($counts[$key] / $counts['all'] * 100) : 0; ?>
       <a href="<?php echo expRepUrl(['status' => $key, 'page' => 1]); ?>" class="exr-stat <?php echo $status === $key ? 'active' : ''; ?>" style="--c: <?php echo $statColors[$key]; ?>; --d: <?php echo $statDarks[$key]; ?>;">
         <div class="top">
@@ -165,7 +162,7 @@ $statLabels = [
     <?php endforeach; ?>
   </div>
 
-  <div class="exr-panel">
+  <div class="exr-panel rpt-card">
     <!-- Filters -->
     <form method="GET" action="expiry_report.php" class="exr-filters no-print">
       <input type="hidden" name="status" value="<?php echo htmlspecialchars($status); ?>">
@@ -184,15 +181,17 @@ $statLabels = [
         </select>
       </div>
       <?php endif; ?>
+      <?php if (!empty($withinOptions)): ?>
       <div style="flex: 1 1 150px;">
         <label><?php echo htmlspecialchars(t('expiry.within_label', 'ຈະໝົດອາຍຸພາຍໃນ:')); ?></label>
         <select name="within" class="form-control" onchange="this.form.submit()">
           <option value="0"><?php echo htmlspecialchars(t('expiry.within_any', '-- ທັງໝົດ --')); ?></option>
-          <?php foreach ([7, 15, 30, 60, 90] as $wd): ?>
+          <?php foreach ($withinOptions as $wd): ?>
             <option value="<?php echo $wd; ?>" <?php echo $within === $wd ? 'selected' : ''; ?>><?php echo htmlspecialchars(sprintf(t('expiry.dur_day', '%s ວັນ'), $wd)); ?></option>
           <?php endforeach; ?>
         </select>
       </div>
+      <?php endif; ?>
       <div style="flex: 0 1 100px;">
         <label><?php echo htmlspecialchars(t('expiry.per_page_label', 'ສະແດງ:')); ?></label>
         <select name="per_page" class="form-control" onchange="this.form.submit()">
@@ -209,7 +208,7 @@ $statLabels = [
 
     <!-- Table -->
     <div class="table-responsive">
-      <table class="table exr-table">
+      <table class="table table-hover table-striped rpt-table exr-table mb-0">
         <thead>
           <tr>
             <th class="text-center" style="width: 50px;">#</th>
@@ -224,10 +223,15 @@ $statLabels = [
         </thead>
         <tbody>
           <?php if (empty($rows)): ?>
-            <tr><td colspan="<?php echo $showBranchCol ? 8 : 7; ?>" class="text-center py-5 text-muted">
-              <i class="far fa-calendar-check fa-2x mb-2 d-block" style="color: #cbd5e1;"></i>
-              <?php echo htmlspecialchars($counts['all'] === 0 && $search === '' && $within === 0 ? t('expiry.empty_none', 'ຍັງບໍ່ມີສິນຄ້າທີ່ກຳນົດວັນໝົດອາຍຸ') : t('expiry.empty_filter', 'ບໍ່ພົບລາຍການ')); ?>
-            </td></tr>
+            <tr class="empty-row" style="background: #ffffff !important;">
+              <td colspan="<?php echo $showBranchCol ? 8 : 7; ?>" class="text-center py-5 text-muted" style="background: #ffffff !important;">
+                <i class="far fa-calendar-check fa-3x mb-3 d-block" style="color: #cbd5e1;"></i>
+                <div class="text-muted font-weight-bold" style="font-size: 1rem;"><?php echo htmlspecialchars($counts['all'] === 0 && $search === '' && $within === 0 ? t('expiry.empty_none_attention', 'ບໍ່ມີສິນຄ້າໃກ້ໝົດອາຍຸ ຫຼື ໝົດອາຍຸ') : t('expiry.empty_filter', 'ບໍ່ພົບລາຍການ')); ?></div>
+                <?php if (!($counts['all'] === 0 && $search === '' && $within === 0)): ?>
+                  <div class="text-muted small mt-1"><?php echo htmlspecialchars(t('reports.change_filter_hint', 'ກະລຸນາປ່ຽນເງື່ອນໄຂການຄົ້ນຫາ ຫຼື ເລືອກຊ່ວງວັນທີໃໝ່')); ?></div>
+                <?php endif; ?>
+              </td>
+            </tr>
           <?php else: ?>
             <?php foreach ($rows as $i => $r): ?>
               <?php
@@ -276,25 +280,81 @@ $statLabels = [
       </table>
     </div>
 
-    <?php if ($total > 0): ?>
-      <div class="exr-foot no-print">
-        <small class="text-muted"><?php
-          $from = $perPage > 0 ? ($page - 1) * $perPage + 1 : 1;
-          $to = $perPage > 0 ? min($total, $page * $perPage) : $total;
-          echo htmlspecialchars(sprintf(t('expiry.pager_showing', 'ສະແດງ %s–%s ຈາກ %s ລາຍການ'), number_format($from), number_format($to), number_format($total)));
-        ?></small>
-        <?php if ($pages > 1): ?>
-          <ul class="pagination pagination-sm mb-0 ml-auto">
-            <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>"><a class="page-link" href="<?php echo expRepUrl(['page' => $page - 1]); ?>"><i class="fas fa-chevron-left" style="font-size: 0.7rem;"></i></a></li>
-            <?php for ($p = max(1, $page - 2); $p <= min($pages, $page + 2); $p++): ?>
-              <li class="page-item <?php echo $p === $page ? 'active' : ''; ?>"><a class="page-link" href="<?php echo expRepUrl(['page' => $p]); ?>"><?php echo $p; ?></a></li>
-            <?php endfor; ?>
-            <li class="page-item <?php echo $page >= $pages ? 'disabled' : ''; ?>"><a class="page-link" href="<?php echo expRepUrl(['page' => $page + 1]); ?>"><i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i></a></li>
-          </ul>
-        <?php endif; ?>
+    <!-- Table Card Footer: Circular Blue Pagination Controls (ຊິດຂວາທາງລຸ່ມ ແບບດຽວກັບໜ້າລາຍງານອື່ນໆ) -->
+    <div class="card-footer bg-white border-top py-3 px-3.5 d-flex flex-column flex-md-row justify-content-between align-items-center no-print" style="row-gap: 12px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+      <div class="d-flex align-items-center">
+        <small class="text-muted font-weight-bold" style="font-size: 0.85rem;">
+          <?php
+            $from = $total === 0 ? 0 : ($perPage > 0 ? ($page - 1) * $perPage + 1 : 1);
+            $to = $perPage > 0 ? min($total, $page * $perPage) : $total;
+            if ($total > 0) {
+                echo htmlspecialchars(sprintf(t('reports.showing_items', 'ສະແດງ %s ຫາ %s ຈາກທັງໝົດ %s ລາຍການ'), number_format($from), number_format($to), number_format($total)));
+            } else {
+                echo htmlspecialchars(t('reports.showing_empty', 'ສະແດງ 0 ຈາກ 0 ລາຍການ'));
+            }
+          ?>
+        </small>
       </div>
-    <?php endif; ?>
+
+      <!-- Pagination: Circular Blue Pagination Controls (ແບບດຽວກັບໜ້າລາຍງານອື່ນໆ) -->
+      <nav aria-label="Page navigation" class="ml-auto">
+        <ul class="pagination report-pagination mb-0">
+          <!-- Previous Page -->
+          <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
+            <a class="page-link" href="<?php echo expRepUrl(['page' => max(1, $page - 1)]); ?>" aria-label="Previous">
+              <i class="fas fa-chevron-left" style="font-size: 0.76rem;"></i>
+            </a>
+          </li>
+
+          <?php
+            $range = 2;
+            $startP = max(1, $page - $range);
+            $endP   = min($pages, $page + $range);
+
+            if ($startP > 1) {
+                echo '<li class="page-item"><a class="page-link" href="' . expRepUrl(['page' => 1]) . '">1</a></li>';
+                if ($startP > 2) {
+                    echo '<li class="page-item disabled"><span class="page-link" style="border:none; background:transparent;">...</span></li>';
+                }
+            }
+
+            for ($p = $startP; $p <= $endP; $p++) {
+                $activeClass = ($p == $page) ? 'active' : '';
+                echo '<li class="page-item ' . $activeClass . '"><a class="page-link" href="' . expRepUrl(['page' => $p]) . '">' . $p . '</a></li>';
+            }
+
+            if ($endP < $pages) {
+                if ($endP < $pages - 1) {
+                    echo '<li class="page-item disabled"><span class="page-link" style="border:none; background:transparent;">...</span></li>';
+                }
+                echo '<li class="page-item"><a class="page-link" href="' . expRepUrl(['page' => $pages]) . '">' . $pages . '</a></li>';
+            }
+          ?>
+
+          <!-- Next Page -->
+          <li class="page-item <?php echo $page >= $pages ? 'disabled' : ''; ?>">
+            <a class="page-link" href="<?php echo expRepUrl(['page' => min($pages, $page + 1)]); ?>" aria-label="Next">
+              <i class="fas fa-chevron-right" style="font-size: 0.76rem;"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
   </div>
 </div>
 
+<?php
+// ພິມ / Excel / PDF — ເອົາຕາຕະລາງ .exr-table (ທຸກລາຍການ ຫຼັງໂຫຼດ per_page=all) ອອກເປັນລາຍງານ Phetsarath OT
+$rptMeta = [$tabs[$status]['label'], sprintf(t('expiry.stat_all_hint', 'ແຈ້ງເຕືອນກ່ອນ %s ວັນ'), $alertDays)];
+if ($within > 0)    $rptMeta[] = t('expiry.within_label', 'ຈະໝົດອາຍຸພາຍໃນ:') . ' ' . sprintf(t('expiry.dur_day', '%s ວັນ'), $within);
+if ($search !== '') $rptMeta[] = t('expiry.search_label', 'ຄົ້ນຫາ:') . ' ' . $search;
+$rptExport = [
+    'table'    => '.exr-table',
+    'title'    => t('expiry.report_title', 'ລາຍງານສິນຄ້າໝົດອາຍຸ'),
+    'fileBase' => 'expiry_report_' . $status,
+    'store'    => $storeLabel,
+    'meta'     => $rptMeta,
+];
+require __DIR__ . '/../../layouts/partials/report/export_js.php';
+?>
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

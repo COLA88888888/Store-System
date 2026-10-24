@@ -42,6 +42,8 @@ function openViewModal(user) {
   // Role badge (ຜູ້ບໍລິຫານ / ພະນັກງານ)
   if (st === 'ຜູ້ບໍລິຫານ' || st.toLowerCase() === 'admin') {
     badgeHtml += '<span class="badge badge-primary px-3 py-1" style="border-radius: 6px;"><i class="fas fa-user-shield mr-1"></i> ' + (i18n['users_manage.role_admin'] || 'ຜູ້ບໍລິຫານ') + '</span>';
+  } else if (st === 'ຜູ້ຈັດການ') {
+    badgeHtml += '<span class="badge badge-info px-3 py-1" style="border-radius: 6px;"><i class="fas fa-user-tie mr-1"></i> ' + (i18n['users_manage.role_manager_short'] || 'ຜູ້ຈັດການ') + '</span>';
   } else {
     badgeHtml += '<span class="badge badge-secondary px-3 py-1" style="border-radius: 6px;"><i class="fas fa-user mr-1"></i> ' + (i18n['users_manage.role_employee'] || 'ພະນັກງານ') + '</span>';
   }
@@ -108,7 +110,15 @@ function openEditModal(user) {
 
   var editStoreEl = document.getElementById('edit_store_id');
   if (editStoreEl) {
-    editStoreEl.value = user.store_id || user.branch_id || '1';
+    var curStore = String(user.store_id || user.branch_id || '');
+    // ລາຍການສາຂາມີແຕ່ສາຂາທີ່ເປີດໃຊ້ງານ: ຖ້າສາຂາປັດຈຸບັນຂອງຜູ້ໃຊ້ຖືກປິດ ມັນບໍ່ມີໃນລາຍການ → ເພີ່ມໃຫ້ຊົ່ວຄາວ
+    // ບໍ່ດັ່ງນັ້ນການແກ້ຂໍ້ມູນອື່ນ (ເຊັ່ນ ຕໍ່ອາຍຸ) ຈະຍ້າຍຜູ້ໃຊ້ໄປສາຂາອື່ນໂດຍບໍ່ຮູ້ຕົວ
+    $(editStoreEl).find('option.edit-store-inactive').remove();
+    if (curStore && !$(editStoreEl).find('option[value="' + curStore + '"]').length) {
+      $('<option class="edit-store-inactive"></option>').val(curStore)
+        .text((user.store_name || ('ສາຂາ #' + curStore)) + ' (ປິດໃຊ້ງານ)').appendTo(editStoreEl);
+    }
+    editStoreEl.value = curStore || editStoreEl.value;
   }
 
   var genderVal = (user.gender || 'ຊາຍ').trim();
@@ -135,6 +145,9 @@ function openEditModal(user) {
 
   if (st === 'admin' || st === 'administrator' || rawStatus === 'ຜູ້ບໍລິຫານ') {
     selectEl.value = 'ຜູ້ບໍລິຫານ';
+  } else if (rawStatus === 'ຜູ້ຈັດການ') {
+    // ຕ້ອງເລືອກຄືນໃຫ້ຖືກ — ບໍ່ດັ່ງນັ້ນການແກ້ຂໍ້ມູນອື່ນຈະປົດຜູ້ຈັດການເປັນພະນັກງານ (ແລະ ເອົາສິດຄືນ)
+    selectEl.value = 'ຜູ້ຈັດການ';
   } else {
     selectEl.value = 'ພະນັກງານ';
   }
@@ -314,4 +327,45 @@ function confirmDeleteUser(id, username) {
       });
     }
   }
+}
+
+// ເປີດ / ປິດໃຊ້ງານບັນຊີ (ພະນັກງານລາອອກ) — ປິດແລ້ວເຂົ້າລະບົບບໍ່ໄດ້ ແຕ່ປະຫວັດຍັງຢູ່
+function toggleUserActive(id, username, active) {
+  var targetUrl = typeof API_URL !== 'undefined' ? API_URL : 'api_user.php';
+  var title = active ? 'ເປີດໃຊ້ງານບັນຊີຄືນ' : 'ປິດໃຊ້ງານບັນຊີ';
+  var text = active
+    ? 'ເປີດໃຫ້ "' + username + '" ເຂົ້າລະບົບໄດ້ອີກຄັ້ງ?'
+    : 'ປິດໃຊ້ງານ "' + username + '" (ພະນັກງານລາອອກ)? ຈະເຂົ້າລະບົບບໍ່ໄດ້ອີກ ແຕ່ປະຫວັດການຂາຍຍັງຢູ່ຄົບ';
+
+  Swal.fire({
+    title: title,
+    text: text,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: active ? '#16a34a' : '#475569',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: active ? '<i class="fas fa-user-check mr-1"></i> ເປີດໃຊ້ງານ' : '<i class="fas fa-user-slash mr-1"></i> ປິດໃຊ້ງານ',
+    cancelButtonText: 'ຍົກເລີກ'
+  }).then(function(res) {
+    if (!res.isConfirmed) return;
+
+    var formData = new FormData();
+    formData.append('action', 'toggle_user_active');
+    formData.append('user_id', id);
+    formData.append('active', active);
+
+    fetch(targetUrl, { method: 'POST', body: formData })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      if (data.status === 'success') {
+        Swal.fire({ icon: 'success', title: 'ສຳເລັດ!', text: data.message, confirmButtonText: 'ຕົກລົງ', confirmButtonColor: '#0284c7' })
+          .then(function() { location.reload(); });
+      } else {
+        Swal.fire({ icon: 'error', title: 'ຜິດພາດ!', text: data.message, confirmButtonText: 'ຕົກລົງ' });
+      }
+    })
+    .catch(function(err) {
+      Swal.fire({ icon: 'error', title: 'ຜິດພາດ!', text: err.message, confirmButtonText: 'ຕົກລົງ' });
+    });
+  });
 }

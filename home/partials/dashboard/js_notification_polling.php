@@ -128,7 +128,7 @@
                     var badgeClass = isOutOfStock ? 'badge-danger' : 'badge-warning text-dark';
                     var qtyLabel = isOutOfStock ? I18N_LAYOUT['layout.out_of_stock'] : (I18N_LAYOUT['layout.remaining'] + ' ' + alert.qty + ' ' + (alert.unit || I18N_LAYOUT['layout.default_unit']));
 
-                    html += '<div id="notif_item_main_' + alert.product_id + '" onclick="goToRestockProduct(' + JSON.stringify(alert.product_name || '') + ')" class="dropdown-item py-2 px-3 d-flex align-items-center justify-content-between border-bottom flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden;" title="' + I18N_LAYOUT['layout.click_to_restock'] + '">';
+                    html += '<div id="notif_item_main_' + alert.product_id + '" onclick="markItemAsRead(\'main_' + alert.product_id + '\', \'mainNotifBadge\'); goToStockList(' + (parseInt(alert.store_id, 10) || 0) + ', ' + (isOutOfStock ? 'true' : 'false') + ', \'' + String(alert.product_id).replace(/[^0-9A-Za-z_-]/g, '') + '\')" class="dropdown-item py-2 px-3 d-flex align-items-center justify-content-between border-bottom flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden;">';
                     html += '<div class="d-flex align-items-center text-nowrap mr-2" style="overflow: hidden; text-overflow: ellipsis; min-width: 0;">';
                     html += '<i class="fas fa-exclamation-circle ' + (isOutOfStock ? 'text-danger' : 'text-warning') + ' mr-1.5" style="font-size: 0.82rem;"></i>';
                     html += '<strong class="text-dark text-truncate" style="font-size: 0.82rem;" title="' + (alert.product_name || '') + '">' + (alert.product_name || '') + '</strong>';
@@ -200,7 +200,7 @@
                   var qtyLabel = isOutOfStock ? I18N_LAYOUT['layout.out_of_stock'] : (I18N_LAYOUT['layout.remaining'] + ' ' + stk.qty + ' ' + (stk.unit || I18N_LAYOUT['layout.default_unit']));
                   var iconClass = isOutOfStock ? 'text-danger' : 'text-warning';
 
-                  html += '<div id="notif_item_stk_' + stk.product_id + '" onclick="markItemAsRead(\'stk_' + stk.product_id + '\', \'subNotifBadge\')" class="dropdown-item py-2 px-3 border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden; opacity: ' + (isRead ? '0.55' : '1') + ';">';
+                  html += '<div id="notif_item_stk_' + stk.product_id + '" onclick="markItemAsRead(\'stk_' + stk.product_id + '\', \'subNotifBadge\'); goToStockList(' + (parseInt(stk.store_id, 10) || 0) + ', ' + (isOutOfStock ? 'true' : 'false') + ', \'' + String(stk.product_id).replace(/[^0-9A-Za-z_-]/g, '') + '\')" class="dropdown-item py-2 px-3 border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden; opacity: ' + (isRead ? '0.55' : '1') + ';">';
                   html += '<div class="d-flex align-items-center text-nowrap mr-2" style="overflow: hidden; text-overflow: ellipsis; min-width: 0;">';
                   html += '<i class="fas fa-exclamation-circle ' + iconClass + ' mr-1.5" style="font-size: 0.82rem;"></i>';
                   html += '<span class="text-dark font-weight-bold text-truncate" style="font-size: 0.82rem;" title="' + (stk.product_name || '') + '">' + (stk.product_name || '') + '</span>';

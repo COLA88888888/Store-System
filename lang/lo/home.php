@@ -13,6 +13,7 @@ return [
     'home.search' => 'ຄົ້ນຫາ',
     'home.clear' => 'ລ້າງຄ່າ',
     'home.default_currency_opt' => '-- ຄ່າເລີ່ມຕົ້ນຮ້ານ --',
+    'home.default_currency_short' => 'ຄ່າເລີ່ມຕົ້ນ',
     'home.card_total_sales' => 'ຍອດຂາຍທັງໝົດ',
     'home.card_total_cost' => 'ຕົ້ນທຶນສິນຄ້າທັງໝົດ',
     'home.card_cogs' => 'ຕົ້ນທຶນການຂາຍ',

@@ -84,7 +84,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
     </div>
     <div class="col-sm-6 text-right">
       <?php if (hasPermission('printers', 'add')): ?>
-        <button type="button" class="btn btn-primary px-3.5 font-weight-bold text-white shadow-sm" data-toggle="modal" data-target="#addPrinterModal" style="border-radius: 8px;">
+        <button type="button" class="btn btn-primary px-3.5 font-weight-bold text-white shadow-sm" data-toggle="modal" data-target="#addPrinterModal" style="border-radius: 6px;">
           <i class="fas fa-plus-circle mr-1.5"></i> ເພີ່ມເຄື່ອງພິມໃໝ່
         </button>
       <?php endif; ?>

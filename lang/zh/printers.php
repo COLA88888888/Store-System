@@ -42,6 +42,11 @@ return [
 
     // LAN printing
     'printers.field_paper_width' => '纸张宽度：',
+    'printers.paper_a5' => 'A5（纸张 148×210 mm）',
+    'printers.paper_a4' => 'A4（纸张 210×297 mm）',
+    'printers.paper_hint' => '58/80 mm = 小票打印机（卷纸）；A5/A4 = 文档打印机 — 通过打印对话框整页打印账单',
+    'printers.bt_paper_page_hint' => 'A5/A4：本设备通过打印对话框整页打印账单（Wi-Fi / 文档打印机），不使用蓝牙',
+    'printers.bt_page_mode' => '已选择 A5/A4 — 销售账单将以整页打开打印对话框，请选择 Wi-Fi / 文档打印机',
     'printers.lan_hint' => '网络 LAN 打印机直接接收厨房小票，无需打印对话框。请填写打印机 IP（默认端口 9100，或 IP:端口）。',
     'printers.btn_test' => '测试打印',
     'printers.test_ok' => '测试页已发送到 %s',

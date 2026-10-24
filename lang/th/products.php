@@ -8,6 +8,11 @@ return [
     'products.store_main_suffix' => '(คลังหลัก)',
     'products.store_branch_suffix' => '(สาขาย่อย)',
     'products.category_filter_placeholder' => '-- เลือกหมวดหมู่ --',
+    'products.stock_filter_all' => '-- ทุกสต็อก --',
+    'products.stock_filter_low' => 'ใกล้หมด',
+    'products.stock_filter_out' => 'หมดแล้ว',
+    'products.focus_showing' => 'แสดงเฉพาะ:',
+    'products.focus_show_all' => 'แสดงทั้งหมด',
     'products.search_placeholder' => 'ค้นหาชื่อ, บาร์โค้ด...',
 
     // Table
@@ -91,6 +96,8 @@ return [
     'products.supplier_empty_hint' => 'ยังไม่มีผู้จัดจำหน่าย — เพิ่มได้ที่เมนู "จัดการผู้จัดจำหน่าย"',
     'products.field_qty' => 'จำนวนสต็อก:',
     'products.field_qty_optional' => '(ถ้ามี)',
+    'products.field_zone' => 'โซน:',
+    'products.field_shelf' => 'ชั้นวาง:',
     'products.field_bprice' => 'ราคาซื้อ:',
     'products.field_price' => 'ราคาขาย:',
     'products.field_price_retail' => 'ราคาขายปลีก',
@@ -102,9 +109,9 @@ return [
 
     // Multi-unit row template
     'products.unit_row_name_label' => 'ชื่อหน่วย:',
-    'products.unit_row_name_placeholder' => 'เช่น: แพ็ค, แกลลอน...',
-    'products.unit_row_qty_label' => 'จำนวน:',
-    'products.unit_row_qty_placeholder' => 'เช่น: 6',
+    'products.unit_row_name_placeholder' => 'เลือกหน่วย...',
+    'products.unit_row_qty_label' => 'จำนวนที่ตัดสต็อก:',
+    'products.unit_row_qty_placeholder' => 'เช่น: 12',
     'products.unit_row_bprice_label' => 'ราคาซื้อ:',
     'products.unit_row_price_label' => 'ราคาขาย:',
     'products.unit_row_barcode_label' => 'บาร์โค้ด:',

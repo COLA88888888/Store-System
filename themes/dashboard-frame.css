@@ -4,11 +4,11 @@
    (config/helpers/theme_css.php) ສະນັ້ນ ລຳດັບ cascade ຄືເກົ່າ.
    ============================================================ */
       .content-wrapper {
-        height: calc(var(--app-vh, 1vh) * 100 - 64px - 42px) !important;
+        height: calc(var(--app-vh, 1vh) * 100 - 64px) !important;
       }
       @media (max-width: 991.98px) {
         .content-wrapper {
-          height: calc(var(--app-vh, 1vh) * 100 - 64px - 42px) !important;
+          height: calc(var(--app-vh, 1vh) * 100 - 64px) !important;
         }
       }
     

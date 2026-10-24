@@ -48,12 +48,21 @@
                        style="width: 100px; height: 100px; object-fit: contain; border-radius: 50%; border: 2px solid #93c5fd; background: #f8fafc; padding: 4px; cursor: pointer;"
                        onclick="document.getElementById('logo_input').click();"
                        onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23e2e8f0\'/><text x=\'50\' y=\'58\' text-anchor=\'middle\' font-size=\'38\' fill=\'%2394a3b8\'>&#128722;</text></svg>'">
-                  <button type="button" class="btn btn-sm btn-primary position-absolute shadow-sm" 
-                          style="right: -2px; bottom: -2px; border-radius: 50%; width: 32px; height: 32px; border: 2px solid #fff;"
+                  <?php /* btn-xs + rounded-circle: ບໍ່ໃຫ້ກົດ 38px / ມຸມ 6px ທົ່ວລະບົບ (assets/css/global-custom/03-controls.css) ແຕະ */ ?>
+                  <button type="button" class="btn btn-xs btn-primary rounded-circle position-absolute shadow-sm d-flex align-items-center justify-content-center p-0"
+                          style="right: 0; bottom: 0; width: 26px; height: 26px; border: 2px solid #fff;"
                           onclick="document.getElementById('logo_input').click();"
                           title="<?php echo htmlspecialchars(t('stores.logo_change_title', 'ປ່ຽນຮູບໂລໂກ້')); ?>">
-                    <i class="fas fa-camera"></i>
+                    <i class="fas fa-camera" style="font-size: 0.7rem;"></i>
                   </button>
+                  <!-- ປຸ່ມ ✕ ສີແດງ: ລຶບໂລໂກ້ (ມີຜົນເມື່ອກົດບັນທຶກ) — ສະແດງສະເພາະເມື່ອມີໂລໂກ້ -->
+                  <button type="button" id="logo_remove_btn" class="btn btn-xs btn-danger rounded-circle position-absolute shadow-sm d-flex align-items-center justify-content-center p-0"
+                          style="right: 0; top: 0; width: 24px; height: 24px; border: 2px solid #fff;<?php echo $hasCustomLogo ? '' : ' display: none !important;'; ?>"
+                          onclick="removeStoreLogo()"
+                          title="<?php echo htmlspecialchars(t('stores.logo_remove_title', 'ລຶບຮູບໂລໂກ້')); ?>">
+                    <i class="fas fa-times" style="font-size: 0.72rem;"></i>
+                  </button>
+                  <input type="hidden" name="remove_logo" id="remove_logo" value="0">
                 </div>
                 <div>
                   <h6 class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('stores.logo_heading', 'ໂລໂກ້ຮ້ານຄ້າ')); ?></h6>
@@ -161,6 +170,15 @@
             <input type="text" name="receipt_footer" id="input_store_footer" class="form-control <?php echo $sharedFieldClass; ?>"
                    value="<?php echo htmlspecialchars($company['barcode'] ?? ''); ?>"
                    placeholder="<?php echo htmlspecialchars(t('stores.field_footer_ph', 'ເຊັ່ນ: ຂອບໃຈທີ່ມາອຸດໜູນ, ສິນຄ້າຊື້ແລ້ວບໍ່ຮັບປ່ຽນຄືນ...')); ?>" <?php echo $sharedReadonly; ?>>
+            <?php /* ຂໍ້ຄວາມທ້າຍບິນພາສາອື່ນ: ໃບບິນສະແດງຕາມພາສາທີ່ເລືອກ, ຫວ່າງໄວ້ = ໃຊ້ພາສາລາວຂ້າງເທິງ (layouts/receipt_template.php) */ ?>
+            <small class="text-muted d-block mt-2 mb-1"><?php echo htmlspecialchars(t('stores.field_footer_other_hint', 'ຂໍ້ຄວາມທ້າຍບິນພາສາອື່ນ — ໃບບິນຈະປ່ຽນຕາມພາສາທີ່ເລືອກ (ຫວ່າງໄວ້ = ໃຊ້ພາສາລາວ)')); ?></small>
+            <?php foreach (['en' => 'English', 'th' => 'ไทย', 'zh' => '中文'] as $__fl => $__flName): ?>
+              <div class="input-group input-group-sm mb-1">
+                <div class="input-group-prepend"><span class="input-group-text font-weight-bold" style="min-width: 72px;"><?php echo $__flName; ?></span></div>
+                <input type="text" name="receipt_footer_<?php echo $__fl; ?>" class="form-control <?php echo $sharedFieldClass; ?>"
+                       value="<?php echo htmlspecialchars($company['receipt_footer_' . $__fl] ?? ''); ?>" <?php echo $sharedReadonly; ?>>
+              </div>
+            <?php endforeach; ?>
           </div>
 
           <!-- Queue number on receipt (coffee-shop style) -->
@@ -179,7 +197,7 @@
 
           <!-- Submit Button (Aligned to the Right) -->
           <div class="pt-3 border-top text-right d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary px-4 py-2 font-weight-bold shadow-sm" style="border-radius: 8px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
+            <button type="submit" class="btn btn-primary px-4 py-2 font-weight-bold shadow-sm" style="border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
               <i class="fas fa-save mr-2"></i> <?php echo htmlspecialchars(t('stores.btn_save_info', 'ບັນທຶກຂໍ້ມູນຮ້ານຄ້າ')); ?>
             </button>
           </div>

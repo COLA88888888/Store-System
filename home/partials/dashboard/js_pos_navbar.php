@@ -32,6 +32,51 @@
         root.style.setProperty('--pos-nav-left', Math.round(l) + 'px');
         root.style.setProperty('--pos-nav-right', Math.round(rr) + 'px');
         root.style.setProperty('--pos-nav-bg', themeColor(n));
+        // ຈື່ຕຳແໜ່ງໄວ້ ໃຫ້ບັອກ "ຕົວແທນ" (#posNavGhost) ວາງບ່ອນດຽວກັນເປ໊ະ ໃນການຣີເຟຣດຄັ້ງຕໍ່ໄປ
+        try { localStorage.setItem('StoreMini.pos_nav_left', Math.round(l)); } catch (e) {}
+        placeGhost(Math.round(l), null);
+
+        try {
+          var prod = posWin.document.querySelector('.pos-products');
+          if (prod) {
+            var pRect = prod.getBoundingClientRect();
+            var dist = posWin.innerWidth - pRect.right;
+            if (dist > 0) {
+              root.style.setProperty('--pos-products-right-dist', Math.round(dist) + 'px');
+              try { localStorage.setItem('StoreMini.pos_nav_right_dist', Math.round(dist)); } catch (e) {}
+              placeGhost(null, Math.round(dist));
+            }
+          }
+        } catch (e) {}
+      }
+
+      // ບັອກສະແກນ "ຕົວແທນ" ໃນ Navbar (navbar.php #posNavGhost)
+      function placeGhost(left, right) {
+        var g = document.getElementById('posNavGhost');
+        if (!g) return;
+        if (left !== null) g.style.left = left + 'px';
+        if (right !== null) g.style.right = right + 'px';
+      }
+      // ສະແດງ ເມື່ອໜ້າທີ່ກຳລັງເປີດແມ່ນໜ້າຂາຍ ແຕ່ບັອກແທ້ຍັງບໍ່ພ້ອມ (ໜ້າຂາຍຍັງບໍ່ໂຫຼດ ຫຼື ໂຕໂຫຼດຍັງບັງຢູ່)
+      function updateGhost(loading) {
+        var g = document.getElementById('posNavGhost');
+        if (!g) return;
+        var src = '';
+        try { src = sessionStorage.getItem('StoreMini.currentIframeSrc') || ''; } catch (e) {}
+        var posPage = !!posWin || /pos\/pos\.php/.test(src);
+        var realReady = !!posWin && !loading;
+        g.classList.toggle('show', window.innerWidth >= 992 && posPage && !realReady);
+      }
+
+      function isSystemLoading() {
+        if (document.body.classList.contains('is-loading')) return true;
+        var el = document.getElementById('iframeLoaderOverlay');
+        if (el) {
+          var disp = el.style.display || window.getComputedStyle(el).display;
+          var op = parseFloat(el.style.opacity || window.getComputedStyle(el).opacity);
+          if (disp !== 'none' && op > 0.05) return true;
+        }
+        return false;
       }
 
       function apply() {
@@ -40,15 +85,24 @@
         var on = !!posWin && window.innerWidth >= 992;
         if (!n.hasAttribute('data-theme-bg')) n.setAttribute('data-theme-bg', themeColor(n));
         document.body.classList.toggle('pos-nav-mode', on);
-        n.style.setProperty('background-color', on ? 'transparent' : n.getAttribute('data-theme-bg'), 'important');
+        var loading = isSystemLoading();
+        n.style.setProperty('background-color', (on && !loading) ? 'transparent' : n.getAttribute('data-theme-bg'), 'important');
         try { if (posWin) posWin.document.documentElement.classList.toggle('pos-nav-mode', on); } catch (e) {}
         if (on) pushVars();
+        updateGhost(loading);
       }
 
       window.setPosNavMode = function(on, win) {
         if (on) posWin = win || null;
-        else if (!win || win === posWin) posWin = null;
+        else if (!win || win === posWin) {
+          posWin = null;
+          document.body.classList.remove('pos-modal-open');
+        }
         apply();
+      };
+
+      window.setPosModalOpen = function(isOpen) {
+        document.body.classList.toggle('pos-modal-open', !!isOpen);
       };
       // Called by js_theme_color.php after a theme change, so the navbar stays transparent
       // and the POS band picks up the new colour.

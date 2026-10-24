@@ -337,14 +337,26 @@ html, body { overflow: hidden !important; height: 100% !important; }
 }
 .dropdown-item, .dropdown-toggle { cursor: pointer !important; }
 
-/* === Notification Dropdown Font Size (Bumped up for readability) === */
-.notif-dropdown-box .dropdown-header span { font-size: 1rem !important; }
+/* === Notification Dropdown: ຟອນນ້ອຍລົງ ແລະ ສະແດງຂໍ້ຄວາມເຕັມ (ຕັດແຖວແທນ "…") === */
+.notif-dropdown-box .dropdown-header span { font-size: 0.84rem !important; }
 .notif-dropdown-box strong,
-.notif-dropdown-box .text-truncate { font-size: 0.92rem !important; }
-.notif-dropdown-box .badge { font-size: 0.82rem !important; }
+.notif-dropdown-box .text-truncate { font-size: 0.8rem !important; }
+.notif-dropdown-box .badge { font-size: 0.7rem !important; }
 .notif-dropdown-box small,
-.notif-dropdown-box .text-muted { font-size: 0.88rem !important; }
-.notif-dropdown-box .px-3.py-1\.5 { font-size: 0.92rem !important; }
+.notif-dropdown-box .text-muted { font-size: 0.72rem !important; }
+.notif-dropdown-box .px-3.py-1\.5 { font-size: 0.78rem !important; }
+/* ເຫັນຄົບ: ຊື່ສິນຄ້າ / ຊື່ສາຂາ / ຫົວຂໍ້ ບໍ່ຕັດເປັນ "…" (ລາຍການສ້າງດ້ວຍ inline nowrap ຈຶ່ງຕ້ອງ !important) */
+.notif-dropdown-box .text-truncate {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    line-height: 1.35;
+}
+.notif-dropdown-box .dropdown-item,
+.notif-dropdown-box .dropdown-header,
+.notif-dropdown-box .flex-nowrap { white-space: normal !important; overflow: visible !important; }
+.notif-dropdown-box .dropdown-item > .text-nowrap:not(.flex-shrink-0) { white-space: normal !important; overflow: visible !important; }
+.notif-dropdown-box .flex-shrink-0 { white-space: nowrap !important; }
 
 
 /* ແຕະເມນູເທື່ອດຽວໃນໂທລະສັບ: ບໍ່ລໍຖ້າ double-tap zoom (ເບິ່ງ touchend ໃນ home/partials/dashboard/js_layout.php) */

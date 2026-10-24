@@ -3,8 +3,8 @@
  * ສ່ວນ: ຟັງຊັນຊ່ວຍ: ແຈ້ງເຕືອນເຊັກສະຕັອກ
  * getStockCheckNotifications() — ໃຊ້ໃນ poll_notifications (api/stock_transfer_backend.php) ທຸກ 1.5 ວິນາທີ:
  *   type 'review'   → ຫົວໜ້າ/ຜູ້ອະນຸມັດ: ພະນັກງານສົ່ງໃບມາກວດສອບ (status = pending)
- *   type 'approved' → ພະນັກງານ: ຫົວໜ້າອະນຸມັດແລ້ວ ໃຫ້ປັບສະຕັອກໄດ້ (status = approved) — ສົ່ງຫາຜູ້ທີ່ສົ່ງໃບ,
- *                     ຫຼື ຜູ້ນັບໃນສາຂານັ້ນ ຖ້າໃບບໍ່ມີຜູ້ສົ່ງ (ໃບເກົ່າກ່ອນມີຄໍລຳ submitted_by)
+ *   type 'approved' → ພະນັກງານ: ຫົວໜ້າອະນຸມັດ ແລະ ປັບສະຕັອກແລ້ວ (status = completed ທີ່ມີ approved_at ພາຍໃນ 3 ວັນ,
+ *                     ຫຼື ໃບເກົ່າທີ່ຄ້າງ approved) — ສົ່ງຫາຜູ້ທີ່ສົ່ງໃບ, ຫຼື ຜູ້ນັບໃນສາຂານັ້ນ ຖ້າໃບບໍ່ມີຜູ້ສົ່ງ
  * key ລວມເວລາເຂົ້າໄປ: ສົ່ງກວດຄືນ/ອະນຸມັດຄືນ ຖືເປັນແຈ້ງເຕືອນໃໝ່ (ອ່ານແລ້ວຂອງຮອບກ່ອນ ບໍ່ປິດຮອບໃໝ່).
  * ໄຟລ໌ນີ້ຖືກ require ຈາກ config/db.php.
  */
@@ -14,8 +14,9 @@ if (!function_exists('getStockCheckNotifications')) {
         if ($userId <= 0 || !$pdo) return [];
         try {
             $isBoss     = isOwnerUser() || isAdminAccount($pdo, $userId);
-            $canApprove = $isBoss || hasPermission('stock_check', 'edit');
-            $canCount   = $isBoss || hasPermission('stock_check') || hasPermission('stock_count');
+            // ຜູ້ອະນຸມັດ = ຜູ້ບໍລິຫານ ຫຼື ຕຳແໜ່ງຜູ້ຈັດການ (ດຽວກັບ api/stock_check_backend.php)
+            $canApprove = $isBoss || (function_exists('isManagerRole') && isManagerRole());
+            $canCount   = $canApprove || hasPermission('stock_check') || hasPermission('stock_count');
             if (!$canApprove && !$canCount) return [];
 
             // ສາຂາທີ່ເບິ່ງໄດ້: ສາຂາຫຼັກ/ເຈົ້າຂອງ = ທຸກສາຂາ, ນອກນັ້ນ = ສາຂາຂອງຕົນເອງ
@@ -48,7 +49,9 @@ if (!function_exists('getStockCheckNotifications')) {
                                      FROM st_stock_checks c
                                      LEFT JOIN st_tbstore s ON s.store_id = c.store_id
                                      LEFT JOIN st_tbuser u ON u.Id = c.approved_by
-                                     WHERE c.status = 'approved' AND IFNULL(c.approved_by, 0) <> ?
+                                     WHERE (c.status = 'approved'
+                                            OR (c.status = 'completed' AND c.approved_at >= DATE_SUB(NOW(), INTERVAL 3 DAY)))
+                                       AND IFNULL(c.approved_by, 0) <> ?
                                        AND (c.submitted_by = ? OR (c.submitted_by IS NULL AND c.store_id = ?))
                                      ORDER BY at DESC LIMIT 20");
                 $st->execute([$userId, $userId, $ownStore]);

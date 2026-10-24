@@ -93,7 +93,12 @@
               <!-- Row 3: ຫົວໜ່ວຍຍ່ອຍພື້ນຖານ & ຈຳນວນສະຕັອກ (ສະເພາະແອັດມິນ) -->
               <div class="row">
                 <div class="<?php echo $isAdmin ? 'col-md-7' : 'col-md-12'; ?> mb-3">
-                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_unit', 'ຫົວໜ່ວຍ:')); ?> <span class="text-danger">*</span></label>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="font-weight-bold text-dark mb-0"><?php echo htmlspecialchars(t('products.field_unit', 'ຫົວໜ່ວຍ:')); ?> <span class="text-danger">*</span></label>
+                    <a href="javascript:void(0)" onclick="quickAddUnitPrompt('add')" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
+                      <i class="fas fa-plus mr-1"></i>ເພີ່ມຫົວໜ່ວຍ
+                    </a>
+                  </div>
                   <select name="unit_id" id="add_unit" class="form-control" style="border-radius: 6px; height: 40px;" required>
                     <option value=""><?php echo htmlspecialchars(t('products.select_unit_placeholder', '-- ເລືອກຫົວໜ່ວຍ --')); ?></option>
                     <?php foreach ($units as $u): ?>
@@ -130,12 +135,12 @@
                 </div>
               </div>
 
-              <!-- Row 3c: ໂຊນ (Zone) & ຊັ້ນວາງ (Shelf) (ເລືອກຈາກຕາຕະລາງ, ຖ້າບໍ່ເລືອກໂຊນ ບັອກຊັ້ນວາງແມ່ນເຊື່ອງໄວ້) -->
+              <!-- Row 3c: ໂຊນ & ຊັ້ນວາງ (ເລືອກຈາກຕາຕະລາງ, ຖ້າບໍ່ເລືອກໂຊນ ບັອກຊັ້ນວາງແມ່ນເຊື່ອງໄວ້) -->
               <div class="row">
                 <div class="col-md-6 mb-3" id="add_zone_box">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="font-weight-bold text-dark mb-0">
-                      <?php echo htmlspecialchars(t('products.field_zone', 'ໂຊນ (Zone):')); ?>
+                      <?php echo htmlspecialchars(t('products.field_zone', 'ໂຊນ:')); ?>
                     </label>
                     <a href="javascript:void(0)" onclick="quickAddZonePrompt('add')" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
                       <i class="fas fa-plus mr-1"></i>ເພີ່ມໂຊນ
@@ -148,10 +153,10 @@
                     <?php endforeach; ?>
                   </select>
                 </div>
-                <div class="col-md-6 mb-3" id="add_shelf_box" style="display: none;">
+                <div class="col-md-6 mb-3" id="add_shelf_box">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="font-weight-bold text-dark mb-0">
-                      <?php echo htmlspecialchars(t('products.field_shelf', 'ຊັ້ນວາງ (Shelf):')); ?>
+                      <?php echo htmlspecialchars(t('products.field_shelf', 'ຊັ້ນວາງ:')); ?>
                     </label>
                     <a href="javascript:void(0)" onclick="quickAddShelfPrompt('add')" class="text-info font-weight-bold" style="font-size: 0.78rem;">
                       <i class="fas fa-plus mr-1"></i>ເພີ່ມຊັ້ນວາງ
@@ -223,7 +228,7 @@
 
         <!-- FOOTER -->
         <div class="modal-footer border-0 pt-0 pb-4 px-4">
-          <button type="button" class="btn btn-light font-weight-bold px-4" style="border-radius: 6px; cursor: pointer;" data-dismiss="modal"><?php echo htmlspecialchars(t('products.cancel', 'ຍົກເລີກ')); ?></button>
+          <button type="button" class="btn btn-light font-weight-bold px-4" style="border-radius: 6px; cursor: pointer;" onclick="cancelAddSingleForm()"><?php echo htmlspecialchars(t('products.cancel', 'ຍົກເລີກ')); ?></button>
           <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 6px; cursor: pointer; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
             <i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('products.btn_save', 'ບັນທຶກ')); ?>
           </button>

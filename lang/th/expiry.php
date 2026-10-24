@@ -61,6 +61,8 @@ return [
     'expiry.report_subtitle' => 'สินค้าที่หมดอายุแล้วและใกล้หมดอายุ (แจ้งเตือนก่อน %s วัน)',
     'expiry.card_near' => 'ใกล้หมดอายุ (ไม่เกิน %s วัน)',
     'expiry.card_tracked' => 'สินค้าที่ติดตามวันหมดอายุ',
+    'expiry.card_attention' => 'สินค้าใกล้หมดอายุและหมดอายุ',
+    'expiry.empty_none_attention' => 'ไม่มีสินค้าใกล้หมดอายุหรือหมดอายุ',
     'expiry.within_label' => 'จะหมดอายุภายใน:',
     'expiry.within_any' => '-- ทั้งหมด --',
     'expiry.branch_label' => 'สาขา:',

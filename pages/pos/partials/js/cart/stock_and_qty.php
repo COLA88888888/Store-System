@@ -278,13 +278,353 @@ function removeFromCart(cartKey) {
   updateCartUI();
 }
 
+// ປຸ່ມ "ລ້າງ": ຖາມຢືນຢັນກ່ອນ (ຍົກເລີກ / ຕົກລົງ) ແລ້ວຈຶ່ງລ້າງ
+function confirmClearCart() {
+  if (cart.length === 0) return;
+  Swal.fire({
+    icon: 'warning',
+    title: <?php echo json_encode(t('pos.clear_confirm_title', 'ລ້າງລາຍການທັງໝົດ?'), JSON_UNESCAPED_UNICODE); ?>,
+    text: <?php echo json_encode(t('pos.clear_confirm_text', 'ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລ້າງລາຍການທັງໝົດ?'), JSON_UNESCAPED_UNICODE); ?>,
+    showCancelButton: true,
+    focusCancel: true,
+    confirmButtonText: <?php echo json_encode(t('pos.ok', 'ຕົກລົງ'), JSON_UNESCAPED_UNICODE); ?>,
+    cancelButtonText: <?php echo json_encode(t('pos.cancel', 'ຍົກເລີກ'), JSON_UNESCAPED_UNICODE); ?>,
+    confirmButtonColor: '#dc3545',
+    cancelButtonColor: '#64748b'
+  }).then(function(r) { if (r.isConfirmed) clearCart(); });
+}
+
 function clearCart() {
-  // ລ້າງກະຕ່າໂດຍກົງ ບໍ່ຕ້ອງມີ popup ຢືນຢັນ
+  // ລ້າງກະຕ່າທັນທີ (ປຸ່ມ "ລ້າງ" ເອີ້ນຜ່ານ confirmClearCart() ທີ່ຖາມຢືນຢັນກ່ອນ)
   if (cart.length === 0) return;
   cart = [];
   // The cleared cart is no longer the recalled held bill — that bill stays held (unpaid).
   if (typeof setCurrentHeldId === 'function') setCurrentHeldId(null);
   if (typeof posDropAllRedemptions === 'function') posDropAllRedemptions();
+  updateCartUI();
+}
+
+// --- LINE ITEM DISCOUNT MODAL & MANAGEMENT ---
+var _currentDiscModalCartKey = null;
+var _currentDiscModalMode = 'percent';
+
+function openItemDiscountModal(cartKey) {
+  var item = cart.find(function(i) { return i.cartKey === cartKey; });
+  if (!item) return;
+
+  _currentDiscModalCartKey = cartKey;
+  var origPrice = (typeof item.original_price !== 'undefined' && item.original_price !== null) ? parseFloat(item.original_price) : parseFloat(item.unit_price);
+  item.original_price = origPrice;
+
+  _currentDiscModalMode = (item.item_discount_type === 'amount') ? 'amount' : 'percent';
+  var initialVal = '';
+  if (_currentDiscModalMode === 'percent') {
+    initialVal = (item.item_discount_val > 0) ? item.item_discount_val : (item.item_discount ? item.item_discount : '');
+  } else {
+    var rawAmt = (item.item_discount_val > 0) ? item.item_discount_val : (item.item_discount ? item.item_discount : '');
+    initialVal = (rawAmt > 0) ? Number(rawAmt).toLocaleString('en-US') : '';
+  }
+
+  var hasDiscount = (parseFloat(item.item_discount) || 0) > 0;
+  var symbol = (window.POSCUR && POSCUR.symbol) ? POSCUR.symbol : '₭';
+
+  var modalHtml = `
+    <style>
+      #swalItemDiscInput::-webkit-outer-spin-button,
+      #swalItemDiscInput::-webkit-inner-spin-button {
+        -webkit-appearance: none !important;
+        margin: 0 !important;
+      }
+      #swalItemDiscInput {
+        -moz-appearance: textfield !important;
+      }
+    </style>
+    <div class="item-disc-modal-wrap text-left" style="font-family: inherit;">
+      <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+        <div style="width:40px; height:40px; border-radius:10px; background:#eff6ff; color:#2563eb; display:flex; align-items:center; justify-content:center; font-size:1.15rem; flex-shrink:0;">
+          <i class="fas fa-tags"></i>
+        </div>
+        <div class="ml-3" style="min-width:0; flex:1;">
+          <div class="font-weight-bold text-dark text-truncate" style="font-size:1.0rem;" title="${item.product_name}">${item.product_name}</div>
+          <div class="text-muted small">
+            ຫົວໜ່ວຍ: <b class="text-dark">${item.unit_name || 'ອັນ'}</b> | ລາຄາເດີມ: <b class="text-primary">${POSCUR.fmt(origPrice)}</b>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode Selector -->
+      <div class="d-flex mb-3" style="background:#f1f5f9; padding:4px; border-radius:8px; gap:4px;">
+        <button type="button" id="swalDiscModePct" class="btn btn-sm flex-fill font-weight-bold ${_currentDiscModalMode === 'percent' ? 'bg-white shadow-sm text-primary' : 'text-muted'}" style="border-radius:6px; border:none; padding:8px 12px; transition:all 0.15s ease;" onclick="swalSwitchItemDiscMode('percent')">
+          <i class="fas fa-percent mr-1"></i> ເປີເຊັນ (%)
+        </button>
+        <button type="button" id="swalDiscModeAmt" class="btn btn-sm flex-fill font-weight-bold ${_currentDiscModalMode === 'amount' ? 'bg-white shadow-sm text-primary' : 'text-muted'}" style="border-radius:6px; border:none; padding:8px 12px; transition:all 0.15s ease;" onclick="swalSwitchItemDiscMode('amount')">
+          <i class="fas fa-coins mr-1"></i> ຈຳນວນເງິນ (${symbol})
+        </button>
+      </div>
+
+      <!-- Quick Presets for Percent -->
+      <div id="swalDiscQuickPct" class="mb-3" style="${_currentDiscModalMode === 'percent' ? '' : 'display:none;'}">
+        <div class="text-muted small mb-1 font-weight-bold">ເລືອກດ່ວນ:</div>
+        <div class="d-flex" style="gap:6px;">
+          <button type="button" class="btn btn-outline-secondary btn-sm flex-fill font-weight-bold" style="border-radius:6px;" onclick="swalSetItemDiscVal(5)">5%</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm flex-fill font-weight-bold" style="border-radius:6px;" onclick="swalSetItemDiscVal(10)">10%</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm flex-fill font-weight-bold" style="border-radius:6px;" onclick="swalSetItemDiscVal(15)">15%</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm flex-fill font-weight-bold" style="border-radius:6px;" onclick="swalSetItemDiscVal(20)">20%</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm flex-fill font-weight-bold" style="border-radius:6px;" onclick="swalSetItemDiscVal(50)">50%</button>
+        </div>
+      </div>
+
+      <!-- Input Field -->
+      <div class="form-group mb-3">
+        <label id="swalDiscInputLabel" class="font-weight-bold text-dark small mb-1 d-flex justify-content-between align-items-center">
+          <span id="swalDiscInputLabelText">${_currentDiscModalMode === 'percent' ? 'ລະບຸເປີເຊັນສ່ວນຫຼຸດ (%):' : 'ລະບຸຈຳນວນເງິນຫຼຸດ (' + symbol + '):'}</span>
+          <span id="swalDiscConvertedHint" class="text-danger font-weight-bold" style="font-size:0.85rem;"></span>
+        </label>
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text font-weight-bold bg-light" id="swalDiscInputPrefix" style="border-radius:6px 0 0 6px;">
+              ${_currentDiscModalMode === 'percent' ? '%' : symbol}
+            </span>
+          </div>
+          <input type="text" inputmode="numeric" id="swalItemDiscInput" class="form-control form-control-lg text-right font-weight-bold" placeholder="0" value="${initialVal || ''}" style="border-radius:0 6px 6px 0; font-size:1.2rem; color:#dc2626;" oninput="swalHandleItemDiscInput(this)" autofocus>
+        </div>
+      </div>
+
+      <!-- Live Preview -->
+      <div class="p-3 mb-2" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:0.88rem;">
+        <div class="d-flex justify-content-between mb-1">
+          <span class="text-muted">ສ່ວນຫຼຸດຕໍ່ອັນ:</span>
+          <span class="font-weight-bold text-danger" id="swalPreviewDiscPerUnit"></span>
+        </div>
+        <div class="d-flex justify-content-between mb-1">
+          <span class="text-muted">ລາຄາໃໝ່ຕໍ່ອັນ:</span>
+          <span class="font-weight-bold text-dark" id="swalPreviewNewPrice"></span>
+        </div>
+        <div class="d-flex justify-content-between pt-2 mt-1 border-top" style="border-color:#e2e8f0 !important;">
+          <span class="text-muted">ຍອດລວມແຖວນີ້ (<span id="swalPreviewQty">${item.quantity}</span> ${item.unit_name || 'ອັນ'}):</span>
+          <span class="font-weight-bold text-success" id="swalPreviewLineTotal" style="font-size:1.05rem;"></span>
+        </div>
+        <div class="text-right text-muted small mt-1" id="swalPreviewTotalSaved"></div>
+      </div>
+    </div>
+  `;
+
+  Swal.fire({
+    title: 'ຕັ້ງສ່ວນຫຼຸດສິນຄ້າ',
+    html: modalHtml,
+    showCancelButton: true,
+    showDenyButton: hasDiscount,
+    confirmButtonText: '<i class="fas fa-check mr-1"></i> ບັນທຶກສ່ວນຫຼຸດ',
+    denyButtonText: '<i class="fas fa-trash-alt mr-1"></i> ລ້າງສ່ວນຫຼຸດ',
+    cancelButtonText: 'ຍົກເລີກ',
+    confirmButtonColor: '#2563eb',
+    denyButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    focusConfirm: false,
+    customClass: {
+      confirmButton: 'btn btn-primary font-weight-bold px-3',
+      denyButton: 'btn btn-danger font-weight-bold px-3',
+      cancelButton: 'btn btn-secondary font-weight-bold px-3'
+    },
+    didOpen: function() {
+      swalRecalcItemDisc();
+      setTimeout(function() {
+        var el = document.getElementById('swalItemDiscInput');
+        if (el) { el.focus(); el.select(); }
+      }, 100);
+    },
+    preConfirm: function() {
+      var rawStr = ($('#swalItemDiscInput').val() || '').replace(/,/g, '');
+      var rawVal = parseFloat(rawStr) || 0;
+      return { mode: _currentDiscModalMode, value: rawVal };
+    }
+  }).then(function(result) {
+    if (result.isConfirmed) {
+      if (result.value && result.value.value > 0) {
+        setItemDiscount(cartKey, result.value.mode, result.value.value);
+      } else {
+        clearItemDiscount(cartKey);
+      }
+    } else if (result.isDenied) {
+      clearItemDiscount(cartKey);
+    }
+  });
+}
+
+function swalHandleItemDiscInput(input) {
+  if (_currentDiscModalMode === 'amount') {
+    var raw = input.value.replace(/[^0-9]/g, '');
+    input.value = (raw === '') ? '' : Number(raw).toLocaleString('en-US');
+  } else {
+    var s = input.value.replace(/[^0-9.]/g, '');
+    var parts = s.split('.');
+    if (parts.length > 2) s = parts[0] + '.' + parts.slice(1).join('');
+    if (parseFloat(s) > 100) s = '100';
+    input.value = s;
+  }
+  swalRecalcItemDisc();
+}
+
+function swalSwitchItemDiscMode(mode) {
+  if (_currentDiscModalMode === mode) return;
+  var oldMode = _currentDiscModalMode;
+  _currentDiscModalMode = mode;
+  var symbol = (window.POSCUR && POSCUR.symbol) ? POSCUR.symbol : '₭';
+
+  var item = cart.find(function(i) { return i.cartKey === _currentDiscModalCartKey; });
+  var origPrice = item ? ((typeof item.original_price !== 'undefined' && item.original_price !== null) ? parseFloat(item.original_price) : parseFloat(item.unit_price)) : 0;
+
+  var inputEl = document.getElementById('swalItemDiscInput');
+  var currentValStr = inputEl ? inputEl.value : '';
+
+  if (mode === 'amount') {
+    // ສະຫຼັບຈາກ % ໄປເປັນ ຈຳນວນເງິນ (ກີບ): ຄິດໄລ່ຈຳນວນເງິນຈາກເປີເຊັນ ແລະ ໃສ່ເຄື່ອງໝາຍຈຸດ ,
+    var pct = parseFloat(currentValStr.replace(/[^0-9.]/g, '')) || 0;
+    if (pct > 100) pct = 100;
+    var calcAmt = (pct > 0 && origPrice > 0) ? Math.round(origPrice * (pct / 100)) : 0;
+    if (inputEl) {
+      inputEl.value = calcAmt > 0 ? Number(calcAmt).toLocaleString('en-US') : '';
+    }
+
+    $('#swalDiscModeAmt').addClass('bg-white shadow-sm text-primary').removeClass('text-muted');
+    $('#swalDiscModePct').removeClass('bg-white shadow-sm text-primary').addClass('text-muted');
+    $('#swalDiscQuickPct').hide();
+    $('#swalDiscInputLabelText').text('ລະບຸຈຳນວນເງິນຫຼຸດ (' + symbol + '):');
+    $('#swalDiscInputPrefix').text(symbol);
+  } else {
+    // ສະຫຼັບຈາກ ຈຳນວນເງິນ ໄປເປັນ %: ຄິດໄລ່ເປີເຊັນຈາກຈຳນວນເງິນ
+    var amt = parseFloat(currentValStr.replace(/,/g, '')) || 0;
+    var calcPct = (amt > 0 && origPrice > 0) ? Math.min(100, Math.round((amt / origPrice) * 100 * 10) / 10) : 0;
+    if (inputEl) {
+      inputEl.value = calcPct > 0 ? calcPct : '';
+    }
+
+    $('#swalDiscModePct').addClass('bg-white shadow-sm text-primary').removeClass('text-muted');
+    $('#swalDiscModeAmt').removeClass('bg-white shadow-sm text-primary').addClass('text-muted');
+    $('#swalDiscQuickPct').show();
+    $('#swalDiscInputLabelText').text('ລະບຸເປີເຊັນສ່ວນຫຼຸດ (%):');
+    $('#swalDiscInputPrefix').text('%');
+  }
+
+  swalRecalcItemDisc();
+  if (inputEl) { inputEl.focus(); inputEl.select(); }
+}
+
+function swalSetItemDiscVal(val) {
+  var inputEl = document.getElementById('swalItemDiscInput');
+  if (inputEl) {
+    if (_currentDiscModalMode === 'amount') {
+      inputEl.value = (val > 0) ? Number(val).toLocaleString('en-US') : '';
+    } else {
+      inputEl.value = val;
+    }
+  }
+  swalRecalcItemDisc();
+}
+
+function swalRecalcItemDisc() {
+  if (!_currentDiscModalCartKey) return;
+  var item = cart.find(function(i) { return i.cartKey === _currentDiscModalCartKey; });
+  if (!item) return;
+
+  var origPrice = (typeof item.original_price !== 'undefined' && item.original_price !== null) ? parseFloat(item.original_price) : parseFloat(item.unit_price);
+  var qty = parseFloat(item.quantity) || 1;
+  var rawStr = ($('#swalItemDiscInput').val() || '').replace(/,/g, '');
+  var val = parseFloat(rawStr) || 0;
+  if (val < 0) val = 0;
+
+  var discPerUnit = 0;
+  if (_currentDiscModalMode === 'percent') {
+    if (val > 100) val = 100;
+    discPerUnit = Math.round(origPrice * (val / 100));
+  } else {
+    if (val > origPrice) val = origPrice;
+    discPerUnit = Math.round(val);
+  }
+
+  var newUnitPrice = Math.max(0, origPrice - discPerUnit);
+  var lineTotal = newUnitPrice * qty;
+  var totalSaved = discPerUnit * qty;
+
+  var symbol = (window.POSCUR && POSCUR.symbol) ? POSCUR.symbol : '₭';
+
+  // ສະແດງທັງຈຳນວນເງິນ ແລະ ເປີເຊັນໃຫ້ເຫັນຈະແຈ້ງ
+  if (_currentDiscModalMode === 'percent') {
+    if (val > 0) {
+      $('#swalDiscConvertedHint').html('= -' + POSCUR.fmt(discPerUnit) + ' / ' + (item.unit_name || 'ອັນ')).show();
+      $('#swalPreviewDiscPerUnit').html('-' + POSCUR.fmt(discPerUnit) + ' <span class="badge badge-danger ml-1" style="font-size:0.75rem;">' + val + '%</span>');
+    } else {
+      $('#swalDiscConvertedHint').hide();
+      $('#swalPreviewDiscPerUnit').html('-' + POSCUR.fmt(0));
+    }
+  } else {
+    if (val > 0 && origPrice > 0) {
+      var equivPct = Math.min(100, Math.round((discPerUnit / origPrice) * 100 * 10) / 10);
+      $('#swalDiscConvertedHint').html('= ' + equivPct + '%').show();
+      $('#swalPreviewDiscPerUnit').html('-' + POSCUR.fmt(discPerUnit) + ' <span class="badge badge-info ml-1" style="font-size:0.75rem;">' + equivPct + '%</span>');
+    } else {
+      $('#swalDiscConvertedHint').hide();
+      $('#swalPreviewDiscPerUnit').html('-' + POSCUR.fmt(0));
+    }
+  }
+
+  $('#swalPreviewNewPrice').html(POSCUR.fmt(newUnitPrice));
+  $('#swalPreviewLineTotal').html(POSCUR.fmt(lineTotal));
+
+  if (totalSaved > 0) {
+    $('#swalPreviewTotalSaved').html('(ປະຢັດລວມ: <b class="text-danger">-' + POSCUR.fmt(totalSaved) + '</b>)').show();
+  } else {
+    $('#swalPreviewTotalSaved').hide();
+  }
+}
+
+function setItemDiscount(cartKey, type, value) {
+  var item = cart.find(function(i) { return i.cartKey === cartKey; });
+  if (!item) return;
+
+  var origPrice = (typeof item.original_price !== 'undefined' && item.original_price !== null) ? parseFloat(item.original_price) : parseFloat(item.unit_price);
+  item.original_price = origPrice;
+
+  var rawVal = (typeof value === 'string') ? (parseFloat(value.replace(/,/g, '')) || 0) : (parseFloat(value) || 0);
+  if (rawVal <= 0) {
+    clearItemDiscount(cartKey);
+    return;
+  }
+
+  var discPerUnit = 0;
+  var discText = '';
+  if (type === 'percent') {
+    rawVal = Math.min(100, Math.max(0, rawVal));
+    discPerUnit = Math.round(origPrice * (rawVal / 100));
+    discText = rawVal + '%';
+  } else {
+    type = 'amount';
+    rawVal = Math.min(origPrice, Math.max(0, rawVal));
+    discPerUnit = Math.round(rawVal);
+    discText = POSCUR.fmt(discPerUnit);
+  }
+
+  item.item_discount = discPerUnit;
+  item.item_discount_type = type;
+  item.item_discount_val = rawVal;
+  item.item_discount_text = discText;
+  item.unit_price = Math.max(0, origPrice - discPerUnit);
+
+  updateCartUI();
+}
+
+function clearItemDiscount(cartKey) {
+  var item = cart.find(function(i) { return i.cartKey === cartKey; });
+  if (!item) return;
+
+  var origPrice = (typeof item.original_price !== 'undefined' && item.original_price !== null) ? parseFloat(item.original_price) : parseFloat(item.unit_price);
+  item.unit_price = origPrice;
+  item.original_price = origPrice;
+  item.item_discount = 0;
+  item.item_discount_type = null;
+  item.item_discount_val = 0;
+  item.item_discount_text = '';
+
   updateCartUI();
 }
 

@@ -1,0 +1,12 @@
+/* ============================================================
+   units-page.css — footer ແບ່ງໜ້າ (.table-pager-footer) ຂອງໜ້າ ຫົວໜ່ວຍ, ໂຊນ, ຊັ້ນວາງ
+   (pages/units/units.php, pages/stock_check/zones.php, pages/stock_check/shelves.php) — JS: assets/js/table-pager.js.
+   themes/users.css ເຮັດ .card-footer ເປັນຖັນກາງໃນມືຖື; ກົດນີ້ຮັກສາໃຫ້ເປັນແຖວ ແລະ ປຸ່ມແບ່ງໜ້າຊິດຂວາ.
+   ============================================================ */
+.card-footer.table-pager-footer:not(#__z) {
+    flex-direction: row !important;
+    text-align: left !important;
+}
+.card-footer.table-pager-footer > nav:not(#__z) {
+    margin-left: auto !important;
+}

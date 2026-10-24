@@ -41,7 +41,9 @@ function updateCartUI() {
     $('#btnHoldOrder, #btnHoldCart').prop('disabled', true).addClass('disabled');
     updateProductGridBadges();
     saveCurrentBillState();
-    broadcastCustomerDisplay('shopping');
+    if (!window.__suppressCustomerBroadcast) {
+      broadcastCustomerDisplay('shopping');
+    }
     return;
   }
 
@@ -65,9 +67,33 @@ function updateCartUI() {
     var giftBadge = item.reward_uid
       ? `<span class="badge font-weight-bold ml-1" style="font-size:0.78rem; padding:2px 6px; border-radius:4px; background:#f59e0b; color:#fff;"><i class="fas fa-star mr-1"></i>${posT('pos.redeem_badge')}</span>`
       : (isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.78rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i>ແຖມຟຣີ</span>` : '');
+    var origPrice = (typeof item.original_price !== 'undefined' && item.original_price !== null) ? parseFloat(item.original_price) : parseFloat(item.unit_price);
+    if (typeof item.original_price === 'undefined' || item.original_price === null) {
+      item.original_price = origPrice;
+    }
+    var curUnitPrice = parseFloat(item.unit_price) || 0;
+    var itemDiscount = parseFloat(item.item_discount) || 0;
+    var hasItemDiscount = (itemDiscount > 0) && !isGift;
+
     var priceDisplay = isGift
       ? `<span class="text-success font-weight-bold" style="font-size:0.80rem;">${POSCUR.fmt(0)}</span>`
-      : `${POSCUR.fmt(item.unit_price)}`;
+      : (hasItemDiscount && origPrice > curUnitPrice
+          ? `<del class="text-muted mr-1" style="font-size:0.78rem;">${POSCUR.fmt(origPrice)}</del><span class="text-danger font-weight-bold">${POSCUR.fmt(curUnitPrice)}</span>`
+          : `${POSCUR.fmt(curUnitPrice)}`);
+
+    var discLabel = item.item_discount_text ? item.item_discount_text : (itemDiscount ? POSCUR.fmt(itemDiscount) : '');
+    var discBadgeHtml = (hasItemDiscount && !isGift)
+      ? `<span class="badge badge-danger font-weight-bold ml-1" style="font-size:0.75rem; padding:2px 6px; border-radius:4px; cursor:pointer;" onclick="openItemDiscountModal('${item.cartKey}')" title="ແກ້ໄຂສ່ວນຫຼຸດ">-${discLabel}</span>`
+      : '';
+
+    var discActionBtn = '';
+    if (!isGift && !item.reward_uid) {
+      if (hasItemDiscount) {
+        discActionBtn = `<button type="button" class="cart-item-disc-icon-btn active" onclick="openItemDiscountModal('${item.cartKey}')" title="ແກ້ໄຂສ່ວນຫຼຸດ (-${discLabel})"><i class="fas fa-tags"></i></button>`;
+      } else {
+        discActionBtn = `<button type="button" class="cart-item-disc-icon-btn" onclick="openItemDiscountModal('${item.cartKey}')" title="ໃສ່ສ່ວນຫຼຸດ"><i class="fas fa-tag"></i></button>`;
+      }
+    }
 
     // ໂຄງແຖວດຽວກັບ Pharmacy: ຈໍໃຫຍ່ = ແຖວດຽວ; ໂທລະສັບ = ຊື່+ຫົວໜ່ວຍ ແຖວເທິງ, [🗑/− ຈຳນວນ +] ແລະ ລາຄາ ແຖວລຸ່ມ
     // (CSS: .cart-item-* ໃນ themes/pos/04-cart-items.css).
@@ -95,6 +121,7 @@ function updateCartUI() {
             <div class="cart-item-desktop-sub">
               <span class="cart-item-unit-badge">${item.unit_name}</span>
               <span class="cart-item-price-inline font-weight-bold">${priceDisplay}</span>
+              ${discBadgeHtml}
             </div>
           </div>
 
@@ -115,10 +142,13 @@ function updateCartUI() {
               <span class="cart-item-currency-prefix">${POSCUR.symbol}</span><span class="cart-item-total-val">${totalNum}</span><span class="cart-item-currency-suffix"> <span class="cur-sym">${POSCUR.symbol}</span></span>
             </div>
 
-            <!-- ປຸ່ມລົບ (ສະເພາະຈໍໃຫຍ່) -->
-            <button class="cart-item-del-btn" onclick="removeFromCart('${item.cartKey}')" title="ລຶບ">
-              <i class="fas fa-trash-alt"></i>
-            </button>
+            <!-- ປຸ່ມລົບ (ເທິງ) & ໄອຄອນສ່ວນຫຼຸດ (ລຸ່ມ) -->
+            <div class="cart-item-tools-col">
+              <button class="cart-item-del-btn" onclick="removeFromCart('${item.cartKey}')" title="ລຶບ">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+              ${discActionBtn}
+            </div>
           </div>
         </div>
 

@@ -74,8 +74,8 @@
         </div>
 
         <div class="modal-footer bg-light py-3 px-4 border-top">
-          <button type="button" class="btn btn-secondary font-weight-bold px-4" data-dismiss="modal" style="border-radius: 8px;"><?php echo htmlspecialchars(t('import_list.modal_btn_cancel', 'ຍົກເລີກ')); ?></button>
-          <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 8px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
+          <button type="button" class="btn btn-secondary font-weight-bold px-4" data-dismiss="modal" style="border-radius: 6px;"><?php echo htmlspecialchars(t('import_list.modal_btn_cancel', 'ຍົກເລີກ')); ?></button>
+          <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
             <i class="fas fa-save mr-1"></i> <?php echo htmlspecialchars(t('import_list.modal_btn_save_edit', 'ບັນທຶກການແກ້ໄຂ')); ?>
           </button>
         </div>

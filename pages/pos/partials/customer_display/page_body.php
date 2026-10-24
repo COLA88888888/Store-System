@@ -4,7 +4,81 @@
  * ໝາຍເລກຄິວ, ແຖບເທິງ (ໂລໂກ້ + ຊື່ຮ້ານ + ເວລາ), ແຜງ QR ຊຳລະ, ແຜງລາຍການສັ່ງຊື້ ແລະ ແຖບຍອດລວມ.
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/pos/customer_display.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
-?>  <!-- Queue-number flash (coffee-shop style) — shown briefly on payment success -->
+?>  <!-- Payment Success Overlay (ແຈ້ງເຕືອນຊຳລະເງິນສຳເລັດ + ລາຍລະອຽດລະອຽດຄົບຖ້ວນ, ມຸມ 6px) -->
+  <div id="paymentSuccessOverlay" style="display:none;position:fixed;inset:0;z-index:3100;background:rgba(15,23,42,0.88);
+       flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:20px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
+    <div class="pay-success-card" style="background:#ffffff;color:#1e293b;border-radius:6px;padding:26px 34px;max-width:540px;width:95%;box-shadow:0 20px 50px -10px rgba(0,0,0,0.45);text-align:center;position:relative;border:1px solid #e2e8f0;">
+      
+      <!-- Top Success Header: Check Icon + Title -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px;">
+        <div style="width:46px;height:46px;border-radius:6px;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(34,197,94,0.35);color:#fff;flex-shrink:0;">
+          <i class="fas fa-check" style="font-size:24px;"></i>
+        </div>
+        <div style="text-align:left;">
+          <h2 style="font-size:1.85rem;font-weight:800;color:#15803d;margin:0;line-height:1.15;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;">
+            ຊຳລະເງິນສຳເລັດ!
+          </h2>
+          <div style="font-size:0.90rem;color:#64748b;font-weight:600;margin:0;">
+            ຂອບໃຈທີ່ມາອຸດໜູນ • Thank You!
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Amount Highlight Box (ມຸມ 6px) -->
+      <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:6px;padding:14px 18px;margin-bottom:12px;text-align:center;">
+        <div style="font-size:0.88rem;color:#166534;font-weight:700;letter-spacing:0.3px;margin-bottom:2px;">
+          <i class="fas fa-wallet mr-1"></i> ຈຳນວນເງິນທີ່ຊຳລະ
+        </div>
+        <div id="paySuccessAmount" style="font-size:2.8rem;font-weight:900;color:#15803d;line-height:1.15;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">
+          0 ₭
+        </div>
+      </div>
+
+      <!-- Payment Method & Bank Info Badge (ມຸມ 6px) -->
+      <div id="paySuccessMethodBadge" style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 14px;margin-bottom:10px;font-size:0.92rem;font-weight:700;color:#334155;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span id="paySuccessMethodIcon"><i class="fas fa-money-bill-wave text-success"></i></span>
+          <span id="paySuccessMethodText">ຊຳລະດ້ວຍ: ເງິນສົດ</span>
+        </div>
+        <div id="paySuccessBankWrap" style="display:none;align-items:center;gap:6px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:3px 8px;">
+          <img id="paySuccessBankLogo" src="" alt="" style="width:20px;height:20px;object-fit:contain;border-radius:4px;display:none;" onerror="this.style.display='none'">
+          <span id="paySuccessBankName" style="color:#0369a1;font-weight:800;font-size:0.88rem;"></span>
+        </div>
+      </div>
+
+      <!-- Detailed Breakdown Box (ມຸມ 6px) -->
+      <div id="paySuccessBreakdown" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:0.92rem;text-align:left;">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed #e2e8f0;" id="paySuccessCashRow">
+          <span style="color:#64748b;font-weight:600;"><i class="fas fa-money-bill-wave text-success mr-1"></i> ຮັບເງິນສົດ</span>
+          <span id="paySuccessCashAmt" style="font-weight:800;color:#1e293b;font-size:1.05rem;">0 ₭</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed #e2e8f0;" id="paySuccessQrRow">
+          <span style="color:#64748b;font-weight:600;"><i class="fas fa-qrcode text-primary mr-1"></i> ຮັບເງິນໂອນ <span id="paySuccessQrBankInline" style="color:#0284c7;font-weight:700;"></span></span>
+          <span id="paySuccessQrAmt" style="font-weight:800;color:#1e293b;font-size:1.05rem;">0 ₭</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;" id="paySuccessChangeRow">
+          <span style="color:#64748b;font-weight:600;"><i class="fas fa-hand-holding-usd text-warning mr-1"></i> ເງິນທອນ</span>
+          <span id="paySuccessChange" style="font-weight:900;color:#16a34a;font-size:1.15rem;">0 ₭</span>
+        </div>
+      </div>
+
+      <!-- Footer Info: Invoice No & Queue Number (ມຸມ 6px) -->
+      <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.86rem;color:#64748b;font-weight:600;padding:0 2px;">
+        <span id="paySuccessInvoiceNo">ເລກທີໃບບິນ: -</span>
+        <span id="paySuccessQueueBadge" style="display:none;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:6px;padding:2px 8px;font-weight:700;">
+          ຄິວທີ: <strong id="paySuccessQueueNo"></strong>
+        </span>
+      </div>
+
+      <!-- Auto-dismiss countdown progress bar (ມຸມ 6px) -->
+      <div style="margin-top:14px;height:4px;background:#e2e8f0;border-radius:6px;overflow:hidden;width:100%;">
+        <div id="paySuccessProgressBar" style="height:100%;width:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:6px;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Queue-number flash (coffee-shop style) — shown briefly on payment success -->
   <div id="queueFlash" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(15,23,42,0.94);
        flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;">
     <div style="font-size:2rem;font-weight:700;letter-spacing:2px;color:#93c5fd;">ບັດຄິວທີ</div>

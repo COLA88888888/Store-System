@@ -23,7 +23,7 @@
   <?php endif; ?>
 
   <!-- Menu Sidebar -->
-  <div class="sidebar" style="height: calc(100vh - 64px); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
+  <div class="sidebar" style="height: calc(100vh - 64px - 38px); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
   
     <!-- ===== User Panel (ຂໍ້ມູນຜູ້ໃຊ້ຢູ່ sidebar) ===== -->
     <?php
@@ -73,7 +73,7 @@
         <?php if (hasPermission('sale') || hasPermission('item_sales')): ?>
           <!-- Dropdown Treeview: ຂາຍສິນຄ້າ POS & ລາຍການຂາຍ -->
           <li class="nav-item has-treeview">
-            <a href="#" class="nav-link">
+            <a class="nav-link" role="button" style="cursor: pointer;">
               <i class="nav-icon fas fa-cash-register text-warning"></i>
               <p>
                 <span data-i18n="layout.pos_group"><?php echo htmlspecialchars(t('layout.pos_group', 'ຂາຍສິນຄ້າ POS')); ?></span>
@@ -114,16 +114,6 @@
           </li>
         <?php endif; ?>
 
-        <?php if (hasPermission('customer_debt')): ?>
-          <!-- Menu: Customer Debts (ລູກຄ້າຕິດໜີ້) — own module -->
-          <li class="nav-item">
-            <a href="<?php echo $bp; ?>pages/customer_debts/customer_debts.php" target="frame" class="nav-link">
-              <i class="nav-icon fas fa-hand-holding-usd text-danger"></i>
-              <p data-i18n="layout.customer_debt"><?php echo htmlspecialchars(t('layout.customer_debt', 'ລູກຄ້າຕິດໜີ້')); ?></p>
-            </a>
-          </li>
-        <?php endif; ?>
-
         <?php require __DIR__ . '/partials/sidebar/inventory_menu.php'; /* ຂໍ້ມູນສິນຄ້າ, ເຊັກສະຕັອກ, ນຳສິນຄ້າເຂົ້າສາງ */ ?>
 
         <?php if (hasPermission('accounting')): ?>
@@ -139,10 +129,10 @@
           </li>
         <?php endif; ?>
 
-        <?php if (hasPermission('report') || hasPermission('daily_report') || hasPermission('all_sales') || hasPermission('best_seller') || hasPermission('profit_cost') || hasPermission('financial') || hasPermission('category_sales') || hasPermission('delete_bills') || hasPermission('expiry') || hasPermission('customer_debt')): ?>
+        <?php if (hasPermission('report') || hasPermission('daily_report') || hasPermission('all_sales') || hasPermission('best_seller') || hasPermission('profit_cost') || hasPermission('financial') || hasPermission('category_sales') || hasPermission('delete_bills') || hasPermission('expiry') || hasPermission('shifts') || hasPermission('shift_report')): ?>
           <!-- Dropdown Treeview: ລາຍງານ -->
           <li class="nav-item has-treeview">
-            <a href="#" class="nav-link">
+            <a class="nav-link" role="button" style="cursor: pointer;">
               <i class="nav-icon fas fa-file-invoice-dollar text-orange"></i>
               <p>
                 <span data-i18n="layout.reports_group"><?php echo htmlspecialchars(t('layout.reports_group', 'ລາຍງານ')); ?></span>
@@ -230,12 +220,13 @@
               </li>
               <?php endif; ?>
 
-              <?php if (hasPermission('report') || hasPermission('customer_debt')): ?>
-              <!-- 9. ລາຍງານໜີ້ລູກຄ້າ -->
+              <?php if (hasPermission('report') || hasPermission('shifts') || hasPermission('shift_report')): ?>
+              <!-- 10. ລາຍການຕາມກະ (ລາຍງານຕາມກະ) — ສາຂາທີ່ບໍ່ມີກະ: ໜ້າສະແດງແຕ່ຂໍ້ຄວາມວ່າງ (shift_report.php) -->
+
               <li class="nav-item">
-                <a href="<?php echo $bp; ?>pages/reports/debt_report.php" target="frame" class="nav-link">
-                  <i class="nav-icon fas fa-hand-holding-usd text-danger"></i>
-                  <p data-i18n="layout.debt_report"><?php echo htmlspecialchars(t('layout.debt_report', 'ລາຍງານໜີ້ລູກຄ້າ')); ?></p>
+                <a href="<?php echo $bp; ?>pages/reports/shift_report.php" target="frame" class="nav-link">
+                  <i class="nav-icon fas fa-user-clock text-info"></i>
+                  <p data-i18n="layout.shift_report"><?php echo htmlspecialchars(t('layout.shift_report', 'ລາຍການຕາມກະ')); ?></p>
                 </a>
               </li>
               <?php endif; ?>
@@ -277,10 +268,10 @@
             </li>
           <?php endif; ?>
 
-          <?php if (hasPermission('stores') || hasPermission('print_barcode') || hasPermission('exchange_rate') || hasPermission('promotions') || hasPermission('price_adjustment') || hasPermission('printers') || hasPermission('loyalty') || hasPermission('expiry')): ?>
+          <?php if (hasPermission('stores') || hasPermission('print_barcode') || hasPermission('exchange_rate') || hasPermission('promotions') || hasPermission('price_adjustment') || hasPermission('printers') || hasPermission('loyalty') || hasPermission('expiry') || hasPermission('shifts')): ?>
             <!-- Dropdown Treeview: ຕັ້ງຄ່າລະບົບ -->
             <li class="nav-item has-treeview">
-              <a href="#" class="nav-link">
+              <a class="nav-link" role="button" style="cursor: pointer;">
                 <i class="nav-icon fas fa-cogs text-secondary"></i>
                 <p>
                   <span data-i18n="layout.settings_group"><?php echo htmlspecialchars(t('layout.settings_group', 'ຕັ້ງຄ່າລະບົບ')); ?></span>
@@ -367,6 +358,16 @@
                   </a>
                 </li>
                 <?php endif; ?>
+
+                <?php if (hasPermission('shifts')): ?>
+                <!-- 9. ຈັດການກະເຮັດວຽກ -->
+                <li class="nav-item">
+                  <a href="<?php echo $bp; ?>pages/settings/shifts/index.php" target="frame" class="nav-link">
+                    <i class="nav-icon fas fa-user-clock text-info"></i>
+                    <p data-i18n="layout.shifts"><?php echo htmlspecialchars(t('layout.shifts', 'ຈັດການກະເຮັດວຽກ')); ?></p>
+                  </a>
+                </li>
+                <?php endif; ?>
               </ul>
             </li>
 
@@ -386,4 +387,10 @@
     </nav>
   </div>
 
+  <!-- Pinned Sidebar Footer (ເສັ້ນຂີດຂັ້ນ & Wlaodev Pos System V 3.8.26 ຕິດຢູ່ດ້ານລຸ່ມສຸດ, ລັອກສະແດງໄວ້ເລີຍ) -->
+  <div class="sidebar-custom-footer" style="position: absolute; bottom: 0; left: 0; right: 0; height: 38px; border-top: 1px solid rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; background-color: inherit; z-index: 1040; padding: 0 8px; overflow: hidden; box-sizing: border-box; user-select: none;">
+    <span class="sidebar-version-text" style="font-weight: 700; color: rgba(255, 255, 255, 0.9); font-size: 0.78rem; letter-spacing: 0.3px; white-space: nowrap; display: block;">
+      Wlaodev Pos System V 3.8.26
+    </span>
+  </div>
 </aside>

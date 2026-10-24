@@ -34,6 +34,8 @@
 }
 
 function _doAddToCart(product, unitObj) {
+  // ສາຂາມີກະ: ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການຂາຍບໍ່ໄດ້ (checkout/open_and_submit.php)
+  if (typeof checkShiftSalePermission === 'function' && !checkShiftSalePermission()) return;
   if (!isBillOpened || !activeBills || activeBills.length === 0) {
     if (typeof createNewBillModal === 'function') {
       createNewBillModal();

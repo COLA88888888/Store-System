@@ -195,4 +195,25 @@ if ($action === 'add_shelf' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
+// --- Quick Add Unit ---
+if ($action === 'add_unit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $unitName = trim($_POST['unit_name'] ?? '');
+    if ($unitName === '') {
+        echo json_encode(['success' => false, 'message' => 'ກະລຸນາປ້ອນຊື່ຫົວໜ່ວຍ']);
+        exit();
+    }
+    $chk = $pdo->prepare("SELECT unit_id, unit_name FROM st_units WHERE unit_name = ? AND store_id = ? LIMIT 1");
+    $chk->execute([$unitName, $activeStoreId]);
+    $existing = $chk->fetch(PDO::FETCH_ASSOC);
+    if ($existing) {
+        echo json_encode(['success' => true, 'unit_id' => (int)$existing['unit_id'], 'unit_name' => $existing['unit_name']]);
+        exit();
+    }
+    $ins = $pdo->prepare("INSERT INTO st_units (unit_name, store_id) VALUES (?, ?)");
+    $ins->execute([$unitName, $activeStoreId]);
+    $newId = (int)$pdo->lastInsertId();
+    echo json_encode(['success' => true, 'unit_id' => $newId, 'unit_name' => $unitName]);
+    exit();
+}
+
 echo json_encode(['success' => false, 'message' => 'Invalid Action']);

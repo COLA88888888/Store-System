@@ -16,12 +16,12 @@ $scIsDone     = ($scStatus === 'completed');
 // - ໃນ pending / approved: ຫົວໜ້າ / ຜູ້ມີສິດອະນຸມັດ ສາມາດແກ້ໄຂປັບປ້ອນຕົວເລກຕົວຈິງໄດ້
 $scEditable   = ($scIsDraft && $scCanCount) || (($scIsPending || $scIsApproved) && $scCanApprove);
 
-// ສະແດງຍອດໃນລະບົບ ແລະ ສ່ວນຕ່າງ:
-// - ສະເພາະຫົວໜ້າ / ຜູ້ບໍລິຫານ ເທົ່ານັ້ນ (ພະນັກງານບໍ່ໃຫ້ໂຊສະຕັອກໃນລະບົບ)
-$scShowSystem = $scCanApprove;
-$scShowDiff   = $scCanApprove;
-$scShowResults = $scCanApprove;
-$scColCount   = 7 + ($scShowSystem ? 1 : 0) + ($scShowDiff ? 1 : 0);
+// ສະແດງຍອດໃນລະບົບ: ສະເພາະຫົວໜ້າ / ຜູ້ບໍລິຫານ ເທົ່ານັ້ນ (ພະນັກງານບໍ່ໃຫ້ໂຊສະຕັອກໃນລະບົບ)
+$scShowSystem = isset($scShowSystem) ? $scShowSystem : !$scIsStaff;
+// ສ່ວນຕ່າງ: ພະນັກງານຕີຈຳນວນຕົວຈິງ ແລ້ວກົດບັນທຶກຈິ່ງໂຊສ່ວນຕ່າງ
+$scShowDiff   = true;
+$scShowResults = true;
+$scColCount   = 8 + ($scShowSystem ? 1 : 0);
 $scItemTotal  = count($scItems);
 if ($scIsDone) {
     $scItems = array_values(array_filter($scItems, function ($it) { return $it['counted_qty'] !== null; }));
@@ -66,36 +66,20 @@ foreach ($scItems as $it) {
             <?php endif; ?>
           </div>
         </div>
-        <div class="sc-no-print d-flex flex-wrap align-items-center" style="gap: 6px;">
+        <div class="sc-no-print page-actions page-actions-grid" style="gap: 6px;"><?php /* ຊິດຂວາ; ໂທລະສັບ 2 ປຸ່ມ/ແຖວ (03-controls.css) */ ?>
           <?php if ($scEditable): ?>
-          <button type="button" class="btn btn-primary sc-add-btn font-weight-bold shadow-sm" id="scBtnSave" onclick="scSave()">
+          <button type="button" class="btn btn-primary sc-add-btn font-weight-bold shadow-sm" id="scBtnSave" onclick="scSave()" title="ບັນທຶກຍອດ (Ctrl+S)">
             <i class="fas fa-save mr-1"></i> ບັນທຶກ <span class="badge badge-light ml-1" id="scUnsavedBadge" style="display: none;">0</span>
           </button>
-          <?php endif; ?>
 
-          <?php if ($scIsDraft && $scCanCount): ?>
-          <span class="sc-btn-divider"></span>
-          <button type="button" class="btn btn-warning font-weight-bold shadow-sm" onclick="scSubmitApproval()">
-            <i class="fas fa-paper-plane mr-1"></i> ສົ່ງໃຫ້ຫົວໜ້າກວດສອບ
+          <button type="button" class="btn btn-success font-weight-bold shadow-sm" onclick="scApproveAdjustment()" title="ປັບສະຕັອກໃນລະບົບໃຫ້ຕົງກັບຈຳນວນຕົວຈິງ">
+            <i class="fas fa-check-double mr-1"></i> ປັບສະຕັອກໃຫ້ຕົງ
           </button>
           <?php endif; ?>
 
-          <?php if ($scIsPending && $scCanApprove): ?>
-          <span class="sc-btn-divider"></span>
-          <button type="button" class="btn btn-outline-danger font-weight-bold" onclick="scRejectAdjustment()">
-            <i class="fas fa-undo mr-1"></i> ສົ່ງກັບໃຫ້ນັບໃໝ່
+          <button type="button" class="btn btn-info font-weight-bold shadow-sm text-white" onclick="scStartNewRound()" title="ເລີ່ມຮອບນັບໃໝ່">
+            <i class="fas fa-barcode mr-1"></i> ນັບ
           </button>
-          <button type="button" class="btn btn-success font-weight-bold shadow-sm" onclick="scComplete()">
-            <i class="fas fa-check-double mr-1"></i> ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ
-          </button>
-          <?php endif; ?>
-
-          <?php if ($scIsApproved && ($scCanCount || $scCanConfirm)): ?>
-          <span class="sc-btn-divider"></span>
-          <button type="button" class="btn btn-success font-weight-bold shadow-sm" onclick="scComplete()">
-            <i class="fas fa-check-double mr-1"></i> ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ
-          </button>
-          <?php endif; ?>
         </div>
       </div>
     </div>
@@ -104,81 +88,63 @@ foreach ($scItems as $it) {
   <section class="content pb-5">
     <div class="container-fluid">
 
-<?php require __DIR__ . '/tabs.php'; /* ເມນູລຽນກັນ: ໃບເຊັກສະຕັອກ | ນັບສະຕັອກ | ປະຫວັດການນັບ */ ?>
+<?php require __DIR__ . '/tabs.php'; /* ເມນູລຽນກັນ: ນັບສະຕັອກ | ປະຫວັດໃບເຊັກສະຕັອກ */ ?>
 
-      <?php if ($scIsDraft): ?>
-        <div class="alert <?php echo $scCanApprove ? 'alert-secondary' : 'alert-primary'; ?> d-flex align-items-center justify-content-between flex-wrap mb-3 sc-no-print" style="border-radius:10px;">
-          <div><i class="fas <?php echo $scCanApprove ? 'fa-clipboard-list' : 'fa-info-circle'; ?> mr-2"></i><b>ຂັ້ນຕອນນັບສິນຄ້າ:</b> ປ້ອນຈຳນວນຕົວຈິງທີ່ນັບໄດ້ໃນຮ້ານ ແລ້ວກົດ <b>"ບັນທຶກ"</b>. ເມື່ອນັບແລ້ວ ໃຫ້ກົດ <b>"ສົ່ງໃຫ້ຫົວໜ້າກວດສອບ"</b> ເພື່ອກວດເບິ່ງລາຍການທີ່ບໍ່ຕົງ/ຄົບ/ເກີນ ກ່ອນປັບສະຕັອກ.</div>
+      <?php if ($scIsPending): ?>
+        <div class="alert alert-warning mb-3 sc-no-print" style="border-radius:10px; border-left: 5px solid #d97706;">
+          <i class="fas fa-clock fa-lg mr-2"></i><b>ລໍຖ້າຫົວໜ້າກວດສອບ:</b>
+          <?php if ($scCanApprove): ?>
+            ກວດເບິ່ງລາຍການທີ່ <b>ບໍ່ພໍ / ເກີນ</b> (ແກ້ຕົວເລກໄດ້ຖ້າຈຳເປັນ) ແລ້ວກົດ <b>"ອະນຸມັດ ແລະ ປັບສະຕັອກ"</b> ຫຼື <b>"ສົ່ງກັບໃຫ້ນັບໃໝ່"</b>.
+          <?php else: ?>
+            ສົ່ງຜົນການນັບແລ້ວ — ແກ້ໄຂຕົວເລກບໍ່ໄດ້ ຈົນກວ່າຫົວໜ້າຈະອະນຸມັດ ຫຼື ສົ່ງກັບໃຫ້ນັບໃໝ່.
+          <?php endif; ?>
         </div>
-      <?php elseif ($scIsPending): ?>
-        <?php if ($scCanApprove): ?>
-          <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap mb-3 sc-no-print" style="border-radius:10px; border-left: 5px solid #d97706;">
-            <div><i class="fas fa-user-check fa-lg mr-2 text-warning"></i><b>ຫົວໜ້າກວດສອບ:</b> ກະລຸນາກວດເບິ່ງລາຍການທີ່ບໍ່ຕົງ (ບໍ່ພໍ / ເກີນ / ຄົບ). ຫົວໜ້າສາມາດແກ້ໄຂປັບປ້ອນຕົວເລກຕົວຈິງໄດ້, ສົ່ງກັບໃຫ້ນັບໃໝ່, ຫຼື ກົດປຸ່ມ <b>"ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ"</b> ດ້ານເທິງ.</div>
-          </div>
-        <?php else: ?>
-          <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap mb-3 sc-no-print" style="border-radius:10px;">
-            <div><i class="fas fa-clock fa-lg mr-2 text-warning"></i><b>ລໍຖ້າຫົວໜ້າກວດສອບ:</b> ໃບເຊັກສະຕັອກນີ້ສົ່ງໃຫ້ຫົວໜ້າກວດສອບແລ້ວ — ກະລຸນາລໍຖ້າຫົວໜ້າກວດສອບລາຍການທີ່ບໍ່ຕົງ/ຄົບ/ເກີນ ແລະ ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ.</div>
-          </div>
-        <?php endif; ?>
       <?php elseif ($scIsApproved): ?>
-        <div class="alert alert-info d-flex align-items-center justify-content-between flex-wrap mb-3 sc-no-print" style="border-radius:10px; border-left: 5px solid #0284c7;">
-          <div><i class="fas fa-check-circle fa-lg mr-2 text-info"></i><b>ຫົວໜ້າກວດສອບ ແລະ ອະນຸມັດແລ້ວ:</b> ກວດເບິ່ງລາຍການບໍ່ພໍ/ເກີນ ແລ້ວກົດປຸ່ມ <b>"ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ"</b> ດ້ານເທິງໄດ້ເລີຍ.</div>
-        </div>
-      <?php elseif ($scIsDone): ?>
-        <div class="alert alert-success d-flex align-items-center justify-content-between flex-wrap mb-3 sc-no-print" style="border-radius:10px; border-left: 5px solid #16a34a;">
-          <div><i class="fas fa-check-double fa-lg mr-2 text-success"></i><b>ປັບສະຕັອກຮຽບຮ້ອຍແລ້ວ:</b> ລະບົບໄດ້ອັບເດດຍອດສິນຄ້າໃນລະບົບໃຫ້ຕົງກັບ <b>"ຈຳນວນຕົວຈິງ"</b> ຮຽບຮ້ອຍແລ້ວ. ຕາຕະລາງດ້ານລຸ່ມສະແດງ <b>ປະຫວັດການປັບຍອດ</b> (ຍອດກ່ອນປັບ ທຽບກັບ ຕົວຈິງ ແລະ ສ່ວນຕ່າງທີ່ປັບເຂົ້າ/ອອກ).</div>
+        <div class="alert alert-info mb-3 sc-no-print" style="border-radius:10px; border-left: 5px solid #0284c7;">
+          <i class="fas fa-user-check fa-lg mr-2"></i><b>ຫົວໜ້າອະນຸມັດແລ້ວ:</b>
+          ກົດ <b>"ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ"</b> ເພື່ອອັບເດດຍອດສິນຄ້າໃນລະບົບໃຫ້ເທົ່າກັບຈຳນວນຕົວຈິງ.
         </div>
       <?php endif; ?>
 
-      <!-- ບັດສະຫຼຸບ -->
+      <?php if ($scIsDone): ?>
+        <div class="alert alert-success d-flex align-items-center justify-content-between flex-wrap mb-3 sc-no-print" style="border-radius:10px; border-left: 5px solid #16a34a;">
+          <div><i class="fas fa-check-double fa-lg mr-2 text-success"></i><b>ປັບສະຕັອກຮຽບຮ້ອຍແລ້ວ:</b> ລະບົບໄດ້ອັບເດດຍອດສິນຄ້າໃນລະບົບໃຫ້ຕົງກັບ <b>"ຈຳນວນຕົວຈິງ"</b> ແລ້ວ. ທ່ານສາມາດກົດປຸ່ມ <b>"ເລີ່ມຮອບໃໝ່"</b> ດ້ານເທິງເພື່ອນັບຮອບຕໍ່ໄປໄດ້.</div>
+        </div>
+      <?php endif; ?>
+
+      <!-- ບັດສະຫຼຸບແບບກະທັດຮັດ ບໍ່ລາຍຕາ -->
       <div class="sc-kpi-grid mb-3">
-        <!-- 1. ທັງໝົດ -->
-        <div class="sc-kpi" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
-          <div><div class="sc-kpi-title">ສິນຄ້າທັງໝົດ</div><div class="sc-kpi-val" id="scStatTotal">0</div><div class="sc-kpi-sub" id="scStatCountedSummary">ນັບແລ້ວ 0</div></div>
+        <!-- 1. ສິນຄ້າທັງໝົດ -->
+        <div class="sc-kpi sc-kpi-compact" style="--k: #2563eb;">
+          <div><div class="sc-kpi-title">ສິນຄ້າທັງໝົດ</div><div class="sc-kpi-val" id="scStatTotal">0</div></div>
           <div class="sc-kpi-icon"><i class="fas fa-boxes"></i></div>
         </div>
-        <?php if (!$scShowDiff): ?>
-        <!-- ນັບແລ້ວ (ສຳລັບພະນັກງານ ບໍ່ໃຫ້ໂຊ ຄົບ/ບໍ່ພໍ/ເກີນ) -->
-        <div class="sc-kpi" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);">
-          <div><div class="sc-kpi-title">ນັບແລ້ວ</div><div class="sc-kpi-val" id="scStatCountedOnly">0</div><div class="sc-kpi-sub">ລາຍການ</div></div>
+        <!-- 2. ນັບແລ້ວ -->
+        <a href="stock_check.php?view=history" class="sc-kpi sc-kpi-compact text-decoration-none" style="--k: #16a34a; cursor: pointer;" title="ກົດເພື່ອເບິ່ງລາຍການທີ່ນັບແລ້ວໃນປະຫວັດການນັບ">
+          <div>
+            <div class="sc-kpi-title">ນັບແລ້ວ <i class="fas fa-external-link-alt small ml-1" style="font-size:0.75rem;"></i></div>
+            <div class="sc-kpi-val" id="scStatCountedOnly">0</div>
+          </div>
           <div class="sc-kpi-icon"><i class="fas fa-check-circle"></i></div>
-        </div>
-        <?php endif; ?>
-        <?php if ($scShowDiff): ?>
-        <!-- 2. ຄົບ (ຕົງກັນ) -->
-        <div class="sc-kpi" style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);">
-          <div><div class="sc-kpi-title">ຄົບ (ຕົງກັນ)</div><div class="sc-kpi-val" id="scStatMatch">0</div><div class="sc-kpi-sub">ລາຍການ</div></div>
-          <div class="sc-kpi-icon"><i class="fas fa-check-circle"></i></div>
-        </div>
-        <!-- 3. ບໍ່ພໍ (ຂາດ) -->
-        <div class="sc-kpi" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
-          <div><div class="sc-kpi-title">ບໍ່ພໍ (ຂາດ)</div><div class="sc-kpi-val" id="scStatShort">0</div><div class="sc-kpi-sub" id="scStatShortQty">0 ລາຍການ</div></div>
-          <div class="sc-kpi-icon"><i class="fas fa-minus-circle"></i></div>
-        </div>
-        <!-- 4. ເກີນ -->
-        <div class="sc-kpi" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-          <div><div class="sc-kpi-title">ເກີນ</div><div class="sc-kpi-val" id="scStatOver">0</div><div class="sc-kpi-sub" id="scStatOverQty">0 ລາຍການ</div></div>
-          <div class="sc-kpi-icon"><i class="fas fa-plus-circle"></i></div>
-        </div>
-        <?php endif; ?>
-        <!-- 5. ຍັງບໍ່ນັບ -->
-        <div class="sc-kpi" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%);">
-          <div><div class="sc-kpi-title">ຍັງບໍ່ນັບ</div><div class="sc-kpi-val" id="scStatUncountedBig">0</div><div class="sc-kpi-sub">ລາຍການ</div></div>
+        </a>
+        <!-- 3. ຍັງບໍ່ນັບ -->
+        <div class="sc-kpi sc-kpi-compact" style="--k: #64748b;">
+          <div><div class="sc-kpi-title">ຍັງບໍ່ນັບ</div><div class="sc-kpi-val" id="scStatUncountedBig">0</div></div>
           <div class="sc-kpi-icon"><i class="far fa-clock"></i></div>
         </div>
-        <?php if ($scShowDiff): ?>
-        <!-- 6. ສ່ວນຕ່າງລວມ -->
-        <div class="sc-kpi" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
-          <div><div class="sc-kpi-title">ສ່ວນຕ່າງລວມ</div><div class="sc-kpi-val" id="scStatValue">0</div><div class="sc-kpi-sub">ເກີນ − ບໍ່ພໍ</div></div>
-          <div class="sc-kpi-icon"><i class="fas fa-balance-scale"></i></div>
+        <!-- 4. ບໍ່ຕົງກັບລະບົບ (ສະແດງສະເພາະຫົວໜ້າ/ຜູ້ບໍລິຫານ) -->
+        <?php if ($scShowSystem): ?>
+        <div class="sc-kpi sc-kpi-compact" style="--k: #dc2626;">
+          <div><div class="sc-kpi-title">ບໍ່ຕົງກັບລະບົບ</div><div class="sc-kpi-val" id="scStatMismatchTotal">0</div></div>
+          <div class="sc-kpi-icon"><i class="fas fa-exclamation-triangle"></i></div>
         </div>
         <?php endif; ?>
       </div>
 
-      <div class="card sc-card">
+      <div class="card sc-card rpt-card sys-card">
         <div class="card-header bg-white py-3 border-0 sc-no-print">
-          <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: 10px;">
-            <div class="d-flex flex-wrap align-items-center" style="gap: 10px; flex: 1 1 auto;">
+          <div class="d-flex flex-wrap align-items-center justify-content-between sc-count-head" style="gap: 10px;">
+            <div class="d-flex flex-wrap align-items-center sc-count-left" style="gap: 10px; flex: 1 1 auto;">
               <!-- ຊ່ອງສະແກນ / ຄົ້ນຫາ -->
               <div class="input-group sc-scan-group">
                 <div class="input-group-prepend"><span class="input-group-text bg-primary"><i class="fas fa-barcode"></i></span></div>
@@ -203,15 +169,12 @@ foreach ($scItems as $it) {
 
               <!-- ປຸ່ມກັ່ນຕອງ -->
               <div class="sc-filter" role="group">
-                <button type="button" class="btn" data-filter="counted" id="scBtnFilterCounted"><i class="fas fa-check-double mr-1"></i>ນັບແລ້ວ <span class="badge badge-light ml-1" id="scFilterCountedBadge">0</span></button>
-                <button type="button" class="btn active" data-filter="all"><i class="fas fa-list mr-1"></i>ທັງໝົດ</button>
-                <?php if ($scShowDiff): ?>
+                <button type="button" class="btn active" data-filter="all"><i class="fas fa-list mr-1"></i>ທັງໝົດ <span class="badge badge-secondary ml-1" id="scFilterTotalBadge">0</span></button>
+                <button type="button" class="btn" data-filter="uncounted"><i class="far fa-clock mr-1"></i>ຍັງບໍ່ນັບ <span class="badge badge-secondary ml-1" id="scFilterUncountedBadge">0</span></button>
+                <button type="button" class="btn" data-filter="counted"><i class="fas fa-check-circle mr-1"></i>ນັບແລ້ວ <span class="badge badge-success ml-1" id="scFilterCountedBadge">0</span></button>
+                <?php if ($scShowSystem): ?>
                 <button type="button" class="btn" data-filter="mismatch" id="scBtnFilterMismatch"><i class="fas fa-exclamation-triangle mr-1"></i>ບໍ່ຕົງ <span class="badge badge-danger ml-1" id="scFilterMismatchBadge">0</span></button>
-                <button type="button" class="btn" data-filter="match"><i class="fas fa-check mr-1"></i>ຄົບ</button>
-                <button type="button" class="btn" data-filter="short"><i class="fas fa-arrow-down mr-1"></i>ບໍ່ພໍ</button>
-                <button type="button" class="btn" data-filter="over"><i class="fas fa-arrow-up mr-1"></i>ເກີນ</button>
                 <?php endif; ?>
-                <button type="button" class="btn" data-filter="uncounted"><i class="far fa-clock mr-1"></i>ຍັງບໍ່ນັບ</button>
               </div>
             </div>
 
@@ -232,9 +195,50 @@ foreach ($scItems as $it) {
           <?php endif; ?>
         </div>
 
+        <!-- ບັດລາຍການທີ່ສະແກນລ່າສຸດ (ປະກົດຂຶ້ນທັນທີເມື່ອສະແກນບາໂຄ້ດ) -->
+        <div id="scJustScannedBox" class="mx-3 mb-3 p-3 rounded-lg shadow-sm sc-no-print" style="display: none; background: #f0fdf4; border: 2px solid #22c55e !important; border-radius: 12px;">
+          <input type="hidden" id="scJustScannedId" value="">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="font-weight-bold text-success d-flex align-items-center" style="font-size: 0.95rem;">
+              <span class="badge badge-success mr-2 py-1 px-2"><i class="fas fa-barcode mr-1"></i>ສະແກນລ່າສຸດ</span>
+              <span class="text-secondary small">ກົດ Enter ຫຼື ສະແກນຕໍ່ເນື່ອງໄດ້ທັນທີ</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-link text-muted p-0" onclick="$('#scJustScannedBox').slideUp(150);" title="ປິດ">
+              <i class="fas fa-times fa-lg"></i>
+            </button>
+          </div>
+          <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap: 15px;">
+            <div style="flex: 1 1 260px;">
+              <div class="h5 font-weight-bold text-dark mb-1" id="scJustScannedName">-</div>
+              <div class="d-flex flex-wrap align-items-center text-muted small" style="gap: 10px;">
+                <span><i class="fas fa-barcode mr-1"></i>ບາໂຄ້ດ: <b id="scJustScannedBarcode" class="text-dark">-</b></span>
+                <span><i class="fas fa-box mr-1"></i>ຫົວໜ່ວຍ: <b id="scJustScannedUnit" class="text-dark">-</b></span>
+                <span id="scJustScannedLocBadge" class="badge badge-light border text-secondary"><i class="fas fa-map-marker-alt text-primary mr-1"></i><span id="scJustScannedLoc">-</span></span>
+                <?php if ($scShowSystem): ?>
+                <span id="scJustScannedSysBox" class="badge badge-secondary py-1 px-2">ໃນລະບົບ: <b id="scJustScannedSysQty">0</b></span>
+                <?php endif; ?>
+              </div>
+            </div>
+            <div class="d-flex align-items-center" style="gap: 10px;">
+              <div class="text-right mr-2 d-none d-sm-block">
+                <div class="text-muted small font-weight-bold">ຈຳນວນຕົວຈິງ:</div>
+              </div>
+              <div class="input-group" style="width: 170px;">
+                <div class="input-group-prepend">
+                  <button type="button" class="btn btn-outline-danger font-weight-bold px-3" onclick="scStepScannedQty(-1)" style="font-size: 1.2rem; line-height: 1;">−</button>
+                </div>
+                <input type="text" id="scJustScannedQty" inputmode="numeric" pattern="[0-9]*" class="form-control text-center font-weight-bold text-success" style="font-size: 1.3rem; height: 42px;" oninput="scSetScannedQty(this.value)">
+                <div class="input-group-append">
+                  <button type="button" class="btn btn-outline-success font-weight-bold px-3" onclick="scStepScannedQty(1)" style="font-size: 1.2rem; line-height: 1;">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="card-body p-0">
           <div class="table-responsive sc-table-wrap">
-            <table class="table table-hover mb-0 sc-table sc-count-table">
+            <table class="table rpt-table mb-0 sc-table sc-count-table">
               <thead class="bg-light text-secondary">
                 <tr>
                   <th class="text-center" style="width: 45px;">#</th>
@@ -272,7 +276,7 @@ foreach ($scItems as $it) {
                       data-zone="<?php echo htmlspecialchars(mb_strtolower($itZone !== '' ? $itZone : 'ບໍ່ລະບຸ')); ?>"
                       data-shelf="<?php echo htmlspecialchars(mb_strtolower($itShelf !== '' ? $itShelf : 'ບໍ່ລະບຸ')); ?>"
                       data-raw-zone="<?php echo htmlspecialchars(mb_strtolower($itZone)); ?>"
-                      data-system="<?php echo $scShowSystem ? $sysQty : ''; ?>"
+                      data-system="<?php echo $sysQty; ?>"
                       data-saved="<?php echo $counted === null ? '' : (int)$counted; ?>">
                     <td class="text-center text-muted"><?php echo $i + 1; ?></td>
                     <td class="small text-secondary sc-c-barcode"><?php echo htmlspecialchars($it['barcode'] ?: '-'); ?></td>
@@ -336,9 +340,8 @@ foreach ($scItems as $it) {
           <small class="text-muted font-weight-bold d-flex align-items-center flex-wrap" style="gap: 8px;">
             <span class="d-inline-flex align-items-center">ສະແດງ
               <select class="custom-select custom-select-sm sc-per-page mx-1" id="scPerPage">
-                <option value="10">10</option>
-                <option value="20" selected>20</option>
-                <option value="50">50</option>
+                <option value="20">20</option>
+                <option value="50" selected>50</option>
                 <option value="100">100</option>
                 <option value="all">ທັງໝົດ</option>
               </select>ລາຍການ
@@ -354,13 +357,9 @@ foreach ($scItems as $it) {
       <div class="small text-muted mt-2 sc-no-print">
         <i class="fas fa-lightbulb text-warning mr-1"></i>
         <b>ຄຳແນະນຳ:</b>
-        <?php if ($scIsDraft): ?>
-          ປ້ອນຈຳນວນຕົວຈິງທີ່ນັບໄດ້ໃນຮ້ານ ແລ້ວກົດ <b>ບັນທຶກ</b> (Ctrl+S). ເມື່ອນັບຄົບແລ້ວ ໃຫ້ກົດ <b>ສົ່ງໃຫ້ຫົວໜ້າກວດສອບ</b> ເພື່ອກວດກາຄວາມຖືກຕ້ອງກ່ອນປັບສະຕັອກ.
-        <?php elseif ($scIsPending && $scCanApprove): ?>
-          ຫົວໜ້າສາມາດກວດສອບລາຍການທີ່ບໍ່ຕົງ/ຄົບ/ເກີນ. ທ່ານສາມາດແກ້ໄຂປັບປ້ອນຕົວເລກຕົວຈິງໄດ້ໂດຍກົງ, ສົ່ງກັບໃຫ້ນັບໃໝ່, ຫຼື ກົດ <b>ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ</b> ເພື່ອອັບເດດສະຕັອກໃນລະບົບ.
-        <?php else: ?>
-          ປ້ອນຈຳນວນຕົວຈິງໃນຊ່ອງ ຫຼື ໃຊ້ເຄື່ອງສະແກນບາໂຄ້ດ ແລ້ວກົດ <b>ບັນທຶກ</b> (Ctrl+S).
-        <?php endif; ?>
+        ສະແກນບາໂຄ້ດ ຫຼື ປ້ອນຈຳນວນຕົວຈິງທີ່ນັບໄດ້ໃນຮ້ານ (ກົດ Enter ເພື່ອລົງແຖວຖັດໄປ).
+        ກົດ <b>ບັນທຶກ</b> (Ctrl+S) ເພື່ອບັນທຶກຍອດໄວ້.
+        ເມື່ອນັບຄົບແລ້ວ ກົດ <b>ປັບສະຕັອກໃຫ້ຕົງ</b> — ລະບົບຈະປັບຍອດສະຕັອກສິນຄ້າໃຫ້ເທົ່າກັບຈຳນວນຕົວຈິງທັນທີ.
       </div>
       <?php endif; ?>
 

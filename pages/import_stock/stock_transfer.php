@@ -36,7 +36,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
     $full_transfer_date = $transfer_date . ' ' . date('H:i:s');
 
-    if ($from_store_id <= 0 || $to_store_id <= 0) {
+    $activeStoreCount = (int)$pdo->query("SELECT COUNT(*) FROM st_tbstore WHERE status = 'active'")->fetchColumn();
+    if ($activeStoreCount < 2) {
+        $message = t('stock_transfer.err_min_two_stores', 'ລະບົບຕ້ອງມີຢ່າງໜ້ອຍ 2 ສາຂາຂຶ້ນໄປ ຈຶ່ງສາມາດໂອນສິນຄ້າລະຫວ່າງສາຂາໄດ້!');
+        $message_type = 'danger';
+    } elseif ($from_store_id <= 0 || $to_store_id <= 0) {
         $message = t('stock_transfer.err_select_stores', 'ກະລຸນາເລືອກສາຂາຕົ້ນທາງ ແລະ ສາຂາປາຍທາງ!');
         $message_type = 'danger';
     } elseif ($from_store_id === $to_store_id) {
@@ -84,8 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                 if ($product_id <= 0 || $qty <= 0) continue;
 
-                // Fetch source product in $from_store_id
-                $stmtSrc = $pdo->prepare("SELECT * FROM st_products WHERE product_id = ? AND store_id = ? FOR UPDATE");
+                // Fetch source product in $from_store_id with category
+                $stmtSrc = $pdo->prepare("SELECT p.*, c.category_name FROM st_products p LEFT JOIN st_categories c ON p.category_id = c.category_id WHERE p.product_id = ? AND p.store_id = ? FOR UPDATE");
                 $stmtSrc->execute([$product_id, $from_store_id]);
                 $srcProd = $stmtSrc->fetch();
 
@@ -97,36 +101,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     throw new Exception(sprintf(t('stock_transfer.err_insufficient_stock', 'ສິນຄ້າ "%s" ໃນສາຂາຕົ້ນທາງ ມີພຽງ %s (ບໍ່ພໍໂອນ %s)!'), $srcProd['product_name'], $srcProd['qty'], $qty));
                 }
 
+                // Check destination product in $to_store_id (Must exist, same category & same unit)
+                $stmtDst = $pdo->prepare("SELECT p.*, c.category_name FROM st_products p LEFT JOIN st_categories c ON p.category_id = c.category_id WHERE (p.product_id = ? OR (p.barcode = ? AND p.barcode != '' AND p.barcode != '-')) AND p.store_id = ? FOR UPDATE");
+                $stmtDst->execute([$product_id, $srcProd['barcode'] ?? '', $to_store_id]);
+                $dstProd = $stmtDst->fetch();
+
+                if (!$dstProd) {
+                    throw new Exception(sprintf('ສິນຄ້າ "%s" ຍັງບໍ່ມີໃນສາຂາປາຍທາງ! ຕ້ອງໄດ້ເພີ່ມສິນຄ້ານີ້ເຂົ້າສາຂາປາຍທາງກ່ອນ ຈຶ່ງສາມາດໂອນໄດ້.', $srcProd['product_name']));
+                }
+
+                // Check same category
+                $srcCatName = trim($srcProd['category_name'] ?? '');
+                $dstCatName = trim($dstProd['category_name'] ?? '');
+                if (mb_strtolower($srcCatName) !== mb_strtolower($dstCatName)) {
+                    $srcCatShow = $srcCatName ?: 'ບໍ່ມີປະເພດ';
+                    $dstCatShow = $dstCatName ?: 'ບໍ່ມີປະເພດ';
+                    throw new Exception(sprintf('ສິນຄ້າ "%s" ມີປະເພດສິນຄ້າບໍ່ຕົງກັນ (ສາຂາຕົ້ນທາງ: "%s", ສາຂາປາຍທາງ: "%s")! ຕ້ອງເປັນປະເພດສິນຄ້າດຽວກັນ ຈຶ່ງສາມາດໂອນໄດ້.', $srcProd['product_name'], $srcCatShow, $dstCatShow));
+                }
+
+                // Check same unit
+                $srcUnit = trim($srcProd['unit'] ?? '');
+                $dstUnit = trim($dstProd['unit'] ?? '');
+                if (mb_strtolower($srcUnit) !== mb_strtolower($dstUnit)) {
+                    $srcUnitShow = $srcUnit ?: 'ອັນ';
+                    $dstUnitShow = $dstUnit ?: 'ອັນ';
+                    throw new Exception(sprintf('ສິນຄ້າ "%s" ມີຫົວໜ່ວຍບໍ່ຕົງກັນ (ສາຂາຕົ້ນທາງ: "%s", ສາຂາປາຍທາງ: "%s")! ຕ້ອງເປັນຫົວໜ່ວຍດຽວກັນ ຈຶ່ງສາມາດໂອນໄດ້.', $srcProd['product_name'], $srcUnitShow, $dstUnitShow));
+                }
+
                 // Deduct from source branch
                 $stmtDeduct = $pdo->prepare("UPDATE st_products SET qty = qty - ? WHERE product_id = ? AND store_id = ?");
                 $stmtDeduct->execute([$qty, $product_id, $from_store_id]);
 
-                // Add / Update target product in $to_store_id
-                $stmtDst = $pdo->prepare("SELECT * FROM st_products WHERE product_id = ? AND store_id = ? FOR UPDATE");
-                $stmtDst->execute([$product_id, $to_store_id]);
-                $dstProd = $stmtDst->fetch();
-
-                if ($dstProd) {
-                    $stmtAddDst = $pdo->prepare("UPDATE st_products SET qty = qty + ? WHERE product_id = ? AND store_id = ?");
-                    $stmtAddDst->execute([$qty, $product_id, $to_store_id]);
-                } else {
-                    $stmtInsDst = $pdo->prepare("INSERT INTO st_products (product_id, barcode, product_name, category_id, bprice, price, qty, unit, img_url, cook, cut_qty, min_qty, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmtInsDst->execute([
-                        $srcProd['product_id'],
-                        $srcProd['barcode'],
-                        $srcProd['product_name'],
-                        $srcProd['category_id'],
-                        $srcProd['bprice'],
-                        $srcProd['price'],
-                        $qty,
-                        $srcProd['unit'],
-                        $srcProd['img_url'],
-                        $srcProd['cook'] ?? 0,
-                        $srcProd['cut_qty'] ?? 1,
-                        $srcProd['min_qty'] ?? 5,
-                        $to_store_id
-                    ]);
-                }
+                // Update target product in $to_store_id (NEVER auto-insert new product)
+                $stmtAddDst = $pdo->prepare("UPDATE st_products SET qty = qty + ? WHERE product_id = ? AND store_id = ?");
+                $stmtAddDst->execute([$qty, $dstProd['product_id'], $to_store_id]);
 
                 // Save detail line
                 $stmtDet = $pdo->prepare("INSERT INTO st_stock_transfer_details (transfer_id, product_id, product_name, barcode, qty, unit, bprice, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");

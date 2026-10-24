@@ -334,15 +334,30 @@
         url += '?search=' + encodeURIComponent(productName);
       }
       $('#mainContentFrame').attr('src', url);
+      try { sessionStorage.setItem('StoreMini.currentIframeSrc', url); } catch (e) {}
       $('.dropdown-menu.show').removeClass('show');
       $('.nav-item.dropdown.show').removeClass('show');
     }
     window.goToRestockProduct = goToRestockProduct;
 
+    // ກົດລາຍການໃນກະດິ່ງສິນຄ້າໃກ້ໝົດ/ໝົດ → ເປີດໜ້າລາຍການສິນຄ້າຂອງສາຂານັ້ນ ສະແດງສະເພາະສິນຄ້າທີ່ກົດ
+    // (?product=ID). ບໍ່ມີ ID → ສິນຄ້າໃກ້ໝົດທັງໝົດ (stock=low) ຫຼື ໝົດແລ້ວ (stock=out)
+    function goToStockList(storeId, isOut, productId) {
+      var url = '<?php echo $base_path; ?>pages/products/products.php?stock=' + (isOut ? 'out' : 'low');
+      if (parseInt(storeId, 10) > 0) url += '&store_id=' + parseInt(storeId, 10);
+      if (productId) url += '&product=' + encodeURIComponent(productId);
+      $('#mainContentFrame').attr('src', url);
+      try { sessionStorage.setItem('StoreMini.currentIframeSrc', url); } catch (e) {}
+      $('.dropdown-menu.show').removeClass('show');
+      $('.nav-item.dropdown.show').removeClass('show');
+    }
+    window.goToStockList = goToStockList;
+
     function goToExpiryProduct(productName, expired) {
       var url = '<?php echo $base_path; ?>pages/reports/expiry_report.php?status=' + (expired ? 'expired' : 'near');
       if (productName) url += '&q=' + encodeURIComponent(productName);
       $('#mainContentFrame').attr('src', url);
+      try { sessionStorage.setItem('StoreMini.currentIframeSrc', url); } catch (e) {}
       $('.dropdown-menu.show').removeClass('show');
       $('.nav-item.dropdown.show').removeClass('show');
     }

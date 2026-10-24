@@ -18,6 +18,8 @@ return [
     'users_manage.status_offline' => 'Offline',
     'users_manage.role_admin' => 'Admin',
     'users_manage.role_employee' => 'Employee',
+    'users_manage.role_manager' => 'Manager (own branch)',
+    'users_manage.role_manager_short' => 'Manager',
     'users_manage.btn_view_title' => 'View Details',
     'users_manage.btn_edit_title' => 'Edit',
     'users_manage.btn_delete_title' => 'Delete',

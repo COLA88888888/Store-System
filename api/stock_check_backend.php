@@ -53,7 +53,7 @@ $scSeeResults = !$scIsStaff;
 if (empty($_SESSION['user_id']) || (!$scIsManager && !$scIsCounter)) {
     if ($scIsAjax) {
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['success' => false, 'message' => 'ທ່ານບໍ່ມີສິດເຂົ້າໃຊ້ເມນູນີ້']);
+        echo json_encode(['success' => false, 'message' => t('sc.s203')]);
         exit();
     }
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
@@ -193,7 +193,7 @@ if ($scIsAjax) {
         'check_item_stock'    => $scCanCount,
     ][$action] ?? false;
     if (!$allowed) {
-        echo json_encode(['success' => false, 'message' => 'ທ່ານບໍ່ມີສິດເຮັດລາຍການນີ້']);
+        echo json_encode(['success' => false, 'message' => t('sc.s204')]);
         exit();
     }
 
@@ -201,10 +201,10 @@ if ($scIsAjax) {
         $pdo->beginTransaction();
         $check = scLoadCheck($pdo, $checkId, $scStoreId, true);
         if (!$check) {
-            throw new Exception('ບໍ່ພົບໃບເຊັກສະຕັອກນີ້');
+            throw new Exception(t('sc.s205'));
         }
         if ($check['status'] === 'completed') {
-            throw new Exception('ໃບເຊັກສະຕັອກນີ້ນັບແລ້ວ (ປັບສະຕັອກແລ້ວ) ບໍ່ສາມາດແກ້ໄຂໄດ້');
+            throw new Exception(t('sc.s206'));
         }
 
         // ກວດສອບສະຕັອກລ່າສຸດຂອງສິນຄ້າ (ກວດວ່າມີການຂາຍ/ຕັດສະຕັອກເກີດຂຶ້ນ ຫຼື ບໍ່)
@@ -219,7 +219,7 @@ if ($scIsAjax) {
             $stmt->execute([$scStoreId, $checkId, $code, $code]);
             $item = $stmt->fetch(PDO::FETCH_ASSOC);
             if (!$item) {
-                echo json_encode(['success' => false, 'message' => 'ບໍ່ພົບສິນຄ້າ']);
+                echo json_encode(['success' => false, 'message' => t('sc.s207')]);
                 exit();
             }
 
@@ -257,7 +257,7 @@ if ($scIsAjax) {
             $pdo->prepare("DELETE FROM st_stock_checks WHERE id = ?")->execute([$checkId]);
             $pdo->commit();
             logActivity($pdo, 'ລຶບໃບເຊັກສະຕັອກ', 'ເລກທີ: ' . $check['check_no']);
-            echo json_encode(['success' => true, 'message' => 'ລຶບໃບເຊັກສະຕັອກສຳເລັດ']);
+            echo json_encode(['success' => true, 'message' => t('sc.s208')]);
             exit();
         }
 
@@ -267,24 +267,24 @@ if ($scIsAjax) {
 
         // ລຳດັບຂັ້ນຕອນ: ກວດສະຖານະກ່ອນບັນທຶກຫຍັງ
         if ($action === 'save_counts' && !$canEditNow) {
-            throw new Exception('ໃບນີ້ສົ່ງໃຫ້ຫົວໜ້າກວດສອບແລ້ວ — ແກ້ໄຂຕົວເລກບໍ່ໄດ້ ຈົນກວ່າຫົວໜ້າຈະສົ່ງກັບ');
+            throw new Exception(t('sc.s209'));
         }
         if ($action === 'submit_for_approval' && $st !== 'draft') {
-            throw new Exception('ໃບນີ້ສົ່ງໃຫ້ຫົວໜ້າກວດສອບແລ້ວ');
+            throw new Exception(t('sc.s210'));
         }
         if ($action === 'approve_adjustment' && !in_array($st, ['draft', 'pending', 'approved'], true)) {
-            throw new Exception('ໃບນີ້ປັບສະຕັອກແລ້ວ');
+            throw new Exception(t('sc.s211'));
         }
         if ($action === 'reject_adjustment' && !in_array($st, ['pending', 'approved'], true)) {
-            throw new Exception('ໃບນີ້ຍັງບໍ່ໄດ້ສົ່ງກວດສອບ');
+            throw new Exception(t('sc.s212'));
         }
         if ($action === 'complete_check' && $st !== 'approved') {
-            throw new Exception('ຕ້ອງໃຫ້ຫົວໜ້າ ຫຼື ຜູ້ຈັດການຮ້ານກວດສອບ ແລະ ອະນຸມັດກ່ອນ ຈຶ່ງປັບສະຕັອກໄດ້');
+            throw new Exception(t('sc.s213'));
         }
         if ($action === 'approve_adjustment') {
             $cnt = (int)$pdo->query("SELECT COUNT(*) FROM st_stock_check_items WHERE check_id = " . intval($checkId) . " AND counted_qty IS NOT NULL")->fetchColumn();
             if ($cnt <= 0 && empty($items)) {
-                throw new Exception('ໃບນີ້ຍັງບໍ່ມີລາຍການທີ່ນັບ');
+                throw new Exception(t('sc.s214'));
             }
         }
 
@@ -297,7 +297,7 @@ if ($scIsAjax) {
 
         if ($action === 'save_counts') {
             $pdo->commit();
-            echo json_encode(['success' => true, 'message' => 'ບັນທຶກສຳເລັດ', 'saved_at' => date('H:i:s'), 'rows' => $savedRows]);
+            echo json_encode(['success' => true, 'message' => t('sc.s095'), 'saved_at' => date('H:i:s'), 'rows' => $savedRows]);
             exit();
         }
 
@@ -305,13 +305,13 @@ if ($scIsAjax) {
         if ($action === 'submit_for_approval') {
             $cnt = (int)$pdo->query("SELECT COUNT(*) FROM st_stock_check_items WHERE check_id = " . intval($checkId) . " AND counted_qty IS NOT NULL")->fetchColumn();
             if ($cnt <= 0) {
-                throw new Exception('ກະລຸນານັບ ແລະ ບັນທຶກສິນຄ້າຢ່າງໜ້ອຍ 1 ລາຍການກ່ອນສົ່ງຂໍອະນຸມັດ');
+                throw new Exception(t('sc.s215'));
             }
             // submitted_by/at: ຫົວໜ້າໄດ້ແຈ້ງເຕືອນວ່າໃຜສົ່ງ, ແລະ ອະນຸມັດແລ້ວແຈ້ງກັບຫາຜູ້ສົ່ງ (config/helpers/stock_check_alerts.php)
             $pdo->prepare("UPDATE st_stock_checks SET status = 'pending', submitted_by = ?, submitted_at = NOW() WHERE id = ?")->execute([$scUserId, $checkId]);
             $pdo->commit();
             logActivity($pdo, 'ສົ່ງໃບເຊັກສະຕັອກຂໍອະນຸມັດ', 'ເລກທີ: ' . $check['check_no']);
-            echo json_encode(['success' => true, 'message' => 'ສົ່ງໃຫ້ຫົວໜ້າກວດສອບແລ້ວ! ກະລຸນາລໍຖ້າຫົວໜ້າອະນຸຍາດກ່ອນປັບສະຕັອກ']);
+            echo json_encode(['success' => true, 'message' => t('sc.s216')]);
             exit();
         }
 
@@ -323,7 +323,7 @@ if ($scIsAjax) {
             $pdo->commit();
             logActivity($pdo, 'ປັບສະຕັອກໃຫ້ຕົງ', 'ເລກທີ: ' . $check['check_no'] . ', ປັບສະຕັອກ ' . $adjusted . ' ລາຍການ');
             echo json_encode(['success' => true, 'adjusted' => $adjusted,
-                'message' => 'ປັບສະຕັອກໃຫ້ຕົງສຳເລັດ! (' . $adjusted . ' ລາຍການ)']);
+                'message' => t('sc.s217') . $adjusted . ' ' . t('sc.s075') . ')']);
             exit();
         }
 
@@ -333,7 +333,7 @@ if ($scIsAjax) {
                 ->execute([$checkId]);
             $pdo->commit();
             logActivity($pdo, 'ສົ່ງກັບໃຫ້ນັບສະຕັອກໃໝ່', 'ເລກທີ: ' . $check['check_no']);
-            echo json_encode(['success' => true, 'message' => 'ສົ່ງກັບໃຫ້ພະນັກງານນັບ/ແກ້ໄຂໃໝ່ແລ້ວ']);
+            echo json_encode(['success' => true, 'message' => t('sc.s218')]);
             exit();
         }
 
@@ -343,7 +343,7 @@ if ($scIsAjax) {
 
         logActivity($pdo, 'ຢືນຢັນເຊັກສະຕັອກ', 'ເລກທີ: ' . $check['check_no'] . ', ປັບສະຕັອກ ' . $adjusted . ' ລາຍການ');
         echo json_encode(['success' => true, 'adjusted' => $adjusted,
-            'message' => 'ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບສຳເລັດແລ້ວ! (' . $adjusted . ' ລາຍການ)']);
+            'message' => t('sc.s219') . $adjusted . ' ' . t('sc.s075') . ')']);
         exit();
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
@@ -360,7 +360,7 @@ $sc_message_type = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'create_check') {
     if (!$scCanStart) {
-        $sc_message = 'ທ່ານບໍ່ມີສິດເລີ່ມເຊັກສະຕັອກ';
+        $sc_message = t('sc.s220');
         $sc_message_type = 'danger';
     } else {
         try {
@@ -381,7 +381,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'creat
             exit();
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
-            $sc_message = 'ຜິດພາດ: ' . $e->getMessage();
+            $sc_message = t('sc.s221') . ' ' . $e->getMessage();
             $sc_message_type = 'danger';
         }
     }
@@ -452,7 +452,7 @@ if (!empty($_GET['id']) && empty($_GET['view'])) {
         $it->execute([$scCheck['id']]);
         $scItems = $it->fetchAll(PDO::FETCH_ASSOC);
     } else {
-        $sc_message = 'ບໍ່ພົບໃບເຊັກສະຕັອກນີ້ໃນສາຂາທີ່ເລືອກ';
+        $sc_message = t('sc.s222');
         $sc_message_type = 'danger';
     }
 }

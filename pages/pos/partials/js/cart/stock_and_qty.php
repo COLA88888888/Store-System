@@ -5,7 +5,16 @@
  * ແລະ ລ້າງກະຕ່າ.
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/pos/partials/js/pos_cart_js.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
-?>// --- STOCK CHECK HELPERS & ALERTS ---
+?>// ຂໍ້ຄວາມ popup ສ່ວນຫຼຸດ + ສະຕັອກບໍ່ພໍ (lang/*/pos_discount.php). ເປັນ window.I18N_* ຈຶ່ງຖືກປ່ຽນຄ່າເອງເມື່ອກົດທຸງພາສາ
+// (home/partials/dashboard/js_language.php) — popup ສ້າງ HTML ໃໝ່ທຸກຄັ້ງທີ່ເປີດ ຈຶ່ງເປັນພາສາໃໝ່ທັນທີ.
+var I18N_POS_DISC = <?php echo tjson(require dirname(__DIR__, 5) . '/lang/lo/pos_discount.php'); ?>;
+function pdT(key) {
+  var v = I18N_POS_DISC[key] || key;
+  var args = Array.prototype.slice.call(arguments, 1);
+  return args.length ? v.replace(/%s/g, function () { return args.length ? args.shift() : ''; }) : v;
+}
+
+// --- STOCK CHECK HELPERS & ALERTS ---
 function getProductCutQty(productId) {
   var stockValEl = $('.product-stock-val-' + productId);
   if (stockValEl.length) {
@@ -206,9 +215,9 @@ function incCartQty(cartKey, delta) {
       if (remaining < needed) {
         Swal.fire({
           icon: 'error',
-          title: 'ຈຳນວນສິນຄ້າບໍ່ພໍ!',
-          html: '<div style="font-size:1.0rem; font-weight:600; color:#ef4444;">ສິນຄ້າ "' + item.product_name + '" ບໍ່ສາມາດເພີ່ມຈຳນວນໄດ້ອີກ</div><div class="mt-2 text-muted" style="font-size:0.88rem;">ຈຳນວນເຫຼືອໃນສາງ: <b>' + Math.max(0, remaining).toLocaleString() + '</b> ' + item.unit_name + '</div>',
-          confirmButtonText: 'ຕົກລົງ',
+          title: pdT('pos_disc.stock_short_title'),
+          html: '<div style="font-size:1.0rem; font-weight:600; color:#ef4444;">' + pdT('pos_disc.cannot_add_more', item.product_name) + '</div><div class="mt-2 text-muted" style="font-size:0.88rem;">' + pdT('pos_disc.remaining') + ' <b>' + Math.max(0, remaining).toLocaleString() + '</b> ' + item.unit_name + '</div>',
+          confirmButtonText: pdT('pos_disc.ok'),
           confirmButtonColor: '#ef4444'
         });
         return;
@@ -243,9 +252,9 @@ function changeCartQty(cartKey, val) {
         item.quantity = allowedQty > 0 ? allowedQty : 1;
         Swal.fire({
           icon: 'error',
-          title: 'ຈຳນວນສິນຄ້າບໍ່ພໍ!',
-          html: '<div style="font-size:1.0rem; font-weight:600; color:#ef4444;">ສິນຄ້າ "' + item.product_name + '" ເຫຼືອໃນສາງບໍ່ພໍ</div><div class="mt-2 text-muted" style="font-size:0.88rem;">ສາມາດຂາຍໄດ້ສູງສຸດ: <b>' + (oldQty + maxAdd).toLocaleString() + '</b> ' + item.unit_name + '</div>',
-          confirmButtonText: 'ຕົກລົງ',
+          title: pdT('pos_disc.stock_short_title'),
+          html: '<div style="font-size:1.0rem; font-weight:600; color:#ef4444;">' + pdT('pos_disc.not_enough', item.product_name) + '</div><div class="mt-2 text-muted" style="font-size:0.88rem;">' + pdT('pos_disc.max_sell') + ' <b>' + (oldQty + maxAdd).toLocaleString() + '</b> ' + item.unit_name + '</div>',
+          confirmButtonText: pdT('pos_disc.ok'),
           confirmButtonColor: '#ef4444'
         });
         updateCartUI();
@@ -347,7 +356,7 @@ function openItemDiscountModal(cartKey) {
         <div class="ml-3" style="min-width:0; flex:1;">
           <div class="font-weight-bold text-dark text-truncate" style="font-size:1.0rem;" title="${item.product_name}">${item.product_name}</div>
           <div class="text-muted small">
-            ຫົວໜ່ວຍ: <b class="text-dark">${item.unit_name || 'ອັນ'}</b> | ລາຄາເດີມ: <b class="text-primary">${POSCUR.fmt(origPrice)}</b>
+            ${pdT('pos_disc.unit')} <b class="text-dark">${item.unit_name || pdT('pos_disc.unit_default')}</b> | ${pdT('pos_disc.orig_price')} <b class="text-primary">${POSCUR.fmt(origPrice)}</b>
           </div>
         </div>
       </div>
@@ -355,16 +364,16 @@ function openItemDiscountModal(cartKey) {
       <!-- Mode Selector -->
       <div class="d-flex mb-3" style="background:#f1f5f9; padding:4px; border-radius:8px; gap:4px;">
         <button type="button" id="swalDiscModePct" class="btn btn-sm flex-fill font-weight-bold ${_currentDiscModalMode === 'percent' ? 'bg-white shadow-sm text-primary' : 'text-muted'}" style="border-radius:6px; border:none; padding:8px 12px; transition:all 0.15s ease;" onclick="swalSwitchItemDiscMode('percent')">
-          <i class="fas fa-percent mr-1"></i> ເປີເຊັນ (%)
+          <i class="fas fa-percent mr-1"></i> ${pdT('pos_disc.mode_pct')} (%)
         </button>
         <button type="button" id="swalDiscModeAmt" class="btn btn-sm flex-fill font-weight-bold ${_currentDiscModalMode === 'amount' ? 'bg-white shadow-sm text-primary' : 'text-muted'}" style="border-radius:6px; border:none; padding:8px 12px; transition:all 0.15s ease;" onclick="swalSwitchItemDiscMode('amount')">
-          <i class="fas fa-coins mr-1"></i> ຈຳນວນເງິນ (${symbol})
+          <i class="fas fa-coins mr-1"></i> ${pdT('pos_disc.mode_amt')} (${symbol})
         </button>
       </div>
 
       <!-- Quick Presets for Percent -->
       <div id="swalDiscQuickPct" class="mb-3" style="${_currentDiscModalMode === 'percent' ? '' : 'display:none;'}">
-        <div class="text-muted small mb-1 font-weight-bold">ເລືອກດ່ວນ:</div>
+        <div class="text-muted small mb-1 font-weight-bold">${pdT('pos_disc.quick')}</div>
         <div class="d-flex" style="gap:6px;">
           <button type="button" class="btn btn-outline-secondary btn-sm flex-fill font-weight-bold" style="border-radius:6px;" onclick="swalSetItemDiscVal(5)">5%</button>
           <button type="button" class="btn btn-outline-secondary btn-sm flex-fill font-weight-bold" style="border-radius:6px;" onclick="swalSetItemDiscVal(10)">10%</button>
@@ -377,7 +386,7 @@ function openItemDiscountModal(cartKey) {
       <!-- Input Field -->
       <div class="form-group mb-3">
         <label id="swalDiscInputLabel" class="font-weight-bold text-dark small mb-1 d-flex justify-content-between align-items-center">
-          <span id="swalDiscInputLabelText">${_currentDiscModalMode === 'percent' ? 'ລະບຸເປີເຊັນສ່ວນຫຼຸດ (%):' : 'ລະບຸຈຳນວນເງິນຫຼຸດ (' + symbol + '):'}</span>
+          <span id="swalDiscInputLabelText">${_currentDiscModalMode === 'percent' ? pdT('pos_disc.input_pct') + ' (%):' : pdT('pos_disc.input_amt') + ' (' + symbol + '):'}</span>
           <span id="swalDiscConvertedHint" class="text-danger font-weight-bold" style="font-size:0.85rem;"></span>
         </label>
         <div class="input-group">
@@ -393,15 +402,15 @@ function openItemDiscountModal(cartKey) {
       <!-- Live Preview -->
       <div class="p-3 mb-2" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:0.88rem;">
         <div class="d-flex justify-content-between mb-1">
-          <span class="text-muted">ສ່ວນຫຼຸດຕໍ່ອັນ:</span>
+          <span class="text-muted">${pdT('pos_disc.per_unit')}</span>
           <span class="font-weight-bold text-danger" id="swalPreviewDiscPerUnit"></span>
         </div>
         <div class="d-flex justify-content-between mb-1">
-          <span class="text-muted">ລາຄາໃໝ່ຕໍ່ອັນ:</span>
+          <span class="text-muted">${pdT('pos_disc.new_price')}</span>
           <span class="font-weight-bold text-dark" id="swalPreviewNewPrice"></span>
         </div>
         <div class="d-flex justify-content-between pt-2 mt-1 border-top" style="border-color:#e2e8f0 !important;">
-          <span class="text-muted">ຍອດລວມແຖວນີ້ (<span id="swalPreviewQty">${item.quantity}</span> ${item.unit_name || 'ອັນ'}):</span>
+          <span class="text-muted">${pdT('pos_disc.line_total')} (<span id="swalPreviewQty">${item.quantity}</span> ${item.unit_name || pdT('pos_disc.unit_default')}):</span>
           <span class="font-weight-bold text-success" id="swalPreviewLineTotal" style="font-size:1.05rem;"></span>
         </div>
         <div class="text-right text-muted small mt-1" id="swalPreviewTotalSaved"></div>
@@ -410,13 +419,13 @@ function openItemDiscountModal(cartKey) {
   `;
 
   Swal.fire({
-    title: 'ຕັ້ງສ່ວນຫຼຸດສິນຄ້າ',
+    title: pdT('pos_disc.title'),
     html: modalHtml,
     showCancelButton: true,
     showDenyButton: hasDiscount,
-    confirmButtonText: '<i class="fas fa-check mr-1"></i> ບັນທຶກສ່ວນຫຼຸດ',
-    denyButtonText: '<i class="fas fa-trash-alt mr-1"></i> ລ້າງສ່ວນຫຼຸດ',
-    cancelButtonText: 'ຍົກເລີກ',
+    confirmButtonText: '<i class="fas fa-check mr-1"></i> ' + pdT('pos_disc.btn_save'),
+    denyButtonText: '<i class="fas fa-trash-alt mr-1"></i> ' + pdT('pos_disc.btn_clear'),
+    cancelButtonText: pdT('pos_disc.btn_cancel'),
     confirmButtonColor: '#2563eb',
     denyButtonColor: '#ef4444',
     cancelButtonColor: '#64748b',
@@ -489,7 +498,7 @@ function swalSwitchItemDiscMode(mode) {
     $('#swalDiscModeAmt').addClass('bg-white shadow-sm text-primary').removeClass('text-muted');
     $('#swalDiscModePct').removeClass('bg-white shadow-sm text-primary').addClass('text-muted');
     $('#swalDiscQuickPct').hide();
-    $('#swalDiscInputLabelText').text('ລະບຸຈຳນວນເງິນຫຼຸດ (' + symbol + '):');
+    $('#swalDiscInputLabelText').text(pdT('pos_disc.input_amt') + ' (' + symbol + '):');
     $('#swalDiscInputPrefix').text(symbol);
   } else {
     // ສະຫຼັບຈາກ ຈຳນວນເງິນ ໄປເປັນ %: ຄິດໄລ່ເປີເຊັນຈາກຈຳນວນເງິນ
@@ -502,7 +511,7 @@ function swalSwitchItemDiscMode(mode) {
     $('#swalDiscModePct').addClass('bg-white shadow-sm text-primary').removeClass('text-muted');
     $('#swalDiscModeAmt').removeClass('bg-white shadow-sm text-primary').addClass('text-muted');
     $('#swalDiscQuickPct').show();
-    $('#swalDiscInputLabelText').text('ລະບຸເປີເຊັນສ່ວນຫຼຸດ (%):');
+    $('#swalDiscInputLabelText').text(pdT('pos_disc.input_pct') + ' (%):');
     $('#swalDiscInputPrefix').text('%');
   }
 
@@ -551,7 +560,7 @@ function swalRecalcItemDisc() {
   // ສະແດງທັງຈຳນວນເງິນ ແລະ ເປີເຊັນໃຫ້ເຫັນຈະແຈ້ງ
   if (_currentDiscModalMode === 'percent') {
     if (val > 0) {
-      $('#swalDiscConvertedHint').html('= -' + POSCUR.fmt(discPerUnit) + ' / ' + (item.unit_name || 'ອັນ')).show();
+      $('#swalDiscConvertedHint').html('= -' + POSCUR.fmt(discPerUnit) + ' / ' + (item.unit_name || pdT('pos_disc.unit_default'))).show();
       $('#swalPreviewDiscPerUnit').html('-' + POSCUR.fmt(discPerUnit) + ' <span class="badge badge-danger ml-1" style="font-size:0.75rem;">' + val + '%</span>');
     } else {
       $('#swalDiscConvertedHint').hide();
@@ -572,7 +581,7 @@ function swalRecalcItemDisc() {
   $('#swalPreviewLineTotal').html(POSCUR.fmt(lineTotal));
 
   if (totalSaved > 0) {
-    $('#swalPreviewTotalSaved').html('(ປະຢັດລວມ: <b class="text-danger">-' + POSCUR.fmt(totalSaved) + '</b>)').show();
+    $('#swalPreviewTotalSaved').html('(' + pdT('pos_disc.total_saved') + ' <b class="text-danger">-' + POSCUR.fmt(totalSaved) + '</b>)').show();
   } else {
     $('#swalPreviewTotalSaved').hide();
   }

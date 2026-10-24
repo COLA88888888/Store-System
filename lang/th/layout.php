@@ -90,4 +90,14 @@ return [
     'layout.expiry' => 'จัดการสินค้าหมดอายุ',
     'layout.expiry_report' => 'รายงานสินค้าหมดอายุ',
     'layout.shift_report' => 'รายการตามกะ',
+    // ເມນູ/ແຈ້ງເຕືອນທີ່ເພີ່ມພາຍຫຼັງ
+    'layout.expiry_near_header' => 'สินค้าใกล้หมดอายุ / หมดอายุ',
+    'layout.expiry_days_left' => 'เหลือ %d วัน',
+    'layout.expiry_today' => 'หมดอายุวันนี้',
+    'layout.expiry_expired' => 'หมดอายุแล้ว',
+    'layout.click_to_expiry' => 'คลิกเพื่อไปหน้าจัดการสินค้าหมดอายุ',
+    'layout.stock_check_list' => 'เช็คสต็อก',
+    'layout.zones' => 'โซนสินค้า',
+    'layout.shelves' => 'ชั้นวางสินค้า',
+    'layout.shifts' => 'จัดการกะทำงาน',
 ];

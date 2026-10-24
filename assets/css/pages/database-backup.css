@@ -88,21 +88,28 @@
 
 /* ລາຍການໄຟລ໌ສຳຮອງ: ຫົວຂໍ້ທຳມະດາ (ບໍ່ມີກາດຫຸ້ມ) + ແຕ່ລະໄຟລ໌ເປັນກາດຂອງມັນເອງ */
 .backup-section-head { padding: 4px 2px 12px; }
-.backup-list { display: flex; flex-direction: column; gap: 10px; }
+/* ກາດສັ້ນ ວາງຮຽງກັນ: ຈໍໃຫຍ່ 4 ກາດຕໍ່ແຖວ, ແທັບເລັດ 2, ໂທລະສັບ 1 */
+.backup-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+@media (max-width: 1199.98px) { .backup-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 575.98px)  { .backup-list { grid-template-columns: minmax(0, 1fr); } }
+/* ກາດສີຂາວທຳມະດາ ມຸມ 4px (ບໍ່ມີແຖບສີດ້ານຊ້າຍ) */
 .backup-row {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px 14px;
-    padding: 14px 16px;
+    gap: 10px 12px;
+    padding: 12px 14px;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-left: 4px solid #244886;
-    border-radius: 8px;
+    border-radius: 4px;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
     transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.backup-row:hover { box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08); border-color: #cbd5e1; border-left-color: #244886; }
+.backup-row:hover { box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08); border-color: #cbd5e1; }
 .backup-empty { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; }
 .backup-row-icon {
     width: 40px; height: 40px; min-width: 40px;
@@ -110,7 +117,7 @@
     display: flex; align-items: center; justify-content: center;
     background: #eff6ff; border: 1px solid #bfdbfe; color: #2563eb; font-size: 1.15rem;
 }
-.backup-row-info { flex: 1 1 220px; min-width: 0; }
+.backup-row-info { flex: 1 1 0; min-width: 0; }
 .backup-row-name {
     font-weight: 700; color: #1e293b; font-size: 0.9rem;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -119,7 +126,14 @@
     display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px;
     margin-top: 3px; color: #64748b; font-size: 0.78rem;
 }
-.backup-row-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+/* ປຸ່ມລົງແຖວໃໝ່ໃຕ້ຊື່ໄຟລ໌ ເຕັມຄວາມກວ້າງຂອງກາດ (ດາວໂຫຼດ / ຟື້ນຟູ ແບ່ງເທົ່າກັນ, ປຸ່ມລົບຂະໜາດຄົງທີ່) */
+.backup-row-actions {
+    display: flex; align-items: center; gap: 6px;
+    flex: 1 1 100%;
+    padding-top: 10px;
+    border-top: 1px dashed #e2e8f0;
+}
+.backup-row-actions .btn-backup-action:not(.delete) { flex: 1 1 0; }
 
 /* Backup Action Buttons (Prevent wrapping on mobile) */
 .btn-backup-action {
@@ -190,7 +204,4 @@
     .btn-backup-action.delete {
         width: 30px;
     }
-    /* ໂທລະສັບ: ປຸ່ມລົງແຖວໃໝ່ເຕັມຄວາມກວ້າງ ໃຕ້ຊື່ໄຟລ໌ */
-    .backup-row-actions { flex: 1 1 100%; margin-left: 0; }
-    .backup-row-actions .btn-backup-action:not(.delete) { flex: 1 1 0; }
 }

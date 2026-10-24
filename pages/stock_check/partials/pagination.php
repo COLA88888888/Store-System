@@ -14,19 +14,19 @@ $scPgLink = function ($p) {
         <div class="card-footer bg-white border-top py-3 d-flex flex-column flex-md-row justify-content-between align-items-center sc-no-print" style="row-gap: 10px;">
           <small class="text-muted font-weight-bold d-flex align-items-center flex-wrap" style="gap: 8px;">
             <!-- ບັອກເລືອກຈຳນວນແຖວຕໍ່ໜ້າ -->
-            <span class="d-inline-flex align-items-center">ສະແດງ
+            <span class="d-inline-flex align-items-center"><?php echo $sc('sc.s074'); ?>
               <select class="custom-select custom-select-sm sc-per-page mx-1" onchange="window.location.href = this.value;">
                 <?php foreach (array_merge($scPerPageOptions, ['all']) as $opt):
                   $q = $_GET; unset($q['id'], $q['page']); $q['per_page'] = $opt; ?>
-                  <option value="stock_check.php?<?php echo htmlspecialchars(http_build_query($q)); ?>" <?php echo (string)$opt === (string)$scPerPageParam ? 'selected' : ''; ?>><?php echo $opt === 'all' ? 'ທັງໝົດ' : $opt; ?></option>
+                  <option value="stock_check.php?<?php echo htmlspecialchars(http_build_query($q)); ?>" <?php echo (string)$opt === (string)$scPerPageParam ? 'selected' : ''; ?>><?php echo $opt === 'all' ? t('sc.s047') : $opt; ?></option>
                 <?php endforeach; ?>
-              </select>ລາຍການ
+              </select><?php echo $sc('sc.s075'); ?>
             </span>
             <?php if ($scTotalRows > 0): ?>
-              ສະແດງ <?php echo number_format($scPageOffset + 1); ?> - <?php echo number_format(min($scPageOffset + $scPerPage, $scTotalRows)); ?>
-              ຈາກທັງໝົດ <?php echo number_format($scTotalRows); ?> ລາຍການ
+              <?php echo $sc('sc.s074'); ?> <?php echo number_format($scPageOffset + 1); ?> - <?php echo number_format(min($scPageOffset + $scPerPage, $scTotalRows)); ?>
+              <?php echo $sc('sc.s088'); ?> <?php echo number_format($scTotalRows); ?> <?php echo $sc('sc.s075'); ?>
             <?php else: ?>
-              ທັງໝົດ 0 ລາຍການ
+              <?php echo $sc('sc.s089'); ?>
             <?php endif; ?>
           </small>
           <!-- ສະແດງສະເໝີ (ເຖິງວ່າຈະມີໜ້າດຽວ) -->

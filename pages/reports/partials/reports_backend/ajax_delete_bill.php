@@ -13,7 +13,7 @@ if ($reqAction === 'delete_bill') {
     $billNo = trim($_REQUEST['bill_no'] ?? '');
 
     if (empty($billNo)) {
-        echo json_encode(['success' => false, 'message' => 'ບໍ່ພົບເລກບິນທີ່ຈະລົບ!']);
+        echo json_encode(['success' => false, 'message' => t('reports.del_err_no_bill')]);
         exit();
     }
 
@@ -27,13 +27,13 @@ if ($reqAction === 'delete_bill') {
 
         if (!$bill) {
             if ($pdo->inTransaction()) $pdo->rollBack();
-            echo json_encode(['success' => false, 'message' => 'ບໍ່ພົບຂໍ້ມູນບິນຂາຍນີ້ໃນລະບົບ!']);
+            echo json_encode(['success' => false, 'message' => t('reports.del_err_not_found')]);
             exit();
         }
 
         if (($bill['sale_status'] ?? '') === 'CANCEL') {
             if ($pdo->inTransaction()) $pdo->rollBack();
-            echo json_encode(['success' => false, 'message' => 'ບິນຂາຍນີ້ຖືກລົບ/ຍົກເລີກໄປແລ້ວ!']);
+            echo json_encode(['success' => false, 'message' => t('reports.del_err_already')]);
             exit();
         }
 
@@ -81,13 +81,14 @@ if ($reqAction === 'delete_bill') {
 
         echo json_encode([
             'success' => true,
-            'message' => 'ລົບບິນຂາຍ ' . $billNo . ' ແລະ ຄືນສະຕັອກສິນຄ້າສຳເລັດແລ້ວ!'
+            // ຕາມພາສາທີ່ເລືອກ — ກົດທຸງແລ້ວ set_lang.php ບັນທຶກພາສາໃສ່ session ທັນທີ ຈຶ່ງບໍ່ຕ້ອງໂຫຼດໜ້າ
+            'message' => t('reports.delete_success_prefix') . ' ' . $billNo . ' ' . t('reports.delete_success_suffix')
         ]);
     } catch (Exception $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
-        echo json_encode(['success' => false, 'message' => 'ເກີດຂໍ້ຜິດພາດ: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => t('reports.del_err_generic') . ' ' . $e->getMessage()]);
     }
     exit();
 }

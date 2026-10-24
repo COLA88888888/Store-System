@@ -23,13 +23,13 @@
           <!-- ນຳເຂົ້າຈາກ Excel: ອ່ານໄຟລ໌ຢູ່ໃນ browser ແລ້ວຕື່ມແຖວລຸ່ມນີ້ໃຫ້ — ກວດ/ແກ້ໄຂໄດ້ກ່ອນກົດບັນທຶກ -->
           <div class="d-flex align-items-center flex-wrap mb-3 p-2" style="gap: 8px; background: #f0fdf4; border: 1px dashed #86efac; border-radius: 8px;">
             <button type="button" class="btn btn-sm btn-success font-weight-bold" style="border-radius: 6px;" onclick="$('#bulk_excel_file').val('').click()">
-              <i class="fas fa-file-excel mr-1"></i> ນຳເຂົ້າຈາກ Excel
+              <i class="fas fa-file-excel mr-1"></i> <?php echo htmlspecialchars(t('products_q.excel_import')); ?>
             </button>
             <button type="button" class="btn btn-sm btn-outline-success font-weight-bold" style="border-radius: 6px;" onclick="bulkDownloadExcelTemplate()">
-              <i class="fas fa-download mr-1"></i> ດາວໂຫຼດແບບຟອມ
+              <i class="fas fa-download mr-1"></i> <?php echo htmlspecialchars(t('products_q.excel_template')); ?>
             </button>
             <input type="file" id="bulk_excel_file" accept=".xlsx,.xls,.csv" class="d-none" onchange="bulkImportExcel(this)">
-            <small class="text-muted" style="font-size: 0.78rem;">ຖັນ: ປະເພດ, ຊື່ສິນຄ້າ, ບາໂຄ້ດ, ຫົວໜ່ວຍ, ລາຄາຊື້, ລາຄາຂາຍ, ຜູ້ສະໜອງ, ໂຊນ, ຊັ້ນວາງ</small>
+            <small class="text-muted" style="font-size: 0.78rem;"><?php echo htmlspecialchars(t('products_q.excel_columns')); ?></small>
           </div>
 
           <!-- ຕັ້ງຄ່າທັງຊຸດ: ຜູ້ສະໜອງ (ບັອກດຽວ), ໂຊນ, ຊັ້ນວາງ, ບໍ່ຕັດສະຕັອກ -->
@@ -45,13 +45,13 @@
             </div>
             <div class="col-md-4">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="font-weight-bold text-dark mb-0"><i class="fas fa-map-marker-alt text-info mr-1"></i>ໂຊນ (ໃຊ້ກັບທຸກລາຍການ)</label>
+                <label class="font-weight-bold text-dark mb-0"><i class="fas fa-map-marker-alt text-info mr-1"></i><?php echo htmlspecialchars(t('products_q.zone_all_rows')); ?></label>
                 <a href="javascript:void(0)" onclick="quickAddZonePrompt('bulk')" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
-                  <i class="fas fa-plus mr-1"></i>ເພີ່ມໂຊນ
+                  <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_zone_link')); ?>
                 </a>
               </div>
               <select name="bulk_zone" id="bulk_zone" class="form-control" style="height: 40px; border-radius: 6px;" onchange="onZoneSelectChange('bulk')">
-                <option value="">-- ບໍ່ລະບຸ / ເລືອກໂຊນ --</option>
+                <option value=""><?php echo htmlspecialchars(t('products_q.zone_none_opt')); ?></option>
                 <?php foreach (($zones ?? []) as $z): ?>
                   <option value="<?php echo htmlspecialchars($z['zone_name']); ?>" data-id="<?php echo (int)$z['zone_id']; ?>"><?php echo htmlspecialchars($z['zone_name']); ?></option>
                 <?php endforeach; ?>
@@ -59,13 +59,13 @@
             </div>
             <div class="col-md-4">
               <div class="d-flex justify-content-between align-items-center mb-1">
-                <label class="font-weight-bold text-dark mb-0"><i class="fas fa-layer-group text-warning mr-1"></i>ຊັ້ນວາງ (ໃຊ້ກັບທຸກລາຍການ)</label>
+                <label class="font-weight-bold text-dark mb-0"><i class="fas fa-layer-group text-warning mr-1"></i><?php echo htmlspecialchars(t('products_q.shelf_all_rows')); ?></label>
                 <a href="javascript:void(0)" onclick="quickAddShelfPrompt('bulk')" class="text-info font-weight-bold" style="font-size: 0.78rem;">
-                  <i class="fas fa-plus mr-1"></i>ເພີ່ມຊັ້ນວາງ
+                  <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_shelf_link')); ?>
                 </a>
               </div>
               <select name="bulk_shelf" id="bulk_shelf" class="form-control" style="height: 40px; border-radius: 6px;">
-                <option value="">-- ບໍ່ລະບຸ / ເລືອກຊັ້ນວາງ --</option>
+                <option value=""><?php echo htmlspecialchars(t('products_q.shelf_none_opt')); ?></option>
                 <?php foreach (($shelves ?? []) as $sh): ?>
                   <option value="<?php echo htmlspecialchars($sh['shelf_name']); ?>" data-zone-id="<?php echo (int)($sh['zone_id'] ?? 0); ?>" data-zone-name="<?php echo htmlspecialchars($sh['zone_name'] ?? ''); ?>"><?php echo htmlspecialchars($sh['shelf_name']); ?></option>
                 <?php endforeach; ?>

@@ -2,6 +2,14 @@
  * JS ໜ້າຈັດການຜູ້ໃຊ້ (1/2): ສະຖານະອອນລາຍສົດ, ລະຫັດຜູ້ໃຊ້ຖັດໄປ, ຮູບໂປຣໄຟລ໌, ສະແດງລະຫັດຜ່ານ ແລະ ກວດຟອມ.
  * ສ່ວນທີ 2 (popup ເບິ່ງ/ແກ້ໄຂ, ບັນທຶກ, ລົບ) ຢູ່ໃນ users_modals.js — ໂຫຼດຕໍ່ຈາກໄຟລ໌ນີ້.
  */
+// ຂໍ້ຄວາມຕາມພາສາ (I18N_USERS ໃນ users_manage.php) — %s ຖືກແທນດ້ວຍຄ່າທີ່ສົ່ງມາຕາມລຳດັບ
+function uT(key) {
+  var dict = typeof I18N_USERS !== 'undefined' ? I18N_USERS : {};
+  var v = dict[key] || key;
+  var args = Array.prototype.slice.call(arguments, 1);
+  return args.length ? v.replace(/%s/g, function () { return args.length ? args.shift() : ''; }) : v;
+}
+
 // Real-Time Polling for User Online/Offline Status (no page refresh required)
 function pollLiveUserStatuses() {
   var apiUrl = typeof API_URL !== 'undefined' ? API_URL : 'api_user.php';
@@ -68,7 +76,7 @@ function fetchNextUserCode() {
   var codeEl = document.getElementById('add_user_code');
   if (!codeEl) return;
 
-  codeEl.placeholder = 'ກຳລັງສ້າງ...';
+  codeEl.placeholder = uT('users_js.code_generating');
   codeEl.style.color = '#94a3b8';
 
   var storeSel = codeEl.form ? codeEl.form.querySelector('select[name="store_id"]') : null;
@@ -178,28 +186,28 @@ function validateUserForm(formId) {
 
   var missingFields = [];
 
-  if (!user_code) missingFields.push('ລະຫັດຜູ້ນຳໃຊ້');
-  if (!fname) missingFields.push('ຊື່');
+  if (!user_code) missingFields.push(uT('users_js.f_code'));
+  if (!fname) missingFields.push(uT('users_js.f_name'));
   
   if (formId === 'addUserForm') {
-    if (!password) missingFields.push('ລະຫັດຜ່ານ');
+    if (!password) missingFields.push(uT('users_js.f_password'));
   }
 
-  if (!dob) missingFields.push('ວັນເດືອນປີເກີດ');
-  if (!tel) missingFields.push('ເບີໂທ');
+  if (!dob) missingFields.push(uT('users_js.f_dob'));
+  if (!tel) missingFields.push(uT('users_js.f_tel'));
 
   if (missingFields.length > 0) {
     var fieldListStr = missingFields.join(', ');
     if (typeof Swal !== 'undefined') {
       Swal.fire({
         icon: 'warning',
-        title: 'ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບຖ້ວນ!',
-        html: '<div style="font-family: \'Noto Sans Lao\', \'Souliyo\', \'Boon\', sans-serif;">ທ່ານຍັງບໍ່ທັນໄດ້ປ້ອນຂໍ້ມູນ: <strong class="text-danger">' + fieldListStr + '</strong><br><span class="text-muted mt-2 d-inline-block" style="font-size:0.9rem;">ກະລຸນາກວດສອບ ແລະ ປ້ອນຂໍ້ມູນທີ່ມີເຄື່ອງໝາຍ (<span class="text-danger">*</span>) ໃຫ້ຄົບຖ້ວນ</span></div>',
-        confirmButtonText: 'ຕົກລົງ',
+        title: uT('users_js.missing_title'),
+        html: '<div style="font-family: \'Noto Sans Lao\', \'Souliyo\', \'Boon\', sans-serif;">' + uT('users_js.missing_text') + ' <strong class="text-danger">' + fieldListStr + '</strong><br><span class="text-muted mt-2 d-inline-block" style="font-size:0.9rem;">' + uT('users_js.missing_hint', '<span class="text-danger">*</span>') + '</span></div>',
+        confirmButtonText: uT('users_js.ok'),
         confirmButtonColor: '#0284c7'
       });
     } else {
-      alert('ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບຖ້ວນ: ' + fieldListStr);
+      alert(uT('users_js.missing_title') + ' ' + fieldListStr);
     }
     return false;
   }
@@ -209,13 +217,13 @@ function validateUserForm(formId) {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           icon: 'warning',
-          title: 'ລະຫັດຜ່ານບໍ່ກົງກັນ!',
-          html: '<div style="font-family: \'Noto Sans Lao\', \'Souliyo\', \'Boon\', sans-serif;">ກະລຸນາກວດສອບ <strong>ລະຫັດຜ່ານ</strong> ແລະ <strong>ຢືນຢັນລະຫັດຜ່ານ</strong> ໃຫ້ກົງກັນ!</div>',
-          confirmButtonText: 'ຕົກລົງ',
+          title: uT('users_js.pw_mismatch_title'),
+          html: '<div style="font-family: \'Noto Sans Lao\', \'Souliyo\', \'Boon\', sans-serif;">' + uT('users_js.pw_mismatch_text') + '</div>',
+          confirmButtonText: uT('users_js.ok'),
           confirmButtonColor: '#0284c7'
         });
       } else {
-        alert('ລະຫັດຜ່ານ ແລະ ຢືນຢັນລະຫັດຜ່ານ ບໍ່ກົງກັນ!');
+        alert(uT('users_js.pw_mismatch_text'));
       }
       return false;
     }

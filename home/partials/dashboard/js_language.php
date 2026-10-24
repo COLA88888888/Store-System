@@ -125,9 +125,13 @@
         if (reverseMapCache[fromLang]) return reverseMapCache[fromLang];
         var dict = I18N_ALL_MERGED[fromLang] || {};
         var rev = {};
+        // ຄ່າທີ່ເປັນຕົວເລກ/ເຄື່ອງໝາຍລ້ວນ ("0", "192.168...") ບໍ່ເອົາເຂົ້າ: ບໍ່ດັ່ງນັ້ນທຸກຕົວເລກ 0 ໃນໜ້າ (ເຊັ່ນ ປ້າຍຈຳນວນ
+        // ສິນຄ້າໃນປະເພດ) ຈະຖືກປ່ຽນເປັນ placeholder ຂອງພາສາໃໝ່ ("例如：12").
+        var NO_WORD_RE = /^[\d\s.,:%+\-–\/()₭฿$¥]*$/;
         for (var key in dict) {
           if (!Object.prototype.hasOwnProperty.call(dict, key)) continue;
           var val = (dict[key] || '').trim();
+          if (NO_WORD_RE.test(val)) continue;
           if (val && !(val in rev)) rev[val] = key; // first key wins on a shared-text collision
         }
         reverseMapCache[fromLang] = rev;
@@ -304,16 +308,32 @@
 
           CURRENT_ACTIVE_LANG = lang;
 
-          // 3. Persist the choice server-side in the background, purely so the NEXT real
-          //    navigation is already rendered in this language from the start.
+          // 3. Persist the choice server-side, then reload the content page so EVERYTHING the
+          //    server renders (t(), page dictionaries, AJAX-built tables) comes back in the new
+          //    language — the user never has to press refresh. Step 2 above already repainted
+          //    what it could instantly, so the reload just fills in the rest.
           fetch('../lang/set_lang.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'lang=' + encodeURIComponent(lang)
-          }).catch(function() {});
+          }).then(function() { reloadFrameAfterLangChange(); }).catch(function() {});
         });
       });
     });
+
+    // ໂຫຼດໜ້າໃນ iframe ໃໝ່ຫຼັງປ່ຽນພາສາ (ບໍ່ຕ້ອງກົດ refresh). ຂ້າມ:
+    //  - ໜ້າທີ່ປ່ຽນພາສາສົດໄດ້ເອງ ແລະ ມີຂໍ້ມູນຄ້າງຢູ່ (window.POS_LANG_LIVE = true — ໜ້າຂາຍ/ກະຕ່າ)
+    //  - ມີ popup/modal ເປີດຢູ່ (ບໍ່ໃຫ້ຂໍ້ມູນທີ່ກຳລັງພິມຫາຍ) — ໜ້າຈະເປັນພາສາໃໝ່ຕອນເປີດຄັ້ງຕໍ່ໄປ
+    function reloadFrameAfterLangChange() {
+      var frameEl = document.querySelector('iframe[name="frame"]');
+      if (!frameEl) return;
+      var win, doc;
+      try { win = frameEl.contentWindow; doc = win.document; } catch (e) { return; }
+      if (!win || !doc || win.POS_LANG_LIVE) return;
+      if (doc.querySelector('.modal.show, .swal2-container.swal2-shown, .swal2-popup')) return;
+      if (typeof showFastLoader === 'function') showFastLoader();
+      try { win.location.reload(); } catch (e) {}
+    }
 
     // Web Audio API Notification Chime Generator with Mobile Autoplay Policy Unlocker
     var sharedAudioCtx = null;

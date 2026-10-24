@@ -116,7 +116,7 @@ function openEditModal(user) {
     $(editStoreEl).find('option.edit-store-inactive').remove();
     if (curStore && !$(editStoreEl).find('option[value="' + curStore + '"]').length) {
       $('<option class="edit-store-inactive"></option>').val(curStore)
-        .text((user.store_name || ('ສາຂາ #' + curStore)) + ' (ປິດໃຊ້ງານ)').appendTo(editStoreEl);
+        .text((user.store_name || uT('users_js.store_fallback', curStore)) + ' ' + uT('users_js.store_inactive')).appendTo(editStoreEl);
     }
     editStoreEl.value = curStore || editStoreEl.value;
   }
@@ -192,7 +192,7 @@ function submitUserForm(e, formId, actionName) {
 
   if (typeof Swal !== 'undefined') {
     Swal.fire({
-      html: '<div class="lao-dots-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div><div class="preloader-text" style="margin-top:10px;">ກຳລັງໂຫຼດຂໍ້ມູນ...</div>',
+      html: '<div class="lao-dots-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div><div class="preloader-text" style="margin-top:10px;">' + uT('users_js.loading') + '</div>',
       showConfirmButton: false,
       allowOutsideClick: false,
       background: '#ffffff'
@@ -211,7 +211,7 @@ function submitUserForm(e, formId, actionName) {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           icon: 'success',
-          title: 'ສຳເລັດ!',
+          title: uT('users_js.success'),
           text: data.message,
           showConfirmButton: false,
           timer: 1500,
@@ -226,13 +226,13 @@ function submitUserForm(e, formId, actionName) {
       if (typeof Swal !== 'undefined') {
         Swal.fire({
           icon: 'error',
-          title: 'ຜິດພາດ!',
-          text: data.message || 'ເກີດຂໍ້ຜິດພາດໃນການບັນທຶກ',
-          confirmButtonText: 'ຕົກລົງ',
+          title: uT('users_js.error'),
+          text: data.message || uT('users_js.save_failed'),
+          confirmButtonText: uT('users_js.ok'),
           confirmButtonColor: '#ef4444'
         });
       } else {
-        alert(data.message || 'ເກີດຂໍ້ຜິດພາດ');
+        alert(data.message || uT('users_js.generic_error'));
       }
     }
   })
@@ -240,12 +240,12 @@ function submitUserForm(e, formId, actionName) {
     if (typeof Swal !== 'undefined') {
       Swal.fire({
         icon: 'error',
-        title: 'ຜິດພາດ!',
-        text: 'ບໍ່ສາມາດເຊື່ອມຕໍ່ກັບ API ໄດ້: ' + err.message,
-        confirmButtonText: 'ຕົກລົງ'
+        title: uT('users_js.error'),
+        text: uT('users_js.api_failed') + ' ' + err.message,
+        confirmButtonText: uT('users_js.ok')
       });
     } else {
-      alert('ບໍ່ສາມາດເຊື່ອມຕໍ່ກັບ API ໄດ້: ' + err.message);
+      alert(uT('users_js.api_failed') + ' ' + err.message);
     }
   });
 
@@ -257,18 +257,18 @@ function confirmDeleteUser(id, username) {
   var targetUrl = typeof API_URL !== 'undefined' ? API_URL : 'api_user.php';
   if (typeof Swal !== 'undefined') {
     Swal.fire({
-      title: 'ຢືນຢັນການລົບຜູ້ໃຊ້',
-      text: 'ທ່ານຕ້ອງການລົບຜູ້ໃຊ້ "' + username + '" ແທ້ຫຼືບໍ່?',
+      title: uT('users_js.delete_title'),
+      text: uT('users_js.delete_text', username),
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#64748b',
-      confirmButtonText: '<i class="fas fa-trash mr-1"></i> ລົບເລີຍ',
-      cancelButtonText: 'ຍົກເລີກ'
+      confirmButtonText: '<i class="fas fa-trash mr-1"></i> ' + uT('users_js.delete_btn'),
+      cancelButtonText: uT('users_js.cancel')
     }).then(function(res) {
       if (res.isConfirmed) {
         Swal.fire({
-          html: '<div class="lao-dots-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div><div class="preloader-text" style="margin-top:10px;">ກຳລັງໂຫຼດຂໍ້ມູນ...</div>',
+          html: '<div class="lao-dots-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div><div class="preloader-text" style="margin-top:10px;">' + uT('users_js.loading') + '</div>',
           showConfirmButton: false,
           allowOutsideClick: false,
           background: '#ffffff'
@@ -287,9 +287,9 @@ function confirmDeleteUser(id, username) {
           if (data.status === 'success') {
             Swal.fire({
               icon: 'success',
-              title: 'ສຳເລັດ!',
+              title: uT('users_js.success'),
               text: data.message,
-              confirmButtonText: 'ຕົກລົງ',
+              confirmButtonText: uT('users_js.ok'),
               confirmButtonColor: '#0284c7'
             }).then(function() {
               location.reload();
@@ -297,24 +297,24 @@ function confirmDeleteUser(id, username) {
           } else {
             Swal.fire({
               icon: 'error',
-              title: 'ຜິດພາດ!',
+              title: uT('users_js.error'),
               text: data.message,
-              confirmButtonText: 'ຕົກລົງ'
+              confirmButtonText: uT('users_js.ok')
             });
           }
         })
         .catch(function(err) {
           Swal.fire({
             icon: 'error',
-            title: 'ຜິດພາດ!',
-            text: 'ເກີດຂໍ້ຜິດພາດໃນການລົບ: ' + err.message,
-            confirmButtonText: 'ຕົກລົງ'
+            title: uT('users_js.error'),
+            text: uT('users_js.delete_failed') + ' ' + err.message,
+            confirmButtonText: uT('users_js.ok')
           });
         });
       }
     });
   } else {
-    if (confirm('ທ່ານຕ້ອງການລົບຜູ້ໃຊ້ "' + username + '" ແທ້ຫຼືບໍ່?')) {
+    if (confirm(uT('users_js.delete_text', username))) {
       var formData = new FormData();
       formData.append('action', 'delete_user');
       formData.append('user_id', id);
@@ -332,10 +332,10 @@ function confirmDeleteUser(id, username) {
 // ເປີດ / ປິດໃຊ້ງານບັນຊີ (ພະນັກງານລາອອກ) — ປິດແລ້ວເຂົ້າລະບົບບໍ່ໄດ້ ແຕ່ປະຫວັດຍັງຢູ່
 function toggleUserActive(id, username, active) {
   var targetUrl = typeof API_URL !== 'undefined' ? API_URL : 'api_user.php';
-  var title = active ? 'ເປີດໃຊ້ງານບັນຊີຄືນ' : 'ປິດໃຊ້ງານບັນຊີ';
+  var title = active ? uT('users_js.enable_title') : uT('users_js.disable_title');
   var text = active
-    ? 'ເປີດໃຫ້ "' + username + '" ເຂົ້າລະບົບໄດ້ອີກຄັ້ງ?'
-    : 'ປິດໃຊ້ງານ "' + username + '" (ພະນັກງານລາອອກ)? ຈະເຂົ້າລະບົບບໍ່ໄດ້ອີກ ແຕ່ປະຫວັດການຂາຍຍັງຢູ່ຄົບ';
+    ? uT('users_js.enable_text', username)
+    : uT('users_js.disable_text', username);
 
   Swal.fire({
     title: title,
@@ -344,8 +344,8 @@ function toggleUserActive(id, username, active) {
     showCancelButton: true,
     confirmButtonColor: active ? '#16a34a' : '#475569',
     cancelButtonColor: '#64748b',
-    confirmButtonText: active ? '<i class="fas fa-user-check mr-1"></i> ເປີດໃຊ້ງານ' : '<i class="fas fa-user-slash mr-1"></i> ປິດໃຊ້ງານ',
-    cancelButtonText: 'ຍົກເລີກ'
+    confirmButtonText: active ? '<i class="fas fa-user-check mr-1"></i> ' + uT('users_js.enable_btn') : '<i class="fas fa-user-slash mr-1"></i> ' + uT('users_js.disable_btn'),
+    cancelButtonText: uT('users_js.cancel')
   }).then(function(res) {
     if (!res.isConfirmed) return;
 
@@ -358,14 +358,14 @@ function toggleUserActive(id, username, active) {
     .then(function(res) { return res.json(); })
     .then(function(data) {
       if (data.status === 'success') {
-        Swal.fire({ icon: 'success', title: 'ສຳເລັດ!', text: data.message, confirmButtonText: 'ຕົກລົງ', confirmButtonColor: '#0284c7' })
+        Swal.fire({ icon: 'success', title: uT('users_js.success'), text: data.message, confirmButtonText: uT('users_js.ok'), confirmButtonColor: '#0284c7' })
           .then(function() { location.reload(); });
       } else {
-        Swal.fire({ icon: 'error', title: 'ຜິດພາດ!', text: data.message, confirmButtonText: 'ຕົກລົງ' });
+        Swal.fire({ icon: 'error', title: uT('users_js.error'), text: data.message, confirmButtonText: uT('users_js.ok') });
       }
     })
     .catch(function(err) {
-      Swal.fire({ icon: 'error', title: 'ຜິດພາດ!', text: err.message, confirmButtonText: 'ຕົກລົງ' });
+      Swal.fire({ icon: 'error', title: uT('users_js.error'), text: err.message, confirmButtonText: uT('users_js.ok') });
     });
   });
 }

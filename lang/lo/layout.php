@@ -90,4 +90,14 @@ return [
     'layout.expiry' => 'ຈັດການສິນຄ້າໝົດອາຍຸ',
     'layout.expiry_report' => 'ລາຍງານສິນຄ້າໝົດອາຍຸ',
     'layout.shift_report' => 'ລາຍການຕາມກະ',
+    // ເມນູ/ແຈ້ງເຕືອນທີ່ເພີ່ມພາຍຫຼັງ
+    'layout.expiry_near_header' => 'ສິນຄ້າໃກ້ໝົດອາຍຸ / ໝົດອາຍຸ',
+    'layout.expiry_days_left' => 'ເຫຼືອ %d ມື້',
+    'layout.expiry_today' => 'ໝົດອາຍຸມື້ນີ້',
+    'layout.expiry_expired' => 'ໝົດອາຍຸແລ້ວ',
+    'layout.click_to_expiry' => 'ກົດເພື່ອໄປໜ້າຈັດການສິນຄ້າໝົດອາຍຸ',
+    'layout.stock_check_list' => 'ເຊັກສະຕັອກ',
+    'layout.zones' => 'ໂຊນສິນຄ້າ',
+    'layout.shelves' => 'ຊັ້ນວາງສິນຄ້າ',
+    'layout.shifts' => 'ຈັດການກະເຮັດວຽກ',
 ];

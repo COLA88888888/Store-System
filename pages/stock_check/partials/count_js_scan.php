@@ -54,8 +54,8 @@ function scHandleScan() {
 
           Swal.fire({
             icon: 'info',
-            title: 'ສິນຄ້ານີ້ມີການຂາຍ (ຕັດສະຕັອກ)',
-            html: '<b>' + $('<div>').text(it.product_name).html() + '</b><br>ສະຕັອກປັດຈຸບັນໃນລະບົບ: <b>' + scFmt(liveQty) + ' ' + (it.unit || '') + '</b><br><small class="text-muted">ກະລຸນາກວດນັບຈຳນວນຕົວຈິງແລ້ວກົດບັນທຶກ</small>',
+            title: scT('sc.s143'),
+            html: '<b>' + $('<div>').text(it.product_name).html() + '</b><br>' + scT('sc.s144') + ' <b>' + scFmt(liveQty) + ' ' + (it.unit || '') + '</b><br><small class="text-muted">' + scT('sc.s145') + '</small>',
             timer: 2600,
             showConfirmButton: false
           });
@@ -69,8 +69,8 @@ function scHandleScan() {
       scShowJustScannedBox($hit, cur);
       Swal.fire({
         icon: 'success',
-        title: 'ສິນຄ້ານີ້ນັບຄົບແລ້ວ!',
-        html: '<b>' + $('<div>').text($.trim($hit.find('.sc-c-name > div:first-child').text() || $hit.find('.sc-c-name').text())).html() + '</b><br>ນັບແລ້ວ: <b>' + scFmt(cur) + '</b>',
+        title: scT('sc.s146'),
+        html: '<b>' + $('<div>').text($.trim($hit.find('.sc-c-name > div:first-child').text() || $hit.find('.sc-c-name').text())).html() + '</b><br>' + scT('sc.s102') + ' <b>' + scFmt(cur) + '</b>',
         timer: 1800,
         showConfirmButton: false
       });
@@ -112,8 +112,8 @@ function scHandleScan() {
   }
   Swal.fire({
     icon: 'warning',
-    title: 'ບໍ່ພົບສິນຄ້າໃນໃບນີ້',
-    html: 'ລະຫັດ: <b>' + $('<div>').text(code).html() + '</b>',
+    title: scT('sc.s147'),
+    html: scT('sc.s148') + ' <b>' + $('<div>').text(code).html() + '</b>',
     timer: 2000,
     showConfirmButton: false,
     didClose: function() { $('#scScanInput').focus().select(); }

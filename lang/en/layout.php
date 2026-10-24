@@ -90,4 +90,14 @@ return [
     'layout.expiry' => 'Product Expiry',
     'layout.expiry_report' => 'Expiry Report',
     'layout.shift_report' => 'Report by Shift',
+    // ເມນູ/ແຈ້ງເຕືອນທີ່ເພີ່ມພາຍຫຼັງ
+    'layout.expiry_near_header' => 'Expiring soon / Expired products',
+    'layout.expiry_days_left' => '%d days left',
+    'layout.expiry_today' => 'Expires today',
+    'layout.expiry_expired' => 'Expired',
+    'layout.click_to_expiry' => 'Click to open the expiry management page',
+    'layout.stock_check_list' => 'Stock Check',
+    'layout.zones' => 'Product Zones',
+    'layout.shelves' => 'Product Shelves',
+    'layout.shifts' => 'Manage Work Shifts',
 ];

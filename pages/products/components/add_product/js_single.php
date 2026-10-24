@@ -6,6 +6,10 @@
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/products/components/form_add_product.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 ?><script>
+// ຂໍ້ຄວາມເພີ່ມດ່ວນ ຫົວໜ່ວຍ/ໂຊນ/ຊັ້ນວາງ (lang/*/products_q.php) — ເປັນ window.I18N_* ຈຶ່ງປ່ຽນພາສາເອງເມື່ອກົດທຸງ
+// (home/partials/dashboard/js_language.php); popup ອ່ານຜ່ານ pqT() ຕອນເປີດ ຈຶ່ງບໍ່ຕ້ອງໂຫຼດໜ້າ.
+window.I18N_PRODUCTS_Q = Object.assign(window.I18N_PRODUCTS_Q || {}, <?php echo tjson(require dirname(__DIR__, 4) . '/lang/lo/products_q.php'); ?>);
+if (typeof window.pqT !== 'function') window.pqT = function (key) { var d = window.I18N_PRODUCTS_Q || {}; return d[key] || key; };
 var I18N_ADD_PRODUCT = <?php echo tjson([
     'products.alert_notice_title' => 'ແຈ້ງເຕືອນ',
     'products.btn_ok' => 'ຕົກລົງ',
@@ -59,9 +63,9 @@ function onAddCategoryChange() {
 
         $('#add_product_id').val(fullCode);
         $('#add_product_id_display').html(
-          '<span style="color: #dc2626;" title="ລະຫັດສາຂາ">' + prefix + '</span>' +
-          '<span style="color: #2563eb;" title="ລະຫັດປະເພດສິນຄ້າ">' + catPart + '</span>' +
-          '<span style="color: #0f172a;" title="ລະຫັດສິນຄ້າ">' + seqFormatted + '</span>'
+          '<span style="color: #dc2626;" title="' + pqT('products_q.code_branch') + '">' + prefix + '</span>' +
+          '<span style="color: #2563eb;" title="' + pqT('products_q.code_category') + '">' + catPart + '</span>' +
+          '<span style="color: #0f172a;" title="' + pqT('products_q.code_product') + '">' + seqFormatted + '</span>'
         );
       }
     });
@@ -106,15 +110,15 @@ window.ALL_UNITS = <?php echo json_encode($units ?? [], JSON_UNESCAPED_UNICODE);
 // ເພີ່ມຫົວໜ່ວຍໃໝ່ແບບດ່ວນ
 function quickAddUnitPrompt(mode, btn) {
   Swal.fire({
-    title: 'ເພີ່ມຫົວໜ່ວຍໃໝ່',
+    title: pqT('products_q.unit_title'),
     input: 'text',
-    inputPlaceholder: 'ປ້ອນຊື່ຫົວໜ່ວຍ ເຊັ່ນ: ລັງ, ແກັດ, ແພັກ...',
+    inputPlaceholder: pqT('products_q.unit_ph'),
     showCancelButton: true,
-    confirmButtonText: 'ບັນທຶກ',
-    cancelButtonText: 'ຍົກເລີກ',
+    confirmButtonText: pqT('products_q.save'),
+    cancelButtonText: pqT('products_q.cancel'),
     confirmButtonColor: '#2563eb',
     inputValidator: function(v) {
-      if (!v || !v.trim()) return 'ກະລຸນາປ້ອນຊື່ຫົວໜ່ວຍ!';
+      if (!v || !v.trim()) return pqT('products_q.unit_required');
     }
   }).then(function(res) {
     if (res.isConfirmed && res.value) {
@@ -150,12 +154,12 @@ function quickAddUnitPrompt(mode, btn) {
             $('#' + mode + '_unit').val(data.unit_id);
           }
 
-          Swal.fire({ icon: 'success', title: 'ເພີ່ມຫົວໜ່ວຍສຳເລັດ', timer: 1200, showConfirmButton: false });
+          Swal.fire({ icon: 'success', title: pqT('products_q.unit_added'), timer: 1200, showConfirmButton: false });
         } else {
-          Swal.fire({ icon: 'error', title: 'ບໍ່ສຳເລັດ', text: (data && data.message) || 'ບໍ່ສາມາດເພີ່ມຫົວໜ່ວຍໄດ້' });
+          Swal.fire({ icon: 'error', title: pqT('products_q.failed'), text: (data && data.message) || pqT('products_q.unit_failed') });
         }
       }, 'json').fail(function() {
-        Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້' });
+        Swal.fire({ icon: 'error', title: pqT('products_q.error'), text: pqT('products_q.no_connection') });
       });
     }
   });
@@ -218,7 +222,7 @@ function addUnitRow(mode, data) {
   var barcode    = (data && data.barcode) ? data.barcode : '';
 
   // ດຶງລາຍການຫົວໜ່ວຍຈາກລະບົບມາໃສ່ dropdown
-  var unitOpts = '<option value="">' + (I18N_ADD_PRODUCT['products.unit_row_name_placeholder'] || '-- ເລືອກຫົວໜ່ວຍ --') + '</option>';
+  var unitOpts = '<option value="">' + (I18N_ADD_PRODUCT['products.unit_row_name_placeholder'] || pqT('products_q.select_unit')) + '</option>';
   var matchedUnit = false;
   (window.ALL_UNITS || []).forEach(function(u) {
     var uName = (u.unit_name || '').trim();
@@ -233,13 +237,13 @@ function addUnitRow(mode, data) {
   var rowHtml = `
     <div class="card mb-2.5 p-3 unit-row shadow-xs" style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px;">
       <div class="row align-items-end">
-        <div class="col-lg-3 col-md-6 col-12 mb-2 mb-lg-0">
+        <div class="col-lg-2 col-md-6 col-12 mb-2 mb-lg-0">
           <div class="d-flex justify-content-between align-items-center mb-1">
             <label class="font-weight-bold text-dark mb-0" style="font-size: 0.88rem;">
               ${I18N_ADD_PRODUCT['products.unit_row_name_label']} <span class="text-danger">*</span>
             </label>
             <a href="javascript:void(0)" onclick="quickAddUnitPrompt('${mode}', this)" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
-              <i class="fas fa-plus mr-1"></i>ເພີ່ມຫົວໜ່ວຍ
+              <i class="fas fa-plus mr-1"></i>${pqT('products_q.add_unit_link')}
             </a>
           </div>
           <select name="extra_unit_name[]" class="form-control extra-unit-select font-weight-bold text-dark" style="height: 40px; border-radius: 6px; font-size: 0.92rem;" required>
@@ -268,11 +272,11 @@ function addUnitRow(mode, data) {
           <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
             ${I18N_ADD_PRODUCT['products.unit_row_barcode_label']}
           </label>
-          <div class="input-group">
+          <div class="input-group barcode-combo">
             <input type="text" name="extra_unit_barcode[]" class="form-control font-weight-bold" placeholder="${I18N_ADD_PRODUCT['products.unit_row_barcode_placeholder']}" value="${barcode}" style="height: 40px; border-radius: 6px 0 0 6px; font-size: 0.92rem;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             <div class="input-group-append">
               <button type="button" class="btn btn-outline-primary font-weight-bold px-2.5" onclick="generateEAN13(this)" title="${I18N_ADD_PRODUCT['products.gen_barcode_title']}" style="height: 40px; border-radius: 0 6px 6px 0; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">
-                <i class="fas fa-barcode"></i> <span>ສ້າງ</span>
+                <i class="fas fa-barcode"></i> <span>${pqT('products_q.gen_short')}</span>
               </button>
             </div>
           </div>

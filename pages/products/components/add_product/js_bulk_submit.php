@@ -53,7 +53,7 @@
   }
 
   if (items.length === 0) {
-    Swal.fire({ icon: 'warning', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: 'ບໍ່ພົບລາຍການສິນຄ້າໃນໄຟລ໌ (ຕ້ອງມີຖັນ "ຊື່ສິນຄ້າ")', confirmButtonColor: '#2563eb' });
+    Swal.fire({ icon: 'warning', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: pqT('products_q.excel_no_rows'), confirmButtonColor: '#2563eb' });
     return;
   }
 
@@ -88,14 +88,14 @@
   if (uniqSup.length === 1 && supIds.length === items.length) $('#bulk_supplier_id').val(uniqSup[0]);
 
   var esc = function (s) { return $('<div>').text(s).html(); };
-  var html = 'ອ່ານໄດ້ <b>' + items.length + '</b> ລາຍການ — ກວດສອບແລ້ວກົດ <b>ບັນທຶກທັງໝົດ</b>';
-  if (badRows > 0) html += '<br><br><span class="text-danger">' + badRows + ' ລາຍການຂໍ້ມູນບໍ່ຄົບ (ຂອບສີແດງ) — ກະລຸນາເລືອກ/ປ້ອນໃຫ້ຄົບ</span>';
+  var html = pqT('products_q.excel_read_count').replace('%s', '<b>' + items.length + '</b>').replace('%s', '<b>' + pqT('products_q.save_all') + '</b>');
+  if (badRows > 0) html += '<br><br><span class="text-danger">' + pqT('products_q.excel_bad_rows').replace('%s', badRows) + '</span>';
   var listMiss = function (label, obj) {
     var k = Object.keys(obj);
     return k.length ? '<br><small>' + label + ': ' + k.slice(0, 10).map(esc).join(', ') + (k.length > 10 ? ' ...' : '') + '</small>' : '';
   };
-  html += listMiss('ບໍ່ພົບປະເພດໃນລະບົບ', missCat) + listMiss('ບໍ່ພົບຫົວໜ່ວຍໃນລະບົບ', missUnit) + listMiss('ບໍ່ພົບຜູ້ສະໜອງ (ຈະວ່າງໄວ້)', missSup);
-  Swal.fire({ icon: badRows > 0 ? 'warning' : 'success', title: 'ນຳເຂົ້າຈາກ Excel', html: html, confirmButtonColor: '#2563eb', confirmButtonText: I18N_ADD_PRODUCT['products.btn_ok'] });
+  html += listMiss(pqT('products_q.miss_category'), missCat) + listMiss(pqT('products_q.miss_unit'), missUnit) + listMiss(pqT('products_q.miss_supplier'), missSup);
+  Swal.fire({ icon: badRows > 0 ? 'warning' : 'success', title: pqT('products_q.excel_import'), html: html, confirmButtonColor: '#2563eb', confirmButtonText: I18N_ADD_PRODUCT['products.btn_ok'] });
 }
 
 $(document).on('change input', '#bulk_rows_container .is-invalid', function () {

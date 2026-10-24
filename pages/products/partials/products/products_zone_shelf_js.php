@@ -5,6 +5,10 @@
  */
 ?>
 <script>
+// ຂໍ້ຄວາມເພີ່ມດ່ວນ ຫົວໜ່ວຍ/ໂຊນ/ຊັ້ນວາງ (lang/*/products_q.php) — ເປັນ window.I18N_* ຈຶ່ງປ່ຽນພາສາເອງເມື່ອກົດທຸງ
+// (home/partials/dashboard/js_language.php); popup ອ່ານຜ່ານ pqT() ຕອນເປີດ ຈຶ່ງບໍ່ຕ້ອງໂຫຼດໜ້າ.
+window.I18N_PRODUCTS_Q = Object.assign(window.I18N_PRODUCTS_Q || {}, <?php echo tjson(require dirname(__DIR__, 4) . '/lang/lo/products_q.php'); ?>);
+if (typeof window.pqT !== 'function') window.pqT = function (key) { var d = window.I18N_PRODUCTS_Q || {}; return d[key] || key; };
 function onZoneSelectChange(mode) {
   var zoneSelect = $('#' + mode + '_zone');
   var shelfBox = $('#' + mode + '_shelf_box');
@@ -57,15 +61,15 @@ function applyProductZoneShelf(p) {
 
 function quickAddZonePrompt(mode) {
   Swal.fire({
-    title: 'ເພີ່ມໂຊນໃໝ່',
+    title: pqT('products_q.zone_title'),
     input: 'text',
-    inputPlaceholder: 'ປ້ອນຊື່ໂຊນ ເຊັ່ນ: ໂຊນ C, ສາງ 2...',
+    inputPlaceholder: pqT('products_q.zone_ph'),
     showCancelButton: true,
-    confirmButtonText: 'ບັນທຶກ',
-    cancelButtonText: 'ຍົກເລີກ',
+    confirmButtonText: pqT('products_q.save'),
+    cancelButtonText: pqT('products_q.cancel'),
     confirmButtonColor: '#2563eb',
     inputValidator: function(v) {
-      if (!v || !v.trim()) return 'ກະລຸນາປ້ອນຊື່ໂຊນ!';
+      if (!v || !v.trim()) return pqT('products_q.zone_required');
     }
   }).then(function(res) {
     if (res.isConfirmed && res.value) {
@@ -92,9 +96,9 @@ function quickAddZonePrompt(mode) {
             $('#' + mode + '_zone').val(name);
             onZoneSelectChange(mode);
           }
-          Swal.fire({ icon: 'success', title: 'ເພີ່ມໂຊນສຳເລັດ', timer: 1200, showConfirmButton: false });
+          Swal.fire({ icon: 'success', title: pqT('products_q.zone_added'), timer: 1200, showConfirmButton: false });
         } else {
-          Swal.fire({ icon: 'error', title: 'ບໍ່ສຳເລັດ', text: (data && data.message) || 'ບໍ່ສາມາດເພີ່ມໂຊນໄດ້' });
+          Swal.fire({ icon: 'error', title: pqT('products_q.failed'), text: (data && data.message) || pqT('products_q.zone_failed') });
         }
       }, 'json');
     }
@@ -107,15 +111,15 @@ function quickAddShelfPrompt(mode) {
   var zoneId = zoneSelect.length ? (zoneSelect.find('option:selected').attr('data-id') || 0) : 0;
 
   Swal.fire({
-    title: 'ເພີ່ມຊັ້ນວາງໃໝ່' + (zoneName ? ' (' + zoneName + ')' : ''),
+    title: pqT('products_q.shelf_title') + (zoneName ? ' (' + zoneName + ')' : ''),
     input: 'text',
-    inputPlaceholder: 'ປ້ອນຊື່ຊັ້ນວາງ ເຊັ່ນ: ຊັ້ນ 4, ລັອກ B-03...',
+    inputPlaceholder: pqT('products_q.shelf_ph'),
     showCancelButton: true,
-    confirmButtonText: 'ບັນທຶກ',
-    cancelButtonText: 'ຍົກເລີກ',
+    confirmButtonText: pqT('products_q.save'),
+    cancelButtonText: pqT('products_q.cancel'),
     confirmButtonColor: '#0891b2',
     inputValidator: function(v) {
-      if (!v || !v.trim()) return 'ກະລຸນາປ້ອນຊື່ຊັ້ນວາງ!';
+      if (!v || !v.trim()) return pqT('products_q.shelf_required');
     }
   }).then(function(res) {
     if (res.isConfirmed && res.value) {
@@ -151,9 +155,9 @@ function quickAddShelfPrompt(mode) {
           if (mode) {
             $('#' + mode + '_shelf').val(name);
           }
-          Swal.fire({ icon: 'success', title: 'ເພີ່ມຊັ້ນວາງສຳເລັດ', timer: 1200, showConfirmButton: false });
+          Swal.fire({ icon: 'success', title: pqT('products_q.shelf_added'), timer: 1200, showConfirmButton: false });
         } else {
-          Swal.fire({ icon: 'error', title: 'ບໍ່ສຳເລັດ', text: (data && data.message) || 'ບໍ່ສາມາດເພີ່ມຊັ້ນວາງໄດ້' });
+          Swal.fire({ icon: 'error', title: pqT('products_q.failed'), text: (data && data.message) || pqT('products_q.shelf_failed') });
         }
       }, 'json');
     }

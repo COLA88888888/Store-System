@@ -6,6 +6,32 @@
  */
 ?>
 <script>
+// ຂໍ້ຄວາມບິນເປີດຢູ່ + ບິນພັກ: ອ່ານຜ່ານ posT() ຕອນວາດ (ບໍ່ຝັງ t() ໃສ່ JS) — POS_RCPT_I18N ຖືກປ່ຽນຄ່າເອງເມື່ອກົດທຸງພາສາ
+// (home/partials/dashboard/js_language.php) ແລ້ວ pos:langchange ຂ້າງລຸ່ມວາດໃໝ່ ຈຶ່ງບໍ່ຕ້ອງໂຫຼດໜ້າ.
+Object.assign(window.POS_RCPT_I18N, <?php echo tjson([
+  'pos.customer_default' => 'ລູກຄ້າທົ່ວໄປ', 'pos.receipt_customer' => 'ລູກຄ້າ:', 'pos.cart_count_items' => 'ລາຍການ',
+  'pos.cart_count_qty' => 'ຈຳນວນ', 'pos.held_no_orders' => 'ບໍ່ມີບິນທີ່ພັກໄວ້', 'pos.held_bill_label' => 'ບິນພັກ',
+  'pos.held_open_now' => 'ກຳລັງເປີດຢູ່', 'pos.recall_bill' => 'ເອີ້ນຄືນບິນ', 'pos.delete' => 'ລຶບ', 'pos.cancel' => 'ຍົກເລີກ',
+  'pos.held_no_match' => 'ບໍ່ພົບບິນທີ່ພັກໄວ້ຕົງກັບການຄົ້ນຫາ', 'pos.held_saved_toast' => 'ພັກບິນສຳເລັດ!',
+  'pos.held_date_title' => 'ວັນທີພັກບິນ', 'pos.held_clear_all_title' => 'ລ້າງບິນພັກທັງໝົດ?',
+  'pos.held_clear_all_text' => 'ບິນທີ່ພັກໄວ້ທັງໝົດ (%s ບິນ) ຈະຖືກລຶບອອກ ແລະ ກູ້ຄືນບໍ່ໄດ້!', 'pos.held_clear_all_btn' => 'ລ້າງທັງໝົດ',
+  'pos.held_cleared_toast' => 'ລ້າງບິນພັກທັງໝົດແລ້ວ', 'pos.bill_no_n' => 'ບິນທີ %s', 'pos.bill_open_first_toast' => 'ເປີດບິນທີ 1 ສຳເລັດ!',
+  'pos.bill_open_new_toast' => 'ເປີດບິນໃໝ່ສຳເລັດ!', 'pos.bill_not_opened' => 'ຍັງບໍ່ທັນເປີດ', 'pos.bills_none_open' => 'ບໍ່ມີບິນທີ່ເປີດຢູ່',
+  'pos.bill_open_this' => 'ເປີດບິນນີ້', 'pos.bill_close_this' => 'ປິດບິນນີ້',
+]); ?>);
+
+// ຊື່ບິນ "ບິນທີ N" ເກັບໄວ້ໃນ localStorage ເປັນພາສາທີ່ສ້າງ — ສະແດງຕາມລຳດັບ + ພາສາປັດຈຸບັນແທນ
+function activeBillLabel(bill) {
+  var idx = activeBills.indexOf(bill);
+  return idx === -1 ? (bill.name || '') : posT('pos.bill_no_n', idx + 1);
+}
+
+window.addEventListener('pos:langchange', function () {
+  updateActiveBillsUI();
+  if ($('#activeBillsModal').hasClass('show')) renderActiveBills();
+  if ($('#heldOrdersModal').hasClass('show') && typeof renderHeldOrders === 'function') renderHeldOrders();
+});
+
 // --- ACTIVE BILLS & HELD ORDERS MANAGEMENT ---
 function initActiveBills() {
   var storedOpened = localStorage.getItem('StoreMini.bill_opened');
@@ -92,7 +118,7 @@ window.createNewBillModal = function() {
       toast: true,
       position: 'top-end',
       icon: 'success',
-      title: 'ເປີດບິນທີ 1 ສຳເລັດ!',
+      title: posT('pos.bill_open_first_toast'),
       timer: 1500,
       timerProgressBar: true,
       showConfirmButton: false
@@ -113,7 +139,7 @@ window.createNewBillModal = function() {
       toast: true,
       position: 'top-end',
       icon: 'success',
-      title: 'ເປີດບິນໃໝ່ສຳເລັດ!',
+      title: posT('pos.bill_open_new_toast'),
       timer: 1500,
       timerProgressBar: true,
       showConfirmButton: false
@@ -147,7 +173,7 @@ window.createNewBillModal = function() {
     toast: true,
     position: 'top-end',
     icon: 'success',
-    title: 'ເປີດບິນໃໝ່ສຳເລັດ!',
+    title: posT('pos.bill_open_new_toast'),
     timer: 1500,
     timerProgressBar: true,
     showConfirmButton: false
@@ -160,7 +186,7 @@ function updateActiveBillsUI() {
     $('#activeBillsCountBadge').text('0').show();
     $('#btnActiveBills').prop('disabled', true).addClass('disabled').css('opacity', '0.6');
     $('#currentBillBadge')
-      .text('ຍັງບໍ່ທັນເປີດ')
+      .text(posT('pos.bill_not_opened'))
       .removeClass('badge-primary')
       .addClass('badge-secondary');
     return;
@@ -179,12 +205,12 @@ function updateActiveBillsUI() {
   var currentBill = activeBills.find(function(b) { return b.id === currentBillId; });
   if (currentBill && isBillOpened) {
     $('#currentBillBadge')
-      .text(currentBill.name)
+      .text(activeBillLabel(currentBill))
       .removeClass('badge-secondary')
       .addClass('badge-primary');
   } else {
     $('#currentBillBadge')
-      .text('ຍັງບໍ່ທັນເປີດ')
+      .text(posT('pos.bill_not_opened'))
       .removeClass('badge-primary')
       .addClass('badge-secondary');
   }
@@ -219,7 +245,7 @@ function renderActiveBills() {
   $('#activeBillsSearchWrap').toggle(activeBills.length > 1);
 
   if (activeBills.length === 0) {
-    container.html(`<div class="text-center py-4 text-muted">ບໍ່ມີບິນທີ່ເປີດຢູ່</div>`);
+    container.html(`<div class="text-center py-4 text-muted">${posT('pos.bills_none_open')}</div>`);
     return;
   }
 
@@ -255,24 +281,24 @@ function renderActiveBills() {
       <div class="held-item-card ${isCurrent ? 'border-primary bg-light' : ''}">
         <div class="d-flex justify-content-between align-items-start mb-1">
           <div>
-            <span class="badge ${isCurrent ? 'badge-primary' : 'badge-secondary'} font-weight-bold mr-1">${bill.name}</span>
+            <span class="badge ${isCurrent ? 'badge-primary' : 'badge-secondary'} font-weight-bold mr-1">${activeBillLabel(bill)}</span>
             <span class="small text-muted"><i class="fas fa-clock mr-1"></i>${bill.time}</span>
           </div>
           <h5 class="font-weight-bold text-success mb-0">${window.POSCUR ? POSCUR.fmt(netTotal) : netTotal.toLocaleString() + ' ₭'}</h5>
         </div>
         <div class="small text-muted mb-1">
-          <i class="fas fa-user mr-1"></i> ລູກຄ້າ: <strong>${cusName}</strong> |
-          <i class="fas fa-shopping-basket mr-1 ml-1"></i> <strong>${lineCount}</strong> ລາຍການ (${totalQty} ຈຳນວນ)
+          <i class="fas fa-user mr-1"></i> ${posT('pos.receipt_customer')} <strong>${cusName}</strong> |
+          <i class="fas fa-shopping-basket mr-1 ml-1"></i> <strong>${lineCount}</strong> ${posT('pos.cart_count_items')} (${totalQty} ${posT('pos.cart_count_qty')})
         </div>
         ${itemsListHtml}
         <div class="d-flex justify-content-end mt-2" style="gap: 6px;">
           ${!isCurrent ? `
             <button class="btn btn-sm btn-primary font-weight-bold" onclick="selectActiveBill('${bill.id}')">
-              <i class="fas fa-sign-in-alt mr-1"></i> ເປີດບິນນີ້
+              <i class="fas fa-sign-in-alt mr-1"></i> ${posT('pos.bill_open_this')}
             </button>
-          ` : '<span class="badge badge-success align-self-center px-2 py-1"><i class="fas fa-check-circle mr-1"></i>ກຳລັງເປີດຢູ່</span>'}
+          ` : '<span class="badge badge-success align-self-center px-2 py-1"><i class="fas fa-check-circle mr-1"></i>' + posT('pos.held_open_now') + '</span>'}
           ${activeBills.length > 1 ? `
-            <button class="btn btn-sm btn-outline-danger" onclick="closeActiveBill('${bill.id}')" title="ປິດບິນນີ້">
+            <button class="btn btn-sm btn-outline-danger" onclick="closeActiveBill('${bill.id}')" title="${posT('pos.bill_close_this')}">
               <i class="fas fa-times"></i>
             </button>
           ` : ''}
@@ -281,7 +307,7 @@ function renderActiveBills() {
     `;
     container.append(cardHtml);
     // Haystack for the modal's search box: bill name + customer + every product name.
-    var searchStr = (bill.name + ' ' + cusName + ' ' +
+    var searchStr = (activeBillLabel(bill) + ' ' + cusName + ' ' +
       (bill.cart || []).map(function(i) { return i.product_name || ''; }).join(' ')).toLowerCase();
     container.children().last().attr('data-bill-search', searchStr);
   });

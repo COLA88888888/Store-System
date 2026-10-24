@@ -146,20 +146,20 @@ if (!isset($base_path)) {
               }
 
               if (typeof Swal !== 'undefined' && Swal.fire) {
-                  var htmlMsg = '<div style="font-size:0.96rem;">ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດ (ENG) ກ່ອນ ແລ້ວຄ່ອຍສະແກນໃໝ່</div>';
+                  var htmlMsg = '<div style="font-size:0.96rem;">' + <?php echo json_encode(t('layout.kb_switch_text'), JSON_UNESCAPED_UNICODE); ?> + '</div>';
                   if (cleanBad) {
                       var safeTxt = document.createElement('div');
                       safeTxt.textContent = cleanBad;
                       htmlMsg += '<div style="font-size:1.08rem; font-weight:700; color:#ef4444; margin:8px 0; word-break:break-all;">' + safeTxt.innerHTML + '</div>';
                   }
-                  htmlMsg += '<small class="text-muted d-block mt-1">ກົດ <b>Alt + Shift</b> ຫຼື <b>Win + Space</b> ເພື່ອປ່ຽນເປັນ <b>ENG</b></small>';
+                  htmlMsg += '<small class="text-muted d-block mt-1">' + <?php echo json_encode(t('layout.kb_switch_hint'), JSON_UNESCAPED_UNICODE); ?>.replace('%s', '<b>Alt + Shift</b>').replace('%s', '<b>Win + Space</b>').replace('%s', '<b>ENG</b>') + '</small>';
 
                   Swal.fire({
                       icon: 'warning',
-                      title: 'ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ',
+                      title: <?php echo json_encode(t('layout.kb_switch_title'), JSON_UNESCAPED_UNICODE); ?>,
                       html: htmlMsg,
                       showConfirmButton: true,
-                      confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ',
+                      confirmButtonText: '<i class="fas fa-check mr-1"></i> ' + <?php echo json_encode(t('layout.ok'), JSON_UNESCAPED_UNICODE); ?>,
                       confirmButtonColor: '#f59e0b',
                       allowOutsideClick: false,
                       allowEscapeKey: false,
@@ -180,7 +180,7 @@ if (!isset($base_path)) {
                       }
                   });
               } else {
-                  alert('ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ');
+                  alert(<?php echo json_encode(t('layout.kb_switch_title'), JSON_UNESCAPED_UNICODE); ?>);
                   window._kbAlertActive = false;
               }
           };
@@ -205,17 +205,17 @@ if (!isset($base_path)) {
                   }
               };
               if (typeof Swal === 'undefined' || !Swal.fire) {
-                  alert('ບາໂຄ້ດນີ້ບໍ່ທັນມີໃນລະບົບ ກະລຸນາປ້ອນລາຍການສິນຄ້າກ່ອນ');
+                  alert(<?php echo json_encode(t('layout.barcode_not_found_alert'), JSON_UNESCAPED_UNICODE); ?>);
                   done();
                   return;
               }
               Swal.fire({
                   icon: 'warning',
-                  title: 'ບາໂຄ້ດນີ້ບໍ່ທັນມີໃນລະບົບ',
-                  html: '<div style="font-size:0.96rem;">ກະລຸນາປ້ອນລາຍການສິນຄ້າກ່ອນ</div>' +
+                  title: <?php echo json_encode(t('layout.barcode_not_found_title'), JSON_UNESCAPED_UNICODE); ?>,
+                  html: '<div style="font-size:0.96rem;">' + <?php echo json_encode(t('layout.barcode_not_found_text'), JSON_UNESCAPED_UNICODE); ?> + '</div>' +
                         (safeTxt.innerHTML ? '<div style="font-size:1.08rem; font-weight:700; color:#ef4444; margin:8px 0; word-break:break-all;">' + safeTxt.innerHTML + '</div>' : ''),
                   showConfirmButton: true,
-                  confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ',
+                  confirmButtonText: '<i class="fas fa-check mr-1"></i> ' + <?php echo json_encode(t('layout.ok'), JSON_UNESCAPED_UNICODE); ?>,
                   confirmButtonColor: '#f59e0b',
                   allowOutsideClick: false,
                   allowEscapeKey: false,
@@ -250,7 +250,8 @@ if (!isset($base_path)) {
               if (el.name === 'q') return true;
               if (el.classList && el.classList.contains('select2-search__field')) return true;
               var ph = (el.getAttribute('placeholder') || '');
-              if (ph.indexOf('ບາໂຄ້ດ') !== -1 || ph.toLowerCase().indexOf('barcode') !== -1) return true;
+              // placeholder ແປຕາມພາສາແລ້ວ — ຮູ້ຈັກ "ບາໂຄ້ດ" ທັງ 4 ພາສາ
+              if (ph.indexOf('ບາໂຄ້ດ') !== -1 || ph.toLowerCase().indexOf('barcode') !== -1 || ph.indexOf('บาร์โค้ด') !== -1 || ph.indexOf('条码') !== -1) return true;
               return false;
           }
 

@@ -208,23 +208,42 @@
 </div>
 
 <script>
+  // "ເລືອກທັງໝົດ" = ເລືອກສະເພາະແຖວທີ່ກົງກັບຕົວກັ່ນຕອງ (ປະເພດສິນຄ້າ + ຄົ້ນຫາ) ທຸກໜ້າ — ບໍ່ແມ່ນທັງລາຍການສິນຄ້າ.
+  // ເມື່ອກ່ອນຕັ້ງ modalSelectAllCatalog = true ແລ້ວ addSelectedModalProductsToCart() ເອົາ PRODUCTS_LIST ທັງໝົດ
+  // (ທຸກປະເພດ) ເຖິງຈະເລືອກປະເພດດຽວ. ດຽວນີ້ຕິກ checkbox ຂອງແຖວທີ່ກັ່ນແລ້ວແທນ ແລະ flag ນັ້ນບໍ່ເປີດອີກ.
   window.modalSelectAllCatalog = false;
 
+  // ແຖວທີ່ກົງກັບຕົວກັ່ນຕອງປັດຈຸບັນ (modalFilteredRows ມາຈາກ filterModalProducts() ຂອງແຕ່ລະໜ້າ — ລວມແຖວໃນໜ້າອື່ນຂອງ pagination)
+  function modalFilteredProductRows() {
+    if (typeof modalFilteredRows !== 'undefined' && Array.isArray(modalFilteredRows) && modalFilteredRows.length) {
+      return $(modalFilteredRows);
+    }
+    return $('.modal-product-row:visible');
+  }
+
   function toggleSelectAllModalProducts(isChecked) {
-    window.modalSelectAllCatalog = isChecked;
-    $('.modal-product-row:visible .modal-product-checkbox').prop('checked', isChecked);
+    window.modalSelectAllCatalog = false;
+    if (isChecked) {
+      // ເລືອກແຕ່ປະເພດ/ຄຳຄົ້ນທີ່ກຳລັງເບິ່ງ — ຍົກເລີກແຖວປະເພດອື່ນທີ່ຕິກຄ້າງໄວ້
+      $('.modal-product-checkbox').prop('checked', false);
+    }
+    modalFilteredProductRows().find('.modal-product-checkbox').prop('checked', isChecked);
     updateModalSelectedCount();
   }
 
   function checkSingleModalProduct() {
-    var visibleBoxes = $('.modal-product-row:visible .modal-product-checkbox');
-    var checkedBoxes = $('.modal-product-row:visible .modal-product-checkbox:checked');
-    if (checkedBoxes.length < visibleBoxes.length) {
-      window.modalSelectAllCatalog = false;
-    }
-    $('#selectAllModalProducts').prop('checked', visibleBoxes.length > 0 && visibleBoxes.length === checkedBoxes.length);
+    window.modalSelectAllCatalog = false;
+    var rows = modalFilteredProductRows();
+    var allBoxes = rows.find('.modal-product-checkbox');
+    var checkedBoxes = rows.find('.modal-product-checkbox:checked');
+    $('#selectAllModalProducts').prop('checked', allBoxes.length > 0 && allBoxes.length === checkedBoxes.length);
     updateModalSelectedCount();
   }
+
+  // ປ່ຽນປະເພດ/ຄຳຄົ້ນ → ສະຖານະ checkbox "ເລືອກ" ຕາມແຖວຂອງຕົວກັ່ນໃໝ່ (ຫຼັງ filterModalProducts() ແລ່ນແລ້ວ)
+  $(document).on('change input', '#modal_category_filter, #modal_product_search', function () {
+    setTimeout(checkSingleModalProduct, 0);
+  });
 
   function toggleRowCheckbox(rowEl, evt) {
     if ($(evt.target).closest('.custom-checkbox, button').length) return;
@@ -236,12 +255,7 @@
   }
 
   function updateModalSelectedCount() {
-    var count = 0;
-    if (window.modalSelectAllCatalog && typeof PRODUCTS_LIST !== 'undefined') {
-      count = PRODUCTS_LIST.length;
-    } else {
-      count = $('.modal-product-checkbox:checked').length;
-    }
+    var count = $('.modal-product-checkbox:checked').length;
 
     $('#modal_selected_count').text(count);
     if (count > 0) {

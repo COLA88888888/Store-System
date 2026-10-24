@@ -16,7 +16,7 @@ $scHistFmt = function ($h) use ($scShowSystem, $scShowDiff) {
     $isDone = ($st === 'completed');
     $diff = (int)$h['counted_qty'] - (int)$h['system_qty'];
     $fixed = $isDone && $diff !== 0;   // ປັບສະຕັອກແລ້ວ → ຕອນນີ້ຄົບ
-    $was   = $diff < 0 ? 'ເດີມຂາດ ' . number_format($diff) : 'ເດີມເກີນ +' . number_format($diff);
+    $was   = $diff < 0 ? t('sc.s180') . ' ' . number_format($diff) : t('sc.s181') . number_format($diff);
     return [
         'done'    => $isDone,
         'fixed'   => $fixed,
@@ -24,8 +24,8 @@ $scHistFmt = function ($h) use ($scShowSystem, $scShowDiff) {
         'showSys' => $scShowSystem,
         'diff'    => $diff,
         'when'    => $h['counted_at'] ? date('d/m/Y H:i', strtotime($h['counted_at'])) : '-',
-        'res'     => ($diff === 0 || $fixed) ? 'ຄົບ' : ($diff < 0 ? 'ບໍ່ຄົບ' : 'ເກີນ'),
-        'resNote' => $fixed ? 'ປັບແລ້ວ · ' . $was : '',
+        'res'     => ($diff === 0 || $fixed) ? t('sc.s083') : ($diff < 0 ? t('sc.s159') : t('sc.s085')),
+        'resNote' => $fixed ? t('sc.s182') . ' ' . $was : '',
         // ສ່ວນຕ່າງ = ຈຳນວນສະຕັອກ (ບໍ່ແມ່ນເງິນ) ພ້ອມຫົວໜ່ວຍ
         'qty'     => ($diff > 0 ? '+' : '') . number_format($diff) . (!empty($h['unit']) ? ' ' . $h['unit'] : ''),
     ];
@@ -38,16 +38,16 @@ $scHistFmt = function ($h) use ($scShowSystem, $scShowDiff) {
             <table class="table rpt-table mb-0 text-nowrap sc-table">
               <thead class="bg-light text-secondary">
                 <tr>
-                  <th class="text-center" style="width: 60px;">ລຳດັບ</th>
-                  <th>ນັບເມື່ອ</th>
-                  <th>ເລກທີໃບ</th>
-                  <th>ສິນຄ້າ</th>
-                  <th class="text-right">ໃນລະບົບ</th>
-                  <th class="text-right">ຕົວຈິງ</th>
-                  <th class="text-center">ຜົນການນັບ</th>
-                  <th class="text-right">ສ່ວນຕ່າງ</th>
-                  <th>ຜູ້ນັບ</th>
-                  <th>ໝາຍເຫດ</th>
+                  <th class="text-center" style="width: 60px;"><?php echo $sc('sc.s137'); ?></th>
+                  <th><?php echo $sc('sc.s183'); ?></th>
+                  <th><?php echo $sc('sc.s184'); ?></th>
+                  <th><?php echo $sc('sc.s138'); ?></th>
+                  <th class="text-right"><?php echo $sc('sc.s062'); ?></th>
+                  <th class="text-right"><?php echo $sc('sc.s140'); ?></th>
+                  <th class="text-center"><?php echo $sc('sc.s185'); ?></th>
+                  <th class="text-right"><?php echo $sc('sc.s066'); ?></th>
+                  <th><?php echo $sc('sc.s186'); ?></th>
+                  <th><?php echo $sc('sc.s068'); ?></th>
                 </tr>
               </thead>
               <tbody>
@@ -55,7 +55,7 @@ $scHistFmt = function ($h) use ($scShowSystem, $scShowDiff) {
                   <tr>
                     <td colspan="10" class="text-center py-5 text-muted">
                       <i class="fas fa-history fa-3x mb-3 text-secondary d-block"></i>
-                      ບໍ່ມີປະຫວັດການນັບໃນຊ່ວງນີ້
+                      <?php echo $sc('sc.s187'); ?>
                     </td>
                   </tr>
                 <?php else: foreach ($scPageRows as $hIdx => $h): $f = $scHistFmt($h); ?>
@@ -65,13 +65,13 @@ $scHistFmt = function ($h) use ($scShowSystem, $scShowDiff) {
                     <td>
                       <a href="stock_check.php?id=<?php echo (int)$h['check_id']; ?>" class="font-weight-bold"><?php echo htmlspecialchars($h['check_no']); ?></a>
                       <?php if ($h['status'] === 'completed'): ?>
-                        <span class="badge badge-success ml-1">ປັບສະຕັອກແລ້ວ</span>
+                        <span class="badge badge-success ml-1"><?php echo $sc('sc.s008'); ?></span>
                       <?php elseif ($h['status'] === 'approved'): ?>
-                        <span class="badge badge-info ml-1">ອະນຸມັດແລ້ວ</span>
+                        <span class="badge badge-info ml-1"><?php echo $sc('sc.s172'); ?></span>
                       <?php elseif ($h['status'] === 'pending'): ?>
-                        <span class="badge badge-warning ml-1">ລໍຖ້າກວດສອບ</span>
+                        <span class="badge badge-warning ml-1"><?php echo $sc('sc.s188'); ?></span>
                       <?php else: ?>
-                        <span class="badge badge-secondary ml-1">ກຳລັງນັບ</span>
+                        <span class="badge badge-secondary ml-1"><?php echo $sc('sc.s005'); ?></span>
                       <?php endif; ?>
                     </td>
                     <td>
@@ -82,8 +82,8 @@ $scHistFmt = function ($h) use ($scShowSystem, $scShowDiff) {
                           $hZone = trim((string)($h['zone'] ?? ''));
                           $hShelf = trim((string)($h['shelf'] ?? ''));
                           $hHasLoc = ($hZone !== '' || $hShelf !== '');
-                          $hZd = $hZone !== '' ? ((mb_stripos($hZone, 'ໂຊນ') === 0) ? $hZone : ('ໂຊນ ' . $hZone)) : 'ໂຊນ: ບໍ່ລະບຸ';
-                          $hSd = $hShelf !== '' ? ((mb_stripos($hShelf, 'ຊັ້ນ') === 0) ? $hShelf : ('ຊັ້ນ ' . $hShelf)) : 'ຊັ້ນ: ບໍ່ລະບຸ';
+                          $hZd = $hZone !== '' ? ((mb_stripos($hZone, 'ໂຊນ') === 0) ? $hZone : (t('sc.s045') . ' ' . $hZone)) : t('sc.s046');
+                          $hSd = $hShelf !== '' ? ((mb_stripos($hShelf, 'ຊັ້ນ') === 0) ? $hShelf : (t('sc.s136') . ' ' . $hShelf)) : t('sc.s223');
                         ?>
                         · <i class="fas fa-map-marker-alt <?php echo $hHasLoc ? 'text-primary' : 'text-secondary'; ?>"></i>
                         <span class="<?php echo $hHasLoc ? 'text-secondary' : 'text-muted'; ?>">
@@ -94,7 +94,7 @@ $scHistFmt = function ($h) use ($scShowSystem, $scShowDiff) {
                     <td class="text-right"><?php echo $f['showSys'] ? number_format((int)$h['system_qty']) : '<span class="text-muted">-</span>'; ?></td>
                     <td class="text-right font-weight-bold"><?php echo number_format((int)$h['counted_qty']); ?></td>
                     <?php if ($f['hide']): ?>
-                    <td class="text-center"><span class="badge sc-res sc-res-match"><i class="fas fa-check mr-1"></i>ນັບແລ້ວ</span></td>
+                    <td class="text-center"><span class="badge sc-res sc-res-match"><i class="fas fa-check mr-1"></i><?php echo $sc('sc.s039'); ?></span></td>
                     <td class="text-right text-muted">-</td>
                     <?php else: ?>
                     <td class="text-center">
@@ -116,7 +116,7 @@ $scHistFmt = function ($h) use ($scShowSystem, $scShowDiff) {
             </table>
           </div>
           <?php if ($scHistMore): ?>
-            <div class="small text-muted text-center py-2">ສະແດງ <?php echo number_format($scHistoryLimit); ?> ລາຍການລ່າສຸດ — ກະລຸນາເລືອກຊ່ວງວັນທີ ຫຼື ຄົ້ນຫາສິນຄ້າໃຫ້ແຄບລົງ</div>
+            <div class="small text-muted text-center py-2"><?php echo $sc('sc.s074'); ?> <?php echo number_format($scHistoryLimit); ?> <?php echo $sc('sc.s189'); ?></div>
           <?php endif; ?>
         </div>
 <?php require __DIR__ . '/pagination.php'; ?>
@@ -128,19 +128,19 @@ $scHistFmt = function ($h) use ($scShowSystem, $scShowDiff) {
         function scGetReport() {
           var rows = <?php echo json_encode(array_map(function ($h, $i) use ($scHistFmt) {
               $f = $scHistFmt($h);
-              $stLabel = ($h['status'] === 'completed') ? ' (ປັບແລ້ວ)' : (($h['status'] === 'draft') ? ' (ກຳລັງນັບ)' : ' (ລໍປັບສະຕັອກ)');
+              $stLabel = ($h['status'] === 'completed') ? ' ' . t('sc.s190') : (($h['status'] === 'draft') ? ' ' . t('sc.s191') : ' ' . t('sc.s192'));
               return [$i + 1, $f['when'], $h['check_no'] . $stLabel, $h['product_name'], $h['barcode'] ?: '-',
                       $f['showSys'] ? number_format((int)$h['system_qty']) : '-', number_format((int)$h['counted_qty']),
-                      $f['hide'] ? 'ນັບແລ້ວ' : ($f['res'] . ($f['resNote'] !== '' ? ' (' . $f['resNote'] . ')' : '')),
+                      $f['hide'] ? t('sc.s039') : ($f['res'] . ($f['resNote'] !== '' ? ' (' . $f['resNote'] . ')' : '')),
                       $f['hide'] ? '-' : $f['qty'], $h['counted_by_name'] ?? '-', $h['note'] ?? ''];
           }, $scAllRows, array_keys($scAllRows)), JSON_UNESCAPED_UNICODE); ?>;
           return {
-            title: 'ລາຍງານປະຫວັດການນັບສະຕັອກ', fileBase: 'stock_count_history',
-            meta: ['ວັນທີ <?php echo date('d/m/Y', strtotime($scDateFrom)); ?> - <?php echo date('d/m/Y', strtotime($scDateTo)); ?>',
-                   <?php echo json_encode($scHistorySearch !== '' ? 'ຄົ້ນຫາ: ' . $scHistorySearch : '', JSON_UNESCAPED_UNICODE); ?>,
-                   'ທັງໝົດ ' + rows.length + ' ລາຍການ'].filter(Boolean),
-            headers: [{t: 'ລຳດັບ', a: 'c'}, {t: 'ນັບເມື່ອ'}, {t: 'ເລກທີໃບ'}, {t: 'ສິນຄ້າ'}, {t: 'ບາໂຄ້ດ'}, {t: 'ໃນລະບົບ', a: 'r'},
-                      {t: 'ຕົວຈິງ', a: 'r'}, {t: 'ຜົນການນັບ', a: 'c'}, {t: 'ສ່ວນຕ່າງ', a: 'r'}, {t: 'ຜູ້ນັບ'}, {t: 'ໝາຍເຫດ'}],
+            title: scT('sc.s193'), fileBase: 'stock_count_history',
+            meta: [scT('sc.s175') + ' <?php echo date('d/m/Y', strtotime($scDateFrom)); ?> - <?php echo date('d/m/Y', strtotime($scDateTo)); ?>',
+                   <?php echo json_encode($scHistorySearch !== '' ? t('sc.s176') . ' ' . $scHistorySearch : '', JSON_UNESCAPED_UNICODE); ?>,
+                   scT('sc.s047') + ' ' + rows.length + ' ' + scT('sc.s075')].filter(Boolean),
+            headers: [{t: scT('sc.s137'), a: 'c'}, {t: scT('sc.s183')}, {t: scT('sc.s184')}, {t: scT('sc.s138')}, {t: scT('sc.s058')}, {t: scT('sc.s062'), a: 'r'},
+                      {t: scT('sc.s140'), a: 'r'}, {t: scT('sc.s185'), a: 'c'}, {t: scT('sc.s066'), a: 'r'}, {t: scT('sc.s186')}, {t: scT('sc.s068')}],
             rows: rows, footer: null
           };
         }

@@ -258,6 +258,8 @@ require_once __DIR__ . '/components/form_edit_user.php';
     'users_manage.role_employee' => 'ພະນັກງານ',
     'users_manage.role_manager_short' => 'ຜູ້ຈັດການ',
   ]); ?>;
+  // popup/ແຈ້ງເຕືອນໃນ js/users.js + js/users_modals.js (lang/*/users_js.php) — ອ່ານຜ່ານ uT() ຕອນເປີດ popup
+  Object.assign(I18N_USERS, <?php echo tjson(require __DIR__ . '/../../lang/lo/users_js.php'); ?>);
   // ອີງກົດເກນດຽວກັນກັບປຸ່ມແກ້ໄຂໃນຕາຕະລາງ: ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດ (Id 1) ເທົ່ານັ້ນທີ່ແກ້ໄຂ
   // ບັນຊີທີ່ມີສະຖານະຜູ້ບໍລິຫານຄົນອື່ນໄດ້ — ໃຊ້ຄວບຄຸມປຸ່ມ "ແກ້ໄຂ" ໃນ modal ເບິ່ງລາຍລະອຽດນຳ.
   var IS_OWNER_USER = <?php echo isOwnerUser() ? 'true' : 'false'; ?>;

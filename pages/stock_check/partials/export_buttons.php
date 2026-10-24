@@ -17,6 +17,6 @@ $scExpPlace = 'top';   // ຄືນຄ່າເລີ່ມຕົ້ນ ສຳ�
     <i class="fas fa-file-pdf"></i> PDF
   </button>
   <button type="button" onclick="scPrintReport()" class="btn sc-exp-btn rpt-btn rpt-btn-print">
-    <i class="fas fa-print"></i> <?php echo htmlspecialchars(t('reports.print_btn', 'ພິມ')); ?>
+    <i class="fas fa-print"></i> <?php echo htmlspecialchars(t('reports.print_btn', t('sc.s200'))); ?>
   </button>
 </div>

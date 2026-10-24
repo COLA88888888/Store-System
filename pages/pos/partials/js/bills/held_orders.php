@@ -133,7 +133,7 @@ function holdCurrentOrder() {
   });
 
   cart = [];
-  selectedCustomer = { customer_id: null, customer_name: 'ລູກຄ້າທົ່ວໄປ', phone: '' };
+  selectedCustomer = { customer_id: null, customer_name: posT('pos.customer_default'), phone: '' };
   setCartDiscountMode('amount');
   $('#cartDiscount').val('0');
 
@@ -146,7 +146,7 @@ function holdCurrentOrder() {
     toast: true,
     position: 'top-end',
     icon: 'success',
-    title: 'ພັກບິນສຳເລັດ!',
+    title: posT('pos.held_saved_toast'),
     timer: 1200,
     showConfirmButton: false
   });
@@ -178,7 +178,7 @@ function renderHeldOrders() {
   container.empty();
 
   if (heldOrders.length === 0) {
-    container.html(`<div class="text-center py-4 text-muted"><?php echo htmlspecialchars(t('pos.held_no_orders', 'ບໍ່ມີບິນທີ່ພັກໄວ້'), ENT_QUOTES); ?></div>`);
+    container.html(`<div class="text-center py-4 text-muted">${posT('pos.held_no_orders')}</div>`);
     return;
   }
 
@@ -224,7 +224,7 @@ function renderHeldOrders() {
     if (order.date) {
       var dParts = order.date.split('-');
       var dFormatted = (dParts.length === 3) ? (dParts[2] + '/' + dParts[1] + '/' + dParts[0]) : order.date;
-      dateBadgeHtml = `<span class="badge badge-light border text-dark font-weight-bold mr-1" title="ວັນທີພັກບິນ"><i class="fas fa-calendar-alt text-primary mr-1"></i>${dFormatted}</span>`;
+      dateBadgeHtml = `<span class="badge badge-light border text-dark font-weight-bold mr-1" title="${posT('pos.held_date_title')}"><i class="fas fa-calendar-alt text-primary mr-1"></i>${dFormatted}</span>`;
     }
 
     var isOpenNow = order.id === openHeldId;
@@ -232,23 +232,23 @@ function renderHeldOrders() {
       <div class="held-item-card ${isOpenNow ? 'border-primary bg-light' : ''}">
         <div class="d-flex justify-content-between align-items-start mb-1 flex-wrap" style="gap: 6px;">
           <div class="d-flex align-items-center flex-wrap" style="gap: 4px;">
-            <span class="badge badge-warning font-weight-bold"><?php echo htmlspecialchars(t('pos.held_bill_label', 'ບິນພັກ'), ENT_QUOTES); ?> #${idx + 1}</span>
-            ${isOpenNow ? '<span class="badge badge-primary font-weight-bold"><?php echo htmlspecialchars(t('pos.held_open_now', 'ກຳລັງເປີດຢູ່'), ENT_QUOTES); ?></span>' : ''}
+            <span class="badge badge-warning font-weight-bold">${posT('pos.held_bill_label')} #${idx + 1}</span>
+            ${isOpenNow ? '<span class="badge badge-primary font-weight-bold">' + posT('pos.held_open_now') + '</span>' : ''}
             ${dateBadgeHtml}
             <span class="small text-muted"><i class="fas fa-clock mr-1"></i>${order.time}</span>
           </div>
           <h5 class="font-weight-bold text-success mb-0">${window.POSCUR ? POSCUR.fmt(netTotal) : netTotal.toLocaleString() + ' ₭'}</h5>
         </div>
         <div class="small text-muted mb-1">
-          <i class="fas fa-user mr-1"></i> <?php echo htmlspecialchars(t('pos.receipt_customer', 'ລູກຄ້າ:'), ENT_QUOTES); ?> <strong>${order.customer.customer_name}</strong> |
-          <i class="fas fa-shopping-basket mr-1 ml-1"></i> <strong>${lineCount}</strong> <?php echo htmlspecialchars(t('pos.cart_count_items', 'ລາຍການ'), ENT_QUOTES); ?> (${totalQty} <?php echo htmlspecialchars(t('pos.cart_count_qty', 'ຈຳນວນ'), ENT_QUOTES); ?>)
+          <i class="fas fa-user mr-1"></i> ${posT('pos.receipt_customer')} <strong>${posCustomerDisplayName(order.customer && order.customer.customer_name)}</strong> |
+          <i class="fas fa-shopping-basket mr-1 ml-1"></i> <strong>${lineCount}</strong> ${posT('pos.cart_count_items')} (${totalQty} ${posT('pos.cart_count_qty')})
         </div>
         ${itemsListHtml}
         <div class="d-flex justify-content-end mt-2" style="gap: 6px;">
           <button class="btn btn-sm btn-success font-weight-bold" onclick="restoreHeldOrder('${order.id}')">
-            <i class="fas fa-undo mr-1"></i> <?php echo htmlspecialchars(t('pos.recall_bill', 'ເອີ້ນຄືນບິນ'), ENT_QUOTES); ?>
+            <i class="fas fa-undo mr-1"></i> ${posT('pos.recall_bill')}
           </button>
-          <button class="btn btn-sm btn-outline-danger" onclick="deleteHeldOrder('${order.id}')" title="<?php echo htmlspecialchars(t('pos.delete', 'ລຶບ'), ENT_QUOTES); ?>">
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteHeldOrder('${order.id}')" title="${posT('pos.delete')}">
             <i class="fas fa-trash-alt"></i>
           </button>
         </div>
@@ -258,7 +258,7 @@ function renderHeldOrders() {
   });
 
   if (heldShownCount === 0) {
-    container.html(`<div class="text-center py-4 text-muted"><?php echo htmlspecialchars(t('pos.held_no_match', 'ບໍ່ພົບບິນທີ່ພັກໄວ້ຕົງກັບການຄົ້ນຫາ'), ENT_QUOTES); ?></div>`);
+    container.html(`<div class="text-center py-4 text-muted">${posT('pos.held_no_match')}</div>`);
   }
 }
 
@@ -305,14 +305,14 @@ function deleteHeldOrder(orderId) {
 function clearAllHeldOrders() {
   if (!heldOrders || heldOrders.length === 0) return;
   Swal.fire({
-    title: 'ລ້າງບິນພັກທັງໝົດ?',
-    text: 'ບິນທີ່ພັກໄວ້ທັງໝົດ (' + heldOrders.length + ' ບິນ) ຈະຖືກລຶບອອກ ແລະ ກູ້ຄືນບໍ່ໄດ້!',
+    title: posT('pos.held_clear_all_title'),
+    text: posT('pos.held_clear_all_text', heldOrders.length),
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ef4444',
     cancelButtonColor: '#64748b',
-    confirmButtonText: 'ລ້າງທັງໝົດ',
-    cancelButtonText: 'ຍົກເລີກ' 
+    confirmButtonText: posT('pos.held_clear_all_btn'),
+    cancelButtonText: posT('pos.cancel')
   }).then(function(result) {
     if (!result.isConfirmed) return;
     heldOrders = [];
@@ -335,7 +335,7 @@ function clearAllHeldOrders() {
       toast: true,
       position: 'top-end',
       icon: 'success',
-      title: 'ລ້າງບິນພັກທັງໝົດແລ້ວ',
+      title: posT('pos.held_cleared_toast'),
       timer: 1200,
       showConfirmButton: false
     });

@@ -100,7 +100,8 @@ body:not(.pos-page) .select2-container:not(.table *) .select2-selection--single 
     height: 36px !important;
 }
 
-body:not(.pos-page) .btn:not(.btn-xs):not(.btn-lg):not(.btn-tool):not(.btn-link):not(.close):not(.dropdown-item):not(.table *):not(.pagination *):not(.modal-header *):not(.dropdown-menu *):not(.btn-group-vertical *):not(.swal2-container *):not(#__z) {
+/* .barcode-combo *: ປຸ່ມ "ສ້າງ" ທີ່ຢູ່ໃນບັອກບາໂຄ້ດ (themes/products.css) ມີຂະໜາດຂອງມັນເອງ */
+body:not(.pos-page) .btn:not(.btn-xs):not(.btn-lg):not(.btn-tool):not(.btn-link):not(.close):not(.dropdown-item):not(.table *):not(.pagination *):not(.modal-header *):not(.dropdown-menu *):not(.btn-group-vertical *):not(.swal2-container *):not(.barcode-combo *):not(#__z) {
     height: 38px !important;
     min-height: 38px !important;
     padding-top: 0 !important;

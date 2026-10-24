@@ -30,6 +30,8 @@ $todaySaleCount = intval($stmtSeq->fetchColumn() ?? 0);
 ?>
 <script>
 window.POS_BACKEND_URL = '../../api/pos_backend.php';
+// ໜ້າຂາຍປ່ຽນພາສາສົດເອງ (pos:langchange) — ບໍ່ໃຫ້ js_language.php ໂຫຼດໜ້າໃໝ່ຫຼັງກົດທຸງ (ກະຕ່າ/ບິນທີ່ເປີດຢູ່ຢູ່ຄືເກົ່າ)
+window.POS_LANG_LIVE = true;
 window.CURRENT_USER_NAME = "<?php echo htmlspecialchars($_SESSION['fname'] ?? $_SESSION['username'] ?? 'Admin'); ?>";
 window.USER_STATUS = "<?php echo htmlspecialchars($_SESSION['status'] ?? ''); ?>";
 window.IS_CASHIER = <?php echo (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && (intval($_SESSION['user_id'] ?? 0) !== 1)) ? 'true' : 'false'; ?>;

@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../config/db.php';
 
 // Check authorization
 if (empty($_SESSION['user_id']) || (!hasPermission('users'))) {
-    echo json_encode(['status' => 'error', 'message' => 'ທ່ານບໍ່ມີສິດໃນການດຳເນີນການນີ້!']);
+    echo json_encode(['status' => 'error', 'message' => t('users_manage.api_no_permission')]);
     exit();
 }
 
@@ -130,12 +130,12 @@ if ($action === 'add_user') {
     $notes = trim($_POST['notes'] ?? '');
 
     if (empty($user_code) || empty($fname) || empty($password)) {
-        echo json_encode(['status' => 'error', 'message' => 'ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບຖ້ວນ (*)']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_required')]);
         exit();
     }
 
     if ($password !== $confirm_password) {
-        echo json_encode(['status' => 'error', 'message' => 'ລະຫັດຜ່ານ ແລະ ຢືນຢັນລະຫັດຜ່ານ ບໍ່ກົງກັນ!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_pw_mismatch')]);
         exit();
     }
 
@@ -143,7 +143,7 @@ if ($action === 'add_user') {
         $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM st_tbuser WHERE username = ?");
         $stmtCheck->execute([$username]);
         if ($stmtCheck->fetchColumn() > 0) {
-            echo json_encode(['status' => 'error', 'message' => 'ຊື່ຜູ້ໃຊ້ນີ້ມີໃນລະບົບແລ້ວ ກະລຸນາເລືອກຊື່ອື່ນ']);
+            echo json_encode(['status' => 'error', 'message' => t('users_manage.api_name_taken')]);
             exit();
         }
 
@@ -165,7 +165,7 @@ if ($action === 'add_user') {
         $__stOk = $pdo->prepare("SELECT COUNT(*) FROM st_tbstore WHERE store_id = ?");
         $__stOk->execute([$store_id]);
         if (!$__stOk->fetchColumn()) {
-            echo json_encode(['status' => 'error', 'message' => 'ກະລຸນາເລືອກສາຂາໃຫ້ຖືກຕ້ອງ']);
+            echo json_encode(['status' => 'error', 'message' => t('users_manage.api_bad_branch')]);
             exit();
         }
         $profile_img = handleUserProfileUpload('profile_img', 'default.png');
@@ -187,10 +187,10 @@ if ($action === 'add_user') {
         }
 
         logActivity($pdo, "ເພີ່ມຜູ້ໃຊ້", "ຊື່: $username, ຕຳແໜ່ງ: $userstatus");
-        echo json_encode(['status' => 'success', 'message' => 'ເພີ່ມຜູ້ໃຊ້ງານໃໝ່ສຳເລັດແລ້ວ!']);
+        echo json_encode(['status' => 'success', 'message' => t('users_manage.api_added')]);
         exit();
     } catch (Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => 'ຜິດພາດ: ' . $e->getMessage()]);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_error_prefix') . ' ' . $e->getMessage()]);
         exit();
     }
 }
@@ -213,19 +213,19 @@ if ($action === 'edit_user') {
     $notes = trim($_POST['notes'] ?? '');
 
     if ($user_id <= 0 || empty($fname)) {
-        echo json_encode(['status' => 'error', 'message' => 'ຂໍ້ມູນບໍ່ຖືກຕ້ອງ!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_invalid')]);
         exit();
     }
     // Only the owner (Id 1) may edit ANOTHER admin-labeled account — but any admin may still
     // edit their own record (change their own password, phone, etc.), just never someone else's.
     $isEditingSelf = ($user_id === intval($_SESSION['user_id'] ?? 0));
     if (!isOwnerUser() && !$isEditingSelf && isAdminAccount($pdo, $user_id)) {
-        echo json_encode(['status' => 'error', 'message' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດແກ້ໄຂຜູ້ບໍລິຫານຄົນອື່ນໄດ້!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_only_owner_edit')]);
         exit();
     }
 
     if (!empty($password) && $password !== $confirm_password) {
-        echo json_encode(['status' => 'error', 'message' => 'ລະຫັດຜ່ານ ແລະ ຢືນຢັນລະຫັດຜ່ານ ບໍ່ກົງກັນ!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_pw_mismatch')]);
         exit();
     }
 
@@ -233,7 +233,7 @@ if ($action === 'edit_user') {
         $usernameCheck = $pdo->prepare("SELECT COUNT(*) FROM st_tbuser WHERE username = ? AND Id <> ?");
         $usernameCheck->execute([$username, $user_id]);
         if ($usernameCheck->fetchColumn() > 0) {
-            echo json_encode(['status' => 'error', 'message' => 'ຊື່ຜູ້ໃຊ້ນີ້ມີໃນລະບົບແລ້ວ ກະລຸນາເລືອກຊື່ອື່ນ']);
+            echo json_encode(['status' => 'error', 'message' => t('users_manage.api_name_taken')]);
             exit();
         }
 
@@ -241,7 +241,7 @@ if ($action === 'edit_user') {
         $cStmt->execute([$user_id]);
         $currUser = $cStmt->fetch();
         if (!$currUser || (!$canAllBranches && intval($currUser['store_id']) !== $userStoreId)) {
-            echo json_encode(['status' => 'error', 'message' => 'ບໍ່ພົບຜູ້ໃຊ້ງານນີ້!']);
+            echo json_encode(['status' => 'error', 'message' => t('users_manage.api_not_found')]);
             exit();
         }
 
@@ -302,10 +302,10 @@ if ($action === 'edit_user') {
         }
 
         logActivity($pdo, "ແກ້ໄຂຜູ້ໃຊ້", "ID: $user_id, ຊື່: $username");
-        echo json_encode(['status' => 'success', 'message' => 'ອັບເດດຂໍ້ມູນຜູ້ໃຊ້ສຳເລັດ!']);
+        echo json_encode(['status' => 'success', 'message' => t('users_manage.api_updated')]);
         exit();
     } catch (Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => 'ຜິດພາດ: ' . $e->getMessage()]);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_error_prefix') . ' ' . $e->getMessage()]);
         exit();
     }
 }
@@ -314,20 +314,20 @@ if ($action === 'edit_user') {
 if ($action === 'delete_user') {
     $user_id = intval($_POST['user_id'] ?? 0);
     if ($user_id <= 0) {
-        echo json_encode(['status' => 'error', 'message' => 'ຂໍ້ມູນບໍ່ຖືກຕ້ອງ!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_invalid')]);
         exit();
     }
     // Nobody — admin or not — may delete the account they're currently logged in as.
     if ($user_id === intval($_SESSION['user_id'] ?? 0)) {
-        echo json_encode(['status' => 'error', 'message' => 'ບໍ່ສາມາດລົບບັນຊີຂອງຕົນເອງໄດ້!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_cannot_delete_self')]);
         exit();
     }
     if ($user_id === 1) {
-        echo json_encode(['status' => 'error', 'message' => 'ບໍ່ສາມາດລົບຜູ້ບໍລິຫານຄົນທຳອິດ (ID: 1) ໄດ້!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_cannot_delete_owner')]);
         exit();
     }
     if (!isOwnerUser() && isAdminAccount($pdo, $user_id)) {
-        echo json_encode(['status' => 'error', 'message' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດລົບຜູ້ບໍລິຫານຄົນອື່ນໄດ້!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_only_owner_delete')]);
         exit();
     }
 
@@ -336,7 +336,7 @@ if ($action === 'delete_user') {
         $uStmt->execute([$user_id]);
         $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
         if (!$uRow || (!$canAllBranches && intval($uRow['store_id']) !== $userStoreId)) {
-            echo json_encode(['status' => 'error', 'message' => 'ບໍ່ພົບຜູ້ໃຊ້ງານນີ້!']);
+            echo json_encode(['status' => 'error', 'message' => t('users_manage.api_not_found')]);
             exit();
         }
         $uImg = $uRow['profile_img'];
@@ -350,10 +350,10 @@ if ($action === 'delete_user') {
         $stmt = $pdo->prepare("DELETE FROM st_tbuser WHERE Id = ?");
         $stmt->execute([$user_id]);
         logActivity($pdo, "ລົບຜູ້ໃຊ້", "ID: $user_id");
-        echo json_encode(['status' => 'success', 'message' => 'ລົບຜູ້ໃຊ້ງານສຳເລັດແລ້ວ!']);
+        echo json_encode(['status' => 'success', 'message' => t('users_manage.api_deleted')]);
         exit();
     } catch (Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => 'ຜິດພາດ: ' . $e->getMessage()]);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_error_prefix') . ' ' . $e->getMessage()]);
         exit();
     }
 }
@@ -364,19 +364,19 @@ if ($action === 'toggle_user_active' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = intval($_POST['user_id'] ?? 0);
     $active = intval($_POST['active'] ?? 0) === 1 ? 1 : 0;
     if (!hasPermission('users', 'edit') || $user_id <= 0) {
-        echo json_encode(['status' => 'error', 'message' => 'ທ່ານບໍ່ມີສິດໃນການດຳເນີນການນີ້!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_no_permission')]);
         exit();
     }
     if ($user_id === 1) {
-        echo json_encode(['status' => 'error', 'message' => 'ບໍ່ສາມາດປິດໃຊ້ງານຜູ້ບໍລິຫານຄົນທຳອິດ (ID: 1) ໄດ້!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_cannot_disable_owner')]);
         exit();
     }
     if ($user_id === intval($_SESSION['user_id'] ?? 0)) {
-        echo json_encode(['status' => 'error', 'message' => 'ບໍ່ສາມາດປິດໃຊ້ງານບັນຊີຂອງຕົນເອງໄດ້!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_cannot_disable_self')]);
         exit();
     }
     if (!isOwnerUser() && isAdminAccount($pdo, $user_id)) {
-        echo json_encode(['status' => 'error', 'message' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດປິດໃຊ້ງານຜູ້ບໍລິຫານຄົນອື່ນໄດ້!']);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_only_owner_disable')]);
         exit();
     }
 
@@ -385,18 +385,18 @@ if ($action === 'toggle_user_active' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $uStmt->execute([$user_id]);
         $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
         if (!$uRow || (!$canAllBranches && intval($uRow['store_id']) !== $userStoreId)) {
-            echo json_encode(['status' => 'error', 'message' => 'ບໍ່ພົບຜູ້ໃຊ້ງານນີ້!']);
+            echo json_encode(['status' => 'error', 'message' => t('users_manage.api_not_found')]);
             exit();
         }
 
         $pdo->prepare("UPDATE st_tbuser SET account_active = ? WHERE Id = ?")->execute([$active, $user_id]);
         logActivity($pdo, $active ? "ເປີດໃຊ້ງານບັນຊີຜູ້ໃຊ້" : "ປິດໃຊ້ງານບັນຊີຜູ້ໃຊ້", "ID: $user_id, ຊື່: " . $uRow['username']);
-        echo json_encode(['status' => 'success', 'message' => $active ? 'ເປີດໃຊ້ງານບັນຊີສຳເລັດ!' : 'ປິດໃຊ້ງານບັນຊີສຳເລັດ!']);
+        echo json_encode(['status' => 'success', 'message' => $active ? t('users_manage.api_enabled') : t('users_manage.api_disabled')]);
         exit();
     } catch (Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => 'ຜິດພາດ: ' . $e->getMessage()]);
+        echo json_encode(['status' => 'error', 'message' => t('users_manage.api_error_prefix') . ' ' . $e->getMessage()]);
         exit();
     }
 }
 
-echo json_encode(['status' => 'error', 'message' => 'Action ບໍ່ຖືກຕ້ອງ']);
+echo json_encode(['status' => 'error', 'message' => t('users_manage.api_bad_action')]);

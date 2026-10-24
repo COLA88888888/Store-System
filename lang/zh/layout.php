@@ -90,4 +90,14 @@ return [
     'layout.expiry' => '过期商品管理',
     'layout.expiry_report' => '商品到期报表',
     'layout.shift_report' => '班次报表',
+    // ເມນູ/ແຈ້ງເຕືອນທີ່ເພີ່ມພາຍຫຼັງ
+    'layout.expiry_near_header' => '即将过期 / 已过期商品',
+    'layout.expiry_days_left' => '剩余 %d 天',
+    'layout.expiry_today' => '今天过期',
+    'layout.expiry_expired' => '已过期',
+    'layout.click_to_expiry' => '点击进入过期商品管理页面',
+    'layout.stock_check_list' => '库存盘点',
+    'layout.zones' => '商品区域',
+    'layout.shelves' => '商品货架',
+    'layout.shifts' => '班次管理',
 ];

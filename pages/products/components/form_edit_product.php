@@ -82,7 +82,7 @@
                 </div>
                 <div class="col-md-5 mb-3">
                   <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_barcode', 'ບາໂຄ້ດ:')); ?></label>
-                  <div class="input-group">
+                  <div class="input-group barcode-combo">
                     <input type="text" name="barcode" id="edit_barcode" class="form-control" placeholder="<?php echo htmlspecialchars(t('products.barcode_edit_placeholder', 'ບາໂຄ້ດ...')); ?>" style="border-radius: 6px 0 0 6px; height: 40px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                     <div class="input-group-append">
                       <button type="button" class="btn btn-outline-primary font-weight-bold" onclick="generateEAN13('edit_barcode')" title="<?php echo htmlspecialchars(t('products.gen_barcode_title', 'ສ້າງບາໂຄ້ດ 13 ຫຼັກ')); ?>" style="border-radius: 0 6px 6px 0; height: 40px; border-color: #cbd5e1;">
@@ -99,7 +99,7 @@
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="font-weight-bold text-dark mb-0"><?php echo htmlspecialchars(t('products.field_unit', 'ຫົວໜ່ວຍ:')); ?> <span class="text-danger">*</span></label>
                     <a href="javascript:void(0)" onclick="quickAddUnitPrompt('edit')" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
-                      <i class="fas fa-plus mr-1"></i>ເພີ່ມຫົວໜ່ວຍ
+                      <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_unit_link')); ?>
                     </a>
                   </div>
                   <select name="unit_id" id="edit_unit" class="form-control" style="border-radius: 6px; height: 40px;" required>
@@ -144,7 +144,7 @@
                       <?php echo htmlspecialchars(t('products.field_zone', 'ໂຊນ:')); ?>
                     </label>
                     <a href="javascript:void(0)" onclick="quickAddZonePrompt('edit')" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
-                      <i class="fas fa-plus mr-1"></i>ເພີ່ມໂຊນ
+                      <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_zone_link')); ?>
                     </a>
                   </div>
                   <select id="edit_zone" name="zone" class="form-control" style="border-radius: 6px; height: 40px;" onchange="onZoneSelectChange('edit')">
@@ -160,7 +160,7 @@
                       <?php echo htmlspecialchars(t('products.field_shelf', 'ຊັ້ນວາງ:')); ?>
                     </label>
                     <a href="javascript:void(0)" onclick="quickAddShelfPrompt('edit')" class="text-info font-weight-bold" style="font-size: 0.78rem;">
-                      <i class="fas fa-plus mr-1"></i>ເພີ່ມຊັ້ນວາງ
+                      <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_shelf_link')); ?>
                     </a>
                   </div>
                   <select id="edit_shelf" name="shelf" class="form-control" style="border-radius: 6px; height: 40px;">

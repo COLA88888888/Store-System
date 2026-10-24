@@ -61,7 +61,7 @@ function scPaintRow($r) {
 
   if (counted === null) {
     $r.attr('data-state', 'uncounted').addClass('sc-state-uncounted');
-    $d.html('<span class="badge sc-res sc-res-uncounted"><i class="far fa-clock mr-1"></i>ຍັງບໍ່ນັບ</span>');
+    $d.html('<span class="badge sc-res sc-res-uncounted"><i class="far fa-clock mr-1"></i>' + scT('sc.s040') + '</span>');
     if ($v.length) $v.text('-').addClass('text-muted');
     return;
   }
@@ -69,7 +69,7 @@ function scPaintRow($r) {
   // ຖ້າກຳລັງຕີຈຳນວນຕົວຈິງ (ຍັງບໍ່ທັນກົດບັນທຶກ): ບໍ່ໃຫ້ໂຊສ່ວນຕ່າງເທື່ອ!
   if (isDirty) {
     $r.attr('data-state', 'dirty').addClass('sc-state-dirty');
-    $d.html('<span class="badge badge-warning text-dark font-weight-bold"><i class="fas fa-pencil-alt mr-1"></i>ກຳລັງປ້ອນ</span>');
+    $d.html('<span class="badge badge-warning text-dark font-weight-bold"><i class="fas fa-pencil-alt mr-1"></i>' + scT('sc.s081') + '</span>');
     if ($v.length) $v.text('-').addClass('text-muted');
     return;
   }
@@ -78,21 +78,21 @@ function scPaintRow($r) {
   var diff = counted - sys;
   if (SC_DONE && diff !== 0) {
     $r.attr('data-state', diff < 0 ? 'short' : 'over').addClass('sc-state-match');
-    $d.html('<span class="badge sc-res sc-res-match"><i class="fas fa-check mr-1"></i>ຄົບ (ປັບແລ້ວ)</span>');
+    $d.html('<span class="badge sc-res sc-res-match"><i class="fas fa-check mr-1"></i>' + scT('sc.s082') + '</span>');
     if ($v.length) $v.text((diff > 0 ? '+' : '') + scFmt(diff) + (unit ? ' ' + unit : '')).addClass(diff < 0 ? 'text-danger font-weight-bold' : 'text-warning font-weight-bold');
     return;
   }
   if (diff === 0) {
     $r.attr('data-state', 'match').addClass('sc-state-match');
-    $d.html('<span class="badge sc-res sc-res-match"><i class="fas fa-check mr-1"></i>ຄົບ</span>');
+    $d.html('<span class="badge sc-res sc-res-match"><i class="fas fa-check mr-1"></i>' + scT('sc.s083') + '</span>');
     if ($v.length) $v.text('0').addClass('text-success font-weight-bold');
   } else if (diff < 0) {
     $r.attr('data-state', 'short').addClass('sc-state-short');
-    $d.html('<span class="badge sc-res sc-res-short"><i class="fas fa-arrow-down mr-1"></i>ບໍ່ພໍ</span>');
+    $d.html('<span class="badge sc-res sc-res-short"><i class="fas fa-arrow-down mr-1"></i>' + scT('sc.s084') + '</span>');
     if ($v.length) $v.text(scFmt(diff) + (unit ? ' ' + unit : '')).addClass('text-danger font-weight-bold');
   } else {
     $r.attr('data-state', 'over').addClass('sc-state-over');
-    $d.html('<span class="badge sc-res sc-res-over"><i class="fas fa-arrow-up mr-1"></i>ເກີນ</span>');
+    $d.html('<span class="badge sc-res sc-res-over"><i class="fas fa-arrow-up mr-1"></i>' + scT('sc.s085') + '</span>');
     if ($v.length) $v.text('+' + scFmt(diff) + (unit ? ' ' + unit : '')).addClass('text-warning font-weight-bold');
   }
 }
@@ -125,13 +125,13 @@ function scStats() {
 function scUpdateStats() {
   var s = scStats();
   $('#scStatTotal').text(scFmt(s.total));
-  $('#scStatCountedSummary').text('ນັບແລ້ວ ' + scFmt(s.counted));
+  $('#scStatCountedSummary').text(scT('sc.s039') + ' ' + scFmt(s.counted));
   $('#scStatCountedOnly').text(scFmt(s.counted));
   $('#scStatMatch').text(scFmt(s.match));
   $('#scStatShort').text(scFmt(s.shortN));
-  $('#scStatShortQty').text(s.shortQ ? 'ຂາດ -' + scFmt(s.shortQ) : '0 ລາຍການ');
+  $('#scStatShortQty').text(s.shortQ ? scT('sc.s086') + ' -' + scFmt(s.shortQ) : '0 ' + scT('sc.s075'));
   $('#scStatOver').text(scFmt(s.overN));
-  $('#scStatOverQty').text(s.overQ ? 'ເກີນ +' + scFmt(s.overQ) : '0 ລາຍການ');
+  $('#scStatOverQty').text(s.overQ ? scT('sc.s087') + scFmt(s.overQ) : '0 ' + scT('sc.s075'));
   $('#scStatUncountedBig').text(scFmt(s.uncounted));
   $('#scStatMismatchTotal').text(scFmt(s.shortN + s.overN));
   $('#scStatValue').text((s.net > 0 ? '+' : '') + scFmt(s.net));
@@ -175,7 +175,7 @@ function scRender() {
   matched.slice(start, end).forEach(function(el) { el.style.display = ''; });
 
   $('#scNoMatchRow').toggle(matched.length === 0 && rows.length > 0);
-  $('#scPagerInfo').text(matched.length ? 'ສະແດງ ' + scFmt(start + 1) + ' - ' + scFmt(Math.min(end, matched.length)) + ' ຈາກທັງໝົດ ' + scFmt(matched.length) + ' ລາຍການ' : 'ທັງໝົດ 0 ລາຍການ');
+  $('#scPagerInfo').text(matched.length ? scT('sc.s074') + ' ' + scFmt(start + 1) + ' - ' + scFmt(Math.min(end, matched.length)) + ' ' + scT('sc.s088') + ' ' + scFmt(matched.length) + ' ' + scT('sc.s075') : scT('sc.s089'));
 
   var html = '';
   var li = function(p, label, cls) { return '<li class="page-item ' + (cls || '') + '"><a class="page-link" href="#" data-page="' + p + '">' + label + '</a></li>'; };
@@ -222,7 +222,7 @@ function scBeep() {
 function scRefreshDirtyUi() {
   var n = Object.keys(scDirty).length;
   $('#scUnsavedBadge').text(n).toggle(n > 0);
-  $('#scSaveStatus').html(n > 0 ? '<span class="text-warning"><i class="fas fa-exclamation-circle mr-1"></i>ມີ ' + n + ' ລາຍການຍັງບໍ່ບັນທຶກ</span>' : '');
+  $('#scSaveStatus').html(n > 0 ? '<span class="text-warning"><i class="fas fa-exclamation-circle mr-1"></i>' + scT('sc.s090') + ' ' + n + ' ' + scT('sc.s091') + '</span>' : '');
 }
 
 function scMarkDirty($r) {
@@ -280,7 +280,7 @@ function scShowJustScannedBox($hit, qty) {
   $('#scJustScannedName').text(name);
   $('#scJustScannedBarcode').text(barcode || '-');
   $('#scJustScannedUnit').text(unit);
-  $('#scJustScannedLoc').text(loc || 'ບໍ່ລະບຸ');
+  $('#scJustScannedLoc').text(loc || scT('sc.s092'));
   $('#scJustScannedQty').val(qty === null ? 0 : qty);
 
   if (SC_SHOW_SYSTEM && !isNaN(sysQty)) {
@@ -342,7 +342,7 @@ function scSave(silent) {
 
   scSaving = true;
   $('#scBtnSave').prop('disabled', true);
-  $('#scSaveStatus').html('<i class="fas fa-spinner fa-spin mr-1"></i> ກຳລັງບັນທຶກ...');
+  $('#scSaveStatus').html('<i class="fas fa-spinner fa-spin mr-1"></i> ' + scT('sc.s093'));
 
   $.post(SC_BACKEND, { action: 'save_counts', check_id: SC_CHECK_ID, items: JSON.stringify(items), note: $('#scNote').val() || '' }, null, 'json')
     .done(function(res) {
@@ -353,18 +353,18 @@ function scSave(silent) {
         scRefreshDirtyUi();
         scUpdateStats();
         scRender();
-        $('#scSaveStatus').html('<span class="text-success"><i class="fas fa-check-circle mr-1"></i>ບັນທຶກແລ້ວ ' + res.saved_at + '</span>');
+        $('#scSaveStatus').html('<span class="text-success"><i class="fas fa-check-circle mr-1"></i>' + scT('sc.s094') + ' ' + res.saved_at + '</span>');
         if (!silent) {
-          Swal.fire({ icon: 'success', title: 'ບັນທຶກສຳເລັດ', timer: 1200, showConfirmButton: false });
+          Swal.fire({ icon: 'success', title: scT('sc.s095'), timer: 1200, showConfirmButton: false });
         }
       } else {
         scRefreshDirtyUi();
-        Swal.fire({ icon: 'error', title: 'ບັນທຶກບໍ່ສຳເລັດ', text: (res && res.message) || '' });
+        Swal.fire({ icon: 'error', title: scT('sc.s096'), text: (res && res.message) || '' });
       }
     })
     .fail(function() {
       scRefreshDirtyUi();
-      Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ເຊື່ອມຕໍ່ເຊີບເວີບໍ່ໄດ້ — ຍັງບໍ່ໄດ້ບັນທຶກ' });
+      Swal.fire({ icon: 'error', title: scT('sc.s097'), text: scT('sc.s098') });
     })
     .always(function() { scSaving = false; $('#scBtnSave').prop('disabled', false); });
 }
@@ -372,28 +372,28 @@ function scSave(silent) {
 function scSummaryBox() {
   var s = scStats();
   if (!SC_SHOW_DIFF) {
-    return (s.uncounted > 0 ? '<div class="alert alert-warning text-left py-2 mb-2 font-weight-bold" style="font-size:0.92rem;"><i class="fas fa-exclamation-triangle mr-1"></i>ຍັງມີ ' + scFmt(s.uncounted) + ' ລາຍການທີ່ຍັງບໍ່ໄດ້ນັບ</div>' : '') +
+    return (s.uncounted > 0 ? '<div class="alert alert-warning text-left py-2 mb-2 font-weight-bold" style="font-size:0.92rem;"><i class="fas fa-exclamation-triangle mr-1"></i>' + scT('sc.s099') + ' ' + scFmt(s.uncounted) + ' ' + scT('sc.s100') + '</div>' : '') +
       '<div class="text-left p-2 rounded border bg-light" style="font-size:0.95rem; line-height:1.9;">' +
-        'ສິນຄ້າທັງໝົດ: <b>' + scFmt(s.total) + '</b> ລາຍການ<br>' +
-        'ນັບແລ້ວ: <b>' + scFmt(s.counted) + '</b> ລາຍການ<br>' +
-        'ຍັງບໍ່ນັບ: <b>' + scFmt(s.uncounted) + '</b> ລາຍການ' +
+        scT('sc.s101') + ' <b>' + scFmt(s.total) + '</b> ' + scT('sc.s075') + '<br>' +
+        scT('sc.s102') + ' <b>' + scFmt(s.counted) + '</b> ' + scT('sc.s075') + '<br>' +
+        scT('sc.s103') + ' <b>' + scFmt(s.uncounted) + '</b> ' + scT('sc.s075') +
       '</div>';
   }
-  return (s.uncounted > 0 ? '<div class="alert alert-warning text-left py-2 mb-2 font-weight-bold" style="font-size:0.92rem;"><i class="fas fa-exclamation-triangle mr-1"></i>ຍັງມີ ' + scFmt(s.uncounted) + ' ລາຍການທີ່ຍັງບໍ່ໄດ້ນັບ</div>' : '') +
+  return (s.uncounted > 0 ? '<div class="alert alert-warning text-left py-2 mb-2 font-weight-bold" style="font-size:0.92rem;"><i class="fas fa-exclamation-triangle mr-1"></i>' + scT('sc.s099') + ' ' + scFmt(s.uncounted) + ' ' + scT('sc.s100') + '</div>' : '') +
     '<div class="text-left p-2 rounded border bg-light" style="font-size:0.95rem; line-height:1.9;">' +
-      'ສິນຄ້າທັງໝົດ: <b>' + scFmt(s.total) + '</b> ລາຍການ<br>' +
-      'ນັບແລ້ວ: <b>' + scFmt(s.counted) + '</b> ລາຍການ<br>' +
-      'ຄົບ (ຕົງກັນ): <b class="text-success">' + scFmt(s.match) + ' ລາຍການ</b><br>' +
-      'ບໍ່ພໍ (ຂາດ): <b class="text-danger">' + scFmt(s.shortN) + ' ລາຍການ (-' + scFmt(s.shortQ) + ')</b><br>' +
-      'ເກີນ: <b class="text-warning">' + scFmt(s.overN) + ' ລາຍການ (+' + scFmt(s.overQ) + ')</b><br>' +
-      'ສ່ວນຕ່າງລວມ: <b>' + (s.net > 0 ? '+' : '') + scFmt(s.net) + '</b>' +
+      scT('sc.s101') + ' <b>' + scFmt(s.total) + '</b> ' + scT('sc.s075') + '<br>' +
+      scT('sc.s102') + ' <b>' + scFmt(s.counted) + '</b> ' + scT('sc.s075') + '<br>' +
+      scT('sc.s104') + ' <b class="text-success">' + scFmt(s.match) + ' ' + scT('sc.s075') + '</b><br>' +
+      scT('sc.s105') + ' <b class="text-danger">' + scFmt(s.shortN) + ' ' + scT('sc.s106') + '-' + scFmt(s.shortQ) + ')</b><br>' +
+      scT('sc.s107') + ' <b class="text-warning">' + scFmt(s.overN) + ' ' + scT('sc.s108') + scFmt(s.overQ) + ')</b><br>' +
+      scT('sc.s109') + ' <b>' + (s.net > 0 ? '+' : '') + scFmt(s.net) + '</b>' +
     '</div>';
 }
 
 function scPostAction(act, title, html, btnText, btnColor) {
   var s = scStats();
   if (act !== 'reject_adjustment' && s.counted === 0) {
-    Swal.fire({ icon: 'warning', title: 'ຍັງບໍ່ໄດ້ນັບສິນຄ້າເລີຍ', text: 'ກະລຸນາປ້ອນຈຳນວນຕົວຈິງຢ່າງໜ້ອຍ 1 ລາຍການ' });
+    Swal.fire({ icon: 'warning', title: scT('sc.s110'), text: scT('sc.s111') });
     return;
   }
   Swal.fire({
@@ -403,56 +403,56 @@ function scPostAction(act, title, html, btnText, btnColor) {
     showCancelButton: true,
     reverseButtons: true,
     confirmButtonText: btnText,
-    cancelButtonText: 'ຍົກເລີກ',
+    cancelButtonText: scT('sc.s112'),
     confirmButtonColor: btnColor || '#2563eb',
     cancelButtonColor: '#64748b'
   }).then(function(r) {
     if (!r.isConfirmed) return;
     var items = $('.sc-row').map(function() { return scRowPayload($(this)); }).get();
-    Swal.fire({ title: 'ກຳລັງດຳເນີນການ...', allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
+    Swal.fire({ title: scT('sc.s113'), allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
     $.post(SC_BACKEND, { action: act, check_id: SC_CHECK_ID, items: JSON.stringify(items), note: $('#scNote').val() || '' }, null, 'json')
       .done(function(res) {
         if (res && res.success) {
           scDirty = {};
           Swal.fire({ icon: 'success', title: res.message, timer: 1700, showConfirmButton: false }).then(function() { window.location.reload(); });
         } else {
-          Swal.fire({ icon: 'error', title: 'ບໍ່ສຳເລັດ', text: (res && res.message) || '' });
+          Swal.fire({ icon: 'error', title: scT('sc.s114'), text: (res && res.message) || '' });
         }
       })
-      .fail(function() { Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ເຊື່ອມຕໍ່ເຊີບເວີບໍ່ໄດ້' }); });
+      .fail(function() { Swal.fire({ icon: 'error', title: scT('sc.s097'), text: scT('sc.s115') }); });
   });
 }
 
 function scSubmitApproval() {
-  scPostAction('submit_for_approval', 'ສົ່ງໃຫ້ຫົວໜ້າກວດສອບ?',
-    '<div class="text-left small text-muted mb-2">ສົ່ງຜົນການນັບໃຫ້ຫົວໜ້າກວດເບິ່ງລາຍການທີ່ບໍ່ພໍ/ເກີນ ເພື່ອກວດສອບ ແລະ ປັບສະຕັອກ</div>' + scSummaryBox(),
-    '<i class="fas fa-paper-plane mr-1"></i> ສົ່ງກວດສອບ', '#d97706');
+  scPostAction('submit_for_approval', scT('sc.s116'),
+    '<div class="text-left small text-muted mb-2">' + scT('sc.s117') + '</div>' + scSummaryBox(),
+    '<i class="fas fa-paper-plane mr-1"></i> ' + scT('sc.s118'), '#d97706');
 }
 
 function scApproveAdjustment() {
-  scPostAction('approve_adjustment', 'ຢືນຢັນການປັບສະຕັອກໃຫ້ຕົງ?',
-    '<div class="alert alert-warning text-left py-2 mb-2" style="font-size:0.9rem;"><i class="fas fa-check-double mr-1"></i>ລະບົບຈະບັນທຶກຈຳນວນຕົວຈິງ ແລະ ປັບສະຕັອກໃນລະບົບໃຫ້ຕົງກັບທີ່ນັບໄດ້ທັນທີ</div>' + scSummaryBox(),
-    '<i class="fas fa-check-double mr-1"></i> ປັບສະຕັອກໃຫ້ຕົງ', '#16a34a');
+  scPostAction('approve_adjustment', scT('sc.s119'),
+    '<div class="alert alert-warning text-left py-2 mb-2" style="font-size:0.9rem;"><i class="fas fa-check-double mr-1"></i>' + scT('sc.s120') + '</div>' + scSummaryBox(),
+    '<i class="fas fa-check-double mr-1"></i> ' + scT('sc.s016'), '#16a34a');
 }
 
 function scRejectAdjustment() {
-  scPostAction('reject_adjustment', 'ສົ່ງກັບໃຫ້ນັບໃໝ່?', 'ໃບເຊັກສະຕັອກຈະກັບໄປສະຖານະ "ກຳລັງນັບ" ເພື່ອໃຫ້ພະນັກງານກວດນັບໃໝ່', '<i class="fas fa-undo mr-1"></i> ສົ່ງກັບ', '#ef4444');
+  scPostAction('reject_adjustment', scT('sc.s121'), scT('sc.s123') + ' "' + scT('sc.s005') + '" ' + scT('sc.s122'), '<i class="fas fa-undo mr-1"></i> ' + scT('sc.s124'), '#ef4444');
 }
 
 function scComplete() {
-  scPostAction('complete_check', 'ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ?',
-    '<div class="alert alert-warning text-left py-2 mb-2" style="font-size:0.9rem;"><i class="fas fa-lock mr-1"></i>ລະບົບຈະປັບຈຳນວນສະຕັອກໃນລະບົບໃຫ້ຕົງກັບຈຳນວນຕົວຈິງທີ່ນັບໄດ້ ແລະ ປິດໃບເຊັກສະຕັອກນີ້ທັນທີ</div>' + scSummaryBox(),
-    '<i class="fas fa-check-double mr-1"></i> ຢືນຢັນປັບສະຕັອກ', '#16a34a');
+  scPostAction('complete_check', scT('sc.s125'),
+    '<div class="alert alert-warning text-left py-2 mb-2" style="font-size:0.9rem;"><i class="fas fa-lock mr-1"></i>' + scT('sc.s126') + '</div>' + scSummaryBox(),
+    '<i class="fas fa-check-double mr-1"></i> ' + scT('sc.s127'), '#16a34a');
 }
 
 function scStartNewRound() {
   Swal.fire({
-    title: 'ເລີ່ມຮອບເຊັກສະຕັອກໃໝ່?',
-    text: 'ລະບົບຈະສ້າງຮອບເຊັກສະຕັອກໃໝ່ເພື່ອໃຫ້ນັບສິນຄ້າຕໍ່ໄດ້ທັນທີ',
+    title: scT('sc.s128'),
+    text: scT('sc.s129'),
     icon: 'question',
     showCancelButton: true,
-    confirmButtonText: '<i class="fas fa-play mr-1"></i> ເລີ່ມເລີຍ',
-    cancelButtonText: 'ຍົກເລີກ',
+    confirmButtonText: '<i class="fas fa-play mr-1"></i> ' + scT('sc.s130'),
+    cancelButtonText: scT('sc.s112'),
     confirmButtonColor: '#2563eb',
     cancelButtonColor: '#64748b'
   }).then(function(r) {
@@ -466,11 +466,11 @@ function scStartNewRound() {
 function scDeleteCurrentCheck() {
   Swal.fire({
     icon: 'warning',
-    title: 'ລຶບໃບເຊັກສະຕັອກນີ້?',
-    text: 'ລຶບໃບ ' + SC_CHECK_NO + ' ແລະ ຂໍ້ມູນທີ່ນັບໄວ້ (ສະຕັອກບໍ່ຖືກປ່ຽນ)',
+    title: scT('sc.s131'),
+    text: scT('sc.s132') + ' ' + SC_CHECK_NO + ' ' + scT('sc.s133'),
     showCancelButton: true,
-    confirmButtonText: '<i class="fas fa-trash-alt mr-1"></i> ລຶບເລີຍ',
-    cancelButtonText: 'ຍົກເລີກ',
+    confirmButtonText: '<i class="fas fa-trash-alt mr-1"></i> ' + scT('sc.s134'),
+    cancelButtonText: scT('sc.s112'),
     confirmButtonColor: '#ef4444',
     cancelButtonColor: '#64748b'
   }).then(function(r) {
@@ -480,10 +480,10 @@ function scDeleteCurrentCheck() {
         Swal.fire({ icon: 'success', title: res.message, timer: 1200, showConfirmButton: false })
           .then(function() { window.location.href = 'stock_check.php'; });
       } else {
-        Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: (res && res.message) || 'ລຶບບໍ່ສຳເລັດ' });
+        Swal.fire({ icon: 'error', title: scT('sc.s097'), text: (res && res.message) || scT('sc.s135') });
       }
     }, 'json').fail(function() {
-      Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ເຊື່ອມຕໍ່ເຊີບເວີບໍ່ໄດ້' });
+      Swal.fire({ icon: 'error', title: scT('sc.s097'), text: scT('sc.s115') });
     });
   });
 }
@@ -505,20 +505,20 @@ function scGetReport() {
     var cbName = $.trim($cb.children('div').text());
     var cbTime = $.trim($cb.clone().children('div').remove().end().text().replace(/\s+/g, ' '));
     var by = cbName ? cbTime + ' · ' + cbName : (cbTime || '-');
-    var statusText = diff === null ? 'ຍັງບໍ່ນັບ' : (diff === 0 ? 'ຄົບ' : (SC_DONE ? 'ຄົບ (ປັບແລ້ວ)' : (diff < 0 ? 'ບໍ່ພໍ' : 'ເກີນ')));
+    var statusText = diff === null ? scT('sc.s040') : (diff === 0 ? scT('sc.s083') : (SC_DONE ? scT('sc.s082') : (diff < 0 ? scT('sc.s084') : scT('sc.s085'))));
     // ໂຊນ / ຊັ້ນວາງ ແຍກເປັນຖັນຂອງມັນເອງ (ປ້າຍ "ໂຊນ X · ຊັ້ນ Y" ໃຕ້ຊື່) — ຊື່ສິນຄ້າບໍ່ມີຂໍ້ຄວາມຕຳແໜ່ງປົນ
     var loc = $.trim($r.find('.sc-c-name .badge').text().replace(/\s+/g, ' ')).split(' · ');
     var locPart = function(s, word) {
       s = $.trim(s || '');
-      if (s === '' || s.indexOf('ບໍ່ລະບຸ') !== -1) return '-';
+      if (s === '' || s === scT('sc.s046') || s === scT('sc.s223') || s.indexOf('ບໍ່ລະບຸ') !== -1) return '-';
       return $.trim(s.indexOf(word) === 0 ? s.slice(word.length) : s).replace(/^:\s*/, '') || '-';
     };
     var rowData = [
       ++i,
       cell($r, '.sc-c-barcode'),
       cell($r, '.sc-c-name > div:first-child'),
-      locPart(loc[0], 'ໂຊນ'),
-      locPart(loc[1], 'ຊັ້ນ'),
+      locPart(loc[0], scT('sc.s045')),
+      locPart(loc[1], scT('sc.s136')),
       cell($r, '.sc-c-unit')
     ];
     if (SC_SHOW_SYSTEM) {
@@ -527,7 +527,7 @@ function scGetReport() {
     if (!SC_SHOW_DIFF) {
       rowData.push(
         c === null ? '-' : scFmt(c),
-        c === null ? 'ຍັງບໍ່ນັບ' : 'ນັບແລ້ວ',
+        c === null ? scT('sc.s040') : scT('sc.s039'),
         by === '-' ? '' : by,
         $r.find('.sc-note').val() || cell($r, 'td:last')
       );
@@ -543,51 +543,51 @@ function scGetReport() {
     rows.push(rowData);
   });
   var headers = [
-    {t: 'ລຳດັບ', a: 'c'},
-    {t: 'ບາໂຄ້ດ'},
-    {t: 'ສິນຄ້າ'},
-    {t: 'ໂຊນ', a: 'c'},
-    {t: 'ຊັ້ນວາງ', a: 'c'},
-    {t: 'ຫົວໜ່ວຍ', a: 'c'}
+    {t: scT('sc.s137'), a: 'c'},
+    {t: scT('sc.s058')},
+    {t: scT('sc.s138')},
+    {t: scT('sc.s045'), a: 'c'},
+    {t: scT('sc.s139'), a: 'c'},
+    {t: scT('sc.s060'), a: 'c'}
   ];
   if (SC_SHOW_SYSTEM) {
-    headers.push({t: 'ໃນລະບົບ', a: 'r'});
+    headers.push({t: scT('sc.s062'), a: 'r'});
   }
-  headers.push({t: 'ຕົວຈິງ', a: 'r'});
+  headers.push({t: scT('sc.s140'), a: 'r'});
   if (SC_SHOW_DIFF) {
     headers.push(
-      {t: 'ສະຖານະ', a: 'c'},
-      {t: 'ສ່ວນຕ່າງ', a: 'r'}
+      {t: scT('sc.s064'), a: 'c'},
+      {t: scT('sc.s066'), a: 'r'}
     );
   } else {
-    headers.push({t: 'ສະຖານະ', a: 'c'});
+    headers.push({t: scT('sc.s064'), a: 'c'});
   }
   headers.push(
-    {t: 'ນັບເມື່ອ / ຜູ້ນັບ'},
-    {t: 'ໝາຍເຫດ'}
+    {t: scT('sc.s067')},
+    {t: scT('sc.s068')}
   );
   var footer = null;
   if (SC_SHOW_DIFF) {
     footer = SC_SHOW_SYSTEM
-      ? ['', '', 'ລວມ', '', '', '', '', '', '', (s.net > 0 ? '+' : '') + scFmt(s.net), '', '']
-      : ['', '', 'ລວມ', '', '', '', '', '', (s.net > 0 ? '+' : '') + scFmt(s.net), '', ''];
+      ? ['', '', scT('sc.s141'), '', '', '', '', '', '', (s.net > 0 ? '+' : '') + scFmt(s.net), '', '']
+      : ['', '', scT('sc.s141'), '', '', '', '', '', (s.net > 0 ? '+' : '') + scFmt(s.net), '', ''];
   }
 
   var meta = [
-    'ເລີ່ມ: ' + SC_CREATED,
-    'ທັງໝົດ ' + scFmt(s.total) + ' ລາຍການ',
-    'ນັບແລ້ວ ' + scFmt(s.counted)
+    scT('sc.s009') + ' ' + SC_CREATED,
+    scT('sc.s047') + ' ' + scFmt(s.total) + ' ' + scT('sc.s075'),
+    scT('sc.s039') + ' ' + scFmt(s.counted)
   ];
   if (SC_SHOW_DIFF) {
     meta.push(
-      'ຄົບ ' + scFmt(s.match),
-      'ບໍ່ພໍ ' + scFmt(s.shortN) + ' (-' + scFmt(s.shortQ) + ')',
-      'ເກີນ ' + scFmt(s.overN) + ' (+' + scFmt(s.overQ) + ')'
+      scT('sc.s083') + ' ' + scFmt(s.match),
+      scT('sc.s084') + ' ' + scFmt(s.shortN) + ' (-' + scFmt(s.shortQ) + ')',
+      scT('sc.s085') + ' ' + scFmt(s.overN) + ' (+' + scFmt(s.overQ) + ')'
     );
   }
 
   return {
-    title: 'ໃບເຊັກສະຕັອກ ' + SC_CHECK_NO,
+    title: scT('sc.s142') + ' ' + SC_CHECK_NO,
     fileBase: 'stock_check_' + SC_CHECK_NO,
     meta: meta,
     headers: headers,

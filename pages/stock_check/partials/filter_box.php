@@ -17,24 +17,24 @@
               </div>
               <input type="text" name="q" id="scFilterScanInput" class="form-control form-control-sm font-weight-bold border-left-0"
                      style="border-radius: 0 8px 8px 0; border-color: #cbd5e1;"
-                     placeholder="<?php echo $scView === 'history' ? 'ສະແກນບາໂຄ້ດ / ຊື່ສິນຄ້າ...' : 'ສະແກນບາໂຄ້ດ ຫຼື ເລກທີໃບ...'; ?>"
+                     placeholder="<?php echo $scView === 'history' ? t('sc.s194') : t('sc.s195'); ?>"
                      value="<?php echo htmlspecialchars($scSearch); ?>"
                      autocomplete="off" autofocus>
             </div>
           </div>
           <div class="sf-date">
-            <label><i class="fas fa-calendar-alt text-primary mr-1"></i> ແຕ່ວັນທີ:</label>
+            <label><i class="fas fa-calendar-alt text-primary mr-1"></i> <?php echo $sc('sc.s196'); ?></label>
             <input type="date" name="from" class="form-control form-control-sm font-weight-bold" value="<?php echo htmlspecialchars($scDateFrom); ?>">
           </div>
           <div class="sf-date">
-            <label><i class="fas fa-calendar-check text-primary mr-1"></i> ຫາວັນທີ:</label>
+            <label><i class="fas fa-calendar-check text-primary mr-1"></i> <?php echo $sc('sc.s197'); ?></label>
             <input type="date" name="to" class="form-control form-control-sm font-weight-bold" value="<?php echo htmlspecialchars($scDateTo); ?>">
           </div>
           <div class="sf-act">
             <button type="submit" class="btn btn-primary btn-sm font-weight-bold sf-search-btn">
-              <i class="fas fa-search mr-1"></i> ຄົ້ນຫາ
+              <i class="fas fa-search mr-1"></i> <?php echo $sc('sc.s198'); ?>
             </button>
-            <a href="stock_check.php<?php echo $scView === 'history' ? '?view=history' : ''; ?>" class="btn btn-light btn-sm border font-weight-bold sf-reset" title="ລ້າງຄ່າຄົ້ນຫາ">
+            <a href="stock_check.php<?php echo $scView === 'history' ? '?view=history' : ''; ?>" class="btn btn-light btn-sm border font-weight-bold sf-reset" title="<?php echo $sc('sc.s199'); ?>">
               <i class="fas fa-redo"></i>
             </a>
           </div>

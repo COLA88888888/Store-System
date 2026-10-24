@@ -413,3 +413,57 @@ input[type="number"].no-spin {
     border-color: #2563eb !important;
     color: #ffffff !important;
 }
+
+/* ===== ບາໂຄ້ດ + ປຸ່ມ "ສ້າງ" ຢູ່ໃນບັອກດຽວກັນ (.input-group.barcode-combo) =====
+   ໃຊ້ທັງຟອມເທິງ (pane_single.php, form_edit_product.php) ແລະ ແຖວຫົວໜ່ວຍ/ແຖວເພີ່ມຫຼາຍລາຍການ (js_single.php, js_bulk_rows.php).
+   ກອບຢູ່ທີ່ wrapper, ຊ່ອງປ້ອນບໍ່ມີກອບ, ປຸ່ມຢູ່ໃນກອບດ້ານຂວາ. generateEAN13() ຫາ input ຜ່ານ .closest('.input-group') ຄືເກົ່າ. */
+.input-group.barcode-combo:not(#__z) {
+    /* !important: themes/products-bulk.css (.bulk-row .input-group) ຕັ້ງ align-items: stretch !important */
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    height: 40px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #ffffff;
+    overflow: hidden;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input-group.barcode-combo.barcode-combo-sm:not(#__z) { height: 38px; }
+.input-group.barcode-combo:focus-within:not(#__z) {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+}
+.input-group.barcode-combo > .form-control:not(#__z) {
+    height: 100% !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+/* ປຸ່ມ "ສ້າງ" ເຕັມຄວາມສູງຂອງບັອກ ຊິດຂອບຂວາ (ມຸມຂວາມົນຕາມ wrapper ທີ່ overflow: hidden) */
+.input-group.barcode-combo .input-group-append:not(#__z) {
+    margin: 0 !important;
+    height: 100%;
+    align-self: stretch;
+}
+.input-group.barcode-combo .input-group-append .btn:not(#__z) {
+    height: 100% !important;
+    min-height: 0 !important;
+    line-height: 1 !important;
+    padding: 0 12px !important;
+    border: 0 !important;
+    border-left: 1px solid #cbd5e1 !important;
+    border-radius: 0 !important;
+    background: #eff6ff !important;
+    color: #2563eb !important;
+    font-size: 0.82rem !important;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+.input-group.barcode-combo .input-group-append .btn:hover:not(#__z) {
+    background: #2563eb !important;
+    color: #ffffff !important;
+}

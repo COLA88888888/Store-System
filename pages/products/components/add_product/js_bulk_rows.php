@@ -114,11 +114,11 @@ function bulkAddRow(data) {
             </div>
             <div class="col-lg-3 col-md-7 col-8">
               <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.barcode}</label>
-              <div class="input-group input-group-sm">
+              <div class="input-group input-group-sm barcode-combo barcode-combo-sm">
                 <input type="text" name="b_barcode[]" class="form-control form-control-sm bulk-barcode" placeholder="${I18N_BULK.barcode_ph}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" style="height: 38px; border-radius: 6px 0 0 6px;">
                 <div class="input-group-append">
                   <button type="button" class="btn btn-outline-primary font-weight-bold px-2" title="${I18N_BULK.gen}" onclick="generateEAN13(this)" style="height: 38px; border-radius: 0 6px 6px 0; display: inline-flex; align-items: center; gap: 3px;">
-                    <i class="fas fa-barcode"></i> <span style="font-size: 0.8rem;">ສ້າງ</span>
+                    <i class="fas fa-barcode"></i> <span style="font-size: 0.8rem;">${pqT('products_q.gen_short')}</span>
                   </button>
                 </div>
               </div>
@@ -140,16 +140,16 @@ function bulkAddRow(data) {
               <input type="text" name="b_price[]" class="form-control form-control-sm text-right font-weight-bold text-success price-input bulk-price" placeholder="0" oninput="formatPriceInput(this)" style="height: 38px; border-radius: 6px;">
             </div>
             <div class="col-lg-2.5 col-md-5 col-5" style="flex: 1;">
-              <label class="small text-muted font-weight-bold mb-1">ໂຊນ</label>
+              <label class="small text-muted font-weight-bold mb-1">${pqT('products_q.zone')}</label>
               <select name="b_zone[]" class="form-control form-control-sm bulk-zone" style="height: 38px; border-radius: 6px;">
-                <option value="">-- ໂຊນ --</option>
+                <option value="">${pqT('products_q.zone_opt')}</option>
                 ${BULK_ZONE_OPTIONS}
               </select>
             </div>
             <div class="col-lg-2.5 col-md-5 col-5" style="flex: 1;">
-              <label class="small text-muted font-weight-bold mb-1">ຊັ້ນວາງ</label>
+              <label class="small text-muted font-weight-bold mb-1">${pqT('products_q.shelf')}</label>
               <select name="b_shelf[]" class="form-control form-control-sm bulk-shelf" style="height: 38px; border-radius: 6px;">
-                <option value="">-- ຊັ້ນວາງ --</option>
+                <option value="">${pqT('products_q.shelf_opt')}</option>
                 ${BULK_SHELF_OPTIONS}
               </select>
             </div>
@@ -269,11 +269,11 @@ function bulkNorm(s) {
 
 function bulkLoadXlsx(cb) {
   if (window.XLSX) return cb();
-  Swal.fire({ title: 'ກຳລັງໂຫຼດ...', allowOutsideClick: false, didOpen: function () { Swal.showLoading(); } });
+  Swal.fire({ title: pqT('products_q.loading'), allowOutsideClick: false, didOpen: function () { Swal.showLoading(); } });
   $.ajax({ url: BULK_XLSX_URL, dataType: 'script', cache: true })
     .done(function () { Swal.close(); cb(); })
     .fail(function () {
-      Swal.fire({ icon: 'error', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: 'ໂຫຼດຕົວອ່ານ Excel ບໍ່ສຳເລັດ', confirmButtonColor: '#2563eb' });
+      Swal.fire({ icon: 'error', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: pqT('products_q.excel_reader_failed'), confirmButtonColor: '#2563eb' });
     });
 }
 
@@ -318,7 +318,7 @@ function bulkImportExcel(input) {
         var ws = wb.Sheets[wb.SheetNames[0]];
         rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '', blankrows: false });
       } catch (err) {
-        Swal.fire({ icon: 'error', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: 'ອ່ານໄຟລ໌ບໍ່ໄດ້: ' + err.message, confirmButtonColor: '#2563eb' });
+        Swal.fire({ icon: 'error', title: I18N_ADD_PRODUCT['products.alert_notice_title'], text: pqT('products_q.file_read_failed') + ' ' + err.message, confirmButtonColor: '#2563eb' });
         return;
       }
       bulkFillFromRows(rows);

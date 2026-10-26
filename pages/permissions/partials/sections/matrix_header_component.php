@@ -13,7 +13,7 @@
 
     <!-- ຊື່, ID, ບົດບາດ ແລະ ຊື່ສາຂາ (ສາຂາ [ຊື່ສາຂາ]) -->
     <div>
-      <h5 class="font-weight-bold mb-1 text-dark" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.1rem;">
+      <h5 class="font-weight-bold mb-1 text-dark" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.1rem;">
         <?php echo $displayName; ?>
         <?php if ($u['Id'] == 1): ?>
           <span class="badge badge-danger ml-2 px-2 py-1" style="font-size: 0.75rem; border-radius: 6px;"><i class="fas fa-shield-alt"></i><?php echo htmlspecialchars(t('permissions.badge_super_admin', 'Admin')); ?></span>

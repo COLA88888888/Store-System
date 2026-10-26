@@ -1,156 +1,176 @@
 /* ============================================================
-   login.css
-   BCT / POS Login Theme (V-Point Aligned with Password Field)
+   themes/login.css
+   WlaoDev POS Modern Split-Screen Login Theme
    ============================================================ */
 
-*:not(.fas):not(.far):not(.fab):not(.fa) { 
-    font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; 
+*:not(.fas):not(.far):not(.fab):not(.fa) {
+    font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    box-sizing: border-box;
 }
 
-html {
+html, body {
     margin: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
     min-height: 100vh;
     min-height: 100dvh;
-    background-color: #f8fafc;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100vh;
-    height: 100dvh;
-    background-color: #f8fafc;
+    /* ພື້ນຫຼັງສີຟ້າເຂັ້ມ-ຄາມ ไล่เฉดສວຍງາມ ເຂົ້າກັບກາດ Login ແລະ ກະຕູນ */
+    background:
+        radial-gradient(circle at 14% 20%, rgba(37, 99, 235, 0.32) 0%, transparent 42%),
+        radial-gradient(circle at 86% 80%, rgba(16, 185, 129, 0.22) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(30, 58, 138, 0.35) 0%, transparent 70%),
+        linear-gradient(135deg, #091326 0%, #0f2143 48%, #162f5e 100%);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     position: relative;
-    overflow: hidden;
-    box-sizing: border-box;
+    overflow-x: hidden;
+    padding: 20px 16px;
 }
 
-/* Blue Accent Ribbon Stripe Behind Banner */
-.login-banner-stripe {
+/* ແສງປະດັບພື້ນຫຼັງອ່ອນໆ */
+.login-bg-glow-1,
+.login-bg-glow-2 {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 60vh;
-    height: 60dvh;
-    background: #3864aa;
-    clip-path: polygon(0 0, 100% 0, 100% 52%, 50% 90%, 0 52%);
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
     z-index: 1;
 }
-
-/* Blue Banner Background */
-.login-banner-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 58vh;
-    height: 58dvh;
-    background: linear-gradient(135deg, #0f172a 0%, #1b3869 50%, #244886 100%);
-    clip-path: polygon(0 0, 100% 0, 100% 50%, 50% 86%, 0 50%);
-    z-index: 2;
+.login-bg-glow-1 {
+    width: 380px;
+    height: 380px;
+    top: -90px;
+    left: -80px;
+    background: rgba(59, 130, 246, 0.22);
+}
+.login-bg-glow-2 {
+    width: 420px;
+    height: 420px;
+    bottom: -110px;
+    right: -90px;
+    background: rgba(16, 185, 129, 0.18);
 }
 
-.login-banner-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 58vh;
-    height: 58dvh;
-    background: radial-gradient(circle at 50% 25%, rgba(255, 255, 255, 0.18) 0%, transparent 65%);
-    clip-path: polygon(0 0, 100% 0, 100% 50%, 50% 86%, 0 50%);
-    z-index: 3;
-    pointer-events: none;
-}
-
-/* Centered Card Container — No scroll */
-.login-card-container {
+/* Main Split Card Wrapper */
+.login-split-wrapper {
     position: relative;
     z-index: 10;
     width: 100%;
-    max-width: 400px;
-    padding: 0 16px;
-    box-sizing: border-box;
-    margin: 0;
+    max-width: 940px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    perspective: 1500px;
 }
 
-.login-card {
+.login-split-card {
+    width: 100%;
+    min-height: 540px;
     background: #ffffff;
-    border-radius: 24px;
-    box-shadow: 0 15px 40px rgba(15, 23, 42, 0.1);
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    padding: 28px 28px 28px 28px;
+    border-radius: 18px;
+    box-shadow:
+        0 28px 70px rgba(3, 8, 22, 0.58),
+        0 0 0 1px rgba(255, 255, 255, 0.14);
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    overflow: hidden;
     position: relative;
 }
 
-.logo-badge {
-    width: 104px;
-    height: 104px;
+/* ============================================================
+   LEFT PANEL: LOGIN FORM
+   ============================================================ */
+.login-left-pane {
     background: #ffffff;
+    padding: 32px 42px 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
+
+/* ປຸ່ມປ່ຽນພາສາຢູ່ມຸມຂວາເທິງ */
+.login-lang-corner {
+    position: absolute;
+    top: 20px;
+    right: 22px;
+    z-index: 20;
+}
+
+.login-lang-flag-icon {
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
+    border: 2.5px solid #e2e8f0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-lang-flag-icon:hover {
+    transform: scale(1.06);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+}
+
+/* ໂລໂກ້ລະບົບຂະໜາດໃຫຍ່ ເຫັນແຕ່ໂລໂກ້ ບໍ່ມີກາດອ້ອມ */
+.login-hero-logo {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: -52px auto 12px auto;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-    border: 4px solid #ffffff;
+    margin: 4px auto 12px;
+}
+
+.login-hero-logo img {
+    height: 96px;
+    width: auto;
+    max-width: 220px;
+    object-fit: contain;
+    background: transparent;
+    border: none;
+    box-shadow: none;
     padding: 0;
-    overflow: hidden;
-    position: relative;
-    z-index: 15;
+    display: block;
 }
 
-.logo-badge img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 50%;
-}
-
-.login-header-text {
+/* Header Title: WlaoDev POS ສຳລັບທຸລະກິດທ່ານ */
+.login-title-group {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
-.login-header-text h4 {
-    font-weight: 800;
-    color: #0f172a;
-    font-size: 1.2rem;
-    margin-bottom: 4px;
+.login-title-main {
+    font-size: 1.65rem;
+    font-weight: 900;
+    margin: 0;
+    line-height: 1.3;
 }
 
-.login-header-text p {
-    color: #334155;
-    font-size: 0.88rem;
-    font-weight: 700;
-    margin-bottom: 6px;
+.login-title-main .brand-blue {
+    color: #0066ff;
 }
 
-.login-hint {
-    color: #94a3b8;
-    font-size: 0.85rem;
-    font-weight: 500;
+.login-title-main .brand-purple {
+    background: linear-gradient(90deg, #7c3aed 0%, #9333ea 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: #7c3aed;
 }
 
+/* Form Inputs */
 .custom-input-group {
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 
 .custom-input-group label {
-    font-size: 0.88rem;
+    font-size: 0.92rem;
     font-weight: 700;
     color: #334155;
-    margin-bottom: 6px;
+    margin-bottom: 7px;
     display: block;
 }
 
@@ -162,30 +182,36 @@ body {
 
 .input-icon {
     position: absolute;
-    left: 14px;
+    left: 15px;
     color: #64748b;
-    font-size: 1rem;
+    font-size: 0.98rem;
     pointer-events: none;
     z-index: 5;
 }
 
 .form-control-custom {
     width: 100%;
-    height: 44px;
-    padding: 8px 14px 8px 42px;
-    font-size: 16px;
+    height: 48px;
+    padding: 10px 16px 10px 42px;
+    font-size: 1rem;
+    font-weight: 600;
     color: #0f172a;
-    background-color: #f8fafc;
+    background-color: #e8f0fe;
     border: 1.5px solid #cbd5e1;
     border-radius: 10px;
     outline: none;
     transition: all 0.2s ease;
 }
 
+.form-control-custom::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
 .form-control-custom:focus {
-    background-color: #ffffff;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3.5px rgba(0, 123, 255, 0.15);
+    background-color: #eef4ff;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
 }
 
 .btn-toggle-pass {
@@ -194,129 +220,951 @@ body {
     background: none;
     border: none;
     color: #64748b;
-    font-size: 1rem;
+    font-size: 1.05rem;
     cursor: pointer;
-    padding: 4px;
+    padding: 6px;
     z-index: 5;
+    outline: none !important;
 }
 
+.btn-toggle-pass:hover {
+    color: #1e293b;
+}
+
+/* Login Submit Button */
 .btn-login-custom {
     width: 100%;
-    height: 46px;
-    background: #007bff;
+    height: 50px;
+    background: linear-gradient(90deg, #0066ff 0%, #0052cc 100%);
     color: #ffffff;
     border: none;
     border-radius: 10px;
-    font-size: 0.98rem;
-    font-weight: 700;
+    font-size: 1.05rem;
+    font-weight: 800;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
     margin-top: 22px;
-    box-shadow: 0 4px 14px rgba(0, 123, 255, 0.35);
+    box-shadow: 0 8px 20px rgba(0, 102, 255, 0.32);
     transition: all 0.2s ease;
+    outline: none !important;
 }
 
 .btn-login-custom:hover {
-    background: #0056b3;
-    box-shadow: 0 6px 18px rgba(0, 123, 255, 0.45);
+    background: linear-gradient(90deg, #0052cc 0%, #003d99 100%);
+    box-shadow: 0 10px 24px rgba(0, 102, 255, 0.42);
     transform: translateY(-1px);
 }
 
-/* Footer Metadata */
-.bct-footer {
+/* Bottom Note inside Left Pane */
+.login-pane-footer {
+    margin-top: 22px;
     text-align: center;
-    margin-top: 20px;
+}
+
+.login-pane-note {
+    font-size: 0.84rem;
     color: #64748b;
-    font-size: 0.82rem;
-    line-height: 1.6;
+    font-weight: 600;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 12px;
 }
 
-.bct-footer-title {
-    font-weight: 700;
-    color: #475569;
-    font-size: 0.86rem;
-    margin-bottom: 2px;
-}
-
-.bct-footer-copy {
-    font-size: 0.82rem;
-    color: #64748b;
-    margin-bottom: 8px;
-}
-
-.bct-footer-copy a {
-    color: #007bff !important;
-    font-weight: 700 !important;
-    text-decoration: none !important;
-    transition: all 0.2s ease !important;
-}
-
-.bct-footer-copy a:hover {
-    color: #0056b3 !important;
-    text-decoration: underline !important;
-}
-
-.bct-social-links {
+.login-pane-links {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 18px;
-    margin-top: 4px;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 0.82rem;
+    color: #475569;
+    font-weight: 700;
 }
 
-.bct-social-link {
+.login-pane-links a {
+    color: #0066ff;
+    text-decoration: none !important;
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    color: #475569;
-    text-decoration: none !important;
+}
+
+.login-pane-links a:hover {
+    text-decoration: underline !important;
+}
+
+/* ============================================================
+   RIGHT PANEL: CUTE MULTI-ARM ANIMAL MASCOT + LIVE DASHBOARD
+   ============================================================ */
+.login-right-pane {
+    background:
+        radial-gradient(circle at 22% 20%, rgba(16, 185, 129, 0.32) 0%, transparent 42%),
+        radial-gradient(circle at 82% 24%, rgba(56, 189, 248, 0.30) 0%, transparent 40%),
+        radial-gradient(circle at 50% 78%, rgba(99, 102, 241, 0.32) 0%, transparent 52%),
+        linear-gradient(155deg, #071229 0%, #0d224f 50%, #153c8a 100%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 24px;
+}
+
+/* ເອັບເຟັກປ້າຍໃໝ່: ລອຍແບບ 3D Wave + ແສງ Shimmer ແລ່ນຜ່ານ + ໄອຄອນ Glow */
+@keyframes badgeWaveFloat {
+    0%, 100% {
+        transform: translate3d(0, 0px, 0) scale(1);
+    }
+    50% {
+        transform: translate3d(0, -9px, 0) scale(1.03);
+    }
+}
+
+@keyframes badgeShimmerSweep {
+    0% { transform: translateX(-140%) skewX(-22deg); }
+    45%, 100% { transform: translateX(220%) skewX(-22deg); }
+}
+
+@keyframes badgeIconPulse {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.16) rotate(8deg); }
+}
+
+@keyframes floatMascot {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes pulseShadow {
+    0%, 100% { transform: scale(1); opacity: 0.48; }
+    50% { transform: scale(0.82); opacity: 0.25; }
+}
+
+.cartoon-badge {
+    position: absolute;
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #ffffff;
+    padding: 7px 14px 7px 9px;
+    border-radius: 999px;
     font-size: 0.84rem;
-    font-weight: 600;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 6;
+    white-space: nowrap;
+    overflow: hidden;
+    animation: badgeWaveFloat 2.8s ease-in-out infinite;
+    letter-spacing: 0.2px;
 }
 
-.bct-social-link i.fa-facebook {
-    color: #1877f2;
-    font-size: 1rem;
+/* ເສັ້ນແສງ Shimmer ແລ່ນຜ່ານປ້າຍ */
+.cartoon-badge::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 45%;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.32) 50%, rgba(255,255,255,0) 100%);
+    animation: badgeShimmerSweep 3.4s ease-in-out infinite;
+    pointer-events: none;
 }
 
-.bct-social-link i.fa-whatsapp {
-    color: #25d366;
-    font-size: 1.05rem;
+.cartoon-badge .cb-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    animation: badgeIconPulse 2s ease-in-out infinite;
 }
 
-@media (max-width: 576px) {
+.cartoon-badge.badge-1 {
+    top: 18px;
+    left: 16px;
+    border: 1.5px solid rgba(52, 211, 153, 0.65);
+    box-shadow: 0 10px 26px rgba(16, 185, 129, 0.32), inset 0 0 12px rgba(16, 185, 129, 0.18);
+}
+.cartoon-badge.badge-1 .cb-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.65);
+}
+
+.cartoon-badge.badge-2 {
+    top: 18px;
+    right: 16px;
+    animation-delay: 0.7s;
+    border: 1.5px solid rgba(56, 189, 248, 0.65);
+    box-shadow: 0 10px 26px rgba(14, 165, 233, 0.32), inset 0 0 12px rgba(56, 189, 248, 0.18);
+}
+.cartoon-badge.badge-2::after { animation-delay: 1.1s; }
+.cartoon-badge.badge-2 .cb-icon {
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.65);
+}
+
+.cartoon-badge.badge-3 {
+    bottom: 20px;
+    left: 16px;
+    animation-delay: 1.4s;
+    border: 1.5px solid rgba(168, 85, 247, 0.65);
+    box-shadow: 0 10px 26px rgba(147, 51, 234, 0.32), inset 0 0 12px rgba(168, 85, 247, 0.18);
+}
+.cartoon-badge.badge-3::after { animation-delay: 2.0s; }
+.cartoon-badge.badge-3 .cb-icon {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.65);
+}
+
+.cartoon-badge.badge-4 {
+    bottom: 20px;
+    right: 16px;
+    animation-delay: 2.0s;
+    border: 1.5px solid rgba(251, 191, 36, 0.65);
+    box-shadow: 0 10px 26px rgba(245, 158, 11, 0.32), inset 0 0 12px rgba(251, 191, 36, 0.18);
+}
+.cartoon-badge.badge-4::after { animation-delay: 2.8s; }
+.cartoon-badge.badge-4 .cb-icon {
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.65);
+}
+
+/* Cute Cartoon Character Container */
+.cute-cartoon-stage {
+    position: relative;
+    z-index: 4;
+    width: 100%;
+    max-width: 395px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.cute-cartoon-svg {
+    width: 100%;
+    height: auto;
+    max-height: 390px;
+    animation: floatMascot 2.6s ease-in-out infinite;
+    filter: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.45));
+}
+
+.cute-cartoon-floor-shadow {
+    width: 170px;
+    height: 18px;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 72%);
+    border-radius: 50%;
+    margin-top: -8px;
+    animation: pulseShadow 2.6s ease-in-out infinite;
+}
+
+/* ============================================================
+   MULTI-ARM ANIMAL MASCOT & DASHBOARD ANIMATIONS
+   ============================================================ */
+
+/* 1. 6 Multi-Arms Rising 2 Arms at a Time (Left + Right Simultaneously) & Staying Up Until All 6 Are Complete (ຖັດກັນຂຶ້ນເທື່ອລະ 2 ແຂນຄົນລະເບື້ອງພ້ອມກັນ ຄ້າງໄວ້ຈົນຄົບ 6 ແຂນ ແລ້ວເລີ່ມໃໝ່ວົນໄປເລື້ອຍໆ) */
+/* ຄູ່ທີ 1 (0% -> 14%): ຊ້າຍຈັບບາໂຄ້ດສະແກນ + ຂວາຈັບໃບບິນ ຂຶ້ນພ້ອມກັນ ແລະ ຄ້າງໄວ້ຈົນຮອດ 86% */
+@keyframes armSeq1Left {
+    0%   { opacity: 0; transform: translate(38px, 24px) scale(0.32) rotate(16deg); }
+    14%  { opacity: 1; transform: translate(0px, 0px) scale(1) rotate(0deg); }
+    28%  { opacity: 1; transform: translate(-5px, -7px) scale(1.03) rotate(-7deg); }
+    44%  { opacity: 1; transform: translate(2px, -2px) scale(1) rotate(2deg); }
+    60%  { opacity: 1; transform: translate(-5px, -7px) scale(1.02) rotate(-7deg); }
+    74%  { opacity: 1; transform: translate(2px, -2px) scale(1) rotate(2deg); }
+    86%  { opacity: 1; transform: translate(-4px, -6px) scale(1.02) rotate(-5deg); }
+    95%  { opacity: 0; transform: translate(38px, 24px) scale(0.32) rotate(16deg); }
+    100% { opacity: 0; transform: translate(38px, 24px) scale(0.32) rotate(16deg); }
+}
+
+@keyframes armSeq2Right {
+    0%   { opacity: 0; transform: translate(-38px, 24px) scale(0.32) rotate(-16deg); }
+    14%  { opacity: 1; transform: translate(0px, 0px) scale(1) rotate(0deg); }
+    28%  { opacity: 1; transform: translate(5px, -7px) scale(1.03) rotate(7deg); }
+    44%  { opacity: 1; transform: translate(-2px, -2px) scale(1) rotate(-2deg); }
+    60%  { opacity: 1; transform: translate(5px, -7px) scale(1.02) rotate(7deg); }
+    74%  { opacity: 1; transform: translate(-2px, -2px) scale(1) rotate(-2deg); }
+    86%  { opacity: 1; transform: translate(4px, -6px) scale(1.02) rotate(5deg); }
+    95%  { opacity: 0; transform: translate(-38px, 24px) scale(0.32) rotate(-16deg); }
+    100% { opacity: 0; transform: translate(-38px, 24px) scale(0.32) rotate(-16deg); }
+}
+
+/* ຄູ່ທີ 2 (22% -> 36%): ຊ້າຍຈັບເງິນ 100,000₭ + ຂວາຈັບເງິນ 50,000₭ ຂຶ້ນພ້ອມກັນຖັດຈາກຄູ່ທີ 1 ແລະ ຄ້າງໄວ້ຈົນຮອດ 86% */
+@keyframes armSeq3Left {
+    0%, 22% { opacity: 0; transform: translate(38px, 24px) scale(0.32) rotate(16deg); }
+    36%  { opacity: 1; transform: translate(0px, 0px) scale(1) rotate(0deg); }
+    50%  { opacity: 1; transform: translate(-5px, -8px) scale(1.03) rotate(-8deg); }
+    66%  { opacity: 1; transform: translate(2px, -2px) scale(1) rotate(3deg); }
+    78%  { opacity: 1; transform: translate(-5px, -7px) scale(1.02) rotate(-7deg); }
+    86%  { opacity: 1; transform: translate(0px, 0px) scale(1) rotate(0deg); }
+    95%  { opacity: 0; transform: translate(38px, 24px) scale(0.32) rotate(16deg); }
+    100% { opacity: 0; transform: translate(38px, 24px) scale(0.32) rotate(16deg); }
+}
+
+@keyframes armSeq4Right {
+    0%, 22% { opacity: 0; transform: translate(-38px, 24px) scale(0.32) rotate(-16deg); }
+    36%  { opacity: 1; transform: translate(0px, 0px) scale(1) rotate(0deg); }
+    50%  { opacity: 1; transform: translate(5px, -8px) scale(1.03) rotate(8deg); }
+    66%  { opacity: 1; transform: translate(-2px, -2px) scale(1) rotate(-3deg); }
+    78%  { opacity: 1; transform: translate(5px, -7px) scale(1.02) rotate(7deg); }
+    86%  { opacity: 1; transform: translate(0px, 0px) scale(1) rotate(0deg); }
+    95%  { opacity: 0; transform: translate(-38px, 24px) scale(0.32) rotate(-16deg); }
+    100% { opacity: 0; transform: translate(-38px, 24px) scale(0.32) rotate(-16deg); }
+}
+
+/* ຄູ່ທີ 3 (44% -> 58%): ຊ້າຍຈັບຖົງເງິນຄຳ + ຂວາຈັບເຄື່ອງຄິດໄລ່ ຂຶ້ນພ້ອມກັນຖັດຈາກຄູ່ທີ 2 ຈົນຄົບ 6 ແຂນ ແລະ ຄ້າງໄວ້ຈົນຮອດ 86% */
+@keyframes armSeq5Left {
+    0%, 44% { opacity: 0; transform: translate(38px, 24px) scale(0.32) rotate(16deg); }
+    58%  { opacity: 1; transform: translate(0px, 0px) scale(1) rotate(0deg); }
+    72%  { opacity: 1; transform: translate(-5px, -7px) scale(1.03) rotate(-7deg); }
+    86%  { opacity: 1; transform: translate(2px, -2px) scale(1) rotate(2deg); }
+    95%  { opacity: 0; transform: translate(38px, 24px) scale(0.32) rotate(16deg); }
+    100% { opacity: 0; transform: translate(38px, 24px) scale(0.32) rotate(16deg); }
+}
+
+@keyframes armSeq6Right {
+    0%, 44% { opacity: 0; transform: translate(-38px, 24px) scale(0.32) rotate(-16deg); }
+    58%  { opacity: 1; transform: translate(0px, 0px) scale(1) rotate(0deg); }
+    72%  { opacity: 1; transform: translate(5px, -7px) scale(1.03) rotate(7deg); }
+    86%  { opacity: 1; transform: translate(-2px, -2px) scale(1) rotate(-2deg); }
+    95%  { opacity: 0; transform: translate(-38px, 24px) scale(0.32) rotate(-16deg); }
+    100% { opacity: 0; transform: translate(-38px, 24px) scale(0.32) rotate(-16deg); }
+}
+
+@keyframes superCapeFlutter {
+    0%, 100% { transform: scaleX(1) skewX(0deg); }
+    50% { transform: scaleX(1.05) skewX(2.5deg); }
+}
+
+@keyframes catEarTwitchLeft {
+    0%, 100% { transform: rotate(0deg); }
+    30% { transform: rotate(-9deg); }
+    60% { transform: rotate(4deg); }
+}
+
+@keyframes catEarTwitchRight {
+    0%, 100% { transform: rotate(0deg); }
+    40% { transform: rotate(9deg); }
+    70% { transform: rotate(-4deg); }
+}
+
+/* 2. Rising Money Fountain Stream from Laptop */
+@keyframes moneyFountainUp {
+    0% {
+        transform: translateY(25px) scale(0.55);
+        opacity: 0;
+    }
+    25% {
+        opacity: 0.95;
+    }
+    80% {
+        opacity: 0.85;
+    }
+    100% {
+        transform: translateY(-118px) scale(1.08);
+        opacity: 0;
+    }
+}
+
+/* 3. Golden Kip Coins 3D Flipping & Bouncing */
+@keyframes goldCoin3DSpin {
+    0% { transform: translateY(0px) scaleX(1); }
+    25% { transform: translateY(-14px) scaleX(0.18); }
+    50% { transform: translateY(-22px) scaleX(-1); }
+    75% { transform: translateY(-10px) scaleX(0.18); }
+    100% { transform: translateY(0px) scaleX(1); }
+}
+
+@keyframes starTwinkle {
+    0%, 100% { transform: scale(0.55) rotate(0deg); opacity: 0.35; }
+    50% { transform: scale(1.45) rotate(45deg); opacity: 1; }
+}
+
+/* 4. Expressive Cat Character Movements */
+@keyframes chibiHeadSway {
+    0%, 100% { transform: rotate(-3deg) translateY(0px); }
+    25% { transform: rotate(0deg) translateY(-4px); }
+    50% { transform: rotate(3deg) translateY(1px); }
+    75% { transform: rotate(0deg) translateY(-3px); }
+}
+
+@keyframes chibiEyeBlink {
+    0%, 38%, 42%, 78%, 82%, 100% { transform: scaleY(1); }
+    40%, 80% { transform: scaleY(0.08); }
+}
+
+@keyframes chibiMouthCheer {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.12, 0.88); }
+}
+
+@keyframes handTapLeft {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+    50% { transform: translate(5px, -9px) rotate(12deg); }
+}
+
+@keyframes handTapRight {
+    0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+    50% { transform: translate(-5px, -9px) rotate(-12deg); }
+}
+
+@keyframes legKickLeft {
+    0%, 100% { transform: rotate(0deg) translateY(0px); }
+    50% { transform: rotate(9deg) translateY(-6px); }
+}
+
+@keyframes legKickRight {
+    0%, 100% { transform: rotate(0deg) translateY(0px); }
+    50% { transform: rotate(-9deg) translateY(-6px); }
+}
+
+/* 5. Live Dashboard Chart & Scanner Animations */
+@keyframes chartBarWave {
+    0%, 100% { transform: scaleY(1); }
+    35% { transform: scaleY(0.42); }
+    70% { transform: scaleY(1.16); }
+}
+
+@keyframes chartScannerSweep {
+    0% { transform: translateX(0px); opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { transform: translateX(154px); opacity: 0; }
+}
+
+@keyframes liveBadgePulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.55; }
+}
+
+@keyframes donutContinuousSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes progBarWave {
+    0%, 100% { transform: scaleX(1); }
+    50% { transform: scaleX(0.68); }
+}
+
+.anim-super-cape {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: superCapeFlutter 2.2s ease-in-out infinite;
+}
+
+.anim-cycle-arm {
+    transform-box: fill-box;
+    opacity: 0;
+}
+.anim-cycle-arm.cycle-arm-left {
+    transform-origin: right center;
+}
+.anim-cycle-arm.cycle-arm-right {
+    transform-origin: left center;
+}
+
+/* ແຂນທີ 1 ຫາ 6 ຂຶ້ນສະໂລຖັດກັນໄປເທື່ອລະແຂນ ຄ້າງໄວ້ຈົນຄົບທັງ 6 ແຂນ ແລ້ວເລີ່ມໃໝ່ວົນໄປເລື້ອຍໆ */
+.anim-cycle-arm.arm-seq-1 {
+    animation: armSeq1Left 11.5s ease-in-out infinite;
+}
+.anim-cycle-arm.arm-seq-2 {
+    animation: armSeq2Right 11.5s ease-in-out infinite;
+}
+.anim-cycle-arm.arm-seq-3 {
+    animation: armSeq3Left 11.5s ease-in-out infinite;
+}
+.anim-cycle-arm.arm-seq-4 {
+    animation: armSeq4Right 11.5s ease-in-out infinite;
+}
+.anim-cycle-arm.arm-seq-5 {
+    animation: armSeq5Left 11.5s ease-in-out infinite;
+}
+.anim-cycle-arm.arm-seq-6 {
+    animation: armSeq6Right 11.5s ease-in-out infinite;
+}
+
+.anim-cat-ear-left {
+    transform-box: fill-box;
+    transform-origin: right bottom;
+    animation: catEarTwitchLeft 2.4s ease-in-out infinite;
+}
+
+.anim-cat-ear-right {
+    transform-box: fill-box;
+    transform-origin: left bottom;
+    animation: catEarTwitchRight 2.4s ease-in-out infinite 0.6s;
+}
+
+.money-fountain-stream {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: moneyFountainUp 2.8s cubic-bezier(0.25, 0.8, 0.4, 1) infinite;
+}
+.money-fountain-stream.s1 { animation-delay: 0s; }
+.money-fountain-stream.s2 { animation-delay: 0.9s; }
+.money-fountain-stream.s3 { animation-delay: 1.8s; }
+
+.anim-gold-coin {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: goldCoin3DSpin 2.2s ease-in-out infinite;
+    filter: drop-shadow(0 5px 10px rgba(250, 204, 21, 0.55));
+}
+.anim-gold-coin.coin-b { animation-delay: 0.3s; }
+.anim-gold-coin.coin-c { animation-delay: 1.1s; }
+
+.anim-sparkle {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: starTwinkle 1.5s ease-in-out infinite;
+}
+.anim-sparkle.sp-2 { animation-delay: 0.6s; }
+
+.anim-chibi-head {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: chibiHeadSway 2.8s ease-in-out infinite;
+}
+
+.anim-chibi-eyes {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: chibiEyeBlink 3.8s ease-in-out infinite;
+}
+
+.anim-eye-pupils {
+    transition: transform 0.14s ease-out;
+}
+
+.anim-chibi-mouth {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: chibiMouthCheer 1.4s ease-in-out infinite;
+}
+
+.anim-hand-left {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: handTapLeft 1.2s ease-in-out infinite;
+}
+
+.anim-hand-right {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: handTapRight 1.2s ease-in-out infinite 0.6s;
+}
+
+.anim-leg-left {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: legKickLeft 1.5s ease-in-out infinite;
+}
+
+.anim-leg-right {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: legKickRight 1.5s ease-in-out infinite 0.75s;
+}
+
+.anim-bar {
+    transform-box: fill-box;
+    transform-origin: bottom center;
+    animation: chartBarWave 1.6s ease-in-out infinite;
+}
+.anim-bar.b1 { animation-delay: 0s; }
+.anim-bar.b2 { animation-delay: 0.35s; }
+.anim-bar.b3 { animation-delay: 0.7s; }
+.anim-bar.b4 { animation-delay: 1.05s; }
+
+.anim-chart-scanner {
+    animation: chartScannerSweep 2.4s linear infinite;
+}
+
+.anim-live-pill,
+.anim-peak-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: liveBadgePulse 1.1s ease-in-out infinite;
+}
+
+.anim-donut-ring {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: donutContinuousSpin 5.5s linear infinite;
+}
+
+.anim-prog-bar {
+    transform-box: fill-box;
+    transform-origin: left center;
+    animation: progBarWave 1.8s ease-in-out infinite;
+}
+.anim-prog-bar.p1 { animation-delay: 0s; }
+.anim-prog-bar.p2 { animation-delay: 0.5s; }
+.anim-prog-bar.p3 { animation-delay: 1.0s; }
+
+/* ============================================================
+   CURTAIN-OPENING GRAND REVEAL + LARGE SYSTEM LOADER (ສະເພາະໜ້ານີ້)
+   ============================================================ */
+.login-left-pane,
+.login-right-pane {
+    z-index: 5;
+    will-change: transform, opacity;
+    transition:
+        transform 0.82s cubic-bezier(0.65, 0, 0.25, 1),
+        opacity 0.72s cubic-bezier(0.55, 0, 0.25, 1),
+        box-shadow 0.45s ease;
+}
+
+.login-left-pane {
+    transform-origin: left center;
+}
+
+.login-right-pane {
+    transform-origin: right center;
+}
+
+.login-curtain-reveal {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.78);
+    transition:
+        opacity 0.5s ease 0.1s,
+        transform 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+}
+
+/* ໂຕກຳລັງໂຫລດຂະໜາດໃຫຍ່ສະເພາະໜ້າ Login (ວົງມົນ 2 ຊັ້ນໝູນສວນທາງ + ລູກແກ້ວແສງ Orbit + ໂລໂກ້ຂະໜາດໃຫຍ່) */
+.login-loader-wrapper {
+    position: relative;
+    width: 184px;
+    height: 184px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ວົງມົນຊັ້ນນອກ (Outer Ring): ໝູນຕາມເຂັມໂມງ ພ້ອມລູກແກ້ວນີອອນ Orbit */
+.login-loader-pulse-ring {
+    position: absolute;
+    width: 184px;
+    height: 184px;
+    border-radius: 50%;
+    border: 4.5px solid rgba(56, 189, 248, 0.16);
+    border-top-color: #2563eb;
+    border-right-color: #06b6d4;
+    box-shadow: 0 0 36px rgba(6, 182, 212, 0.28);
+    animation: loginSystemLoaderSpin 1.2s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+}
+
+/* ລູກແກ້ວນີອອນແສງ (Satellite Bead) ແລ່ນໄປຕາມວົງມົນໃຫຍ່ */
+.login-loader-pulse-ring::after {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 84px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #06b6d4;
+    box-shadow: 0 0 12px #06b6d4, 0 0 22px rgba(6, 182, 212, 0.9);
+}
+
+/* ວົງມົນຊັ້ນໃນ (Inner Ring): ເສັ້ນປະສີຂຽວ ໝູນສວນທາງກັນ (Counter-Spin) */
+.login-loader-pulse-ring::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 147px;
+    height: 147px;
+    border-radius: 50%;
+    border: 3px dashed rgba(16, 185, 129, 0.35);
+    border-bottom: 4px solid #10b981;
+    border-left: 4px solid rgba(16, 185, 129, 0.78);
+    animation: loginSystemLoaderSpinReverse 1.8s linear infinite;
+}
+
+/* ໂລໂກ້ WLaodev ພື້ນຫຼັງໂປ່ງໃສ ບໍ່ມີກອບວົງມົນ/ບໍ່ມີຫຼ່ຽມ ເຫັນແຕ່ໂລໂກ້ຢູ່ໃຈກາງວົງມົນ */
+.login-loader-logo {
+    width: 112px;
+    height: 112px;
+    object-fit: contain;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    display: block;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.38));
+    animation: loginSystemLogoBreath 1.8s ease-in-out infinite alternate;
+}
+
+/* ຂໍ້ຄວາມກຳລັງໂຫຼດຂໍ້ມູນ + ຈຸດເຕັ້ນດຶກດັກ ຂະໜາດໃຫຍ່ສົມສ່ວນ */
+.login-loader-text {
+    margin-top: 18px;
+    font-weight: 800;
+    color: #ffffff;
+    font-size: 1.25rem;
+    letter-spacing: 0.4px;
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
+    display: inline-flex;
+    align-items: center;
+}
+
+.login-loader-dot {
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: #38bdf8;
+    display: inline-block;
+    margin-left: 2px;
+    animation: loginDotBounce 1.2s infinite ease-in-out;
+}
+.login-loader-dot.d1 { animation-delay: 0s; }
+.login-loader-dot.d2 { animation-delay: 0.2s; color: #34d399; }
+.login-loader-dot.d3 { animation-delay: 0.4s; }
+
+@keyframes loginSystemLoaderSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes loginSystemLoaderSpinReverse {
+    0% { transform: rotate(360deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes loginSystemLogoBreath {
+    0% { transform: scale(0.95); }
+    100% { transform: scale(1.04); }
+}
+
+@keyframes loginDotBounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.45; }
+    40% { transform: translateY(-5px); opacity: 1; }
+}
+
+.login-split-card.is-curtain-opening {
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+}
+
+.login-split-card.is-curtain-opening .login-left-pane {
+    transform: translate3d(-115%, 0, 0) rotateY(18deg) scale(0.94);
+    opacity: 0;
+    border-radius: 18px;
+    box-shadow: 18px 0 45px rgba(56, 189, 248, 0.35);
+    pointer-events: none;
+}
+
+.login-split-card.is-curtain-opening .login-right-pane {
+    transform: translate3d(115%, 0, 0) rotateY(-18deg) scale(0.94);
+    opacity: 0;
+    border-radius: 18px;
+    box-shadow: -18px 0 45px rgba(56, 189, 248, 0.35);
+    pointer-events: none;
+}
+
+.login-split-card.is-curtain-opening .login-curtain-reveal {
+    opacity: 1;
+    transform: scale(1.04);
+}
+
+/* ============================================================
+   MOBILE RESPONSIVE: ສະແດງຟອມເຕັມຈໍໂທລະສັບ ເຫັນຄົບທຸກສ່ວນ + ໂລໂກ້ນູນວົງມົນ + ກາດຫຼຸບໂຄ້ງຕາມໂລໂກ້ + ທຸງໃຫຍ່ຂຶ້ນ
+   ============================================================ */
+@media (max-width: 860px) {
     html, body {
         height: 100vh;
         height: 100dvh;
+        max-height: 100dvh;
+        min-height: 0 !important;
         overflow: hidden;
-        background-color: #f8fafc;
+        padding: 42px 6px 8px !important;
+        justify-content: stretch !important;
     }
-    .login-banner-stripe, .login-banner-bg, .login-banner-overlay {
-        position: fixed;
-        width: 100%;
+
+    .login-split-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 1 1 auto;
+        height: 100%;
+        min-height: 0 !important;
+        max-height: 100%;
+        justify-content: stretch;
+        align-items: stretch;
     }
-    .login-card-container {
-        padding: 0 12px;
-        margin: 0;
-        max-width: 100%;
-        box-sizing: border-box;
+
+    .login-split-card {
+        display: flex !important;
+        flex-direction: column;
+        width: 100% !important;
+        flex: 1 1 auto;
+        height: 100%;
+        min-height: 0 !important;
+        max-height: 100%;
+        border-radius: 22px;
+        background: transparent !important;
+        box-shadow: none !important;
+        overflow: visible !important;
     }
-    .login-card {
-        padding: 20px 18px;
+
+    /* ໃນໂທລະສັບ ສະແດງແຕ່ຟອມເຂົ້າສູ່ລະບົບແບບເຕັມຈໍ ບໍ່ໃຫ້ເລື່ອນ */
+    .login-right-pane {
+        display: none !important;
     }
-    .logo-badge {
-        width: 100px;
-        height: 100px;
-        margin-top: -50px;
+
+    .login-left-pane {
+        width: 100% !important;
+        flex: 1 1 auto;
+        height: 100%;
+        min-height: 0 !important;
+        max-height: 100%;
+        background: transparent !important;
+        padding: 42px 18px 12px !important;
+        justify-content: space-between;
+        overflow: visible !important;
+        position: relative;
+        filter: drop-shadow(0 12px 28px rgba(3, 8, 22, 0.5));
     }
-    .bct-footer {
-        font-size: 0.75rem;
-        margin-top: 10px;
+
+    /* ພື້ນກາດສີຂາວທີ່ຫຼຸບໂຄ້ງເປັນວົງມົນຢູ່ກາງເທິງ ຮັບກັບໂລໂກ້ນູນວົງມົນ (ສະເພາະໂທລະສັບ) */
+    .login-left-pane::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: #ffffff;
+        border-radius: 22px;
+        -webkit-mask-image: radial-gradient(circle 45px at 50% 0px, transparent 43.5px, #000 45px);
+        mask-image: radial-gradient(circle 45px at 50% 0px, transparent 43.5px, #000 45px);
+        z-index: 0;
+        pointer-events: none;
     }
-    .bct-social-links {
-        gap: 10px;
+
+    .login-form-top-wrap {
+        position: static;
+    }
+
+    .login-title-group,
+    #loginForm,
+    .login-pane-footer {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* ທຸງປ່ຽນພາສາໃຫຍ່ຂຶ້ນອີກໃນໂທລະສັບ */
+    .login-lang-corner {
+        top: 10px;
+        right: 14px;
+        z-index: 20;
+    }
+
+    .login-lang-flag-icon {
+        width: 40px;
+        height: 40px;
+        border: 2.5px solid #e2e8f0;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.22);
+    }
+
+    /* ໂລໂກ້ນູນຂຶ້ນເປັນວົງມົນ 3D ຂະໜາດສົມສ່ວນ ບໍ່ກິນພື້ນທີ່ຟອມ */
+    .login-hero-logo {
+        position: absolute;
+        top: -38px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 76px;
+        height: 76px;
+        margin: 0 !important;
+        border-radius: 50%;
+        background: radial-gradient(circle at 32% 26%, #ffffff 0%, #f8fafc 68%, #e2e8f0 100%);
+        border: 3px solid #ffffff;
+        box-shadow:
+            0 8px 20px rgba(3, 10, 28, 0.45),
+            0 3px 8px rgba(37, 99, 235, 0.22),
+            inset 0 2px 5px rgba(255, 255, 255, 1),
+            inset 0 -3px 6px rgba(148, 163, 184, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 6;
+    }
+
+    .login-hero-logo img {
+        width: 54px;
+        height: 54px;
+        max-width: 54px;
+        object-fit: contain;
+        border-radius: 50%;
+    }
+
+    .login-title-group {
+        margin-bottom: 10px;
+    }
+
+    .login-title-main {
+        font-size: clamp(1.12rem, 4.6vw, 1.32rem);
+        line-height: 1.25;
+        white-space: nowrap;
+    }
+
+    .custom-input-group {
+        margin-bottom: 10px;
+    }
+
+    .custom-input-group label {
+        font-size: 0.86rem;
+        margin-bottom: 4px;
+    }
+
+    .form-control-custom {
+        height: 42px;
+        font-size: 0.94rem;
+        border-radius: 10px;
+    }
+
+    .btn-login-custom {
+        height: 44px;
+        margin-top: 12px;
+        font-size: 0.98rem;
+        border-radius: 10px;
+    }
+
+    .login-pane-footer {
+        margin-top: 6px;
+    }
+
+    .login-pane-note {
+        font-size: 0.74rem;
+        line-height: 1.3;
+        padding-bottom: 5px;
+        margin-bottom: 5px;
+    }
+
+    .login-pane-links {
+        font-size: 0.73rem;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 }

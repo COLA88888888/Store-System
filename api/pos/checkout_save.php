@@ -90,14 +90,30 @@
         
         $details_summary = [];
         $updated_stocks = [];
-        
+
+        // ຈຳນວນຕັດສະຕັອກຂອງຫົວໜ່ວຍ (ແພັກ/ແກັດ…) ເອົາຈາກຖານຂໍ້ມູນ ບໍ່ເຊື່ອຄ່າ multiplier ທີ່ browser ສົ່ງມາ —
+        // ໜ້າຂາຍທີ່ເປີດຄ້າງ (ຍັງບໍ່ໂຫຼດຫົວໜ່ວຍໃໝ່) ຫຼື ຄຳຂໍທີ່ຖືກແກ້ ຈະຕັດສະຕັອກຜິດ (ຂາຍແກັດ 24 ແຕ່ຕັດ 1)
+        $stmtUnitMul = $pdo->prepare("SELECT multiplier FROM st_product_units WHERE product_id = ? AND TRIM(unit_name) = ? ORDER BY id LIMIT 1");
+        $stmtBaseUnit = $pdo->prepare("SELECT unit FROM st_products WHERE product_id = ? AND store_id = ? LIMIT 1");
+        $resolveMultiplier = function ($pid, $unitName, $clientMul) use ($stmtUnitMul, $stmtBaseUnit, $activeStoreId) {
+            $unitName = trim((string)$unitName);
+            if ($unitName !== '') {
+                $stmtUnitMul->execute([$pid, $unitName]);
+                $m = $stmtUnitMul->fetchColumn();
+                if ($m !== false && intval($m) > 0) return intval($m);
+                $stmtBaseUnit->execute([$pid, $activeStoreId]);
+                if (trim((string)$stmtBaseUnit->fetchColumn()) === $unitName) return 1;   // ຫົວໜ່ວຍຫຼັກ
+            }
+            return max(1, intval($clientMul));   // ຫົວໜ່ວຍທີ່ບໍ່ຮູ້ຈັກ (ຂໍ້ມູນເກົ່າ) → ຄ່າທີ່ສົ່ງມາ
+        };
+
         foreach ($cart as $item) {
             $pid = intval($item['product_id']);
             $proname = $item['product_name'] . ' (' . $item['unit_name'] . ')';
             $qty = floatval($item['quantity']);
             $price = floatval($item['unit_price']);
             $cost = floatval($item['cost_price']);
-            $multiplier = intval($item['multiplier'] ?? 1);
+            $multiplier = $resolveMultiplier($pid, $item['unit_name'] ?? '', $item['multiplier'] ?? 1);
             $total_item = $qty * $price;
             $deduct_stock_qty = $qty * $multiplier;
 

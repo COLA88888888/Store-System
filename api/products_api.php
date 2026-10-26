@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
 
@@ -16,7 +16,7 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 // Each bulk row uploads its picture as soon as it is picked and keeps only the returned
 // file name, so a large batch never runs into PHP's max_file_uploads limit on submit.
 if ($action === 'upload_image' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once __DIR__ . '/components/product_image_helpers.php';
+    require_once __DIR__ . '/../pages/products/components/product_image_helpers.php';
     $uploadError = null;
     $img = saveUploadedProductImage('image', $uploadError);
     echo json_encode($img

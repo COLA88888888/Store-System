@@ -90,6 +90,8 @@ return [
     'layout.expiry' => 'Product Expiry',
     'layout.expiry_report' => 'Expiry Report',
     'layout.shift_report' => 'Report by Shift',
+    'layout.shift_close_report' => 'Shift Close Report',
+    'layout.shift_revenue_report' => 'Shift Revenue Report',
     // ເມນູ/ແຈ້ງເຕືອນທີ່ເພີ່ມພາຍຫຼັງ
     'layout.expiry_near_header' => 'Expiring soon / Expired products',
     'layout.expiry_days_left' => '%d days left',

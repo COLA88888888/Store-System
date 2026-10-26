@@ -12,7 +12,7 @@
 
         <!-- HEADER -->
         <div class="modal-header text-white py-3 px-4" style="border-radius: 16px 16px 0 0; background-color: #244886;">
-          <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.2rem;">
+          <h5 class="modal-title font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.2rem;">
             <i class="fas fa-user-edit mr-2"></i> <?php echo htmlspecialchars(t('users_manage.edit_modal_title', 'ແກ້ໄຂຜູ້ໃຊ້ງານ')); ?>
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">

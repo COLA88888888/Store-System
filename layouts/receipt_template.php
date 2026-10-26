@@ -58,18 +58,18 @@ $rcP      = $rcP ?? 'rc_';
           <tbody id="<?php echo $rcP; ?>items" style="color:#000;font-weight:400;font-size:0.9em;"></tbody>
         </table>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-        <div id="<?php echo $rcP; ?>payment_rows" class="rc-strong" style="color:#000;font-weight:700;">
+        <div id="<?php echo $rcP; ?>payment_rows" class="rc-strong rc-sum" style="color:#000;font-weight:400;font-size:15px;">
           <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>cash_row"><span><?php echo htmlspecialchars(t('pos.receipt_cash_received', 'ຮັບເງິນສົດ:')); ?></span><span id="<?php echo $rcP; ?>cash_amt">0 ₭</span></div>
           <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>qr_row"><span><?php echo htmlspecialchars(t('pos.receipt_transfer_received', 'ຮັບເງິນໂອນ:')); ?></span><span id="<?php echo $rcP; ?>qr_amt">0 ₭</span></div>
           <div class="d-flex justify-content-between rc-strong" id="<?php echo $rcP; ?>credit_row" style="display:none !important;font-weight:700;"><span><?php echo htmlspecialchars(t('pos.receipt_credit', 'ຕິດໜີ້ (ຄ້າງຊຳລະ):')); ?></span><span id="<?php echo $rcP; ?>credit_amt">0 ₭</span></div>
           <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>credit_due_row" style="display:none !important;"><span><?php echo htmlspecialchars(t('pos.receipt_credit_due', 'ກຳນົດຊຳລະ:')); ?></span><span id="<?php echo $rcP; ?>credit_due">-</span></div>
         </div>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-        <div class="d-flex justify-content-between" style="color:#000;font-weight:400;"><span><?php echo htmlspecialchars(t('pos.total_label', 'ລວມ:')); ?></span><span id="<?php echo $rcP; ?>subtotal">0 ₭</span></div>
-        <div class="d-flex justify-content-between" style="color:#000;font-weight:400;"><span><?php echo htmlspecialchars(t('pos.receipt_discount', 'ສ່ວນຫຼຸດ:')); ?></span><span id="<?php echo $rcP; ?>discount">0 ₭</span></div>
+        <div class="d-flex justify-content-between rc-sum" style="color:#000;font-weight:400;font-size:15px;"><span><?php echo htmlspecialchars(t('pos.total_label', 'ລວມ:')); ?></span><span id="<?php echo $rcP; ?>subtotal">0 ₭</span></div>
+        <div class="d-flex justify-content-between rc-sum" style="color:#000;font-weight:400;font-size:15px;"><span><?php echo htmlspecialchars(t('pos.receipt_discount', 'ສ່ວນຫຼຸດ:')); ?></span><span id="<?php echo $rcP; ?>discount">0 ₭</span></div>
         <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>points_discount_row" style="color:#000;font-weight:400;display:none;font-size:0.92em;"><span>&nbsp;&nbsp;<?php echo htmlspecialchars(t('pos.receipt_points_discount', '(ໃນນັ້ນ ແລກຄະແນນ:')); ?></span><span><span id="<?php echo $rcP; ?>points_discount">0 ₭</span>)</span></div>
-        <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>vat_row" style="color:#000;font-weight:400;display:none;"><span id="<?php echo $rcP; ?>vat_label"><?php echo htmlspecialchars(t('pos.receipt_vat', 'ອມພ (VAT):')); ?></span><span id="<?php echo $rcP; ?>vat">0 ₭</span></div>
-        <div class="d-flex justify-content-between rc-strong" style="font-size:19px;color:#000;font-weight:400;"><span><?php echo htmlspecialchars(t('pos.receipt_net_total', 'ຍອດສຸດທິ:')); ?></span><span id="<?php echo $rcP; ?>total">0 ₭</span></div>
+        <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>vat_row" class="rc-sum" style="color:#000;font-weight:400;display:none;font-size:15px;"><span id="<?php echo $rcP; ?>vat_label"><?php echo htmlspecialchars(t('pos.receipt_vat', 'ອມພ (VAT):')); ?></span><span id="<?php echo $rcP; ?>vat">0 ₭</span></div>
+        <div class="d-flex justify-content-between rc-strong rc-net" style="font-size:17px;color:#000;font-weight:400;"><span><?php echo htmlspecialchars(t('pos.receipt_net_total', 'ຍອດສຸດທິ:')); ?></span><span id="<?php echo $rcP; ?>total">0 ₭</span></div>
         <!-- ຍອດຊຳລະສຸດທິ ໃນ 4 ສະກຸນເງິນ (ຄິດຈາກກີບ × ອັດຕາລ່າສຸດ) -->
         <div id="<?php echo $rcP; ?>multicur" style="color:#000;font-weight:400;font-size:14.5px;margin-top:4px;border-top:1px dotted #000;padding-top:4px;">
           <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cur_kip', 'ກີບ (LAK):')); ?></span><span id="<?php echo $rcP; ?>total_kip">0 ₭</span></div>
@@ -78,7 +78,7 @@ $rcP      = $rcP ?? 'rc_';
           <div class="d-flex justify-content-between"><span><?php echo htmlspecialchars(t('pos.receipt_cur_cny', 'ຢວນ (CNY):')); ?></span><span id="<?php echo $rcP; ?>total_cny">-</span></div>
         </div>
         <div style="border-top:1px dashed #000;margin:6px 0;"></div>
-        <div class="d-flex justify-content-between rc-strong" style="color:#000;font-weight:400;"><span><?php echo htmlspecialchars(t('pos.change_label', 'ເງິນທອນ:')); ?></span><span id="<?php echo $rcP; ?>change">0 ₭</span></div>
+        <div class="d-flex justify-content-between rc-strong rc-sum" style="color:#000;font-weight:400;font-size:15px;"><span><?php echo htmlspecialchars(t('pos.change_label', 'ເງິນທອນ:')); ?></span><span id="<?php echo $rcP; ?>change">0 ₭</span></div>
         <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>points_redeem_row" style="color:#000;font-weight:400;display:none;"><span><?php echo htmlspecialchars(t('pos.receipt_points_redeemed', 'ຄະແນນທີ່ແລກ:')); ?></span><span id="<?php echo $rcP; ?>points_redeemed" style="font-weight:400;">0</span></div>
         <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>points_row" style="color:#000;font-weight:400;display:none;"><span><?php echo htmlspecialchars(t('pos.receipt_points_earned', 'ຄະແນນທີ່ໄດ້ຮັບ:')); ?></span><span id="<?php echo $rcP; ?>points_earned" style="font-weight:400;">0</span></div>
         <div class="d-flex justify-content-between" id="<?php echo $rcP; ?>points_balance_row" style="color:#000;font-weight:400;display:none;"><span><?php echo htmlspecialchars(t('pos.receipt_points_balance', 'ຄະແນນຄົງເຫຼືອ:')); ?></span><span id="<?php echo $rcP; ?>points_balance" style="font-weight:400;">0</span></div>

@@ -10,6 +10,7 @@
  *   - partials/dashboard/js_theme_color.php : JS: ສີທີມ
  *   - partials/dashboard/js_pos_navbar.php : JS: ບັອກສະແກນຂອງໜ້າຂາຍຢູ່ໃນ Navbar
  *   - partials/dashboard/js_layout.php : JS: ພຶດຕິກຳຂອງ layout
+ *   - partials/dashboard/js_live_permissions.php : JS: ສິດ realtime (ເມນູ/ໜ້າ ສະແດງ-ເຊື່ອງ ທັນທີທີ່ສິດປ່ຽນ)
  *   - partials/dashboard/modal_transfer_detail.php : Popup ລາຍລະອຽດການໂອນສິນຄ້າ
  */
 // ============================================================
@@ -27,7 +28,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../lang/translator.php';
 
 $base_path = '../';
-$site_name = 'Store Wlaodev POS';
+$site_name = 'Minimart Wlaodev POS';
 $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
 
 // Own-account access expiry (owner-only field, set from Users Management). Two flavors:
@@ -323,6 +324,7 @@ if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSI
 <script src="../dist/js/adminlte.js"></script>
 
 <?php require __DIR__ . '/partials/dashboard/js_layout.php'; /* JS: ພຶດຕິກຳຂອງ layout */ ?>
+<?php require __DIR__ . '/partials/dashboard/js_live_permissions.php'; /* JS: ສິດ realtime — ສະແດງ/ເຊື່ອງເມນູ, ໂຫຼດໜ້າໃໝ່ເມື່ອສິດປ່ຽນ */ ?>
 <?php require __DIR__ . '/partials/dashboard/modal_transfer_detail.php'; /* Popup ລາຍລະອຽດການໂອນສິນຄ້າ */ ?>
 <script>
   // Keep the kip symbol (U+20AD) glued to its amount in the app shell too (low-stock alerts,

@@ -1,5 +1,5 @@
 <?php
-// pages/categories/* + api/categories_backend.php + pages/categories/api_category.php
+// pages/categories/* + api/categories_backend.php + api/categories_api.php
 // strings - English
 return [
     'categories.page_title' => 'Manage Categories',
@@ -58,7 +58,7 @@ return [
     'categories.msg_delete_blocked_suffix' => ' product(s) in it.',
     'categories.msg_delete_success' => 'Category deleted successfully!',
 
-    // pages/categories/api_category.php messages
+    // api/categories_api.php messages
     'categories.access_denied' => 'You do not have permission to access this data!',
     'categories.invalid_action' => 'Invalid action',
 

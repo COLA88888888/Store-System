@@ -27,11 +27,13 @@ function scHandleScan() {
     var cur = scLive($hit);
     var sys = parseInt($hit.attr('data-system'), 10) || 0;
     var saved = scSaved($hit);
-    var isAlreadyComplete = (cur !== null && cur === sys && sys > 0 && !scDirty[$hit.attr('data-id')]);
+    // "ນັບຄົບແລ້ວ!" ບອກວ່າເທົ່າກັບລະບົບ — ສະເພາະຜູ້ທີ່ເຫັນລະບົບ (ພະນັກງານນັບແບບບໍ່ຮູ້ຍອດ)
+    var isAlreadyComplete = SC_SHOW_SYSTEM && (cur !== null && cur === sys && sys > 0 && !scDirty[$hit.attr('data-id')]);
 
     // 1. ກວດສອບສະຕັອກລ່າສຸດ ແລະ ສະຖານະການຂາຍກັບເຊີບເວີ
     $.post(SC_BACKEND, { action: 'check_item_stock', check_id: SC_CHECK_ID, barcode: code }, function(res) {
-      if (res && res.success && res.item) {
+      // ພະນັກງານ (ນັບແບບບໍ່ເຫັນລະບົບ): ເຊີເວີບໍ່ສົ່ງສະຕັອກລ່າສຸດ — ບໍ່ອັບເດດ/ບໍ່ແຈ້ງຫຍັງ
+      if (res && res.success && res.item && SC_SHOW_SYSTEM && res.live_qty !== undefined) {
         var it = res.item;
         var liveQty = parseInt(res.live_qty, 10);
         $hit.attr('data-system', liveQty);

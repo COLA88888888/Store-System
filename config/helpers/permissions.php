@@ -111,7 +111,9 @@ if (!function_exists('hasPermission')) {
             'user_manage'      => 'users',
             'users'            => 'users',
             'customers'        => 'customers',
-            'shift_report'     => 'report',
+            'shift_report'         => 'report',
+            'shift_close_report'   => 'report',
+            'shift_revenue_report' => 'report',
             'stock_transfer'   => 'stock_transfer',
             'transfer_history' => 'transfer_history'
         ];
@@ -153,6 +155,20 @@ if (!function_exists('hasPermission')) {
         );
 
         return $hasModuleAccess;
+    }
+}
+
+// ເມນູ sidebar ສະແດງສົດ (realtime): ທຸກເມນູຖືກວາດສະເໝີ ພ້ອມ data-perm="ໂມດູນ,..." — ບໍ່ມີສິດ = ຄຸນສົມບັດ
+// hidden (Bootstrap: [hidden]{display:none!important}). home/partials/dashboard/js_live_permissions.php ອ່ານສິດ
+// ປັດຈຸບັນ (api/my_permissions.php) ແລ້ວສະແດງ/ເຊື່ອງເອງ ເມື່ອຜູ້ບໍລິຫານເປີດ/ປິດສິດ ໂດຍບໍ່ຕ້ອງໂຫຼດໜ້າໃໝ່.
+// ສະແດງຖ້າມີສິດເບິ່ງໂມດູນໃດໜຶ່ງໃນລາຍການ.
+if (!function_exists('permMenuAttr')) {
+    function permMenuAttr(...$modules) {
+        $allowed = false;
+        foreach ($modules as $m) {
+            if (hasPermission($m)) { $allowed = true; break; }
+        }
+        return ' data-perm="' . htmlspecialchars(implode(',', $modules)) . '"' . ($allowed ? '' : ' hidden');
     }
 }
 

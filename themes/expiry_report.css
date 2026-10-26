@@ -3,13 +3,63 @@
    ຍ້າຍອອກມາຈາກ <style> ໃນ pages/reports/expiry_report.php — ຖືກເອີ້ນຢູ່ຈຸດເດີມດ້ວຍ themeCssLink()
    (config/helpers/theme_css.php) ສະນັ້ນ ລຳດັບ cascade ຄືເກົ່າ.
    ============================================================ */
-  .exr { font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; color: #1e293b; }
+  .exr { font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; color: #1e293b; }
   .exr-title { font-size: 1.15rem; font-weight: 700; margin: 0; }
   .exr-sub { font-size: 0.82rem; color: #64748b; }
 
+  /* Header & Export buttons */
+  .exr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .exr-actions {
+    flex-shrink: 0;
+  }
+  .exr-actions .rpt-export,
+  .rpt-export {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
+  }
+  @media (max-width: 575.98px) {
+    .exr-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+    .exr-actions {
+      width: 100%;
+    }
+    .exr-actions .rpt-export {
+      width: 100%;
+      display: flex !important;
+      flex-wrap: nowrap !important;
+      gap: 6px !important;
+    }
+    .exr-actions .rpt-export .btn.rpt-btn {
+      flex: 1 1 0;
+      justify-content: center;
+      padding-left: 6px !important;
+      padding-right: 6px !important;
+      font-size: 0.82rem !important;
+      white-space: nowrap !important;
+    }
+  }
+
   /* Summary tiles double as the status filter */
   .exr-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-  @media (max-width: 767.98px) { .exr-stats { grid-template-columns: 1fr; } }
+  @media (max-width: 991.98px) {
+    .exr-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .exr-stat:first-child {
+      grid-column: span 2;
+    }
+  }
   /* ກາດທຳມະດາ: ບໍ່ມີຂອບ — ໃບທີ່ບໍ່ໄດ້ເລືອກຈາງລົງໜ້ອຍໜຶ່ງ ເພື່ອໃຫ້ຮູ້ວ່າກຳລັງກັ່ນຕອງອັນໃດ */
   .exr-stat { position: relative; display: block; overflow: hidden; background: linear-gradient(135deg, var(--c), var(--d)); border-radius: 12px; padding: 16px 16px 14px; color: #fff; text-decoration: none !important; box-shadow: 0 4px 12px rgba(15, 23, 42, .10); opacity: .78; transition: opacity .15s ease; }
   .exr-stat.active, .exr-stat:hover { opacity: 1; }

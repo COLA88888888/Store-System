@@ -4,75 +4,86 @@
  * ໝາຍເລກຄິວ, ແຖບເທິງ (ໂລໂກ້ + ຊື່ຮ້ານ + ເວລາ), ແຜງ QR ຊຳລະ, ແຜງລາຍການສັ່ງຊື້ ແລະ ແຖບຍອດລວມ.
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/pos/customer_display.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
-?>  <!-- Payment Success Overlay (ແຈ້ງເຕືອນຊຳລະເງິນສຳເລັດ + ລາຍລະອຽດລະອຽດຄົບຖ້ວນ, ມຸມ 6px) -->
-  <div id="paymentSuccessOverlay" style="display:none;position:fixed;inset:0;z-index:3100;background:rgba(15,23,42,0.88);
-       flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:20px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);">
-    <div class="pay-success-card" style="background:#ffffff;color:#1e293b;border-radius:6px;padding:26px 34px;max-width:540px;width:95%;box-shadow:0 20px 50px -10px rgba(0,0,0,0.45);text-align:center;position:relative;border:1px solid #e2e8f0;">
+?>  <!-- Payment Success Overlay (ແບບມາດຕະຖານ ສະອາດຕາ ມຸມ 4px) -->
+  <div id="paymentSuccessOverlay" style="display:none;position:fixed;inset:0;z-index:3100;background:rgba(15,23,42,0.78);
+       flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:20px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+    
+    <div class="pay-success-card" style="background:#ffffff;color:#0f172a;border-radius:4px;padding:28px 32px 22px;max-width:520px;width:95%;box-shadow:0 16px 40px rgba(0,0,0,0.38);text-align:center;position:relative;border:1px solid #cbd5e1;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;">
       
-      <!-- Top Success Header: Check Icon + Title -->
-      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px;">
-        <div style="width:46px;height:46px;border-radius:6px;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(34,197,94,0.35);color:#fff;flex-shrink:0;">
-          <i class="fas fa-check" style="font-size:24px;"></i>
-        </div>
-        <div style="text-align:left;">
-          <h2 style="font-size:1.85rem;font-weight:800;color:#15803d;margin:0;line-height:1.15;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;">
-            ຊຳລະເງິນສຳເລັດ!
-          </h2>
-          <div style="font-size:0.90rem;color:#64748b;font-weight:600;margin:0;">
-            ຂອບໃຈທີ່ມາອຸດໜູນ • Thank You!
-          </div>
-        </div>
+      <!-- 1. Header: ໄອຄອນ + ຊຳລະເງິນສຳເລັດ (ບໍ່ມີຄຳວ່າ ຂອບໃຈທີ່ມາອຸດໜູນ) -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;">
+        <i class="fas fa-check-circle" style="font-size:2.2rem;color:#16a34a;line-height:1;"></i>
+        <h2 style="font-size:1.85rem;font-weight:800;color:#0f172a;margin:0;line-height:1.2;">
+          ຊຳລະເງິນສຳເລັດ
+        </h2>
       </div>
 
-      <!-- Main Amount Highlight Box (ມຸມ 6px) -->
-      <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:6px;padding:14px 18px;margin-bottom:12px;text-align:center;">
-        <div style="font-size:0.88rem;color:#166534;font-weight:700;letter-spacing:0.3px;margin-bottom:2px;">
-          <i class="fas fa-wallet mr-1"></i> ຈຳນວນເງິນທີ່ຊຳລະ
+      <!-- 2. ຈຳນວນເງິນທີ່ຊຳລະ (ມຸມ 4px) -->
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:16px 20px;margin-bottom:14px;text-align:center;">
+        <div style="font-size:0.92rem;color:#475569;font-weight:700;margin-bottom:4px;">
+          ຈຳນວນເງິນທີ່ຊຳລະ
         </div>
-        <div id="paySuccessAmount" style="font-size:2.8rem;font-weight:900;color:#15803d;line-height:1.15;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">
+        <div id="paySuccessAmount" style="font-size:2.85rem;font-weight:900;color:#15803d;line-height:1.12;word-break:break-all;">
           0 ₭
         </div>
       </div>
 
-      <!-- Payment Method & Bank Info Badge (ມຸມ 6px) -->
-      <div id="paySuccessMethodBadge" style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 14px;margin-bottom:10px;font-size:0.92rem;font-weight:700;color:#334155;">
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span id="paySuccessMethodIcon"><i class="fas fa-money-bill-wave text-success"></i></span>
-          <span id="paySuccessMethodText">ຊຳລະດ້ວຍ: ເງິນສົດ</span>
+      <!-- 3. ຊ່ອງທາງການຊຳລະ & ທະນາຄານ (ໄອຄອນ ແລະ ທະນາຄານ ບໍ່ມີກາດຫຸ້ມ) -->
+      <div id="paySuccessMethodBadge" style="display:flex;align-items:center;justify-content:space-between;padding:10px 4px;border-bottom:1px solid #e2e8f0;margin-bottom:6px;font-size:0.96rem;font-weight:700;color:#1e293b;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="paySuccessMethodIcon" style="font-size:1.05rem;display:inline-flex;align-items:center;">
+            <i class="fas fa-money-bill-wave text-success"></i>
+          </span>
+          <span id="paySuccessMethodText" style="color:#334155;">ຊຳລະດ້ວຍ: ເງິນສົດ</span>
         </div>
-        <div id="paySuccessBankWrap" style="display:none;align-items:center;gap:6px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;padding:3px 8px;">
-          <img id="paySuccessBankLogo" src="" alt="" style="width:20px;height:20px;object-fit:contain;border-radius:4px;display:none;" onerror="this.style.display='none'">
-          <span id="paySuccessBankName" style="color:#0369a1;font-weight:800;font-size:0.88rem;"></span>
-        </div>
-      </div>
-
-      <!-- Detailed Breakdown Box (ມຸມ 6px) -->
-      <div id="paySuccessBreakdown" style="background:#ffffff;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:0.92rem;text-align:left;">
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed #e2e8f0;" id="paySuccessCashRow">
-          <span style="color:#64748b;font-weight:600;"><i class="fas fa-money-bill-wave text-success mr-1"></i> ຮັບເງິນສົດ</span>
-          <span id="paySuccessCashAmt" style="font-weight:800;color:#1e293b;font-size:1.05rem;">0 ₭</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed #e2e8f0;" id="paySuccessQrRow">
-          <span style="color:#64748b;font-weight:600;"><i class="fas fa-qrcode text-primary mr-1"></i> ຮັບເງິນໂອນ <span id="paySuccessQrBankInline" style="color:#0284c7;font-weight:700;"></span></span>
-          <span id="paySuccessQrAmt" style="font-weight:800;color:#1e293b;font-size:1.05rem;">0 ₭</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;" id="paySuccessChangeRow">
-          <span style="color:#64748b;font-weight:600;"><i class="fas fa-hand-holding-usd text-warning mr-1"></i> ເງິນທອນ</span>
-          <span id="paySuccessChange" style="font-weight:900;color:#16a34a;font-size:1.15rem;">0 ₭</span>
+        <div id="paySuccessBankWrap" style="display:none;align-items:center;gap:7px;">
+          <img id="paySuccessBankLogo" src="" alt="" style="width:22px;height:22px;object-fit:contain;display:none;" onerror="this.style.display='none'">
+          <span id="paySuccessBankName" style="color:#0284c7;font-weight:800;font-size:0.96rem;"></span>
         </div>
       </div>
 
-      <!-- Footer Info: Invoice No & Queue Number (ມຸມ 6px) -->
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.86rem;color:#64748b;font-weight:600;padding:0 2px;">
+      <!-- 4. ລາຍລະອຽດການຮັບເງິນ & ເງິນທອນ (ໄອຄອນບໍ່ມີກາດຫຸ້ມ, ເງິນທອນສະແດງສະເພາະເມື່ອມີເງິນທອນ) -->
+      <div id="paySuccessBreakdown" style="padding:4px 4px 10px;margin-bottom:12px;font-size:0.96rem;text-align:left;border-bottom:1px solid #e2e8f0;">
+        <!-- Cash Row -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;" id="paySuccessCashRow">
+          <span style="color:#475569;font-weight:700;display:inline-flex;align-items:center;gap:8px;">
+            <i class="fas fa-money-bill-wave" style="color:#16a34a;width:18px;text-align:center;"></i>
+            <span>ຮັບເງິນສົດ</span>
+          </span>
+          <span id="paySuccessCashAmt" style="font-weight:800;color:#0f172a;font-size:1.1rem;">0 ₭</span>
+        </div>
+        <!-- QR Transfer Row -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;" id="paySuccessQrRow">
+          <span style="color:#475569;font-weight:700;display:inline-flex;align-items:center;gap:8px;">
+            <i class="fas fa-qrcode" style="color:#0284c7;width:18px;text-align:center;"></i>
+            <span>ຮັບເງິນໂອນ <span id="paySuccessQrBankInline" style="color:#0284c7;font-weight:700;"></span></span>
+          </span>
+          <span id="paySuccessQrAmt" style="font-weight:800;color:#0f172a;font-size:1.1rem;">0 ₭</span>
+        </div>
+        <!-- Change Row (ສະແດງສະເພາະເມື່ອມີເງິນທອນ > 0) -->
+        <div style="display:none;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px dashed #cbd5e1;" id="paySuccessChangeRow">
+          <span style="color:#475569;font-weight:700;display:inline-flex;align-items:center;gap:8px;">
+            <i class="fas fa-hand-holding-usd" style="color:#d97706;width:18px;text-align:center;"></i>
+            <span>ເງິນທອນ</span>
+          </span>
+          <span id="paySuccessChange" style="font-weight:900;color:#16a34a;font-size:1.18rem;">0 ₭</span>
+        </div>
+      </div>
+
+      <!-- 5. Footer: ເລກທີໃບບິນ & ເວລາ 24 ຊົ່ວໂມງ (ບໍ່ມີກາດຫຸ້ມ) -->
+      <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.88rem;color:#64748b;font-weight:600;padding:0 4px;">
         <span id="paySuccessInvoiceNo">ເລກທີໃບບິນ: -</span>
-        <span id="paySuccessQueueBadge" style="display:none;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:6px;padding:2px 8px;font-weight:700;">
-          ຄິວທີ: <strong id="paySuccessQueueNo"></strong>
-        </span>
+        <div style="display:inline-flex;align-items:center;gap:12px;">
+          <span id="paySuccessTimeText" style="color:#64748b;">00:00:00</span>
+          <span id="paySuccessQueueBadge" style="display:none;color:#1d4ed8;font-weight:800;">
+            ຄິວທີ: <strong id="paySuccessQueueNo"></strong>
+          </span>
+        </div>
       </div>
 
-      <!-- Auto-dismiss countdown progress bar (ມຸມ 6px) -->
-      <div style="margin-top:14px;height:4px;background:#e2e8f0;border-radius:6px;overflow:hidden;width:100%;">
-        <div id="paySuccessProgressBar" style="height:100%;width:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:6px;"></div>
+      <!-- 6. ແຖບນັບຖອຍຫຼັງປິດອັດຕະໂນມັດ (ມຸມ 4px) -->
+      <div style="margin-top:14px;height:4px;background:#e2e8f0;border-radius:4px;overflow:hidden;width:100%;">
+        <div id="paySuccessProgressBar" style="height:100%;width:100%;background:#16a34a;border-radius:4px;"></div>
       </div>
 
     </div>
@@ -93,7 +104,13 @@
         <img id="bppLogo" src="" alt="" style="display:none;" onerror="this.style.display='none'">
         <span id="bppBankName"></span>
       </div>
-      <img id="bppQr" class="bpp-qr" src="" alt="QR" onerror="this.style.visibility='hidden'">
+      <div class="bpp-qr-frame">
+        <span class="qr-corner qr-corner-tl"></span>
+        <span class="qr-corner qr-corner-tr"></span>
+        <span class="qr-corner qr-corner-bl"></span>
+        <span class="qr-corner qr-corner-br"></span>
+        <img id="bppQr" class="bpp-qr" src="" alt="QR" onerror="this.style.visibility='hidden'">
+      </div>
       <div class="bpp-amount-label">ຈຳນວນເງິນທີ່ຕ້ອງໂອນ</div>
       <div class="bpp-amount" id="bppAmount">0</div>
       <div class="bpp-hint"><i class="fas fa-mobile-alt"></i> ສະແກນ QR ດ້ວຍແອັບທະນາຄານ</div>
@@ -121,59 +138,34 @@
       </div>
     </div>
 
-    <div class="header-welcome">
-      <i class="fas fa-heart"></i> <span>ຍິນດີຕ້ອນຮັບ</span>
-    </div>
-
     <div class="header-datetime">
-      <span class="header-clock" id="liveClock">00:00:00</span>
-      <span class="header-date" id="liveDate">--/--/----</span>
+      <span class="header-sys-name"><i class="fas fa-desktop mr-1 text-warning"></i> WlaoDev POS</span>
+      <div class="header-datetime-text">
+        <span class="header-clock" id="liveClock">00:00:00</span>
+        <span class="header-date" id="liveDate">--/--/----</span>
+      </div>
     </div>
   </div>
 
   <!-- MAIN DUAL PANEL -->
   <div class="display-main">
 
-    <!-- LEFT PANEL: QR ຊຳລະເງິນ (ໂລໂກ້ ແລະ ຊື່ຮ້ານ ຍ້າຍຂຶ້ນໄປແຖບເທິງແລ້ວ) -->
-    <?php
-      // ທະນາຄານຫຼາຍ: 1–3 = ແຖວດຽວ, 4 ຂຶ້ນໄປ = ຕາຂ່າຍ 2 ຖັນ (ຂະໜາດ QR ຫຍໍ້ຕາມຈຳນວນແຖວ ໃຫ້ເຫັນຄົບທຸກທະນາຄານ)
-      $cdBankCount = count($cd_bank_accounts);
-      $cdQrRows = $cdBankCount >= 4 ? (int)ceil($cdBankCount / 2) : 1;
-    ?>
-    <div class="left-store-panel<?php echo $cdBankCount >= 3 ? ' has-3-qr' : ''; ?><?php echo $cdBankCount >= 4 ? ' has-many-qr' : ''; ?>">
-      <div class="store-card">
-        <canvas class="particle-canvas" id="storeCardParticles"></canvas>
-        <div class="store-card-content">
-          <?php if (!empty($cd_bank_accounts)): ?>
-            <!-- Payment QR codes (per bank account). One card -> centred; 2-3 -> in a row. -->
-            <div class="pay-qr-heading">
-              <i class="fas fa-qrcode"></i> <span>ສະແກນ QR ເພື່ອຊຳລະເງິນ</span>
-            </div>
-            <div class="pay-qr-wrap count-<?php echo min($cdBankCount, 3); ?><?php echo $cdBankCount >= 4 ? ' many' : ''; ?>" id="payQrWrap" style="--qr-rows: <?php echo $cdQrRows; ?>;">
-              <?php foreach ($cd_bank_accounts as $ba): ?>
-                <!-- data-bank-id: ໄຮໄລ້ບັດນີ້ເມື່ອພະນັກງານເລືອກທະນາຄານນີ້ຊຳລະ (renderBankPopup ໃນ display_js.php) -->
-                <div class="pay-qr-card" data-bank-id="<?php echo (int)($ba['id'] ?? 0); ?>">
-                  <div class="pqc-selected-tag"><i class="fas fa-hand-point-down"></i> ສະແກນອັນນີ້</div>
-                  <div class="pqc-bank">
-                    <?php if (!empty($ba['logo'])): ?>
-                      <img src="<?php echo htmlspecialchars($ba['logo']); ?>" alt="" onerror="this.style.display='none'">
-                    <?php else: ?>
-                      <i class="fas fa-university text-primary"></i>
-                    <?php endif; ?>
-                    <span><?php echo htmlspecialchars($ba['bank_name']); ?></span>
-                  </div>
-                  <img class="pqc-qr" src="<?php echo htmlspecialchars($ba['qr']); ?>" alt="QR"
-                       onerror="this.style.display='none'">
-                </div>
-              <?php endforeach; ?>
-            </div>
-          <?php else: ?>
-            <div class="welcome-banner-box">
-              <i class="fas fa-heart text-danger fa-2x mb-2"></i>
-              <h4 class="font-weight-bold text-dark mb-1" style="font-size: 1.35rem;">ຂໍຂອບໃຈທີ່ມາອຸດໜູນ</h4>
-              <p class="text-secondary mb-0" style="font-size: 1.02rem; font-weight: 600;">ຍິນດີຕ້ອນຮັບ! ຂໍໃຫ້ທ່ານມີຄວາມສຸກໃນການຊື້ສິນຄ້າ</p>
-            </div>
-          <?php endif; ?>
+    <!-- LEFT PANEL: 100% 3D CARTOON MINI-MART WORLD (ສະແດງທັນທີ 0ms ບໍ່ມີຈໍຂາວ) -->
+    <div class="left-store-panel">
+      <div class="store-card minimart-store-card" style="background:#f1f5f9;">
+        <!-- 3D Mini-Mart World -->
+        <div class="minimart-3d-wrap" id="minimart3dWrap" style="background:#f1f5f9;">
+          <!-- 3D Canvas Viewport (ເຕັມແຜງຊ້າຍມື 100%) -->
+          <div id="minimart3dContainer" class="minimart-3d-container" style="position:relative;width:100%;height:100%;overflow:hidden;background-color:#f1f5f9;background-size:100% 100%;background-position:center;background-repeat:no-repeat;"></div>
+          <script>
+          (function() {
+            try {
+              var c = document.getElementById('minimart3dContainer');
+              var p = localStorage.getItem('StoreMini.mm3d_poster_v5');
+              if (c && p) c.style.backgroundImage = 'url(' + p + ')';
+            } catch(e) {}
+          })();
+          </script>
         </div>
       </div>
     </div>
@@ -184,25 +176,23 @@
       <div class="cart-card">
         <div class="display-table-body">
           <table class="w-100 border-0 mb-0 display-cols-table">
-            <!-- ຖັນຊື່ສິນຄ້າກວ້າງສຸດ ໃຫ້ຊື່ຍາວຢູ່ 1–2 ແຖວ -->
+            <!-- ຖັນຊື່ສິນຄ້າກວ້າງສຸດ ໃຫ້ຊື່ຍາວຢູ່ 1–2 ແຖວ ພ້ອມຫົວໜ່ວຍ -->
             <colgroup>
-              <col style="width: 6%;">
-              <col style="width: 8%;">
-              <col style="width: 34%;">
-              <col style="width: 9%;">
-              <col style="width: 9%;">
-              <col style="width: 16%;">
-              <col style="width: 18%;">
+              <col style="width: 7%;">
+              <col style="width: 12%;">
+              <col style="width: 41%;">
+              <col style="width: 11%;">
+              <col style="width: 14%;">
+              <col style="width: 15%;">
             </colgroup>
             <thead class="display-table-head">
               <tr>
-                <th class="text-center">ລຳດັບ</th>
-                <th class="text-center">ຮູບສິນຄ້າ</th>
-                <th class="text-center">ຊື່ສິນຄ້າ</th>
-                <th class="text-center">ຫົວໜ່ວຍ</th>
-                <th class="text-center">ຈຳນວນ</th>
-                <th class="text-right">ລາຄາ</th>
-                <th class="text-right">ລວມ</th>
+                <th class="text-center" style="white-space: nowrap; text-align: center !important;">ລຳດັບ</th>
+                <th class="text-center" style="white-space: nowrap; text-align: center !important;">ຮູບສິນຄ້າ</th>
+                <th class="text-left" style="white-space: nowrap; text-align: left !important; padding-left: 14px !important;">ລາຍການສິນຄ້າ</th>
+                <th class="text-center" style="white-space: nowrap; text-align: center !important;">ຈຳນວນ</th>
+                <th class="text-center" style="white-space: nowrap; text-align: center !important;">ລາຄາ</th>
+                <th class="text-center" style="white-space: nowrap; text-align: center !important;">ລວມ</th>
               </tr>
             </thead>
             <tbody id="displayCartBody"></tbody>

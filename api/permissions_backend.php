@@ -78,8 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         $allowed_perms = [
             'dashboard', 'sale', 'item_sales', 'stock', 'categories', 'units', 'products', 'suppliers', 'import_stock', 'import_list',
             'stock_check', 'stock_count', 'stock_transfer', 'transfer_history',
-            'report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales', 'delete_bills',
-            'accounting', 'setup', 'stores', 'print_barcode', 'expiry', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty',
+            'report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales', 'delete_bills', 'shift_close_report', 'shift_revenue_report',
+            'accounting', 'setup', 'stores', 'print_barcode', 'expiry', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'shifts',
             'users', 'permissions', 'branches', 'edit', 'customers', 'database'
         ];
 
@@ -169,6 +169,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                 'financial' => 'ສິດ ລາຍງານການເງິນ',
                 'category_sales' => 'ສິດ ລາຍງານຕາມປະເພດສິນຄ້າ',
                 'delete_bills' => 'ສິດ ປະຫວັດການລົບບິນຂາຍ',
+                'shift_close_report' => 'ສິດ ລາຍງານປິດກະ',
+                'shift_revenue_report' => 'ສິດ ລາຍງານລາຍຮັບຕາມກະ',
+                'shifts' => 'ສິດ ຈັດການກະເຮັດວຽກ',
                 'users' => 'ສິດ ຈັດການຜູ້ນຳໃຊ້',
                 'permissions' => 'ສິດ ກຳນົດສິດ',
                 'branches' => 'ສິດ ຈັດການສາຂາ',

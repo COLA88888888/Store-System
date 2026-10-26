@@ -195,12 +195,23 @@
     });
   }
 
+  // ຖອດລະຫັດຮູບ data: ໄວ້ກ່ອນແຕ້ມ SVG — QR ໃຫຍ່ທີ່ຍັງຖອດບໍ່ທັນ ຖືກແຕ້ມເປັນຊ່ອງຂາວ (ບິນອອກມາບໍ່ມີ QR)
+  function preDecode(uri) {
+    return new Promise(function (resolve) {
+      var im = new Image();
+      im.onload = im.onerror = function () { resolve(); };
+      im.src = uri;
+      if (im.decode) im.decode().then(resolve, resolve);
+    });
+  }
+
   // Convert the logo/QR inside `root` (in place) to their print-ready black/white data: URIs.
   function convertImages(root) {
     return Promise.all(Array.prototype.map.call(root.querySelectorAll('img'), function (img) {
       if (img.style.display === 'none') return Promise.resolve();
       return imageToDataUri(img.getAttribute('src'), imageMode(img)).then(function (uri) {
         if (uri) img.setAttribute('src', uri); else img.removeAttribute('src');
+        return uri ? preDecode(uri) : null;
       });
     }));
   }
@@ -245,7 +256,11 @@
     ' th{font-weight:400 !important;}' +
     // Headings, net total, change: regular weight + a hair of outline — heavier than the body
     // text but not as thick as Bold (Noto Sans Lao has no weight in between)
-    ' .rc-strong,.rc-strong *{font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}';
+    ' .rc-strong,.rc-strong *{font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}' +
+    // ແຖວສະຫຼຸບ (ຮັບເງິນ, ລວມ, ສ່ວນຫຼຸດ, ອມພ, ເງິນທອນ): ຂະໜາດເທົ່າຕາຕະລາງລາຍການ (15px), ດຳເຂັ້ມ ແຕ່ບໍ່ໜາ;
+    // ຍອດສຸດທິ ໃຫຍ່ກວ່າເລັກນ້ອຍ (17px) — layouts/receipt_template.php .rc-sum / .rc-net
+    ' .rc-sum,.rc-sum *{font-size:15px !important;font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}' +
+    ' .rc-net,.rc-net *{font-size:17px !important;font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}';
 
   // CSS ເພີ່ມເຕີມສຳລັບບິນ Bluetooth: ຍັບໜັງສືເຂົ້າໃຫ້ກະທັດຮັດພໍດີ ແລະ ຫົວຂໍ້ໜາດຳຂຶ້ນເລັກນ້ອຍ
   var BT_EXTRA_CSS =
@@ -342,18 +357,24 @@
   }
 
   // ກວດໃຫ້ຟອນໃນ SVG ໂຫຼດຄົບກ່ອນສົ່ງພິມ (ຖ້າໂຫຼດຟອນແລ້ວ ແຕ້ມພຽງ 1 ຮອບທັນທີ ເພື່ອໃຫ້ບິນອອກໄວທີ່ສຸດ)
-  var RENDER_MAX_PASSES = 3, RENDER_PASS_WAIT = 15, fontsWarmed = false;
+  // ບິນທີ່ມີຮູບ (ໂລໂກ້/QR): ແຕ້ມຈົນໝຶກເທົ່າກັນ 2 ຮອບຕິດກັນສະເໝີ — ຮອບດຽວບາງເທື່ອ QR ຍັງບໍ່ຖືກແຕ້ມ
+  // (ຖອດລະຫັດບໍ່ທັນ) ແຕ່ຕົວໜັງສືມີໝຶກແລ້ວ ຈຶ່ງເຄີຍຮັບຮອບນັ້ນ → ບິນອອກມາມີຊ່ອງຂາວແທນ QR. ໃຊ້ຮອບທີ່ໝຶກຫຼາຍສຸດ.
+  var RENDER_MAX_PASSES = 3, RENDER_IMG_MAX_PASSES = 6, RENDER_PASS_WAIT = 15, fontsWarmed = false;
   function renderStable(svg, svgUri, widthPx, h, targetDots) {
-    var last = -1, pass = 0;
+    var last = -1, pass = 0, best = null, bestN = -1;
+    var hasImages = svg.indexOf('<img') !== -1;
+    var maxPasses = hasImages ? RENDER_IMG_MAX_PASSES : RENDER_MAX_PASSES;
     function once() {
       return decodeSvg(svg, svgUri).then(function (img) {
         var c = inkCanvas(img, widthPx, h, targetDots), n = inkCount(c);
         pass++;
-        if (n > 0 && (fontsWarmed || n === last || pass >= RENDER_MAX_PASSES)) {
+        if (n > bestN) { best = c; bestN = n; }
+        var stable = n > 0 && n === last;
+        if (n > 0 && (stable || (fontsWarmed && !hasImages))) {
           fontsWarmed = true;
-          return c;
+          return best;
         }
-        if (pass >= RENDER_MAX_PASSES) return c;
+        if (pass >= maxPasses) return best;
         last = n;
         return new Promise(function (r) { setTimeout(r, RENDER_PASS_WAIT); }).then(once);
       });

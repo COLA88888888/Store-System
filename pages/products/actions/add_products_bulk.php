@@ -41,7 +41,7 @@
         $batchZone       = trim($_POST['bulk_zone'] ?? '') ?: null;
         $batchShelf      = trim($_POST['bulk_shelf'] ?? '') ?: null;
 
-        // ຮູບພາບລາຍແຖວ (ບໍ່ບັງຄັບ) ຖືກອັບໂຫຼດໄວ້ກ່ອນແລ້ວຜ່ານ api_product.php?action=upload_image —
+        // ຮູບພາບລາຍແຖວ (ບໍ່ບັງຄັບ) ຖືກອັບໂຫຼດໄວ້ກ່ອນແລ້ວຜ່ານ api/products_api.php?action=upload_image —
         // ຮັບສະເພາະຊື່ໄຟລ໌ທີ່ລະບົບສ້າງ ແລະ ມີຢູ່ຈິງໃນ assets/product_img ເທົ່ານັ້ນ.
         $bulkImg = function ($name) {
             $name = basename(trim((string)$name));

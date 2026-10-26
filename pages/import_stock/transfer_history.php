@@ -214,7 +214,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 <link rel="stylesheet" href="../../themes/reports.css?v=<?php echo filemtime(__DIR__ . '/../../themes/reports.css'); ?>">
 <link rel="stylesheet" href="../../themes/transfer_history.css?v=<?php echo filemtime(__DIR__ . '/../../themes/transfer_history.css'); ?>">
 
-<div class="container-fluid p-3 p-md-4" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+<div class="container-fluid p-3 p-md-4" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
   
   <!-- Page Header -->
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap: 10px;">

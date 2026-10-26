@@ -12,7 +12,7 @@ function uT(key) {
 
 // Real-Time Polling for User Online/Offline Status (no page refresh required)
 function pollLiveUserStatuses() {
-  var apiUrl = typeof API_URL !== 'undefined' ? API_URL : 'api_user.php';
+  var apiUrl = typeof API_URL !== 'undefined' ? API_URL : '../../api/users_api.php';
   $.ajax({
     url: apiUrl + '?action=get_live_user_statuses',
     type: 'GET',
@@ -72,7 +72,7 @@ $(document).ready(function() {
 
 // Auto-generate ລະຫັດຜູ້ໃຊ້ ແຍກຕາມສາຂາ "<ລະຫັດສາຂາ>-<ລຳດັບ>" (1-1, 1-2 …) ຕາມສາຂາທີ່ເລືອກ
 function fetchNextUserCode() {
-  var apiUrl = typeof API_URL !== 'undefined' ? API_URL : 'api_user.php';
+  var apiUrl = typeof API_URL !== 'undefined' ? API_URL : '../../api/users_api.php';
   var codeEl = document.getElementById('add_user_code');
   if (!codeEl) return;
 

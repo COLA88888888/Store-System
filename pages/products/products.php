@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     // --- ADD BULK (ເພີ່ມຫຼາຍລາຍການພ້ອມກັນ) ---
     // Each row carries: category, name, barcode, unit, buy price, sell price, and an optional
-    // image (uploaded beforehand, see api_product.php?action=upload_image). One supplier box
+    // image (uploaded beforehand, see api/products_api.php?action=upload_image). One supplier box
     // (bulk_supplier_id) applies to the whole batch. Starting stock qty is always 0. Fully-blank rows are skipped silently;
     // partially-filled / invalid rows are reported back and the rest still go in.
     elseif ($_POST['action'] === 'add_products_bulk') {

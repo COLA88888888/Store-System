@@ -6,7 +6,7 @@
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ home/dashboard.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 ?>  <!-- STOCK TRANSFER DETAILS MODAL POPUP -->
-  <div class="modal fade" id="notifTransferDetailModal" tabindex="-1" role="dialog" aria-hidden="true" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+  <div class="modal fade" id="notifTransferDetailModal" tabindex="-1" role="dialog" aria-hidden="true" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
       <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden;">
         

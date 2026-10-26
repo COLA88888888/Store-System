@@ -20,6 +20,7 @@
  *   - helpers/expiry.php : ຟັງຊັນຊ່ວຍ: ສິນຄ້າໝົດອາຍຸ
  *   - helpers/stock_check_alerts.php : ຟັງຊັນຊ່ວຍ: ແຈ້ງເຕືອນເຊັກສະຕັອກ
  *   - helpers/shift_auto.php : ຟັງຊັນຊ່ວຍ: ກະເຮັດວຽກ (ໂມງປິດກະ, ການໃຊ້ງານ, ປິດກະອໍໂຕ້)
+ *   - helpers/report_shift_filter.php : ຟັງຊັນຊ່ວຍ: ຕົວກັ່ນຕອງກະ ຂອງໜ້າລາຍງານ
  */
 // ເຊື່ອມຕໍ່ຖານຂໍ້ມູນ
 require __DIR__ . '/bootstrap/connection.php';
@@ -99,3 +100,5 @@ require __DIR__ . '/helpers/expiry.php';
 require __DIR__ . '/helpers/stock_check_alerts.php';
 // ຟັງຊັນຊ່ວຍ: ກະເຮັດວຽກ (ໂມງປິດກະ, ການໃຊ້ງານ, ປິດກະອໍໂຕ້)
 require __DIR__ . '/helpers/shift_auto.php';
+// ຟັງຊັນຊ່ວຍ: ຕົວກັ່ນຕອງກະ ຂອງໜ້າລາຍງານ
+require __DIR__ . '/helpers/report_shift_filter.php';

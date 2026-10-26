@@ -106,7 +106,7 @@
     </script>
 
     <!-- Right side: Subscription Days Remaining + Notifications Bell + Logout -->
-    <ul class="navbar-nav ml-auto align-items-center" style="gap: 12px; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+    <ul class="navbar-nav ml-auto align-items-center" style="gap: 12px; font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
       
       <!-- Notifications Dropdown (Low Stock & Out of Stock Warning Grouped by Branch - Only for Main Branch / Admin) -->
       <?php if ($userCanAllBranches): ?>

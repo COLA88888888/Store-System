@@ -6,7 +6,7 @@
       <form id="bulkPrinterForm" action="" method="POST">
         <input type="hidden" name="action" value="bulk_set_printer">
         <div class="modal-header" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important;">
-          <h5 class="modal-title font-weight-bold text-white" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h5 class="modal-title font-weight-bold text-white" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-print mr-2"></i> <?php echo htmlspecialchars(t('categories.bulk_printer_title', 'ຕັ້ງເຄື່ອງພິມໃຫ້ທຸກໝວດໝູ່')); ?>
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">

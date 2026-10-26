@@ -135,18 +135,19 @@ function repMoneyInCode(kip, code, rate) {
 // (same as the checkout receipt, renderReceiptMultiCurrency).
 function fillReprintMultiCurrency(netKip, paidCode, paidRate) {
   paidCode = String(paidCode || 'KIP').toUpperCase();
-  // No exchange rate set up → the shop only uses KIP: no block at all (same as checkout).
+  // ຈ່າຍເປັນກີບ → ບໍ່ສະແດງເລີຍ; ຈ່າຍເປັນສະກຸນອື່ນທີ່ມີອັດຕາ → ສະແດງສະກຸນນັ້ນ (ຄືກັບໃບບິນຕອນຂາຍ)
   var r = REP_CUR.rates || {};
-  var hasRates = ['THB', 'USD', 'CNY'].some(function (c) { return parseFloat(r[c]) > 0; });
-  $('#rc_rep_multicur').css('display', hasRates ? 'block' : 'none');
-  if (!hasRates) return;
+  var show = paidCode !== 'KIP' && (parseFloat(paidRate) > 0 || parseFloat(r[paidCode]) > 0);
+  $('#rc_rep_multicur').css('display', show ? 'block' : 'none');
+  if (!show) return;
   ['KIP', 'THB', 'USD', 'CNY'].forEach(function (c) {
     var el = $('#rc_rep_total_' + c.toLowerCase());
-    if (c !== paidCode) { el.parent().css('display', 'none'); return; }
+    // ແຖວມີ class d-flex (display:flex !important) — ຕ້ອງໃສ່ !important ຈຶ່ງເຊື່ອງໄດ້ແທ້
+    if (c !== paidCode) { el.parent()[0].style.setProperty('display', 'none', 'important'); return; }
     var txt = repMoneyInCode(netKip, c, paidRate);
     var i = txt.lastIndexOf(' ');
     el.html(txt === '-' || i < 0 ? txt : txt.slice(0, i) + ' <span class="cur-sym">' + txt.slice(i + 1) + '</span>');
-    el.parent().css('display', 'flex');
+    el.parent()[0].style.setProperty('display', 'flex', 'important');
   });
 }
 // n is a KIP amount -> formatted string in the report currency

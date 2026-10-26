@@ -1,5 +1,5 @@
 <?php
-// Product image helpers — shared by products.php (single add / edit) and api_product.php
+// Product image helpers — shared by products.php (single add / edit) and api/products_api.php
 // (bulk-add rows upload their image ahead of the form submit).
 // ====== Helper Functions ສຳລັບຈັດການຮູບພາບສິນຄ້າ (ເກັບໄວ້ໃນ assets/product_img) ======
 function saveUploadedProductImage($fileInputKey = 'product_img', &$errorMsg = null) {

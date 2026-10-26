@@ -55,7 +55,7 @@ function openViewModal(user) {
 
   // ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດ (Id 1) ເທົ່ານັ້ນທີ່ແກ້ໄຂບັນຊີຜູ້ບໍລິຫານຄົນອື່ນໄດ້ — ແຕ່ຜູ້ບໍລິຫານ
   // ຄົນອື່ນຍັງແກ້ໄຂຂໍ້ມູນຂອງຕົນເອງໄດ້ (self-service). ຄືກົດເກນດຽວກັນກັບຕາຕະລາງ
-  // (users_manage.php: $canEditRow) ແລະ ຝັ່ງ server (api_user.php).
+  // (users_manage.php: $canEditRow) ແລະ ຝັ່ງ server (api/users_api.php).
   var isOwnerUserOnly = typeof IS_OWNER_USER !== 'undefined' ? IS_OWNER_USER : false;
   var canEditUsersPerm = typeof CAN_EDIT_USERS !== 'undefined' ? CAN_EDIT_USERS : false;
   var currentSessionUserId = typeof CURRENT_SESSION_USER_ID !== 'undefined' ? CURRENT_SESSION_USER_ID : 0;
@@ -199,7 +199,7 @@ function submitUserForm(e, formId, actionName) {
     });
   }
 
-  var targetUrl = typeof API_URL !== 'undefined' ? API_URL : 'api_user.php';
+  var targetUrl = typeof API_URL !== 'undefined' ? API_URL : '../../api/users_api.php';
 
   fetch(targetUrl, {
     method: 'POST',
@@ -254,7 +254,7 @@ function submitUserForm(e, formId, actionName) {
 
 // Confirm & Perform Delete
 function confirmDeleteUser(id, username) {
-  var targetUrl = typeof API_URL !== 'undefined' ? API_URL : 'api_user.php';
+  var targetUrl = typeof API_URL !== 'undefined' ? API_URL : '../../api/users_api.php';
   if (typeof Swal !== 'undefined') {
     Swal.fire({
       title: uT('users_js.delete_title'),
@@ -331,7 +331,7 @@ function confirmDeleteUser(id, username) {
 
 // ເປີດ / ປິດໃຊ້ງານບັນຊີ (ພະນັກງານລາອອກ) — ປິດແລ້ວເຂົ້າລະບົບບໍ່ໄດ້ ແຕ່ປະຫວັດຍັງຢູ່
 function toggleUserActive(id, username, active) {
-  var targetUrl = typeof API_URL !== 'undefined' ? API_URL : 'api_user.php';
+  var targetUrl = typeof API_URL !== 'undefined' ? API_URL : '../../api/users_api.php';
   var title = active ? uT('users_js.enable_title') : uT('users_js.disable_title');
   var text = active
     ? uT('users_js.enable_text', username)

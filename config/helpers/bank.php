@@ -43,12 +43,14 @@ if (!function_exists('resolveBankQr')) {
 // always show the same numbers. A bill counts toward the account its bank_account_id points at;
 // a bill with no account, or whose account was since deleted (bank removed and re-added), is
 // matched to the current account by bank name — so old BCEL bills still add up under BCEL.
-// $storeId 0 = every branch.
+// $storeId 0 = every branch. $shiftId > 0 = ສະເພາະບິນຂອງກະນັ້ນ (ບັອກເລືອກກະ ໜ້າລາຍງານປະຈຳວັນ) —
+// ບິນເກົ່າໃນ st_sales ບໍ່ມີກະ ຈຶ່ງບໍ່ນັບ.
 if (!function_exists('getBankTransferTotals')) {
-    function getBankTransferTotals($pdo, $startDate, $endDate, $storeId = 0) {
+    function getBankTransferTotals($pdo, $startDate, $endDate, $storeId = 0, $shiftId = 0) {
         $saveStore = '';
         $salesStore = '';
         $storeId = intval($storeId);
+        $shiftId = intval($shiftId);
         if ($storeId > 0) {
             try {
                 $c = $pdo->query("SHOW COLUMNS FROM st_tbsale_save")->fetchAll(PDO::FETCH_COLUMN);
@@ -58,6 +60,10 @@ if (!function_exists('getBankTransferTotals')) {
                 $col = in_array('store_id', $c) ? 'store_id' : (in_array('branch_id', $c) ? 'branch_id' : null);
                 if ($col) $salesStore = " AND {$col} = {$storeId}";
             } catch (Throwable $e) {}
+        }
+        if ($shiftId > 0) {
+            $saveStore .= " AND shift_session_id IN (SELECT id FROM st_shift_sessions WHERE shift_id = {$shiftId})";
+            $salesStore .= " AND 1 = 0";
         }
         $sql = "
             SELECT b.id AS bank_acc_id, COUNT(s.sale_id) AS total_tx, COALESCE(SUM(s.transfer_net_amount), 0) AS total_received

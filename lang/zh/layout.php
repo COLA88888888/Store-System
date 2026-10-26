@@ -90,6 +90,8 @@ return [
     'layout.expiry' => '过期商品管理',
     'layout.expiry_report' => '商品到期报表',
     'layout.shift_report' => '班次报表',
+    'layout.shift_close_report' => '交班结账报表',
+    'layout.shift_revenue_report' => '班次营业额报表',
     // ເມນູ/ແຈ້ງເຕືອນທີ່ເພີ່ມພາຍຫຼັງ
     'layout.expiry_near_header' => '即将过期 / 已过期商品',
     'layout.expiry_days_left' => '剩余 %d 天',

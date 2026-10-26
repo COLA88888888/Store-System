@@ -73,6 +73,11 @@ if ($filter_store_id > 0 && $hasStoreIdCol) {
     $where[] = "s.{$storeColName} = :filter_store_id";
     $params[':filter_store_id'] = $filter_store_id;
 }
+// ກະ (ບັອກເລືອກກະ — partials/shift_filter_select.php): ສະເພາະສາຂາດຽວທີ່ມີກະ
+$shiftFilter = reportShiftFilter($pdo, $filter_store_id);
+if ($shiftFilter['sql'] !== '') {
+    $where[] = $shiftFilter['sql'];
+}
 
 if ($currency_filter !== '' && $hasCurrencyCol) {
     $where[] = "COALESCE(NULLIF(s.paid_currency, ''), 'KIP') = :currency_filter";
@@ -152,7 +157,7 @@ try {
         foreach ($bListStmt->fetchAll(PDO::FETCH_ASSOC) as $b) {
             $bank_accounts_map[$b['id']] = $b;
         }
-        $bankTotals = getBankTransferTotals($pdo, $from_date !== '' ? $from_date : '2000-01-01', $to_date !== '' ? $to_date : date('Y-m-d'), $filter_store_id);
+        $bankTotals = getBankTransferTotals($pdo, $from_date !== '' ? $from_date : '2000-01-01', $to_date !== '' ? $to_date : date('Y-m-d'), $filter_store_id, $shiftFilter['id']);
         foreach ($bank_accounts_map as $bId => $bAcc) {
             $t = $bankTotals[$bId] ?? ['total_tx' => 0, 'total_received' => 0];
             $bank_daily_breakdown[] = [

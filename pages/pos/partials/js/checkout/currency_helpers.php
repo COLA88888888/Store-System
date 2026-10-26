@@ -75,21 +75,23 @@ function rcMoneyExact(kip) {
 }
 
 // The receipt's net-total currency block: only the currency the customer paid in.
+// ຈ່າຍເປັນກີບ (ບໍ່ໄດ້ເລືອກສະກຸນເງິນ) → ບໍ່ສະແດງເລີຍ (ບໍ່ໃຫ້ມີແຖວ "ກີບ (LAK)" ຊ້ຳກັບຍອດສຸດທິ);
+// ຈ່າຍເປັນສະກຸນອື່ນທີ່ມີອັດຕາແລກປ່ຽນ → ສະແດງຊື່ ແລະ ຍອດຂອງສະກຸນນັ້ນ (ເຊັ່ນ "ບາດ (THB): 250.00 ฿").
 function renderReceiptMultiCurrency(totalKip, paidCode, paidRate) {
   totalKip = parseFloat(totalKip) || 0;
   paidCode = String(paidCode || 'KIP').toUpperCase();
-  // No exchange rate set up (Settings → exchange rate) → the shop only uses KIP: no block at all.
   var r = window.POS_EX_RATES || {};
-  var hasRates = ['THB', 'USD', 'CNY'].some(function (c) { return parseFloat(r[c]) > 0; });
-  $('#rc_multicur').css('display', hasRates ? 'block' : 'none');
-  if (!hasRates) return;
+  var show = paidCode !== 'KIP' && (parseFloat(paidRate) > 0 || parseFloat(r[paidCode]) > 0);
+  $('#rc_multicur').css('display', show ? 'block' : 'none');
+  if (!show) return;
   ['KIP', 'THB', 'USD', 'CNY'].forEach(function (c) {
     var el = $('#rc_total_' + c.toLowerCase());
+    // ແຖວມີ class d-flex (display:flex !important) — ຕ້ອງໃສ່ !important ຈຶ່ງເຊື່ອງໄດ້ແທ້
     if (c === paidCode) {
       el.html(posMoneyIn(totalKip, c, paidRate));
-      el.parent().css('display', 'flex');
+      el.parent()[0].style.setProperty('display', 'flex', 'important');
     } else {
-      el.parent().css('display', 'none');
+      el.parent()[0].style.setProperty('display', 'none', 'important');
     }
   });
 }

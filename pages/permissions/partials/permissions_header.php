@@ -13,7 +13,7 @@
   
   <!-- Title ຫົວຂໍ້ໜ້າ (ທາງຊ້າຍ) -->
   <div class="d-flex align-items-center">
-    <h5 class="font-weight-bold mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; color: #0f172a; font-size: 1.1rem;">
+    <h5 class="font-weight-bold mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; color: #0f172a; font-size: 1.1rem;">
       <i class="fas fa-user-shield text-warning mr-2"></i> <?php echo htmlspecialchars(t('permissions.header_title', 'ກຳນົດສິດການໃຊ້ງານ')); ?>
     </h5>
   </div>

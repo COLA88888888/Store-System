@@ -290,4 +290,34 @@
   <?php endforeach; ?>
 </tr>
 
+<!-- 7.56 ຈັດການກະເຮັດວຽກ (ເມນູ ຕັ້ງຄ່າລະບົບ › ຈັດການກະເຮັດວຽກ — pages/settings/shifts/index.php) -->
+<tr>
+  <td class="pl-4">
+    <div class="perm-module-info">
+      <div class="perm-module-icon" style="background: #e0f2fe; color: #0891b2;">
+        <i class="fas fa-user-clock"></i>
+      </div>
+      <div>
+        <div class="perm-module-title"><?php echo htmlspecialchars(t('permissions.module_shifts_title', 'ຈັດການກະເຮັດວຽກ')); ?></div>
+        <div class="perm-module-desc"><?php echo htmlspecialchars(t('permissions.module_shifts_desc', 'ຕັ້ງຄ່າກະ, ເວລາເປີດ-ປິດ ແລະ ພະນັກງານປະຈຳກະ')); ?></div>
+      </div>
+    </div>
+  </td>
+  <td class="text-center">
+    <label class="matrix-switch">
+      <input type="checkbox"
+             id="perm_shifts_view_<?php echo $u['Id']; ?>"
+             data-perm="shifts"
+             data-user-id="<?php echo $u['Id']; ?>"
+             <?php echo (!empty($u['shifts']) || !empty($u['setup']) || $isAdmin) ? 'checked' : ''; ?>
+             <?php echo ($isAdmin) ? 'disabled' : ''; ?>
+             onchange="toggleUserPerm(<?php echo $u['Id']; ?>, 'shifts', this)">
+      <span class="matrix-slider"></span>
+    </label>
+  </td>
+  <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
+  <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
+  <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
+</tr>
+
 <?php require __DIR__ . '/setup/rates_to_database.php'; /* ແຖວສິດ: ອັດຕາແລກປ່ຽນ → ຖານຂໍ້ມູນ */ ?>

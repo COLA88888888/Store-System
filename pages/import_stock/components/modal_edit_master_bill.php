@@ -6,7 +6,7 @@
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
       <div class="modal-header bg-warning text-dark py-3">
-        <h5 class="modal-title font-weight-bold" id="editMasterBillModalLabel" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <h5 class="modal-title font-weight-bold" id="editMasterBillModalLabel" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <i class="fas fa-edit mr-2"></i> <?php echo htmlspecialchars(t('import_list.modal_master_title', 'ແກ້ໄຂຂໍ້ມູນໃບບິນຮັບເຂົ້າ:')); ?> <span id="edit_master_invoice_label" class="badge badge-light text-dark px-2 py-1"></span>
         </h5>
         <button type="button" class="close text-dark" data-dismiss="modal" aria-label="Close">

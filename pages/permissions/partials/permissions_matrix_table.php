@@ -39,7 +39,7 @@
           <!-- 2. Detail Body: ຕາຕະລາງສິດ Matrix Table (4 Columns: ເບິ່ງ, ເພີ່ມ, ແກ້ໄຂ, ລົບ) -->
           <div class="perm-detail-body">
             <div class="perm-matrix-table-wrapper">
-              <table class="table table-hover align-middle mb-0 perm-matrix-table" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+              <table class="table table-hover align-middle mb-0 perm-matrix-table" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
                 <thead class="bg-light">
                   <tr>
                     <th style="min-width: 240px;"><?php echo htmlspecialchars(t('permissions.col_menu', 'ເມນູລະບົບ (Sidebar Menu)')); ?></th>

@@ -9,7 +9,7 @@
   <!-- Header -->
   <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap" style="row-gap: 10px;">
     <div>
-      <h5 class="font-weight-bold text-dark mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+      <h5 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
         <i class="fas fa-wallet text-info mr-2"></i> <?php echo htmlspecialchars(t('reports.title_financial', 'ລາຍງານການເງິນ')); ?>
       </h5>
     </div>
@@ -81,6 +81,8 @@
         <input type="hidden" name="store_id" value="0">
       <?php endif; ?>
 
+<?php $shiftSelBoxStyle = 'flex: 1 1 150px; width: 100%;'; require dirname(__DIR__) . '/shift_filter_select.php'; /* ບັອກເລືອກກະ — ສາຂາທີ່ບໍ່ມີກະ: ເຊື່ອງ */ ?>
+
       <!-- Search Input (ຄົ້ນຫາ ເລກບິນ / ຊື່) -->
       <div style="flex: 1 1 180px; width: 100%;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
@@ -105,11 +107,11 @@
       </div>
 
       <!-- Action Buttons (ຄົ້ນຫາ & ຣີໂຫລດ) -->
-      <div style="flex: 1 1 140px; width: 100%;">
+      <div style="flex: 0 0 auto;">
         <label class="font-weight-bold text-dark mb-1 d-block d-md-none" style="font-size: 0.82rem; visibility: hidden;">&nbsp;</label>
-        <div class="d-flex align-items-center" style="gap: 8px; width: 100%;">
-          <button type="submit" class="btn btn-primary btn-sm font-weight-bold px-3 d-inline-flex align-items-center justify-content-center" style="border-radius: 8px; height: 38px; background: linear-gradient(135deg, #2c5aa0, #244886); flex: 1;">
-            <i class="fas fa-search mr-1.5"></i> <?php echo htmlspecialchars(t('reports.search_btn', 'ຄົ້ນຫາ')); ?>
+        <div class="d-flex align-items-center" style="gap: 8px;">
+          <button type="submit" class="btn btn-primary btn-sm font-weight-bold px-3 d-inline-flex align-items-center justify-content-center" style="border-radius: 8px; height: 38px; background: linear-gradient(135deg, #2c5aa0, #244886); white-space: nowrap;">
+            <i class="fas fa-search mr-1"></i> <?php echo htmlspecialchars(t('reports.search_btn', 'ຄົ້ນຫາ')); ?>
           </button>
           <a href="financial.php" class="btn btn-light btn-sm border font-weight-bold px-3 d-inline-flex align-items-center justify-content-center" style="border-radius: 8px; height: 38px;" title="<?php echo htmlspecialchars(t('reports.clear', 'ລ້າງຄ່າ')); ?>">
             <i class="fas fa-redo"></i>
@@ -264,7 +266,7 @@
         <ul class="pagination report-pagination mb-0">
           <!-- Previous Page -->
           <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-            <a class="page-link" href="financial.php?page=<?php echo max(1, $page - 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>&per_page=<?php echo urlencode($per_page_raw); ?>&currency_filter=<?php echo urlencode($currency_filter); ?>">
+            <a class="page-link" href="financial.php?page=<?php echo max(1, $page - 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>&per_page=<?php echo urlencode($per_page_raw); ?>&currency_filter=<?php echo urlencode($currency_filter) . reportShiftQs(); ?>">
               <i class="fas fa-chevron-left" style="font-size: 0.76rem;"></i>
             </a>
           </li>
@@ -275,7 +277,7 @@
             $endP   = min($total_pages, $page + $range);
 
             if ($startP > 1) {
-                echo '<li class="page-item"><a class="page-link" href="financial.php?page=1&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . '">1</a></li>';
+                echo '<li class="page-item"><a class="page-link" href="financial.php?page=1&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . reportShiftQs() . '">1</a></li>';
                 if ($startP > 2) {
                     echo '<li class="page-item disabled"><span class="page-link" style="border:none;">...</span></li>';
                 }
@@ -283,20 +285,20 @@
 
             for ($p = $startP; $p <= $endP; $p++) {
                 $activeClass = ($p == $page) ? 'active' : '';
-                echo '<li class="page-item ' . $activeClass . '"><a class="page-link" href="financial.php?page=' . $p . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . '">' . $p . '</a></li>';
+                echo '<li class="page-item ' . $activeClass . '"><a class="page-link" href="financial.php?page=' . $p . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . reportShiftQs() . '">' . $p . '</a></li>';
             }
 
             if ($endP < $total_pages) {
                 if ($endP < $total_pages - 1) {
                     echo '<li class="page-item disabled"><span class="page-link" style="border:none;">...</span></li>';
                 }
-                echo '<li class="page-item"><a class="page-link" href="financial.php?page=' . $total_pages . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . '">' . $total_pages . '</a></li>';
+                echo '<li class="page-item"><a class="page-link" href="financial.php?page=' . $total_pages . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . reportShiftQs() . '">' . $total_pages . '</a></li>';
             }
           ?>
 
           <!-- Next Page -->
           <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
-            <a class="page-link" href="financial.php?page=<?php echo min($total_pages, $page + 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>&per_page=<?php echo urlencode($per_page_raw); ?>&currency_filter=<?php echo urlencode($currency_filter); ?>">
+            <a class="page-link" href="financial.php?page=<?php echo min($total_pages, $page + 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>&per_page=<?php echo urlencode($per_page_raw); ?>&currency_filter=<?php echo urlencode($currency_filter) . reportShiftQs(); ?>">
               <i class="fas fa-chevron-right" style="font-size: 0.76rem;"></i>
             </a>
           </li>

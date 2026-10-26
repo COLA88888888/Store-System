@@ -154,19 +154,21 @@
           <div class="form-group mb-0 mt-3">
             <label class="font-weight-bold text-dark mb-1 d-flex justify-content-between align-items-center" style="font-size: 0.92rem;">
               <span><i class="fas fa-users text-primary mr-1"></i> ພະນັກງານໃນກະນີ້ <span class="text-danger">*</span></span>
-              <span class="badge badge-primary px-2 py-1" id="shiftStaffCount">0 ຄົນ</span>
+              <span class="badge badge-danger px-2 py-1" id="shiftStaffCount">0 ຄົນ</span>
             </label>
-            <div id="shiftStaffList" class="border rounded p-2" style="max-height: 180px; overflow-y: auto; border-color: #e2e8f0 !important; background: #fff;">
+            <div id="shiftStaffList" class="border rounded p-2" style="max-height: 180px; overflow-y: auto; border-color: #e2e8f0 !important; background: #fff; transition: all 0.3s ease;">
               <div class="text-muted small py-2 text-center"><i class="fas fa-spinner fa-spin mr-1"></i> ກຳລັງໂຫຼດ...</div>
             </div>
-            <small class="text-muted d-block mt-1" style="font-size: 0.82rem;">ຕິກເລືອກພະນັກງານທີ່ເຮັດວຽກໃນກະນີ້ (ຕ້ອງເລືອກຢ່າງໜ້ອຍ 1 ຄົນ)</small>
+            <small id="shiftStaffRequiredNotice" class="text-danger d-block mt-1 font-weight-bold" style="font-size: 0.82rem;">
+              <i class="fas fa-exclamation-circle mr-1"></i> ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ
+            </small>
           </div>
 
           <?php /* ສະວິດ "ເປີດໃຊ້ງານກະນີ້" ຖືກເອົາອອກ: ກະໃໝ່ເປີດໃຊ້ງານເລີຍ, ແກ້ໄຂແລ້ວສະຖານະເດີມຄົງເກົ່າ (api/shifts_backend.php) */ ?>
         </div>
         <div class="modal-footer bg-light" style="border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; border-top: 1px solid #e2e8f0; padding: 12px 24px;">
           <button type="button" class="btn btn-secondary px-4 font-weight-bold" data-dismiss="modal" style="border-radius: 4px; height: 42px;">ຍົກເລີກ</button>
-          <button type="submit" class="btn btn-primary px-4 font-weight-bold" style="border-radius: 4px; height: 42px; background: linear-gradient(135deg, #2c5aa0, #244886) !important; border: none; box-shadow: 0 4px 10px rgba(36, 72, 134, 0.2);">
+          <button type="submit" id="btnSaveShiftConfig" class="btn btn-primary px-4 font-weight-bold" style="border-radius: 4px; height: 42px; background: linear-gradient(135deg, #2c5aa0, #244886) !important; border: none; box-shadow: 0 4px 10px rgba(36, 72, 134, 0.2);">
             <i class="fas fa-save mr-1.5"></i> ບັນທຶກ
           </button>
         </div>
@@ -342,7 +344,7 @@
   <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document" style="max-height: calc(100vh - 40px); margin: 20px auto;">
     <div class="modal-content" style="border-radius: 8px; border: none; box-shadow: 0 15px 40px rgba(0,0,0,0.25); max-height: calc(100vh - 40px); display: flex; flex-direction: column; overflow: hidden;">
       <div class="modal-header text-white flex-shrink-0" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important; border-top-left-radius: 8px; border-top-right-radius: 8px; z-index: 10;">
-        <h5 class="modal-title font-weight-bold" style="font-size: 1.05rem;">
+        <h5 class="modal-title font-weight-bold" id="modalShiftReportTitle" style="font-size: 1.05rem;">
           <i class="fas fa-file-invoice-dollar text-warning mr-2"></i> <?php echo htmlspecialchars(t('shifts.rpt_modal_title', 'ລາຍງານສະຫຼຸບກະເຮັດວຽກ')); ?>
         </h5>
         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">
@@ -365,7 +367,7 @@
           </button>
         </div>
         <div class="d-flex" style="gap: 8px;">
-          <button type="button" class="btn btn-outline-dark font-weight-bold px-3 shadow-xs" onclick="printShiftThermalSlip()" style="border-radius: 4px;">
+          <button type="button" class="btn btn-outline-dark font-weight-bold px-3 shadow-xs" onclick="printShiftReportA4()" style="border-radius: 4px;">
             <i class="fas fa-print mr-1 text-primary"></i> <?php echo htmlspecialchars(t('shifts.rpt_btn_print', 'ພິມສະຫຼຸບ')); ?>
           </button>
           <button type="button" class="btn btn-success font-weight-bold px-3 shadow-xs" onclick="exportShiftReportExcel()" style="border-radius: 4px; background: #15803d; border-color: #15803d;">

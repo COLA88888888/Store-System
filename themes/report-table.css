@@ -56,7 +56,19 @@ table.rpt-table tfoot td {
 }
 
 /* ---- ປຸ່ມ Excel / PDF / ພິມ ---- */
-.rpt-export { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.rpt-export { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+@media (max-width: 575.98px) {
+  .rpt-export {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .rpt-export .btn.rpt-btn {
+    padding-left: 8px;
+    padding-right: 8px;
+    font-size: 0.82rem;
+  }
+}
 .btn.rpt-btn {
   border: none !important;
   color: #fff !important;

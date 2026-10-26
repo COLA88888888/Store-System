@@ -74,7 +74,7 @@ function quickAddZonePrompt(mode) {
   }).then(function(res) {
     if (res.isConfirmed && res.value) {
       var name = res.value.trim();
-      $.post('api_product.php', { action: 'add_zone', zone_name: name }, function(data) {
+      $.post('../../api/products_api.php', { action: 'add_zone', zone_name: name }, function(data) {
         if (data && data.success) {
           ['add', 'edit', 'bulk'].forEach(function(m) {
             var $sel = $('#' + m + '_zone');
@@ -124,7 +124,7 @@ function quickAddShelfPrompt(mode) {
   }).then(function(res) {
     if (res.isConfirmed && res.value) {
       var name = res.value.trim();
-      $.post('api_product.php', { action: 'add_shelf', shelf_name: name, zone_id: zoneId }, function(data) {
+      $.post('../../api/products_api.php', { action: 'add_shelf', shelf_name: name, zone_id: zoneId }, function(data) {
         if (data && data.success) {
           ['add', 'edit', 'bulk'].forEach(function(m) {
             var $sel = $('#' + m + '_shelf');

@@ -73,7 +73,7 @@ window.IS_ADMIN_USER = <?php echo $isAdmin ? 'true' : 'false'; ?>;
   <!-- Page Header -->
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap: 12px;">
     <div>
-      <h5 class="font-weight-bold text-dark mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+      <h5 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
         <i class="fas fa-calendar-alt mr-2" style="color: #2563eb;"></i> <?php echo htmlspecialchars(t('layout.shifts', 'ຈັດການກະເຮັດວຽກ')); ?>
       </h5>
       <small class="text-muted" style="font-size: 0.82rem;">ຕັ້ງຄ່າກຳນົດເວລາເລີ່ມຕົ້ນ ແລະ ສິ້ນສຸດຂອງກະເຮັດວຽກພາຍໃນຮ້ານ</small>

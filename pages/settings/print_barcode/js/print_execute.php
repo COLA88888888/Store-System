@@ -81,7 +81,7 @@
   printDoc += cfg.pageCss + ' ';
   printDoc += '@media print { @page { ' + (cfg.pageCss.replace('@page {', '').replace('}', '')) + ' } html, body { margin: 0 !important; padding: 0 !important; } } ';
   printDoc += '* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; } ';
-  printDoc += 'html, body { margin: 0 !important; padding: 0 !important; width: 100%; background: #ffffff; color: #000000; font-family: "Noto Sans Lao", "Souliyo", "Boon", Arial, sans-serif; } ';
+  printDoc += 'html, body { margin: 0 !important; padding: 0 !important; width: 100%; background: #ffffff; color: #000000; font-family: 'Nuanta', "Noto Sans Lao", "Souliyo", "Boon", Arial, sans-serif; } ';
 
   if (cfg.mode === 'single_roll') {
     printDoc += '.label-page { ' + cfg.pageBoxCss + ' } ';

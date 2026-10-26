@@ -70,6 +70,11 @@ if ($filter_store_id > 0 && $hasStoreIdCol) {
     $where[] = "s.{$storeColName} = :filter_store_id";
     $params[':filter_store_id'] = $filter_store_id;
 }
+// ກະ (ບັອກເລືອກກະ — partials/shift_filter_select.php): ສະເພາະສາຂາດຽວທີ່ມີກະ
+$shiftFilter = reportShiftFilter($pdo, $filter_store_id);
+if ($shiftFilter['sql'] !== '') {
+    $where[] = $shiftFilter['sql'];
+}
 
 // Currency Filter — which currency the customer actually tendered on the bill. Once
 // applied, every money figure on the page switches to show in that currency instead

@@ -81,6 +81,8 @@
         <input type="hidden" name="store_id" value="<?php echo $reportsCrossBranch ? 0 : $userStoreId; ?>">
       <?php endif; ?>
 
+<?php require __DIR__ . '/shift_filter_select.php'; /* ບັອກເລືອກກະ — ສາຂາທີ່ບໍ່ມີກະ: ເຊື່ອງ */ ?>
+
       <!-- Bank Account Filter Dropdown -->
       <div style="flex: 1 1 0; min-width: 150px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">

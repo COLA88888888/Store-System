@@ -58,7 +58,7 @@ require_once __DIR__ . '/../../layouts/header.php';
     <div class="container-fluid">
       <div class="row align-items-center">
         <div class="col-sm-6">
-          <h4 class="m-0 font-weight-bold text-dark" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h4 class="m-0 font-weight-bold text-dark" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-list-alt text-success mr-2"></i> <?php echo htmlspecialchars(t('import_list.page_title', 'ລາຍການສິນຄ້າຮັບເຂົ້າ')); ?>
           </h4>
         </div>
@@ -88,13 +88,14 @@ require_once __DIR__ . '/../../layouts/header.php';
         <?php if ($message_type === 'success'): ?>
           <script>
             $(document).ready(function() {
+              var swalTitle = '<?php echo (strpos($message, "ລົບ") !== false || strpos($message, "ຍົກເລີກ") !== false) ? "ລົບສຳເລັດ!" : htmlspecialchars(t("import_list.swal_success_title", "ດຳເນີນການສຳເລັດ!"), ENT_QUOTES); ?>';
               Swal.fire({
-                title: '<?php echo htmlspecialchars(t('import_list.swal_success_title', 'ດຳເນີນການສຳເລັດ!'), ENT_QUOTES); ?>',
+                title: swalTitle,
                 text: '<?php echo addslashes($message); ?>',
                 icon: 'success',
                 confirmButtonColor: '#10b981',
                 confirmButtonText: '<?php echo htmlspecialchars(t('import_list.ok_button', 'ຕົກລົງ'), ENT_QUOTES); ?>',
-                timer: 3500,
+                timer: 3000,
                 timerProgressBar: true
               });
             });
@@ -110,7 +111,7 @@ require_once __DIR__ . '/../../layouts/header.php';
         <div class="card-header bg-white border-bottom py-3 px-4">
           <div class="row align-items-center">
             <div class="col-md-6">
-              <h5 class="card-title font-weight-bold text-dark mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+              <h5 class="card-title font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
                 <i class="fas fa-table text-primary mr-2"></i> <?php echo htmlspecialchars(t('import_list.table_card_title', 'ຕາຕະລາງລາຍການສິນຄ້າຮັບເຂົ້າ')); ?>
               </h5>
             </div>

@@ -12,6 +12,40 @@
 // customer_display.php - DUAL-SCREEN POS CUSTOMER DISPLAY
 // ໜ້າຈໍສະແດງຜົນລູກຄ້າ Real-Time (POS System Primary Blue Theme)
 // ============================================================
+if (isset($_GET['action']) && $_GET['action'] === 'native_f11') {
+    header('Content-Type: application/json; charset=utf-8');
+    $lockFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'wlaodev_cd_f11.lock';
+    $force = !empty($_GET['force']);
+    $nowMs = (int)round(microtime(true) * 1000);
+    $lastMs = is_file($lockFile) ? (int)@file_get_contents($lockFile) : 0;
+    if (!$force && ($nowMs - $lastMs) < 320) {
+        echo json_encode(['ok' => true, 'dedup' => true]);
+        exit;
+    }
+    @file_put_contents($lockFile, (string)$nowMs);
+
+    $triggered = false;
+    if (stripos(PHP_OS, 'WIN') === 0 && function_exists('exec')) {
+        $vbsPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'wlaodev_cd_f11.vbs';
+        $vbsCode = "Set sh = CreateObject(\"WScript.Shell\")\r\n"
+                 . "For i = 1 To 25\r\n"
+                 . "    If sh.AppActivate(\"WlaoDev Customer Display\") Then\r\n"
+                 . "        WScript.Sleep 20\r\n"
+                 . "        sh.SendKeys \"{F11}\"\r\n"
+                 . "        Exit For\r\n"
+                 . "    End If\r\n"
+                 . "    WScript.Sleep 10\r\n"
+                 . "Next\r\n";
+        @file_put_contents($vbsPath, $vbsCode);
+        if (is_file($vbsPath)) {
+            @exec('cscript //NoLogo //B ' . escapeshellarg($vbsPath));
+            $triggered = true;
+        }
+    }
+    echo json_encode(['ok' => $triggered]);
+    exit;
+}
+
 require_once __DIR__ . '/../../config/db.php';
 
 // Store Info Retrieval directly from Database
@@ -86,20 +120,23 @@ $base_path = '../../';
   <!-- ບໍ່ໃຫ້ Chrome ຂຶ້ນ "ແປໜ້ານີ້ບໍ?" ທຸກເທື່ອທີ່ເປີດຈໍລູກຄ້າ -->
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Customer Display - <?php echo htmlspecialchars($company['com_name']); ?></title>
+  <title>WlaoDev Customer Display - <?php echo htmlspecialchars($company['com_name']); ?></title>
+  <link rel="preload" href="<?php echo $base_path; ?>plugins/three.min.js" as="script">
+  <link rel="preload" href="<?php echo $base_path; ?>assets/img/logosystem/wlaodev_system_logo.jpg" as="image">
 
   <link rel="shortcut icon" href="<?php echo htmlspecialchars($company['com_logo']); ?>" type="image/x-icon">
   <link rel="icon" href="<?php echo htmlspecialchars($company['com_logo']); ?>" type="image/png">
 
   <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/fontawesome-free/css/all.min.css">
-  <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/local-font.css">
+  <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/local-font.css?v=<?php echo @filemtime(__DIR__ . '/../../assets/css/local-font.css'); ?>">
   <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/main.min.css">
-  <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/global-custom/01-base.css">
-  <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/global-custom/02-components.css">
+  <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/global-custom/01-base.css?v=<?php echo @filemtime(__DIR__ . '/../../assets/css/global-custom/01-base.css'); ?>">
+  <link rel="stylesheet" href="<?php echo $base_path; ?>assets/css/global-custom/02-components.css?v=<?php echo @filemtime(__DIR__ . '/../../assets/css/global-custom/02-components.css'); ?>">
 
 <?php require __DIR__ . '/partials/customer_display/styles_layout.php'; /* CSS (1): ໂຄງໜ້າຈໍ ແລະ ຮ້ານ */ ?>
 <?php require __DIR__ . '/partials/customer_display/styles_payment.php'; /* CSS (2): QR ຊຳລະ ແລະ ຍອດລວມ */ ?>
 <?php require __DIR__ . '/partials/customer_display/styles_theme.php'; /* CSS (3): ໂສມໃໝ່ (ທັບ 1–2) */ ?>
+  <script src="<?php echo $base_path; ?>plugins/three.min.js"></script>
 </head>
 <body>
 
@@ -109,6 +146,7 @@ $base_path = '../../';
   </button>
 
 <?php require __DIR__ . '/partials/customer_display/page_body.php'; /* ສ່ວນສະແດງຜົນ */ ?>
+<?php require __DIR__ . '/partials/customer_display/minimart_3d.php'; /* 3D Cartoon Mini-Mart World (ແລ່ນທັນທີແບບ 0ms ກ່ອນ Paint) */ ?>
 <script src="<?php echo $base_path; ?>plugins/jquery/jquery.min.js"></script>
 <?php require __DIR__ . '/partials/customer_display/display_js.php'; /* JS ຂອງຈໍລູກຄ້າ */ ?>
 

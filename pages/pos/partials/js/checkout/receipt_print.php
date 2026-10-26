@@ -18,7 +18,7 @@
 // its #rc_rep_* ids (REPORT_RCPT_EXTRA_CSS in reports_js.php). Everything else about the bill
 // image (fonts, sizes, width, black/white) lives in assets/js/lan-receipt.js, shared by both, so
 // the bill printed at the sale and a reprint of it always come out the same.
-var POS_RCPT_EXTRA_CSS = ' #rc_total{font-size:19px !important;} #rc_multicur{font-size:14.5px !important;} #rc_bank_name_lbl{font-size:15px !important;}';
+var POS_RCPT_EXTRA_CSS = ' #rc_total{font-size:17px !important;} #rc_multicur{font-size:14.5px !important;} #rc_bank_name_lbl{font-size:15px !important;}';
 
 // ເປີດໜ້າຂາຍ: ໂຫຼດຟອນໃບບິນ ແລະ ແປງໂລໂກ້/QR ໄວ້ລ່ວງໜ້າ ຕອນໜ້າວ່າງ — ບິນທຳອິດຫຼັງເປີດໜ້າ ບໍ່ຕ້ອງລໍໂຫຼດ
 // (ໃຊ້ໄດ້ທັງ Bluetooth, LAN ແລະ ໜ້າຕ່າງພິມ). ລໍໃຫ້ໜ້າໂຫຼດແລ້ວກ່ອນ ບໍ່ໃຫ້ເປີດໜ້າຊ້າລົງ.
@@ -171,7 +171,9 @@ function printReceiptHtml(printContent) {
       td,th { padding:4px 0; vertical-align:top; color: #000 !important; font-weight: 400 !important; }
       th { font-weight: 400 !important; }
       .rc-strong, .rc-strong * { font-weight: 400 !important; -webkit-text-stroke: 0.25px #000; }
-      #rc_total { font-size: 19px !important; }
+      #rc_total { font-size: 17px !important; }
+      .rc-sum, .rc-sum * { font-size: 15px !important; font-weight: 400 !important; -webkit-text-stroke: 0.25px #000; }
+      .rc-net, .rc-net * { font-size: 17px !important; font-weight: 400 !important; -webkit-text-stroke: 0.25px #000; }
       #rc_multicur { font-size: 14.5px !important; }
       #rc_bank_name_lbl { font-size: 15px !important; }
       /* The bill image already carries its own margins — let it span the whole page */

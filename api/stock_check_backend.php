@@ -39,8 +39,10 @@ $scIsStaff    = ($scLoggedIn && !$scIsBoss && !$scIsManager); // ພະນັກ
 
 $scIsCounter  = $scLoggedIn && ($scIsManager || hasPermission('stock_check') || hasPermission('stock_count'));
 $scCanStart   = $scIsCounter;
-$scCanConfirm = $scIsCounter;
-$scCanApprove = $scIsCounter; // ບໍ່ຕ້ອງສົ່ງໃຫ້ຫົວໜ້າອະນຸມັດ — ພະນັກງານກໍສາມາດກົດບັນທຶກ ແລະ ປັບສະຕັອກໄດ້ເລີຍ
+// ກັນໂກງ: ພະນັກງານນັບ ແລ້ວ "ສົ່ງໃຫ້ຫົວໜ້າກວດ" ເທົ່ານັ້ນ — ປັບສະຕັອກ/ອະນຸມັດ/ສົ່ງກັບ ສະເພາະຜູ້ຈັດການ/ຜູ້ບໍລິຫານ
+// (ບໍ່ດັ່ງນັ້ນ ພະນັກງານທີ່ເອົາສິນຄ້າໄປ ກົດປັບສະຕັອກເອງ ສ່ວນຂາດກໍຫາຍໄປໂດຍຫົວໜ້າບໍ່ໄດ້ເຫັນ)
+$scCanConfirm = $scIsManager;
+$scCanApprove = $scIsManager;
 $scCanDelete  = $scIsManager;
 $scCanCount   = $scIsCounter;
 
@@ -122,20 +124,33 @@ function scSaveItems($pdo, $checkId, array $items, $userId) {
             counted_by = ?, counted_at = NOW(), counted_qty = IFNULL(counted_qty, 0) + ?
         WHERE id = ? AND check_id = ?");
     $note = $pdo->prepare("UPDATE st_stock_check_items SET note = ? WHERE id = ? AND check_id = ?");
+    // ກັນໂກງ: ທຸກການປ່ຽນຈຳນວນນັບ ບັນທຶກລົງ st_stock_check_count_log (ໃຜ / ຈາກ → ເປັນ) — ຫົວໜ້າເຫັນວ່າຖືກແກ້ຈັກເທື່ອ
+    $cur = $pdo->prepare("SELECT counted_qty FROM st_stock_check_items WHERE id = ? AND check_id = ?");
+    $log = $pdo->prepare("INSERT INTO st_stock_check_count_log (check_id, item_id, user_id, old_qty, new_qty, created_at) VALUES (?, ?, ?, ?, ?, NOW())");
+    $logChange = function ($id, $old, $new) use ($log, $checkId, $userId) {
+        if ($old === $new) return;
+        try { $log->execute([intval($checkId), $id, $userId, $old, $new]); } catch (Throwable $e) {}
+    };
     $ids = [];
     foreach ($items as $it) {
         if (!is_array($it) || empty($it['id'])) continue;
         $id = intval($it['id']);
         $ids[] = $id;
+        $cur->execute([$id, intval($checkId)]);
+        $oldRaw = $cur->fetchColumn();
+        $old = ($oldRaw === false || $oldRaw === null) ? null : (int)$oldRaw;
         $hasSet = array_key_exists('set', $it) || array_key_exists('counted_qty', $it);
         if ($hasSet) {
             $raw = array_key_exists('set', $it) ? $it['set'] : $it['counted_qty'];
             $v = ($raw === null || $raw === '') ? null : max(0, intval($raw));
             $set->execute([$v, $v, $userId, $v, $v, $v, $id, intval($checkId)]);
+            $logChange($id, $old, $v);
+            $old = $v;
         }
         $n = intval($it['add'] ?? 0);
         if ($n > 0) {
             $add->execute([$userId, $n, $id, intval($checkId)]);
+            $logChange($id, $old, ($old ?? 0) + $n);
         }
         if (array_key_exists('note', $it)) {
             $t = mb_substr(trim((string)$it['note']), 0, 255);
@@ -236,6 +251,16 @@ if ($scIsAjax) {
             }
             $pdo->commit();
 
+            // ກັນໂກງ (ນັບແບບບໍ່ເຫັນລະບົບ): ພະນັກງານບໍ່ໄດ້ຮັບຈຳນວນໃນລະບົບ / ສະຕັອກລ່າສຸດ / ຄົບ-ບໍ່ຄົບ —
+            // ບໍ່ດັ່ງນັ້ນເປີດ DevTools ກໍຮູ້ວ່າຕ້ອງປ້ອນເທົ່າໃດໃຫ້ "ຄົບ"
+            if ($scIsStaff) {
+                echo json_encode(['success' => true, 'item' => [
+                    'id' => $item['id'], 'product_id' => $item['product_id'], 'barcode' => $item['barcode'],
+                    'product_name' => $item['product_name'], 'unit' => $item['unit'],
+                ]]);
+                exit();
+            }
+
             $counted = ($item['counted_qty'] === null) ? null : intval($item['counted_qty']);
             // ຖ້ານັບຄົບແລ້ວ ແລະ ບໍ່ມີການຕັດສະຕັອກ
             $isComplete = ($counted !== null && $counted === $liveQty && !$stockCut);
@@ -290,6 +315,11 @@ if ($scIsAjax) {
 
         // ລາຍການທີ່ສົ່ງມາພ້ອມ: ບັນທຶກສະເພາະຜູ້ທີ່ແກ້ໄດ້ໃນສະຖານະນີ້ (ຄົນອື່ນ — ບໍ່ສົນ ບໍ່ປ່ຽນຕົວເລກ)
         $savedRows = (!empty($items) && $canEditNow) ? scSaveItems($pdo, $checkId, $items, $scUserId) : [];
+        if ($scIsStaff) {
+            // ກັນໂກງ: ພະນັກງານບໍ່ໄດ້ຮັບຈຳນວນໃນລະບົບ / ສ່ວນຕ່າງ ໃນຄຳຕອບ
+            foreach ($savedRows as &$sr) { unset($sr['system_qty'], $sr['diff']); }
+            unset($sr);
+        }
         if (isset($_POST['note']) && $canEditNow) {
             $pdo->prepare("UPDATE st_stock_checks SET note = ? WHERE id = ?")
                 ->execute([mb_substr(trim($_POST['note']), 0, 255), $checkId]);
@@ -451,6 +481,20 @@ if (!empty($_GET['id']) && empty($_GET['view'])) {
                              ORDER BY (i.counted_qty IS NOT NULL) DESC, i.counted_at DESC, IFNULL(i.zone, '') ASC, IFNULL(i.shelf, '') ASC, i.product_name ASC, i.id ASC");
         $it->execute([$scCheck['id']]);
         $scItems = $it->fetchAll(PDO::FETCH_ASSOC);
+
+        // ກັນໂກງ: ປະຫວັດການແກ້ຈຳນວນນັບຂອງແຕ່ລະລາຍການ (ສະເພາະຫົວໜ້າ/ຜູ້ບໍລິຫານ ເຫັນ) — count_view.php ສະແດງ "ແກ້ໄຂ N ເທື່ອ"
+        if (!$scIsStaff) {
+            try {
+                $lg = $pdo->prepare("SELECT l.item_id, l.old_qty, l.new_qty, l.created_at, $scUserNameSql AS who
+                                     FROM st_stock_check_count_log l LEFT JOIN st_tbuser u ON u.Id = l.user_id
+                                     WHERE l.check_id = ? ORDER BY l.id ASC");
+                $lg->execute([$scCheck['id']]);
+                $logByItem = [];
+                foreach ($lg->fetchAll(PDO::FETCH_ASSOC) as $l) $logByItem[$l['item_id']][] = $l;
+                foreach ($scItems as &$sci) $sci['edit_log'] = $logByItem[$sci['id']] ?? [];
+                unset($sci);
+            } catch (Throwable $e) {}
+        }
     } else {
         $sc_message = t('sc.s222');
         $sc_message_type = 'danger';

@@ -199,3 +199,38 @@
   <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
   <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
 </tr>
+
+<?php
+// 6.8 / 6.9 ລາຍງານປິດກະ ແລະ ລາຍງານລາຍຮັບຕາມກະ (ເມນູ ລາຍງານ › … — pages/reports/shift_close_report.php,
+// shift_revenue_report.php) — ສະວິດເບິ່ງຂອງແຕ່ລະໜ້າ; ບໍ່ມີສະວິດ = ຕາມຖັນ report (hasPermission alias)
+foreach ([
+    ['shift_close_report',   'fa-cash-register', t('permissions.module_shift_close_report_title', '↳ ລາຍງານປິດກະ')],
+    ['shift_revenue_report', 'fa-user-clock',    t('permissions.module_shift_revenue_report_title', '↳ ລາຍງານລາຍຮັບຕາມກະ')],
+] as [$__shMod, $__shIcon, $__shTitle]):
+?>
+<tr class="bg-light">
+  <td class="pl-4">
+    <div class="perm-module-info">
+      <i class="fas <?php echo $__shIcon; ?> text-info mr-2"></i>
+      <div>
+        <div class="perm-module-title" style="font-size: 0.92rem;"><?php echo htmlspecialchars($__shTitle); ?></div>
+      </div>
+    </div>
+  </td>
+  <td class="text-center">
+    <label class="matrix-switch">
+      <input type="checkbox"
+             id="perm_<?php echo $__shMod; ?>_view_<?php echo $u['Id']; ?>"
+             data-perm="<?php echo $__shMod; ?>"
+             data-user-id="<?php echo $u['Id']; ?>"
+             <?php echo (!empty($u[$__shMod]) || !empty($u['report']) || $isAdmin) ? 'checked' : ''; ?>
+             <?php echo ($isAdmin) ? 'disabled' : ''; ?>
+             onchange="toggleUserPerm(<?php echo $u['Id']; ?>, '<?php echo $__shMod; ?>', this)">
+      <span class="matrix-slider"></span>
+    </label>
+  </td>
+  <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
+  <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
+  <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
+</tr>
+<?php endforeach; ?>

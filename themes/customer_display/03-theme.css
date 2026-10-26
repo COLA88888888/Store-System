@@ -5,7 +5,9 @@
    ============================================================ */
     /* ===== ແຖບເທິງ: ບາງ ກະທັດຮັດ ===== */
     .display-header {
-      grid-template-columns: 1fr auto 1fr;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       padding: 6px 18px;
       min-height: 56px;
       background: linear-gradient(120deg, #1a3666 0%, #244886 55%, #2c5aa0 100%);
@@ -13,7 +15,7 @@
       border-bottom: 2px solid #ffd45a;
       box-shadow: 0 2px 10px rgba(36, 72, 134, 0.25);
     }
-    .header-brand { grid-column: 1; display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .header-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .header-logo {
       width: 42px; height: 42px; flex-shrink: 0;
       border-radius: 10px; background: #ffffff; padding: 3px;
@@ -33,30 +35,115 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .header-store-sub i { color: #ffd45a; margin-right: 3px; }
-    .header-welcome {
-      grid-column: 2; color: #ffffff; font-size: 0.98rem; font-weight: 700;
-      display: flex; align-items: center; gap: 7px;
-      padding: 3px 14px; border-radius: 999px;
-      background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.2);
+    .header-datetime {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 14px;
+      line-height: 1.15;
+      margin-right: 38px;
     }
-    .header-welcome i { color: #fb7185; animation: pulseHeart 1.4s ease-in-out infinite; }
-    .header-datetime { flex-direction: column; align-items: flex-end; gap: 0; line-height: 1.15; margin-right: 38px; }
-    .header-datetime .header-clock { font-size: 1.2rem; }
-    .header-datetime .header-date { font-size: 0.72rem; }
+    .header-sys-name {
+      font-size: 1.38rem;
+      font-weight: 900;
+      color: #ffd45a;
+      letter-spacing: 0.6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      white-space: nowrap;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+    .header-datetime-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0;
+    }
+    .header-datetime-text .header-clock { font-size: 1.2rem; }
+    .header-datetime-text .header-date { font-size: 0.72rem; }
     .fullscreen-toggle-btn { top: 13px; right: 12px; width: 30px; height: 30px; font-size: 0.8rem; }
 
-    /* ===== ພື້ນທີ່ຫຼັກ: ຕາຕະລາງກວ້າງຂຶ້ນ, QR ແຄບລົງ ===== */
-    .display-main { padding: 12px 14px; gap: 12px; }
-    .left-store-panel { flex: 0.62; }
-    .left-store-panel.has-3-qr { flex: 0.95; }
-    .right-order-panel { flex: 1.38; }
-    .particle-canvas { display: none; }   /* ພື້ນຫຼັງເຄື່ອນໄຫວ ລົບກວນສາຍຕາ */
+    /* ===== ພື້ນທີ່ຫຼັກ: ຕາຕະລາງ ແລະ ຮ້ານ 3D ===== */
+    .display-main { padding: 12px 14px; gap: 14px; }
+    .left-store-panel { flex: 1.1; display: flex; flex-direction: column; min-width: 0; }
+    .right-order-panel { flex: 1.2; min-width: 0; }
+    .particle-canvas { display: none; }
 
-    /* ແຜງ QR */
-    .store-card {
-      justify-content: center; padding: 18px 16px;
-      background: #ffffff; border: 1px solid #dbe3f0; border-radius: 16px;
+    /* ແຜງຮ້ານ 3D ມິນິມາດ (ເຕັມແຜງຊ້າຍມື 100% ບໍ່ມີ QR) */
+    .store-card.minimart-store-card {
+      padding: 0;
+      background: #f1f5f9;
+      border: 1px solid #dbe3f0;
+      border-radius: 16px;
       box-shadow: 0 6px 20px rgba(36, 72, 134, 0.08);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      flex: 1;
+    }
+    .minimart-3d-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 420px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #f1f5f9;
+    }
+    .minimart-3d-container {
+      width: 100%;
+      height: 100%;
+      flex: 1;
+      position: relative;
+    }
+    .minimart-3d-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+      outline: none;
+    }
+    .minimart-3d-topbar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .minimart-3d-topbar > * {
+      pointer-events: auto;
+    }
+    .mm-badge {
+      background: rgba(15, 23, 42, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #ffffff;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    }
+    .mm-status {
+      display: flex;
+      align-items: center;
     }
     .pay-qr-heading {
       font-size: 1.05rem; padding: 6px 16px; border-radius: 999px;
@@ -121,15 +208,31 @@
     .display-table-head th {
       background: #eef2fb; color: #1e3a6e; font-size: 0.9rem; font-weight: 800;
       padding: 10px 14px; border: none; border-bottom: 2px solid #dbe3f0;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .display-table-head th:nth-child(3) {
+      text-align: left !important;
+      padding-left: 14px !important;
     }
     /* ແຖວກະທັດຮັດ: ໂຕໜັງສື ແລະ ຮູບນ້ອຍລົງ, ຖັນຊື່ສິນຄ້າກວ້າງຂຶ້ນ (colgroup ໃນ page_body.php) ບໍ່ໃຫ້ຊື່ລົງຫຼາຍແຖວ */
     .display-table-body td { border: none; border-bottom: 1px solid #eef2f7; height: 50px; padding: 6px 12px; font-size: 0.95rem; }
     .display-table-body tr:nth-child(even) { background: #fafbfe; }
     .display-table-body tr.display-row-newest td { background: #e8f1ff; }
     .display-table-body tr.display-row-newest td:first-child { box-shadow: inset 4px 0 0 #2563eb; }
-    .display-table-body td:nth-child(3) { font-size: 1rem !important; color: #0f172a !important; line-height: 1.35; }
+    .display-table-body td:nth-child(1) { text-align: center !important; }
+    .display-table-body td:nth-child(2) { text-align: center !important; }
+    .display-table-body td:nth-child(3) { font-size: 1rem !important; color: #0f172a !important; line-height: 1.35; text-align: left !important; padding-left: 14px !important; }
     .display-table-body td:nth-child(3) small { font-size: 0.72rem !important; }
+    .display-table-body td:nth-child(4),
+    .display-table-body td:nth-child(5),
+    .display-table-body td:nth-child(6) { text-align: center !important; }
     .display-table-body td:last-child { font-size: 1.05rem !important; color: #047857 !important; font-weight: 800 !important; }
+
+    /* Utility alignment classes */
+    .text-left { text-align: left !important; }
+    .text-center { text-align: center !important; }
+    .text-right { text-align: right !important; }
     .display-pro-img { width: 38px; height: 38px; border-radius: 8px; border: 1px solid #e2e8f0; object-fit: contain; padding: 2px; box-shadow: none; }
     .badge-qty {
       background: #eef2fb; color: #1e3a6e; border: 1px solid #c7d2e8; box-shadow: none;
@@ -141,22 +244,76 @@
 
     /* ===== ແຖບຍອດລວມ: ຍອດທີ່ຕ້ອງຊຳລະ ເດັ່ນສຸດ ===== */
     .grand-total-banner {
-      margin: 0 14px 12px; padding: 10px 12px 10px 20px; border-radius: 16px; gap: 16px;
-      background: linear-gradient(135deg, #065f46 0%, #047857 55%, #059669 100%);
-      animation: none; box-shadow: 0 6px 18px rgba(5, 150, 105, 0.25);
+      margin: 0 14px 12px; padding: 10px 14px 10px 18px; border-radius: 14px; gap: 14px;
+      background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+      animation: none; box-shadow: 0 8px 24px rgba(4, 120, 87, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.12);
     }
-    .gt-substats { justify-content: space-evenly; gap: 10px; flex-wrap: nowrap; }
-    .gt-substat { padding: 6px 14px; border-radius: 12px; background: rgba(255, 255, 255, 0.12); min-width: 0; }
-    .gt-substat-label { font-size: 0.82rem; color: #d1fae5; }
-    .gt-substat-value { font-size: 1.3rem; }
-    #displayItemCount { font-size: 1.2rem; }
+    .gt-substats {
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: nowrap;
+      align-items: stretch;
+    }
+    .gt-substat {
+      padding: 7px 11px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-top: 1px solid rgba(255, 255, 255, 0.32);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      min-width: 0;
+      flex: 1 1 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    /* ປ່ອງທຳອິດ (ລາຍການສິນຄ້າ: 25 ລາຍການ / 31 ອັນ) ໃຫ້ກວ້າງກວ່າປ່ອງອື່ນ ເພື່ອບໍ່ໃຫ້ຕົວໜັງສືລົ້ນອອກຂອບໃນຈໍສຳພັດ 2 ໜ້າຈໍ */
+    .gt-substat:first-child {
+      flex: 1.42 0 auto;
+    }
+    .gt-substat:hover {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.08) 100%);
+      border-color: rgba(255, 255, 255, 0.30);
+    }
+    .gt-substat-label {
+      font-size: clamp(0.74rem, 0.82vw, 0.84rem);
+      font-weight: 700;
+      color: #a7f3d0;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      letter-spacing: 0.1px;
+      opacity: 0.95;
+    }
+    .gt-substat-label i {
+      color: #6ee7b7;
+      font-size: 0.82rem;
+    }
+    .gt-substat-value {
+      font-size: clamp(1.02rem, 1.22vw, 1.32rem);
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.2;
+      white-space: nowrap;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
+    }
+    #displayItemCount {
+      font-size: clamp(0.88rem, 0.98vw, 1.08rem);
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
     .gt-final {
-      border-left: none; padding: 8px 22px; border-radius: 14px;
-      background: #ffffff; min-width: 300px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+      border-left: none; padding: 8px 20px; border-radius: 12px;
+      background: #ffffff; min-width: 245px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
     }
-    .gt-final-label { color: #047857; font-size: 0.9rem; text-transform: none; letter-spacing: 0; }
-    .gt-final h2 { color: #065f46; font-size: 2.9rem; text-shadow: none; line-height: 1.1; }
+    .gt-final-label { color: #047857; font-size: 0.90rem; font-weight: 800; text-transform: none; letter-spacing: 0; }
+    .gt-final h2 { color: #065f46; font-size: 2.85rem; font-weight: 900; text-shadow: none; line-height: 1.1; }
 
     @media (max-height: 720px) {
       .display-header { min-height: 48px; padding: 4px 14px; }
@@ -185,25 +342,28 @@
       position: fixed;
       inset: 0;
       z-index: 2500;
-      background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(3px);
+      background: rgba(15, 23, 42, 0.40);
+      backdrop-filter: blur(1.5px);
+      -webkit-backdrop-filter: blur(1.5px);
       display: flex;
       align-items: center;
       justify-content: center;
       animation: bppFade 0.2s ease;
+      pointer-events: none;
     }
     @keyframes bppFade { from { opacity: 0; } to { opacity: 1; } }
     @keyframes bppPop { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     .bpp-card {
+      pointer-events: auto;
       background: #ffffff;
-      border-radius: 24px;
+      border-radius: 4px;
       padding: 24px 34px 26px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 10px;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-      border-top: 6px solid #244886;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.04);
       animation: bppPop 0.25s ease;
       max-height: 92vh;
     }
@@ -219,17 +379,60 @@
       width: 44px;
       height: 44px;
       object-fit: contain;
-      border-radius: 10px;
+      border-radius: 4px;
       border: 1px solid #e2e8f0;
       padding: 3px;
     }
+    .bpp-qr-frame {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      background: #ffffff;
+      border-radius: 4px;
+      margin: 2px 0;
+    }
+    .bpp-qr-frame .qr-corner {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-color: #244886;
+      border-style: solid;
+      pointer-events: none;
+    }
+    .bpp-qr-frame .qr-corner-tl {
+      top: 0;
+      left: 0;
+      border-width: 4px 0 0 4px;
+      border-top-left-radius: 4px;
+    }
+    .bpp-qr-frame .qr-corner-tr {
+      top: 0;
+      right: 0;
+      border-width: 4px 4px 0 0;
+      border-top-right-radius: 4px;
+    }
+    .bpp-qr-frame .qr-corner-bl {
+      bottom: 0;
+      left: 0;
+      border-width: 0 0 4px 4px;
+      border-bottom-left-radius: 4px;
+    }
+    .bpp-qr-frame .qr-corner-br {
+      bottom: 0;
+      right: 0;
+      border-width: 0 4px 4px 0;
+      border-bottom-right-radius: 4px;
+    }
     .bpp-qr {
-      width: min(52vh, 420px);
-      height: min(52vh, 420px);
+      width: min(50vh, 400px);
+      height: min(50vh, 400px);
       object-fit: contain;
-      border: 3px solid #244886;
-      border-radius: 18px;
-      padding: 10px;
+      display: block;
+      border: none;
+      border-radius: 4px;
+      padding: 4px;
       background: #ffffff;
     }
     .bpp-amount-label { font-size: 1.05rem; font-weight: 700; color: #64748b; margin-top: 4px; }
@@ -237,11 +440,10 @@
     .bpp-hint { font-size: 1rem; font-weight: 700; color: #475569; }
     .bpp-hint i { color: #244886; margin-right: 6px; }
 
-    /* ຈໍແຄບ: ເຊື່ອງຄຳຕ້ອນຮັບ ໃຫ້ຊື່ຮ້ານມີບ່ອນ */
+    /* ຈໍແຄບ */
     @media (max-width: 1100px) {
-      .header-welcome { display: none; }
-      .display-header { grid-template-columns: 1fr auto; }
-      .header-datetime { grid-column: 2; }
+      .header-sys-name { font-size: 1.15rem; padding: 0; }
+      .header-datetime { gap: 8px; margin-right: 32px; }
       .gt-final { min-width: 220px; }
     }
   

@@ -66,6 +66,11 @@ if ($filter_store_id > 0 && $hasStoreIdCol) {
     $where[] = "s.{$storeColName} = :filter_store_id";
     $params[':filter_store_id'] = $filter_store_id;
 }
+// ກະ (ບັອກເລືອກກະ — partials/shift_filter_select.php): ສະເພາະສາຂາດຽວທີ່ມີກະ
+$shiftFilter = reportShiftFilter($pdo, $filter_store_id);
+if ($shiftFilter['sql'] !== '') {
+    $where[] = $shiftFilter['sql'];
+}
 if (!empty($search)) {
     $where[] = "(s.sale_save_bill LIKE :search OR u.username LIKE :search OR u.fname LIKE :search OR u.lname LIKE :search OR s.user_receive LIKE :search)";
     $params[':search'] = '%' . $search . '%';
@@ -133,7 +138,7 @@ require_once __DIR__ . '/partials/reports_modal.php';
   <!-- Header -->
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
-      <h5 class="font-weight-bold text-dark mb-1" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+      <h5 class="font-weight-bold text-dark mb-1" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
         <i class="fas fa-history text-danger mr-2"></i> <?php echo htmlspecialchars(t('reports.title_delete_bills', 'ປະຫວັດການລົບບິນຂາຍ')); ?>
       </h5>
     </div>
@@ -192,6 +197,8 @@ require_once __DIR__ . '/partials/reports_modal.php';
         <input type="hidden" name="store_id" value="0">
       <?php endif; ?>
 
+<?php $shiftSelBoxStyle = 'flex: 1 1 150px; width: 100%;'; require __DIR__ . '/partials' . '/shift_filter_select.php'; /* ບັອກເລືອກກະ — ສາຂາທີ່ບໍ່ມີກະ: ເຊື່ອງ */ ?>
+
       <!-- Combined Search Box (ຄົ້ນຫາ ເລກບິນ ຫຼື ພະນັກງານ) -->
       <div style="flex: 1 1 250px; width: 100%;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
@@ -216,10 +223,10 @@ require_once __DIR__ . '/partials/reports_modal.php';
       </div>
 
       <!-- Buttons -->
-      <div style="flex: 1 1 130px; width: 100%;">
-        <div class="d-flex align-items-center" style="gap: 8px; width: 100%;">
-          <button type="submit" class="btn btn-primary btn-sm font-weight-bold px-3 d-inline-flex align-items-center justify-content-center" style="border-radius: 8px; height: 38px; background: linear-gradient(135deg, #2c5aa0, #244886); flex: 1;">
-            <i class="fas fa-search mr-1.5"></i> <?php echo htmlspecialchars(t('reports.search_btn', 'ຄົ້ນຫາ')); ?>
+      <div style="flex: 0 0 auto;">
+        <div class="d-flex align-items-center" style="gap: 8px;">
+          <button type="submit" class="btn btn-primary btn-sm font-weight-bold px-3 d-inline-flex align-items-center justify-content-center" style="border-radius: 8px; height: 38px; background: linear-gradient(135deg, #2c5aa0, #244886); white-space: nowrap;">
+            <i class="fas fa-search mr-1"></i> <?php echo htmlspecialchars(t('reports.search_btn', 'ຄົ້ນຫາ')); ?>
           </button>
           <a href="delete_bills.php" class="btn btn-light btn-sm border font-weight-bold px-3 d-inline-flex align-items-center justify-content-center" style="border-radius: 8px; height: 38px;" title="<?php echo htmlspecialchars(t('reports.clear', 'ລ້າງຄ່າ')); ?>">
             <i class="fas fa-redo"></i>
@@ -303,7 +310,7 @@ require_once __DIR__ . '/partials/reports_modal.php';
       <nav aria-label="Page navigation" class="ml-auto">
         <ul class="pagination report-pagination mb-0">
           <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-            <a class="page-link" href="delete_bills.php?page=<?php echo max(1, $page - 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>&employee_name=<?php echo urlencode($employee_name); ?>&per_page=<?php echo urlencode($per_page_raw); ?>&currency_filter=<?php echo urlencode($currency_filter); ?>">
+            <a class="page-link" href="delete_bills.php?page=<?php echo max(1, $page - 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>&employee_name=<?php echo urlencode($employee_name); ?>&per_page=<?php echo urlencode($per_page_raw); ?>&currency_filter=<?php echo urlencode($currency_filter) . reportShiftQs(); ?>">
               <i class="fas fa-chevron-left" style="font-size: 0.76rem;"></i>
             </a>
           </li>
@@ -314,7 +321,7 @@ require_once __DIR__ . '/partials/reports_modal.php';
             $endP   = min($total_pages, $page + $range);
 
             if ($startP > 1) {
-                echo '<li class="page-item"><a class="page-link" href="delete_bills.php?page=1&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&employee_name=' . urlencode($employee_name) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . '">1</a></li>';
+                echo '<li class="page-item"><a class="page-link" href="delete_bills.php?page=1&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&employee_name=' . urlencode($employee_name) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . reportShiftQs() . '">1</a></li>';
                 if ($startP > 2) {
                     echo '<li class="page-item disabled"><span class="page-link" style="border:none;">...</span></li>';
                 }
@@ -322,19 +329,19 @@ require_once __DIR__ . '/partials/reports_modal.php';
 
             for ($p = $startP; $p <= $endP; $p++) {
                 $activeClass = ($p == $page) ? 'active' : '';
-                echo '<li class="page-item ' . $activeClass . '"><a class="page-link" href="delete_bills.php?page=' . $p . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&employee_name=' . urlencode($employee_name) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . '">' . $p . '</a></li>';
+                echo '<li class="page-item ' . $activeClass . '"><a class="page-link" href="delete_bills.php?page=' . $p . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&employee_name=' . urlencode($employee_name) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . reportShiftQs() . '">' . $p . '</a></li>';
             }
 
             if ($endP < $total_pages) {
                 if ($endP < $total_pages - 1) {
                     echo '<li class="page-item disabled"><span class="page-link" style="border:none;">...</span></li>';
                 }
-                echo '<li class="page-item"><a class="page-link" href="delete_bills.php?page=' . $total_pages . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&employee_name=' . urlencode($employee_name) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . '">' . $total_pages . '</a></li>';
+                echo '<li class="page-item"><a class="page-link" href="delete_bills.php?page=' . $total_pages . '&from_date=' . urlencode($from_date) . '&to_date=' . urlencode($to_date) . '&search=' . urlencode($search) . '&employee_name=' . urlencode($employee_name) . '&per_page=' . urlencode($per_page_raw) . '&currency_filter=' . urlencode($currency_filter) . reportShiftQs() . '">' . $total_pages . '</a></li>';
             }
           ?>
 
           <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
-            <a class="page-link" href="delete_bills.php?page=<?php echo min($total_pages, $page + 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>&employee_name=<?php echo urlencode($employee_name); ?>&per_page=<?php echo urlencode($per_page_raw); ?>&currency_filter=<?php echo urlencode($currency_filter); ?>">
+            <a class="page-link" href="delete_bills.php?page=<?php echo min($total_pages, $page + 1); ?>&from_date=<?php echo urlencode($from_date); ?>&to_date=<?php echo urlencode($to_date); ?>&search=<?php echo urlencode($search); ?>&employee_name=<?php echo urlencode($employee_name); ?>&per_page=<?php echo urlencode($per_page_raw); ?>&currency_filter=<?php echo urlencode($currency_filter) . reportShiftQs(); ?>">
               <i class="fas fa-chevron-right" style="font-size: 0.76rem;"></i>
             </a>
           </li>

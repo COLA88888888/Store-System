@@ -36,8 +36,7 @@ $activeStoreId = intval($_SESSION['store_id'] ?? 1);
 
 $action = trim($_POST['action'] ?? $_GET['action'] ?? '');
 
-// ທຸກຄຳຂໍ: ປິດອໍໂຕ້ກະທີ່ຮອດໂມງປິດ ແລະ ບໍ່ມີໃຜໃຊ້ງານ (config/helpers/shift_auto.php) — ສະຖານະທີ່ສົ່ງຄືນຈຶ່ງເປັນປັດຈຸບັນສະເໝີ
-shiftAutoCloseStale($pdo);
+// ບໍ່ປິດກະອໍໂຕ້ເມື່ອກາຍໂມງ: ໃຫ້ພະນັກງານປິດເອງສະເໝີ ("ກາຍໂມງກະຢ່າ ປິດກາຍໂມງບໍ່ມີບັນຫາ ບໍ່ໃຫ້ເດັ້ງຟອມເປີດກະມາ ຖ້າແຕ່ປິດ")
 
 // ພະນັກງານປະຈຳກະ: ສະແດງສະເພາະຕຳແໜ່ງ "ພະນັກງານ" ຂອງສາຂານີ້ (ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການບໍ່ໃຫ້ໂຊ)
 function shiftStaffList($pdo, $idsCsv, $storeId) {
@@ -69,6 +68,13 @@ function shiftHeldCount($pdo, $storeId) {
 // ພະນັກງານ: ບໍ່ເຫັນສ່ວນຕ່າງເງິນສົດ (ສະເພາະຜູ້ຈັດການ/ຜູ້ບໍລິຫານ) ແລະ ເຫັນສະເພາະກະທີ່ຕົນເອງເປີດ ຫຼື ປິດ
 function shiftIsOwn(array $s, $userId) {
     return (int)($s['opened_by_user_id'] ?? 0) === (int)$userId || (int)($s['closed_by_user_id'] ?? 0) === (int)$userId;
+}
+// ສາຂາທີ່ໜ້າລາຍງານຕາມກະຂໍເບິ່ງ (?branch=N, 0 = ທຸກສາຂາ): ສະເພາະຜູ້ທີ່ເບິ່ງທຸກສາຂາໄດ້ (canViewAllBranches);
+// ຄົນອື່ນ ຫຼື ບໍ່ສົ່ງມາ = ສາຂາຕົນເອງ. ໃຊ້ ?branch ບໍ່ແມ່ນ ?store_id — store_id ຈະປ່ຽນສາຂາທີ່ເບິ່ງທົ່ວລະບົບ
+// (config/bootstrap/branch_switcher.php).
+function shiftRequestedStore($pdo, $ownStoreId) {
+    if (!isset($_GET['branch']) || $_GET['branch'] === '' || !canViewAllBranches($pdo)) return (int)$ownStoreId;
+    return max(0, intval($_GET['branch']));
 }
 function shiftHideDiff(array $s) {
     $s['difference_cash'] = null;
@@ -124,23 +130,10 @@ try {
                 $sessionId = intval($activeSession['id']);
                 $openTime = $activeSession['open_time'];
 
-                $stmtSales = $pdo->prepare("
-                    SELECT 
-                        COUNT(*) as total_bills,
-                        COALESCE(SUM(CASE WHEN cash_received > 0 THEN cash_received WHEN type_pay = 'ເງິນສົດ' THEN sale_barlance ELSE 0 END), 0) as cash_sales,
-                        COALESCE(SUM(CASE WHEN qr_received > 0 THEN qr_received WHEN type_pay IN ('ໂອນເງິນ / QR', 'ໂອນຈ່າຍ') THEN sale_barlance ELSE 0 END), 0) as transfer_sales,
-                        COALESCE(SUM(CASE WHEN type_pay = 'ຕິດໜີ້' THEN sale_barlance ELSE 0 END), 0) as debt_sales,
-                        COALESCE(SUM(sale_barlance), 0) as total_sales
-                    FROM st_tbsale_save
-                    WHERE (shift_session_id = :sid OR (store_id = :store_id AND CONCAT(sale_date, ' ', sale_time) >= :open_time))
-                      AND sale_status = 'SUCCESS'
-                ");
-                $stmtSales->execute([
-                    ':sid' => $sessionId,
-                    ':store_id' => $activeStoreId,
-                    ':open_time' => $openTime
-                ]);
-                $salesSummary = $stmtSales->fetch(PDO::FETCH_ASSOC);
+                // ກົດດຽວກັບປິດກະ ແລະ ລາຍງານ (shiftSalesTotals — ບໍ່ນັບເງິນທອນເປັນຍອດຂາຍ)
+                $t = shiftSalesTotals($pdo, $activeSession, date('Y-m-d H:i:s'));
+                $salesSummary = ['total_bills' => $t['bills'], 'cash_sales' => $t['cash'], 'transfer_sales' => $t['transfer'],
+                                 'debt_sales' => $t['debt'], 'total_sales' => $t['total']];
                 $scheduledEnd = shiftSessionEnd($pdo, $activeSession);
 
                 respond([
@@ -370,31 +363,16 @@ try {
             $openTime = $session['open_time'];
             $endTime = ($session['status'] === 'closed' && !empty($session['close_time'])) ? $session['close_time'] : date('Y-m-d H:i:s');
 
-            // ຄິດໄລ່ຍອດຂາຍ
-            $stmtSales = $pdo->prepare("
-                SELECT 
-                    COUNT(*) as total_bills,
-                    COALESCE(SUM(CASE WHEN cash_received > 0 THEN cash_received WHEN type_pay = 'ເງິນສົດ' THEN sale_barlance ELSE 0 END), 0) as cash_sales,
-                    COALESCE(SUM(CASE WHEN qr_received > 0 THEN qr_received WHEN type_pay IN ('ໂອນເງິນ / QR', 'ໂອນຈ່າຍ') THEN sale_barlance ELSE 0 END), 0) as transfer_sales,
-                    COALESCE(SUM(CASE WHEN type_pay = 'ຕິດໜີ້' THEN sale_barlance ELSE 0 END), 0) as debt_sales,
-                    COALESCE(SUM(sale_barlance), 0) as total_sales
-                FROM st_tbsale_save
-                WHERE (shift_session_id = :sid OR (store_id = :store_id AND CONCAT(sale_date, ' ', sale_time) >= :open_time AND CONCAT(sale_date, ' ', sale_time) <= :end_time))
-                  AND sale_status = 'SUCCESS'
-            ");
-            $stmtSales->execute([
-                ':sid' => $sessionId,
-                ':store_id' => $activeStoreId,
-                ':open_time' => $openTime,
-                ':end_time' => $endTime
-            ]);
-            $salesSummary = $stmtSales->fetch(PDO::FETCH_ASSOC);
+            // ຄິດໄລ່ຍອດຂາຍ — ກົດດຽວກັບປິດກະ ແລະ ລາຍງານ (config/helpers/shift_auto.php shiftSalesTotals)
+            $t = shiftSalesTotals($pdo, $session, $endTime);
+            $salesSummary = ['total_bills' => $t['bills'], 'cash_sales' => $t['cash'], 'transfer_sales' => $t['transfer'],
+                             'debt_sales' => $t['debt'], 'total_sales' => $t['total']];
 
             // ດຶງລາຍຊື່ຜູ້ຂາຍທີ່ເຄື່ອນໄຫວໃນກະນີ້
             $stmtCashiers = $pdo->prepare("
                 SELECT DISTINCT user_receive 
                 FROM st_tbsale_save 
-                WHERE (shift_session_id = :sid OR (store_id = :store_id AND CONCAT(sale_date, ' ', sale_time) >= :open_time AND CONCAT(sale_date, ' ', sale_time) <= :end_time))
+                WHERE (shift_session_id = :sid OR (store_id = :store_id AND shift_session_id IS NULL AND CONCAT(sale_date, ' ', sale_time) >= :open_time AND CONCAT(sale_date, ' ', sale_time) <= :end_time))
                   AND sale_status = 'SUCCESS'
             ");
             $stmtCashiers->execute([
@@ -539,19 +517,33 @@ try {
         // 5. ລາຍການຕັ້ງຄ່າກະ (List Shift Definitions for Settings)
         // ====================================================================
         case 'list_shifts': {
+            // ?branch (ບັອກສາຂາ ໜ້າລາຍງານຕາມກະ) — 0 = ກະຂອງທຸກສາຂາ (ພ້ອມຊື່ສາຂາ)
+            $listStore = shiftRequestedStore($pdo, $activeStoreId);
             $stmt = $pdo->prepare("
-                SELECT * FROM st_shifts 
-                WHERE store_id = ? 
-                ORDER BY start_time ASC
+                SELECT sh.*, st.store_name FROM st_shifts sh
+                LEFT JOIN st_tbstore st ON st.store_id = sh.store_id
+                WHERE ((? = 0 AND st.store_id IS NOT NULL) OR sh.store_id = ?)   -- ທຸກສາຂາ: ບໍ່ເອົາກະຂອງສາຂາທີ່ບໍ່ມີຢູ່ແລ້ວ
+                ORDER BY sh.store_id ASC, sh.start_time ASC
             ");
-            $stmt->execute([$activeStoreId]);
+            $stmt->execute([$listStore, $listStore]);
             $shifts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // ກະທີ່ມີພະນັກງານເປີດຢູ່ຕອນນີ້ (session status = 'open') — ຖັນສະຖານະອອນໄລນ໌ສະເພາະກະນັ້ນ
+            $openStmt = $pdo->prepare("SELECT shift_id, opened_by_name, open_time FROM st_shift_sessions
+                                       WHERE (? = 0 OR store_id = ?) AND status = 'open' ORDER BY id DESC");
+            $openStmt->execute([$listStore, $listStore]);
+            $openByShift = [];
+            foreach ($openStmt->fetchAll(PDO::FETCH_ASSOC) as $o) {
+                if (!isset($openByShift[$o['shift_id']])) $openByShift[$o['shift_id']] = $o;
+            }
 
             // ຈັດຮູບແບບເວລາໃຫ້ອ່ານງ່າຍ + ພະນັກງານປະຈຳກະ
             foreach ($shifts as &$s) {
                 $s['start_time_fmt'] = substr($s['start_time'], 0, 5);
                 $s['end_time_fmt'] = substr($s['end_time'], 0, 5);
-                $s['staff'] = shiftStaffList($pdo, $s['staff_user_ids'] ?? '', $activeStoreId);
+                $s['staff'] = shiftStaffList($pdo, $s['staff_user_ids'] ?? '', (int)$s['store_id']);
+                $o = $openByShift[$s['id']] ?? null;
+                $s['open_session'] = $o ? ['opened_by_name' => $o['opened_by_name'], 'open_time_fmt' => date('H:i', strtotime($o['open_time']))] : null;
             }
             unset($s);
 
@@ -590,7 +582,7 @@ try {
             }
             // ຕ້ອງມີພະນັກງານໃນກະຢ່າງໜ້ອຍ 1 ຄົນ (ພະນັກງານຂອງສາຂານີ້ທີ່ຖືກຕ້ອງ)
             if ($staffCsv === '') {
-                respond(['success' => false, 'message' => 'ກະລຸນາຕິກເລືອກພະນັກງານໃນກະນີ້ຢ່າງໜ້ອຍ 1 ຄົນ']);
+                respond(['success' => false, 'message' => 'ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ']);
             }
 
             // Format HH:MM:00
@@ -677,19 +669,23 @@ try {
             $dateTo = trim($_GET['date_to'] ?? date('Y-m-d'));
             $shiftId = intval($_GET['shift_id'] ?? 0);
 
+            $listStore = shiftRequestedStore($pdo, $activeStoreId);   // 0 = ທຸກສາຂາ
             $sql = "
-                SELECT s.*, 
+                SELECT s.*, st.store_name,
                        TIMESTAMPDIFF(MINUTE, s.open_time, COALESCE(s.close_time, NOW())) as duration_minutes
                 FROM st_shift_sessions s
-                WHERE s.store_id = :store_id
-                  AND DATE(s.open_time) >= :dfrom 
+                LEFT JOIN st_tbstore st ON st.store_id = s.store_id
+                WHERE DATE(s.open_time) >= :dfrom
                   AND DATE(s.open_time) <= :dto
             ";
             $params = [
-                ':store_id' => $activeStoreId,
                 ':dfrom' => $dateFrom,
                 ':dto' => $dateTo
             ];
+            if ($listStore > 0) {
+                $sql .= " AND s.store_id = :store_id";
+                $params[':store_id'] = $listStore;
+            }
 
             if ($shiftId > 0) {
                 $sql .= " AND s.shift_id = :shift_id";
@@ -701,9 +697,43 @@ try {
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             $sessions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // ຍອດຂອງແຕ່ລະກະ ຄິດສົດຈາກບິນ (ກະທີ່ເປີດຢູ່ກໍມີຍອດ; ບິນທີ່ຍົກເລີກພາຍຫຼັງບໍ່ນັບ; ສ່ວນຕ່າງຖືກຕ້ອງ)
+            foreach ($sessions as $k => $row) {
+                $sessions[$k] = shiftApplyLiveTotals($pdo, $row);
+            }
             if ($isCashier) {
                 // ພະນັກງານ: ເຫັນສະເພາະກະຂອງຕົນເອງ ແລະ ບໍ່ເຫັນສ່ວນຕ່າງ
                 $sessions = array_values(array_map('shiftHideDiff', array_filter($sessions, function ($r) use ($userId) { return shiftIsOwn($r, $userId); })));
+            }
+
+            // ດຶງຂໍ້ມູນທະນາຄານທີ່ມີການໂອນເງິນໃນແຕ່ລະກະ (ສຳລັບສະແດງໂລໂກ້ທະນາຄານໃນຖັນ ຂາຍໂອນ/QR)
+            $sessionIds = array_filter(array_column($sessions, 'id'));
+            $sessionBanks = [];
+            if (!empty($sessionIds)) {
+                $ph = implode(',', array_fill(0, count($sessionIds), '?'));
+                $stmtBank = $pdo->prepare("
+                    SELECT s.shift_session_id, s.bank_name, b.bank_logo, b.bank_code, b.bank_name AS account_bank_name,
+                           SUM(s.sale_barlance) as bank_total
+                    FROM st_tbsale_save s
+                    LEFT JOIN st_bank_accounts b ON (b.id = s.bank_account_id OR (s.bank_account_id IS NULL AND b.bank_name = s.bank_name))
+                    WHERE s.shift_session_id IN ($ph)
+                      AND (s.type_pay LIKE '%ໂອນ%' OR s.type_pay LIKE '%QR%' OR s.qr_received > 0)
+                      AND s.sale_status = 'SUCCESS'
+                    GROUP BY s.shift_session_id, s.bank_name, b.bank_logo, b.bank_code, b.bank_name
+                ");
+                $stmtBank->execute($sessionIds);
+                foreach ($stmtBank->fetchAll(PDO::FETCH_ASSOC) as $bk) {
+                    $sid = $bk['shift_session_id'];
+                    $bName = trim((string)($bk['bank_name'] ?: ($bk['account_bank_name'] ?? '')));
+                    $logo = !empty($bk['bank_logo']) ? $bk['bank_logo'] : '';
+                    $logoUrl = $logo ? ('../../assets/img/banks/' . basename($logo)) : '';
+                    $sessionBanks[$sid][] = [
+                        'bank_name' => $bName ?: 'ໂອນ',
+                        'bank_logo' => $logo,
+                        'bank_logo_url' => $logoUrl,
+                        'total' => floatval($bk['bank_total'])
+                    ];
+                }
             }
 
             // ຍອດລວມ KPI
@@ -721,12 +751,16 @@ try {
                 $row['counted_sales_cash'] = $row['counted_sales_cash'] !== null ? floatval($row['counted_sales_cash']) : null;
                 $row['difference_cash'] = $row['difference_cash'] !== null ? floatval($row['difference_cash']) : null;
 
+                $row['transfer_banks'] = $sessionBanks[$row['id']] ?? [];
+                $row['transfer_banks_text'] = implode(', ', array_unique(array_filter(array_column($row['transfer_banks'], 'bank_name'))));
+
                 $totalSalesAll += $row['system_total_sales'];
                 $totalBillsAll += $row['system_total_bills'];
                 if ($row['difference_cash'] !== null) {
                     $totalDiffAll += $row['difference_cash'];
                 }
             }
+            unset($row);
 
             respond([
                 'success' => true,
@@ -750,12 +784,19 @@ try {
                 respond(['success' => false, 'message' => 'ລະຫັດກະບໍ່ຖືກຕ້ອງ']);
             }
 
-            $stmtS = $pdo->prepare("SELECT * FROM st_shift_sessions WHERE id = ? AND store_id = ? LIMIT 1");
-            $stmtS->execute([$sessionId, $activeStoreId]);
+            // ຜູ້ທີ່ເບິ່ງທຸກສາຂາໄດ້ ເປີດໃບສະຫຼຸບກະຂອງສາຂາໃດກໍໄດ້ (ບັອກສາຂາ ໜ້າລາຍງານຕາມກະ); ຄົນອື່ນ = ສາຂາຕົນເອງ
+            if (canViewAllBranches($pdo)) {
+                $stmtS = $pdo->prepare("SELECT * FROM st_shift_sessions WHERE id = ? LIMIT 1");
+                $stmtS->execute([$sessionId]);
+            } else {
+                $stmtS = $pdo->prepare("SELECT * FROM st_shift_sessions WHERE id = ? AND store_id = ? LIMIT 1");
+                $stmtS->execute([$sessionId, $activeStoreId]);
+            }
             $session = $stmtS->fetch(PDO::FETCH_ASSOC);
             if (!$session) {
                 respond(['success' => false, 'message' => 'ບໍ່ພົບຂໍ້ມູນກະ']);
             }
+            $session = shiftApplyLiveTotals($pdo, $session);   // ຍອດສົດຈາກບິນ (ກົດດຽວກັບລາຍງານ / ປິດກະ)
             // ພະນັກງານ: ເບິ່ງໄດ້ສະເພາະກະຂອງຕົນເອງ (ລາຍການຂາຍຂອງກະນັ້ນ) ແລະ ບໍ່ເຫັນສ່ວນຕ່າງ
             if ($isCashier) {
                 if (!shiftIsOwn($session, $userId)) {
@@ -767,32 +808,162 @@ try {
             $openTime = $session['open_time'];
             $endTime = !empty($session['close_time']) ? $session['close_time'] : date('Y-m-d H:i:s');
 
-            // ດຶງບິນທີ່ຂາຍໃນກະນີ້
+            // ຊື່ສາຂາຂອງກະ — ສະແດງໃນໃບສະຫຼຸບ / ພິມ / Excel / PDF
+            $stStore = $pdo->prepare("SELECT store_name FROM st_tbstore WHERE store_id = ? LIMIT 1");
+            $stStore->execute([(int)$session['store_id']]);
+            $session['store_name'] = (string)($stStore->fetchColumn() ?: '');
+
+            // ດຶງບິນທີ່ຂາຍໃນກະນີ້ ພ້ອມຂໍ້ມູນທະນາຄານໂອນ
             $stmtBills = $pdo->prepare("
-                SELECT sale_save_bill, sale_date, sale_time, user_receive, customer_name,
-                       type_pay, sale_barlance, cash_received, qr_received, sale_qty
-                FROM st_tbsale_save
-                WHERE (shift_session_id = :sid OR (store_id = :store_id AND CONCAT(sale_date, ' ', sale_time) >= :open_time AND CONCAT(sale_date, ' ', sale_time) <= :end_time))
-                  AND sale_status = 'SUCCESS'
-                ORDER BY CONCAT(sale_date, ' ', sale_time) ASC
+                SELECT s.sale_save_bill, s.sale_date, s.sale_time, s.user_receive, s.customer_name,
+                       s.type_pay, s.sale_barlance, s.cash_received, s.qr_received, s.sale_qty,
+                       s.bank_account_id, s.bank_name,
+                       b.bank_logo, b.bank_code, b.bank_name AS account_bank_name
+                FROM st_tbsale_save s
+                LEFT JOIN st_bank_accounts b ON (b.id = s.bank_account_id OR (s.bank_account_id IS NULL AND b.bank_name = s.bank_name))
+                WHERE (s.shift_session_id = :sid OR (s.store_id = :store_id AND s.shift_session_id IS NULL AND CONCAT(s.sale_date, ' ', s.sale_time) >= :open_time AND CONCAT(s.sale_date, ' ', s.sale_time) <= :end_time))
+                  AND s.sale_status = 'SUCCESS'
+                ORDER BY CONCAT(s.sale_date, ' ', s.sale_time) ASC
             ");
+            $sessStore = (int)$session['store_id'];   // ບິນ/ສິນຄ້າ ຂອງສາຂາທີ່ກະນີ້ເປັນ
             $stmtBills->execute([
                 ':sid' => $sessionId,
-                ':store_id' => $activeStoreId,
+                ':store_id' => $sessStore,
                 ':open_time' => $openTime,
                 ':end_time' => $endTime
             ]);
             $bills = $stmtBills->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($bills as &$b) {
+                $bName = trim((string)($b['bank_name'] ?: ($b['account_bank_name'] ?? '')));
+                $b['bank_display_name'] = $bName;
+                $logo = !empty($b['bank_logo']) ? $b['bank_logo'] : '';
+                $b['bank_logo_url'] = $logo ? ('../../assets/img/banks/' . basename($logo)) : '';
+            }
+            unset($b);
             // ພະນັກງານ: ລາຍການຂາຍສະເພາະບິນທີ່ຕົນເອງຂາຍໃນກະນີ້ (ສະຫຼຸບຍອດຂອງກະຍັງເປັນຂອງທັງກະ)
             if ($isCashier) {
                 $me = (string)($_SESSION['username'] ?? '');
                 $bills = array_values(array_filter($bills, function ($b) use ($me) { return (string)$b['user_receive'] === $me; }));
             }
 
+            // ສິນຄ້າທີ່ຂາຍໃນກະ (ລວມຕາມສິນຄ້າ ຈາກບິນຂ້າງເທິງ): ຈຳນວນ, ລາຄາ, ສ່ວນຫຼຸດລາຍການ, ຍອດສຸດທິ
+            $items = [];
+            $billNos = array_values(array_unique(array_column($bills, 'sale_save_bill')));
+            if ($billNos) {
+                $ph = implode(',', array_fill(0, count($billNos), '?'));
+                $stmtItems = $pdo->prepare("
+                    SELECT d.save_proid AS product_id, MAX(d.save_proname) AS product_name,
+                           SUM(d.save_qty) AS qty, SUM(d.save_money) AS gross,
+                           SUM(COALESCE(d.save_discount_item, 0)) AS discount,
+                           MAX(d.save_price) AS price, COUNT(DISTINCT d.save_bill) AS bill_count
+                    FROM st_tbsale_save_detail d
+                    INNER JOIN st_tbsale_save s ON s.sale_save_bill = d.save_bill AND s.store_id = ?
+                    WHERE d.save_bill IN ($ph)
+                    GROUP BY d.save_proid, BINARY d.save_proname
+                    ORDER BY qty DESC, product_name ASC
+                ");
+                $stmtItems->execute(array_merge([$sessStore], $billNos));
+                foreach ($stmtItems->fetchAll(PDO::FETCH_ASSOC) as $it) {
+                    $it['qty'] = (float)$it['qty'];
+                    $it['gross'] = (float)$it['gross'];
+                    $it['discount'] = (float)$it['discount'];
+                    $it['net'] = $it['gross'] - $it['discount'];
+                    $items[] = $it;
+                }
+            }
+
+            // ສິນຄ້າແຍກຕາມການຊຳລະຂອງບິນ (ລາຍງານລາຍຮັບຕາມກະ): ເງິນສົດ / ເງິນໂອນ ແຍກແຕ່ລະທະນາຄານ / ສົດ+ໂອນ / ຕິດໜີ້
+            $itemsByChannel = [];
+            if ($billNos) {
+                $billChannel = [];
+                foreach ($bills as $b) {
+                    $tp = (string)$b['type_pay'];
+                    $cash = (float)($b['cash_received'] ?? 0);
+                    $qr = (float)($b['qr_received'] ?? 0);
+                    $isTransfer = $qr > 0 || strpos($tp, 'ໂອນ') !== false || strpos($tp, 'QR') !== false;
+                    if (strpos($tp, 'ຕິດໜີ້') !== false) {
+                        $ch = ['key' => 'debt', 'type' => 'debt', 'label' => 'ຕິດໜີ້'];
+                    } elseif ($isTransfer && $cash > 0 && $qr > 0) {
+                        $ch = ['key' => 'mixed', 'type' => 'mixed', 'label' => 'ເງິນສົດ + ໂອນ'];
+                    } elseif ($isTransfer) {
+                        $bank = $b['bank_display_name'] !== '' ? $b['bank_display_name'] : 'ບໍ່ລະບຸທະນາຄານ';
+                        $ch = ['key' => 'transfer|' . $bank, 'type' => 'transfer', 'label' => 'ເງິນໂອນ · ' . $bank,
+                               'bank_name' => $bank, 'bank_logo_url' => $b['bank_logo_url']];
+                    } else {
+                        $ch = ['key' => 'cash', 'type' => 'cash', 'label' => 'ເງິນສົດ'];
+                    }
+                    $billChannel[$b['sale_save_bill']] = $ch;
+                    if (!isset($itemsByChannel[$ch['key']])) {
+                        $itemsByChannel[$ch['key']] = $ch + ['bill_count' => 0, 'total' => 0.0, 'items' => []];
+                    }
+                    $itemsByChannel[$ch['key']]['bill_count']++;
+                    $itemsByChannel[$ch['key']]['total'] += (float)$b['sale_barlance'];
+                }
+                $stmtLines = $pdo->prepare("
+                    SELECT d.save_bill, d.save_proid, d.save_proname, d.save_qty, d.save_price, d.save_money,
+                           COALESCE(d.save_discount_item, 0) AS discount
+                    FROM st_tbsale_save_detail d
+                    INNER JOIN st_tbsale_save s ON s.sale_save_bill = d.save_bill AND s.store_id = ?
+                    WHERE d.save_bill IN ($ph)
+                ");
+                $stmtLines->execute(array_merge([$sessStore], $billNos));
+                $linesByBill = [];
+                foreach ($stmtLines->fetchAll(PDO::FETCH_ASSOC) as $ln) {
+                    $linesByBill[$ln['save_bill']][] = [
+                        'product_name' => $ln['save_proname'], 'qty' => (float)$ln['save_qty'], 'price' => (float)$ln['save_price'],
+                        'discount' => (float)$ln['discount'], 'net' => (float)$ln['save_money'] - (float)$ln['discount'],
+                    ];
+                    $ch = $billChannel[$ln['save_bill']] ?? null;
+                    if (!$ch) continue;
+                    $pKey = $ln['save_proid'] . '|' . $ln['save_proname'];
+                    $row = &$itemsByChannel[$ch['key']]['items'][$pKey];
+                    if (!isset($row)) {
+                        $row = ['product_name' => $ln['save_proname'], 'qty' => 0.0, 'price' => (float)$ln['save_price'], 'discount' => 0.0, 'net' => 0.0];
+                    }
+                    $row['qty'] += (float)$ln['save_qty'];
+                    $row['discount'] += (float)$ln['discount'];
+                    $row['net'] += (float)$ln['save_money'] - (float)$ln['discount'];
+                    unset($row);
+                }
+                // ລຳດັບ: ເງິນສົດ → ເງິນໂອນ (ຕາມທະນາຄານ) → ສົດ+ໂອນ → ຕິດໜີ້; ສິນຄ້າໃນກຸ່ມ: ຂາຍຫຼາຍສຸດກ່ອນ
+                $order = ['cash' => 0, 'transfer' => 1, 'mixed' => 2, 'debt' => 3];
+                uasort($itemsByChannel, function ($a, $b) use ($order) {
+                    return [$order[$a['type']], $a['label']] <=> [$order[$b['type']], $b['label']];
+                });
+                foreach ($itemsByChannel as &$grp) {
+                    $grp['items'] = array_values($grp['items']);
+                    usort($grp['items'], function ($a, $b) { return $b['qty'] <=> $a['qty']; });
+                }
+                unset($grp);
+                $itemsByChannel = array_values($itemsByChannel);
+
+                // ແຕ່ລະບິນ: ລາຍການສິນຄ້າ + ຮັບເງິນແຕ່ລະທາງເທົ່າໃດ (ລາຍງານລາຍຮັບຕາມກະ — ຕາຕະລາງ "ສິນຄ້າແຍກຕາມການຊຳລະ").
+                // cash_received = ເງິນສົດທີ່ລູກຄ້າຍື່ນ (ລວມເງິນທອນ) → ເງິນສົດທີ່ຮັບແທ້ = ຍອດບິນ - ເງິນໂອນ
+                foreach ($bills as &$b) {
+                    $ch = $billChannel[$b['sale_save_bill']];
+                    $total = (float)$b['sale_barlance'];
+                    $qr = (float)($b['qr_received'] ?? 0);
+                    if ($ch['type'] === 'debt') {
+                        $b['transfer_part'] = min($qr, $total);
+                        $b['cash_part'] = min((float)($b['cash_received'] ?? 0), $total - $b['transfer_part']);
+                        $b['debt_part'] = max(0, $total - $b['cash_part'] - $b['transfer_part']);
+                    } else {
+                        $b['transfer_part'] = $ch['type'] === 'cash' ? 0 : ($qr > 0 ? min($qr, $total) : $total);
+                        $b['cash_part'] = max(0, $total - $b['transfer_part']);
+                        $b['debt_part'] = 0;
+                    }
+                    $b['channel_type'] = $ch['type'];
+                    $b['lines'] = $linesByBill[$b['sale_save_bill']] ?? [];
+                }
+                unset($b);
+            }
+
             respond([
                 'success' => true,
                 'session' => $session,
-                'bills' => $bills
+                'bills' => $bills,
+                'items' => $items,
+                'items_by_channel' => $itemsByChannel
             ]);
             break;
         }

@@ -280,7 +280,9 @@ function printReportReceiptHtml(printContent) {
       td,th { padding:4px 0; vertical-align:top; color: #000 !important; font-weight: 400 !important; }
       th { font-weight: 400 !important; }
       .rc-strong, .rc-strong * { font-weight: 400 !important; -webkit-text-stroke: 0.25px #000; }
-      #rc_rep_total { font-size: 19px !important; }
+      #rc_rep_total { font-size: 17px !important; }
+      .rc-sum, .rc-sum * { font-size: 15px !important; font-weight: 400 !important; -webkit-text-stroke: 0.25px #000; }
+      .rc-net, .rc-net * { font-size: 17px !important; font-weight: 400 !important; -webkit-text-stroke: 0.25px #000; }
       #rc_rep_multicur { font-size: 14.5px !important; }
       #rc_rep_bank_name_lbl { font-size: 15px !important; }
       /* The bill image already carries its own margins — let it span the whole page */

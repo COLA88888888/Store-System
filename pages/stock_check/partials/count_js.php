@@ -74,6 +74,13 @@ function scPaintRow($r) {
     return;
   }
 
+  // ພະນັກງານ (ນັບແບບບໍ່ຮູ້ຍອດ): ບໍ່ບອກ ຄົບ/ບໍ່ພໍ/ເກີນ — ບອກແຕ່ "ນັບແລ້ວ" (ກັນປ້ອນເພີ່ມໃຫ້ "ຄົບ" ເພື່ອປິດບັງສິນຄ້າທີ່ຫາຍ)
+  if (!SC_SHOW_DIFF) {
+    $r.attr('data-state', 'counted');
+    $d.html('<span class="badge sc-res sc-res-uncounted" style="color:#1e40af;border-color:#93c5fd;background:#eff6ff;"><i class="fas fa-check mr-1"></i>' + scT('sc.s039') + '</span>');
+    return;
+  }
+
   // ກົດບັນທຶກແລ້ວ: ຈິ່ງໂຊສ່ວນຕ່າງມາ!
   var diff = counted - sys;
   if (SC_DONE && diff !== 0) {
@@ -99,7 +106,7 @@ function scPaintRow($r) {
 
 // ຄິດໄລ່ສະຫຼຸບທັງໝົດ
 function scStats() {
-  var s = { total: 0, counted: 0, uncounted: 0, match: 0, shortN: 0, shortQ: 0, overN: 0, overQ: 0, net: 0 };
+  var s = { total: 0, counted: 0, uncounted: 0, match: 0, shortN: 0, shortQ: 0, overN: 0, overQ: 0, net: 0, shortValue: 0 };
   $('.sc-row').each(function() {
     var $r = $(this);
     var c = scLive($r);
@@ -113,7 +120,7 @@ function scStats() {
     var diff = c - sys;
     s.net += diff;
     if (diff === 0) s.match++;
-    else if (diff < 0) { s.shortN++; s.shortQ += Math.abs(diff); }
+    else if (diff < 0) { s.shortN++; s.shortQ += Math.abs(diff); s.shortValue += Math.abs(diff) * (parseFloat($r.attr('data-cost')) || 0); }
     else { s.overN++; s.overQ += diff; }
   });
   s.total = Math.max(s.total, SC_TOTAL_ITEMS);
@@ -387,7 +394,12 @@ function scSummaryBox() {
       scT('sc.s105') + ' <b class="text-danger">' + scFmt(s.shortN) + ' ' + scT('sc.s106') + '-' + scFmt(s.shortQ) + ')</b><br>' +
       scT('sc.s107') + ' <b class="text-warning">' + scFmt(s.overN) + ' ' + scT('sc.s108') + scFmt(s.overQ) + ')</b><br>' +
       scT('sc.s109') + ' <b>' + (s.net > 0 ? '+' : '') + scFmt(s.net) + '</b>' +
-    '</div>';
+    '</div>' +
+    // ກັນໂກງ: ຫົວໜ້າເຫັນມູນຄ່າສິນຄ້າທີ່ຂາດ (ຈຳນວນຂາດ × ຕົ້ນທຶນ) ກ່ອນອະນຸມັດ
+    (s.shortN > 0 ? '<div class="alert alert-danger text-left py-2 mt-2 mb-0 font-weight-bold" style="font-size:0.92rem;">' +
+      '<i class="fas fa-exclamation-triangle mr-1"></i>ສິນຄ້າຂາດ ' + scFmt(s.shortQ) + ' ໜ່ວຍ' +
+      (s.shortValue > 0 ? ' · ມູນຄ່າ (ຕົ້ນທຶນ) ' + scFmt(Math.round(s.shortValue)) + ' ₭' : '') +
+      '<div class="small font-weight-normal mt-1">ກວດລາຍການ "ບໍ່ພໍ" ແລະ ປະຫວັດການແກ້ຕົວເລກ (ປ້າຍ "ປ່ຽນ N ເທື່ອ") ກ່ອນອະນຸມັດ — ຫຼື ສົ່ງກັບໃຫ້ນັບໃໝ່</div></div>' : '');
 }
 
 function scPostAction(act, title, html, btnText, btnColor) {

@@ -289,7 +289,7 @@ if (!function_exists('customerCodeLabel')) {
 }
 if (!function_exists('branchHasShifts')) {
     // ສາຂານີ້ໃຊ້ລະບົບກະບໍ່: ມີກະທີ່ເປີດໃຊ້ (ຕັ້ງຄ່າ > ກະເຮັດວຽກ) ຫຼື ເຄີຍເປີດກະມາແລ້ວ.
-    // ບໍ່ມີທັງສອງ → ເຊື່ອງເມນູ "ລາຍການຕາມກະ" (layouts/sidebar.php) ແລະ ກັນໜ້າ pages/reports/shift_report.php
+    // ບໍ່ມີທັງສອງ → ເຊື່ອງເມນູ "ລາຍງານຕາມກະ" (layouts/sidebar.php) ແລະ ກັນໜ້າ pages/reports/shift_report.php
     function branchHasShifts($pdo, $storeId) {
         try {
             $st = $pdo->prepare("SELECT (EXISTS(SELECT 1 FROM st_shifts WHERE store_id = ? AND status = 1)

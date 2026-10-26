@@ -89,7 +89,9 @@ return [
     'layout.cancel' => 'ຍົກເລີກ',
     'layout.expiry' => 'ຈັດການສິນຄ້າໝົດອາຍຸ',
     'layout.expiry_report' => 'ລາຍງານສິນຄ້າໝົດອາຍຸ',
-    'layout.shift_report' => 'ລາຍການຕາມກະ',
+    'layout.shift_report' => 'ລາຍງານຕາມກະ',
+    'layout.shift_close_report' => 'ລາຍງານປິດກະ',
+    'layout.shift_revenue_report' => 'ລາຍງານລາຍຮັບຕາມກະ',
     // ເມນູ/ແຈ້ງເຕືອນທີ່ເພີ່ມພາຍຫຼັງ
     'layout.expiry_near_header' => 'ສິນຄ້າໃກ້ໝົດອາຍຸ / ໝົດອາຍຸ',
     'layout.expiry_days_left' => 'ເຫຼືອ %d ມື້',

@@ -24,7 +24,7 @@ if (!defined('MINIPOS_APP')) {
 <!-- Bank Management Header: title + add button (right) -->
 <div class="bank-header-bar d-flex justify-content-between align-items-center flex-wrap mb-3" style="gap: 10px;">
   <div>
-    <h5 class="font-weight-bold text-dark mb-0 text-nowrap" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+    <h5 class="font-weight-bold text-dark mb-0 text-nowrap" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
       <i class="fas fa-university text-primary mr-2"></i> <?php echo htmlspecialchars(t('bank.title', 'ຈັດການທະນາຄານ')); ?>
     </h5>
   </div>

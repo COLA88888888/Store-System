@@ -9,7 +9,7 @@
         <input type="hidden" name="action" value="import_stock">
 
         <div class="modal-header text-white" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important;">
-          <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h5 class="modal-title font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-truck-loading mr-2"></i> ຟອມບັນທຶກຮັບສິນຄ້າເຂົ້າ
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">

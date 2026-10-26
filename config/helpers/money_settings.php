@@ -194,18 +194,22 @@ if (!function_exists('logActivity')) {
             return;
         }
         try {
-            // Ensure table exists
-            $pdo->exec("CREATE TABLE IF NOT EXISTS `st_activity_logs` (
-                `id` INT AUTO_INCREMENT PRIMARY KEY,
-                `action` VARCHAR(255) NOT NULL,
-                `detail` TEXT NULL,
-                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
             $stmt = $pdo->prepare('INSERT INTO st_activity_logs (action, detail, created_at) VALUES (?, ?, NOW())');
             $stmt->execute([$action, $detail]);
         } catch (Throwable $e) {
-            // Ignore activity log failures safely
+            // If table does not exist and no transaction is active, create it safely (never run DDL inside transaction)
+            if (isset($pdo) && method_exists($pdo, 'inTransaction') && !$pdo->inTransaction()) {
+                try {
+                    $pdo->exec("CREATE TABLE IF NOT EXISTS `st_activity_logs` (
+                        `id` INT AUTO_INCREMENT PRIMARY KEY,
+                        `action` VARCHAR(255) NOT NULL,
+                        `detail` TEXT NULL,
+                        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+                    $stmt = $pdo->prepare('INSERT INTO st_activity_logs (action, detail, created_at) VALUES (?, ?, NOW())');
+                    $stmt->execute([$action, $detail]);
+                } catch (Throwable $e2) {}
+            }
         }
     }
 }

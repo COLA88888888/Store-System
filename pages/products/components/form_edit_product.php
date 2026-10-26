@@ -9,7 +9,7 @@
 
         <!-- HEADER -->
         <div class="modal-header text-white py-3 px-4" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important;">
-          <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.15rem;">
+          <h5 class="modal-title font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.15rem;">
             <i class="fas fa-edit mr-2"></i> <?php echo htmlspecialchars(t('products.modal_edit_title', 'ແກ້ໄຂຂໍ້ມູນສິນຄ້າ')); ?>
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">

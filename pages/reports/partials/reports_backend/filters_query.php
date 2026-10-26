@@ -239,6 +239,12 @@ if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSI
     }
 }
 
+// ບັອກເລືອກກະ (reports_filter.php): ສະເພາະສາຂາດຽວທີ່ມີກະ. ພະນັກງານເຫັນແຕ່ບິນ/ກະຂອງຕົນເອງຢູ່ແລ້ວ → ບໍ່ມີບັອກ
+$shiftFilter = reportShiftFilter($pdo, $filter_store_id, 's', $staffScope === null);
+if ($shiftFilter['sql'] !== '') {
+    $where[] = $shiftFilter['sql'];
+}
+
 $whereClause = implode(" AND ", $where);
 
 // Data variables

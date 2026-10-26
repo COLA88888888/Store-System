@@ -5,7 +5,7 @@
       <form id="addUnitForm" action="" method="POST" novalidate>
         <input type="hidden" name="action" value="add_unit">
         <div class="modal-header" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important;">
-          <h5 class="modal-title font-weight-bold text-white" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h5 class="modal-title font-weight-bold text-white" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-ruler-combined mr-2"></i> <?php echo htmlspecialchars(t('units.modal_add_title', 'ເພີ່ມຫົວໜ່ວຍ')); ?>
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">

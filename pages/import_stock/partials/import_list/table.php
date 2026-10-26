@@ -9,19 +9,19 @@
             <table class="table table-hover mb-0 align-middle text-nowrap">
               
               <?php if ($view_type === 'bill'): ?>
-                <!-- HEADER FOR MODE 1: ຕາມບິນ (Blue Header) -->
-                <thead class=" font-weight-bold">
+                <!-- HEADER FOR MODE 1: ຕາມບິນ -->
+                <thead class="bg-light text-secondary" style="font-size: 0.88rem; text-transform: uppercase;">
                   <tr>
-                    <th class="text-center" style="width: 50px;"><?php echo htmlspecialchars(t('import_list.col_no', 'ລຳດັບ')); ?></th>
-                    <th class="text-center"><?php echo htmlspecialchars(t('import_list.col_import_date', 'ວັນທີຮັບເຂົ້າ')); ?></th>
-                    <th class="text-center"><?php echo htmlspecialchars(t('import_list.col_invoice_no', 'ເລກທີໃບບິນ')); ?></th>
-                    <th><?php echo htmlspecialchars(t('import_list.col_store', 'ສາຂາ')); ?></th>
-                    <th><?php echo htmlspecialchars(t('import_list.col_supplier', 'ຜູ້ສະໜອງ')); ?></th>
-                    <th class="text-center"><?php echo htmlspecialchars(t('import_list.col_item_count', 'ຈຳນວນລາຍການ')); ?></th>
-                    <th class="text-right"><?php echo htmlspecialchars(t('import_list.col_total_cost', 'ມູນຄ່າທຶນລວມ')); ?></th>
-                    <th><?php echo htmlspecialchars(t('import_list.col_creator', 'ຜູ້ບັນທຶກ')); ?></th>
-                    <th><?php echo htmlspecialchars(t('import_list.col_notes', 'ໝາຍເຫດ')); ?></th>
-                    <th class="text-center" style="width: 120px;"><?php echo htmlspecialchars(t('import_list.col_actions', 'ຈັດການ')); ?></th>
+                    <th class="py-3 text-center" style="width: 50px;"><?php echo htmlspecialchars(t('import_list.col_no', 'ລຳດັບ')); ?></th>
+                    <th class="py-3 text-center"><?php echo htmlspecialchars(t('import_list.col_import_date', 'ວັນທີຮັບເຂົ້າ')); ?></th>
+                    <th class="py-3 text-center"><?php echo htmlspecialchars(t('import_list.col_invoice_no', 'ເລກທີໃບບິນ')); ?></th>
+                    <th class="py-3"><?php echo htmlspecialchars(t('import_list.col_store', 'ສາຂາ')); ?></th>
+                    <th class="py-3"><?php echo htmlspecialchars(t('import_list.col_supplier', 'ຜູ້ສະໜອງ')); ?></th>
+                    <th class="py-3 text-center"><?php echo htmlspecialchars(t('import_list.col_item_count', 'ຈຳນວນລາຍການ')); ?></th>
+                    <th class="py-3 text-right"><?php echo htmlspecialchars(t('import_list.col_total_cost', 'ມູນຄ່າທຶນລວມ')); ?></th>
+                    <th class="py-3"><?php echo htmlspecialchars(t('import_list.col_creator', 'ຜູ້ບັນທຶກ')); ?></th>
+                    <th class="py-3"><?php echo htmlspecialchars(t('import_list.col_notes', 'ໝາຍເຫດ')); ?></th>
+                    <th class="py-3 text-center" style="width: 120px;"><?php echo htmlspecialchars(t('import_list.col_actions', 'ຈັດການ')); ?></th>
                   </tr>
                 </thead>
                 <tbody id="historyTableBody">
@@ -129,20 +129,20 @@
                 <?php endif; ?>
 
               <?php else: ?>
-                <!-- HEADER FOR MODE 2: ລາຍລະອຽດ (Blue Header) -->
-                <thead class="font-weight-bold">
+                <!-- HEADER FOR MODE 2: ລາຍລະອຽດ -->
+                <thead class="bg-light text-secondary" style="font-size: 0.88rem; text-transform: uppercase;">
                   <tr>
-                    <th class="text-center" style="width: 50px;"><?php echo htmlspecialchars(t('import_list.col_no', 'ລຳດັບ')); ?></th>
-                    <th class="text-center"><?php echo htmlspecialchars(t('import_list.col_import_date', 'ວັນທີຮັບເຂົ້າ')); ?></th>
-                    <th class="text-center"><?php echo htmlspecialchars(t('import_list.col_invoice_no', 'ເລກທີໃບບິນ')); ?></th>
-                    <th><?php echo htmlspecialchars(t('import_list.col_store', 'ສາຂາ')); ?></th>
-                    <th><?php echo htmlspecialchars(t('import_list.col_product_name', 'ຊື່ສິນຄ້າ')); ?></th>
-                    <th class="text-center"><?php echo htmlspecialchars(t('import_list.col_received_qty', 'ຈຳນວນຮັບເຂົ້າ')); ?></th>
-                    <th class="text-center"><?php echo htmlspecialchars(t('import_list.col_total_base_qty', 'ຈຳນວນຍ່ອຍລວມ')); ?></th>
-                    <th class="text-right"><?php echo htmlspecialchars(t('import_list.col_total_cost', 'ມູນຄ່າທຶນລວມ')); ?></th>
-                    <th class="text-center"><?php echo htmlspecialchars(t('import_list.col_expiry_date', 'ວັນໝົດອາຍຸ')); ?></th>
-                    <th><?php echo htmlspecialchars(t('import_list.col_creator', 'ຜູ້ບັນທຶກ')); ?></th>
-                    <th class="text-center" style="width: 150px;"><?php echo htmlspecialchars(t('import_list.col_actions', 'ຈັດການ')); ?></th>
+                    <th class="py-3 text-center" style="width: 50px;"><?php echo htmlspecialchars(t('import_list.col_no', 'ລຳດັບ')); ?></th>
+                    <th class="py-3 text-center"><?php echo htmlspecialchars(t('import_list.col_import_date', 'ວັນທີຮັບເຂົ້າ')); ?></th>
+                    <th class="py-3 text-center"><?php echo htmlspecialchars(t('import_list.col_invoice_no', 'ເລກທີໃບບິນ')); ?></th>
+                    <th class="py-3"><?php echo htmlspecialchars(t('import_list.col_store', 'ສາຂາ')); ?></th>
+                    <th class="py-3"><?php echo htmlspecialchars(t('import_list.col_product_name', 'ຊື່ສິນຄ້າ')); ?></th>
+                    <th class="py-3 text-center"><?php echo htmlspecialchars(t('import_list.col_received_qty', 'ຈຳນວນຮັບເຂົ້າ')); ?></th>
+                    <th class="py-3 text-center"><?php echo htmlspecialchars(t('import_list.col_total_base_qty', 'ຈຳນວນຍ່ອຍລວມ')); ?></th>
+                    <th class="py-3 text-right"><?php echo htmlspecialchars(t('import_list.col_total_cost', 'ມູນຄ່າທຶນລວມ')); ?></th>
+                    <th class="py-3 text-center"><?php echo htmlspecialchars(t('import_list.col_expiry_date', 'ວັນໝົດອາຍຸ')); ?></th>
+                    <th class="py-3"><?php echo htmlspecialchars(t('import_list.col_creator', 'ຜູ້ບັນທຶກ')); ?></th>
+                    <th class="py-3 text-center" style="width: 150px;"><?php echo htmlspecialchars(t('import_list.col_actions', 'ຈັດການ')); ?></th>
                   </tr>
                 </thead>
                 <tbody id="historyTableBody">

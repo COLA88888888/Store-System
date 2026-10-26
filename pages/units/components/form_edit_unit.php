@@ -6,7 +6,7 @@
         <input type="hidden" name="action" value="edit_unit">
         <input type="hidden" name="unit_id" id="edit_unit_id">
         <div class="modal-header" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important;">
-          <h5 class="modal-title font-weight-bold text-white" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h5 class="modal-title font-weight-bold text-white" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-edit mr-2"></i> <?php echo htmlspecialchars(t('units.modal_edit_title', 'ແກ້ໄຂຫົວໜ່ວຍ')); ?>
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">

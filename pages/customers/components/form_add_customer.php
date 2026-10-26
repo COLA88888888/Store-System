@@ -5,7 +5,7 @@
       <form id="addCustomerForm" action="" method="POST" novalidate>
         <input type="hidden" name="action" value="add_customer">
         <div class="modal-header text-white" style="background: linear-gradient(135deg, #2c5aa0, #244886);">
-          <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h5 class="modal-title font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-user-plus mr-2"></i> <?php echo htmlspecialchars(t('customers.add_modal_title', 'ເພີ່ມຂໍ້ມູນລູກຄ້າ')); ?>
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">

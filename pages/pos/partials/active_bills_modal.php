@@ -3,7 +3,7 @@
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
       <div class="modal-header bg-primary text-white py-3 px-4">
-        <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <h5 class="modal-title font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <i class="fas fa-list-alt mr-2"></i> <?php echo htmlspecialchars(t('pos.active_bills_modal_title', 'ລາຍການບິນທີ່ເປີດຢູ່')); ?>
         </h5>
         <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>

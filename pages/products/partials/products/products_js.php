@@ -205,7 +205,7 @@
 
     // ໂຫຼດຫຼາຍລາຄາ / ຫຼາຍຫົວໜ່ວຍ (product_units) ຜ່ານ AJAX
     $('#edit_multi_units_container').empty();
-    $.getJSON('api_product.php?action=get_product_units&product_id=' + p.product_id, function(res) {
+    $.getJSON('../../api/products_api.php?action=get_product_units&product_id=' + p.product_id, function(res) {
       if (res && res.success && res.units && res.units.length > 0) {
         res.units.forEach(function(u) {
           addUnitRow('edit', u);

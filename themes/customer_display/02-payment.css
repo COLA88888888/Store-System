@@ -99,6 +99,7 @@
       flex-direction: column;
       gap: 8px;
       overflow: hidden;
+      min-height: 0;
     }
 
     .cart-card {
@@ -109,6 +110,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      min-height: 0;
       box-shadow: 0 6px 20px rgba(0,0,0,0.06);
     }
 
@@ -138,7 +140,9 @@
       position: relative;   /* anchors the empty-state overlay below */
       overflow-y: auto;
       flex: 1;
+      min-height: 0;
       scrollbar-width: none;
+      scroll-behavior: auto !important;
     }
     .display-table-body::-webkit-scrollbar {
       display: none;
@@ -287,7 +291,7 @@
       margin: 2px 0 0;
       font-size: 2.1rem;
       color: #ffffff;
-      font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
+      font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
       text-shadow: 0 2px 5px rgba(0,0,0,0.25);
       white-space: nowrap;
     }

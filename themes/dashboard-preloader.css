@@ -91,7 +91,7 @@ body.pos-nav-mode .system-loader-overlay {
     color: #1e293b;
     font-size: 0.84rem;
     letter-spacing: 0.3px;
-    font-family: 'Noto Sans Lao', 'Souliyo', sans-serif;
+    font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', sans-serif;
     display: inline-flex;
     align-items: center;
 }
@@ -112,7 +112,7 @@ body.pos-nav-mode .system-loader-overlay {
     margin-top: 4px;
     font-size: 0.75rem;
     color: #64748b;
-    font-family: 'Noto Sans Lao', 'Souliyo', sans-serif;
+    font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', sans-serif;
     opacity: 0;
     transform: translateY(3px);
     transition: opacity 0.35s ease, transform 0.35s ease;

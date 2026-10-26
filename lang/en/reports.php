@@ -26,6 +26,8 @@ return [
     'reports.search_placeholder_bill_emp' => 'Enter bill number or employee name...',
     'reports.branch_label'           => 'Branch:',
     'reports.all_branches_opt'       => '-- All branches --',
+    'reports.shift_label'            => 'Shift:',
+    'reports.all_shifts_opt'         => '-- All shifts --',
     'reports.main_branch_suffix'     => '(Main branch)',
     'reports.bank_payment_label'     => 'Bank / Payment:',
     'reports.all_payment_opt'        => '-- All payments --',

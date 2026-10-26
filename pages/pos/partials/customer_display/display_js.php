@@ -31,34 +31,197 @@ function cdMoney(kip) {
   return cdFmt(CD_CUR.isKip ? Math.round(kip) : (kip / CD_CUR.rate));
 }
 
-// Fullscreen: try automatically on load (works when opened via a user click), and
-// always offer the manual toggle button since browsers can silently block the auto request.
-function toggleFullscreen() {
-  if (!document.fullscreenElement) {
-    (document.documentElement.requestFullscreen && document.documentElement.requestFullscreen())?.catch(function(){});
-  } else {
-    document.exitFullscreen && document.exitFullscreen().catch(function(){});
+// Toggle QR Dock at bottom of 3D minimart
+window.toggleQrDock = function() {
+  var dock = document.getElementById('payQrDock');
+  var txt = document.getElementById('txtToggleQrDock');
+  if (!dock) return;
+  dock.classList.toggle('collapsed');
+  if (txt) {
+    txt.textContent = dock.classList.contains('collapsed') ? 'ໂຊ QR' : 'QR ຊຳລະ';
+  }
+};
+
+// Fullscreen: ຮອງຮັບທັງ HTML5 Fullscreen API ແລະ ການກົດປຸ່ມ F11 ອັດຕະໂນມັດແບບ Real-Time ໂດຍບໍ່ຕ້ອງເອົາເມົ້າໄປແຕະຈໍລູກຄ້າ
+var _lastNativeF11Time = 0;
+var _userExitedFullscreen = false;
+var _autoFsTimers = [];
+
+function getTargetFsDoc() {
+  try {
+    if (window.top && window.top !== window && window.top.document) {
+      return window.top.document;
+    }
+  } catch(e) {}
+  return document;
+}
+
+function isDomFullscreen() {
+  var d = getTargetFsDoc();
+  return !!(d.fullscreenElement || d.webkitFullscreenElement || document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+function isNativeF11Fullscreen() {
+  return (window.innerWidth >= (window.screen.width - 6) && window.innerHeight >= (window.screen.height - 6));
+}
+
+function isCurrentlyFullscreen() {
+  return isDomFullscreen() || isNativeF11Fullscreen();
+}
+
+function syncFsIcon() {
+  var icon = document.getElementById('fullscreenToggleIcon');
+  if (icon) {
+    icon.className = isCurrentlyFullscreen() ? 'fas fa-compress' : 'fas fa-expand';
   }
 }
-document.getElementById('fullscreenToggleBtn').addEventListener('click', toggleFullscreen);
-document.addEventListener('fullscreenchange', function() {
-  var icon = document.getElementById('fullscreenToggleIcon');
-  icon.className = document.fullscreenElement ? 'fas fa-compress' : 'fas fa-expand';
-});
-function enterFullscreen() {
-  if (document.fullscreenElement || !document.documentElement.requestFullscreen) return;
-  try { document.documentElement.requestFullscreen({ navigationUI: 'hide' }).catch(function(){}); } catch(e) {}
+
+function triggerNativeF11Key(forceToggle) {
+  var now = Date.now();
+  if (!forceToggle && (now - _lastNativeF11Time < 340)) return;
+  if (!forceToggle && isCurrentlyFullscreen()) { syncFsIcon(); return; }
+  _lastNativeF11Time = now;
+  try {
+    window.focus();
+    var url = 'customer_display.php?action=native_f11' + (forceToggle ? '&force=1' : '');
+    fetch(url, { method: 'POST', cache: 'no-store', keepalive: true })
+      .then(function() { setTimeout(syncFsIcon, 60); })
+      .catch(function() {});
+  } catch(e) {}
 }
-// ລອງເຕັມຈໍທັນທີຕອນເປີດ — Chrome ອະນຸຍາດສະເພາະເມື່ອເປີດ "ເຕັມຈໍອັດຕະໂນມັດ" ໃຫ້ເວັບນີ້ແລ້ວ
-// (ການກົດປຸ່ມຈໍລູກຄ້າໃນໜ້າຂາຍ ຖືກໃຊ້ເປີດໜ້າຕ່າງໄປແລ້ວ ໃຊ້ຊ້ຳສັ່ງເຕັມຈໍບໍ່ໄດ້).
-enterFullscreen();
-window.addEventListener('load', enterFullscreen);
-// ບໍ່ດັ່ງນັ້ນ: ແຕະ/ຄລິກບ່ອນໃດກໍ່ໄດ້ ເທື່ອດຽວ → ເຕັມຈໍທັນທີ (ປຸ່ມ ⛶ ມຸມຂວາ ຍັງໃຊ້ສະຫຼັບໄດ້ຄືເກົ່າ)
-['pointerdown', 'touchstart', 'keydown'].forEach(function(ev) {
+
+function enterFullscreen() {
+  if (isCurrentlyFullscreen()) { syncFsIcon(); return; }
+  var d = getTargetFsDoc();
+  var el = d.documentElement || document.documentElement;
+  var rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+  if (rfs) {
+    try {
+      var p = rfs.call(el, { navigationUI: 'hide' });
+      if (p && p.catch) {
+        p.catch(function() {
+          triggerNativeF11Key(false);
+        });
+      }
+    } catch(e) {
+      triggerNativeF11Key(false);
+    }
+  }
+  if (!isCurrentlyFullscreen()) {
+    triggerNativeF11Key(false);
+  }
+}
+
+function ensureAutoFullscreen() {
+  _userExitedFullscreen = false;
+  for (var i = 0; i < _autoFsTimers.length; i++) {
+    clearTimeout(_autoFsTimers[i]);
+  }
+  _autoFsTimers = [];
+
+  enterFullscreen();
+
+  var delays = [80, 460, 920, 1450, 2100];
+  delays.forEach(function(ms) {
+    var tid = setTimeout(function() {
+      if (_userExitedFullscreen || isCurrentlyFullscreen()) {
+        syncFsIcon();
+        return;
+      }
+      enterFullscreen();
+    }, ms);
+    _autoFsTimers.push(tid);
+  });
+}
+
+function toggleFullscreen() {
+  var d = getTargetFsDoc();
+  if (!isCurrentlyFullscreen()) {
+    _userExitedFullscreen = false;
+    enterFullscreen();
+  } else {
+    _userExitedFullscreen = true;
+    for (var i = 0; i < _autoFsTimers.length; i++) {
+      clearTimeout(_autoFsTimers[i]);
+    }
+    _autoFsTimers = [];
+    if (isDomFullscreen()) {
+      var exitDoc = (d.fullscreenElement || d.webkitFullscreenElement) ? d : document;
+      var efs = exitDoc.exitFullscreen || exitDoc.webkitExitFullscreen || exitDoc.mozCancelFullScreen || exitDoc.msExitFullscreen;
+      if (efs) {
+        try { efs.call(exitDoc).catch(function(){}); } catch(e) {}
+      }
+    } else {
+      triggerNativeF11Key(true);
+    }
+  }
+}
+
+var _fsBtn = document.getElementById('fullscreenToggleBtn');
+if (_fsBtn) _fsBtn.addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', syncFsIcon);
+window.addEventListener('resize', syncFsIcon);
+try {
+  if (window.top && window.top !== window && window.top.document) {
+    window.top.document.addEventListener('fullscreenchange', syncFsIcon);
+  }
+} catch(e) {}
+syncFsIcon();
+
+// ບັນທຶກຕຳແໜ່ງໜ້າຈໍປັດຈຸບັນ ໂດຍໃຊ້ຂະໜາດເຕັມຈໍສະເໝີ (screen.width x screen.height)
+function reportScreenPosition() {
+  try {
+    var sx = (typeof window.screenX === 'number') ? window.screenX : (window.screenLeft || 0);
+    var sy = (typeof window.screenY === 'number') ? window.screenY : (window.screenTop || 0);
+    var sw = window.screen.width || window.outerWidth || 1920;
+    var sh = window.screen.height || window.outerHeight || 1080;
+    if (sx !== 0 || sy !== 0 || sw > 500) {
+      localStorage.setItem('StoreMini.customer_display_screen', JSON.stringify({
+        left: sx,
+        top: sy,
+        width: sw,
+        height: sh
+      }));
+    }
+  } catch(e) {}
+}
+window.addEventListener('resize', reportScreenPosition);
+window.addEventListener('beforeunload', reportScreenPosition);
+setTimeout(reportScreenPosition, 800);
+
+// ເຂົ້າ F11 Fullscreen ອັດຕະໂນມັດທັນທີຕອນເປີດໜ້າຈໍລູກຄ້າ ໂດຍບໍ່ຕ້ອງເອົາເມົ້າໄປແຕະຈໍລູກຄ້າ
+ensureAutoFullscreen();
+window.addEventListener('load', function() {
+  if (!_userExitedFullscreen && !isCurrentlyFullscreen()) {
+    ensureAutoFullscreen();
+  }
+});
+
+// ຮັບຄຳສັ່ງ Fullscreen ຈາກໜ້າຂາຍເມື່ອກົດປຸ່ມຈໍລູກຄ້າ
+window.addEventListener('storage', function(e) {
+  if (e.key === 'StoreMini.customer_display_trigger_fs') {
+    ensureAutoFullscreen();
+  }
+});
+
+// ກວດສອບສິດ Automatic Fullscreen (ສຳລັບ Chrome / Edge ຮຸ່ນໃໝ່)
+if (navigator.permissions && navigator.permissions.query) {
+  try {
+    navigator.permissions.query({ name: 'fullscreen', allowWithoutGesture: true }).then(function(p) {
+      if (p.state === 'granted') enterFullscreen();
+      p.onchange = function() { if (p.state === 'granted') enterFullscreen(); };
+    }).catch(function(){});
+  } catch(e) {}
+}
+
+// ແຕະ, ຄລິກ, ເລື່ອນເມົ້າ ຫຼື ກົດປຸ່ມໃດກໍ່ໄດ້ → ເຕັມຈໍທັນທີ (F11 fullscreen)
+var _fsHandled = false;
+['pointerdown', 'touchstart', 'click', 'keydown', 'mousemove', 'wheel'].forEach(function(ev) {
   document.addEventListener(ev, function(e) {
+    if (document.fullscreenElement) return;
     if (e.target && e.target.closest && e.target.closest('#fullscreenToggleBtn')) return;
     enterFullscreen();
-  }, true);
+  }, { passive: true, capture: true });
 });
 
 // Particle Background — soft drifting dots behind the store logo/info panel
@@ -149,10 +312,16 @@ window.addEventListener('load', enterFullscreen);
   window.addEventListener('resize', init);
 })();
 
-// Live Clock
+// Live Clock (24 ຊົ່ວໂມງ: ເຊັ່ນ 15:26:42)
+function formatTime24(d) {
+  var hh = String(d.getHours()).padStart(2, '0');
+  var mm = String(d.getMinutes()).padStart(2, '0');
+  var ss = String(d.getSeconds()).padStart(2, '0');
+  return hh + ':' + mm + ':' + ss;
+}
 function updateClock() {
   var now = new Date();
-  $('#liveClock').text(now.toLocaleTimeString('lo-LA'));
+  $('#liveClock').text(formatTime24(now));
   $('#liveDate').text(now.toLocaleDateString('lo-LA'));
 }
 setInterval(updateClock, 1000);
@@ -191,16 +360,22 @@ function loadInitialData() {
   if (raw) {
     try {
       var d = JSON.parse(raw);
-      // ຖ້າຂໍ້ມູນເກົ່າທີ່ບັນທຶກໄວ້ເປັນ payment_success ທີ່ຈົບໄປແລ້ວ: ໃຫ້ປັບເປັນ shopping (ລ້າງຄ່າເປັນ 0 ທັງໝົດ)
-      // ເພື່ອບໍ່ໃຫ້ຕອນຣີເຟຣຊໜ້າຈໍແລ້ວມີຄ່າເກົ່າຄ້າງ ຫຼື ເດັ້ງປັອບອັບໃບບິນເກົ່າຂຶ້ນມາຊ້ຳ
-      if (d && d.checkoutState === 'payment_success') {
+      if (d) {
+        // ເມື່ອເປີດ ຫຼື ຣີເຟຣຊຈໍລູກຄ້າ: ໃຫ້ເລີ່ມຕົ້ນຢູ່ໂໝດ shopping ປົກກະຕິສະເໝີ
+        // ບໍ່ໃຫ້ເດັ້ງປັອບອັບ QR ທະນາຄານ (payment_live) ຫຼື ປັອບອັບໃບບິນເກົ່າ (payment_success) ຂຶ້ນມາທັບ
+        if (d.checkoutState === 'payment_success') {
+          d.cart = [];
+          d.cashReceived = 0;
+          d.qrReceived = 0;
+          d.changeAmount = 0;
+          d.totalAmount = 0;
+          d.paidAmount = 0;
+        }
         d.checkoutState = 'shopping';
-        d.cart = [];
-        d.cashReceived = 0;
-        d.qrReceived = 0;
-        d.changeAmount = 0;
-        d.totalAmount = 0;
-        d.paidAmount = 0;
+        d.payBank = null;
+        $('#bankPayPopup').hide();
+        $('#paymentSuccessOverlay').hide();
+        try { localStorage.setItem('StoreMini.customer_display_data', JSON.stringify(d)); } catch(err) {}
       }
       renderDisplayData(d);
     } catch(e) {}
@@ -326,6 +501,7 @@ function playMoneyReceivedSound() {
 var _paySuccessTimer = null;
 function showPaymentSuccessModal(data) {
   var $overlay = $('#paymentSuccessOverlay');
+  if (typeof window.minimart3dCelebrate === 'function') window.minimart3dCelebrate();
   if (!$overlay.length) return;
 
   var total = parseFloat(data.totalAmount || data.paidAmount || 0);
@@ -383,7 +559,7 @@ function showPaymentSuccessModal(data) {
   // 1. Cash row
   if (cash > 0 || (!isTransfer && !isSplit)) {
     $('#paySuccessCashAmt').html(cdMoney(cash > 0 ? cash : total));
-    $('#paySuccessCashRow').show();
+    $('#paySuccessCashRow').css('display', 'flex');
   } else {
     $('#paySuccessCashRow').hide();
   }
@@ -393,16 +569,22 @@ function showPaymentSuccessModal(data) {
     var qrAmtVal = qr > 0 ? qr : total;
     $('#paySuccessQrAmt').html(cdMoney(qrAmtVal));
     $('#paySuccessQrBankInline').text(bankName ? ('(' + bankName + ')') : '');
-    $('#paySuccessQrRow').show();
+    $('#paySuccessQrRow').css('display', 'flex');
   } else {
     $('#paySuccessQrRow').hide();
   }
 
-  // 3. Change row
-  $('#paySuccessChange').html(cdMoney(change));
-  $('#paySuccessChangeRow').show();
+  // 3. Change row (ສະແດງສະເພາະເມື່ອມີເງິນທອນ > 0 ເທົ່ານັ້ນ)
+  if (change > 0) {
+    $('#paySuccessChange').html(cdMoney(change));
+    $('#paySuccessChangeRow').css('display', 'flex');
+  } else {
+    $('#paySuccessChangeRow').hide();
+  }
 
-  // Invoice Number
+  // Invoice Number & Time (24 ຊົ່ວໂມງ)
+  var nowTime = new Date();
+  $('#paySuccessTimeText').text(formatTime24(nowTime));
   if (data.invoiceNumber) {
     $('#paySuccessInvoiceNo').text('ເລກທີໃບບິນ: ' + data.invoiceNumber).show();
   } else {
@@ -447,6 +629,11 @@ function resetDisplayTotals() {
   $('#bankPayPopup').hide();
   $('#displayCartBody').empty();
   $('#displayCartEmpty').show();
+  window._currentTbodyFingerprint = '';
+  if (window.cdAutoScroll) {
+    window.cdAutoScroll._lastFingerprint = '';
+    window.cdAutoScroll.resetToTop();
+  }
 
   try {
     var cleanPayload = {
@@ -471,11 +658,10 @@ function renderDisplayData(data) {
   // Trigger payment success overlay with amount paid
   if (data.checkoutState === 'payment_success') {
     showPaymentSuccessModal(data);
-  } else if (data.checkoutState === 'checkout_modal_open') {
-    $('#paymentSuccessOverlay').hide();
-  } else if (data.checkoutState === 'shopping' && data.cart && data.cart.length > 0) {
+  } else if (data.checkoutState === 'checkout_modal_open' || data.checkoutState === 'shopping') {
     if (_paySuccessTimer) clearTimeout(_paySuccessTimer);
     $('#paymentSuccessOverlay').hide();
+    $('#bankPayPopup').hide();
   }
 
   // Queue number flash on payment success (if standalone queue flash is desired)
@@ -483,67 +669,79 @@ function renderDisplayData(data) {
     showQueueFlash(data.queueNumber);
   }
 
-  // 1. Cart Table (Enlarged Image, Name, Unit, Qty, Price, Total)
+  // 1. Cart Table: ອັບເດດສະເພາະເມື່ອລາຍການສິນຄ້າປ່ຽນແປງແທ້ໆ
+  // ຖ້າລາຍການຄືເກົ່າ (ເຊັ່ນ: ຕອນກົດໂອນເງິນ, ເລືອກທະນາຄານ ຫຼື ເດັ້ງ QR) ຈະບໍ່ empty() ຕາຕະລາງ
+  // ເພື່ອໃຫ້ລາຍການສິນຄ້າສາມາດ Auto-Scroll ເລື່ອນສະໂລຂຶ້ນ-ລົງໄດ້ຢ່າງຕໍ່ເນື່ອງ ບໍ່ສະດຸດ ແລະ ບໍ່ຖືກດຶງກັບໄປເທິງສຸດ
   var tbody = $('#displayCartBody');
-  tbody.empty();
-
   var cart = data.cart || [];
   $('#displayCartEmpty').toggle(cart.length === 0);
-  if (cart.length === 0) {
-    // Nothing to render — #displayCartEmpty (shown above) carries the message.
-  } else {
-    // Render newest first: the most recently scanned/tapped item shows at the top and
-    // is highlighted. Prefer the "_touch" stamp set by the POS cart; fall back to the
-    // cart's own order. The "ລຳດັບ" number still reflects the original add order.
-    var origIndex = new Map();
-    cart.forEach(function(it, n) { origIndex.set(it, n); });
-    var orderedCart = cart.slice().sort(function(a, b) {
-      var ta = (typeof a._touch === 'number') ? a._touch : origIndex.get(a);
-      var tb = (typeof b._touch === 'number') ? b._touch : origIndex.get(b);
-      return tb - ta;
-    });
-    orderedCart.forEach(function(item, i) {
-      var idx = origIndex.get(item);
-      var isNewest = (i === 0);
-      var isGift = !!item.is_free_gift;
-      var origUnitPrice = parseFloat(item.original_price || item.unit_price) || 0;
-      var curUnitPrice = parseFloat(item.unit_price) || 0;
-      var itemDisc = parseFloat(item.item_discount) || 0;
-      var hasLineDisc = (itemDisc > 0 || origUnitPrice > curUnitPrice) && !isGift;
 
-      var itemTotal = isGift ? cdMoney(0) : cdMoney(item.quantity * curUnitPrice);
-      var unitPriceStr = isGift 
-        ? cdMoney(0) 
-        : (hasLineDisc && origUnitPrice > curUnitPrice
-            ? `<del style="color:#94a3b8; font-size:0.85em; text-decoration:line-through; font-weight:normal;" class="mr-1">${cdMoney(origUnitPrice)}</del><span class="text-danger font-weight-bold">${cdMoney(curUnitPrice)}</span>`
-            : cdMoney(curUnitPrice));
-      var unitNameStr = item.unit_name ? item.unit_name : 'ອັນ';
-      var giftBadgeHtml = isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.82rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i>ແຖມຟຣີ</span>` : '';
-      var discBadgeHtml = hasLineDisc 
-        ? `<span class="badge badge-danger font-weight-bold ml-1" style="font-size:0.80rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-tag mr-1"></i>-${item.item_discount_text || cdMoney(origUnitPrice - curUnitPrice)}</span>` 
-        : '';
+  var cartFingerprint = (cart || []).map(function(it){
+    return (it.product_id || it.id || '') + ':' + (it.quantity || 0) + ':' + (it.unit_price || 0) + ':' + (it.item_discount || 0) + ':' + (it.is_free_gift ? 1 : 0);
+  }).join('|');
 
-      var rawImg = item.image || item.img_url || '';
-      var imgName = rawImg ? rawImg.split('/').pop().split('\\').pop() : 'image.jpg';
-      var imgSrc = (!imgName || imgName === 'image.jpg') ? '../../assets/img/image.jpg' : '../../assets/product_img/' + imgName;
+  if (window._currentTbodyFingerprint !== cartFingerprint) {
+    window._currentTbodyFingerprint = cartFingerprint;
+    tbody.empty();
 
-      tbody.append(`
-        <tr class="${isNewest ? 'display-row-newest' : ''}" style="${isGift ? 'background:#f0fdf4;' : ''}">
-          <td class="text-center text-muted font-weight-bold">${idx + 1}</td>
-          <td class="text-center">
-            <img src="${imgSrc}" alt="${item.product_name}" class="display-pro-img" onerror="this.src='../../assets/img/image.jpg';">
-          </td>
-          <td class="font-weight-bold text-dark" style="font-size: 1.1rem;">
-            ${item.product_name} ${giftBadgeHtml} ${discBadgeHtml}
-            <small class="text-muted d-block font-weight-normal" style="font-size:0.80rem; ${item.barcode ? '' : 'visibility:hidden;'}">${item.barcode || ' '}</small>
-          </td>
-          <td class="text-center font-weight-bold text-primary">${unitNameStr}</td>
-          <td class="text-center"><span class="badge-qty">x${item.quantity}</span></td>
-          <td class="text-right ${isGift ? 'text-success' : 'text-primary'} font-weight-bold" style="white-space: nowrap;">${unitPriceStr}</td>
-          <td class="text-right text-success font-weight-bold" style="font-size: 1.15rem; white-space: nowrap;">${itemTotal}</td>
-        </tr>
-      `);
-    });
+    if (cart.length > 0) {
+      var origIndex = new Map();
+      cart.forEach(function(it, n) { origIndex.set(it, n); });
+      var orderedCart = cart.slice().sort(function(a, b) {
+        var ta = (typeof a._touch === 'number') ? a._touch : origIndex.get(a);
+        var tb = (typeof b._touch === 'number') ? b._touch : origIndex.get(b);
+        return tb - ta;
+      });
+      orderedCart.forEach(function(item, i) {
+        var idx = origIndex.get(item);
+        var isNewest = (i === 0);
+        var isGift = !!item.is_free_gift;
+        var origUnitPrice = parseFloat(item.original_price || item.unit_price) || 0;
+        var curUnitPrice = parseFloat(item.unit_price) || 0;
+        var itemDisc = parseFloat(item.item_discount) || 0;
+        var hasLineDisc = (itemDisc > 0 || origUnitPrice > curUnitPrice) && !isGift;
+
+        var itemTotal = isGift ? cdMoney(0) : cdMoney(item.quantity * curUnitPrice);
+        var unitPriceStr = isGift 
+          ? cdMoney(0) 
+          : (hasLineDisc && origUnitPrice > curUnitPrice
+              ? `<del style="color:#94a3b8; font-size:0.85em; text-decoration:line-through; font-weight:normal;" class="mr-1">${cdMoney(origUnitPrice)}</del><span class="text-danger font-weight-bold">${cdMoney(curUnitPrice)}</span>`
+              : cdMoney(curUnitPrice));
+        var unitNameStr = item.unit_name ? item.unit_name : 'ອັນ';
+        var giftBadgeHtml = isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.82rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i>ແຖມຟຣີ</span>` : '';
+        var discBadgeHtml = hasLineDisc 
+          ? `<span class="badge badge-danger font-weight-bold ml-1" style="font-size:0.80rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-tag mr-1"></i>-${item.item_discount_text || cdMoney(origUnitPrice - curUnitPrice)}</span>` 
+          : '';
+
+        var rawImg = item.image || item.img_url || '';
+        var imgName = rawImg ? rawImg.split('/').pop().split('\\').pop() : 'image.jpg';
+        var imgSrc = (!imgName || imgName === 'image.jpg') ? '../../assets/img/image.jpg' : '../../assets/product_img/' + imgName;
+
+        tbody.append(`
+          <tr class="${isNewest ? 'display-row-newest' : ''}" style="${isGift ? 'background:#f0fdf4;' : ''}">
+            <td class="text-center text-muted font-weight-bold" style="text-align: center !important;">${idx + 1}</td>
+            <td class="text-center" style="text-align: center !important;">
+              <img src="${imgSrc}" alt="${item.product_name}" class="display-pro-img" onerror="this.src='../../assets/img/image.jpg';">
+            </td>
+            <td class="text-left font-weight-bold text-dark" style="font-size: 1.05rem; text-align: left !important; padding-left: 14px !important;">
+              <span>${item.product_name}</span>
+              <span class="badge badge-light border text-primary font-weight-bold ml-1" style="font-size:0.82rem; padding:2px 7px; border-radius:4px; vertical-align:middle;">${unitNameStr}</span>
+              ${giftBadgeHtml}
+              ${discBadgeHtml}
+              <small class="text-muted d-block font-weight-normal" style="font-size:0.80rem; ${item.barcode ? '' : 'visibility:hidden;'}">${item.barcode || ' '}</small>
+            </td>
+            <td class="text-center" style="text-align: center !important;"><span class="badge-qty">x${item.quantity}</span></td>
+            <td class="text-center ${isGift ? 'text-success' : 'text-primary'} font-weight-bold" style="white-space: nowrap; text-align: center !important;">${unitPriceStr}</td>
+            <td class="text-center text-success font-weight-bold" style="font-size: 1.15rem; white-space: nowrap; text-align: center !important;">${itemTotal}</td>
+          </tr>
+        `);
+      });
+    }
+
+    if (window.cdAutoScroll) {
+      window.cdAutoScroll._lastFingerprint = cartFingerprint;
+      window.cdAutoScroll.resetToTop();
+    }
   }
 
   // 2. Summary Totals Calculation
@@ -600,4 +798,133 @@ function renderDisplayData(data) {
   animateNumber('displayChangeAmount', changeAmt);
 
 }
+
+// ===== Auto-scroll Controller ສໍາລັບລາຍການສິນຄ້າໃນຈໍລູກຄ້າ (Non-touch Auto Pendulum Scroll) =====
+// ເນື່ອງຈາກຈໍລູກຄ້າບໍ່ມີລະບົບສຳພັດ (Non-touch display), ເມື່ອມີສິນຄ້າຫຼາຍເກີນຂອບເຂດໜ້າຈໍ
+// ລະບົບຈະຄ່ອຍໆເລື່ອນລົງ ແລະ ເລື່ອນຂຶ້ນຊ້າໆ (Slow Loop) ແບບສະໂລ ເພື່ອໃຫ້ລູກຄ້າສາມາດເຫັນໄດ້ຄົບທຸກລາຍການ
+window.cdAutoScroll = {
+  rafId: null,
+  container: null,
+  lastTime: null,
+  currentY: 0,
+  direction: 1, // 1 = scroll down, -1 = scroll up
+  speed: 38, // pixels per second (ຄວາມໄວສະໂລກຳລັງດີ ເຫັນການເລື່ອນຊັດເຈນ)
+  pauseUntil: 0,
+  userPauseUntil: 0,
+  topPauseMs: 1800, // ພັກຢູ່ເທິງສຸດ 1.8 ວິນາທີ ແລ້ວເລີ່ມເລື່ອນລົງທັນທີ
+  bottomPauseMs: 2200, // ພັກຢູ່ລຸ່ມສຸດ 2.2 ວິນາທີ ເພື່ອໃຫ້ລູກຄ້າເຫັນລາຍການລຸ່ມສຸດ
+  userInteractedPauseMs: 3500, // ຖ້າມີການແຕະ ຫຼື ເລື່ອນເມົ້າ ໃຫ້ຢຸດຊົ່ວຄາວ
+  _lastFingerprint: '',
+
+  init: function() {
+    this.container = document.querySelector('.display-table-body');
+    if (!this.container) return;
+    var self = this;
+
+    // ດັກຈັບຖ້າມີການເລື່ອນດ້ວຍເມົ້າ ຫຼື ສໍາພັດ
+    var handleUserInteraction = function() {
+      self.userPauseUntil = performance.now() + self.userInteractedPauseMs;
+      if (self.container) {
+        self.currentY = self.container.scrollTop;
+      }
+    };
+    this.container.addEventListener('wheel', handleUserInteraction, { passive: true });
+    this.container.addEventListener('pointerdown', handleUserInteraction, { passive: true });
+    this.container.addEventListener('touchstart', handleUserInteraction, { passive: true });
+
+    this.start();
+  },
+
+  resetToTop: function() {
+    if (!this.container) {
+      this.container = document.querySelector('.display-table-body');
+      if (!this.container) return;
+    }
+    this.container.scrollTop = 0;
+    this.currentY = 0;
+    this.direction = 1;
+    this.pauseUntil = performance.now() + this.topPauseMs;
+  },
+
+  start: function() {
+    if (this.rafId) cancelAnimationFrame(this.rafId);
+    this.lastTime = performance.now();
+    this.pauseUntil = performance.now() + this.topPauseMs;
+    var self = this;
+
+    var step = function(timestamp) {
+      if (!self.container) {
+        self.container = document.querySelector('.display-table-body');
+      }
+      if (!self.container) {
+        self.rafId = requestAnimationFrame(step);
+        return;
+      }
+
+      var dt = (timestamp - (self.lastTime || timestamp)) / 1000;
+      self.lastTime = timestamp;
+      if (dt > 0.1) dt = 0.1; // ປ້ອງກັນການກະໂດດເມື່ອສະຫຼັບແທັບ
+
+      var maxScroll = self.container.scrollHeight - self.container.clientHeight;
+
+      // ຖ້າລາຍການບໍ່ເກີນໜ້າຈໍ ບໍ່ຕ້ອງເລື່ອນ (ຢູ່ເທິງສຸດ)
+      if (maxScroll <= 10) {
+        if (self.container.scrollTop !== 0) {
+          self.container.scrollTop = 0;
+          self.currentY = 0;
+        }
+        self.direction = 1;
+        self.rafId = requestAnimationFrame(step);
+        return;
+      }
+
+      // ຖ້າກຳລັງຢູ່ໃນຊ່ວງເວລາພັກ (ເທິງ/ລຸ່ມ) ຫຼື ຜູ້ໃຊ້ກຳລັງແຕະເລື່ອນ
+      if (timestamp < self.pauseUntil || timestamp < self.userPauseUntil) {
+        self.rafId = requestAnimationFrame(step);
+        return;
+      }
+
+      // Sync sub-pixel position if manually scrolled
+      if (Math.abs(self.container.scrollTop - Math.round(self.currentY)) > 8) {
+        self.currentY = self.container.scrollTop;
+      }
+
+      // ເລື່ອນຕາມທິດທາງ (ລົງ ຫຼື ຂຶ້ນ) ໂດຍເກັບຄ່າທົດສະນິຍົມໄວ້ໃນ currentY ເພື່ອບໍ່ໃຫ້ scrollTop ປັດເສດເປັນ 0
+      var moveBy = self.speed * dt;
+
+      if (self.direction === 1) {
+        // ກຳລັງຄ່ອຍໆເລື່ອນລົງ
+        self.currentY += moveBy;
+        if (self.currentY >= maxScroll - 0.5) {
+          self.currentY = maxScroll;
+          self.container.scrollTop = maxScroll;
+          self.direction = -1; // ປ່ຽນທິດທາງເປັນເລື່ອນຂຶ້ນ
+          self.pauseUntil = timestamp + self.bottomPauseMs;
+        } else {
+          self.container.scrollTop = Math.round(self.currentY);
+        }
+      } else {
+        // ກຳລັງຄ່ອຍໆເລື່ອນຂຶ້ນ
+        self.currentY -= moveBy;
+        if (self.currentY <= 0.5) {
+          self.currentY = 0;
+          self.container.scrollTop = 0;
+          self.direction = 1; // ປ່ຽນທິດທາງເປັນເລື່ອນລົງ
+          self.pauseUntil = timestamp + self.topPauseMs;
+        } else {
+          self.container.scrollTop = Math.round(self.currentY);
+        }
+      }
+
+      self.rafId = requestAnimationFrame(step);
+    };
+
+    this.rafId = requestAnimationFrame(step);
+  }
+};
+
+window.cdAutoScroll.init();
+$(function() {
+  if (!window.cdAutoScroll.rafId) window.cdAutoScroll.init();
+});
 </script>

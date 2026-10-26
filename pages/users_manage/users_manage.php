@@ -19,7 +19,7 @@ require_once __DIR__ . '/../../layouts/header.php';
     <div class="container-fluid">
       <div class="row align-items-center">
         <div class="col-sm-6">
-          <h5 class="m-0 font-weight-bold text-dark" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon'; font-size:  18px;">
+          <h5 class="m-0 font-weight-bold text-dark" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon'; font-size:  18px;">
             <i class="fas fa-users-cog text-primary mr-2"></i> <?php echo htmlspecialchars(t('users_manage.page_title', 'ຈັດການຜູ້ນຳໃຊ້ລະບົບ')); ?>
           </h5>
         </div>
@@ -40,7 +40,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <!-- MAIN USERS TABLE CARD -->
       <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
         <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center w-100">
-          <h6 class="card-title m-0 font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon'; color: #0f172a;">
+          <h6 class="card-title m-0 font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon'; color: #0f172a;">
             <?php echo htmlspecialchars(t('users_manage.card_title_all_users', 'ລາຍງານຜູ້ໃຊ້ງານທັງໝົດ')); ?>
           </h6>
 
@@ -92,7 +92,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                     $userJson = htmlspecialchars(json_encode($u), ENT_QUOTES, 'UTF-8');
                     $userStatus = trim($u['status'] ?? $u['userstatus'] ?? 'ພະນັກງານ');
                     // Anyone can see an admin-labeled row here; only the owner (Id 1) may edit or
-                    // delete ANOTHER admin's row — same rule enforced server-side in api_user.php.
+                    // delete ANOTHER admin's row — same rule enforced server-side in api/users_api.php.
                     $rowIsAdmin = (intval($u['Id']) === 1 || $userStatus === 'ຜູ້ບໍລິຫານ' || strtolower($userStatus) === 'admin' || strtolower($userStatus) === 'super admin');
                     // Nobody — admin or not — may delete the account they're logged in as.
                     $isOwnRow = (intval($u['Id']) === intval($_SESSION['user_id'] ?? 0));
@@ -249,7 +249,7 @@ require_once __DIR__ . '/components/form_edit_user.php';
 <!-- JAVASCRIPT LOGIC -->
 <script>
   var BASE_PATH = '<?php echo $base_path; ?>';
-  var API_URL   = '<?php echo $base_path; ?>pages/users_manage/api_user.php';
+  var API_URL   = '<?php echo $base_path; ?>api/users_api.php';
   var I18N_USERS = <?php echo tjson([
     'users_manage.status_online' => 'ໃຊ້ງານຢູ່',
     'users_manage.status_offline' => 'ບໍ່ໄດ້ໃຊ້ງານ',

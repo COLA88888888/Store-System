@@ -4,7 +4,7 @@
    (config/helpers/theme_css.php) ສະນັ້ນ ລຳດັບ cascade ຄືເກົ່າ.
    ============================================================ */
           body, table, td, th {
-            font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+            font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
             font-size: 11pt !important;
           }
           table {

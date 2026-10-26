@@ -1,10 +1,10 @@
 /* MiniPos flatpickr calendar (used with minipos-datepicker.js): plain white calendar —
    white header, grey arrows, month dropdown + year, round days, selected day a blue
    circle, today a thin grey ring. Sizes are flatpickr's own defaults. */
-.flatpickr-calendar { font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12); }
+.flatpickr-calendar { font-family: 'Nuanta', 'Noto Sans Lao', 'Phetsarath OT', sans-serif; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12); }
 .flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after,
 .flatpickr-calendar.arrowBottom:before, .flatpickr-calendar.arrowBottom:after { display: none; }
-.flatpickr-calendar select, .flatpickr-calendar input, .flatpickr-weekday { font-family: 'Noto Sans Lao', 'Phetsarath OT', sans-serif !important; }
+.flatpickr-calendar select, .flatpickr-calendar input, .flatpickr-weekday { font-family: 'Nuanta', 'Noto Sans Lao', 'Phetsarath OT', sans-serif !important; }
 .flatpickr-months .flatpickr-month { background: #ffffff; color: #1e293b; fill: #1e293b; height: 40px; }
 .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { color: #334155; fill: #334155; padding: 12px; }
 .flatpickr-months .flatpickr-prev-month:hover svg, .flatpickr-months .flatpickr-next-month:hover svg { fill: #0f172a; }

@@ -7,7 +7,7 @@
 ?>  <!-- Header & Page Meta -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
     <div>
-      <h5 class="font-weight-bold text-dark mb-1" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+      <h5 class="font-weight-bold text-dark mb-1" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
         <i class="fas fa-calendar-day text-info"></i> <?php echo htmlspecialchars(t('reports.title_daily', 'ລາຍງານປະຈຳວັນ')); ?>
       </h5>
     </div>
@@ -51,6 +51,8 @@
         <input type="hidden" name="store_id" value="0">
       <?php endif; ?>
 
+<?php $shiftSelBoxStyle = 'flex: 1 1 150px; width: 100%;'; require dirname(__DIR__) . '/shift_filter_select.php'; /* ບັອກເລືອກກະ — ສາຂາທີ່ບໍ່ມີກະ: ເຊື່ອງ */ ?>
+
       <!-- Currency Filter Dropdown -->
       <div class="report-filter-date-col" style="min-width: 170px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
@@ -84,7 +86,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_gross_total', 'ລວມຍອດ')); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_gross_sales, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
@@ -95,7 +97,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_item_discount', 'ສ່ວນຫຼຸດສິນຄ້າ')); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_item_discounts, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
@@ -106,7 +108,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_bill_discount', 'ສ່ວນຫຼຸດໃບບິນ')); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_bill_discounts, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
@@ -117,7 +119,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title text-nowrap" style="white-space: nowrap !important;"><i class="fas fa-bullhorn mr-1"></i> <?php echo htmlspecialchars(t('reports.kpi_promotion', 'ໂປຣໂມຊັ່ນ')); ?> <?php if ($daily_promo_gifts_count > 0): ?><span class="text-warning font-weight-normal ml-1" style="font-size: 0.75rem;">(<?php echo htmlspecialchars(t('reports.gift_label', 'ແຖມ')); ?>: <?php echo number_format($daily_promo_gifts_count); ?>)</span><?php endif; ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val text-nowrap" style="white-space: nowrap !important; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val text-nowrap" style="white-space: nowrap !important; font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_promo_discounts, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
@@ -128,7 +130,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_total_discount', 'ສ່ວນຫຼຸດທັງໝົດ')); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_total_discounts, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
@@ -139,7 +141,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #10b981 0%, #047857 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_net_sales', 'ຍອດຂາຍສຸດທິ')); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_net_sales, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
@@ -150,7 +152,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.cash_opt', 'ເງິນສົດ')); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_cash_payments, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
@@ -161,7 +163,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #06b6d4 0%, #0e7490 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_transfer', 'ເງິນໂອນ')); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_qr_payments, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
       </div>
@@ -173,7 +175,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #16a34a 0%, #166534 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_actual_received', 'ເງິນໄດ້ຮັບຕົວຈິງ')); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <span class="counter-num" data-target="<?php echo number_format(convertFromKip($daily_received_total, $__dc['code'], $__dc['rates']), $__dec, '.', ''); ?>" data-suffix=" <?php echo htmlspecialchars($__sym); ?>" data-decimals="<?php echo $__dec; ?>">0 <?php echo htmlspecialchars($__sym); ?></span>
         </div>
         <div style="font-size: 0.72rem; color: rgba(255,255,255,.88); white-space: nowrap;"><?php echo htmlspecialchars(t('reports.kpi_actual_received_hint', 'ເງິນສົດ + ເງິນໂອນ')); ?></div>
@@ -185,7 +187,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.bills_unit', 'ບິນ')); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <?php $u_bills = htmlspecialchars(t('reports.bills_unit', 'ບິນ')); ?>
           <span class="counter-num" data-suffix-key="reports.bills_unit" data-target="<?php echo (int)$daily_bills_count; ?>" data-suffix=" <?php echo $u_bills; ?>">0 <?php echo $u_bills; ?></span>
         </div>
@@ -197,7 +199,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_products_sold', 'ລາຍການສິນຄ້າ')); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <?php $u_lines = htmlspecialchars(t('reports.items_unit', 'ລາຍການ')); ?>
           <span class="counter-num" data-suffix-key="reports.items_unit" data-target="<?php echo (int)$daily_products_count; ?>" data-suffix=" <?php echo $u_lines; ?>">0 <?php echo $u_lines; ?></span>
         </div>
@@ -209,7 +211,7 @@
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo htmlspecialchars(t('reports.kpi_qty_sold', 'ຈຳນວນ')); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <?php $u_pcs = htmlspecialchars(t('reports.unit_pieces', 'ຊິ້ນ')); ?>
           <span class="counter-num" data-suffix-key="reports.unit_pieces" data-target="<?php echo (int)$daily_items_qty; ?>" data-suffix=" <?php echo $u_pcs; ?>">0 <?php echo $u_pcs; ?></span>
         </div>

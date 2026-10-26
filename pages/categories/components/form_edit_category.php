@@ -6,7 +6,7 @@
         <input type="hidden" name="action" value="edit_category">
         <input type="hidden" name="category_id" id="edit_cat_id">
         <div class="modal-header" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important;">
-          <h5 class="modal-title font-weight-bold text-white" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h5 class="modal-title font-weight-bold text-white" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-edit mr-2"></i> <?php echo htmlspecialchars(t('categories.modal_edit_title', 'ແກ້ໄຂປະເພດສິນຄ້າ')); ?>
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">

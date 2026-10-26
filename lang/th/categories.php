@@ -1,5 +1,5 @@
 <?php
-// pages/categories/* + api/categories_backend.php + pages/categories/api_category.php
+// pages/categories/* + api/categories_backend.php + api/categories_api.php
 // strings - Thai
 return [
     'categories.page_title' => 'จัดการหมวดหมู่สินค้า',
@@ -58,7 +58,7 @@ return [
     'categories.msg_delete_blocked_suffix' => ' รายการ.',
     'categories.msg_delete_success' => 'ลบหมวดหมู่สินค้าสำเร็จ!',
 
-    // pages/categories/api_category.php messages
+    // api/categories_api.php messages
     'categories.access_denied' => 'ท่านไม่มีสิทธิ์เข้าถึงข้อมูลนี้!',
     'categories.invalid_action' => 'คำสั่งไม่ถูกต้อง',
 

@@ -76,6 +76,11 @@ $hasCatFilter = ($category_id !== '' && $category_name_filter !== '');
 
 $storeWhere = ($filter_store_id > 0 && $hasStoreIdCol) ? " AND s.{$storeColName} = :filter_store_id" : "";
 
+// ກະ (ບັອກເລືອກກະ — partials/shift_filter_select.php): ສະເພາະສາຂາດຽວທີ່ມີກະ — ໃສ່ທັງ 3 query ຂ້າງລຸ່ມ
+$shiftFilter = reportShiftFilter($pdo, $filter_store_id);
+$shiftJoinSql = $shiftFilter['sql'] !== '' ? ' AND ' . $shiftFilter['sql'] : '';
+$storeWhere .= $shiftJoinSql;
+
 // Query ALL categories from database, joining sales data to get total quantity sold and revenue
 $sql = "
     SELECT
@@ -151,6 +156,7 @@ $items_sql = "
         " . (($filter_store_id > 0 && $hasStoreIdCol) ? " AND s.{$storeColName} = :items_filter_store_id" : "") . "
         " . (!empty($search) ? " AND (d.save_proname LIKE :search OR d.save_proid LIKE :search OR p.product_name LIKE :search)" : "") . "
         {$currencyJoinSql}
+        {$shiftJoinSql}
     GROUP BY COALESCE(cat.category_name, ''), BINARY COALESCE(d.save_proname, p.product_name, 'ບໍ່ລະບຸຊື່ສິນຄ້າ')
     ORDER BY qty_sold DESC
 ";
@@ -236,6 +242,9 @@ try {
     if ($filter_store_id > 0 && $hasStoreIdCol) {
         $grandWhere[] = "s.{$storeColName} = :grand_store_id";
         $grandParams[':grand_store_id'] = $filter_store_id;
+    }
+    if ($shiftFilter['sql'] !== '') {
+        $grandWhere[] = $shiftFilter['sql'];
     }
     if ($hasCatFilter) {
         $grandWhere[] = "p.category_id IN (SELECT category_id FROM st_categories WHERE category_name = :grand_category_name)";

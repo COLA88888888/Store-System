@@ -122,7 +122,7 @@ require_once __DIR__ . '/../../layouts/header.php';
     <div class="container-fluid">
       <div class="row align-items-center">
         <div class="col-sm-6">
-          <h4 class="m-0 font-weight-bold text-dark" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h4 class="m-0 font-weight-bold text-dark" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-truck-loading text-primary mr-2"></i> <?php echo htmlspecialchars(t('import_stock.page_title', 'ຮັບສິນຄ້າເຂົ້າສະຕັອກ')); ?>
           </h4>
         </div>

@@ -5,7 +5,7 @@
 
       <!-- Header -->
       <div class="modal-header bg-primary py-2 px-4">
-        <h5 class="modal-title font-weight-bold d-flex align-items-center mb-0" style="font-size: 18px; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <h5 class="modal-title font-weight-bold d-flex align-items-center mb-0" style="font-size: 18px; font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <span id="checkoutTitlePay"><?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?></span>
         </h5>
         <button type="button" class="close text-white" data-dismiss="modal" style="opacity:0.9;font-size:1.4rem;"><span>&times;</span></button>
@@ -25,7 +25,7 @@
               <div style="color:rgba(255,255,255,0.82);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;position:relative;">
                 <?php echo htmlspecialchars(t('pos.amount_due', 'ຍອດທີ່ຕ້ອງຊຳລະ')); ?>
               </div>
-              <div class="font-weight-bold" id="checkoutTotalDisplay" style="font-size:1.55rem;color:#fff;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;line-height:1.2;word-break:break-all;text-shadow:0 2px 8px rgba(0,0,0,0.15);position:relative;">0 ₭</div>
+              <div class="font-weight-bold" id="checkoutTotalDisplay" style="font-size:1.55rem;color:#fff;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;line-height:1.2;word-break:break-all;text-shadow:0 2px 8px rgba(0,0,0,0.15);position:relative;">0 ₭</div>
             </div>
 
             <!-- Pay Mode -->
@@ -33,11 +33,11 @@
               <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><?php echo htmlspecialchars(t('pos.pay_method_label', 'ວິທີຊຳລະ')); ?></div>
               <div class="d-flex" style="gap:7px;">
                 <button type="button" id="payModeSingleBtn" onclick="setPayMode('single')"
-                  style="flex:1;padding:8px 12px;border-radius:9px;border:2px solid #244886;background:#eef2fb;color:#1a3666;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;text-align:center;">
+                  style="flex:1;padding:8px 12px;border-radius:9px;border:2px solid #244886;background:#eef2fb;color:#1a3666;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.15s;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;text-align:center;">
                   <?php echo htmlspecialchars(t('pos.pay_mode_single', 'ຊຳລະດຽວ')); ?>
                 </button>
                 <button type="button" id="payModeSplitBtn" onclick="setPayMode('split')"
-                  style="flex:1;padding:8px 12px;border-radius:9px;border:2px solid #cbd5e1;background:#fff;color:#64748b;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;text-align:center;">
+                  style="flex:1;padding:8px 12px;border-radius:9px;border:2px solid #cbd5e1;background:#fff;color:#64748b;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.15s;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;text-align:center;">
                   <?php echo htmlspecialchars(t('pos.pay_mode_split', 'ຊຳລະຫຼາຍຊ່ອງ')); ?>
                 </button>
               </div>
@@ -48,11 +48,11 @@
               <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><?php echo htmlspecialchars(t('pos.pay_type_label', 'ປະເພດ')); ?></div>
               <div class="d-flex" style="gap:7px;">
                 <button type="button" id="payTypeCashBtn" onclick="selectPayTypeTab('ເງິນສົດ')"
-                  style="flex:1;padding:8px 12px;border-radius:9px;border:2px solid #244886;background:#eef2fb;color:#1a3666;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;text-align:center;">
+                  style="flex:1;padding:8px 12px;border-radius:9px;border:2px solid #244886;background:#eef2fb;color:#1a3666;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.15s;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;text-align:center;">
                   <?php echo htmlspecialchars(t('pos.pay_type_cash', 'ເງິນສົດ')); ?>
                 </button>
                 <button type="button" id="payTypeQrBtn" onclick="selectPayTypeTab('ໂອນເງິນ / QR')"
-                  style="flex:1;padding:8px 12px;border-radius:9px;border:2px solid #cbd5e1;background:#fff;color:#64748b;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;text-align:center;">
+                  style="flex:1;padding:8px 12px;border-radius:9px;border:2px solid #cbd5e1;background:#fff;color:#64748b;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.15s;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;text-align:center;">
                   <?php echo htmlspecialchars(t('pos.pay_type_qr', 'ໂອນ / QR')); ?>
                 </button>
               </div>
@@ -97,7 +97,7 @@
                           <?php else: ?>
                             <i class="fas fa-university text-primary pos-bank-logo-icon" style="font-size: 1rem; flex-shrink: 0;"></i>
                           <?php endif; ?>
-                          <div class="pos-bank-name font-weight-bold text-dark text-truncate" style="font-size: 0.80rem; font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;" title="<?php echo htmlspecialchars($displayLabel); ?>">
+                          <div class="pos-bank-name font-weight-bold text-dark text-truncate" style="font-size: 0.80rem; font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;" title="<?php echo htmlspecialchars($displayLabel); ?>">
                             <?php echo htmlspecialchars($displayLabel); ?>
                           </div>
                         </div>
@@ -251,7 +251,7 @@
                 <div style="border-top:1px dashed #e2e8f0;margin:6px 0;"></div>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                   <span class="font-weight-bold" style="font-size:0.95rem;"><?php echo htmlspecialchars(t('pos.change_label', 'ເງິນທອນ:')); ?></span>
-                  <span class="font-weight-bold text-success" id="changeDisplay" style="font-size:1.4rem;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">0 ₭</span>
+                  <span class="font-weight-bold text-success" id="changeDisplay" style="font-size:1.4rem;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">0 ₭</span>
                 </div>
               </div>
             </div>
@@ -275,7 +275,7 @@
                 <div style="border-top:1px dashed #e2e8f0;margin:6px 0;"></div>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                   <span class="font-weight-bold" style="font-size:0.95rem;" id="splitStatusLabel"><?php echo htmlspecialchars(t('pos.split_status_remaining', 'ຍັງຄ້າງ:')); ?></span>
-                  <span class="font-weight-bold" style="font-size:1.35rem;font-family:'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;" id="splitRemainingDisplay">0 ₭</span>
+                  <span class="font-weight-bold" style="font-size:1.35rem;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;" id="splitRemainingDisplay">0 ₭</span>
                 </div>
               </div>
             </div>
@@ -315,9 +315,6 @@
                 <span id="btnSubmitPayLbl"><?php echo htmlspecialchars(t('pos.confirm_payment', 'ຢືນຢັນຊຳລະ')); ?></span>
               </button>
             </div>
-            <!-- ເຄື່ອງພິມທີ່ໃບບິນຈະພິມອອກ (receipt_bluetooth.php → btPaintStatus) — ສະແດງສະຖານະຢ່າງດຽວ;
-                 ເຊື່ອມຕໍ່ເຄື່ອງພິມຢູ່ ຕັ້ງຄ່າ > ເຄື່ອງພິມ -->
-            <div class="bt-printer-line text-center small mt-2"></div>
 
           </div><!-- /RIGHT -->
 

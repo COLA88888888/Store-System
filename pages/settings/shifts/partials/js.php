@@ -32,6 +32,7 @@ function shiftLoaderHtml(text) {
 window.currentShiftData = null;
 window.currentReportSession = null;
 window.currentReportBills = [];
+window.currentReportItems = [];
 
 // ============================================================================
 // 0. Language & Friendly Time Formatting (ໂມງ / ນາທີ ປ່ຽນຕາມພາສາ)
@@ -183,10 +184,7 @@ function loadCurrentShiftStatus() {
       $('#activeShiftTransferSales').text(formatNumber(res.session.system_sales_transfer) + ' ₭');
       $('#activeShiftTotalSales').text(formatNumber(res.session.system_total_sales) + ' ₭');
 
-      // ຕັ້ງຄ່າປຸ່ມປິດກະ
-      $('#btnBannerCloseShift').off('click').on('click', function () {
-        openCloseShiftModal(res.session.id);
-      });
+      // ປຸ່ມສະຫຼຸບ (ປຸ່ມປິດກະຢູ່ແຖບນີ້ ເອົາອອກແລ້ວ — ປິດກະທີ່ໜ້າຂາຍ)
       $('#btnBannerViewSummary').off('click').on('click', function () {
         openShiftReportModal(res.session.id);
       });
@@ -214,9 +212,16 @@ function loadShiftsConfigList() {
     }
 
     res.shifts.forEach(function (s, idx) {
-      var statusBadge = parseInt(s.status) === 1
-        ? '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i> ເປີດໃຊ້ງານ</span>'
-        : '<span class="badge badge-secondary px-2 py-1"><i class="fas fa-pause-circle mr-1"></i> ປິດໄວ້</span>';
+      // ອອນໄລນ໌ສະເພາະຕອນມີພະນັກງານເປີດກະນີ້ຢູ່ (open_session ຈາກ list_shifts); ກະທີ່ປິດໃຊ້ງານ = ປິດໄວ້
+      var statusBadge;
+      if (parseInt(s.status) !== 1) {
+        statusBadge = '<span class="badge badge-secondary px-2 py-1"><i class="fas fa-pause-circle mr-1"></i> ປິດໄວ້</span>';
+      } else if (s.open_session) {
+        statusBadge = '<span class="badge badge-success px-2 py-1"><i class="fas fa-circle mr-1" style="font-size: 0.6rem; vertical-align: middle;"></i> ກຳລັງເປີດກະ</span>' +
+          '<div class="small text-muted mt-1">' + $('<div>').text(s.open_session.opened_by_name || '-').html() + ' · ' + s.open_session.open_time_fmt + '</div>';
+      } else {
+        statusBadge = '<span class="badge badge-danger px-2 py-1"><i class="fas fa-power-off mr-1"></i> ປິດໃຊ້ງານ</span>';   // ກະບໍ່ໄດ້ເປີດຢູ່ຕອນນີ້
+      }
 
       var tr = $('<tr></tr>');
       tr.html(`
@@ -252,17 +257,46 @@ function loadShiftsConfigList() {
   }, 'json');
 }
 
+// ຊື່ກະວ່າງ → SweetAlert (ແທນ tooltip "Please fill out this field" ຂອງ browser) ແລ້ວໂຟກັສຊ່ອງຊື່
+function shiftNameMissing() {
+  var $name = $('#shiftConfigName');
+  if ($.trim($name.val() || '') !== '') return false;
+  Swal.fire({
+    icon: 'warning',
+    title: 'ແຈ້ງເຕືອນ',
+    text: 'ກະລຸນາປ້ອນຊື່ກະເຮັດວຽກກ່ອນ',
+    confirmButtonText: 'ຕົກລົງ',
+    confirmButtonColor: '#244886'
+  }).then(function () { $name.trigger('focus'); });
+  return true;
+}
+
 // ບັນທຶກຕັ້ງຄ່າກະ
 function saveShiftConfig(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
+  if (shiftNameMissing()) return false;
   // ຕ້ອງຕິກພະນັກງານໃນກະຢ່າງໜ້ອຍ 1 ຄົນ ຈຶ່ງບັນທຶກໄດ້ (ເຊີເວີກວດຊ້ຳ — save_shift)
-  if (!$('#shiftStaffList input[name="staff_user_ids[]"]:checked').length) {
-    Swal.fire({ icon: 'warning', title: 'ກະລຸນາເລືອກພະນັກງານ', text: 'ຕິກເລືອກພະນັກງານໃນກະນີ້ຢ່າງໜ້ອຍ 1 ຄົນ ກ່ອນບັນທຶກ', confirmButtonText: 'ຕົກລົງ', confirmButtonColor: '#244886' })
-      .then(function () {
-        var box = document.getElementById('shiftStaffList');
-        if (box) { box.scrollIntoView({ block: 'center', behavior: 'smooth' }); box.style.borderColor = '#dc2626'; setTimeout(function () { box.style.borderColor = ''; }, 2500); }
-      });
-    return;
+  var checkedStaff = $('#shiftStaffList input[name="staff_user_ids[]"]:checked').length;
+  if (!checkedStaff) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'ແຈ້ງເຕືອນ',
+      text: 'ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ',
+      confirmButtonText: 'ຕົກລົງ',
+      confirmButtonColor: '#244886'
+    }).then(function () {
+      var box = document.getElementById('shiftStaffList');
+      if (box) {
+        box.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        box.style.borderColor = '#dc2626';
+        box.style.boxShadow = '0 0 0 3px rgba(220, 38, 38, 0.25)';
+        setTimeout(function () {
+          box.style.borderColor = '#e2e8f0';
+          box.style.boxShadow = '';
+        }, 2500);
+      }
+    });
+    return false;
   }
   var formData = $('#formShiftConfig').serialize();
   formData += '&action=save_shift';
@@ -288,7 +322,21 @@ function shiftStaffCell(staff) {
   return '<span class="badge badge-primary mr-1">' + staff.length + ' ຄົນ</span>' + staff.map(function (u) { return shiftEsc(u.name); }).join(', ');
 }
 function updateShiftStaffCount() {
-  $('#shiftStaffCount').text($('#shiftStaffList input:checked').length + ' ຄົນ');
+  var count = $('#shiftStaffList input:checked').length;
+  $('#shiftStaffCount').text(count + ' ຄົນ');
+  if (count === 0) {
+    $('#shiftStaffCount').removeClass('badge-primary badge-success').addClass('badge-danger');
+    $('#shiftStaffRequiredNotice')
+      .removeClass('text-success text-muted')
+      .addClass('text-danger font-weight-bold')
+      .html('<i class="fas fa-exclamation-circle mr-1"></i> ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ');
+  } else {
+    $('#shiftStaffCount').removeClass('badge-danger badge-primary').addClass('badge-success');
+    $('#shiftStaffRequiredNotice')
+      .removeClass('text-danger')
+      .addClass('text-success font-weight-bold')
+      .html('<i class="fas fa-check-circle mr-1"></i> ເລືອກແລ້ວ ' + count + ' ຄົນ');
+  }
 }
 // ໂຫຼດລາຍຊື່ພະນັກງານຂອງສາຂາ ເປັນ checkbox ແລ້ວຕິກຄົນທີ່ຢູ່ໃນກະນີ້ (selectedIds)
 function loadShiftStaffPicker(selectedIds) {
@@ -308,6 +356,34 @@ function loadShiftStaffPicker(selectedIds) {
   }, 'json').fail(function () { $box.html('<div class="text-danger small py-2 text-center">ໂຫຼດລາຍຊື່ພະນັກງານບໍ່ໄດ້</div>'); });
 }
 $(document).on('change', '#shiftStaffList input', updateShiftStaffCount);
+
+// ກວດສອບເມື່ອກົດປຸ່ມບັນທຶກກະ: ຖ້າບໍ່ເລືອກພະນັກງານກົດບັນທຶກບໍ່ໄດ້ ແລະ ແຈ້ງເຕືອນທັນທີ
+$(document).on('click', '#btnSaveShiftConfig', function (e) {
+  if (shiftNameMissing()) { e.preventDefault(); return false; }
+  var checkedStaff = $('#shiftStaffList input[name="staff_user_ids[]"]:checked').length;
+  if (!checkedStaff) {
+    e.preventDefault();
+    Swal.fire({
+      icon: 'warning',
+      title: 'ແຈ້ງເຕືອນ',
+      text: 'ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ',
+      confirmButtonText: 'ຕົກລົງ',
+      confirmButtonColor: '#244886'
+    }).then(function () {
+      var box = document.getElementById('shiftStaffList');
+      if (box) {
+        box.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        box.style.borderColor = '#dc2626';
+        box.style.boxShadow = '0 0 0 3px rgba(220, 38, 38, 0.25)';
+        setTimeout(function () {
+          box.style.borderColor = '#e2e8f0';
+          box.style.boxShadow = '';
+        }, 2500);
+      }
+    });
+    return false;
+  }
+});
 
 function openAddShiftModal() {
   $('#formShiftConfig')[0].reset();
@@ -613,31 +689,44 @@ function loadSessionsHistory() {
   var dTo = $('#filterDateTo').val();
   var shiftId = $('#filterShiftSelect').val();
 
-  $('#sessionsTableBody').html('<tr><td colspan="12" class="p-0">' + shiftLoaderHtml(srT('shifts.rpt_loading')) + '</td></tr>');
+  $('#sessionsTableBody').html('<tr><td colspan="13" class="p-0">' + shiftLoaderHtml(srT('shifts.rpt_loading')) + '</td></tr>');
 
-  $.get(window.SHIFTS_API, {
-    action: 'list_sessions',
-    date_from: dFrom,
-    date_to: dTo,
-    shift_id: shiftId
-  }, function (res) {
+  var params = { action: 'list_sessions', date_from: dFrom, date_to: dTo, shift_id: shiftId };
+  if ($('#filterStoreSelect').length) params.branch = $('#filterStoreSelect').val();   // ບັອກສາຂາ (2 ສາຂາຂຶ້ນໄປ)
+  $.get(window.SHIFTS_API, params, function (res) {
     if (!res || !res.success) { showSessionsLoadError(); return; }
 
-    // KPI Cards
-    if (res.kpi) {
-      $('#kpiTotalShifts').text(formatNumber(res.kpi.total_shifts));
-      $('#kpiTotalSales').text(formatNumber(res.kpi.total_sales) + ' ₭');
-      $('#kpiTotalBills').text(formatNumber(res.kpi.total_bills));
-      var diffVal = res.kpi.total_diff;
-      var diffEl = $('#kpiTotalDiff');
-      if (diffVal > 0) {
-        diffEl.text('+' + formatNumber(diffVal) + ' ₭');
-      } else if (diffVal < 0) {
-        diffEl.text(formatNumber(diffVal) + ' ₭');
-      } else {
-        diffEl.text('0 ₭');
-      }
+    // KPI Cards: ທັງ ລາຍງານປິດກະ ແລະ ລາຍງານລາຍຮັບຕາມກະ
+    var totalSales = 0, totalBills = 0, totalDiff = 0;
+    var sumInit = 0, sumCash = 0, sumTrf = 0, sumCounted = 0;
+    (res.sessions || []).forEach(function (s) {
+      sumInit += parseFloat(s.initial_cash) || 0;
+      sumCash += parseFloat(s.system_sales_cash) || 0;
+      sumTrf += parseFloat(s.system_sales_transfer) || 0;
+      totalSales += parseFloat(s.system_total_sales) || 0;
+      totalBills += parseInt(s.system_total_bills) || 0;
+      if (s.counted_sales_cash !== null) sumCounted += parseFloat(s.counted_sales_cash) || 0;
+      if (s.difference_cash !== null) totalDiff += parseFloat(s.difference_cash) || 0;
+    });
+
+    // ບັດສະຫຼຸບປິດກະ (Shift Close KPI)
+    $('#kpiTotalShifts, #kpiCloseTotalShifts').text(formatNumber((res.sessions || []).length));
+    $('#kpiCloseTotalDrawer').text(formatNumber(sumInit) + ' ₭');
+    $('#kpiCloseTotalCounted').text(formatNumber(sumCounted) + ' ₭');
+    var diffEl = $('#kpiTotalDiff, #kpiCloseTotalDiff');
+    if (totalDiff > 0) {
+      diffEl.text('+' + formatNumber(totalDiff) + ' ₭');
+    } else if (totalDiff < 0) {
+      diffEl.text(formatNumber(totalDiff) + ' ₭');
+    } else {
+      diffEl.text('0 ₭');
     }
+
+    // ບັດສະຫຼຸບລາຍຮັບ (Shift Revenue KPI)
+    $('#kpiRevTotalSales, #kpiTotalSales').text(formatNumber(totalSales) + ' ₭');
+    $('#kpiRevCashSales').text(formatNumber(sumCash) + ' ₭');
+    $('#kpiRevTransferSales').text(formatNumber(sumTrf) + ' ₭');
+    $('#kpiRevTotalBills, #kpiTotalBills').text(formatNumber(totalBills));
 
     window.allSessionsRaw = res.sessions || [];
     applySessionsSearch();
@@ -646,7 +735,7 @@ function loadSessionsHistory() {
 
 // ໂຫຼດບໍ່ສຳເລັດ → ແທນຕົວໂຫຼດດ້ວຍຂໍ້ຄວາມ (ບໍ່ໃຫ້ໝູນຄ້າງ)
 function showSessionsLoadError() {
-  $('#sessionsTableBody').html('<tr><td colspan="12" class="text-center text-danger py-5 font-weight-bold"><i class="fas fa-exclamation-circle mr-1"></i> ' + srT('shifts.pg_load_error') + '</td></tr>');
+  $('#sessionsTableBody').html('<tr><td colspan="13" class="text-center text-danger py-5 font-weight-bold"><i class="fas fa-exclamation-circle mr-1"></i> ' + srT('shifts.pg_load_error') + '</td></tr>');
 }
 
 // ຊື່ຜູ້ປິດກະ: ຄ່າ "ລະບົບ (ປິດອໍໂຕ້)" ຖືກບັນທຶກເປັນພາສາລາວໃນ DB (config/helpers/shift_auto.php) → ສະແດງຕາມພາສາທີ່ເລືອກ
@@ -661,7 +750,7 @@ function applySessionsSearch() {
   var q = ($('#filterSessionSearch').val() || '').toLowerCase().trim();
   var raw = window.allSessionsRaw || [];
   window.allSessionsData = !q ? raw : raw.filter(function (s) {
-    return [s.shift_name, s.opened_by_name, s.closed_by_name, s.staff_names, s.notes, s.open_time, s.close_time]
+    return [s.store_name, s.shift_name, s.opened_by_name, s.closed_by_name, s.staff_names, s.notes, s.open_time, s.close_time]
       .join(' ').toLowerCase().indexOf(q) !== -1;
   });
   window.sessionsCurrentPage = 1;
@@ -699,7 +788,7 @@ function renderSessionsPage() {
   tbody.empty();
 
   if (total === 0) {
-    tbody.html('<tr><td colspan="12" class="text-center text-muted py-5 font-weight-bold">' + srT('shifts.pg_empty_sessions') + '</td></tr>');
+    tbody.html('<tr><td colspan="13" class="text-center text-muted py-5 font-weight-bold">' + srT('shifts.pg_empty_sessions') + '</td></tr>');
     $('#sessionsPageInfoStart').text('0');
     $('#sessionsPageInfoEnd').text('0');
     $('#sessionsPageInfoTotal').text('0');
@@ -715,51 +804,81 @@ function renderSessionsPage() {
   $('#sessionsPageInfoEnd').text(formatNumber(endIdx));
   $('#sessionsPageInfoTotal').text(formatNumber(total));
 
-  pageRows.forEach(function (s) {
-    var isOpen = (s.status === 'open');
-    var statusBadge = isOpen
-      ? '<span class="badge badge-primary px-2 py-1"><i class="fas fa-spinner fa-spin mr-1"></i> ' + srT('shifts.rpt_status_open') + '</span>'
-      : '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i> ' + srT('shifts.rpt_status_closed') + '</span>';
+  if (window.SHIFT_REPORT_MODE === 'revenue') {
+    // ໂໝດ: ລາຍງານລາຍຮັບຕາມກະ — ຖັນໂອນສະແດງແຕ່ຈຳນວນເງິນ; ທະນາຄານເບິ່ງໃນຟອມລາຍລະອຽດ (ປຸ່ມ .shift-detail-btn)
+    pageRows.forEach(function (s, i) {
+      var tr = $('<tr></tr>');
+      tr.html(`
+        <td class="text-center align-middle font-weight-bold">${startIdx + i + 1}</td>
+        <td class="align-middle" style="font-size: 0.85rem;"><i class="fas fa-store text-info mr-1"></i>${$('<div>').text(s.store_name || '-').html()}</td>
+        <td class="align-middle font-weight-bold text-dark">${s.shift_name}</td>
+        <td class="align-middle" style="font-size: 0.85rem;">
+          <div><i class="fas fa-clock text-muted mr-1"></i>${s.open_time}</div>
+          <div class="text-muted">${s.close_time || 'ກຳລັງຂາຍ'}</div>
+        </td>
+        <td class="align-middle" style="font-size: 0.85rem;">
+          <div><i class="fas fa-user text-primary mr-1"></i>${$('<div>').text(s.staff_names || s.opened_by_name || '-').html()}</div>
+        </td>
+        <td class="text-center align-middle font-weight-bold text-dark">${formatNumber(s.system_total_bills)}</td>
+        <td class="text-right align-middle font-weight-bold text-success">${formatNumber(s.system_sales_cash)} ₭</td>
+        <td class="text-right align-middle font-weight-bold text-info">${formatNumber(s.system_sales_transfer)} ₭</td>
+        <td class="text-right align-middle font-weight-bold text-warning">${formatNumber(s.system_sales_debt)} ₭</td>
+        <td class="text-right align-middle font-weight-bold text-primary" style="font-size: 1rem;">${formatNumber(s.system_total_sales)} ₭</td>
+        <td class="text-center align-middle">
+          <button type="button" class="btn btn-sm btn-outline-success shift-detail-btn d-inline-flex align-items-center justify-content-center" onclick="openShiftReportModal(${s.id})" title="ເບິ່ງລາຍການສິນຄ້າ ແລະ ບິນຂາຍ" style="width: 32px; height: 32px; padding: 0; border-radius: 6px; font-size: 0.95rem;">
+            <i class="fas fa-list-alt"></i>
+          </button>
+        </td>
+      `);
+      tbody.append(tr);
+    });
+  } else {
+    // ໂໝດ: ລາຍງານປິດກະ
+    pageRows.forEach(function (s, i) {
+      var isOpen = (s.status === 'open');
+      var statusBadge = isOpen
+        ? '<span class="badge badge-primary px-2 py-1"><i class="fas fa-spinner fa-spin mr-1"></i> ' + srT('shifts.rpt_status_open') + '</span>'
+        : '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i> ' + srT('shifts.rpt_status_closed') + '</span>';
 
-    var diffBadge = '-';
-    if (s.difference_cash !== null) {
-      var d = parseFloat(s.difference_cash);
-      if (d === 0) {
-        diffBadge = '<span class="badge badge-success font-weight-bold">0 ₭ (' + srT('shifts.rpt_balanced') + ')</span>';
-      } else if (d > 0) {
-        diffBadge = '<span class="badge badge-info font-weight-bold">+' + formatNumber(d) + ' ₭</span>';
-      } else {
-        diffBadge = '<span class="badge badge-danger font-weight-bold">' + formatNumber(d) + ' ₭</span>';
+      var diffBadge = '-';
+      if (s.difference_cash !== null) {
+        var d = parseFloat(s.difference_cash);
+        if (d === 0) {
+          diffBadge = '<span class="badge badge-success font-weight-bold">0 ₭ (' + srT('shifts.rpt_balanced') + ')</span>';
+        } else if (d > 0) {
+          diffBadge = '<span class="badge badge-info font-weight-bold">+' + formatNumber(d) + ' ₭</span>';
+        } else {
+          diffBadge = '<span class="badge badge-danger font-weight-bold">' + formatNumber(d) + ' ₭</span>';
+        }
       }
-    }
 
-    var tr = $('<tr></tr>');
-    tr.html(`
-      <td class="text-center align-middle font-weight-bold">${s.id}</td>
-      <td class="align-middle font-weight-bold text-dark">${s.shift_name}</td>
-      <td class="align-middle" style="font-size: 0.85rem;">
-        <div>${s.open_time}</div>
-        <div>${s.close_time || '<span class="text-muted">' + srT('shifts.pg_selling') + '</span>'}</div>
-      </td>
-      <td class="align-middle" style="font-size: 0.85rem;">
-        <div><strong>${srT('shifts.pg_lbl_open')}</strong> ${s.opened_by_name}</div>
-        <div><strong>${srT('shifts.pg_lbl_close')}</strong> ${shiftCloserName(s.closed_by_name)}</div>
-      </td>
-      <td class="text-right align-middle font-weight-bold text-secondary">${formatNumber(s.initial_cash)} ₭</td>
-      <td class="text-right align-middle font-weight-bold text-success">${formatNumber(s.system_sales_cash)} ₭</td>
-      <td class="text-right align-middle font-weight-bold text-info">${formatNumber(s.system_sales_transfer)} ₭</td>
-      <td class="text-right align-middle font-weight-bold text-primary" style="font-size: 0.98rem;">${formatNumber(s.system_total_sales)} ₭</td>
-      <td class="text-right align-middle font-weight-bold text-dark">${s.counted_sales_cash !== null ? formatNumber(s.counted_sales_cash) + ' ₭' : '-'}</td>
-      <td class="text-center align-middle">${diffBadge}</td>
-      <td class="text-center align-middle">${statusBadge}</td>
-      <td class="text-center align-middle">
-        <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center" onclick="openShiftReportModal(${s.id})" title="${srT('shifts.pg_view_report')}" style="width: 32px; height: 32px; padding: 0; border-radius: 6px; font-size: 0.95rem;">
-          <i class="fas fa-file-invoice-dollar"></i>
-        </button>
-      </td>
-    `);
-    tbody.append(tr);
-  });
+      var tr = $('<tr></tr>');
+      tr.html(`
+        <td class="text-center align-middle font-weight-bold">${startIdx + i + 1}</td>
+        <td class="align-middle" style="font-size: 0.85rem;"><i class="fas fa-store text-info mr-1"></i>${$('<div>').text(s.store_name || '-').html()}</td>
+        <td class="align-middle font-weight-bold text-dark">${s.shift_name}</td>
+        <td class="align-middle" style="font-size: 0.85rem;">
+          <div>${s.open_time}</div>
+          <div>${s.close_time || '<span class="text-muted">' + srT('shifts.pg_selling') + '</span>'}</div>
+        </td>
+        <td class="align-middle" style="font-size: 0.85rem;">
+          <div><strong>${srT('shifts.pg_lbl_open')}</strong> ${s.opened_by_name}</div>
+          <div><strong>${srT('shifts.pg_lbl_close')}</strong> ${shiftCloserName(s.closed_by_name)}</div>
+        </td>
+        <td class="text-right align-middle font-weight-bold text-secondary">${formatNumber(s.initial_cash)} ₭</td>
+        <td class="text-right align-middle font-weight-bold text-success">${formatNumber(s.system_sales_cash)} ₭</td>
+        <td class="text-right align-middle font-weight-bold text-dark">${s.counted_sales_cash !== null ? formatNumber(s.counted_sales_cash) + ' ₭' : '-'}</td>
+        <td class="text-center align-middle">${diffBadge}</td>
+        <td class="text-center align-middle">${statusBadge}</td>
+        <td class="text-center align-middle">
+          <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center" onclick="openShiftReportModal(${s.id})" title="ໃບສະຫຼຸບປິດກະ" style="width: 32px; height: 32px; padding: 0; border-radius: 6px; font-size: 0.95rem;">
+            <i class="fas fa-file-invoice-dollar"></i>
+          </button>
+        </td>
+      `);
+      tbody.append(tr);
+    });
+  }
 
   renderSessionsPaginationControls(totalPages);
 }
@@ -822,6 +941,39 @@ function resetShiftFilters() {
   $('#filterPageSizeSelect').val('10');
   $('#filterSessionSearch').val('');
   window.sessionsCurrentPage = 1;
+  var store = $('#filterStoreSelect');
+  if (store.length && store.val() !== String(store.data('default'))) {
+    store.val(String(store.data('default')));
+    onSessionsBranchChange();   // ໂຫຼດກະຂອງສາຂາເດີມ + ປະຫວັດ
+    return;
+  }
+  loadSessionsHistory();
+}
+
+// ບັອກກະ (#filterShiftSelect): ກະຂອງສາຂາທີ່ເລືອກ (ທຸກສາຂາ → ທຸກກະ ພ້ອມຊື່ສາຂາ)
+function loadShiftFilterOptions(done) {
+  var sel = $('#filterShiftSelect');
+  if (!sel.length) return;
+  var params = { action: 'list_shifts' };
+  var store = $('#filterStoreSelect');
+  if (store.length) params.branch = store.val();
+  $.get(window.SHIFTS_API, params, function (res) {
+    sel.find('option:not([value="0"])').remove();
+    if (res && res.success && res.shifts) {
+      res.shifts.forEach(function (s) {
+        var label = (params.branch === '0' && s.store_name) ? s.shift_name + ' (' + s.store_name + ')' : s.shift_name;
+        sel.append($('<option>').val(s.id).text(label));
+      });
+    }
+    if (done) done();
+  }, 'json');
+}
+
+// ປ່ຽນສາຂາ: ລ້າງກະທີ່ເລືອກ (ກະເປັນຂອງແຕ່ລະສາຂາ) ແລ້ວໂຫຼດກະ + ປະຫວັດຂອງສາຂານັ້ນ
+function onSessionsBranchChange() {
+  $('#filterShiftSelect').val('0');
+  window.sessionsCurrentPage = 1;
+  loadShiftFilterOptions();
   loadSessionsHistory();
 }
 
@@ -829,6 +981,15 @@ function resetShiftFilters() {
 // 6. ລາຍງານສະຫຼຸບກະ ແລະ Export Excel / PDF (Shift Report Modal)
 // ============================================================================
 function openShiftReportModal(sessionId, wasJustClosed) {
+  // ລາຍຮັບຕາມກະ: ຟອມກວ້າງ (modal-xl) ແລະ ສູງເກືອບເຕັມຈໍ — ເລື່ອນລົງທັງຟອມ (ຕາຕະລາງຂ້າງໃນບໍ່ມີສະກໍບາຂອງຕົນເອງ)
+  var isRevenue = (window.SHIFT_REPORT_MODE === 'revenue');
+  $('#modalShiftReport .modal-dialog').toggleClass('modal-xl', isRevenue).toggleClass('modal-lg', !isRevenue);
+  $('#modalShiftReport .modal-content').css('height', isRevenue ? 'calc(100vh - 40px)' : '');
+  if (isRevenue) {
+    $('#modalShiftReportTitle').html('<i class="fas fa-chart-line text-success mr-2"></i> ລາຍລະອຽດລາຍຮັບປະຈຳກະ');
+  } else {
+    $('#modalShiftReportTitle').html('<i class="fas fa-cash-register text-warning mr-2"></i> ໃບສະຫຼຸບປິດກະເຮັດວຽກ');
+  }
   $('#modalShiftReport').modal('show');
   $('#shiftReportContent').html(shiftLoaderHtml(srT('shifts.rpt_loading')));
 
@@ -840,6 +1001,8 @@ function openShiftReportModal(sessionId, wasJustClosed) {
 
     window.currentReportSession = res.session;
     window.currentReportBills = res.bills || [];
+    window.currentReportItems = res.items || [];
+    window.currentReportChannels = res.items_by_channel || [];
 
     renderShiftReportContent(res.session, res.bills || []);
 
@@ -860,6 +1023,12 @@ function openShiftReportModal(sessionId, wasJustClosed) {
   }, 'json');
 }
 
+// ປ້າຍ "ເງິນສົດ" ກ່ອງຂອບສີຂຽວ — ຖັນຊ່ອງທາງຂອງບິນ ແລະ ຕາຕະລາງສິນຄ້າແຍກຕາມການຊຳລະ
+function cashBadge() {
+  return '<span class="badge d-inline-flex align-items-center" style="gap: 5px; padding: 3px 9px; font-size: 0.8rem; font-weight: 700; ' +
+         'background: #dcfce7; color: #15803d; border: 1.5px solid #22c55e;"><span>ເງິນສົດ</span></span>';
+}
+
 function renderShiftReportContent(s, bills) {
   var diff = s.difference_cash !== null ? parseFloat(s.difference_cash) : 0;
   var diffText = '0 ₭ (' + srT('shifts.rpt_balanced') + ')';
@@ -875,39 +1044,185 @@ function renderShiftReportContent(s, bills) {
   var billsRows = '';
   if (bills && bills.length > 0) {
     bills.forEach(function (b, i) {
+      var isTransfer = (b.type_pay && (b.type_pay.includes('ໂອນ') || b.type_pay.includes('QR'))) || (parseFloat(b.qr_received) > 0);
+      var bName = b.bank_display_name || b.bank_name || '';
+      var payTypeHtml = '';
+      if (isTransfer) {
+        var bankImg = b.bank_logo_url ? `<img src="${b.bank_logo_url}" alt="${$('<div>').text(bName).html()}" style="width: 18px; height: 18px; object-fit: contain; border-radius: 3px; vertical-align: middle;" onerror="this.style.display='none'">` : '<i class="fas fa-university text-primary" style="font-size: 12px;"></i>';
+        var label = bName || b.type_pay;   // ໂລໂກ້ + ຊື່ທະນາຄານ ພໍ (ບໍ່ມີທະນາຄານ → ປະເພດການຊຳລະ)
+        payTypeHtml = `<span class="badge badge-light border d-inline-flex align-items-center" style="padding: 3px 8px; gap: 5px; font-size: 0.82rem; font-weight: 700;">
+          ${bankImg} <span class="text-primary">${$('<div>').text(label).html()}</span>
+        </span>`;
+        // ຈ່າຍປົນ ເງິນສົດ + ໂອນ: ສະແດງປ້າຍເງິນສົດນຳ (ຈຳນວນແຕ່ລະທາງຢູ່ຕາຕະລາງ "ສິນຄ້າແຍກຕາມການຊຳລະ")
+        if (b.cash_part > 0 && b.transfer_part > 0) payTypeHtml = cashBadge() + ' ' + payTypeHtml;
+      } else {
+        payTypeHtml = (b.type_pay || '').indexOf('ເງິນສົດ') !== -1 ? cashBadge()
+          : `<span class="badge badge-light border" style="padding: 3px 8px; font-size: 0.82rem;">${$('<div>').text(b.type_pay).html()}</span>`;
+      }
+
+      // ລາຍຮັບຕາມກະ: ບັອກເງິນສົດ ແລະ ເງິນໂອນ ແຍກຖັນກັນ ພ້ອມຈຳນວນທີ່ຮັບແຕ່ລະທາງ (cash_part / transfer_part)
+      var channelCells = `<td class="text-center" style="white-space: nowrap;">${payTypeHtml}</td>`;
+      if (window.SHIFT_REPORT_MODE === 'revenue') {
+        var cashPart = parseFloat(b.cash_part) || 0, trfPart = parseFloat(b.transfer_part) || 0;
+        var bankHtml = isTransfer ? payTypeHtml.replace(cashBadge() + ' ', '') : '';
+        channelCells =
+          `<td class="text-center" style="white-space: nowrap;">${cashPart > 0 ? cashBadge() + `<div class="small font-weight-bold text-success mt-1">${formatNumber(cashPart)} ₭</div>` : '<span class="text-muted">-</span>'}</td>` +
+          `<td class="text-center" style="white-space: nowrap;">${trfPart > 0 ? bankHtml + `<div class="small font-weight-bold text-info mt-1">${formatNumber(trfPart)} ₭</div>` : '<span class="text-muted">-</span>'}</td>`;
+      }
+
       billsRows += `
         <tr>
-          <td class="text-center">${i + 1}</td>
-          <td><strong>${b.sale_save_bill}</strong></td>
-          <td class="text-center">${b.sale_date} ${b.sale_time}</td>
-          <td>${b.user_receive}</td>
-          <td class="text-center"><span class="badge badge-light border">${b.type_pay}</span></td>
-          <td class="text-right font-weight-bold text-dark">${formatNumber(b.sale_barlance)} ₭</td>
+          <td class="text-center" style="white-space: nowrap;">${i + 1}</td>
+          <td style="white-space: nowrap;"><strong>${b.sale_save_bill}</strong></td>
+          <td class="text-center" style="white-space: nowrap;">${b.sale_date} ${b.sale_time}</td>
+          <td style="white-space: nowrap;">${b.user_receive}</td>
+          ${channelCells}
+          <td class="text-right font-weight-bold text-dark" style="white-space: nowrap;">${formatNumber(b.sale_barlance)} ₭</td>
         </tr>
       `;
     });
   } else {
-    billsRows = '<tr><td colspan="6" class="text-center text-muted py-3">' + srT('shifts.rpt_no_bills') + '</td></tr>';
+    billsRows = '<tr><td colspan="' + (window.SHIFT_REPORT_MODE === 'revenue' ? 7 : 6) + '" class="text-center text-muted py-3">' + srT('shifts.rpt_no_bills') + '</td></tr>';
   }
 
-  var html = `
-    <div id="shiftExportPrintArea" style="font-family: 'Noto Sans Lao', sans-serif;">
-      <!-- Report Header -->
-      <div class="text-center border-bottom pb-3 mb-3">
-        <h4 class="font-weight-bold mb-1" style="color: #1e293b;">${srT('shifts.rpt_title')}</h4>
-        <div class="text-muted" style="font-size: 0.95rem;">
-          <strong>${srT('shifts.rpt_shift')}</strong> ${s.shift_name} | <strong>${srT('shifts.rpt_status')}</strong> ${s.status === 'open' ? srT('shifts.rpt_status_open') : srT('shifts.rpt_status_closed')}
+  // ສິນຄ້າທີ່ຂາຍໃນກະ (ລວມຕາມສິນຄ້າ — get_session_details.items)
+  var items = window.currentReportItems || [];
+  var itemsTotal = { qty: 0, discount: 0, net: 0 };
+  var itemRows = items.map(function (it, i) {
+    itemsTotal.qty += it.qty; itemsTotal.discount += it.discount; itemsTotal.net += it.net;
+    return `
+        <tr>
+          <td class="text-center" style="white-space: nowrap;">${i + 1}</td>
+          <td style="white-space: nowrap;">${$('<div>').text(it.product_name || '-').html()}</td>
+          <td class="text-center font-weight-bold" style="white-space: nowrap;">${formatNumber(it.qty)}</td>
+          <td class="text-right" style="white-space: nowrap;">${formatNumber(it.price)} ₭</td>
+          <td class="text-right" style="white-space: nowrap;">${it.discount ? formatNumber(it.discount) + ' ₭' : '-'}</td>
+          <td class="text-right font-weight-bold text-dark" style="white-space: nowrap;">${formatNumber(it.net)} ₭</td>
+        </tr>`;
+  }).join('') || '<tr><td colspan="6" class="text-center text-muted py-3">' + srT('shifts.rpt_no_items') + '</td></tr>';
+
+  var isRevenueMode = (window.SHIFT_REPORT_MODE === 'revenue');
+  var headerTitle = isRevenueMode ? 'ລາຍລະອຽດລາຍຮັບຍອດຂາຍປະຈຳກະ' : srT('shifts.rpt_title');
+  // ລາຍຮັບຕາມກະ: ຕາຕະລາງໃນຟອມບໍ່ມີສະກໍບາຂອງຕົນເອງ — ເລື່ອນລົງທັງຟອມ
+  var innerScroll = function (h) { return isRevenueMode ? '' : 'max-height: ' + h + 'px; overflow-y: auto;'; };
+
+  // ສິນຄ້າແຍກຕາມການຊຳລະ (get_session_details.items_by_channel) + ເງິນໂອນແຍກຕາມທະນາຄານ
+  var channels = window.currentReportChannels || [];
+  var esc = function (v) { return $('<div>').text(v == null ? '' : String(v)).html(); };
+  var bankLogo = function (url, name) {
+    return url ? `<img src="${url}" alt="${esc(name)}" style="width: 18px; height: 18px; object-fit: contain; border-radius: 3px;" onerror="this.style.display='none'">`
+               : '<i class="fas fa-university text-primary" style="font-size: 12px;"></i>';
+  };
+  var chStyle = {
+    cash:     { icon: 'fa-money-bill-wave', color: '#15803d', bg: '#f0fdf4' },
+    transfer: { icon: 'fa-university',      color: '#0e7490', bg: '#ecfeff' },
+    mixed:    { icon: 'fa-random',          color: '#7c3aed', bg: '#f5f3ff' },
+    debt:     { icon: 'fa-file-invoice',    color: '#b45309', bg: '#fffbeb' }
+  };
+  var transferBanksHtml = channels.filter(function (c) { return c.type === 'transfer'; }).map(function (c) {
+    return `<tr><td class="pl-5 text-muted" style="font-size: 0.86rem;"><span class="d-inline-flex align-items-center" style="gap: 6px;">${bankLogo(c.bank_logo_url, c.bank_name)} ${esc(c.bank_name)} <span class="small">(${c.bill_count} ບິນ)</span></span></td>
+            <td class="text-right pr-3 text-info" style="font-size: 0.9rem;">${formatNumber(c.total)} ₭</td></tr>`;
+  }).join('');
+  // ຕາຕະລາງດຽວ ຈັດຕາມບິນ: ສິນຄ້າຂອງແຕ່ລະບິນ (bills[].lines) + ຖັນ "ການຊຳລະ" ຮວມແຖວຂອງບິນ ບອກຮັບແຕ່ລະທາງເທົ່າໃດ
+  // (bills[].cash_part / transfer_part / debt_part — ຈ່າຍປົນ ເງິນສົດ + ໂອນ ສະແດງທັງສອງ ພ້ອມຈຳນວນ)
+  var payBox = function (type, b) {
+    if (type === 'cash') return cashBadge();
+    var st = chStyle[type];
+    var inner = type === 'transfer'
+      ? bankLogo(b.bank_logo_url, b.bank_display_name) + ' <span>' + esc(b.bank_display_name || 'ໂອນ / QR') + '</span>'
+      : '<i class="fas ' + st.icon + '"></i> <span>ຕິດໜີ້</span>';
+    return '<span class="badge border d-inline-flex align-items-center" style="gap: 5px; padding: 3px 8px; font-size: 0.8rem; font-weight: 700; background: ' + st.bg + '; color: ' + st.color + ';">' + inner + '</span>';
+  };
+  // ການຊຳລະຂອງແຖວ: ທາງດຽວ = ປ້າຍທາງນັ້ນ (ໂລໂກ້+ຊື່ທະນາຄານ / ເງິນສົດ); ຈ່າຍປົນ = ທຸກປ້າຍ ພ້ອມຈຳນວນທີ່ຮັບຂອງບິນ
+  var payCell = function (b) {
+    var parts = [['cash', b.cash_part], ['transfer', b.transfer_part], ['debt', b.debt_part]].filter(function (p) { return p[1] > 0; });
+    if (parts.length === 1) return payBox(parts[0][0], b);
+    return '<span class="d-inline-flex align-items-center text-nowrap" style="gap: 6px;">' + parts.map(function (p) {
+      return payBox(p[0], b) + '<span class="font-weight-bold small">' + formatNumber(p[1]) + ' ₭</span>';
+    }).join('<span class="text-muted">+</span>') + '</span>';
+  };
+  var chOrder = { cash: 0, transfer: 1, mixed: 2, debt: 3 };
+  var payBills = (bills || []).filter(function (b) { return b.lines && b.lines.length; }).slice().sort(function (a, b) {
+    return (chOrder[a.channel_type] - chOrder[b.channel_type]) || String(a.bank_display_name || '').localeCompare(String(b.bank_display_name || ''));
+  });
+  var chRowNo = 0, chTotal = { qty: 0, discount: 0, net: 0, cash: 0, transfer: 0, debt: 0 };
+  var chRows = payBills.map(function (b) {
+    chTotal.cash += +b.cash_part || 0; chTotal.transfer += +b.transfer_part || 0; chTotal.debt += +b.debt_part || 0;
+    var pay = payCell(b);
+    // ແຕ່ລະແຖວສະແດງເລກບິນ ແລະ ການຊຳລະ (ທະນາຄານ) ຂອງຕົນເອງ — ບໍ່ຮວມແຖວ
+    return b.lines.map(function (it) {
+      chRowNo++;
+      chTotal.qty += it.qty; chTotal.discount += it.discount; chTotal.net += it.net;
+      return `<tr>
+        <td class="text-center">${chRowNo}</td>
+        <td class="font-weight-bold">${esc(b.sale_save_bill)}</td>
+        <td>${esc(it.product_name)}</td>
+        <td class="text-center font-weight-bold">${formatNumber(it.qty)}</td><td class="text-right">${formatNumber(it.price)} ₭</td>
+        <td class="text-right">${it.discount ? formatNumber(it.discount) + ' ₭' : '-'}</td><td class="text-right font-weight-bold">${formatNumber(it.net)} ₭</td>
+        <td>${pay}</td>
+      </tr>`;
+    }).join('');
+  }).join('');
+  var channelsHtml = !isRevenueMode ? '' : `
+      <div class="mt-3">
+        <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">
+          <i class="fas fa-wallet text-primary mr-1"></i> ສິນຄ້າແຍກຕາມການຊຳລະ (ເງິນສົດ / ເງິນໂອນ)
+        </h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-striped table-bordered mb-0 text-nowrap" style="font-size: 0.85rem;">
+            <thead class="bg-light text-center"><tr><th style="width: 40px;">#</th><th>${srT('shifts.rpt_col_bill')}</th><th>${srT('shifts.rpt_col_product')}</th>
+              <th style="width: 80px;">${srT('shifts.rpt_col_qty')}</th><th class="text-right">${srT('shifts.rpt_col_price')}</th>
+              <th class="text-right">${srT('shifts.rpt_col_discount')}</th><th class="text-right">${srT('shifts.rpt_col_total')}</th><th>ການຊຳລະ (ຮັບເງິນ)</th></tr></thead>
+            <tbody>${chRows || '<tr><td colspan="8" class="text-center text-muted py-3">' + srT('shifts.rpt_no_items') + '</td></tr>'}</tbody>
+            ${chRowNo ? `<tfoot><tr class="font-weight-bold" style="background: #f1f5f9;">
+              <td colspan="3" class="text-right">${srT('shifts.rpt_items_total')}</td>
+              <td class="text-center">${formatNumber(chTotal.qty)}</td><td></td>
+              <td class="text-right">${chTotal.discount ? formatNumber(chTotal.discount) + ' ₭' : '-'}</td>
+              <td class="text-right text-primary">${formatNumber(chTotal.net)} ₭</td>
+              <td>
+                <div class="d-flex justify-content-between"><span class="text-success">ຮັບເງິນສົດ</span><span class="text-success">${formatNumber(chTotal.cash)} ₭</span></div>
+                <div class="d-flex justify-content-between"><span class="text-info">ຮັບເງິນໂອນ</span><span class="text-info">${formatNumber(chTotal.transfer)} ₭</span></div>
+                ${chTotal.debt ? `<div class="d-flex justify-content-between"><span class="text-warning">ຕິດໜີ້</span><span class="text-warning">${formatNumber(chTotal.debt)} ₭</span></div>` : ''}
+              </td>
+            </tr></tfoot>` : ''}
+          </table>
+        </div>
+      </div>`;
+
+  var summaryBoxHtml = '';
+  if (isRevenueMode) {
+    summaryBoxHtml = `
+      <div class="card border mb-3" style="border-radius: 8px; overflow: hidden;">
+        <div class="card-header bg-light font-weight-bold py-2" style="font-size: 0.92rem;">
+          <i class="fas fa-coins text-success mr-1"></i> ສະຫຼຸບລາຍຮັບຍອດຂາຍຕາມຊ່ອງທາງ
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm table-bordered m-0" style="font-size: 0.92rem;">
+            <tbody>
+              <tr>
+                <td style="width: 55%;" class="pl-3 font-weight-bold">1. ຍອດຂາຍເງິນສົດ</td>
+                <td class="text-right pr-3 font-weight-bold text-success" style="font-size: 1rem;">${formatNumber(s.system_sales_cash)} ₭</td>
+              </tr>
+              <tr>
+                <td class="pl-3 font-weight-bold">2. ຍອດຂາຍໂອນ / QR</td>
+                <td class="text-right pr-3 font-weight-bold text-info" style="font-size: 1rem;">${formatNumber(s.system_sales_transfer)} ₭</td>
+              </tr>
+              ${transferBanksHtml}
+              <tr>
+                <td class="pl-3 font-weight-bold">3. ຍອດຂາຍຕິດໜີ້</td>
+                <td class="text-right pr-3 font-weight-bold text-warning" style="font-size: 1rem;">${formatNumber(s.system_sales_debt)} ₭</td>
+              </tr>
+              <tr class="bg-light font-weight-bold" style="background: #f1f5f9;">
+                <td class="pl-3" style="font-size: 0.98rem;">ລວມລາຍຮັບຍອດຂາຍທັງໝົດ (${formatNumber(s.system_total_bills)} ບິນ)</td>
+                <td class="text-right pr-3 font-weight-bold text-primary" style="font-size: 1.15rem;">${formatNumber(s.system_total_sales)} ₭</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-
-      <!-- Info Meta Grid -->
-      <div class="row mb-3" style="font-size: 0.88rem;">
-        <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_open_time')}</strong><br><span class="text-muted">${s.open_time}</span></div>
-        <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_close_time')}</strong><br><span class="text-muted">${s.close_time || srT('shifts.rpt_not_closed')}</span></div>
-        <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_opened_by')}</strong><br><span class="text-muted">${s.opened_by_name}</span></div>
-        <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_closed_by')}</strong><br><span class="text-muted">${s.closed_by_name || '-'}</span></div>
-      </div>
-
+    `;
+  } else {
+    summaryBoxHtml = `
       <!-- Financial Reconciliation Box -->
       <div class="card border mb-3" style="border-radius: 10px; overflow: hidden;">
         <div class="card-header bg-light font-weight-bold py-2" style="font-size: 0.92rem;">
@@ -952,24 +1267,76 @@ function renderShiftReportContent(s, bills) {
           </table>
         </div>
       </div>
+    `;
+  }
+
+  var html = `
+    <div id="shiftExportPrintArea" style="font-family: 'Nuanta', 'Noto Sans Lao', sans-serif;">
+      <!-- Report Header -->
+      <div class="text-center border-bottom pb-3 mb-3">
+        <h4 class="font-weight-bold mb-1" style="color: #1e293b;">${headerTitle}</h4>
+        <div class="text-muted" style="font-size: 0.95rem;">
+          ${s.store_name ? `<strong>${srT('shifts.rpt_branch')}</strong> ${$('<div>').text(s.store_name).html()} | ` : ''}<strong>${srT('shifts.rpt_shift')}</strong> ${s.shift_name} | <strong>${srT('shifts.rpt_status')}</strong> ${s.status === 'open' ? srT('shifts.rpt_status_open') : srT('shifts.rpt_status_closed')}
+        </div>
+      </div>
+
+      <!-- Info Meta Grid -->
+      <div class="row mb-3" style="font-size: 0.88rem;">
+        <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_open_time')}</strong><br><span class="text-muted">${s.open_time}</span></div>
+        <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_close_time')}</strong><br><span class="text-muted">${s.close_time || srT('shifts.rpt_not_closed')}</span></div>
+        <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_opened_by')}</strong><br><span class="text-muted">${s.opened_by_name}</span></div>
+        <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_closed_by')}</strong><br><span class="text-muted">${s.closed_by_name || '-'}</span></div>
+      </div>
+
+      ${summaryBoxHtml}
 
       ${s.notes ? `<div class="alert alert-secondary py-2 px-3 mb-3" style="font-size: 0.88rem;"><strong>${srT('shifts.rpt_notes')}</strong> ${s.notes}</div>` : ''}
+${channelsHtml}
+      <!-- Items Sold in Shift -->
+      <div class="mt-3">
+        <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">
+          <i class="fas fa-box-open text-primary mr-1"></i> ${srT('shifts.rpt_items_title', items.length)}
+        </h6>
+        <div class="table-responsive" style="${innerScroll(320)} overflow-x: auto; -webkit-overflow-scrolling: touch;">
+          <table class="table table-sm table-striped table-bordered mb-0 text-nowrap" style="font-size: 0.85rem; white-space: nowrap;">
+            <thead class="bg-light text-center">
+              <tr style="white-space: nowrap;">
+                <th style="width: 40px; white-space: nowrap;">#</th>
+                <th style="white-space: nowrap;">${srT('shifts.rpt_col_product')}</th>
+                <th style="width: 80px; white-space: nowrap;">${srT('shifts.rpt_col_qty')}</th>
+                <th class="text-right" style="white-space: nowrap;">${srT('shifts.rpt_col_price')}</th>
+                <th class="text-right" style="white-space: nowrap;">${srT('shifts.rpt_col_discount')}</th>
+                <th class="text-right" style="white-space: nowrap;">${srT('shifts.rpt_col_total')}</th>
+              </tr>
+            </thead>
+            <tbody>${itemRows}</tbody>
+            ${items.length ? `<tfoot><tr class="font-weight-bold" style="background: #f1f5f9; white-space: nowrap;">
+              <td colspan="2" class="text-right" style="white-space: nowrap;">${srT('shifts.rpt_items_total')}</td>
+              <td class="text-center" style="white-space: nowrap;">${formatNumber(itemsTotal.qty)}</td>
+              <td style="white-space: nowrap;"></td>
+              <td class="text-right" style="white-space: nowrap;">${itemsTotal.discount ? formatNumber(itemsTotal.discount) + ' ₭' : '-'}</td>
+              <td class="text-right text-primary" style="white-space: nowrap;">${formatNumber(itemsTotal.net)} ₭</td>
+            </tr></tfoot>` : ''}
+          </table>
+        </div>
+      </div>
 
       <!-- Detailed Bills Table -->
       <div class="mt-3">
         <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">
           <i class="fas fa-list-alt text-primary mr-1"></i> ${srT('shifts.rpt_bills_title', bills.length)}
         </h6>
-        <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
-          <table class="table table-sm table-striped table-hover table-bordered" style="font-size: 0.85rem;">
+        <div class="table-responsive" style="${innerScroll(280)} overflow-x: auto; -webkit-overflow-scrolling: touch;">
+          <table class="table table-sm table-striped table-hover table-bordered mb-0 text-nowrap" style="font-size: 0.85rem; white-space: nowrap;">
             <thead class="bg-light text-center">
-              <tr>
-                <th style="width: 40px;">#</th>
-                <th>${srT('shifts.rpt_col_bill')}</th>
-                <th>${srT('shifts.rpt_col_datetime')}</th>
-                <th>${srT('shifts.rpt_col_cashier')}</th>
-                <th>${srT('shifts.rpt_col_channel')}</th>
-                <th class="text-right">${srT('shifts.rpt_col_amount')}</th>
+              <tr style="white-space: nowrap;">
+                <th style="width: 40px; white-space: nowrap;">#</th>
+                <th style="white-space: nowrap;">${srT('shifts.rpt_col_bill')}</th>
+                <th style="white-space: nowrap;">${srT('shifts.rpt_col_datetime')}</th>
+                <th style="white-space: nowrap;">${srT('shifts.rpt_col_cashier')}</th>
+                ${isRevenueMode ? '<th class="text-center" style="white-space: nowrap;">ເງິນສົດ</th><th class="text-center" style="white-space: nowrap;">ເງິນໂອນ</th>'
+                                : `<th style="white-space: nowrap;">${srT('shifts.rpt_col_channel')}</th>`}
+                <th class="text-right" style="white-space: nowrap;">${srT('shifts.rpt_col_amount')}</th>
               </tr>
             </thead>
             <tbody>
@@ -999,7 +1366,7 @@ function printShiftThermalSlip() {
       <style>
         @page { size: 80mm auto; margin: 2mm 3mm; }
         * { box-sizing: border-box; }
-        body { font-family: 'Noto Sans Lao', 'Souliyo', 'Phetsarath OT', Arial, sans-serif; font-size: 13px; line-height: 1.4; margin: 0; padding: 6px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Phetsarath OT', Arial, sans-serif; font-size: 13px; line-height: 1.4; margin: 0; padding: 6px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         .font-bold { font-weight: bold; }
@@ -1062,87 +1429,9 @@ function printShiftThermalSlip() {
   }, 250);
 }
 
-// Export PDF ໂດຍ html2pdf
-function exportShiftReportPDF() {
-  var element = document.getElementById('shiftExportPrintArea');
-  if (!element) return;
-  var s = window.currentReportSession || {};
-  var opt = {
-    margin: [8, 8, 8, 8],
-    filename: 'shift_report_' + (s.shift_name || 'shift') + '_' + new Date().toISOString().slice(0,10) + '.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-  html2pdf().set(opt).from(element).save();
-}
+<?php require __DIR__ . '/js/print_a4.php'; ?>
 
-// Export Excel ແບບ Clean XML/HTML ພ້ອມ Lao Font
-function exportShiftReportExcel() {
-  if (!window.currentReportSession) return;
-  var s = window.currentReportSession;
-  var bills = window.currentReportBills || [];
-
-  var tableHtml = `
-    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: 'Phetsarath OT', 'Noto Sans Lao', sans-serif; }
-        th { background-color: #f1f5f9; font-weight: bold; border: 1px solid #000; }
-        td { border: 1px solid #000; }
-      </style>
-    </head>
-    <body>
-      <table>
-        <tr><th colspan="6" style="font-size: 16pt; text-align: center;">${srT('shifts.rpt_title')}: ${s.shift_name}</th></tr>
-        <tr><td colspan="6" style="text-align: center;">${srT('shifts.rpt_open_time')} ${s.open_time} | ${srT('shifts.rpt_close_time')} ${s.close_time || srT('shifts.rpt_not_closed')} | ${srT('shifts.rpt_opened_by')} ${s.opened_by_name}</td></tr>
-        <tr><td colspan="6"></td></tr>
-        <tr><th colspan="3" style="text-align: left;">${srT('shifts.rpt_col_item')}</th><th colspan="3" style="text-align: right;">${srT('shifts.rpt_col_value')}</th></tr>
-        <tr><td colspan="3">${srT('shifts.rpt_initial_cash')}</td><td colspan="3" style="text-align: right;">${formatNumber(s.initial_cash)} ₭</td></tr>
-        <tr><td colspan="3">${srT('shifts.rpt_cash_sales')}</td><td colspan="3" style="text-align: right;">${formatNumber(s.system_sales_cash)} ₭</td></tr>
-        <tr><td colspan="3">${srT('shifts.rpt_transfer_sales')}</td><td colspan="3" style="text-align: right;">${formatNumber(s.system_sales_transfer)} ₭</td></tr>
-        <tr><td colspan="3">${srT('shifts.rpt_credit_sales')}</td><td colspan="3" style="text-align: right;">${formatNumber(s.system_sales_debt)} ₭</td></tr>
-        <tr><td colspan="3" style="font-weight: bold;">${srT('shifts.rpt_total_sales', s.system_total_bills)}</td><td colspan="3" style="font-weight: bold; text-align: right;">${formatNumber(s.system_total_sales)} ₭</td></tr>
-        <tr><td colspan="3">${srT('shifts.rpt_counted_cash')}</td><td colspan="3" style="text-align: right;">${s.counted_sales_cash !== null ? formatNumber(s.counted_sales_cash) + ' ₭' : '-'}</td></tr>
-        ${s.diff_hidden ? '' : `<tr><td colspan="3" style="font-weight: bold;">${srT('shifts.rpt_diff')}</td><td colspan="3" style="font-weight: bold; text-align: right;">${s.difference_cash !== null ? formatNumber(s.difference_cash) + ' ₭' : '-'}</td></tr>`}
-        <tr><td colspan="6"></td></tr>
-        <tr><th colspan="6" style="font-size: 13pt; text-align: left;">${srT('shifts.rpt_bills_title', bills.length)}</th></tr>
-        <tr>
-          <th>#</th>
-          <th>${srT('shifts.rpt_col_bill')}</th>
-          <th>${srT('shifts.rpt_col_datetime')}</th>
-          <th>${srT('shifts.rpt_col_cashier')}</th>
-          <th>${srT('shifts.rpt_col_channel')}</th>
-          <th style="text-align: right;">${srT('shifts.rpt_col_amount')}</th>
-        </tr>
-  `;
-
-  bills.forEach(function (b, idx) {
-    tableHtml += `
-      <tr>
-        <td style="text-align: center;">${idx + 1}</td>
-        <td>${b.sale_save_bill}</td>
-        <td style="text-align: center;">${b.sale_date} ${b.sale_time}</td>
-        <td>${b.user_receive}</td>
-        <td style="text-align: center;">${b.type_pay}</td>
-        <td style="text-align: right;">${formatNumber(b.sale_barlance)} ₭</td>
-      </tr>
-    `;
-  });
-
-  tableHtml += '</table></body></html>';
-
-  var blob = new Blob([tableHtml], { type: 'application/vnd.ms-excel;charset=utf-8' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'shift_report_' + (s.shift_name || 'shift') + '_' + new Date().toISOString().slice(0,10) + '.xls';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
-}
+<?php require __DIR__ . '/js/export_excel.php'; ?>
 
 // ເລີ່ມຕົ້ນໂຫຼດຂໍ້ມູນເມື່ອໜ້າພ້ອມ
 $(document).ready(function () {
@@ -1155,21 +1444,14 @@ $(document).ready(function () {
   }
   if ($('#shiftsConfigTableBody').length) {
     loadShiftsConfigList();
+    // Realtime: ພະນັກງານເປີດ/ປິດກະ → ຖັນສະຖານະປ່ຽນເອງທຸກ 15 ວິນາທີ
+    setInterval(function () { if (!document.hidden) loadShiftsConfigList(); }, 15000);
   }
   if ($('#sessionsTableBody').length) {
     loadSessionsHistory();
   }
 
-  // ດຶງລາຍການກະໃສ່ filter dropdown
-  if ($('#filterShiftSelect').length) {
-    $.get(window.SHIFTS_API, { action: 'list_shifts' }, function (res) {
-      if (res && res.success && res.shifts) {
-        var sel = $('#filterShiftSelect');
-        res.shifts.forEach(function (s) {
-          sel.append(`<option value="${s.id}">${s.shift_name}</option>`);
-        });
-      }
-    }, 'json');
-  }
+  // ດຶງລາຍການກະໃສ່ filter dropdown (ຕາມສາຂາທີ່ເລືອກ)
+  loadShiftFilterOptions();
 });
 </script>

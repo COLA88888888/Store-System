@@ -6,7 +6,7 @@
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
       <div class="modal-header text-white py-3" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important;">
-        <h5 class="modal-title font-weight-bold" id="editImportModalLabel" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <h5 class="modal-title font-weight-bold" id="editImportModalLabel" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <i class="fas fa-edit mr-2"></i> <?php echo htmlspecialchars(t('import_list.modal_edit_detail_title', 'ແກ້ໄຂຂໍ້ມູນການຮັບສິນຄ້າເຂົ້າ')); ?>
         </h5>
         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">

@@ -3,7 +3,7 @@
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
       <div class="modal-header bg-info text-white py-3 px-4">
-        <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+        <h5 class="modal-title font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
           <i class="fas fa-history mr-2"></i> <?php echo htmlspecialchars(t('pos.held_orders_title', 'ລາຍການບິນທີ່ພັກໄວ້')); ?>
         </h5>
         <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>

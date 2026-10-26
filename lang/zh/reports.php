@@ -26,6 +26,8 @@ return [
     'reports.search_placeholder_bill_emp' => '输入账单号或员工姓名...',
     'reports.branch_label'           => '分店:',
     'reports.all_branches_opt'       => '-- 所有分店 --',
+    'reports.shift_label'            => '班次:',
+    'reports.all_shifts_opt'         => '-- 所有班次 --',
     'reports.main_branch_suffix'     => '(总店)',
     'reports.bank_payment_label'     => '银行 / 支付方式:',
     'reports.all_payment_opt'        => '-- 所有支付方式 --',

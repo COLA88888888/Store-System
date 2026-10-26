@@ -205,7 +205,7 @@ $(document).on('change', '#bulk_rows_container .bulk-img-file', function () {
   $box.data('busy', true);
   $box.find('.bulk-img-ico').hide();
   $box.find('.bulk-img-spin').show();
-  $.ajax({ url: 'api_product.php', type: 'POST', data: fd, processData: false, contentType: false, dataType: 'json' })
+  $.ajax({ url: '../../api/products_api.php', type: 'POST', data: fd, processData: false, contentType: false, dataType: 'json' })
     .done(function (res) {
       if (res && res.success) {
         $box.find('.bulk-img').val(res.file);

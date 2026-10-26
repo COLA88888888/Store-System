@@ -1,5 +1,5 @@
 <?php
-// pages/categories/* + api/categories_backend.php + pages/categories/api_category.php
+// pages/categories/* + api/categories_backend.php + api/categories_api.php
 // strings - Chinese (Simplified)
 return [
     'categories.page_title' => '商品分类管理',
@@ -58,7 +58,7 @@ return [
     'categories.msg_delete_blocked_suffix' => ' 项商品。',
     'categories.msg_delete_success' => '删除分类成功！',
 
-    // pages/categories/api_category.php messages
+    // api/categories_api.php messages
     'categories.access_denied' => '您无权访问此数据！',
     'categories.invalid_action' => '无效的操作',
 

@@ -51,17 +51,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $delDet = $pdo->prepare("DELETE FROM st_import_details WHERE import_detail_id = ?");
                     $delDet->execute([$import_detail_id]);
 
-                    $message = t('import_list.msg_cancel_success', 'ຍົກເລີກການຮັບສິນຄ້າເຂົ້າສຳເລັດ (ປັບສະຕັອກຄືນແລ້ວ)!');
+                    if ($pdo->inTransaction()) {
+                        $pdo->commit();
+                    }
+
+                    $message = t('import_list.msg_cancel_success', 'ລົບລາຍການຮັບສິນຄ້າເຂົ້າສຳເລັດ (ປັບສະຕັອກຄືນແລ້ວ)!');
                     $message_type = 'success';
                     logActivity($pdo, "ຍົກເລີກການຮັບສິນຄ້າເຂົ້າ", "Detail ID: $import_detail_id");
+                } else {
+                    if ($pdo->inTransaction()) {
+                        $pdo->commit();
+                    }
                 }
-
-                $pdo->commit();
-            } catch (Exception $e) {
-                // MySQL can auto-rollback the whole transaction itself (deadlock, lock-wait
-                // timeout, etc.) before we get here — calling rollBack() on an already-gone
-                // transaction throws "There is no active transaction" and crashes the page
-                // with an uncaught fatal, masking the real error. Guard it.
+            } catch (Throwable $e) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
@@ -109,16 +111,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $pdo->prepare("DELETE FROM st_import_details WHERE import_id = ?")->execute([$import_id]);
                 $pdo->prepare("DELETE FROM st_imports WHERE import_id = ?")->execute([$import_id]);
 
-                $message = t('import_list.msg_delete_bill_success', 'ລົບໃບບິນຮັບເຂົ້າສິນຄ້າສຳເລັດ (ປັບສະຕັອກຄືນແລ້ວ)!');
+                if ($pdo->inTransaction()) {
+                    $pdo->commit();
+                }
+
+                $message = t('import_list.msg_delete_bill_success', 'ລົບໃບບິນຮັບເຂົ້າສິນຄ້າສຳເລັດແລ້ວ!');
                 $message_type = 'success';
                 logActivity($pdo, "ລົບໃບບິນຮັບເຂົ້າສິນຄ້າ", "Import ID: $import_id");
-
-                $pdo->commit();
-            } catch (Exception $e) {
-                // MySQL can auto-rollback the whole transaction itself (deadlock, lock-wait
-                // timeout, etc.) before we get here — calling rollBack() on an already-gone
-                // transaction throws "There is no active transaction" and crashes the page
-                // with an uncaught fatal, masking the real error. Guard it.
+            } catch (Throwable $e) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }

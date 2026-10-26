@@ -23,7 +23,7 @@ $current_meta = $report_metas[$type] ?? ['title' => 'ລາຍງານການ
   <!-- Header & Page Meta -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
     <div>
-      <h3 class="font-weight-bold text-dark mb-1 report-header-title" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+      <h3 class="font-weight-bold text-dark mb-1 report-header-title" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
         <i class="<?php echo $current_meta['icon']; ?> mr-2"></i> <?php echo htmlspecialchars($current_meta['title']); ?>
       </h3>
       <small class="text-muted report-header-subtitle">ລາຍງານສຳຫຼວດຍອດຂາຍ ແລະ ປະຫວັດທຸລະກຳຂາຍສິນຄ້າ</small>

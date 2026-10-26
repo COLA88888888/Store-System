@@ -24,6 +24,7 @@ function btSettings() {
 
 // ແຖວ "ພິມອອກ: …" ໃນໜ້າຕ່າງຊຳລະເງິນ (ສະແດງຢ່າງດຽວ)
 function btPaintStatus() {
+  return;
   var s = btSettings(), ok = window.MiniposBtPrinter && MiniposBtPrinter.info().connected;
   var esc = function (t) { return $('<div>').text(t || '').html(); };
   var name = window.MiniposBtPrinter ? MiniposBtPrinter.info().name : '';

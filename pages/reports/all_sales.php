@@ -19,7 +19,7 @@ require_once __DIR__ . '/../../layouts/header.php';
   <!-- Header & Page Meta -->
   <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap" style="row-gap: 10px;">
     <div>
-      <h5 class="font-weight-bold text-dark mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+      <h5 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
         <i class="fas fa-file-invoice-dollar text-success mr-2"></i> <?php echo htmlspecialchars(t('reports.title_all_sales', 'ລາຍງານການຂາຍທັງໝົດ')); ?>
       </h5>
     </div>

@@ -41,7 +41,8 @@ var I18N_ADD_PRODUCT = <?php echo tjson([
 var GLOBAL_NEXT_SEQ = '<?php echo htmlspecialchars($nextSeqFormatted ?? "0001"); ?>';
 var GLOBAL_CODE_PREFIX = '<?php echo htmlspecialchars(getProductCodePrefix($pdo, getActiveStoreId($pdo))); ?>';
 var LAST_ADD_CATEGORY_ID = localStorage.getItem('StoreMini.minipos_last_add_category_id') || '';
-var LAST_ADD_UNIT_ID = localStorage.getItem('StoreMini.minipos_last_add_unit_id') || '';
+// ຫົວໜ່ວຍ: ບໍ່ຈື່ຄ່າທີ່ເລືອກຄັ້ງກ່ອນ — ຟອມເປີດມາວ່າງ "-- ເລືອກຫົວໜ່ວຍ --" ທຸກເທື່ອ (ລຶບຄ່າເກົ່າທີ່ເຄີຍເກັບໄວ້)
+try { localStorage.removeItem('StoreMini.minipos_last_add_unit_id'); } catch (e) {}
 
 function onAddCategoryChange() {
   var select = document.getElementById('add_category_id');
@@ -54,7 +55,7 @@ function onAddCategoryChange() {
     } catch(e){}
 
     // ດຶງລະຫັດສິນຄ້າຖັດໄປຕາມສາຂາ ແລະ ປະເພດສິນຄ້າ (e.g. 1 (ສາຂາ) + 1 (ປະເພດ) + 0001 (ລຳດັບ) = 110001)
-    $.getJSON('api_product.php?action=get_next_product_id&category_id=' + encodeURIComponent(catId), function(res) {
+    $.getJSON('../../api/products_api.php?action=get_next_product_id&category_id=' + encodeURIComponent(catId), function(res) {
       if (res && res.success) {
         var fullCode = String(res.next_id);
         var prefix = String(res.prefix !== undefined ? res.prefix : GLOBAL_CODE_PREFIX);
@@ -75,22 +76,10 @@ function onAddCategoryChange() {
   }
 }
 
-$(document).on('change', '#add_unit', function() {
-  var uVal = $(this).val();
-  if (uVal) {
-    LAST_ADD_UNIT_ID = uVal;
-    try { localStorage.setItem('StoreMini.minipos_last_add_unit_id', uVal); } catch(e){}
-  }
-});
-
 $('#addProductModal').on('show.bs.modal', function() {
   // ຖ້າຍັງບໍ່ມີລະຫັດສິນຄ້າ (ຍັງບໍ່ໄດ້ເລືອກປະເພດ) ໃຫ້ສະແດງຂໍ້ຄວາມແນະນຳ
   if (!$('#add_product_id').val()) {
     $('#add_product_id_display').html('<span class="text-muted" style="font-family: inherit; font-size: 0.88rem; font-weight: normal;"><?php echo htmlspecialchars(t('products.product_code_placeholder', 'ເລືອກປະເພດສິນຄ້າ...')); ?></span>');
-  }
-
-  if (!$('#add_unit').val() && LAST_ADD_UNIT_ID && $('#add_unit option[value="' + LAST_ADD_UNIT_ID + '"]').length > 0) {
-    $('#add_unit').val(LAST_ADD_UNIT_ID);
   }
 });
 
@@ -123,7 +112,7 @@ function quickAddUnitPrompt(mode, btn) {
   }).then(function(res) {
     if (res.isConfirmed && res.value) {
       var name = res.value.trim();
-      $.post('api_product.php', { action: 'add_unit', unit_name: name }, function(data) {
+      $.post('../../api/products_api.php', { action: 'add_unit', unit_name: name }, function(data) {
         if (data && data.success) {
           if (!window.ALL_UNITS) window.ALL_UNITS = [];
           var exists = window.ALL_UNITS.some(function(u) { return (u.unit_name || '').trim() === name; });
@@ -238,12 +227,14 @@ function addUnitRow(mode, data) {
     <div class="card mb-2.5 p-3 unit-row shadow-xs" style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px;">
       <div class="row align-items-end">
         <div class="col-lg-2 col-md-6 col-12 mb-2 mb-lg-0">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <label class="font-weight-bold text-dark mb-0" style="font-size: 0.88rem;">
+          <?php /* ແຖວດຽວ: ປ້າຍບໍ່ຕັດລົງແຖວ (nowrap), ລິ້ງເພີ່ມຫົວໜ່ວຍເປັນໄອຄອນ ⊕ ພ້ອມ title — ເມື່ອກ່ອນຂໍ້ຄວາມ
+                 "+ ເພີ່ມຫົວໜ່ວຍ" ດັນປ້າຍລົງເປັນ 3 ແຖວໃນຈໍແຄບ */ ?>
+          <div class="d-flex align-items-center mb-1" style="gap: 6px; white-space: nowrap;">
+            <label class="font-weight-bold text-dark mb-0 text-nowrap" style="font-size: 0.86rem;">
               ${I18N_ADD_PRODUCT['products.unit_row_name_label']} <span class="text-danger">*</span>
             </label>
-            <a href="javascript:void(0)" onclick="quickAddUnitPrompt('${mode}', this)" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
-              <i class="fas fa-plus mr-1"></i>${pqT('products_q.add_unit_link')}
+            <a href="javascript:void(0)" onclick="quickAddUnitPrompt('${mode}', this)" class="text-primary" title="${pqT('products_q.add_unit_link')}" style="font-size: 0.95rem; line-height: 1;">
+              <i class="fas fa-plus-circle"></i>
             </a>
           </div>
           <select name="extra_unit_name[]" class="form-control extra-unit-select font-weight-bold text-dark" style="height: 40px; border-radius: 6px; font-size: 0.92rem;" required>
@@ -251,25 +242,25 @@ function addUnitRow(mode, data) {
           </select>
         </div>
         <div class="col-lg-2 col-md-6 col-6 mb-2 mb-lg-0">
-          <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
+          <label class="font-weight-bold text-dark mb-1 text-nowrap" style="font-size: 0.86rem;">
             ${I18N_ADD_PRODUCT['products.unit_row_qty_label']} <span class="text-danger">*</span>
           </label>
           <input type="text" inputmode="numeric" pattern="[0-9]*" name="extra_unit_multiplier[]" class="form-control text-center font-weight-bold extra-unit-multiplier text-primary no-spin" placeholder="0" value="${multiplier}" style="height: 40px; border-radius: 6px; font-size: 0.95rem;" oninput="this.value = this.value.replace(/[^0-9]/g, ''); onExtraUnitMultiplierChange(this, '${mode}');" required>
         </div>
         <div class="col-lg-2 col-md-6 col-6 mb-2 mb-lg-0">
-          <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
+          <label class="font-weight-bold text-dark mb-1 text-nowrap" style="font-size: 0.86rem;">
             ${I18N_ADD_PRODUCT['products.unit_row_bprice_label']}
           </label>
           <input type="text" name="extra_unit_bprice[]" class="form-control text-right price-input extra-unit-bprice" placeholder="0" value="${bprice}" style="height: 40px; border-radius: 6px; font-size: 0.95rem; color: #475569;" oninput="formatPriceInput(this)">
         </div>
         <div class="col-lg-2 col-md-6 col-6 mb-2 mb-lg-0">
-          <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
+          <label class="font-weight-bold text-dark mb-1 text-nowrap" style="font-size: 0.86rem;">
             ${I18N_ADD_PRODUCT['products.unit_row_price_label']} <span class="text-danger">*</span>
           </label>
           <input type="text" name="extra_unit_price[]" class="form-control text-right font-weight-bold text-success price-input extra-unit-price" placeholder="0" value="${price}" style="height: 40px; border-radius: 6px; font-size: 0.95rem;" oninput="formatPriceInput(this)" required>
         </div>
         <div class="col-lg-2.5 col-md-5 col-10 mb-2 mb-lg-0" style="flex: 1;">
-          <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
+          <label class="font-weight-bold text-dark mb-1 text-nowrap" style="font-size: 0.86rem;">
             ${I18N_ADD_PRODUCT['products.unit_row_barcode_label']}
           </label>
           <div class="input-group barcode-combo">
@@ -461,7 +452,7 @@ function checkBarcodeDuplicate(inputEl, productId) {
 
   // 2. Check duplicate against Database via AJAX
   $.ajax({
-    url: 'api_product.php',
+    url: '../../api/products_api.php',
     type: 'GET',
     dataType: 'json',
     data: {
@@ -494,8 +485,8 @@ $(document).on('change blur', '#addProductForm input[name="extra_unit_barcode[]"
   checkBarcodeDuplicate(this, 0);
 });
 
-// ຍົກເລີກຟອມເພີ່ມທີລະລາຍການ: ລ້າງຂໍ້ມູນ ແລະ ປິດ modal
-window.cancelAddSingleForm = function() {
+// ລ້າງຟອມເພີ່ມທີລະລາຍການ ໃຫ້ວ່າງທັງໝົດ (ຫົວໜ່ວຍ = "-- ເລືອກຫົວໜ່ວຍ --")
+window.resetAddSingleForm = function() {
   var $f = $('#addProductForm');
   if ($f.length) $f[0].reset();
   $('#add_category_id').val('');
@@ -511,14 +502,19 @@ window.cancelAddSingleForm = function() {
   $('#add_zone').val('').trigger('change');
   $('#add_shelf').val('');
   $('#add_multi_units_container').empty();
+  $('#add_unit').val('');
   removeProductImg('add');
+};
 
-  if (LAST_ADD_UNIT_ID && $('#add_unit option[value="' + LAST_ADD_UNIT_ID + '"]').length > 0) {
-    $('#add_unit').val(LAST_ADD_UNIT_ID);
-  }
+// ປຸ່ມ "ຍົກເລີກ": ປິດ modal (ການລ້າງຂໍ້ມູນເກີດຂຶ້ນໃນ hidden.bs.modal ຂ້າງລຸ່ມ)
+window.cancelAddSingleForm = function() {
   $('#addProductModal').modal('hide');
 };
-// ເມື່ອປິດ modal ໂດຍບໍ່ບັນທຶກ: ບໍ່ລ້າງຄ່າ (ຄ້າງຂໍ້ມູນໄວ້ຕາມຄວາມຕ້ອງການ)
+
+// ປິດ modal ທຸກທາງ (ໄອຄອນ ✕, ຍົກເລີກ, ກົດນອກຟອມ, ຫຼັງບັນທຶກ) → ລ້າງຂໍ້ມູນໃຫ້ວ່າງ ບໍ່ຄ້າງໄວ້ເທື່ອໜ້າ
+$('#addProductModal').on('hidden.bs.modal', function () {
+  resetAddSingleForm();
+});
 
 // Prevent Enter key in barcode inputs from prematurely submitting form
 $(document).on('keydown', '#add_barcode, input[name="extra_unit_barcode[]"], #bulkAddProductForm input[name="b_barcode[]"]', function(e) {

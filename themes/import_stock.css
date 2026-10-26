@@ -5,7 +5,7 @@
 
 body {
     background-color: #f8fafc;
-    font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
 .import-card {
@@ -252,3 +252,28 @@ body {
   border-color: transparent !important;
 }
 
+
+/* Table Header Styling (Matching Categories Header in Image 2) */
+.table thead.bg-light th,
+.table-responsive > .table > thead > tr > th {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    border-top: none !important;
+    border-bottom: 2px solid #e2e8f0 !important;
+    vertical-align: middle !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+    white-space: nowrap !important;
+    letter-spacing: 0.2px;
+    font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif !important;
+}
+.table thead.bg-light th.text-center,
+.table-responsive > .table > thead > tr > th.text-center {
+    text-align: center !important;
+}
+.table thead.bg-light th.text-right,
+.table-responsive > .table > thead > tr > th.text-right {
+    text-align: right !important;
+}

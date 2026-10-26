@@ -125,7 +125,7 @@ require_once __DIR__ . '/../../layouts/header.php';
     <div class="container-fluid">
       <div class="row align-items-center">
         <div class="col-sm-6">
-          <h5 class="m-0 font-weight-bold text-dark" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon'; font-size: 18px;">
+          <h5 class="m-0 font-weight-bold text-dark" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon'; font-size: 18px;">
             <i class="fas fa-truck text-success mr-2"></i> <?php echo htmlspecialchars(t('suppliers.page_title', 'ຈັດການຜູ້ສະໜອງ')); ?>
           </h5>
         </div>

@@ -18,10 +18,11 @@ $scEditable   = ($scIsDraft && $scCanCount) || (($scIsPending || $scIsApproved) 
 
 // ສະແດງຍອດໃນລະບົບ: ສະເພາະຫົວໜ້າ / ຜູ້ບໍລິຫານ ເທົ່ານັ້ນ (ພະນັກງານບໍ່ໃຫ້ໂຊສະຕັອກໃນລະບົບ)
 $scShowSystem = isset($scShowSystem) ? $scShowSystem : !$scIsStaff;
-// ສ່ວນຕ່າງ: ພະນັກງານຕີຈຳນວນຕົວຈິງ ແລ້ວກົດບັນທຶກຈິ່ງໂຊສ່ວນຕ່າງ
-$scShowDiff   = true;
-$scShowResults = true;
-$scColCount   = 8 + ($scShowSystem ? 1 : 0);
+// ສ່ວນຕ່າງ / ຜົນ ຄົບ-ບໍ່ພໍ-ເກີນ: ສະເພາະຫົວໜ້າ/ຜູ້ບໍລິຫານ. ພະນັກງານນັບແບບບໍ່ຮູ້ຍອດ (blind count) ເຫັນແຕ່ "ນັບແລ້ວ" —
+// ຖ້າເຫັນວ່າ "ບໍ່ພໍ" ພະນັກງານທີ່ເອົາສິນຄ້າໄປ ຈະປ້ອນເພີ່ມຈົນ "ຄົບ" ໄດ້ (ກັນໂກງ)
+$scShowDiff   = !$scIsStaff;
+$scShowResults = !$scIsStaff;
+$scColCount   = 7 + ($scShowSystem ? 1 : 0) + ($scShowDiff ? 1 : 0);
 $scItemTotal  = count($scItems);
 if ($scIsDone) {
     $scItems = array_values(array_filter($scItems, function ($it) { return $it['counted_qty'] !== null; }));
@@ -72,9 +73,20 @@ foreach ($scItems as $it) {
             <i class="fas fa-save mr-1"></i> <?php echo $sc('sc.s014'); ?> <span class="badge badge-light ml-1" id="scUnsavedBadge" style="display: none;">0</span>
           </button>
 
+          <?php if ($scCanApprove): ?>
           <button type="button" class="btn btn-success font-weight-bold shadow-sm" onclick="scApproveAdjustment()" title="<?php echo $sc('sc.s015'); ?>">
             <i class="fas fa-check-double mr-1"></i> <?php echo $sc('sc.s016'); ?>
           </button>
+          <?php elseif ($scIsDraft): /* ພະນັກງານ: ປັບສະຕັອກເອງບໍ່ໄດ້ — ສົ່ງໃຫ້ຫົວໜ້າກວດ (ກັນໂກງ) */ ?>
+          <button type="button" class="btn btn-warning font-weight-bold shadow-sm" onclick="scSubmitApproval()" title="<?php echo $sc('sc.s117'); ?>">
+            <i class="fas fa-paper-plane mr-1"></i> <?php echo $sc('sc.s118'); ?>
+          </button>
+          <?php endif; ?>
+          <?php if ($scCanApprove && ($scIsPending || $scIsApproved)): ?>
+          <button type="button" class="btn btn-outline-danger font-weight-bold shadow-sm" onclick="scRejectAdjustment()" title="<?php echo $sc('sc.s122'); ?>">
+            <i class="fas fa-undo mr-1"></i> <?php echo $sc('sc.s124'); ?>
+          </button>
+          <?php endif; ?>
           <?php endif; ?>
 
           <button type="button" class="btn btn-info font-weight-bold shadow-sm text-white" onclick="scStartNewRound()" title="<?php echo $sc('sc.s017'); ?>">
@@ -276,7 +288,8 @@ foreach ($scItems as $it) {
                       data-zone="<?php echo htmlspecialchars(mb_strtolower($itZone !== '' ? $itZone : 'ບໍ່ລະບຸ')); ?>"
                       data-shelf="<?php echo htmlspecialchars(mb_strtolower($itShelf !== '' ? $itShelf : 'ບໍ່ລະບຸ')); ?>"
                       data-raw-zone="<?php echo htmlspecialchars(mb_strtolower($itZone)); ?>"
-                      data-system="<?php echo $sysQty; ?>"
+                      <?php if ($scShowSystem): /* ພະນັກງານ: ບໍ່ມີຍອດໃນລະບົບໃນ HTML ເລີຍ (ກັນເບິ່ງຜ່ານ DevTools) */ ?>data-system="<?php echo $sysQty; ?>"
+                      data-cost="<?php echo (float)($it['cost_price'] ?? 0); ?>"<?php endif; ?>
                       data-saved="<?php echo $counted === null ? '' : (int)$counted; ?>">
                     <td class="text-center text-muted"><?php echo $i + 1; ?></td>
                     <td class="small text-secondary sc-c-barcode"><?php echo htmlspecialchars($it['barcode'] ?: '-'); ?></td>
@@ -317,6 +330,23 @@ foreach ($scItems as $it) {
                       <?php if ($counted !== null && !empty($it['counted_at'])): ?>
                         <i class="fas fa-check-circle text-success mr-1"></i><?php echo date('d/m H:i', strtotime($it['counted_at'])); ?>
                         <div class="text-muted"><?php echo htmlspecialchars($it['counted_by_name'] ?? '-'); ?></div>
+                        <?php
+                          // ກັນໂກງ (ຫົວໜ້າເຫັນ): ຈຳນວນນັບຖືກປ່ຽນຈັກເທື່ອ ໃຜ ເວລາໃດ ຈາກ → ເປັນ (st_stock_check_count_log)
+                          $__log = $it['edit_log'] ?? [];
+                          if (count($__log) > 1):
+                            $__down = 0; $__who = [];
+                            $__lines = array_map(function ($l) use (&$__down, &$__who) {
+                                if ($l['old_qty'] !== null && $l['new_qty'] !== null && (int)$l['new_qty'] < (int)$l['old_qty']) $__down++;
+                                $__who[$l['who'] ?? '-'] = true;
+                                return date('d/m H:i', strtotime($l['created_at'])) . ' ' . ($l['who'] ?? '-') . ': '
+                                     . ($l['old_qty'] === null ? '-' : (int)$l['old_qty']) . ' → ' . ($l['new_qty'] === null ? '-' : (int)$l['new_qty']);
+                            }, $__log);
+                            $__warn = $__down > 0 || count($__who) > 1;   // ຫຼຸດຕົວເລກລົງ ຫຼື ຫຼາຍຄົນແກ້ → ຄວນກວດ
+                        ?>
+                        <span class="badge <?php echo $__warn ? 'badge-warning' : 'badge-light border'; ?> mt-1" style="cursor: help;" title="<?php echo htmlspecialchars(implode("\n", $__lines)); ?>">
+                          <i class="fas fa-history mr-1"></i>ປ່ຽນ <?php echo count($__log); ?> ເທື່ອ<?php echo $__warn ? ' — ຄວນກວດ' : ''; ?>
+                        </span>
+                        <?php endif; ?>
                       <?php else: ?>
                         <span class="text-muted">-</span>
                       <?php endif; ?>

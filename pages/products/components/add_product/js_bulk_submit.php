@@ -162,7 +162,7 @@ $(document).on('blur', '#bulkAddProductForm input[name="b_barcode[]"]', function
     }).then(function () { $input.val('').focus(); });
     return;
   }
-  $.getJSON('api_product.php', { action: 'check_barcode', barcode: bc, product_id: 0 }, function (res) {
+  $.getJSON('../../api/products_api.php', { action: 'check_barcode', barcode: bc, product_id: 0 }, function (res) {
     if (res && res.exists) {
       Swal.fire({
         icon: 'warning', title: I18N_ADD_PRODUCT['products.alert_duplicate_title'],

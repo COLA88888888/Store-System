@@ -6,7 +6,7 @@ if (empty($_SESSION['checked']) || empty($_SESSION['user_id'])) {
     echo "<script>window.top.location.href = '" . $base_path . "auth/login.php?expired=1';</script>";
     exit();
 }
-$header_site_name = 'Store WLaodev POS';
+$header_site_name = 'Minimart WLaodev POS';
 $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
 ?>
 <!DOCTYPE html>

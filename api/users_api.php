@@ -2,7 +2,7 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-require_once __DIR__ . '/../../config/db.php';
+require_once __DIR__ . '/../config/db.php';
 
 // Check authorization
 if (empty($_SESSION['user_id']) || (!hasPermission('users'))) {
@@ -24,7 +24,7 @@ function handleUserProfileUpload($fileInputName, $existingImg = 'default.png') {
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
         if (in_array($fileExtension, $allowedExtensions) && $fileSize <= 2 * 1024 * 1024) {
             $newFileName = 'user_' . time() . '_' . rand(1000, 9999) . '.' . $fileExtension;
-            $uploadFileDir = __DIR__ . '/../../assets/img/users/';
+            $uploadFileDir = __DIR__ . '/../assets/img/users/';
             if (!is_dir($uploadFileDir)) {
                 @mkdir($uploadFileDir, 0777, true);
             }
@@ -260,8 +260,8 @@ if ($action === 'edit_user') {
 
         $remove_flag = intval($_POST['remove_profile_img'] ?? 0);
         if ($remove_flag === 1) {
-            if ($currImg && $currImg !== 'default.png' && file_exists(__DIR__ . '/../../assets/img/users/' . $currImg)) {
-                @unlink(__DIR__ . '/../../assets/img/users/' . $currImg);
+            if ($currImg && $currImg !== 'default.png' && file_exists(__DIR__ . '/../assets/img/users/' . $currImg)) {
+                @unlink(__DIR__ . '/../assets/img/users/' . $currImg);
             }
             $profile_img = 'default.png';
         } else {
@@ -341,7 +341,7 @@ if ($action === 'delete_user') {
         }
         $uImg = $uRow['profile_img'];
         if ($uImg && $uImg !== 'default.png') {
-            $uPath = __DIR__ . '/../../assets/img/users/' . $uImg;
+            $uPath = __DIR__ . '/../assets/img/users/' . $uImg;
             if (file_exists($uPath)) {
                 @unlink($uPath);
             }

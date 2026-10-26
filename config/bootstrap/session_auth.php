@@ -87,9 +87,13 @@ if (isset($_SESSION['user_id'])) {
         echo "<script>if (window.top) { window.top.location.href = '{$redirectLoginPath}'; } else { window.location.href = '{$redirectLoginPath}'; }</script>";
         exit();
     }
-    $_SESSION['last_activity'] = time();
+    // ຄຳຂໍເບື້ອງຫຼັງ (define SESSION_PASSIVE_REQUEST ກ່ອນ require config/db.php — ເຊັ່ນ api/my_permissions.php
+    // ທີ່ຖືກເອີ້ນທຸກໆສອງສາມວິນາທີ) ບໍ່ນັບເປັນການໃຊ້ງານ: ບໍ່ຕໍ່ເວລາ idle ແລະ ບໍ່ອັບເດດສະຖານະອອນໄລນ໌
+    if (!defined('SESSION_PASSIVE_REQUEST')) {
+        $_SESSION['last_activity'] = time();
+    }
 }
-if (!empty($_SESSION['user_id'])) {
+if (!empty($_SESSION['user_id']) && !defined('SESSION_PASSIVE_REQUEST')) {
     $session_user_id = intval($_SESSION['user_id']);
     $nowVientiane = date('Y-m-d H:i:s');
     // ອັບເດດເວລາເຄື່ອນໄຫວລ້າສຸດ (Online activity status for current logged-in user)
@@ -141,6 +145,10 @@ if ($conn && !empty($_SESSION['user_id'])) {
             'financial' => $isAdmin ? 1 : (int)($refresh_row['financial'] ?? $refresh_row['report'] ?? 0),
             'category_sales' => $isAdmin ? 1 : (int)($refresh_row['category_sales'] ?? $refresh_row['report'] ?? 0),
             'delete_bills' => $isAdmin ? 1 : (int)($refresh_row['delete_bills'] ?? 0),
+            // ລາຍງານປິດກະ, ລາຍງານລາຍຮັບຕາມກະ / ຈັດການກະ — ມີສະວິດຂອງຕົນເອງໃນໜ້າກຳນົດສິດ; ກ່ອນນັ້ນໃຊ້ report / setup
+            'shift_close_report' => $isAdmin ? 1 : (int)($refresh_row['shift_close_report'] ?? $refresh_row['report'] ?? 0),
+            'shift_revenue_report' => $isAdmin ? 1 : (int)($refresh_row['shift_revenue_report'] ?? $refresh_row['report'] ?? 0),
+            'shifts' => $isAdmin ? 1 : (int)($refresh_row['shifts'] ?? $refresh_row['setup'] ?? 0),
             'accounting' => $isAdmin ? 1 : (int)($refresh_row['accounting'] ?? 0),
             'setup' => $isAdmin ? 1 : (int)($refresh_row['setup'] ?? 0),
             'stores' => $isAdmin ? 1 : (int)($refresh_row['stores'] ?? $refresh_row['setup'] ?? 0),

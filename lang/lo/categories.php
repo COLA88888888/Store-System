@@ -1,5 +1,5 @@
 <?php
-// pages/categories/* + api/categories_backend.php + pages/categories/api_category.php
+// pages/categories/* + api/categories_backend.php + api/categories_api.php
 // strings - Lao baseline (original text)
 return [
     'categories.page_title' => 'ຈັດການປະເພດສິນຄ້າ',
@@ -60,7 +60,7 @@ return [
     'categories.msg_delete_blocked_suffix' => ' ລາຍການ.',
     'categories.msg_delete_success' => 'ລົບປະເພດສິນຄ້າສຳເລັດ!',
 
-    // pages/categories/api_category.php messages
+    // api/categories_api.php messages
     'categories.access_denied' => 'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງຂໍ້ມູນນີ້!',
     'categories.invalid_action' => 'ຄຳສັ່ງບໍ່ຖືກຕ້ອງ',
 

@@ -26,6 +26,8 @@ return [
     'reports.search_placeholder_bill_emp' => 'ປ້ອນເລກບິນ ຫຼື ຊື່ພະນັກງານ...',
     'reports.branch_label'           => 'ສາຂາ:',
     'reports.all_branches_opt'       => '-- ທຸກສາຂາ --',
+    'reports.shift_label'            => 'ກະ:',
+    'reports.all_shifts_opt'         => '-- ທຸກກະ --',
     'reports.main_branch_suffix'     => '(ສາຂາໃຫຍ່)',
     'reports.bank_payment_label'     => 'ທະນາຄານ / ຊຳລະ:',
     'reports.all_payment_opt'        => '-- ຊຳລະທັງໝົດ --',

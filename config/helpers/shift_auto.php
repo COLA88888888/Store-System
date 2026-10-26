@@ -48,30 +48,66 @@ if (!function_exists('shiftTouchActivity')) {
     }
 }
 
+if (!function_exists('shiftSalesTotals')) {
+    // ຍອດຂາຍຂອງກະ ຄິດສົດຈາກບິນ (ບິນ SUCCESS ຂອງກະ + ບິນບໍ່ມີກະໃນຊ່ວງເວລາກະ) — ກົດດຽວໃຊ້ທຸກບ່ອນ
+    // (ປິດກະ, ສະຫຼຸບກ່ອນປິດ, ປະຫວັດກະ, ໃບສະຫຼຸບ). ຕໍ່ບິນ:
+    //   ໂອນ  = qr_received ແຕ່ບໍ່ເກີນຍອດບິນ (ບໍ່ມີ qr ແຕ່ເປັນບິນໂອນ → ທັງບິນ)
+    //   ສົດ   = ຍອດບິນ − ໂອນ  (ບໍ່ໃຊ້ cash_received ກົງໆ — ມັນແມ່ນເງິນທີ່ລູກຄ້າຍື່ນ ລວມເງິນທອນ)
+    //   ຕິດໜີ້ = ຍອດບິນ − ມັດຈຳສົດ − ໂອນ
+    // $endTime = ເວລາປິດກະ (ກະທີ່ຍັງເປີດ → ຕອນນີ້). ບິນທີ່ຖືກຍົກເລີກພາຍຫຼັງ ບໍ່ນັບ (ເພາະຄິດສົດ).
+    function shiftSalesTotals($pdo, array $session, $endTime = null) {
+        $endTime = $endTime ?: (!empty($session['close_time']) ? $session['close_time'] : date('Y-m-d H:i:s'));
+        $st = $pdo->prepare("
+            SELECT COUNT(*) AS bills, COALESCE(SUM(total), 0) AS total, COALESCE(SUM(trf), 0) AS transfer,
+                   COALESCE(SUM(CASE WHEN is_debt THEN LEAST(GREATEST(cash_in, 0), total - trf) ELSE total - trf END), 0) AS cash,
+                   COALESCE(SUM(CASE WHEN is_debt THEN total - LEAST(GREATEST(cash_in, 0), total - trf) - trf ELSE 0 END), 0) AS debt
+            FROM (
+                SELECT sale_barlance AS total, cash_received AS cash_in, (type_pay LIKE '%ຕິດໜີ້%') AS is_debt,
+                       CASE WHEN qr_received > 0 THEN LEAST(qr_received, sale_barlance)
+                            WHEN type_pay LIKE '%ໂອນ%' OR type_pay LIKE '%QR%' THEN sale_barlance ELSE 0 END AS trf
+                FROM st_tbsale_save
+                WHERE (shift_session_id = :sid OR (store_id = :store_id AND shift_session_id IS NULL
+                       AND CONCAT(sale_date, ' ', sale_time) >= :open_time AND CONCAT(sale_date, ' ', sale_time) <= :end_time))
+                  AND sale_status = 'SUCCESS'
+            ) b");
+        $st->execute([':sid' => (int)$session['id'], ':store_id' => (int)$session['store_id'],
+                      ':open_time' => $session['open_time'], ':end_time' => $endTime]);
+        $s = $st->fetch(PDO::FETCH_ASSOC) ?: [];
+        return [
+            'bills'    => (int)($s['bills'] ?? 0),
+            'cash'     => (float)($s['cash'] ?? 0),
+            'transfer' => (float)($s['transfer'] ?? 0),
+            'debt'     => (float)($s['debt'] ?? 0),
+            'total'    => (float)($s['total'] ?? 0),
+        ];
+    }
+}
+
+if (!function_exists('shiftApplyLiveTotals')) {
+    // ໃສ່ຍອດສົດ (shiftSalesTotals) ທັບຄ່າ system_* ທີ່ບັນທຶກໄວ້ຕອນປິດກະ ແລະ ຄິດສ່ວນຕ່າງເງິນສົດໃໝ່
+    // (ເງິນນັບໄດ້ − ເງິນສົດທີ່ຖືກ). ຄ່າເກົ່າທີ່ບັນທຶກໄວ້ອາດຜິດ: ສູດເກົ່ານັບເງິນທອນເປັນຍອດຂາຍ, ບໍ່ຫັກບິນທີ່ຍົກເລີກພາຍຫຼັງ.
+    function shiftApplyLiveTotals($pdo, array $session) {
+        $t = shiftSalesTotals($pdo, $session);
+        $session['system_total_bills']    = $t['bills'];
+        $session['system_sales_cash']     = $t['cash'];
+        $session['system_sales_transfer'] = $t['transfer'];
+        $session['system_sales_debt']     = $t['debt'];
+        $session['system_total_sales']    = $t['total'];
+        if (array_key_exists('counted_sales_cash', $session)) {
+            $session['difference_cash'] = $session['counted_sales_cash'] === null ? null
+                : (float)$session['counted_sales_cash'] - $t['cash'];
+        }
+        return $session;
+    }
+}
+
 if (!function_exists('shiftCloseSession')) {
     // ປິດ session: ສະຫຼຸບຍອດຂາຍຈາກລະບົບຊ່ວງ open_time → $closeTime ແລ້ວບັນທຶກ. ໃຊ້ທັງປິດເອງ ແລະ ປິດອໍໂຕ້.
     // $counted = null (ປິດອໍໂຕ້ — ບໍ່ມີຄົນນັບເງິນ) → ສ່ວນຕ່າງເປັນ null. ສົ່ງຄືນຍອດທີ່ສະຫຼຸບໄດ້.
     function shiftCloseSession($pdo, array $session, $closeTime, $closedById, $closedByName, $counted, $notes) {
         $sid = (int)$session['id'];
         $storeId = (int)$session['store_id'];
-        $st = $pdo->prepare("
-            SELECT COUNT(*) AS total_bills,
-                   COALESCE(SUM(CASE WHEN cash_received > 0 THEN cash_received WHEN type_pay = 'ເງິນສົດ' THEN sale_barlance ELSE 0 END), 0) AS cash_sales,
-                   COALESCE(SUM(CASE WHEN qr_received > 0 THEN qr_received WHEN type_pay IN ('ໂອນເງິນ / QR', 'ໂອນຈ່າຍ') THEN sale_barlance ELSE 0 END), 0) AS transfer_sales,
-                   COALESCE(SUM(CASE WHEN type_pay = 'ຕິດໜີ້' THEN sale_barlance ELSE 0 END), 0) AS debt_sales,
-                   COALESCE(SUM(sale_barlance), 0) AS total_sales
-            FROM st_tbsale_save
-            WHERE (shift_session_id = :sid OR (store_id = :store_id AND CONCAT(sale_date, ' ', sale_time) >= :open_time AND CONCAT(sale_date, ' ', sale_time) <= :close_time))
-              AND sale_status = 'SUCCESS'");
-        $st->execute([':sid' => $sid, ':store_id' => $storeId, ':open_time' => $session['open_time'], ':close_time' => $closeTime]);
-        $s = $st->fetch(PDO::FETCH_ASSOC);
-        $sum = [
-            'bills'    => (int)($s['total_bills'] ?? 0),
-            'cash'     => (float)($s['cash_sales'] ?? 0),
-            'transfer' => (float)($s['transfer_sales'] ?? 0),
-            'debt'     => (float)($s['debt_sales'] ?? 0),
-            'total'    => (float)($s['total_sales'] ?? 0),
-        ];
+        $sum = shiftSalesTotals($pdo, $session, $closeTime);   // ກົດດຽວກັບລາຍງານ (ບໍ່ນັບເງິນທອນເປັນຍອດຂາຍ)
         $diff = $counted === null ? null : $counted - $sum['cash'];
 
         $ownTx = !$pdo->inTransaction();
@@ -104,39 +140,9 @@ if (!function_exists('shiftCloseSession')) {
 }
 
 if (!function_exists('shiftAutoCloseStale')) {
-    // ປິດອໍໂຕ້ທຸກກະ (ທຸກສາຂາ) ທີ່ຮອດໂມງປິດແລ້ວ ແລະ ບໍ່ມີໃຜໃຊ້ງານໜ້າຂາຍ SHIFT_IDLE_MINUTES ນາທີ.
-    // ເວລາປິດ = ຊ້າກວ່າລະຫວ່າງ ໂມງປິດກະ ແລະ ເວລາໃຊ້ງານຫຼ້າສຸດ. ສົ່ງຄືນຈຳນວນກະທີ່ປິດ.
+    // ຍົກເລີກການປິດກະອໍໂຕ້ເມື່ອກາຍໂມງ:
+    // ກາຍໂມງກະຢ່າ ປິດກາຍໂມງບໍ່ມີບັນຫາ ບໍ່ໃຫ້ເດັ້ງຟອມເປີດກະມາ ຖ້າແຕ່ພະນັກງານປິດເອງ
     function shiftAutoCloseStale($pdo) {
-        $closedCount = 0;
-        try {
-            $rows = $pdo->query("
-                SELECT ss.*, sh.start_time AS sh_start, sh.end_time AS sh_end
-                FROM st_shift_sessions ss
-                JOIN st_shifts sh ON sh.id = ss.shift_id
-                WHERE ss.status = 'open'")->fetchAll(PDO::FETCH_ASSOC);
-            $now = time();
-            foreach ($rows as $ss) {
-                $endTs = strtotime(shiftScheduledEnd($ss['open_time'], $ss['sh_start'], $ss['sh_end']));
-                $lastTs = strtotime($ss['last_active_at'] ?: $ss['open_time']);
-                if ($now < $endTs || $now - $lastTs < SHIFT_IDLE_MINUTES * 60) continue;
-                $closeTime = date('Y-m-d H:i:s', max($endTs, $lastTs));
-                $res = shiftCloseSession($pdo, $ss, $closeTime, null, 'ລະບົບ (ປິດອໍໂຕ້)', null,
-                    'ປິດອໍໂຕ້: ຮອດໂມງປິດກະແລ້ວ ແລະ ບໍ່ມີພະນັກງານໃຊ້ງານ ' . SHIFT_IDLE_MINUTES . ' ນາທີ');
-                if ($res['closed']) {
-                    $closedCount++;
-                    try { logActivity($pdo, "ປິດກະອໍໂຕ້", "ກະ: {$ss['shift_name']} (ສາຂາ {$ss['store_id']}), ຍອດຂາຍ: " . number_format($res['total'])); } catch (Throwable $e) {}
-                }
-            }
-        } catch (Throwable $e) {
-            error_log('shiftAutoCloseStale: ' . $e->getMessage());
-        }
-        return $closedCount;
+        return 0;
     }
-}
-
-// ກວດປິດກະອໍໂຕ້ ຢ່າງຫຼາຍນາທີລະເທື່ອ ຕໍ່ຜູ້ໃຊ້ທີ່ເຂົ້າລະບົບ — ບໍ່ມີໃຜເປີດໜ້າ POS ກໍຍັງປິດໄດ້ ເມື່ອມີຄົນໃຊ້ລະບົບໜ້າອື່ນ
-if (isset($pdo) && $pdo instanceof PDO && !empty($_SESSION['user_id'])
-    && (time() - (int)($_SESSION['shift_autoclose_at'] ?? 0)) >= 60) {
-    $_SESSION['shift_autoclose_at'] = time();
-    shiftAutoCloseStale($pdo);
 }

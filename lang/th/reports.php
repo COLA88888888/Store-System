@@ -26,6 +26,8 @@ return [
     'reports.search_placeholder_bill_emp' => 'กรอกเลขบิล หรือ ชื่อพนักงาน...',
     'reports.branch_label'           => 'สาขา:',
     'reports.all_branches_opt'       => '-- ทุกสาขา --',
+    'reports.shift_label'            => 'กะ:',
+    'reports.all_shifts_opt'         => '-- ทุกกะ --',
     'reports.main_branch_suffix'     => '(สาขาใหญ่)',
     'reports.bank_payment_label'     => 'ธนาคาร / การชำระเงิน:',
     'reports.all_payment_opt'        => '-- ชำระเงินทั้งหมด --',

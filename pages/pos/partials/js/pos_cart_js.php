@@ -40,43 +40,132 @@ function broadcastCustomerDisplay(checkoutState, extraData) {
   }
 }
 
+// ດັກຈັບຈໍທີ 2 ລ່ວງໜ້າ (Window Management API) ເພື່ອໃຫ້ຕອນກົດປຸ່ມ ສາມາດເປີດແບບ Synchronous Fullscreen (ຄືກົດ F11) ໄດ້ທັນທີ
+window.cachedCustomerDisplayScreen = null;
+window.cachedCustomerDisplayScreenObj = null;
+if (typeof window.getScreenDetails === 'function') {
+  try {
+    navigator.permissions.query({ name: 'window-management' }).then(function(res) {
+      if (res.state === 'granted') {
+        window.getScreenDetails().then(function(details) {
+          function cacheOtherScreen() {
+            var curr = details.currentScreen;
+            var other = details.screens.find(function(s) { return s !== curr; }) || curr;
+            if (other) {
+              window.cachedCustomerDisplayScreenObj = other;
+              window.cachedCustomerDisplayScreen = {
+                left: other.availLeft,
+                top: other.availTop,
+                width: other.availWidth,
+                height: other.availHeight
+              };
+              try { localStorage.setItem('StoreMini.customer_display_screen', JSON.stringify(window.cachedCustomerDisplayScreen)); } catch(e){}
+            }
+          }
+          cacheOtherScreen();
+          details.addEventListener('screenschange', cacheOtherScreen);
+        }).catch(function(){});
+      }
+    }).catch(function(){});
+  } catch(e) {}
+}
+
 function openCustomerDisplayOnScreen(left, top, w, h) {
-  var win = window.open('customer_display.php', 'POSCustomerDisplay',
-    'width=' + w + ',height=' + h + ',left=' + left + ',top=' + top + ',scrollbars=yes,resizable=yes');
+  var screenW = Math.max(w || 0, window.screen.width || 1920);
+  var screenH = Math.max(h || 0, window.screen.height || 1080);
+
+  var features = 'popup=yes,fullscreen=yes,left=' + left + ',top=' + top +
+    ',width=' + screenW + ',height=' + screenH +
+    ',menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=no';
+
+  var win = window.open('customer_display.php', 'POSCustomerDisplay', features);
   if (win) {
-    try { win.moveTo(left, top); win.resizeTo(w, h); } catch(e) {}
+    try {
+      var isWinAlreadyFull = (win.innerWidth >= screenW - 6 && win.innerHeight >= screenH - 6);
+      if (!isWinAlreadyFull) {
+        win.moveTo(left, top);
+        win.resizeTo(screenW, screenH);
+      }
+      win.focus();
+    } catch(e) {}
+
+    // 1) ລອງສັ່ງ HTML5 Fullscreen API ຜ່ານ User Gesture
+    var triggerFs = function() {
+      try {
+        win.focus();
+        var doc = win.document;
+        var el = doc && (doc.documentElement || doc.body);
+        if (!el) return;
+        if (doc.fullscreenElement || doc.webkitFullscreenElement) return;
+        var rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+        if (rfs) {
+          var opts = { navigationUI: 'hide' };
+          if (window.cachedCustomerDisplayScreenObj) {
+            opts.screen = window.cachedCustomerDisplayScreenObj;
+          }
+          var p = rfs.call(el, opts);
+          if (p && p.catch) {
+            p.catch(function() {
+              try { rfs.call(el, { navigationUI: 'hide' }).catch(function(){}); } catch(err){}
+            });
+          }
+        }
+      } catch(e) {}
+    };
+
+    triggerFs();
+    setTimeout(triggerFs, 80);
   }
+
+  // 2) ແຈ້ງເຕືອນຜ່ານ Storage ໃຫ້ຈໍລູກຄ້າກວດສອບ ແລະ ກົດ F11 ອັດຕະໂນມັດທັນທີໂດຍບໍ່ຕ້ອງເອົາເມົ້າໄປແຕະ
+  try {
+    localStorage.setItem('StoreMini.customer_display_trigger_fs', String(Date.now()));
+  } catch(e) {}
   broadcastCustomerDisplay('shopping');
 }
 
 function openCustomerDisplayWindow() {
-  // Prefer the Window Management API so the display opens directly on the OTHER monitor,
-  // not just fullscreen on whichever monitor the cashier's POS window is already on.
-  if (typeof window.getScreenDetails === 'function') {
-    window.getScreenDetails().then(function(details) {
-      var current = details.currentScreen;
-      var other = details.screens.find(function(s) { return s !== current; });
-      if (other) {
-        openCustomerDisplayOnScreen(other.availLeft, other.availTop, other.availWidth, other.availHeight);
-      } else {
-        // Only one screen detected — fall back to filling the current one.
-        openCustomerDisplayOnScreen(0, 0, screen.availWidth || 1200, screen.availHeight || 800);
-      }
-    }).catch(function() {
-      openCustomerDisplayFallback();
-    });
-    return;
-  }
-  openCustomerDisplayFallback();
-}
+  var w = window.screen.width || 1920;
+  var h = window.screen.height || 1080;
+  var left = 0;
+  var top = 0;
 
-function openCustomerDisplayFallback() {
-  // No Window Management API (or permission denied) — best-effort guess: most dual-monitor
-  // setups extend the desktop to the right, so positioning past the current screen's width
-  // lands the window on the second monitor.
-  var w = screen.availWidth || screen.width || 1200;
-  var h = screen.availHeight || screen.height || 800;
-  openCustomerDisplayOnScreen(w, 0, w, h);
+  var cached = window.cachedCustomerDisplayScreen;
+  if (!cached) {
+    try { cached = JSON.parse(localStorage.getItem('StoreMini.customer_display_screen')); } catch(e) {}
+  }
+
+  if (cached && typeof cached.left === 'number') {
+    left = cached.left;
+    top = cached.top || 0;
+    w = Math.max(cached.width || 0, w);
+    h = Math.max(cached.height || 0, h);
+  } else if (window.screen.availLeft && window.screen.availLeft !== 0) {
+    left = window.screen.availLeft;
+  } else if (window.screen.isExtended && window.screen.width) {
+    left = screen.availWidth || screen.width || 1920;
+  }
+
+  openCustomerDisplayOnScreen(left, top, w, h);
+
+  // ຖ້າຍັງບໍ່ມີສິດ Window Management: ຖາມຂໍສິດໃນ Background ສຳລັບຄັ້ງຕໍ່ໄປ
+  if (!cached && typeof window.getScreenDetails === 'function') {
+    try {
+      window.getScreenDetails().then(function(details) {
+        var curr = details.currentScreen;
+        var other = details.screens.find(function(s) { return s !== curr; });
+        if (other) {
+          window.cachedCustomerDisplayScreen = {
+            left: other.availLeft,
+            top: other.availTop,
+            width: other.availWidth,
+            height: other.availHeight
+          };
+          try { localStorage.setItem('StoreMini.customer_display_screen', JSON.stringify(window.cachedCustomerDisplayScreen)); } catch(e){}
+        }
+      }).catch(function(){});
+    } catch(e) {}
+  }
 }
 
 <?php require __DIR__ . '/cart/cart_ui.php'; /* ສະແດງກະຕ່າ */ ?>

@@ -3,7 +3,7 @@
   <div class="container-fluid">
     <div class="row align-items-center">
       <div class="col-sm-6 col-md-5">
-        <h5 class="m-0 font-weight-bold text-dark" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 18px;">
+        <h5 class="m-0 font-weight-bold text-dark" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 18px;">
           <i class="fas fa-user-friends text-info mr-2"></i> <?php echo htmlspecialchars(t('customers.title', 'ລາຍງານລູກຄ້າທັງໝົດ')); ?>
         </h5>
       </div>

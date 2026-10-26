@@ -433,6 +433,7 @@ function showPosShiftSummaryModal(sessionId) {
 
     window.posReportSession = res.session;
     window.posReportBills = res.bills || [];
+    window.posReportItems = res.items || [];
 
     var s = res.session;
     var diff = s.difference_cash !== null ? parseFloat(s.difference_cash) : 0;
@@ -447,24 +448,43 @@ function showPosShiftSummaryModal(sessionId) {
     // ລາຍການຂາຍຂອງກະນີ້ (ກະຂອງຕົນເອງ)
     var esc = function (v) { return $('<div>').text(v == null ? '' : String(v)).html(); };
     var billRows = (res.bills || []).map(function (b, i) {
-      return `<tr><td class="text-center">${i + 1}</td><td>${esc(b.sale_save_bill)}</td><td class="text-center">${esc((b.sale_time || '').substr(0, 5))}</td>
-              <td>${esc(b.type_pay)}</td><td class="text-right font-weight-bold">${formatPosNumber(b.sale_barlance)} ₭</td></tr>`;
+      return `<tr style="white-space: nowrap;"><td class="text-center" style="white-space: nowrap;">${i + 1}</td><td style="white-space: nowrap;">${esc(b.sale_save_bill)}</td><td class="text-center" style="white-space: nowrap;">${esc((b.sale_time || '').substr(0, 5))}</td>
+              <td style="white-space: nowrap;">${esc(b.type_pay)}</td><td class="text-right font-weight-bold" style="white-space: nowrap;">${formatPosNumber(b.sale_barlance)} ₭</td></tr>`;
     }).join('');
     var billsHtml = `
         <div class="font-weight-bold text-dark mb-2"><i class="fas fa-receipt text-primary mr-1"></i> ລາຍການຂາຍໃນກະນີ້ (${(res.bills || []).length} ບິນ)</div>
-        <div class="table-responsive mb-3" style="max-height: 240px; overflow-y: auto;">
-          <table class="table table-sm table-bordered mb-0" style="font-size: 0.86rem;">
-            <thead class="bg-light"><tr><th class="text-center">#</th><th>ເລກບິນ</th><th class="text-center">ເວລາ</th><th>ຊ່ອງທາງ</th><th class="text-right">ມູນຄ່າ</th></tr></thead>
+        <div class="table-responsive mb-3" style="max-height: 240px; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+          <table class="table table-sm table-bordered mb-0 text-nowrap" style="font-size: 0.86rem; white-space: nowrap;">
+            <thead class="bg-light"><tr style="white-space: nowrap;"><th class="text-center" style="white-space: nowrap;">#</th><th style="white-space: nowrap;">ເລກບິນ</th><th class="text-center" style="white-space: nowrap;">ເວລາ</th><th style="white-space: nowrap;">ຊ່ອງທາງ</th><th class="text-right" style="white-space: nowrap;">ມູນຄ່າ</th></tr></thead>
             <tbody>${billRows || '<tr><td colspan="5" class="text-center text-muted py-3">ບໍ່ມີລາຍການຂາຍໃນກະນີ້</td></tr>'}</tbody>
           </table>
         </div>`;
 
+    // ສິນຄ້າທີ່ຂາຍໃນກະ (ລວມຕາມສິນຄ້າ — get_session_details.items)
+    var items = res.items || [];
+    var itTot = { qty: 0, net: 0 };
+    var itemRows = items.map(function (it, i) {
+      itTot.qty += it.qty; itTot.net += it.net;
+      return `<tr style="white-space: nowrap;"><td class="text-center" style="white-space: nowrap;">${i + 1}</td><td style="white-space: nowrap;">${esc(it.product_name)}</td><td class="text-center font-weight-bold" style="white-space: nowrap;">${formatPosNumber(it.qty)}</td>
+              <td class="text-right" style="white-space: nowrap;">${formatPosNumber(it.price)} ₭</td><td class="text-right font-weight-bold" style="white-space: nowrap;">${formatPosNumber(it.net)} ₭</td></tr>`;
+    }).join('');
+    var itemsHtml = `
+        <div class="font-weight-bold text-dark mb-2"><i class="fas fa-box-open text-primary mr-1"></i> ສິນຄ້າທີ່ຂາຍໃນກະ (${items.length} ລາຍການ)</div>
+        <div class="table-responsive mb-3" style="max-height: 260px; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch;">
+          <table class="table table-sm table-bordered mb-0 text-nowrap" style="font-size: 0.86rem; white-space: nowrap;">
+            <thead class="bg-light"><tr style="white-space: nowrap;"><th class="text-center" style="white-space: nowrap;">#</th><th style="white-space: nowrap;">ສິນຄ້າ</th><th class="text-center" style="white-space: nowrap;">ຈຳນວນ</th><th class="text-right" style="white-space: nowrap;">ລາຄາ</th><th class="text-right" style="white-space: nowrap;">ລວມ</th></tr></thead>
+            <tbody>${itemRows || '<tr><td colspan="5" class="text-center text-muted py-3">ບໍ່ມີສິນຄ້າທີ່ຂາຍໃນກະນີ້</td></tr>'}</tbody>
+            ${items.length ? `<tfoot><tr class="font-weight-bold" style="background: #f1f5f9; white-space: nowrap;"><td colspan="2" class="text-right" style="white-space: nowrap;">ລວມທັງໝົດ</td>
+              <td class="text-center" style="white-space: nowrap;">${formatPosNumber(itTot.qty)}</td><td style="white-space: nowrap;"></td><td class="text-right text-primary" style="white-space: nowrap;">${formatPosNumber(itTot.net)} ₭</td></tr></tfoot>` : ''}
+          </table>
+        </div>`;
+
     var html = `
-      <div id="posExportContentArea" style="font-family: 'Noto Sans Lao', sans-serif;">
+      <div id="posExportContentArea" style="font-family: 'Nuanta', 'Noto Sans Lao', sans-serif;">
         <div class="text-center border-bottom pb-3 mb-3">
           <h4 class="font-weight-bold mb-1" style="color: #1e293b;">ໃບສະຫຼຸບປິດກະເຮັດວຽກ</h4>
           <div class="text-muted" style="font-size: 0.95rem;">
-            <strong>ກະ:</strong> ${s.shift_name} | <strong>ເວລາ:</strong> ${s.open_time} - ${s.close_time}
+            ${s.store_name ? `<strong>ສາຂາ:</strong> ${esc(s.store_name)} | ` : ''}<strong>ກະ:</strong> ${s.shift_name} | <strong>ເວລາ:</strong> ${s.open_time} - ${s.close_time}
           </div>
           <div class="text-muted" style="font-size: 0.88rem;">
             <strong>ຜູ້ເປີດ:</strong> ${s.opened_by_name} | <strong>ຜູ້ປິດ:</strong> ${s.closed_by_name}
@@ -500,6 +520,7 @@ function showPosShiftSummaryModal(sessionId) {
             </tr>${diffRow}
           </tbody>
         </table>
+${itemsHtml}
 ${billsHtml}
 
         ${s.notes ? `<div class="alert alert-secondary py-2 px-3 mb-2 small"><strong>ໝາຍເຫດ:</strong> ${s.notes}</div>` : ''}
@@ -532,7 +553,7 @@ function printPosShiftThermalSlip() {
       <style>
         @page { size: 80mm auto; margin: 2mm 3mm; }
         * { box-sizing: border-box; }
-        body { font-family: 'Noto Sans Lao', 'Souliyo', 'Phetsarath OT', Arial, sans-serif; font-size: 13px; line-height: 1.4; margin: 0; padding: 6px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Phetsarath OT', Arial, sans-serif; font-size: 13px; line-height: 1.4; margin: 0; padding: 6px; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .text-center { text-align: center; }
         .text-right { text-align: right; }
         .font-bold { font-weight: bold; }
@@ -543,6 +564,7 @@ function printPosShiftThermalSlip() {
     </head>
     <body>
       <div class="text-center font-bold" style="font-size: 15px;">ໃບສະຫຼຸບປິດກະເຮັດວຽກ</div>
+      ${s.store_name ? `<div class="text-center" style="font-size: 12px;">ສາຂາ: ${$('<div>').text(s.store_name).html()}</div>` : ''}
       <div class="text-center font-bold" style="font-size: 13px;">${s.shift_name}</div>
       <div class="text-center border-bottom" style="font-size: 12px;">${s.open_time} - ${s.close_time}</div>
 
@@ -556,6 +578,12 @@ function printPosShiftThermalSlip() {
       <div class="row"><span>ຂາຍໂອນ / QR:</span><span class="font-bold">${formatPosNumber(s.system_sales_transfer)} ₭</span></div>
       <div class="row"><span>ຂາຍຕິດໜີ້:</span><span class="font-bold">${formatPosNumber(s.system_sales_debt)} ₭</span></div>
       <div class="row font-bold" style="font-size: 13.5px;"><span>ຍອດຂາຍລວມ (${s.system_total_bills} ບິນ):</span><span>${formatPosNumber(s.system_total_sales)} ₭</span></div>
+
+      ${(window.posReportItems || []).length ? `<div class="border-top"></div>
+      <div class="font-bold" style="margin-bottom: 3px;">ສິນຄ້າທີ່ຂາຍ (${window.posReportItems.length} ລາຍການ):</div>
+      ${window.posReportItems.map(function (it) {
+        return `<div class="row"><span>${$('<div>').text(it.product_name || '-').html()} x${formatPosNumber(it.qty)}</span><span>${formatPosNumber(it.net)} ₭</span></div>`;
+      }).join('')}` : ''}
 
       <div class="border-top"></div>
       <div class="row font-bold"><span>ເງິນສົດນັບໄດ້ (ຂາຍ):</span><span>${formatPosNumber(s.counted_sales_cash)} ₭</span></div>
@@ -617,6 +645,12 @@ function posShiftReportData() {
   ];
   if (!s.diff_hidden) summary.push(['ສ່ວນຕ່າງເງິນສົດ (ຕົວຈິງ - ລະບົບ)', diffText, true]);   // ພະນັກງານບໍ່ເຫັນ
   if (s.notes) summary.push(['ໝາຍເຫດ', s.notes]);
+  // ສິນຄ້າທີ່ຂາຍໃນກະ — RptExport ມີຕາຕະລາງຫຼັກດຽວ (ບິນ) ຈຶ່ງໃສ່ໃນຕາຕະລາງສະຫຼຸບ: "ຊື່ x ຈຳນວນ" | ລວມ
+  var items = window.posReportItems || [];
+  if (items.length) {
+    summary.push(['ສິນຄ້າທີ່ຂາຍໃນກະ (' + items.length + ' ລາຍການ)', '', true]);
+    items.forEach(function (it) { summary.push([(it.product_name || '-') + '  x' + formatPosNumber(it.qty), K(it.net)]); });
+  }
   var total = 0;
   var rows = bills.map(function (b, i) {
     total += parseFloat(b.sale_barlance) || 0;
@@ -625,7 +659,7 @@ function posShiftReportData() {
   return {
     title: 'ລາຍງານສະຫຼຸບປິດກະ: ' + (s.shift_name || ''),
     fileBase: 'shift_report_' + String(s.shift_name || 'shift').replace(/[\\\/:*?"<>|\s]+/g, '_'),
-    store: '',
+    store: s.store_name ? 'ສາຂາ: ' + s.store_name : '',
     meta: meta,
     summary: summary,
     headers: [{t: '#', a: 'c'}, {t: 'ເລກບິນ'}, {t: 'ວັນທີ-ເວລາ', a: 'c'}, {t: 'ພະນັກງານຂາຍ'}, {t: 'ຊ່ອງທາງ', a: 'c'}, {t: 'ມູນຄ່າ', a: 'r'}],

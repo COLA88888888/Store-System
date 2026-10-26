@@ -1,5 +1,5 @@
 /* ===== BCT School Login Page Custom Styles ===== */
-*:not(.fas):not(.far):not(.fab):not(.fa) { font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif !important; }
+*:not(.fas):not(.far):not(.fab):not(.fa) { font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif !important; }
 .fas, .far, .fa { font-family: "Font Awesome 5 Free" !important; font-weight: 900 !important; }
 .fab { font-family: "Font Awesome 5 Brands" !important; font-weight: 400 !important; }
 :root {
@@ -18,7 +18,7 @@ html {
 }
 
 body {
-    font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif !important;
+    font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif !important;
     margin: 0;
     background-color: #f8fafc;
     min-height: 100vh;

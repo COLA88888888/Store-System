@@ -7,7 +7,7 @@
 ?>  <!-- Header Title & Controls -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3.5 gap-2">
     <div>
-      <h4 class="font-weight-bold text-dark mb-1" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+      <h4 class="font-weight-bold text-dark mb-1" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
         <i class="fas fa-chart-pie text-primary mr-2"></i> <?php echo htmlspecialchars(t('home.title', 'ດາດສ໌ບອດບໍລິຫານ & ວິເຄາະການຂາຍ')); ?>
       </h4>
       <p class="text-muted mb-0" style="font-size: 0.85rem;"><?php echo htmlspecialchars(t('home.subtitle', 'ສະຫຼຸບພາບລວມຍອດຂາຍ, ຕົ້ນທຶນ, ກຳໄລ ແລະ ສະຖິຕິການຂາຍປະຈຳປີ')); ?></p>
@@ -204,7 +204,7 @@
     <div class="col-lg-8 mb-4 mb-lg-0">
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: #ffffff;">
         <div class="card-header bg-white border-0 py-3 px-3.5 d-flex justify-content-between align-items-center">
-          <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-chart-area text-primary mr-2"></i> <span data-i18n-key="<?php echo $chart_title_key; ?>"><?php echo htmlspecialchars(t($chart_title_key, $chart_title_def)); ?></span> (<?php echo htmlspecialchars($chart_period_text); ?>)
           </h6>
           <span class="badge badge-light border text-primary font-weight-bold px-2.5 py-1"><?php echo htmlspecialchars($chart_badge_text); ?></span>
@@ -221,7 +221,7 @@
     <div class="col-lg-4">
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: #ffffff;">
         <div class="card-header bg-white border-0 py-3 px-3.5 d-flex justify-content-between align-items-center">
-          <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-calendar-alt text-info mr-2"></i> <?php echo htmlspecialchars(t('home.chart_yearly_compare', 'ກາຟປຽບທຽບຍອດຂາຍປະຈຳປີ')); ?>
           </h6>
         </div>
@@ -240,7 +240,7 @@
     <div class="col-lg-5 mb-4 mb-lg-0">
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: #ffffff;">
         <div class="card-header bg-white border-0 py-3 px-3.5 d-flex justify-content-between align-items-center">
-          <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-percentage text-warning mr-2"></i> <span><?php echo htmlspecialchars(t('home.chart_profit_margin', 'ກາຟອັດຕາກຳໄລ %')); ?></span> (<?php echo htmlspecialchars($chart_period_text); ?>)
           </h6>
         </div>
@@ -256,7 +256,7 @@
     <div class="col-lg-7">
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: #ffffff;">
         <div class="card-header bg-white border-0 py-3 px-3.5 d-flex justify-content-between align-items-center">
-          <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-fire text-danger mr-2"></i> <?php echo htmlspecialchars(t('home.chart_top10', 'ກາຟ 10 ລາຍການສິນຄ້າທີ່ຂາຍດີ')); ?>
           </h6>
           <span class="badge badge-light border text-danger font-weight-bold px-2.5 py-1">Top 10</span>

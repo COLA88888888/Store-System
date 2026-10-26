@@ -9,7 +9,7 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-.sc-title { font-family: 'Noto Sans Lao', 'Souliyo', 'Boon'; font-size: 18px; }
+.sc-title { font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon'; font-size: 18px; }
 
 .sc-card {
     border-radius: 12px;
@@ -81,7 +81,7 @@
     padding: 20px 24px;
     min-height: 108px;
     box-shadow: 0 4px 14px rgba(15, 23, 42, .12);
-    font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
+    font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
 }
 .sc-kpi-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
 .sc-kpi-val { font-size: 2.1rem; font-weight: 800; line-height: 1.15; white-space: nowrap; color: #fff; }
@@ -170,7 +170,7 @@
 .sc-filter-form .sf-reset { padding: 0 12px; }
 .sc-header-exports { display: flex; align-items: center; align-self: flex-end; margin-bottom: 0; }
 
-.sc-card-title { font-family: 'Noto Sans Lao', 'Souliyo', 'Boon'; color: #0f172a; font-size: 1rem; }
+.sc-card-title { font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon'; color: #0f172a; font-size: 1rem; }
 
 /* ປຸ່ມ Excel / PDF / ພິມ — ແບບໜ້າລາຍງານ */
 .sc-export-btns { gap: 5px; }

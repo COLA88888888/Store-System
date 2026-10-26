@@ -10,7 +10,7 @@
  * schema_core.php ແລະ ຈະຖືກ DROP ອັດຕະໂນມັດ.
  */
 
-if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['stock_check_schema_v7'])) {
+if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['stock_check_schema_v8'])) {
     try {
         // ໃບເຊັກສະຕັອກ: draft = ກຳລັງນັບ, pending = ລໍຖ້າຫົວໜ້າອະນຸມັດ, approved = ອະນຸມັດໃຫ້ປັບແລ້ວ, completed = ປິດໃບ (ປັບສະຕັອກແລ້ວ)
         $pdo->exec("CREATE TABLE IF NOT EXISTS `st_stock_checks` (
@@ -143,7 +143,20 @@ if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['stock_check_schema_v7
                 ($zBId, 'ຊັ້ນ 2', $firstStoreId)");
         }
 
-        $_SESSION['stock_check_schema_v7'] = 1;
+        // ປະຫວັດການແກ້ຈຳນວນນັບ (ກັນໂກງ): ທຸກເທື່ອທີ່ counted_qty ປ່ຽນ — ໃຜ, ເວລາໃດ, ຈາກເທົ່າໃດ → ເປັນເທົ່າໃດ.
+        // ຫົວໜ້າເຫັນ "ແກ້ໄຂ N ເທື່ອ" ຢູ່ແຕ່ລະລາຍການ (api/stock_check_backend.php scSaveItems / scLoadItems)
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `st_stock_check_count_log` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `check_id` INT NOT NULL,
+            `item_id` INT NOT NULL,
+            `user_id` INT NULL,
+            `old_qty` INT NULL,
+            `new_qty` INT NULL,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_sccl_item` (`check_id`, `item_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        $_SESSION['stock_check_schema_v8'] = 1;
     } catch (Throwable $ex) {
         // Leave the session flag unset so the next request tries again.
         error_log('MiniPos stock_check schema: ' . $ex->getMessage());

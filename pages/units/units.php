@@ -19,7 +19,7 @@ require_once __DIR__ . '/../../layouts/header.php';
     <div class="container-fluid">
       <div class="row align-items-center">
         <div class="col-sm-6">
-          <h5 class="m-0 font-weight-bold text-dark" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon'; font-size: 18px;">
+          <h5 class="m-0 font-weight-bold text-dark" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon'; font-size: 18px;">
             <i class="fas fa-ruler-combined text-info mr-2"></i> <?php echo htmlspecialchars(t('units.page_title', 'ຈັດການຫົວໜ່ວຍສິນຄ້າ')); ?>
           </h5>
         </div>
@@ -67,7 +67,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; background: #ffffff;">
 
         <div class="card-header bg-white py-3 border-0">
-          <h6 class="card-title m-0 font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon'; color: #0f172a; font-size: 1rem;">
+          <h6 class="card-title m-0 font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon'; color: #0f172a; font-size: 1rem;">
             <?php echo htmlspecialchars(t('units.table_card_title', 'ລາຍງານຫົວໜ່ວຍທັງໝົດ')); ?>
           </h6>
         </div>

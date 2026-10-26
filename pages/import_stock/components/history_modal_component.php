@@ -5,7 +5,7 @@
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content shadow-lg border-0" style="border-radius: 16px; overflow: hidden;">
       <div class="modal-header bg-info text-white py-3 px-4">
-        <h5 class="modal-title font-weight-bold" style="font-family: 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.05rem;">
+        <h5 class="modal-title font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.05rem;">
           <i class="fas fa-receipt mr-1.5"></i> <?php echo htmlspecialchars(t('transfer_history.modal_title', 'ລາຍລະອຽດໃບໂອນສິນຄ້າ')); ?> (<span id="modalTransferCode">-</span>)
         </h5>
         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9;">

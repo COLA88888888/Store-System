@@ -130,12 +130,14 @@ $statLabels = [
 
 <div class="container-fluid p-3 p-md-4 exr">
   <!-- Header -->
-  <div class="d-flex justify-content-between align-items-start mb-3 no-print" style="gap: 12px;">
+  <div class="exr-header mb-3 no-print">
     <div>
       <h5 class="exr-title"><?php echo htmlspecialchars(t('expiry.report_title', 'ລາຍງານສິນຄ້າໝົດອາຍຸ')); ?></h5>
       <div class="exr-sub"><?php echo htmlspecialchars(sprintf(t('expiry.report_subtitle', 'ສິນຄ້າທີ່ໝົດອາຍຸແລ້ວ ແລະ ໃກ້ໝົດອາຍຸ (ແຈ້ງເຕືອນກ່ອນ %s ວັນ)'), $alertDays)); ?></div>
     </div>
-    <?php require __DIR__ . '/../../layouts/partials/report/export_buttons.php'; /* Excel / PDF / ພິມ */ ?>
+    <div class="exr-actions">
+      <?php require __DIR__ . '/../../layouts/partials/report/export_buttons.php'; /* Excel / PDF / ພິມ */ ?>
+    </div>
   </div>
 
   <div class="print-only mb-3">

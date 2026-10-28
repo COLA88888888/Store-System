@@ -215,11 +215,11 @@ try {
 } catch (Exception $e) {}
 
 // Active display currency, so the table shows ₭ amounts in whatever currency the shop uses
-$promoDispCur = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo) : ['code' => 'KIP', 'symbol' => '₭', 'decimals' => 0, 'rates' => null];
+$promoDispCur = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo) : ['code' => 'KIP', 'symbol' => kipSymbol(), 'decimals' => 0, 'rates' => null];
 $promoFmtMoney = function ($amountKip) use ($promoDispCur) {
     $code = strtoupper((string)($promoDispCur['code'] ?? 'KIP'));
     if ($code === 'KIP' || !function_exists('convertFromKip')) {
-        return number_format((float)$amountKip, 0) . ' ₭';
+        return number_format((float)$amountKip, 0) . ' ' . kipSymbol();
     }
     $val = convertFromKip($amountKip, $code, $promoDispCur['rates'] ?? null);
     $dec = (int)($promoDispCur['decimals'] ?? 2);

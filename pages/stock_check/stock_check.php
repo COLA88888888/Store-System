@@ -1,12 +1,12 @@
 <?php
 /**
- * ໜ້າ ເຊັກສະຕັອກ (ນັບສິນຄ້າຈິງທຽບກັບລະບົບ). Controller: api/stock_check_backend.php
+ * ໜ້າ ນັບສະຕັອກ (ນັບສິນຄ້າຈິງ → ປັບສະຕັອກໃຫ້ຕົງ). Controller: api/stock_check_backend.php
+ * 2 ເມນູຢູ່ sidebar (layouts/partials/sidebar/inventory_menu.php): ນັບສະຕັອກ | ປະຫວັດການນັບສະຕັອກ (?view=checks)
  * ໄຟລ໌ຍ່ອຍ (require ຕາມລຳດັບ):
- *   - partials/list_view.php  : ລາຍການໃບເຊັກສະຕັອກ + ປຸ່ມເລີ່ມນັບໃໝ່ (ເມື່ອບໍ່ມີ ?id)
- *       ├ partials/history_view.php : ແຖບ "ປະຫວັດການນັບ" — ສິນຄ້າໃດນັບແລ້ວ ໃຜນັບ ເມື່ອໃດ (?view=history)
+ *   - partials/list_view.php  : ປະຫວັດ — ທຸກໃບ ພ້ອມ ຜູ້ນັບ/ເວລານັບ ແລະ ຜູ້ປັບ/ເວລາປັບ (?view=checks)
  *       ├ partials/filter_box.php   : ກ່ອງວັນທີ (ແບບໜ້າທະນາຄານ)
  *       └ partials/pagination.php   : ແບ່ງໜ້າ (ຝັ່ງເຊີບເວີ)
- *   - partials/count_view.php : ຕາຕະລາງນັບສິນຄ້າຂອງໃບດຽວ (ເມື່ອມີ ?id)
+ *   - partials/count_view.php : ນັບສະຕັອກ / ລະອຽດຂອງໃບດຽວ (ເມື່ອມີ ?id, ຫຼື ບໍ່ມີ view → ໃບທີ່ກຳລັງນັບ)
  *   - partials/export_buttons.php : ປຸ່ມ Excel / PDF / ພິມ (ໃຊ້ໃນທຸກແຖບ)
  *   - partials/export_js.php  : ສ້າງລາຍງານທຳມະດາ ສຳລັບ Excel / PDF / ພິມ (ຫຼັງ footer)
  *   - partials/count_js.php   : ສະແກນ/ປ້ອນຈຳນວນ, ແບ່ງໜ້າ, ບັນທຶກ (ຈຶ່ງສະແດງຜົນ), ຢືນຢັນ

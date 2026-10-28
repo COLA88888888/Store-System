@@ -7,7 +7,7 @@ return [
     'login.password_placeholder' => 'ປ້ອນລະຫັດຜ່ານ...',
     'login.btn_login' => 'ເຂົ້າສູ່ລະບົບ',
     'login.btn_login_loading' => 'ກຳລັງກວດສອບ...',
-    'login.token_expired_title' => 'Token ໝົດອາຍຸແລ້ວ',
+    'login.token_expired_title' => '<span style="letter-spacing: 2.5px; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif; font-weight: 700; margin-right: 3px;">Token</span> ໝົດອາຍຸແລ້ວ',
     'login.token_expired_text' => 'ກະລຸນາເຂົ້າສູ່ລະບົບໃໝ່',
     'login.ok' => 'ຕົກລົງ',
     'login.warning_title' => 'ແຈ້ງເຕືອນ',

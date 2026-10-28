@@ -89,7 +89,9 @@ if ($action === 'get_transfer_details') {
 
             // ແຈ້ງເຕືອນເຊັກສະຕັອກ: ສົ່ງມາກວດ / ອະນຸມັດແລ້ວ (config/helpers/stock_check_alerts.php)
             $stockChecks = getStockCheckNotifications($pdo);
-            $totalCount = count($incomingTransfers) + count($subLowStock) + count($subNewProducts) + count($subExpiry) + count($stockChecks);
+            // ແຈ້ງເຕືອນປິດກະ (ຜູ້ບໍລິຫານ/ຜູ້ຈັດການ) — config/helpers/shift_alerts.php
+            $shiftCloses = getShiftCloseNotifications($pdo);
+            $totalCount = count($incomingTransfers) + count($subLowStock) + count($subNewProducts) + count($subExpiry) + count($stockChecks) + count($shiftCloses);
 
             echo json_encode([
                 'success' => true,
@@ -99,7 +101,8 @@ if ($action === 'get_transfer_details') {
                 'sub_low_stock' => $subLowStock,
                 'sub_expiry' => $subExpiry,
                 'sub_new_products' => $subNewProducts,
-                'stock_checks' => $stockChecks
+                'stock_checks' => $stockChecks,
+                'shift_closes' => $shiftCloses
             ]);
             exit();
         } else {
@@ -114,7 +117,8 @@ if ($action === 'get_transfer_details') {
             unset($imp);
 
             $stockChecks = getStockCheckNotifications($pdo);
-            $totalCount = count($lowStockList) + count($subBranchImports) + count($expiryList) + count($stockChecks);
+            $shiftCloses = getShiftCloseNotifications($pdo);
+            $totalCount = count($lowStockList) + count($subBranchImports) + count($expiryList) + count($stockChecks) + count($shiftCloses);
 
             $groupedLowStock = [];
             foreach ($lowStockList as $alert) {
@@ -137,7 +141,8 @@ if ($action === 'get_transfer_details') {
                 'grouped_low_stock' => array_values($groupedLowStock),
                 'sub_branch_imports' => $subBranchImports,
                 'expiry_list' => $expiryList,
-                'stock_checks' => $stockChecks
+                'stock_checks' => $stockChecks,
+                'shift_closes' => $shiftCloses
             ]);
             exit();
         }

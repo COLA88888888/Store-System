@@ -27,33 +27,7 @@
   <!-- Menu Sidebar -->
   <div class="sidebar" style="height: calc(100vh - 64px - 38px); overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; touch-action: pan-y;">
   
-    <!-- ===== User Panel (ຂໍ້ມູນຜູ້ໃຊ້ຢູ່ sidebar) ===== -->
-    <?php
-      // ດຶງຂໍ້ມູນ user ຈາກ session
-      $sb_display_name = trim(($_SESSION['fname'] ?? '') . ' ' . ($_SESSION['lname'] ?? ''));
-      if ($sb_display_name === '') $sb_display_name = $_SESSION['username'] ?? 'admin';
-      $sb_profile_img = $_SESSION['profile_img'] ?? 'default.png';
-      if (empty($sb_profile_img) || !file_exists(__DIR__ . '/../assets/img/users/' . $sb_profile_img)) {
-        $sb_profile_img = 'default.png';
-      }
-      $sb_img_path = $bp . 'assets/img/users/' . $sb_profile_img;
-    ?>
-    <div class="user-panel mt-3 pb-3 mb-2 d-flex align-items-center" style="border-bottom: 1px solid rgba(255,255,255,0.15);">
-      <div class="image" style="flex-shrink:0;">
-        <img src="<?php echo htmlspecialchars($sb_img_path); ?>" class="img-circle elevation-2"
-             alt="User Avatar"
-             style="width: 42px; height: 42px; object-fit: cover; border: 2px solid rgba(255,255,255,0.55);">
-      </div>
-      <div class="info" style="padding-left: 10px; overflow: hidden;">
-        <span style="display: block; color: #ffffff; font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          <?php echo htmlspecialchars($sb_display_name); ?>
-        </span>
-        <span style="font-size: 0.72rem; color: #4ade80; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 2px;">
-          <i class="fas fa-circle" style="font-size: 6px;"></i> <span data-i18n="layout.online_status"><?php echo htmlspecialchars(t('layout.online_status', 'ກຳລັງໃຊ້ງານ')); ?></span>
-        </span>
-      </div>
-    </div>
-    <!-- /User Panel -->
+    <!-- ຂໍ້ມູນຜູ້ໃຊ້ (ຮູບ/ຊື່/ສະຖານະ) ຍ້າຍໄປແຖບເທິງ: home/partials/dashboard/navbar.php (.nav-user-chip) -->
 
     <!-- Dynamic Menu Items Based on Permissions -->
     <nav class="mt-2 pb-4">
@@ -338,7 +312,7 @@
   <!-- Pinned Sidebar Footer (ເສັ້ນຂີດຂັ້ນ & Wlaodev Pos System V 3.8.26 ຕິດຢູ່ດ້ານລຸ່ມສຸດ, ລັອກສະແດງໄວ້ເລີຍ) -->
   <div class="sidebar-custom-footer" style="position: absolute; bottom: 0; left: 0; right: 0; height: 38px; border-top: 1px solid rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; background-color: inherit; z-index: 1040; padding: 0 8px; overflow: hidden; box-sizing: border-box; user-select: none;">
     <span class="sidebar-version-text" style="font-weight: 700; color: rgba(255, 255, 255, 0.9); font-size: 0.78rem; letter-spacing: 0.3px; white-space: nowrap; display: block;">
-      Wlaodev Pos System V 3.8.26
+      Wlaodev Pos System V 4.10.26
     </span>
   </div>
 </aside>

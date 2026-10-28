@@ -57,7 +57,7 @@
                 <i class="fas fa-boxes text-primary mr-1"></i> ລາຍການສິນຄ້າທີ່ໂອນມາ (<span id="trf_modal_item_count">0</span>)
               </h6>
               <span class="text-success font-weight-bold" style="font-size: 0.92rem;">
-                <i class="fas fa-coins mr-1"></i> <span id="trf_modal_total_value">0</span> ₭
+                <i class="fas fa-coins mr-1"></i> <span id="trf_modal_total_value">0</span> <?php echo kipSymbol(); ?>
               </span>
             </div>
             <div class="card-body p-0">

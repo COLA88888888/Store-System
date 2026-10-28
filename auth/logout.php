@@ -16,6 +16,13 @@ if (isset($_SESSION['fname'])) {
     logActivity($pdo, "ອອກຈາກລະບົບ", "ຜູ້ໃຊ້: " . $user_name);
 }
 
+// ກົດອອກຈາກລະບົບເອງ → ປິດກະຂອງຜູ້ໃຊ້ (config/helpers/shift_auto.php) ແລ້ວແຈ້ງເຕືອນຜູ້ບໍລິຫານ/ຜູ້ຈັດການ
+// (config/helpers/shift_alerts.php). ອອກອັດຕະໂນມັດເພາະບໍ່ໃຊ້ງານ (?expired) ບໍ່ປິດກະ — ພະນັກງານກັບມາຂາຍຕໍ່ໄດ້.
+if (!empty($_SESSION['user_id']) && !isset($_GET['expired']) && isset($pdo)) {
+    $shiftUserName = trim(($_SESSION['fname'] ?? '') . ' ' . ($_SESSION['lname'] ?? '')) ?: ($_SESSION['username'] ?? 'User');
+    shiftCloseOnLogout($pdo, intval($_SESSION['user_id']), $shiftUserName, intval($_SESSION['store_id'] ?? 0));
+}
+
 $_SESSION = array();
 
 if (ini_get("session.use_cookies")) {

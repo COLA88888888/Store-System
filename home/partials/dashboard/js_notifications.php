@@ -253,7 +253,7 @@
                 tbodyHtml += '<td class="align-middle font-weight-bold text-dark text-nowrap" style="white-space: nowrap;">' + pName + '</td>';
                 tbodyHtml += '<td class="text-center align-middle text-muted text-nowrap" style="white-space: nowrap;">' + barcode + '</td>';
                 tbodyHtml += '<td class="text-center align-middle text-nowrap" style="white-space: nowrap;"><span class="badge badge-primary px-3 py-1.5 font-weight-bold" style="font-size:0.82rem; border-radius: 6px;">' + qty + ' ' + unit + '</span></td>';
-                tbodyHtml += '<td class="text-right align-middle font-weight-bold text-success text-nowrap" style="white-space: nowrap;">' + Math.round(lineValue).toLocaleString() + ' ₭</td>';
+                tbodyHtml += '<td class="text-right align-middle font-weight-bold text-success text-nowrap" style="white-space: nowrap;">' + Math.round(lineValue).toLocaleString() + ' <?php echo kipSymbol(); ?></td>';
                 tbodyHtml += '</tr>';
               });
             } else {
@@ -304,8 +304,8 @@
                 <tr>
                   <td><strong>${itemData.product_name || '-'}</strong></td>
                   <td class="text-center"><span class="badge badge-success px-2 py-1">+${qtyVal.toLocaleString()} ${itemData.unit_name || 'ອັນ'}</span></td>
-                  <td class="text-right">${costVal.toLocaleString()} ₭</td>
-                  <td class="text-right font-weight-bold text-success">${totalVal.toLocaleString()} ₭</td>
+                  <td class="text-right">${costVal.toLocaleString()} <?php echo kipSymbol(); ?></td>
+                  <td class="text-right font-weight-bold text-success">${totalVal.toLocaleString()} <?php echo kipSymbol(); ?></td>
                 </tr>
               </tbody>
             </table>

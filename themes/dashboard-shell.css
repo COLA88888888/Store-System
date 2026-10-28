@@ -22,21 +22,20 @@
     #subNotifBellIcon {
       font-size: 1.25rem;
     }
-    .logout-nav-btn {
-      font-size: 0.95rem;
-      display: inline-flex;
-      align-items: center;
-      padding: 6px 12px;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 8px;
+    /* ຮູບຜູ້ໃຊ້ໃນແຖບເທິງ → ດັອບດາວ ອອກຈາກລະບົບ (home/partials/dashboard/navbar.php) */
+    .nav-user-toggle { border-radius: 10px; transition: background 0.15s; }
+    .nav-user-toggle:hover, .nav-user-chip.show .nav-user-toggle { background: rgba(255, 255, 255, 0.15); }
+    .nav-user-caret { font-size: 0.7rem; opacity: 0.85; transition: transform 0.2s; }
+    .nav-user-chip.show .nav-user-caret { transform: rotate(180deg); }
+    .nav-user-menu { min-width: 220px; border-radius: 10px; padding: 4px 0; margin-top: 6px; }
+    /* ເປີດ: ເລື່ອນລົງເລັກນ້ອຍ ພ້ອມຄ່ອຍໆຊັດ */
+    .nav-user-menu.show { animation: navUserMenuIn 0.2s ease-out; }
+    @keyframes navUserMenuIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .logout-nav-btn i {
-      font-size: 1.1rem;
-      margin-right: 4px;
-    }
-    .logout-nav-btn:hover {
-      background: rgba(255, 255, 255, 0.3) !important;
-    }
+    .nav-user-logout { color: #dc2626 !important; padding: 8px 16px; font-size: 0.9rem; }
+    .nav-user-logout:hover, .nav-user-logout:focus { background: #fef2f2 !important; color: #b91c1c !important; }
 
     /* Slim & Modern Custom Scrollbars */
     ::-webkit-scrollbar {
@@ -77,8 +76,7 @@
     @media (max-width: 768px) {
       #topNavbarPushMenuBtn i,
       #mainNotifBellIcon,
-      #subNotifBellIcon,
-      .logout-nav-btn i {
+      #subNotifBellIcon {
         font-size: 1.7rem !important;
       }
       

@@ -210,7 +210,7 @@ function renderHeldOrders() {
           <span class="text-dark font-weight-bold text-truncate" style="max-width: 220px;">• ${i.product_name}</span>
           <span class="text-nowrap">
             <span class="badge badge-light border text-primary font-weight-bold mr-1" style="font-size: 0.86rem;">x${i.quantity}${unitStr}</span>
-            <strong class="text-dark">${window.POSCUR ? POSCUR.fmt(itemTotal) : itemTotal.toLocaleString() + ' ₭'}</strong>
+            <strong class="text-dark">${window.POSCUR ? POSCUR.fmt(itemTotal) : itemTotal.toLocaleString() + ' <?php echo kipSymbol(); ?>'}</strong>
           </span>
         </div>
       `;
@@ -237,7 +237,7 @@ function renderHeldOrders() {
             ${dateBadgeHtml}
             <span class="small text-muted"><i class="fas fa-clock mr-1"></i>${order.time}</span>
           </div>
-          <h5 class="font-weight-bold text-success mb-0">${window.POSCUR ? POSCUR.fmt(netTotal) : netTotal.toLocaleString() + ' ₭'}</h5>
+          <h5 class="font-weight-bold text-success mb-0">${window.POSCUR ? POSCUR.fmt(netTotal) : netTotal.toLocaleString() + ' <?php echo kipSymbol(); ?>'}</h5>
         </div>
         <div class="small text-muted mb-1">
           <i class="fas fa-user mr-1"></i> ${posT('pos.receipt_customer')} <strong>${posCustomerDisplayName(order.customer && order.customer.customer_name)}</strong> |

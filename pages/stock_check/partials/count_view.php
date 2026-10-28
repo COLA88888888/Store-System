@@ -1,27 +1,15 @@
 <?php
 /*
  * ສ່ວນ: ໜ້ານັບສິນຄ້າຂອງໃບເຊັກສະຕັອກ
- * ຫົວໃບ, ບັດສະຫຼຸບ (ທັງໝົດ/ຄົບ/ບໍ່ພໍ/ເກີນ/ຍັງບໍ່ນັບ/ສ່ວນຕ່າງ), ຊ່ອງສະແກນ-ຄົ້ນຫາ,
- * ປຸ່ມກັ່ນຕອງ ແລະ ຕາຕະລາງ: ໃນລະບົບ ທຽບ ຕົວຈິງ → ຄົບ / ບໍ່ພໍ / ເກີນ (ສ່ວນຕ່າງ).
- * ປັບປຸງໃຫ້ງ່າຍດາຍ, ບໍ່ຊັບຊ້ອນ, ເຫັນຜົນທັນທີຂະນະນັບ.
+ * ຫົວໃບ (ເລີ່ມ / ຜູ້ປັບ / ເວລາປັບ), ບັດສະຫຼຸບ, ຊ່ອງສະແກນ-ຄົ້ນຫາ, ປຸ່ມກັ່ນຕອງ ແລະ ຕາຕະລາງ:
+ * ໃນລະບົບ ທຽບ ຕົວຈິງ → ຄົບ / ບໍ່ພໍ / ເກີນ (ສ່ວນຕ່າງ), ຜູ້ນັບ + ເວລານັບ ລາຍສິນຄ້າ.
+ * 2 ຂັ້ນ: ນັບ + ບັນທຶກ → "ປັບສະຕັອກໃຫ້ຕົງ". ໃບທີ່ປັບແລ້ວ = ໜ້າລະອຽດ (ເບິ່ງ/ພິມ ຢ່າງດຽວ).
  */
-$scStatus     = $scCheck['status'];
-$scIsDraft    = ($scStatus === 'draft');
-$scIsPending  = ($scStatus === 'pending');
-$scIsApproved = ($scStatus === 'approved');
-$scIsDone     = ($scStatus === 'completed');
-
-// ສິດແກ້ໄຂຕົວເລກຕົວຈິງ:
-// - ໃນ draft: ພະນັກງານນັບ / ຫົວໜ້າ ປ້ອນໄດ້
-// - ໃນ pending / approved: ຫົວໜ້າ / ຜູ້ມີສິດອະນຸມັດ ສາມາດແກ້ໄຂປັບປ້ອນຕົວເລກຕົວຈິງໄດ້
-$scEditable   = ($scIsDraft && $scCanCount) || (($scIsPending || $scIsApproved) && $scCanApprove);
-
-// ສະແດງຍອດໃນລະບົບ: ສະເພາະຫົວໜ້າ / ຜູ້ບໍລິຫານ ເທົ່ານັ້ນ (ພະນັກງານບໍ່ໃຫ້ໂຊສະຕັອກໃນລະບົບ)
-$scShowSystem = isset($scShowSystem) ? $scShowSystem : !$scIsStaff;
-// ສ່ວນຕ່າງ / ຜົນ ຄົບ-ບໍ່ພໍ-ເກີນ: ສະເພາະຫົວໜ້າ/ຜູ້ບໍລິຫານ. ພະນັກງານນັບແບບບໍ່ຮູ້ຍອດ (blind count) ເຫັນແຕ່ "ນັບແລ້ວ" —
-// ຖ້າເຫັນວ່າ "ບໍ່ພໍ" ພະນັກງານທີ່ເອົາສິນຄ້າໄປ ຈະປ້ອນເພີ່ມຈົນ "ຄົບ" ໄດ້ (ກັນໂກງ)
-$scShowDiff   = !$scIsStaff;
-$scShowResults = !$scIsStaff;
+$scIsDone     = ($scCheck['status'] === 'completed');
+// pending/approved = ໃບເກົ່າທີ່ຄ້າງຈາກຂັ້ນອະນຸມັດເດີມ — ນັບຕໍ່ ແລະ ປັບໄດ້ຄືກັບ draft
+$scIsDraft    = !$scIsDone;
+$scEditable   = $scIsDraft && $scCanCount;
+$scShowResults = true;
 $scColCount   = 7 + ($scShowSystem ? 1 : 0) + ($scShowDiff ? 1 : 0);
 $scItemTotal  = count($scItems);
 if ($scIsDone) {
@@ -38,6 +26,18 @@ foreach ($scItems as $it) {
         break;
     }
 }
+// ຊັ້ນວາງທັງໝົດໃນໃບ — ບັອກກັ່ນຕອງ "ທຸກຊັ້ນ" ຄຽງບັອກໂຊນ
+$scShelves = array_values(array_unique(array_filter(array_map(function ($it) {
+    return trim($it['shelf'] ?? '');
+}, $scItems))));
+sort($scShelves);
+$hasUnassignedShelf = false;
+foreach ($scItems as $it) {
+    if (trim((string)($it['shelf'] ?? '')) === '') {
+        $hasUnassignedShelf = true;
+        break;
+    }
+}
 ?>
   <section class="content-header py-3 sc-no-print-pad">
     <div class="container-fluid">
@@ -47,10 +47,6 @@ foreach ($scItems as $it) {
             <i class="fas fa-clipboard-check text-success mr-2"></i> <?php echo $sc('sc.s004'); ?> <?php echo htmlspecialchars($scCheck['check_no']); ?>
             <?php if ($scIsDraft): ?>
               <span class="badge sc-badge-draft align-middle ml-1"><?php echo $sc('sc.s005'); ?></span>
-            <?php elseif ($scIsPending): ?>
-              <span class="badge badge-warning align-middle ml-1 px-2 py-1"><i class="fas fa-clock mr-1"></i><?php echo $sc('sc.s006'); ?></span>
-            <?php elseif ($scIsApproved): ?>
-              <span class="badge badge-info align-middle ml-1 px-2 py-1"><i class="fas fa-user-check mr-1"></i><?php echo $sc('sc.s007'); ?></span>
             <?php else: ?>
               <span class="badge sc-badge-done align-middle ml-1"><i class="fas fa-check mr-1"></i><?php echo $sc('sc.s008'); ?></span>
             <?php endif; ?>
@@ -58,12 +54,9 @@ foreach ($scItems as $it) {
           <div class="small text-muted mt-1">
             <?php echo $sc('sc.s009'); ?> <?php echo date('d/m/Y H:i', strtotime($scCheck['created_at'])); ?>
             · <?php echo $sc('sc.s010'); ?> <?php echo htmlspecialchars($scCheck['created_by_name'] ?? '-'); ?>
-            <?php if (!empty($scCheck['approved_at'])): ?>
-              · <?php echo $sc('sc.s011'); ?> <b><?php echo htmlspecialchars($scCheck['approved_by_name'] ?? '-'); ?></b> (<?php echo date('d/m/Y H:i', strtotime($scCheck['approved_at'])); ?>)
-            <?php endif; ?>
             <?php if ($scIsDone): ?>
-              · <?php echo $sc('sc.s012'); ?> <?php echo !empty($scCheck['completed_at']) ? date('d/m/Y H:i', strtotime($scCheck['completed_at'])) : '-'; ?>
-              (<?php echo htmlspecialchars($scCheck['completed_by_name'] ?? '-'); ?>)
+              · <i class="fas fa-user-check text-success"></i> <?php echo $sc('sc.s228'); ?> <b class="text-dark"><?php echo htmlspecialchars($scCheck['completed_by_name'] ?? '-'); ?></b>
+              (<?php echo !empty($scCheck['completed_at']) ? date('d/m/Y H:i', strtotime($scCheck['completed_at'])) : '-'; ?>)
             <?php endif; ?>
           </div>
         </div>
@@ -73,20 +66,9 @@ foreach ($scItems as $it) {
             <i class="fas fa-save mr-1"></i> <?php echo $sc('sc.s014'); ?> <span class="badge badge-light ml-1" id="scUnsavedBadge" style="display: none;">0</span>
           </button>
 
-          <?php if ($scCanApprove): ?>
           <button type="button" class="btn btn-success font-weight-bold shadow-sm" onclick="scApproveAdjustment()" title="<?php echo $sc('sc.s015'); ?>">
             <i class="fas fa-check-double mr-1"></i> <?php echo $sc('sc.s016'); ?>
           </button>
-          <?php elseif ($scIsDraft): /* ພະນັກງານ: ປັບສະຕັອກເອງບໍ່ໄດ້ — ສົ່ງໃຫ້ຫົວໜ້າກວດ (ກັນໂກງ) */ ?>
-          <button type="button" class="btn btn-warning font-weight-bold shadow-sm" onclick="scSubmitApproval()" title="<?php echo $sc('sc.s117'); ?>">
-            <i class="fas fa-paper-plane mr-1"></i> <?php echo $sc('sc.s118'); ?>
-          </button>
-          <?php endif; ?>
-          <?php if ($scCanApprove && ($scIsPending || $scIsApproved)): ?>
-          <button type="button" class="btn btn-outline-danger font-weight-bold shadow-sm" onclick="scRejectAdjustment()" title="<?php echo $sc('sc.s122'); ?>">
-            <i class="fas fa-undo mr-1"></i> <?php echo $sc('sc.s124'); ?>
-          </button>
-          <?php endif; ?>
           <?php endif; ?>
 
           <button type="button" class="btn btn-info font-weight-bold shadow-sm text-white" onclick="scStartNewRound()" title="<?php echo $sc('sc.s017'); ?>">
@@ -99,24 +81,6 @@ foreach ($scItems as $it) {
 
   <section class="content pb-5">
     <div class="container-fluid">
-
-<?php require __DIR__ . '/tabs.php'; /* ເມນູລຽນກັນ: ນັບສະຕັອກ | ປະຫວັດໃບເຊັກສະຕັອກ */ ?>
-
-      <?php if ($scIsPending): ?>
-        <div class="alert alert-warning mb-3 sc-no-print" style="border-radius:10px; border-left: 5px solid #d97706;">
-          <i class="fas fa-clock fa-lg mr-2"></i><b><?php echo $sc('sc.s019'); ?></b>
-          <?php if ($scCanApprove): ?>
-            <?php echo $sc('sc.s025'); ?> <b><?php echo $sc('sc.s024'); ?></b> <?php echo $sc('sc.s023'); ?> <b>"<?php echo $sc('sc.s022'); ?>"</b> <?php echo $sc('sc.s021'); ?> <b>"<?php echo $sc('sc.s020'); ?>"</b>.
-          <?php else: ?>
-            <?php echo $sc('sc.s026'); ?>
-          <?php endif; ?>
-        </div>
-      <?php elseif ($scIsApproved): ?>
-        <div class="alert alert-info mb-3 sc-no-print" style="border-radius:10px; border-left: 5px solid #0284c7;">
-          <i class="fas fa-user-check fa-lg mr-2"></i><b><?php echo $sc('sc.s027'); ?></b>
-          <?php echo $sc('sc.s030'); ?> <b>"<?php echo $sc('sc.s029'); ?>"</b> <?php echo $sc('sc.s028'); ?>
-        </div>
-      <?php endif; ?>
 
       <?php if ($scIsDone): ?>
         <div class="alert alert-success d-flex align-items-center justify-content-between flex-wrap mb-3 sc-no-print" style="border-radius:10px; border-left: 5px solid #16a34a;">
@@ -132,13 +96,10 @@ foreach ($scItems as $it) {
           <div class="sc-kpi-icon"><i class="fas fa-boxes"></i></div>
         </div>
         <!-- 2. ນັບແລ້ວ -->
-        <a href="stock_check.php?view=history" class="sc-kpi sc-kpi-compact text-decoration-none" style="--k: #16a34a; cursor: pointer;" title="<?php echo $sc('sc.s038'); ?>">
-          <div>
-            <div class="sc-kpi-title"><?php echo $sc('sc.s039'); ?> <i class="fas fa-external-link-alt small ml-1" style="font-size:0.75rem;"></i></div>
-            <div class="sc-kpi-val" id="scStatCountedOnly">0</div>
-          </div>
+        <div class="sc-kpi sc-kpi-compact" style="--k: #16a34a;">
+          <div><div class="sc-kpi-title"><?php echo $sc('sc.s039'); ?></div><div class="sc-kpi-val" id="scStatCountedOnly">0</div></div>
           <div class="sc-kpi-icon"><i class="fas fa-check-circle"></i></div>
-        </a>
+        </div>
         <!-- 3. ຍັງບໍ່ນັບ -->
         <div class="sc-kpi sc-kpi-compact" style="--k: #64748b;">
           <div><div class="sc-kpi-title"><?php echo $sc('sc.s040'); ?></div><div class="sc-kpi-val" id="scStatUncountedBig">0</div></div>
@@ -179,15 +140,20 @@ foreach ($scItems as $it) {
               </div>
               <?php endif; ?>
 
-              <!-- ປຸ່ມກັ່ນຕອງ -->
-              <div class="sc-filter" role="group">
-                <button type="button" class="btn active" data-filter="all"><i class="fas fa-list mr-1"></i><?php echo $sc('sc.s047'); ?> <span class="badge badge-secondary ml-1" id="scFilterTotalBadge">0</span></button>
-                <button type="button" class="btn" data-filter="uncounted"><i class="far fa-clock mr-1"></i><?php echo $sc('sc.s040'); ?> <span class="badge badge-secondary ml-1" id="scFilterUncountedBadge">0</span></button>
-                <button type="button" class="btn" data-filter="counted"><i class="fas fa-check-circle mr-1"></i><?php echo $sc('sc.s039'); ?> <span class="badge badge-success ml-1" id="scFilterCountedBadge">0</span></button>
-                <?php if ($scShowSystem): ?>
-                <button type="button" class="btn" data-filter="mismatch" id="scBtnFilterMismatch"><i class="fas fa-exclamation-triangle mr-1"></i><?php echo $sc('sc.s048'); ?> <span class="badge badge-danger ml-1" id="scFilterMismatchBadge">0</span></button>
-                <?php endif; ?>
+              <?php if (!empty($scShelves) || $hasUnassignedShelf): ?>
+              <!-- ກັ່ນຕອງຕາມຊັ້ນວາງ (ຄຽງບັອກໂຊນ) -->
+              <div class="sc-zone-wrap" style="width: 150px;">
+                <select id="scShelfFilter" class="form-control" style="border-radius: 8px; font-weight: 600; font-size: 0.88rem; height: 38px;">
+                  <option value="">-- <?php echo $sc('sc.s230'); ?> --</option>
+                  <?php foreach ($scShelves as $sh): ?>
+                    <option value="<?php echo htmlspecialchars(mb_strtolower($sh)); ?>"><?php echo htmlspecialchars((mb_stripos($sh, 'ຊັ້ນ') === 0) ? $sh : (t('sc.s136') . ' ' . $sh)); ?></option>
+                  <?php endforeach; ?>
+                  <?php if ($hasUnassignedShelf): ?>
+                    <option value="__unassigned__"><?php echo $sc('sc.s223'); ?></option>
+                  <?php endif; ?>
+                </select>
               </div>
+              <?php endif; ?>
             </div>
 
             <div class="d-flex align-items-center ml-auto" style="gap: 8px;">
@@ -196,15 +162,6 @@ foreach ($scItems as $it) {
             </div>
           </div>
 
-          <?php if (!empty($scCheck['note']) || $scEditable): ?>
-          <div class="mt-2">
-            <?php if ($scEditable): ?>
-              <input type="text" id="scNote" class="form-control sc-note-input" maxlength="255" placeholder="<?php echo $sc('sc.s049'); ?>" value="<?php echo htmlspecialchars($scCheck['note'] ?? ''); ?>">
-            <?php else: ?>
-              <div class="small"><b><?php echo $sc('sc.s050'); ?></b> <?php echo htmlspecialchars($scCheck['note']); ?></div>
-            <?php endif; ?>
-          </div>
-          <?php endif; ?>
         </div>
 
         <!-- ບັດລາຍການທີ່ສະແກນລ່າສຸດ (ປະກົດຂຶ້ນທັນທີເມື່ອສະແກນບາໂຄ້ດ) -->
@@ -288,7 +245,8 @@ foreach ($scItems as $it) {
                       data-zone="<?php echo htmlspecialchars(mb_strtolower($itZone !== '' ? $itZone : 'ບໍ່ລະບຸ')); ?>"
                       data-shelf="<?php echo htmlspecialchars(mb_strtolower($itShelf !== '' ? $itShelf : 'ບໍ່ລະບຸ')); ?>"
                       data-raw-zone="<?php echo htmlspecialchars(mb_strtolower($itZone)); ?>"
-                      <?php if ($scShowSystem): /* ພະນັກງານ: ບໍ່ມີຍອດໃນລະບົບໃນ HTML ເລີຍ (ກັນເບິ່ງຜ່ານ DevTools) */ ?>data-system="<?php echo $sysQty; ?>"
+                      data-raw-shelf="<?php echo htmlspecialchars(mb_strtolower($itShelf)); ?>"
+                      <?php if ($scShowSystem): ?>data-system="<?php echo $sysQty; ?>"
                       data-cost="<?php echo (float)($it['cost_price'] ?? 0); ?>"<?php endif; ?>
                       data-saved="<?php echo $counted === null ? '' : (int)$counted; ?>">
                     <td class="text-center text-muted"><?php echo $i + 1; ?></td>
@@ -331,7 +289,7 @@ foreach ($scItems as $it) {
                         <i class="fas fa-check-circle text-success mr-1"></i><?php echo date('d/m H:i', strtotime($it['counted_at'])); ?>
                         <div class="text-muted"><?php echo htmlspecialchars($it['counted_by_name'] ?? '-'); ?></div>
                         <?php
-                          // ກັນໂກງ (ຫົວໜ້າເຫັນ): ຈຳນວນນັບຖືກປ່ຽນຈັກເທື່ອ ໃຜ ເວລາໃດ ຈາກ → ເປັນ (st_stock_check_count_log)
+                          // ຈຳນວນນັບຖືກປ່ຽນຈັກເທື່ອ ໃຜ ເວລາໃດ ຈາກ → ເປັນ (st_stock_check_count_log)
                           $__log = $it['edit_log'] ?? [];
                           if (count($__log) > 1):
                             $__down = 0; $__who = [];

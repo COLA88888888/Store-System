@@ -2,7 +2,7 @@
 /**
  * 3D Realistic Mini-Mart World Simulation (Three.js r128)
  * - ປ້າຍຊື່ຮ້ານ ແລະ ສາຂາ ເປັນ 3D ຄົມຊັດລະດັບ Ultra-HD (2048px, ບໍ່ມົວ, ບໍ່ບີບໂຕໜັງສື, ເຫັນສະຫຼະ-วรรณยุกต์ລາວແຈ້ງຊັດເຈນ 100%)
- * - ພື້ນຮ້ານຢູ່ນິ້ງ 100% ພ້ອມສະແດງຊື່ລະບົບ "WlaoDev POS" ເປັນຕົວໜັງສື 3D ຝັງຢູ່ເທິງພື້ນຮ້ານຢ່າງໂດດເດັ່ນ
+ * - ພື້ນຮ້ານຢູ່ນິ້ງ 100% ພ້ອມສະແດງໂລໂກ້ຮ້ານ (tbcompanyinfo.img_url) ຢູ່ເທິງພື້ນ; ບໍ່ມີໂລໂກ້ ຫຼື ໂຫຼດບໍ່ໄດ້ → ໂລໂກ້ລະບົບ WLaoDev
  * - ພະນັກງານເຄົ້າເຕີຈັບປືນຍິງບາໂຄ້ດ ຍິງເລເຊີສີແດງສະແກນສິນຄ້າເທິງສາຍພານທີລະຊິ້ນ + ຈໍຄອມ POS ອັບເດດຕົວຈິງ + ໃບບິນແລ່ນອອກມາ
  * - ລູກຄ້າ 18 ຄົນ ຍ່າງເລືອກຊື້ເຄື່ອງ (ນ້ຳສົ້ມ, ເຂົ້າໜົມ, ເຄື່ອງສຳອາງ) ເດ່ມືหยິບສິນຄ້າໃສ່ກະຕ່າ ແລ້ວຍ່າງໄປຊຳລະເງິນໜ້າເຄົ້າເຕີຄືຄົນຈິງ
  */
@@ -58,13 +58,13 @@ try {
                 $__bestBranchName = $__parsedStore['branch'];
             } elseif ($__bestBranchName === '') {
                 if ($__rawStoreName !== '' && $__rawStoreName !== $__bestStoreName && mb_strpos($__bestStoreName, $__rawStoreName) === false) {
-                    $__bestBranchName = 'ສາຂາ ' . $__rawStoreName;
+                    $__bestBranchName = t('cd.branch') . ' ' . $__rawStoreName;
                 } elseif ($__storeCode !== '') {
-                    $__bestBranchName = 'ສາຂາ ' . $__storeCode;
+                    $__bestBranchName = t('cd.branch') . ' ' . $__storeCode;
                 } elseif ($__isMain) {
-                    $__bestBranchName = 'ສາຂາຫຼັກ';
+                    $__bestBranchName = t('cd.main_branch');
                 } else {
-                    $__bestBranchName = 'ສາຂາ ' . $__mmStoreId;
+                    $__bestBranchName = t('cd.branch') . ' ' . $__mmStoreId;
                 }
             }
         }
@@ -82,6 +82,9 @@ try {
 
   var MM_STORE_NAME  = <?php echo json_encode($__mmStoreName, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
   var MM_BRANCH_NAME = <?php echo json_encode($__mmBranchName, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+  // ຂໍ້ຄວາມທີ່ແຕ້ມເທິງຈໍ/ໃບບິນໃນສາກ 3D ຕາມພາສາທີ່ເລືອກ (lang/*/customer_display.php)
+  var CD_MM_T = <?php echo tjson(array_fill_keys(['cd.col_item', 'cd.col_qty', 'cd.col_total', 'cd.receipt', 'cd.thank_you', 'cd.scanning', 'cd.scan_ok',
+                                                  'cd.demo_juice', 'cd.demo_chips', 'cd.demo_lotion', 'cd.demo_lipstick', 'cd.demo_milk'], null)); ?>;
 
   function initMinimart3D() {
     var container = document.getElementById('minimart3dContainer');
@@ -352,7 +355,8 @@ try {
       return signGroup;
     }
 
-    // 0B. ໂລໂກ້ລະບົບ WLaoDev ຢູ່ເທິງພື້ນຮ້ານດ້ານໜ້າ (System Logo on Floor)
+    // 0B. ໂລໂກ້ຮ້ານ ຢູ່ເທິງພື້ນຮ້ານດ້ານໜ້າ (Shop Logo on Floor) — ຮ້ານທີ່ບໍ່ໄດ້ຕັ້ງໂລໂກ້ ຫຼື ໂຫຼດຮູບບໍ່ໄດ້ ໃຊ້ໂລໂກ້ລະບົບ WLaoDev ແທນ
+    var FLOOR_SHOP_LOGO = <?php echo json_encode((string)($company['com_logo'] ?? '')); ?>;
     var floorLogoCanvas = document.createElement('canvas');
     floorLogoCanvas.width = 1600;
     floorLogoCanvas.height = 1000;
@@ -363,6 +367,68 @@ try {
 
     var sysLogoImg = new Image();
     var sysLogoLoaded = false;
+    var shopLogoImg = null;
+    var shopLogoLoaded = false;
+    var shopLogoWhiteBg = null;
+    // ຂະໜາດແຜ່ນໂລໂກ້ເທິງພື້ນ (ໜ່ວຍ 3D)
+    var FLOOR_LOGO_W = 10.4, FLOOR_LOGO_H = 5.45;
+
+    // ພື້ນຫຼັງຂອງຮູບໂລໂກ້ (ສີໃດກໍໄດ້) → ສີຂາວ, ໃຫ້ເຫັນແຕ່ໂລໂກ້ເທິງພື້ນຮ້ານ.
+    // ເອົາສີທີ່ພົບຫຼາຍສຸດຢູ່ຂອບຮູບເປັນສີພື້ນຫຼັງ ແລ້ວຖົມ (flood fill) ຈາກຂອບເຂົ້າໄປ — ປ່ຽນແຕ່ສ່ວນທີ່ຕິດກັບຂອບ,
+    // ສີດຽວກັນທີ່ຢູ່ພາຍໃນໂລໂກ້ ບໍ່ຖືກປ່ຽນ. ສ່ວນໂປ່ງໃສ (PNG) ກໍກາຍເປັນສີຂາວ. ຄືນ canvas ຫຼື null ຖ້າອ່ານຮູບບໍ່ໄດ້.
+    function logoOnWhite(img) {
+      try {
+        var w = img.naturalWidth, h = img.naturalHeight;
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        var cx = c.getContext('2d');
+        cx.fillStyle = '#ffffff';
+        cx.fillRect(0, 0, w, h);
+        cx.drawImage(img, 0, 0);
+        var d = cx.getImageData(0, 0, w, h), p = d.data;
+
+        // ສີພື້ນຫຼັງ = ສີທີ່ພົບຫຼາຍສຸດຕາມຂອບ (ປັດເປັນກຸ່ມ 16 ລະດັບ ເພື່ອບໍ່ໃຫ້ noise ຂອງ JPG ແຍກກຸ່ມ)
+        var counts = {}, best = null, bestN = 0;
+        function vote(i) {
+          var key = (p[i] >> 4) + ',' + (p[i + 1] >> 4) + ',' + (p[i + 2] >> 4);
+          var e = counts[key] || (counts[key] = { n: 0, r: 0, g: 0, b: 0 });
+          e.n++; e.r += p[i]; e.g += p[i + 1]; e.b += p[i + 2];
+          if (e.n > bestN) { bestN = e.n; best = e; }
+        }
+        for (var x = 0; x < w; x++) { vote(x * 4); vote(((h - 1) * w + x) * 4); }
+        for (var y = 0; y < h; y++) { vote(y * w * 4); vote((y * w + w - 1) * 4); }
+        var br = best.r / best.n, bg = best.g / best.n, bb = best.b / best.n;
+
+        var TOL = 46, SOFT = 30;   // ໃກ້ສີພື້ນຫຼັງ ≤ TOL → ຂາວ; TOL..TOL+SOFT → ປະສົມໄປຫາຂາວ (ຂອບໂລໂກ້ບໍ່ແຂງ)
+        function dist(i) {
+          var dr = p[i] - br, dg = p[i + 1] - bg, db = p[i + 2] - bb;
+          var dv = Math.sqrt(dr * dr + dg * dg + db * db);
+          // ເງົາ ແລະ ລາຍເນື້ອເຈ້ຍທີ່ຕິດກັບພື້ນຫຼັງ (ສີເທົາ/ນ້ຳຕານອ່ອນ ບໍ່ສົດ) ນັບເປັນພື້ນຫຼັງ;
+          // ສີເຂັ້ມ ຫຼື ສີສົດຂອງໂລໂກ້ ຍັງເປັນຂອບທີ່ຢຸດການຖົມ
+          var mx = Math.max(p[i], p[i + 1], p[i + 2]), mn = Math.min(p[i], p[i + 1], p[i + 2]);
+          var lum = 0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2];
+          return (dv <= 220 && mx - mn <= 40 && lum >= 60) ? 0 : dv;
+        }
+        var seen = new Uint8Array(w * h), stack = [];
+        function push(px) { if (!seen[px]) { seen[px] = 1; stack.push(px); } }
+        for (x = 0; x < w; x++) { push(x); push((h - 1) * w + x); }
+        for (y = 0; y < h; y++) { push(y * w); push(y * w + w - 1); }
+        while (stack.length) {
+          var px = stack.pop(), i = px * 4, dv = dist(i);
+          if (dv > TOL + SOFT) continue;
+          var a = dv <= TOL ? 1 : 1 - (dv - TOL) / SOFT;
+          p[i] += (255 - p[i]) * a; p[i + 1] += (255 - p[i + 1]) * a; p[i + 2] += (255 - p[i + 2]) * a;
+          if (dv > TOL) continue;   // ຂອບປະສົມ: ບໍ່ຖົມຕໍ່ເຂົ້າໄປໃນໂລໂກ້
+          var px0 = px % w, py0 = (px / w) | 0;
+          if (px0 > 0) push(px - 1);
+          if (px0 < w - 1) push(px + 1);
+          if (py0 > 0) push(px - w);
+          if (py0 < h - 1) push(px + w);
+        }
+        cx.putImageData(d, 0, 0);
+        return c;
+      } catch (e) { return null; }
+    }
 
     function renderFloorLogoCanvas() {
       var ctx = floorLogoCanvas.getContext('2d');
@@ -371,7 +437,19 @@ try {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, W, H);
 
-      if (sysLogoLoaded && sysLogoImg.naturalWidth > 0) {
+      if (shopLogoImg) {
+        // ໂລໂກ້ຮ້ານ: ວາງກາງພື້ນ ຮັກສາສັດສ່ວນຮູບ. ແຜ່ນພື້ນ (7.80 x 4.10) ກວ້າງກວ່າ canvas (1600 x 1000)
+        // ຈຶ່ງບີບຄວາມກວ້າງລົງຕາມອັດຕານັ້ນ ເພື່ອບໍ່ໃຫ້ໂລໂກ້ຖືກຍືດອອກຂ້າງເມື່ອແປະເທິງພື້ນ
+        if (shopLogoLoaded && shopLogoImg.naturalWidth > 0) {
+          var src = shopLogoWhiteBg || shopLogoImg;
+          var stretch = (FLOOR_LOGO_W / FLOOR_LOGO_H) / (W / H);
+          var maxW = W - 40, maxH = H - 40;
+          var lw = src.width / stretch, lh = src.height;
+          var k = Math.min(maxW / lw, maxH / lh);
+          lw *= k; lh *= k;
+          ctx.drawImage(src, (W - lw) / 2, (H - lh) / 2, lw, lh);
+        }
+      } else if (sysLogoLoaded && sysLogoImg.naturalWidth > 0) {
         // ຕັດຂອບຂາວສ່ວນເກີນຂອງຮູບໂລໂກ້ລະບົບອອກ ເພື່ອໃຫ້ໂລໂກ້ WD WLaoDev ໃຫຍ່ຄົມຊັດເຕັມພື້ນທີ່ພື້ນຮ້ານ
         var iw = sysLogoImg.naturalWidth;
         var ih = sysLogoImg.naturalHeight;
@@ -453,14 +531,34 @@ try {
       renderFloorLogoCanvas();
       renderer.render(scene, camera);
     };
-    sysLogoImg.src = '../../assets/img/logosystem/wlaodev_system_logo.jpg';
+    function loadSysFloorLogo() {
+      sysLogoImg.src = '../../assets/img/logosystem/wlaodev_system_logo.jpg';
+    }
+
+    if (FLOOR_SHOP_LOGO) {
+      shopLogoImg = new Image();
+      shopLogoImg.onload = function() {
+        shopLogoLoaded = true;
+        shopLogoWhiteBg = logoOnWhite(shopLogoImg);
+        renderFloorLogoCanvas();
+        renderer.render(scene, camera);
+      };
+      shopLogoImg.onerror = function() {
+        shopLogoImg = null;
+        renderFloorLogoCanvas();
+        loadSysFloorLogo();
+      };
+      shopLogoImg.src = FLOOR_SHOP_LOGO;
+    } else {
+      loadSysFloorLogo();
+    }
 
     function create3DFloorBrandGroup() {
       renderFloorLogoCanvas();
 
       var fg = new THREE.Group();
       var topPlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(7.80, 4.10),
+        new THREE.PlaneGeometry(shopLogoImg ? FLOOR_LOGO_W : 7.80, shopLogoImg ? FLOOR_LOGO_H : 4.10),
         new THREE.MeshBasicMaterial({ map: floorLogoTex })
       );
       topPlane.rotation.x = -Math.PI / 2;
@@ -480,11 +578,11 @@ try {
     var posTex = new THREE.CanvasTexture(posCanvas);
 
     var POS_ITEMS = [
-      { name: 'ນ້ຳສົ້ມຄັ້ນສົດ 100%', price: '15,000', color: '#f97316' },
-      { name: 'ເຂົ້າໜົມມັນຝຣັ່ງທອດ', price: '10,000', color: '#eab308' },
-      { name: 'ໂລຊັ່ນບຳລຸງຜິວ (ເຄື່ອງສຳອາງ)', price: '45,000', color: '#ec4899' },
-      { name: 'ລິບສະຕິກສີບົວ (ເຄື່ອງສຳອາງ)', price: '35,000', color: '#e11d48' },
-      { name: 'ນົມສົດກ່ອງ ພ້ອມດື່ມ', price: '20,000', color: '#3b82f6' }
+      { name: CD_MM_T['cd.demo_juice'] + ' 100%', price: '15,000', color: '#f97316' },
+      { name: CD_MM_T['cd.demo_chips'], price: '10,000', color: '#eab308' },
+      { name: CD_MM_T['cd.demo_lotion'], price: '45,000', color: '#ec4899' },
+      { name: CD_MM_T['cd.demo_lipstick'], price: '35,000', color: '#e11d48' },
+      { name: CD_MM_T['cd.demo_milk'], price: '20,000', color: '#3b82f6' }
     ];
 
     function drawPosScreen(activeScanIndex, isBeepFlash) {
@@ -503,7 +601,7 @@ try {
       ctx.fillRect(162, 8, 178, 26);
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 13px sans-serif';
-      ctx.fillText(isBeepFlash ? '✓ ສະແກນບາໂຄ້ດສຳເລັດ!' : 'lll ກຳລັງສະແກນບາໂຄ້ດ...', 172, 26);
+      ctx.fillText(isBeepFlash ? '✓ ' + CD_MM_T['cd.scan_ok'] : 'lll ' + CD_MM_T['cd.scanning'], 172, 26);
 
       ctx.fillStyle = '#e0f2fe';
       ctx.font = 'bold 13px sans-serif';
@@ -550,9 +648,9 @@ try {
       ctx.fillRect(220, 52, 280, 26);
       ctx.fillStyle = '#1e3a8a';
       ctx.font = 'bold 13px sans-serif';
-      ctx.fillText('ລາຍການສິນຄ້າ', 228, 70);
-      ctx.fillText('ຈຳນວນ', 385, 70);
-      ctx.fillText('ລວມ', 448, 70);
+      ctx.fillText(CD_MM_T['cd.col_item'], 228, 70);
+      ctx.fillText(CD_MM_T['cd.col_qty'], 385, 70);
+      ctx.fillText(CD_MM_T['cd.col_total'], 448, 70);
 
       var visibleCount = Math.min(5, (activeScanIndex % 5) + 1);
       var runningTotal = 0;
@@ -593,7 +691,7 @@ try {
       ctx.fillRect(354, 268, 140, 36);
       ctx.fillStyle = '#065f46';
       ctx.font = 'bold 20px sans-serif';
-      ctx.fillText(runningTotal.toLocaleString() + ' ₭', 368, 293);
+      ctx.fillText(runningTotal.toLocaleString() + ' <?php echo kipSymbol(); ?>', 368, 293);
 
       posTex.needsUpdate = true;
     }
@@ -618,7 +716,7 @@ try {
       ctx.fillText((MM_STORE_NAME || 'WlaoDev POS').substring(0, 20), 128, 42);
       ctx.font = 'bold 16px sans-serif';
       ctx.fillStyle = '#244886';
-      ctx.fillText(MM_BRANCH_NAME || 'ໃບບິນຮັບເງິນ', 128, 70);
+      ctx.fillText(MM_BRANCH_NAME || CD_MM_T['cd.receipt'], 128, 70);
       ctx.textAlign = 'left';
 
       ctx.fillStyle = '#64748b';
@@ -627,11 +725,11 @@ try {
       }
 
       var rItems = [
-        ['1. ນ້ຳສົ້ມຄັ້ນສົດ x1', '15,000'],
-        ['2. ເຂົ້າໜົມມັນຝຣັ່ງ x1', '10,000'],
-        ['3. ຄຣີມບຳລຸງຜິວ x1', '45,000'],
-        ['4. ລິບສະຕິກສີບົວ x1', '35,000'],
-        ['5. ນົມສົດກ່ອງ x1', '20,000']
+        ['1. ' + CD_MM_T['cd.demo_juice'] + ' x1', '15,000'],
+        ['2. ' + CD_MM_T['cd.demo_chips'] + ' x1', '10,000'],
+        ['3. ' + CD_MM_T['cd.demo_lotion'] + ' x1', '45,000'],
+        ['4. ' + CD_MM_T['cd.demo_lipstick'] + ' x1', '35,000'],
+        ['5. ' + CD_MM_T['cd.demo_milk'] + ' x1', '20,000']
       ];
       ctx.font = 'bold 16px sans-serif';
       for (var l = 0; l < rItems.length; l++) {
@@ -651,7 +749,7 @@ try {
       ctx.fillRect(16, 326, 224, 52);
       ctx.fillStyle = '#15803d';
       ctx.font = 'bold 22px sans-serif';
-      ctx.fillText('ລວມ: 125,000 ₭', 40, 360);
+      ctx.fillText(CD_MM_T['cd.col_total'] + ': 125,000 <?php echo kipSymbol(); ?>', 40, 360);
 
       ctx.fillStyle = '#0f172a';
       for (var bx = 28; bx < 228; bx += 7) {
@@ -659,7 +757,7 @@ try {
         ctx.fillRect(bx, 405, bw, 65);
       }
       ctx.font = '14px sans-serif';
-      ctx.fillText('ຂອບໃຈທີ່ມາອຸດໜູນ', 72, 492);
+      ctx.fillText(CD_MM_T['cd.thank_you'], 72, 492);
 
       var tex = new THREE.CanvasTexture(c);
       tex.needsUpdate = true;

@@ -82,6 +82,9 @@ function updateCartUI() {
           : `${POSCUR.fmt(curUnitPrice)}`);
 
     var discLabel = item.item_discount_text ? item.item_discount_text : (itemDiscount ? POSCUR.fmt(itemDiscount) : '');
+    // ໃນ title="..." ໃຊ້ເປັນຂໍ້ຄວາມທຳມະດາ: fmt() ມີ <span class="cur-sym"> — ເຄື່ອງໝາຍ " ຂອງມັນຕັດ attribute
+    // ແລ້ວ 'ກີບ)">' ໂຜ່ອອກມາໃນແຖວກະຕ່າ
+    var discLabelAttr = String(discLabel).replace(/<[^>]*>/g, '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     var discBadgeHtml = (hasItemDiscount && !isGift)
       ? `<span class="badge badge-danger font-weight-bold ml-1" style="font-size:0.75rem; padding:2px 6px; border-radius:4px; cursor:pointer;" onclick="openItemDiscountModal('${item.cartKey}')" title="ແກ້ໄຂສ່ວນຫຼຸດ">-${discLabel}</span>`
       : '';
@@ -89,7 +92,7 @@ function updateCartUI() {
     var discActionBtn = '';
     if (!isGift && !item.reward_uid) {
       if (hasItemDiscount) {
-        discActionBtn = `<button type="button" class="cart-item-disc-icon-btn active" onclick="openItemDiscountModal('${item.cartKey}')" title="ແກ້ໄຂສ່ວນຫຼຸດ (-${discLabel})"><i class="fas fa-tags"></i></button>`;
+        discActionBtn = `<button type="button" class="cart-item-disc-icon-btn active" onclick="openItemDiscountModal('${item.cartKey}')" title="ແກ້ໄຂສ່ວນຫຼຸດ (-${discLabelAttr})"><i class="fas fa-tags"></i></button>`;
       } else {
         discActionBtn = `<button type="button" class="cart-item-disc-icon-btn" onclick="openItemDiscountModal('${item.cartKey}')" title="ໃສ່ສ່ວນຫຼຸດ"><i class="fas fa-tag"></i></button>`;
       }

@@ -207,7 +207,7 @@ return [
     'pos.clear_all_btn' => 'Clear all',
     'pos.clear_held_done' => 'All held bills cleared',
     'pos.pager_showing' => 'Showing %s–%s of %s',
-    'pos.redeem_err_min_spend' => 'The purchase does not meet "%s" — buy at least %s ₭',
+    'pos.redeem_err_min_spend' => 'The purchase does not meet "%s" — buy at least %s Kip',
     'pos.redeem_min_spend' => 'Min. purchase %s',
     'pos.redeem_buy_more' => 'Buy more',
     'pos.redeem_dropped' => 'Removed "%s" — the purchase must be at least %s (no points taken)',

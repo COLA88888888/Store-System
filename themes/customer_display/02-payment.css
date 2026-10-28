@@ -100,10 +100,11 @@
       gap: 8px;
       overflow: hidden;
       min-height: 0;
+      min-width: 0;
     }
 
     .cart-card {
-      flex: 1;
+      flex: 1 1 0;
       background: #ffffff;
       border-radius: 8px;
       border: 2px solid #cbd5e1;
@@ -116,7 +117,10 @@
 
     /* Header and body are separate <table>s so columns stay aligned via a shared
        colgroup + fixed layout instead of each table auto-sizing its own columns. */
+    .w-100 { width: 100% !important; }
     .display-cols-table {
+      width: 100% !important;
+      max-width: 100% !important;
       table-layout: fixed;
     }
 

@@ -139,6 +139,41 @@ if (!function_exists('shiftCloseSession')) {
     }
 }
 
+if (!defined('SHIFT_LOGOUT_NOTE')) {
+    // ໝາຍເຫດຂອງກະທີ່ປິດເພາະຜູ້ໃຊ້ກົດອອກຈາກລະບົບ — ແຈ້ງເຕືອນ (config/helpers/shift_alerts.php) ໃຊ້ແຍກເຫດຜົນການປິດ
+    define('SHIFT_LOGOUT_NOTE', 'ປິດກະອັດຕະໂນມັດ: ອອກຈາກລະບົບ');
+}
+
+if (!function_exists('shiftCloseOnLogout')) {
+    // ກົດອອກຈາກລະບົບ (auth/logout.php) → ປິດກະທີ່ເປີດຢູ່ຂອງສາຂາຜູ້ໃຊ້ ຖ້າຜູ້ໃຊ້ເປັນຄົນເປີດກະ ຫຼື ເປັນພະນັກງານປະຈຳກະນັ້ນ
+    // (ຜູ້ຈັດການ/ຜູ້ບໍລິຫານທີ່ບໍ່ກ່ຽວກັບກະ ອອກຈາກລະບົບ ບໍ່ປິດກະຂອງພະນັກງານ). ບໍ່ມີຄົນນັບເງິນ → counted/ສ່ວນຕ່າງ = null.
+    // ບໍ່ກວດໂມງປິດກະ / ບິນພັກໄວ້ ຄືການປິດເອງ: ອອກຈາກລະບົບແລ້ວ ກະກໍສິ້ນສຸດ. ສົ່ງຄືນ id ຂອງກະທີ່ປິດ ຫຼື 0.
+    function shiftCloseOnLogout($pdo, $userId, $userName, $storeId) {
+        $userId = (int)$userId;
+        if ($userId <= 0 || !$pdo) return 0;
+        try {
+            $st = $pdo->prepare("SELECT ss.*, sh.staff_user_ids FROM st_shift_sessions ss
+                                 LEFT JOIN st_shifts sh ON sh.id = ss.shift_id
+                                 WHERE ss.store_id = ? AND ss.status = 'open' ORDER BY ss.id DESC LIMIT 1");
+            $st->execute([(int)$storeId]);
+            $session = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$session) return 0;
+            $staffIds = array_map('intval', explode(',', (string)($session['staff_user_ids'] ?? '')));
+            if ((int)$session['opened_by_user_id'] !== $userId && !in_array($userId, $staffIds, true)) return 0;
+
+            $sum = shiftCloseSession($pdo, $session, date('Y-m-d H:i:s'), $userId, $userName, null, SHIFT_LOGOUT_NOTE);
+            if (!$sum['closed']) return 0;
+            if (function_exists('logActivity')) {
+                logActivity($pdo, 'ປິດກະເຮັດວຽກ (ອອກຈາກລະບົບ)', "ກະ: {$session['shift_name']}, ຍອດຂາຍ: " . number_format($sum['total'])
+                    . ", {$sum['bills']} ບິນ, ໂດຍ: {$userName}");
+            }
+            return (int)$session['id'];
+        } catch (Throwable $e) {
+            return 0;   // ປິດກະບໍ່ໄດ້ ບໍ່ຄວນຂັດການອອກຈາກລະບົບ
+        }
+    }
+}
+
 if (!function_exists('shiftAutoCloseStale')) {
     // ຍົກເລີກການປິດກະອໍໂຕ້ເມື່ອກາຍໂມງ:
     // ກາຍໂມງກະຢ່າ ປິດກາຍໂມງບໍ່ມີບັນຫາ ບໍ່ໃຫ້ເດັ້ງຟອມເປີດກະມາ ຖ້າແຕ່ພະນັກງານປິດເອງ

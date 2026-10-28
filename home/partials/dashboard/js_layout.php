@@ -290,42 +290,54 @@
 
         if (page && page !== 'blank') {
           var normPath = path.replace(/\\/g, '/');
-          // Only try to re-match if the current active item doesn't already match the actual loaded path
-          var $currentActive = $('.nav-sidebar .nav-link.active[target="frame"]');
-          var currentActiveHref = $currentActive.length ? ($currentActive.attr('href') || $currentActive.attr('data-href') || '').replace(/\\/g, '/') : '';
+          var frameParams = new URLSearchParams(search);
 
-          // Check if the currently highlighted menu already matches the loaded page
-          var alreadyMatches = currentActiveHref && (
-            normPath.endsWith(currentActiveHref) ||
-            currentActiveHref.endsWith(normPath) ||
-            normPath.indexOf(currentActiveHref.replace('/index.php', '')) !== -1
-          );
+          // ຄະແນນຂອງລິ້ງເມນູ ທຽບກັບໜ້າທີ່ໂຫຼດ: 0 = ບໍ່ກົງ, 1 = ໄຟລ໌ກົງ, 2 = ໄຟລ໌ + query ຂອງລິ້ງກົງ.
+          // ເມນູທີ່ເປີດໄຟລ໌ດຽວກັນແຕ່ຕ່າງ query (ນັບສະຕັອກ = stock_check.php, ປະຫວັດ = stock_check.php?view=checks)
+          // ຈຶ່ງໄຮໄລ້ຖືກອັນ. data-active-when="view=checks|from=history" = ເງື່ອນໄຂ query ອື່ນທີ່ນັບວ່າກົງ (ອັນໃດອັນໜຶ່ງ).
+          function linkScore($a) {
+            var href = $a.attr('href') || $a.attr('data-href');
+            if (!href || href === '#' || href.indexOf('javascript:') === 0) return 0;
+            var parts = href.replace(/\\/g, '/').split('?');
+            var hTail = parts[0].replace(/^(\.\.?\/)+/, '');
+            var hDir = /\/index\.php$/.test(hTail) ? hTail.replace(/index\.php$/, '') : null;   // .../stores/index.php ≡ .../stores/
+            if (!hTail || !(normPath === parts[0] || normPath.endsWith('/' + hTail) || (hDir && normPath.endsWith('/' + hDir)))) return 0;
+            var conds = $a.attr('data-active-when') || parts[1] || '';
+            if (!conds) return 1;
+            var any = conds.split('|').some(function(cond) {
+              var ok = true;
+              new URLSearchParams(cond).forEach(function(v, k) { if (frameParams.get(k) !== v) ok = false; });
+              return ok;
+            });
+            return any ? 2 : 0;
+          }
+
+          var $best = null, bestScore = 0;
+          $('.nav-sidebar .nav-link').each(function() {
+            var s = linkScore($(this));
+            if (s > bestScore) { bestScore = s; $best = $(this); }
+          });
+
+          // ເມນູທີ່ໄຮໄລ້ຢູ່ ກົງດີເທົ່າກັບອັນທີ່ດີທີ່ສຸດແລ້ວ → ບໍ່ຍ້າຍ (ເຊັ່ນ ເມນູ 2 ອັນທີ່ໄປໜ້າດຽວກັນ)
+          var $currentActive = $('.nav-sidebar .nav-link.active[target="frame"]');
+          var alreadyMatches = bestScore > 0 && $currentActive.length && linkScore($currentActive.first()) >= bestScore;
 
           if (!alreadyMatches) {
             var matched = false;
 
-            // Exact path match first
-            $('.nav-sidebar .nav-link').each(function() {
-              var href = $(this).attr('href') || $(this).attr('data-href');
-              if (!href || href === '#' || href === 'javascript:void(0);') return;
-              var normHref = href.replace(/\\/g, '/');
+            if ($best) {
+              $('.nav-sidebar .nav-link').removeClass('active');
+              $best.addClass('active');
 
-              // Must match specifically — use full path ending, not partial indexOf
-              if (normPath.endsWith(normHref) || normHref === normPath) {
-                $('.nav-sidebar .nav-link').removeClass('active');
-                $(this).addClass('active');
-
-                var $tree = $(this).closest('.has-treeview');
-                if ($tree.length) {
-                  $tree.addClass('menu-open');
-                  $tree.children('.nav-treeview').show();
-                }
-
-                sessionStorage.setItem('StoreMini.currentIframeSrc', href);
-                matched = true;
-                return false;
+              var $bestTree = $best.closest('.has-treeview');
+              if ($bestTree.length) {
+                $bestTree.addClass('menu-open');
+                $bestTree.children('.nav-treeview').show();
               }
-            });
+
+              sessionStorage.setItem('StoreMini.currentIframeSrc', $best.attr('href') || $best.attr('data-href'));
+              matched = true;
+            }
 
             if (!matched) {
               // Fallback: match by filename only (no cross-folder matching)

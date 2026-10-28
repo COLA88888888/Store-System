@@ -43,7 +43,7 @@
   var cartItems = [];
 
   $(document).ready(function() {
-    $('#direct_barcode_input').focus();
+    // ບໍ່ໃຫ້ auto-focus ເພື່ອປ້ອງກັນແປ້ນພິມ virtual/on-screen keyboard ເດັ້ງຂຶ້ນມາເອງໃນຈໍສຳພັດ
     if ("<?php echo addslashes($preSearch); ?>" !== '' || PRE_PRODUCT_ID > 0) {
       onDirectBarcodeChange();
       if (AUTO_ADD && selectedProduct) {

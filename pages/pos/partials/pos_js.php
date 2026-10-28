@@ -61,13 +61,23 @@ window.posCustomerDisplayName = function (name) {
 // currency is KIP (the default) every method is an identity of the old code,
 // so the KIP path is unchanged.
 // ==========================================================================
+// ປັດເປັນຈຳນວນເຕັມ: ເສດບໍ່ກາຍ .50 → ປັດລົງ (160.50 → 160), ກາຍ .50 → ປັດຂຶ້ນ (160.51 → 161).
+// ຕັດ error ຂອງ floating point ອອກກ່ອນ (ເຊັ່ນ 160.5000000001 ຍັງນັບເປັນ .50).
+window.posRoundUnits = function (v) {
+  v = Math.round((parseFloat(v) || 0) * 1e6) / 1e6;
+  var neg = v < 0; if (neg) v = -v;
+  var f = Math.floor(v);
+  var r = (v - f > 0.5) ? f + 1 : f;
+  return neg ? -r : r;
+};
+window.posCeilUnits = window.posRoundUnits; // ຊື່ເກົ່າ (ເຂົ້າກັນໄດ້)
 window.POSCUR = (function () {
   var rates = window.POS_EX_RATES || { KIP: 1, THB: 0, USD: 0, CNY: 0 };
   var metaAll = window.POS_CURRENCY_META || {
-    KIP: { name: 'ກີບ', symbol: '₭', decimals: 0 },
-    THB: { name: 'ບາດ', symbol: '฿', decimals: 2 },
-    USD: { name: 'ໂດລາ', symbol: '$', decimals: 2 },
-    CNY: { name: 'ຢວນ', symbol: '¥', decimals: 2 }
+    KIP: { name: 'ກີບ', symbol: '<?php echo kipSymbol(); ?>', decimals: 0 },
+    THB: { name: 'ບາດ', symbol: '฿', decimals: 0 },
+    USD: { name: 'ໂດລາ', symbol: '$', decimals: 0 },
+    CNY: { name: 'ຢວນ', symbol: '¥', decimals: 0 }
   };
   // Mutable so the checkout modal can switch the tender currency per bill via
   // POSCUR.setCurrency(); every helper below reads these at call time.
@@ -88,9 +98,11 @@ window.POSCUR = (function () {
   }
   setCurrency(window.POS_DISPLAY_CURRENCY || 'KIP');
 
+  // ສະກຸນຕ່າງປະເທດ: ກີບ ÷ ອັດຕາທີ່ຕັ້ງໄວ້ (ກີບຕໍ່ 1 ໜ່ວຍ) ແລ້ວປັດເປັນຈຳນວນເຕັມ: ເສດບໍ່ກາຍ .50 ປັດລົງ, ກາຍ .50 ປັດຂຶ້ນ
+  // (ເຊັ່ນ 104,325 ₭ ÷ 650 = 160.50 → 160 ฿; 104,400 ₭ ÷ 650 = 160.62 → 161 ฿).
   function fromKip(kip) {
     kip = parseFloat(kip) || 0;
-    return isKip ? Math.round(kip) : (kip / rate);
+    return isKip ? Math.round(kip) : posRoundUnits(kip / rate);
   }
   // A typed/displayed amount, parsed to a plain number in the display currency
   // (no symbol, no thousands separators), rounded to this currency's own decimals.

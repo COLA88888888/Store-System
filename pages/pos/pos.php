@@ -42,11 +42,10 @@ window.STORE_HAS_SHIFTS = <?php echo $posStoreHasShifts ? 'true' : 'false'; ?>;
 window.POS_TODAY_SALE_COUNT = <?php echo $todaySaleCount; ?>;
 window.POS_EX_RATES = <?php echo json_encode($posDisplayCurrency['rates'], JSON_UNESCAPED_UNICODE); ?>;
 <?php
-// ຮັບເງິນສະກຸນຕ່າງປະເທດ: ໜ້າຂາຍໃຊ້ 2 ຕຳແໜ່ງທົດສະນິຍົມ (ເຊັນ/ສະຕາງ) — ລາຍງານສະແດງເປັນເລກຖ້ວນໄດ້ (ສະແດງຜົນ
-// ຢ່າງດຽວ), ແຕ່ການຄິດວ່າ "ຈ່າຍພໍບໍ່ / ທອນເທົ່າໃດ" ຕ້ອງລະອຽດ: ຖ້າປັດເປັນເລກຖ້ວນ 1$ = 22,000₭ ບິນ 10,000₭ ຈະສະແດງ
-// "0 $" ແລະ ຮັບໄດ້ໂດຍບໍ່ຈ່າຍເລີຍ (ກວດດ້ວຍການຈຳລອງຕົວຈິງ).
+// ຮັບເງິນສະກຸນຕ່າງປະເທດ: ຍອດເງິນ = ກີບ ÷ ອັດຕາແລກປ່ຽນທີ່ຕັ້ງໄວ້ ແລ້ວປັດເສດຂຶ້ນເປັນຈຳນວນເຕັມສະເໝີ (POSCUR.fromKip)
+// — ບໍ່ມີຈຸດທົດສະນິຍົມ. ການປັດຂຶ້ນເຮັດໃຫ້ບິນນ້ອຍ (ເຊັ່ນ 10,000₭ ເມື່ອ 1$ = 22,000₭) ສະແດງ 1 $ ບໍ່ແມ່ນ 0 $.
 $__posCurMeta = getCurrencyMeta();
-foreach ($__posCurMeta as $__cc => &$__cm) { if ($__cc !== 'KIP') $__cm['decimals'] = 2; }
+foreach ($__posCurMeta as $__cc => &$__cm) { if ($__cc !== 'KIP') $__cm['decimals'] = 0; }
 unset($__cm);
 ?>
 window.POS_CURRENCY_META = <?php echo json_encode($__posCurMeta, JSON_UNESCAPED_UNICODE); ?>;
@@ -58,9 +57,14 @@ window.addEventListener('pos:langchange', function () {
   Object.keys(keys).forEach(function (c) {
     if (window.POS_CURRENCY_META[c] && I18N_CURRENCY[keys[c]]) window.POS_CURRENCY_META[c].name = I18N_CURRENCY[keys[c]];
   });
+  // ກີບ ໃຊ້ຊື່ເປັນຫົວໜ່ວຍ (ກີບ / Kip) ແທນສັນຍາລັກ — ປ່ຽນຕາມພາສາທັນທີ
+  if (window.POS_CURRENCY_META.KIP) {
+    window.POS_CURRENCY_META.KIP.symbol = window.POS_CURRENCY_META.KIP.name;
+    if (window.POSCUR && POSCUR.code === 'KIP') POSCUR.symbol = POS_CURRENCY_META.KIP.name;
+  }
   $('#checkoutCurrency option').each(function () {
     var m = window.POS_CURRENCY_META[this.value];
-    if (m) this.text = m.name + ' (' + m.symbol + ')';
+    if (m) this.text = this.value === 'KIP' ? m.name : m.name + ' (' + m.symbol + ')';
   });
 });
 window.POS_DISPLAY_CURRENCY = <?php echo json_encode($posDisplayCurrency['code']); ?>;
@@ -178,7 +182,7 @@ window.POS_LOYALTY = <?php echo json_encode($posLoyalty, JSON_UNESCAPED_UNICODE)
       <span class="pos-float-cart-icon"><i class="fas fa-shopping-basket"></i></span>
       <span class="pos-float-cart-text">
         <span class="pos-float-cart-count" id="floatingCartItemCount">0 <?php echo htmlspecialchars(t('pos.cart_count_items', 'ລາຍການ')); ?></span>
-        <span class="pos-float-cart-total" id="floatingCartTotal">0 ₭</span>
+        <span class="pos-float-cart-total" id="floatingCartTotal">0 <?php echo kipSymbol(); ?></span>
       </span>
       <i class="fas fa-chevron-right pos-float-cart-arrow"></i>
     </button>

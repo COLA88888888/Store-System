@@ -105,7 +105,7 @@
       </div>
 
       <!-- Currency Filter Dropdown -->
-      <div style="flex: 1 1 0; min-width: 140px;">
+      <div style="flex: 0 0 140px; width: 140px; max-width: 140px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-coins text-warning mr-1"></i> <?php echo htmlspecialchars(t('reports.currency_label', 'ສະກຸນເງິນ:')); ?>
         </label>
@@ -120,7 +120,7 @@
       </div>
 
       <!-- View Mode Dropdown -->
-      <div style="flex: 1 1 0; min-width: 140px;">
+      <div style="flex: 0 0 140px; width: 140px; max-width: 140px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-list text-primary mr-1"></i> <?php echo htmlspecialchars(t('reports.view_mode_label', 'ຮູບແບບການສະແດງ:')); ?>
         </label>
@@ -131,7 +131,7 @@
       </div>
 
       <!-- Per Page Dropdown -->
-      <div style="flex: 1 1 0; min-width: 100px;">
+      <div style="flex: 0 0 120px; width: 120px; max-width: 120px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-layer-group text-primary mr-1"></i> <?php echo htmlspecialchars(t('reports.per_page_label', 'ໂຊລາຍການ:')); ?>
         </label>

@@ -109,4 +109,9 @@ return [
     'import_list.js_delete_bill_title' => 'Delete this stock receipt?',
     'import_list.js_delete_bill_text' => 'Do you want to delete the entire receipt [%s]? All products on this receipt will have their stock reduced back!',
     'import_list.js_export_name' => 'Received Stock List',
+    'import_list.all_branches' => 'All branches',
+    'import_list.export_date_range' => 'Date',
+    'import_list.view_by_bill' => 'By bill',
+    'import_list.view_by_item' => 'By product line',
+    'import_list.search_label' => 'Search:',
 ];

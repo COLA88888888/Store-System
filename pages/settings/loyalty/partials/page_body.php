@@ -59,7 +59,7 @@
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('loyalty.spend_amount_label', 'ຍອດຊື້ທຸກໆ (ກີບ)')); ?></label>
               <div class="input-group">
                 <input type="text" inputmode="numeric" class="form-control font-weight-bold text-right" id="loyalty_spend_amount" name="loyalty_spend_amount" value="<?php echo number_format($lpSpend); ?>" oninput="this.value=this.value.replace(/[^0-9]/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,',');" style="height: 42px;" <?php echo $canEditLoyalty ? '' : 'readonly'; ?>>
-                <div class="input-group-append"><span class="input-group-text font-weight-bold">₭</span></div>
+                <div class="input-group-append"><span class="input-group-text font-weight-bold"><?php echo kipSymbol(); ?></span></div>
               </div>
             </div>
 
@@ -137,7 +137,7 @@
                       <span class="badge badge-light border font-weight-bold px-2 py-1" style="font-size: 0.8rem; color: #b45309;"><i class="fas fa-star mr-1"></i><?php echo number_format((int)$rw['points_cost']); ?></span>
                     </td>
                     <td class="text-right font-weight-bold text-dark">
-                      <?php echo $rwMissing ? '-' : number_format($rwValue) . ' ₭'; ?>
+                      <?php echo $rwMissing ? '-' : number_format($rwValue) . ' ' . kipSymbol(); ?>
                       <?php if (!$isProductRw): ?>
                         <?php
                           // The purchase the POS requires: the configured minimum, or — when there
@@ -145,8 +145,8 @@
                           $rwMin = (float)($rw['min_spend'] ?? 0);
                           $rwAmt = (float)$rw['discount_amount'];
                           $rwNeedText = ($rwMin > $rwAmt)
-                            ? sprintf(t('loyalty.min_spend_short', 'ຊື້ຂັ້ນຕ່ຳ %s ₭'), number_format($rwMin))
-                            : sprintf(t('loyalty.min_spend_over_short', 'ຊື້ເກີນ %s ₭'), number_format($rwAmt));
+                            ? sprintf(t('loyalty.min_spend_short', 'ຊື້ຂັ້ນຕ່ຳ %s ' . kipSymbol()), number_format($rwMin))
+                            : sprintf(t('loyalty.min_spend_over_short', 'ຊື້ເກີນ %s ' . kipSymbol()), number_format($rwAmt));
                         ?>
                         <small class="d-block text-muted font-weight-normal"><?php echo htmlspecialchars($rwNeedText); ?></small>
                       <?php endif; ?>
@@ -316,12 +316,12 @@
             <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('loyalty.discount_amount_label', 'ມູນຄ່າສ່ວນຫຼຸດ (ກີບ)')); ?> <span class="text-danger">*</span></label>
             <div class="input-group">
               <input type="text" inputmode="numeric" name="discount_amount" id="lpAmount" class="form-control text-right font-weight-bold" style="height: 42px;" placeholder="50,000" oninput="this.value=this.value.replace(/[^0-9]/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,','); lpUpdatePreview();">
-              <div class="input-group-append"><span class="input-group-text">₭</span></div>
+              <div class="input-group-append"><span class="input-group-text"><?php echo kipSymbol(); ?></span></div>
             </div>
             <label class="font-weight-bold text-dark small mb-1 mt-3"><?php echo htmlspecialchars(t('loyalty.min_spend_label', 'ຍອດຊື້ຂັ້ນຕ່ຳ ຈຶ່ງແລກໄດ້ (ກີບ)')); ?></label>
             <div class="input-group">
               <input type="text" inputmode="numeric" name="min_spend" id="lpMinSpend" class="form-control text-right font-weight-bold" style="height: 42px;" placeholder="100,000" oninput="this.value=this.value.replace(/[^0-9]/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,',');">
-              <div class="input-group-append"><span class="input-group-text">₭</span></div>
+              <div class="input-group-append"><span class="input-group-text"><?php echo kipSymbol(); ?></span></div>
             </div>
             <small class="text-muted"><?php echo htmlspecialchars(t('loyalty.min_spend_hint', 'ບໍ່ໃສ່ກໍໄດ້ — ແຕ່ຍອດຊື້ຕ້ອງຫຼາຍກວ່າມູນຄ່າສ່ວນຫຼຸດສະເໝີ')); ?></small>
           </div>

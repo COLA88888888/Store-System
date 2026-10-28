@@ -123,7 +123,7 @@ try {
     $stmtCost->execute($importParams);
     $total_cost = floatval($stmtCost->fetchColumn() ?? 0);
 
-    // "ຕົ້ນທຶນສິນຄ້າທັງໝົດ" card is only meaningful once at least one product actually has a
+    // "ຕົ້ນທຶນນຳເຂົ້າສິນຄ້າທັງໝົດ" card is only meaningful once at least one product actually has a
     // ລາຄາຊື້ (bprice) on file — otherwise it's just a shop that never records cost, and
     // showing "0 ₭" would look like a real (zero) cost rather than "unknown".
     if ($selected_store > 0) {

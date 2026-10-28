@@ -335,7 +335,7 @@ function openItemDiscountModal(cartKey) {
   }
 
   var hasDiscount = (parseFloat(item.item_discount) || 0) > 0;
-  var symbol = (window.POSCUR && POSCUR.symbol) ? POSCUR.symbol : '₭';
+  var symbol = (window.POSCUR && POSCUR.symbol) ? POSCUR.symbol : '<?php echo kipSymbol(); ?>';
 
   var modalHtml = `
     <style>
@@ -346,6 +346,17 @@ function openItemDiscountModal(cartKey) {
       }
       #swalItemDiscInput {
         -moz-appearance: textfield !important;
+      }
+      /* ໂທລະສັບ: ຟອມບໍ່ເກີນຈໍ — ກວ້າງ/ສູງບໍ່ເກີນໜ້າຈໍ (ເກີນ → ເລື່ອນໃນຟອມ), ໄລຍະຫ່າງນ້ອຍລົງ, ປຸ່ມ % ແບ່ງເທົ່າກັນ 5 ຊ່ອງ */
+      .item-disc-swal { width: min(32em, calc(100vw - 16px)) !important; max-height: calc(100vh - 16px); max-height: calc(100dvh - 16px); overflow-y: auto; }
+      @media (max-width: 576px) {
+        .item-disc-swal { padding: 14px 12px 12px !important; }
+        .item-disc-swal .swal2-title { font-size: 1.3rem !important; padding: 0 !important; margin: 0 0 4px !important; }
+        .item-disc-swal .swal2-html-container { margin: 6px 0 0 !important; padding: 0 !important; }
+        .item-disc-swal .item-disc-presets { display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px !important; }
+        .item-disc-swal .item-disc-presets .btn { padding: 6px 0; min-width: 0; }
+        .item-disc-swal .swal2-actions { flex-wrap: wrap; gap: 6px; margin-top: 10px !important; }
+        .item-disc-swal .swal2-actions .btn { margin: 0 !important; flex: 1 1 auto; }
       }
     </style>
     <div class="item-disc-modal-wrap text-left" style="font-family: inherit;">
@@ -374,7 +385,7 @@ function openItemDiscountModal(cartKey) {
       <!-- Quick Presets for Percent -->
       <div id="swalDiscQuickPct" class="mb-3" style="${_currentDiscModalMode === 'percent' ? '' : 'display:none;'}">
         <div class="text-muted small mb-1 font-weight-bold">${pdT('pos_disc.quick')}</div>
-        <div class="d-flex" style="gap:6px;">
+        <div class="d-flex item-disc-presets" style="gap:6px;">
           <button type="button" class="btn btn-outline-secondary btn-sm flex-fill font-weight-bold" style="border-radius:6px;" onclick="swalSetItemDiscVal(5)">5%</button>
           <button type="button" class="btn btn-outline-secondary btn-sm flex-fill font-weight-bold" style="border-radius:6px;" onclick="swalSetItemDiscVal(10)">10%</button>
           <button type="button" class="btn btn-outline-secondary btn-sm flex-fill font-weight-bold" style="border-radius:6px;" onclick="swalSetItemDiscVal(15)">15%</button>
@@ -431,6 +442,7 @@ function openItemDiscountModal(cartKey) {
     cancelButtonColor: '#64748b',
     focusConfirm: false,
     customClass: {
+      popup: 'item-disc-swal',
       confirmButton: 'btn btn-primary font-weight-bold px-3',
       denyButton: 'btn btn-danger font-weight-bold px-3',
       cancelButton: 'btn btn-secondary font-weight-bold px-3'
@@ -478,7 +490,7 @@ function swalSwitchItemDiscMode(mode) {
   if (_currentDiscModalMode === mode) return;
   var oldMode = _currentDiscModalMode;
   _currentDiscModalMode = mode;
-  var symbol = (window.POSCUR && POSCUR.symbol) ? POSCUR.symbol : '₭';
+  var symbol = (window.POSCUR && POSCUR.symbol) ? POSCUR.symbol : '<?php echo kipSymbol(); ?>';
 
   var item = cart.find(function(i) { return i.cartKey === _currentDiscModalCartKey; });
   var origPrice = item ? ((typeof item.original_price !== 'undefined' && item.original_price !== null) ? parseFloat(item.original_price) : parseFloat(item.unit_price)) : 0;
@@ -555,7 +567,7 @@ function swalRecalcItemDisc() {
   var lineTotal = newUnitPrice * qty;
   var totalSaved = discPerUnit * qty;
 
-  var symbol = (window.POSCUR && POSCUR.symbol) ? POSCUR.symbol : '₭';
+  var symbol = (window.POSCUR && POSCUR.symbol) ? POSCUR.symbol : '<?php echo kipSymbol(); ?>';
 
   // ສະແດງທັງຈຳນວນເງິນ ແລະ ເປີເຊັນໃຫ້ເຫັນຈະແຈ້ງ
   if (_currentDiscModalMode === 'percent') {

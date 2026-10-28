@@ -51,16 +51,44 @@
 }
 
 .report-filter-box::-webkit-scrollbar,
-.report-filter-box form::-webkit-scrollbar,
-.table-responsive::-webkit-scrollbar {
+.report-filter-box form::-webkit-scrollbar {
     display: none !important;
     width: 0 !important;
     height: 0 !important;
 }
 
+/* ຕາຕະລາງລາຍງານ: ສະແດງແຖບເລື່ອນທາງລຸ່ມ ເພື່ອເລື່ອນອອກຂ້າງໄດ້ເມື່ອຖັນກວ້າງກວ່າໜ້າຈໍ */
+/* ແຖບບາງ 6px ບໍ່ມີລູກສອນ. ຫ້າມຕັ້ງ scrollbar-width / scrollbar-color ໃຫ້ Chrome/Edge: ເມື່ອຕັ້ງ, Chrome 121+
+   ບໍ່ສົນ ::-webkit-scrollbar ແລ້ວແຕ້ມແຖບໜາມີລູກສອນແທນ. Firefox (ບໍ່ຮູ້ຈັກ ::-webkit-scrollbar) ໃຊ້ scrollbar-width ຂ້າງລຸ່ມ */
 .table-responsive {
-    -ms-overflow-style: none !important;
-    scrollbar-width: none !important;
+    overflow-x: auto !important;
+    scrollbar-width: auto !important;
+    scrollbar-color: auto !important;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+    .table-responsive {
+        scrollbar-width: thin !important;
+        scrollbar-color: #94a3b8 #f1f5f9 !important;
+    }
+}
+
+.table-responsive::-webkit-scrollbar {
+    display: block !important;
+    height: 6px !important;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #94a3b8 !important;
+    border-radius: 3px !important;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #64748b !important;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f5f9 !important;
 }
 
 .report-table-card {

@@ -68,7 +68,7 @@
       <!-- ມູນຄ່າ (Subtotal ຢູ່ຝາກຊ້າຍ) -->
       <div class="d-flex align-items-center">
         <span class="font-weight-bold text-muted mr-2" style="font-size: 0.92rem;"><?php echo htmlspecialchars(t('pos.subtotal_label', 'ລວມມູນຄ່າ:')); ?></span>
-        <span class="font-weight-bold text-dark" style="font-size: 1.05rem;" id="cartSubtotal">0 ₭</span>
+        <span class="font-weight-bold text-dark" style="font-size: 1.05rem;" id="cartSubtotal">0 <?php echo kipSymbol(); ?></span>
       </div>
 
       <!-- ສ່ວນຫຼຸດ (Discount ຢູ່ຝາກຂວາ: ບັອກສັ້ນລົງ, ປຸ່ມ ₭ ແລະ % ໃຫຍ່ຂຶ້ນ ກວ້າງຂຶ້ນ ແລະ ບໍ່ຕິດກັນ) -->
@@ -82,7 +82,7 @@
           </div>
           <!-- ເລືອກແບບສ່ວນຫຼຸດ: ກີບ (ຈຳນວນເງິນ) ຫຼື % ຂອງຍອດລວມ (pos_js.php: setCartDiscountModeAndReset) -->
           <button type="button" class="btn btn-primary font-weight-bold cart-disc-mode-btn d-inline-flex align-items-center justify-content-center shadow-none" data-mode="amount" id="cartDiscountModeBtn" onclick="setCartDiscountModeAndReset('amount')" title="ສ່ວນຫຼຸດເປັນຈຳນວນເງິນ" style="height: 34px !important; width: 42px !important; min-width: 42px !important; padding: 0 !important; font-size: 1.05rem !important; border-radius: 6px !important;">
-            <?php echo htmlspecialchars($posDisplayCurrency['symbol'] ?? '₭'); ?>
+            <?php echo htmlspecialchars($posDisplayCurrency['symbol'] ?? kipSymbol()); ?>
           </button>
           <button type="button" class="btn btn-outline-secondary font-weight-bold cart-disc-mode-btn d-inline-flex align-items-center justify-content-center shadow-none" data-mode="percent" onclick="setCartDiscountModeAndReset('percent')" title="ສ່ວນຫຼຸດເປັນເປີເຊັນ" style="height: 34px !important; width: 42px !important; min-width: 42px !important; padding: 0 !important; font-size: 1.05rem !important; border-radius: 6px !important;">
             %
@@ -95,7 +95,7 @@
     <div id="cartPointsRow" class="mb-1" style="display: none;">
       <div class="d-flex justify-content-between align-items-center small">
         <span class="font-weight-bold" style="color: #b45309;"><i class="fas fa-gift mr-1"></i><?php echo htmlspecialchars(t('pos.redeem_row_label', 'ແລກຄະແນນ')); ?> (<span id="cartPointsUsed">0</span> <?php echo htmlspecialchars(t('pos.points_unit', 'ຄະແນນ')); ?>)</span>
-        <span class="font-weight-bold text-danger" id="cartPointsDiscount">0 ₭</span>
+        <span class="font-weight-bold text-danger" id="cartPointsDiscount">0 <?php echo kipSymbol(); ?></span>
       </div>
       <div id="cartRedemptionList" style="font-size: 0.78rem;"></div>
     </div>
@@ -108,12 +108,12 @@
     ?>
     <div class="d-flex justify-content-between align-items-center mb-0.5 small text-muted" id="cartVatRow" style="<?php echo $showCartVat ? 'display: flex !important;' : 'display: none !important;'; ?>">
       <span id="cartVatLabel"><?php echo $cLabelText; ?></span>
-      <span class="font-weight-bold text-dark" id="cartVat">0 ₭</span>
+      <span class="font-weight-bold text-dark" id="cartVat">0 <?php echo kipSymbol(); ?></span>
     </div>
     
     <div class="d-flex justify-content-between align-items-center mb-1 pt-1 border-top">
       <span class="font-weight-bold" style="font-size: 1.0rem; color: #1e293b;"><?php echo htmlspecialchars(t('pos.net_total_label', 'ຍອດຊຳລະສຸດທິ:')); ?></span>
-      <span class="font-weight-bold" style="font-size: 1.35rem; color: #16a34a;" id="cartTotal">0 ₭</span>
+      <span class="font-weight-bold" style="font-size: 1.35rem; color: #16a34a;" id="cartTotal">0 <?php echo kipSymbol(); ?></span>
     </div>
 
     <!-- Action Buttons Bar (Single-Row Compact 4-Button Bar) -->

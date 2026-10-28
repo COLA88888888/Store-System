@@ -45,7 +45,7 @@
                 <th class="text-left"><?php echo htmlspecialchars(t('reports.col_product_item', 'ລາຍການສິນຄ້າ')); ?></th>
                 <th class="text-center" style="width: 70px;"><?php echo htmlspecialchars(t('reports.col_qty', 'ຈຳນວນ')); ?></th>
                 <th class="text-right" style="width: 90px;"><?php echo htmlspecialchars(t('reports.col_price', 'ລາຄາ')); ?></th>
-                <th class="text-right" style="width: 100px;"><?php echo htmlspecialchars(t('reports.col_total_kip', 'ລວມ (₭)')); ?></th>
+                <th class="text-right" style="width: 100px;"><?php echo htmlspecialchars(t('reports.col_total_kip', 'ລວມ (' . kipSymbol() . ')')); ?></th>
               </tr>
             </thead>
             <tbody id="modal_items_body">
@@ -58,29 +58,29 @@
         <div class="border-top pt-2" style="font-size: 0.88rem;">
           <div class="d-flex justify-content-between mb-1">
             <span class="text-muted"><?php echo htmlspecialchars(t('reports.modal_subtotal_label', 'ລາຄາລວມ:')); ?></span>
-            <span id="modal_subtotal" class="font-weight-bold text-dark">0 ₭</span>
+            <span id="modal_subtotal" class="font-weight-bold text-dark">0 <?php echo kipSymbol(); ?></span>
           </div>
           <div class="d-flex justify-content-between mb-1 text-danger">
             <span><?php echo htmlspecialchars(t('reports.modal_discount_label', 'ສ່ວນຫຼຸດ:')); ?></span>
-            <span id="modal_discount" class="font-weight-bold">0 ₭</span>
+            <span id="modal_discount" class="font-weight-bold">0 <?php echo kipSymbol(); ?></span>
           </div>
           <div class="d-flex justify-content-between mb-2 pt-1 border-top" style="font-size: 1.05rem;">
             <strong class="text-dark"><?php echo htmlspecialchars(t('reports.modal_net_total_label', 'ຍອດຂາຍສຸດທິ:')); ?></strong>
-            <strong id="modal_net_total" class="text-success">0 ₭</strong>
+            <strong id="modal_net_total" class="text-success">0 <?php echo kipSymbol(); ?></strong>
           </div>
 
           <div class="bg-light p-2.5 rounded border" style="font-size: 0.84rem;">
             <div class="d-flex justify-content-between mb-1" id="modal_cash_row">
               <span class="text-muted"><?php echo htmlspecialchars(t('reports.modal_cash_received_label', 'ຮັບເງິນສົດ:')); ?></span>
-              <span id="modal_cash_rec" class="font-weight-bold text-dark">0 ₭</span>
+              <span id="modal_cash_rec" class="font-weight-bold text-dark">0 <?php echo kipSymbol(); ?></span>
             </div>
             <div class="d-flex justify-content-between mb-1" id="modal_qr_row">
               <span class="text-muted"><?php echo htmlspecialchars(t('reports.modal_qr_received_label', 'ຮັບເງິນໂອນ:')); ?></span>
-              <span id="modal_qr_rec" class="font-weight-bold text-primary">0 ₭</span>
+              <span id="modal_qr_rec" class="font-weight-bold text-primary">0 <?php echo kipSymbol(); ?></span>
             </div>
             <div class="d-flex justify-content-between mb-1 border-top pt-1">
               <span class="text-muted"><?php echo htmlspecialchars(t('reports.modal_change_label', 'ເງິນທອນ:')); ?></span>
-              <span id="modal_change" class="font-weight-bold text-info">0 ₭</span>
+              <span id="modal_change" class="font-weight-bold text-info">0 <?php echo kipSymbol(); ?></span>
             </div>
           </div>
         </div>

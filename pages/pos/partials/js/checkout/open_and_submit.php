@@ -124,9 +124,9 @@ function processCheckout() {
     qrReceived   = paidUnits > 0 ? Math.round((splitQrUnits / paidUnits) * total) : 0;
     cashReceived = total - qrReceived;
     paymentType  = 'ເງິນສົດ + ໂອນ';
-    // ເງິນທອນ ຄິດເປັນກີບໂດຍກົງ: ເງິນທີ່ຈ່າຍ (× ເລດ) − ຍອດບິນກີບ — ບໍ່ຄິດຈາກຍອດທີ່ປັດເປັນສະກຸນຕ່າງປະເທດແລ້ວ
-    // (ເຊັ່ນ 10,000₭ = 0.4545$ ປັດເປັນ 0.45$ → ທອນ 0.55$ = 12,100₭ ແທນ 12,000₭ ທີ່ຖືກ)
-    change = POSCUR.isKip ? (paidUnits - totalUnits) : Math.max(0, Math.round(paidUnits * POSCUR.rate) - total);
+    // ເງິນທອນ = (ເງິນທີ່ຈ່າຍ − ຍອດບິນທີ່ປັດຂຶ້ນເປັນຈຳນວນເຕັມ) × ເລດ — ເທົ່າກັບເງິນທອນທີ່ສະແດງ ແລະ ທອນໃຫ້ລູກຄ້າແທ້
+    // (ເຊັ່ນ ບິນ 97,700₭ ÷ 650 = 150.3 → 151฿, ຈ່າຍ 200฿ → ທອນ 49฿ = 31,850₭)
+    change = POSCUR.isKip ? (paidUnits - totalUnits) : Math.max(0, Math.round((paidUnits - totalUnits) * POSCUR.rate));
     cashReceived += change;
   } else {
     var cashUnits = POSCUR.parseUnits($('#cashReceived').val());
@@ -134,10 +134,9 @@ function processCheckout() {
       Swal.fire({ icon: 'error', title: posT('pos.checkout_cash_short_title'), text: posT('pos.checkout_cash_short_body'), confirmButtonColor: '#ef4444' });
       return;
     }
-    // ເງິນທອນ ຄິດເປັນກີບໂດຍກົງ (ເງິນທີ່ຮັບ × ເລດ − ຍອດບິນກີບ), ແລ້ວບັນທຶກເງິນຮັບ = ຍອດບິນ + ເງິນທອນ
-    // ເພື່ອໃຫ້ຕົວເລກກີບໃນຖານຂໍ້ມູນລວມກັນຖືກສະເໝີ. ເມື່ອກ່ອນຄິດຈາກ (ເງິນຮັບ − ຍອດທີ່ປັດແລ້ວ) × ເລດ
-    // ເຊິ່ງຜິດເທົ່າກັບສ່ວນທີ່ປັດ (ສູງສຸດເຄິ່ງໜ່ວຍ: 11,000₭ ສຳລັບ $ ເມື່ອບໍ່ມີຈຸດທົດສະນິຍົມ).
-    change = POSCUR.isKip ? (cashUnits - totalUnits) : Math.max(0, Math.round(cashUnits * POSCUR.rate) - total);
+    // ເງິນທອນ = (ເງິນທີ່ຮັບ − ຍອດບິນທີ່ປັດຂຶ້ນເປັນຈຳນວນເຕັມ) × ເລດ = ເງິນທອນທີ່ສະແດງໃນຈໍ ແລະ ທອນໃຫ້ລູກຄ້າແທ້,
+    // ແລ້ວບັນທຶກເງິນຮັບ = ຍອດບິນ + ເງິນທອນ ເພື່ອໃຫ້ຕົວເລກກີບໃນຖານຂໍ້ມູນລວມກັນຖືກສະເໝີ.
+    change = POSCUR.isKip ? (cashUnits - totalUnits) : Math.max(0, Math.round((cashUnits - totalUnits) * POSCUR.rate));
     var rawInput = total + change;
     // The QR/transfer tab's actual value is 'ໂອນເງິນ / QR' (see selectPayTypeTab's button in
     // checkout_modal.php) — comparing against 'ໂອນ' / 'QR' here never matched it, so every

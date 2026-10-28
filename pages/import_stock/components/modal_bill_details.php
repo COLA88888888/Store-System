@@ -26,7 +26,7 @@
           </div>
           <div>
             <span class="text-muted font-weight-bold d-block" style="font-size: 0.85rem;"><?php echo htmlspecialchars(t('import_list.modal_total_cost_label', 'ມູນຄ່າທຶນລວມ:')); ?></span>
-            <span id="modal_total_cost" class="font-weight-bold text-success" style="font-size: 1.1rem;">0 ₭</span>
+            <span id="modal_total_cost" class="font-weight-bold text-success" style="font-size: 1.1rem;">0 <?php echo kipSymbol(); ?></span>
           </div>
         </div>
 

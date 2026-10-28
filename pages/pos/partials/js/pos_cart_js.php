@@ -22,6 +22,14 @@ try {
 } catch(e) {}
 
 function broadcastCustomerDisplay(checkoutState, extraData) {
+  var tenderCur = (window.POSCUR && POSCUR.code) ? {
+    code: POSCUR.code,
+    symbol: POSCUR.symbol,
+    rate: POSCUR.rate,
+    decimals: POSCUR.decimals,
+    isKip: POSCUR.code === 'KIP'
+  } : null;
+
   var payload = {
     cart: (typeof cart !== 'undefined') ? cart : [],
     customer: (typeof selectedCustomer !== 'undefined') ? selectedCustomer : null,
@@ -29,6 +37,7 @@ function broadcastCustomerDisplay(checkoutState, extraData) {
     // Includes the loyalty-points discount so the customer sees the same total as the cashier.
     discount: String(Math.round(window.CART_DISCOUNT_KIP || 0) + (window.CART_POINTS_DISCOUNT_KIP || 0)),
     checkoutState: checkoutState || 'shopping',
+    tenderCurrency: tenderCur,
     ...(extraData || {})
   };
 

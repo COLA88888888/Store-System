@@ -325,7 +325,7 @@ try {
 
             $pdo->commit();
 
-            logActivity($pdo, "ເປີດກະເຮັດວຽກ", "ກະ: {$shift['shift_name']}, ເງິນລິ້ນຊັກ: " . number_format($initialCash) . " ₭ ໂດຍ: {$userName}");
+            logActivity($pdo, "ເປີດກະເຮັດວຽກ", "ກະ: {$shift['shift_name']}, ເງິນລິ້ນຊັກ: " . number_format($initialCash) . " ກີບ ໂດຍ: {$userName}");
 
             respond([
                 'success' => true,

@@ -1,6 +1,6 @@
 <?php
   // Multi-currency: KPI figures are stored in KIP; convert to the active display currency.
-  $__dc = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo) : ['code'=>'KIP','symbol'=>'₭','decimals'=>0,'rates'=>['KIP'=>1]];
+  $__dc = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo) : ['code'=>'KIP','symbol'=>kipSymbol(),'decimals'=>0,'rates'=>['KIP'=>1]];
   $__sym = $__dc['symbol']; $__dec = (int)$__dc['decimals'];
   if (!function_exists('__kpiNum')) { function __kpiNum($dc,$kip){ return number_format(convertFromKip($kip,$dc['code'],$dc['rates']), (int)$dc['decimals'], '.', ''); } }
 ?>

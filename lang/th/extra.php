@@ -44,7 +44,6 @@ return [
     'promotions.col_code' => 'รหัส',
     'stores.logo_remove_title' => 'ลบรูปโลโก้',
     'stores.branch_own_info_note' => 'ข้อมูลนี้เป็นของสาขานี้โดยเฉพาะ ไม่ปนกับสาขาอื่น',
-    'stores.field_footer_other_hint' => 'ข้อความท้ายบิลภาษาอื่น — ใบเสร็จจะเปลี่ยนตามภาษาที่เลือก (ว่างไว้ = ใช้ภาษาลาว)',
     'suppliers.col_code' => 'รหัส',
     'units.hint_code_locked' => 'รหัสหน่วย (แก้ไขไม่ได้)',
     'units.page_showing' => 'แสดง',

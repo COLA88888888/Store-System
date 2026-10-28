@@ -35,15 +35,15 @@ function shiftA4NowText() {
 function shiftA4DiffText(s) {
   if (s.difference_cash === null) return '-';
   var diff = parseFloat(s.difference_cash) || 0;
-  if (diff > 0) return '+' + formatNumber(diff) + ' ₭ (' + srT('shifts.rpt_over') + ')';
-  if (diff < 0) return formatNumber(diff) + ' ₭ (' + srT('shifts.rpt_short') + ')';
-  return '0 ₭ (' + srT('shifts.rpt_balanced') + ')';
+  if (diff > 0) return '+' + formatNumber(diff) + ' <?php echo kipSymbol(); ?> (' + srT('shifts.rpt_over') + ')';
+  if (diff < 0) return formatNumber(diff) + ' <?php echo kipSymbol(); ?> (' + srT('shifts.rpt_short') + ')';
+  return '0 <?php echo kipSymbol(); ?> (' + srT('shifts.rpt_balanced') + ')';
 }
 
 // ສ້າງ { title, css, body } ຂອງໃບສະຫຼຸບກະ A4 — body ຫໍ່ດ້ວຍ <div class="sa4">
 function buildShiftReportA4(s, bills) {
   var esc = shiftA4Esc;
-  var money = function (v) { return formatNumber(parseFloat(v) || 0) + ' ₭'; };
+  var money = function (v) { return formatNumber(parseFloat(v) || 0) + ' <?php echo kipSymbol(); ?>'; };
 
   var billsTotal = 0;
   var billRows = bills.map(function (b, i) {

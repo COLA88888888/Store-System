@@ -15,7 +15,7 @@ return [
     'home.default_currency_opt' => '-- ຄ່າເລີ່ມຕົ້ນຮ້ານ --',
     'home.default_currency_short' => 'ຄ່າເລີ່ມຕົ້ນ',
     'home.card_total_sales' => 'ຍອດຂາຍທັງໝົດ',
-    'home.card_total_cost' => 'ຕົ້ນທຶນສິນຄ້າທັງໝົດ',
+    'home.card_total_cost' => 'ຕົ້ນທຶນນຳເຂົ້າສິນຄ້າທັງໝົດ',
     'home.card_cogs' => 'ຕົ້ນທຶນການຂາຍ',
     'home.card_total_profit' => 'ກຳໄລທັງໝົດ',
     'home.card_profit_pct' => 'ກຳໄລ %',

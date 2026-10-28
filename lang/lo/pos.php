@@ -207,7 +207,7 @@ return [
     'pos.clear_all_btn' => 'ລ້າງທັງໝົດ',
     'pos.clear_held_done' => 'ລ້າງບິນພັກທັງໝົດແລ້ວ',
     'pos.pager_showing' => 'ສະແດງ %s–%s ຈາກ %s ລາຍການ',
-    'pos.redeem_err_min_spend' => 'ຍອດຊື້ບໍ່ຮອດເງື່ອນໄຂຂອງ "%s" — ຕ້ອງຊື້ຢ່າງໜ້ອຍ %s ₭',
+    'pos.redeem_err_min_spend' => 'ຍອດຊື້ບໍ່ຮອດເງື່ອນໄຂຂອງ "%s" — ຕ້ອງຊື້ຢ່າງໜ້ອຍ %s ກີບ',
     'pos.redeem_min_spend' => 'ຊື້ຂັ້ນຕ່ຳ %s',
     'pos.redeem_buy_more' => 'ຍອດຊື້ບໍ່ພໍ',
     'pos.redeem_dropped' => 'ຍົກເລີກການແລກ "%s" ແລ້ວ — ຍອດຊື້ຕ້ອງຢ່າງໜ້ອຍ %s (ຄະແນນບໍ່ຖືກຕັດ)',

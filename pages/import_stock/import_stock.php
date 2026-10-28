@@ -248,7 +248,7 @@ require_once __DIR__ . '/../../layouts/header.php';
               <!-- Expiry Date -->
               <div class="col-md-2 mb-3 mb-md-0">
                 <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('import_stock.expiry_date_label', 'ວັນໝົດອາຍຸ')); ?></label>
-                <input type="date" id="direct_expiry_date" class="form-control" style="height: 42px; border-radius: 8px;">
+                <input type="date" id="direct_expiry_date" class="form-control font-weight-bold" style="height: 42px; border-radius: 8px; cursor: pointer;">
               </div>
 
               <!-- Add Item Button (buy/sell price are edited inline in the items table below) -->
@@ -267,7 +267,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                 <span class="font-weight-bold text-dark d-block" id="direct_matched_name" style="font-size: 1rem;">-</span>
                 <small class="text-muted">
                    <?php echo htmlspecialchars(t('import_stock.barcode_label', 'ບາໂຄ້ດ:')); ?> <span id="direct_matched_barcode" class="font-weight-bold text-primary mr-2">-</span>
-                   <?php echo htmlspecialchars(t('import_stock.bprice_label', 'ລາຄາຊື້:')); ?> <span id="direct_matched_bprice" class="font-weight-bold text-danger mr-2">0 ₭</span>
+                   <?php echo htmlspecialchars(t('import_stock.bprice_label', 'ລາຄາຊື້:')); ?> <span id="direct_matched_bprice" class="font-weight-bold text-danger mr-2">0 <?php echo kipSymbol(); ?></span>
                    <?php echo htmlspecialchars(t('import_stock.current_stock_label', 'ສະຕັອກປັດຈຸບັນ:')); ?> <span id="direct_matched_stock" class="font-weight-bold text-success">0</span>
                 </small>
               </div>

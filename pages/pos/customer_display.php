@@ -109,12 +109,12 @@ if (empty($cd_bank_accounts) && !empty($company['qr_img'])) {
 // ສະກຸນເງິນທີ່ສະແດງ — ໃຊ້ທັງແຖບຍອດລວມ (page_body.php) ແລະ JS (display_js.php).
 // ຕ້ອງກຳນົດກ່ອນ page_body: ເມື່ອກ່ອນກຳນົດໃນ display_js ທີ່ໂຫຼດທີຫຼັງ → ສັນຍາລັກເງິນຫວ່າງ + warning ໃນ log.
 $cd = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo)
-    : ['code' => 'KIP', 'symbol' => '₭', 'decimals' => 0, 'rate' => 1];
+    : ['code' => 'KIP', 'symbol' => kipSymbol(), 'decimals' => 0, 'rate' => 1];
 
 $base_path = '../../';
 ?>
 <!DOCTYPE html>
-<html lang="lo" translate="no">
+<html lang="<?php echo htmlspecialchars(getCurrentLang()); ?>" translate="no">
 <head>
   <meta charset="utf-8">
   <!-- ບໍ່ໃຫ້ Chrome ຂຶ້ນ "ແປໜ້ານີ້ບໍ?" ທຸກເທື່ອທີ່ເປີດຈໍລູກຄ້າ -->
@@ -141,7 +141,7 @@ $base_path = '../../';
 <body>
 
 <div class="display-wrapper">
-  <button type="button" class="fullscreen-toggle-btn" id="fullscreenToggleBtn" title="ເຕັມຈໍ / ອອກຈາກເຕັມຈໍ">
+  <button type="button" class="fullscreen-toggle-btn" id="fullscreenToggleBtn" title="<?php echo htmlspecialchars(t('cd.fullscreen')); ?>">
     <i class="fas fa-expand" id="fullscreenToggleIcon"></i>
   </button>
 

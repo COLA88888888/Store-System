@@ -148,7 +148,7 @@ require_once __DIR__ . '/partials/reports_modal.php';
   <div class="report-filter-box no-print mb-3.5" style="padding: 12px 16px;">
     <form method="GET" action="delete_bills.php" class="d-flex flex-column flex-md-row align-items-md-end flex-wrap" style="gap: 12px;">
       <!-- Per Page Dropdown -->
-      <div style="flex: 1 1 110px; width: 100%;">
+      <div style="flex: 0 0 120px; width: 120px; max-width: 120px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-layer-group text-primary mr-1"></i> <?php echo htmlspecialchars(t('reports.per_page_label', 'ໂຊລາຍການ:')); ?>
         </label>
@@ -208,7 +208,7 @@ require_once __DIR__ . '/partials/reports_modal.php';
       </div>
 
       <!-- Currency Filter (ສະກຸນເງິນ) -->
-      <div style="flex: 1 1 150px; width: 100%;">
+      <div style="flex: 0 0 140px; width: 140px; max-width: 140px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-coins text-warning mr-1"></i> <?php echo htmlspecialchars(t('reports.currency_label', 'ສະກຸນເງິນ:')); ?>
         </label>

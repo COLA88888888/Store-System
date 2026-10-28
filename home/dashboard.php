@@ -217,6 +217,7 @@ if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSI
 <?php require __DIR__ . '/partials/dashboard/js_language.php'; /* JS: ປ່ຽນພາສາທັນທີ */ ?>
 <?php require __DIR__ . '/partials/dashboard/js_notifications.php'; /* JS: ແຈ້ງເຕືອນ */ ?>
 <?php require __DIR__ . '/partials/dashboard/js_stock_check_notif.php'; /* JS: ແຈ້ງເຕືອນເຊັກສະຕັອກ (ສົ່ງກວດ / ອະນຸມັດແລ້ວ) */ ?>
+<?php require __DIR__ . '/partials/dashboard/js_shift_close_notif.php'; /* JS: ແຈ້ງເຕືອນປິດກະ (ຜູ້ບໍລິຫານ / ຜູ້ຈັດການ) */ ?>
 <?php require __DIR__ . '/partials/dashboard/js_notification_polling.php'; /* JS: ດຶງແຈ້ງເຕືອນແບບ realtime ແລະ ໂມງ */ ?>
   <!-- /.navbar -->
 
@@ -331,9 +332,9 @@ if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSI
   // transfer modals, JS-rendered notification rows). Mirrors the pass in layouts/footer.php;
   // the shell doesn't include that file.
   (function() {
-      var KIP = '₭';
+      var KIP = '<?php echo kipSymbol(); ?>';
       var NBSP = String.fromCharCode(160);
-      var KIP_RE = /(\d)\s+₭/g;
+      var KIP_RE = /(\d)\s+<?php echo kipSymbol(); ?>/g;
       function fixKipInNode(node) {
           var v = node.nodeValue;
           if (!v || v.indexOf(KIP) === -1) return;

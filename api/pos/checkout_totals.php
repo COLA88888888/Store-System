@@ -82,7 +82,7 @@
                     // than the discount itself (same rule the POS applies before redeeming).
                     $rwMinSpend = floatval($rw['min_spend'] ?? 0);
                     if ($subtotal < $rwMinSpend || $subtotal <= floatval($rw['discount_amount'])) {
-                        $redeemFail(sprintf(t('pos.redeem_err_min_spend', 'ຍອດຊື້ບໍ່ຮອດເງື່ອນໄຂຂອງ "%s" — ຕ້ອງຊື້ຢ່າງໜ້ອຍ %s ₭'), $rw['reward_name'], number_format(max($rwMinSpend, floatval($rw['discount_amount']) + 1))));
+                        $redeemFail(sprintf(t('pos.redeem_err_min_spend', 'ຍອດຊື້ບໍ່ຮອດເງື່ອນໄຂຂອງ "%s" — ຕ້ອງຊື້ຢ່າງໜ້ອຍ %s ' . kipSymbol()), $rw['reward_name'], number_format(max($rwMinSpend, floatval($rw['discount_amount']) + 1))));
                     }
                     $discountFromRewards += floatval($rw['discount_amount']) * $times;
                 }
@@ -94,7 +94,7 @@
                 }
             }
             if ($discountFromRewards > 0 && $subtotal <= $discountFromRewards) {
-                $redeemFail(sprintf(t('pos.redeem_err_min_spend', 'ຍອດຊື້ບໍ່ຮອດເງື່ອນໄຂຂອງ "%s" — ຕ້ອງຊື້ຢ່າງໜ້ອຍ %s ₭'), implode(', ', $redeem_notes), number_format($discountFromRewards + 1)));
+                $redeemFail(sprintf(t('pos.redeem_err_min_spend', 'ຍອດຊື້ບໍ່ຮອດເງື່ອນໄຂຂອງ "%s" — ຕ້ອງຊື້ຢ່າງໜ້ອຍ %s ' . kipSymbol()), implode(', ', $redeem_notes), number_format($discountFromRewards + 1)));
             }
             if ($points_redeemed > intval($pointsAvailable)) {
                 $redeemFail(sprintf(t('pos.redeem_err_not_enough', 'ຄະແນນບໍ່ພໍ: ມີ %s ຄະແນນ ແຕ່ຕ້ອງໃຊ້ %s ຄະແນນ'), number_format(intval($pointsAvailable)), number_format($points_redeemed)));
@@ -130,10 +130,11 @@
             exit();
         }
 
-        // Net bill value expressed in the tendered currency (KIP amount / rate).
+        // Net bill value expressed in the tendered currency (KIP amount / rate),
+        // ປັດເປັນຈຳນວນເຕັມ: ບໍ່ກາຍ .50 ປັດລົງ, ກາຍ .50 ປັດຂຶ້ນ (ຄືກັບທີ່ສະແດງໃນໜ້າຂາຍ).
         $paid_amount_foreign = ($paid_currency === 'KIP')
             ? round($net_total, 2)
-            : round($net_total / $paid_rate, 2);
+            : roundForeignUnits($net_total / $paid_rate);
 
         // Generate daily resetting invoice number with branch code (Format: YYYYMMDD-[storeCode]0001)
         // e.g. Branch 1 -> 20261014-10001, Branch 2 -> 20261014-20001

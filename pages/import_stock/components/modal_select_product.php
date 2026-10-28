@@ -88,11 +88,11 @@
                 <th class="text-center"><?php echo htmlspecialchars(t('stock_transfer.psm_col_stock', 'ສະຕັອກ')); ?></th>
                 <th class="text-right"><?php echo htmlspecialchars(t('stock_transfer.psm_col_buy_price', 'ລາຄາຊື້')); ?></th>
                 <th class="text-right"><?php echo htmlspecialchars(t('stock_transfer.psm_col_sell_price', 'ລາຄາຂາຍ')); ?></th>
-                <th class="text-center" style="width: 120px;">
+                <th class="text-center" style="width: 140px;">
                   <div class="custom-control custom-checkbox d-inline-flex align-items-center justify-content-center" title="<?php echo htmlspecialchars(t('stock_transfer.psm_select_all_title', 'ເລືອກທັງໝົດ')); ?>">
                     <input type="checkbox" class="custom-control-input" id="selectAllModalProducts" onchange="toggleSelectAllModalProducts(this.checked)">
                     <label class="custom-control-label font-weight-bold text-dark" for="selectAllModalProducts" style="cursor: pointer; font-size: 0.85rem; user-select: none;">
-                      <?php echo htmlspecialchars(t('stock_transfer.psm_select', 'ເລືອກ')); ?>
+                      <?php echo htmlspecialchars(t('stock_transfer.psm_select_all_title', 'ເລືອກທັງໝົດ')); ?>
                     </label>
                   </div>
                 </th>

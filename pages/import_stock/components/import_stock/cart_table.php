@@ -21,7 +21,7 @@
     });
     $('#cart_total_items').text(cartItems.length);
     $('#cart_total_base').text((grandTotalBase || 0).toLocaleString());
-    $('#cart_grand_total').text((grandTotalCost || 0).toLocaleString() + ' ₭');
+    $('#cart_grand_total').text((grandTotalCost || 0).toLocaleString() + ' <?php echo kipSymbol(); ?>');
     $('#cart_json_input').val(JSON.stringify(cartItems));
   }
 
@@ -41,7 +41,7 @@
       `);
       $('#cart_total_items').text(0);
       $('#cart_total_base').text(0);
-      $('#cart_grand_total').text('0 ₭');
+      $('#cart_grand_total').text('0 <?php echo kipSymbol(); ?>');
       $('#cart_page_start').text(0);
       $('#cart_page_end').text(0);
       $('#cart_page_total').text(0);
@@ -90,7 +90,7 @@
             <input type="text" inputmode="decimal" class="form-control form-control-sm text-right font-weight-bold text-success ml-auto" style="max-width: 120px;" value="${sell.toLocaleString('en-US')}" data-col="sell" onfocus="this.select()" oninput="formatNumberInput(this); updateCartSell(${idx}, this.value)" onkeydown="cartInputKey(event, this)">
           </td>
           <td class="text-right align-middle font-weight-bold text-primary" style="font-size: 1.05rem;" id="cart_line_total_${idx}">
-            ${itemTotalCost.toLocaleString()} ₭
+            ${itemTotalCost.toLocaleString()} <?php echo kipSymbol(); ?>
           </td>
           <td class="text-center align-middle">
             <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCartItem(${idx})" title="${I18N_IMPORT_STOCK['import_stock.js_remove_title']}"><i class="fas fa-trash-alt"></i></button>
@@ -178,7 +178,7 @@
     var item = cartItems[idx];
     if (!item) return;
     var total = (parseInt(item.quantity) || 0) * (parseFloat(item.cost_price) || 0);
-    $('#cart_line_total_' + idx).text(total.toLocaleString() + ' ₭');
+    $('#cart_line_total_' + idx).text(total.toLocaleString() + ' <?php echo kipSymbol(); ?>');
     updateCartTotals();
   }
 

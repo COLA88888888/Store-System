@@ -2,12 +2,13 @@
 /*
  * ສ່ວນ: ແຖບຕົວກອງ ແລະ ປຸ່ມສົ່ງອອກ (ລວມຢູ່ໃນຫົວບັດດຽວ — ເປັນບັອກດຽວ)
  * ສະແກນ, ແຕ່ວັນທີ, ຫາວັນທີ, ຄົ້ນຫາ, ລ້າງຄ່າ ແລະ ປຸ່ມ Excel / PDF / ພິມ.
- * ຖືກ require ຈາກ list_view.php ແລະ history_view.php.
+ * ຖືກ require ຈາກ list_view.php (ໜ້າ "ປະຫວັດ").
  */
 ?>
       <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between flex-wrap" style="gap: 12px;">
         <form method="get" class="sc-filter-form mb-0" style="flex: 1 1 auto;">
-          <?php if ($scView === 'history'): ?><input type="hidden" name="view" value="history"><?php endif; ?>
+          <?php /* ຕ້ອງສົ່ງ view=checks ໄປນຳ — ບໍ່ດັ່ງນັ້ນ backend ເປີດໜ້ານັບສະຕັອກແທນປະຫວັດ */ ?>
+          <input type="hidden" name="view" value="checks">
           <div class="sf-search">
             <div class="input-group" style="flex-wrap: nowrap;">
               <div class="input-group-prepend">
@@ -17,9 +18,9 @@
               </div>
               <input type="text" name="q" id="scFilterScanInput" class="form-control form-control-sm font-weight-bold border-left-0"
                      style="border-radius: 0 8px 8px 0; border-color: #cbd5e1;"
-                     placeholder="<?php echo $scView === 'history' ? t('sc.s194') : t('sc.s195'); ?>"
+                     placeholder="<?php echo $sc('sc.s195'); ?>"
                      value="<?php echo htmlspecialchars($scSearch); ?>"
-                     autocomplete="off" autofocus>
+                     autocomplete="off">
             </div>
           </div>
           <div class="sf-date">
@@ -34,7 +35,7 @@
             <button type="submit" class="btn btn-primary btn-sm font-weight-bold sf-search-btn">
               <i class="fas fa-search mr-1"></i> <?php echo $sc('sc.s198'); ?>
             </button>
-            <a href="stock_check.php<?php echo $scView === 'history' ? '?view=history' : ''; ?>" class="btn btn-light btn-sm border font-weight-bold sf-reset" title="<?php echo $sc('sc.s199'); ?>">
+            <a href="stock_check.php?view=checks" class="btn btn-light btn-sm border font-weight-bold sf-reset" title="<?php echo $sc('sc.s199'); ?>">
               <i class="fas fa-redo"></i>
             </a>
           </div>

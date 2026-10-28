@@ -99,6 +99,7 @@ return [
     'layout.expiry_expired' => '已过期',
     'layout.click_to_expiry' => '点击进入过期商品管理页面',
     'layout.stock_check_list' => '库存盘点',
+    'layout.stock_check_history' => '盘点记录',
     'layout.zones' => '商品区域',
     'layout.shelves' => '商品货架',
     'layout.shifts' => '班次管理',

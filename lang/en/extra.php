@@ -43,7 +43,6 @@ return [
     'promotions.col_code' => 'Code',
     'stores.logo_remove_title' => 'Remove logo',
     'stores.branch_own_info_note' => 'This information belongs to this branch only and is not shared with other branches.',
-    'stores.field_footer_other_hint' => 'Receipt footer in other languages — the receipt follows the selected language (empty = use Lao)',
     'suppliers.col_code' => 'Code',
     'units.hint_code_locked' => 'Unit code (cannot be edited)',
     'units.page_showing' => 'Showing',

@@ -207,7 +207,7 @@ return [
     'pos.clear_all_btn' => '全部清除',
     'pos.clear_held_done' => '已清除所有挂单',
     'pos.pager_showing' => '显示第 %s–%s 条，共 %s 条',
-    'pos.redeem_err_min_spend' => '消费未达到"%s"的条件 — 至少需消费 %s ₭',
+    'pos.redeem_err_min_spend' => '消费未达到"%s"的条件 — 至少需消费 %s 基普',
     'pos.redeem_min_spend' => '最低消费 %s',
     'pos.redeem_buy_more' => '消费不足',
     'pos.redeem_dropped' => '已取消兑换"%s" — 消费至少需 %s（积分未扣除）',

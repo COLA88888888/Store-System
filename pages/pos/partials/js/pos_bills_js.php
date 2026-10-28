@@ -266,7 +266,7 @@ function renderActiveBills() {
           <span class="text-dark font-weight-bold text-truncate" style="max-width: 180px;">• ${i.product_name}</span>
           <span class="text-nowrap">
             <span class="badge badge-light border text-primary font-weight-bold mr-1" style="font-size: 0.86rem;">x${i.quantity}${unitStr}</span>
-            <strong class="text-dark">${window.POSCUR ? POSCUR.fmt(itemTotal) : itemTotal.toLocaleString() + ' ₭'}</strong>
+            <strong class="text-dark">${window.POSCUR ? POSCUR.fmt(itemTotal) : itemTotal.toLocaleString() + ' <?php echo kipSymbol(); ?>'}</strong>
           </span>
         </div>
       `;
@@ -284,7 +284,7 @@ function renderActiveBills() {
             <span class="badge ${isCurrent ? 'badge-primary' : 'badge-secondary'} font-weight-bold mr-1">${activeBillLabel(bill)}</span>
             <span class="small text-muted"><i class="fas fa-clock mr-1"></i>${bill.time}</span>
           </div>
-          <h5 class="font-weight-bold text-success mb-0">${window.POSCUR ? POSCUR.fmt(netTotal) : netTotal.toLocaleString() + ' ₭'}</h5>
+          <h5 class="font-weight-bold text-success mb-0">${window.POSCUR ? POSCUR.fmt(netTotal) : netTotal.toLocaleString() + ' <?php echo kipSymbol(); ?>'}</h5>
         </div>
         <div class="small text-muted mb-1">
           <i class="fas fa-user mr-1"></i> ${posT('pos.receipt_customer')} <strong>${cusName}</strong> |

@@ -210,3 +210,12 @@ a:not(#__z),
         margin-right: 0 !important;
     }
 }
+
+/* ບັອກທີ່ແກ້ໄຂບໍ່ໄດ້ (readonly / disabled) ເປັນສີເທົາທົ່ວລະບົບ — ໃຫ້ເຫັນທັນທີວ່າກົດ/ພິມບໍ່ໄດ້ (ເຊັ່ນ ເລກທີໃບບິນ, ຜູ້ບັນທຶກ).
+   ຊະນະ .bg-white ທີ່ບາງໜ້າໃສ່ໄວ້. ຍົກເວັ້ນບັອກວັນທີໃນຈໍສຳພັດ (.mp-date-touch: readonly ພຽງເພື່ອບໍ່ໃຫ້ແປ້ນພິມເດັ້ງ ແຕ່ຍັງກົດເປີດປະຕິທິນໄດ້) */
+.form-control[readonly]:not(.mp-date-touch):not(#__z),
+.form-control:disabled:not(#__z),
+.custom-select:disabled:not(#__z) {
+    background-color: #e9ecef !important;
+    cursor: not-allowed;
+}

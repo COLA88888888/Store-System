@@ -43,7 +43,7 @@
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_discount_type', 'ປະເພດສ່ວນຫຼຸດ%:')); ?></label>
               <select name="discount_type" class="form-control" style="height: 42px;">
                 <option value="percentage"><?php echo htmlspecialchars(t('promotions.opt_percentage', 'ເປີເຊັນ (%)')); ?></option>
-                <option value="fixed"><?php echo htmlspecialchars(t('promotions.opt_fixed', 'ຈຳນວນເງິນ (₭)')); ?></option>
+                <option value="fixed"><?php echo htmlspecialchars(t('promotions.opt_fixed', 'ຈຳນວນເງິນ (' . kipSymbol() . ')')); ?></option>
               </select>
             </div>
             <div class="col-md-6 mb-3">
@@ -175,7 +175,7 @@
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_discount_type', 'ປະເພດສ່ວນຫຼຸດ%:')); ?></label>
               <select name="discount_type" id="edit_discount_type" class="form-control" style="height: 42px;">
                 <option value="percentage"><?php echo htmlspecialchars(t('promotions.opt_percentage', 'ເປີເຊັນ (%)')); ?></option>
-                <option value="fixed"><?php echo htmlspecialchars(t('promotions.opt_fixed', 'ຈຳນວນເງິນ (₭)')); ?></option>
+                <option value="fixed"><?php echo htmlspecialchars(t('promotions.opt_fixed', 'ຈຳນວນເງິນ (' . kipSymbol() . ')')); ?></option>
               </select>
             </div>
             <div class="col-md-6 mb-3">

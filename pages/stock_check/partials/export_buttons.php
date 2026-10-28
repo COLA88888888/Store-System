@@ -3,7 +3,7 @@
  * ສ່ວນ: ປຸ່ມ Excel / PDF / ພິມ (ແບບດຽວກັບໜ້າລາຍງານ). ຟັງຊັນຢູ່ໃນ export_js.php.
  * $scExpPlace = 'top' (ຄ່າເລີ່ມຕົ້ນ): ຂວາມືຂອງຫົວຕາຕະລາງ — ສະແດງສະເພາະຈໍໃຫຍ່
  *             = 'bottom': ແຖວເຕັມຄວາມກວ້າງ ລຸ່ມສຸດຂອງບັດ — ສະແດງສະເພາະໂທລະສັບ
- * ຖືກ require ຈາກ list_view.php, history_view.php ແລະ count_view.php (ສອງຄັ້ງ: top + bottom).
+ * ຖືກ require ຈາກ list_view.php ແລະ count_view.php (ສອງຄັ້ງ: top + bottom).
  */
 $scExpBottom = (($scExpPlace ?? 'top') === 'bottom');
 $scExpPlace = 'top';   // ຄືນຄ່າເລີ່ມຕົ້ນ ສຳລັບການ require ຄັ້ງຕໍ່ໄປ

@@ -44,7 +44,6 @@ return [
     'promotions.col_code' => '编号',
     'stores.logo_remove_title' => '删除标志',
     'stores.branch_own_info_note' => '此信息仅属于本分店，不与其他分店共用。',
-    'stores.field_footer_other_hint' => '其他语言的小票底部文字 — 小票会跟随所选语言（留空 = 使用老挝语）',
     'suppliers.col_code' => '编号',
     'units.hint_code_locked' => '单位编号（不可修改）',
     'units.page_showing' => '显示',

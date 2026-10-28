@@ -131,7 +131,7 @@
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%); color: #ffffff;">
         <div class="card-body p-3 p-lg-3.5 position-relative overflow-hidden">
           <div class="d-flex justify-content-between align-items-start mb-1.5">
-            <span class="text-white font-weight-bold metric-title"><?php echo htmlspecialchars(t('home.card_total_cost', 'ຕົ້ນທຶນສິນຄ້າທັງໝົດ')); ?></span>
+            <span class="text-white font-weight-bold metric-title"><?php echo htmlspecialchars(t('home.card_total_cost', 'ຕົ້ນທຶນນຳເຂົ້າສິນຄ້າທັງໝົດ')); ?></span>
             <div class="rounded-circle d-flex align-items-center justify-content-center metric-icon-box" style="background: rgba(255,255,255,0.22);">
               <i class="fas fa-boxes text-white metric-icon"></i>
             </div>

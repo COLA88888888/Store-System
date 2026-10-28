@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmt->execute([$thb_rate, $usd_rate, $cny_rate, $username, $myRateStoreId]);
                 $message = t('exchange_rate.msg_save_success', 'ອັບເດດອັດຕາແລກປ່ຽນເງິນສຳເລັດແລ້ວ!');
                 $message_type = 'success';
-                logActivity($pdo, "ອັບເດດອັດຕາແລກປ່ຽນ", "THB: $thb_rate ₭, USD: $usd_rate ₭, CNY: $cny_rate ₭");
+                logActivity($pdo, "ອັບເດດອັດຕາແລກປ່ຽນ", "THB: $thb_rate ກີບ, USD: $usd_rate ກີບ, CNY: $cny_rate ກີບ");
             } catch (Exception $e) {
                 $message = t('exchange_rate.msg_error_prefix', 'ຜິດພາດ: ') . $e->getMessage();
                 $message_type = 'danger';
@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $stmt->execute($params);
                 $message = t('exchange_rate.msg_update_success', 'ດຳເນີນການອັບເດດອັດຕາແລກປ່ຽນສຳເລັດ!');
                 $message_type = 'success';
-                logActivity($pdo, "ແກ້ໄຂອັດຕາແລກປ່ຽນ", "ID: $rate_id, THB: $thb_rate ₭, USD: $usd_rate ₭, CNY: $cny_rate ₭");
+                logActivity($pdo, "ແກ້ໄຂອັດຕາແລກປ່ຽນ", "ID: $rate_id, THB: $thb_rate ກີບ, USD: $usd_rate ກີບ, CNY: $cny_rate ກີບ");
             } catch (Exception $e) {
                 $message = t('exchange_rate.msg_error_prefix', 'ຜິດພາດ: ') . $e->getMessage();
                 $message_type = 'danger';

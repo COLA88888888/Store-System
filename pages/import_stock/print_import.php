@@ -208,7 +208,7 @@ if (!empty($import['notes']) && preg_match('/PO[0-9\-]+/i', $import['notes'], $m
             <th class="c" style="width: 90px;">ໝົດອາຍຸ (EXP)</th>
             <th class="c" style="width: 90px;">ຈຳນວນ</th>
             <th class="r" style="width: 105px;">ຕົ້ນທຶນຕໍ່ໜ່ວຍ</th>
-            <th class="r" style="width: 115px;">ມູນຄ່າລວມ (₭)</th>
+            <th class="r" style="width: 115px;">ມູນຄ່າລວມ (<?php echo kipSymbol(); ?>)</th>
           </tr>
         </thead>
         <tbody>
@@ -276,7 +276,7 @@ if (!empty($import['notes']) && preg_match('/PO[0-9\-]+/i', $import['notes'], $m
         </tr>
         <tr class="grand-total">
           <td class="lbl">ມູນຄ່າລວມທັງໝົດ:</td>
-          <td class="val"><?php echo number_format($grandTotal); ?> ₭</td>
+          <td class="val"><?php echo number_format($grandTotal); ?> <?php echo kipSymbol(); ?></td>
         </tr>
       </table>
     </div>

@@ -111,4 +111,9 @@ return [
     'import_list.js_delete_bill_title' => 'ລົບໃບບິນຮັບເຂົ້າສິນຄ້າ?',
     'import_list.js_delete_bill_text' => 'ທ່ານຕ້ອງການລົບໃບບິນທີ [%s] ທັງໝົດແທ້ບໍ? ສິນຄ້າທັງໝົດໃນໃບບິນນີ້ຈະຖືກປັບຫຼຸດສະຕັອກຄືນ!',
     'import_list.js_export_name' => 'ລາຍການສິນຄ້າຮັບເຂົ້າ',
+    'import_list.all_branches' => 'ທຸກສາຂາ',
+    'import_list.export_date_range' => 'ວັນທີ',
+    'import_list.view_by_bill' => 'ສະແດງຕາມໃບບິນ',
+    'import_list.view_by_item' => 'ສະແດງຕາມລາຍການສິນຄ້າ',
+    'import_list.search_label' => 'ຄົ້ນຫາ:',
 ];

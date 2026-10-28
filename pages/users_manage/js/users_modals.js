@@ -105,8 +105,15 @@ function openEditModal(user) {
 
   document.getElementById('edit_address').value = user.address || '';
   document.getElementById('edit_notes').value = user.notes || '';
-  document.getElementById('edit_password').value = '';
-  document.getElementById('edit_confirm_password').value = '';
+  ['edit_password', 'edit_confirm_password'].forEach(function(pid) {
+    var pEl = document.getElementById(pid);
+    if (pEl) {
+      pEl.type = 'password';
+      pEl.value = '';
+      var ic = pEl.parentElement ? pEl.parentElement.querySelector('button i') : null;
+      if (ic) { ic.className = 'fas fa-eye-slash'; }
+    }
+  });
 
   var editStoreEl = document.getElementById('edit_store_id');
   if (editStoreEl) {

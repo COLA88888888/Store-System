@@ -609,5 +609,5 @@ button.category-pill-btn.active i,
   animation: none !important;
 }
 
-/* Multi-currency symbol emphasis */
-.cur-sym { font-size: 1.28em; font-weight: 800; letter-spacing: 0.5px; }
+/* ຫົວໜ່ວຍເງິນຫຼັງຈຳນວນເງິນ: ຂະໜາດເທົ່າກັບຕົວເລກ (ຄືກັບ assets/css/global-custom/02-components.css) */
+.cur-sym { font-size: 1em; font-weight: inherit; letter-spacing: 0; }

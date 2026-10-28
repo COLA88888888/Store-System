@@ -123,7 +123,7 @@ function getProductPromotion($product, $activePromos, $dispCur = null) {
             $sym = (string)($dispCur['symbol'] ?? $curCode);
             $discountText = 'ຫຼຸດ ' . number_format((float)$amt, $dec, '.', ',') . ' ' . $sym;
         } else {
-            $discountText = 'ຫຼຸດ ' . number_format($discVal) . '₭';
+            $discountText = 'ຫຼຸດ ' . number_format($discVal) . ' ' . kipSymbol();
         }
     }
     $giftText = ($giftName !== '') ? ('ແຖມ ' . $giftName . ($giftQty > 1 ? ' x' . $giftQty : '')) : '';

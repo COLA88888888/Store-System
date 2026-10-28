@@ -225,32 +225,44 @@
     flex-shrink: 0;
     width: 26px;
     height: 26px;
-    border: 1px dashed #cbd5e1;
-    background: #f8fafc;
-    color: #64748b;
+    border: 1.5px dashed #facc15;
+    background: #fefce8;
+    color: #eab308;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
     border-radius: 6px;
-    font-size: 0.80rem;
+    font-size: 0.82rem;
     transition: all 0.15s ease;
 }
+.cart-item-disc-icon-btn i {
+    color: #eab308;
+}
 .cart-item-disc-icon-btn:hover {
-    background: #eff6ff;
-    border-color: #93c5fd;
-    color: #2563eb;
+    background: #fef08a;
+    border-color: #ca8a04;
+    color: #ca8a04;
+}
+.cart-item-disc-icon-btn:hover i {
+    color: #ca8a04;
 }
 .cart-item-disc-icon-btn.active {
-    border: 1px solid #fecaca;
-    background: #fef2f2;
-    color: #dc2626;
+    border: 1.5px solid #f59e0b;
+    background: #fef3c7;
+    color: #d97706;
+}
+.cart-item-disc-icon-btn.active i {
+    color: #d97706;
 }
 .cart-item-disc-icon-btn.active:hover {
-    background: #fee2e2;
-    border-color: #fca5a5;
-    color: #b91c1c;
+    background: #fde68a;
+    border-color: #d97706;
+    color: #b45309;
+}
+.cart-item-disc-icon-btn.active:hover i {
+    color: #b45309;
 }
 
 /* ===== ໂທລະສັບ (< 768px) ===== */

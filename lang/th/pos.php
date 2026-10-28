@@ -207,7 +207,7 @@ return [
     'pos.clear_all_btn' => 'ล้างทั้งหมด',
     'pos.clear_held_done' => 'ล้างบิลที่พักทั้งหมดแล้ว',
     'pos.pager_showing' => 'แสดง %s–%s จาก %s รายการ',
-    'pos.redeem_err_min_spend' => 'ยอดซื้อไม่ถึงเงื่อนไขของ "%s" — ต้องซื้ออย่างน้อย %s ₭',
+    'pos.redeem_err_min_spend' => 'ยอดซื้อไม่ถึงเงื่อนไขของ "%s" — ต้องซื้ออย่างน้อย %s กีบ',
     'pos.redeem_min_spend' => 'ซื้อขั้นต่ำ %s',
     'pos.redeem_buy_more' => 'ยอดซื้อไม่พอ',
     'pos.redeem_dropped' => 'ยกเลิกการแลก "%s" แล้ว — ยอดซื้อต้องอย่างน้อย %s (คะแนนไม่ถูกหัก)',

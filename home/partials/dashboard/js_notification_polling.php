@@ -56,6 +56,9 @@
           // ເຊັກສະຕັອກ: ສົ່ງມາກວດ (ຫົວໜ້າ) / ອະນຸມັດແລ້ວ (ພະນັກງານ) — js_stock_check_notif.php
           unreadCount += countUnreadStockChecks(res.stock_checks, readKeys);
           toastNewStockChecks(res.stock_checks, badgeId);
+          // ປິດກະ (ຜູ້ບໍລິຫານ/ຜູ້ຈັດການ) — js_shift_close_notif.php
+          unreadCount += countUnreadShiftCloses(res.shift_closes, readKeys);
+          toastNewShiftCloses(res.shift_closes, badgeId);
 
           if (lastUnreadCount[badgeId] !== -1 && unreadCount > lastUnreadCount[badgeId]) {
             playNotificationSound();
@@ -85,6 +88,7 @@
             if (bodyEl.length > 0) {
               var html = buildAccessWarningNotifHtml();
               html += buildStockCheckNotifHtml(res.stock_checks, 'mainNotifBadge', readKeys, true);
+              html += buildShiftCloseNotifHtml(res.shift_closes, 'mainNotifBadge', readKeys, true);
 
               // 0. Near-expiry / expired products (all branches, so prefix the branch name)
               html += buildExpiryNotifHtml(res.expiry_list, true);
@@ -109,7 +113,7 @@
                   html += '</div>';
                   html += '<div class="d-flex align-items-center justify-content-between text-muted" style="font-size: 0.76rem;">';
                   html += '<span><i class="fas fa-user-tag text-info mr-1"></i> ' + (imp.creator_name || 'Admin') + '</span>';
-                  html += '<span class="font-weight-bold text-success"><i class="fas fa-coins mr-1"></i> ' + costVal.toLocaleString() + ' ₭</span>';
+                  html += '<span class="font-weight-bold text-success"><i class="fas fa-coins mr-1"></i> ' + costVal.toLocaleString() + ' <?php echo kipSymbol(); ?></span>';
                   html += '</div>';
                   html += '</div>';
                 });
@@ -152,6 +156,7 @@
               var currentStoreId = <?php echo intval($_SESSION['store_id'] ?? 1); ?>;
               var html = buildAccessWarningNotifHtml();
               html += buildStockCheckNotifHtml(res.stock_checks, 'subNotifBadge', readKeys, false);
+              html += buildShiftCloseNotifHtml(res.shift_closes, 'subNotifBadge', readKeys, false);
 
               html += buildExpiryNotifHtml(res.sub_expiry, false);
 
@@ -182,7 +187,7 @@
                   html += '<span class="badge badge-info font-weight-bold" style="font-size: 0.72rem;">' + (trf.total_items || 1) + ' ' + I18N_LAYOUT['layout.items_unit'] + '</span>';
                   html += '</div>';
                   html += '</div>';
-                  html += '<div class="text-success font-weight-bold mt-1" style="font-size: 0.78rem;"><i class="fas fa-coins mr-1"></i> ' + trfValue.toLocaleString() + ' ₭</div>';
+                  html += '<div class="text-success font-weight-bold mt-1" style="font-size: 0.78rem;"><i class="fas fa-coins mr-1"></i> ' + trfValue.toLocaleString() + ' <?php echo kipSymbol(); ?></div>';
                   html += '</div>';
                 });
               }
@@ -226,7 +231,7 @@
                   html += '<span class="text-dark font-weight-bold text-truncate" style="font-size: 0.82rem;" title="' + (np.product_name || '') + '">' + (np.product_name || '') + '</span>';
                   html += '</div>';
                   html += '<div class="text-nowrap flex-shrink-0">';
-                  html += '<span class="badge badge-light border text-dark font-weight-bold" style="font-size: 0.76rem;">' + (parseInt(np.price || 0).toLocaleString()) + ' ₭</span>';
+                  html += '<span class="badge badge-light border text-dark font-weight-bold" style="font-size: 0.76rem;">' + (parseInt(np.price || 0).toLocaleString()) + ' <?php echo kipSymbol(); ?></span>';
                   html += '</div>';
                   html += '</div>';
                 });

@@ -86,7 +86,7 @@ return [
     'reports.col_price'              => 'ราคา',
     'reports.col_gross'              => 'ราคารวม',
     'reports.col_net'                => 'สุทธิ',
-    'reports.col_total_kip'          => 'รวม (₭)',
+    'reports.col_total_kip'          => 'รวม (กีบ)',
     'reports.col_total_amount'       => 'รวมเป็นเงิน',
     'reports.col_total_money'        => 'ยอดรวม',
     'reports.col_employee'           => 'พนักงาน',

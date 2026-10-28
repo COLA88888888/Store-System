@@ -15,7 +15,7 @@ return [
     'home.default_currency_opt' => '-- Store default --',
     'home.default_currency_short' => 'Default',
     'home.card_total_sales' => 'Total Sales',
-    'home.card_total_cost' => 'Total Goods Cost',
+    'home.card_total_cost' => 'Total Import Cost',
     'home.card_cogs' => 'Cost of Sales',
     'home.card_total_profit' => 'Total Profit',
     'home.card_profit_pct' => 'Profit %',

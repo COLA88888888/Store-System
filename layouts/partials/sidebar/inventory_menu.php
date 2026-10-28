@@ -63,21 +63,29 @@
               </p>
             </a>
             <ul class="nav nav-treeview">
-              <!-- Sub-menu 1: ເຊັກສະຕັອກ -->
+              <!-- Sub-menu 1: ນັບສະຕັອກ (ນັບ → ປັບສະຕັອກໃຫ້ຕົງ) -->
               <li class="nav-item"<?php echo permMenuAttr('stock_check', 'stock_count'); ?>>
                 <a href="<?php echo $bp; ?>pages/stock_check/stock_check.php" target="frame" class="nav-link">
                   <i class="nav-icon fas fa-clipboard-list text-success"></i>
-                  <p data-i18n="layout.stock_check_list"><?php echo htmlspecialchars(t('layout.stock_check_list', 'ເຊັກສະຕັອກ')); ?></p>
+                  <p data-i18n="layout.stock_check_list"><?php echo htmlspecialchars(t('layout.stock_check_list', 'ນັບສະຕັອກ')); ?></p>
                 </a>
               </li>
-              <!-- Sub-menu 2: ໂຊນສິນຄ້າ -->
+              <!-- Sub-menu 2: ປະຫວັດການນັບສະຕັອກ (ໃຜນັບ ໃຜປັບ ເວລາໃດ) -->
+              <li class="nav-item"<?php echo permMenuAttr('stock_check', 'stock_count'); ?>>
+                <?php /* data-active-when: ໄຮໄລ້ເມນູນີ້ທັງໜ້າປະຫວັດ ແລະ ລະອຽດຂອງໃບທີ່ເປີດຈາກປະຫວັດ (home/partials/dashboard/js_layout.php) */ ?>
+                <a href="<?php echo $bp; ?>pages/stock_check/stock_check.php?view=checks" data-active-when="view=checks|from=history" target="frame" class="nav-link">
+                  <i class="nav-icon fas fa-history text-warning"></i>
+                  <p data-i18n="layout.stock_check_history"><?php echo htmlspecialchars(t('layout.stock_check_history', 'ປະຫວັດການນັບສະຕັອກ')); ?></p>
+                </a>
+              </li>
+              <!-- Sub-menu 3: ໂຊນສິນຄ້າ -->
               <li class="nav-item"<?php echo permMenuAttr('stock_check', 'stock_count'); ?>>
                 <a href="<?php echo $bp; ?>pages/stock_check/zones.php" target="frame" class="nav-link">
                   <i class="nav-icon fas fa-map-marker-alt text-primary"></i>
                   <p data-i18n="layout.zones"><?php echo htmlspecialchars(t('layout.zones', 'ໂຊນສິນຄ້າ')); ?></p>
                 </a>
               </li>
-              <!-- Sub-menu 3: ຊັ້ນວາງສິນຄ້າ -->
+              <!-- Sub-menu 4: ຊັ້ນວາງສິນຄ້າ -->
               <li class="nav-item"<?php echo permMenuAttr('stock_check', 'stock_count'); ?>>
                 <a href="<?php echo $bp; ?>pages/stock_check/shelves.php" target="frame" class="nav-link">
                   <i class="nav-icon fas fa-layer-group text-info"></i>

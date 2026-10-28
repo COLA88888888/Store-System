@@ -7,8 +7,6 @@ if (!isset($base_path)) {
     <script src="<?php echo $base_path; ?>dist/js/adminlte.js"></script>
     <!-- Select2 JS -->
     <script src="<?php echo $base_path; ?>plugins/select2/js/select2.full.min.js"></script>
-    <!-- Flatpickr Lao Datepicker JS -->
-    <script src="<?php echo $base_path; ?>assets/js/flatpickr.min.js"></script>
     <!-- Fallback: the date picker normally loads in <head> (layouts/header.php); load it here if it did not -->
     <script>
       if (!window.miniposDatePicker) {
@@ -36,15 +34,37 @@ if (!isset($base_path)) {
       // so a narrow column can drop the symbol to its own line. Replace the whitespace between
       // a digit and the kip sign with a non-breaking space, and keep doing it for content
       // rendered later (POS cart, AJAX tables, count-up animations, modals).
+      // ຫົວໜ່ວຍ "ກີບ / Kip" ຫຼັງຕົວເລກ ຖືກຫໍ່ດ້ວຍ <span class="cur-sym"> ເພື່ອໃຫ້ຟອນນ້ອຍກວ່າຈຳນວນເງິນ
+      // (ຂະໜາດຢູ່ assets/css/global-custom/02-components.css) — ທຸກໜ້າ ໂດຍບໍ່ຕ້ອງແກ້ແຕ່ລະບ່ອນ.
       (function() {
-          var KIP = '₭';
+          var KIP = <?php echo json_encode(kipSymbol(), JSON_UNESCAPED_UNICODE); ?>;
           var NBSP = String.fromCharCode(160);
-          var KIP_RE = /(\d)\s+₭/g;
+          var KIP_RE = new RegExp('(\\d)\\s*' + KIP, 'g');
+          // ບ່ອນທີ່ຫໍ່ span ບໍ່ໄດ້ ຫຼື ບໍ່ຄວນ: ພຽງແຕ່ຕິດ NBSP ຄືເກົ່າ
+          var NO_WRAP = '.cur-sym, .metric-currency, option, select, svg, [contenteditable]';
           function fixKipInNode(node) {
               var v = node.nodeValue;
-              if (!v || v.indexOf(KIP) === -1) return;
-              var next = v.replace(KIP_RE, '$1' + NBSP + KIP);
-              if (next !== v) node.nodeValue = next;
+              var p = node.parentNode;
+              if (!v || !p || v.indexOf(KIP) === -1) return;
+              KIP_RE.lastIndex = 0;
+              if (!KIP_RE.test(v)) return;
+              if (p.nodeType !== 1 || (p.closest && p.closest(NO_WRAP))) {
+                  var next = v.replace(KIP_RE, '$1' + NBSP + KIP);
+                  if (next !== v) node.nodeValue = next;
+                  return;
+              }
+              var frag = document.createDocumentFragment(), last = 0, m;
+              KIP_RE.lastIndex = 0;
+              while ((m = KIP_RE.exec(v))) {
+                  frag.appendChild(document.createTextNode(v.slice(last, m.index + 1) + NBSP));
+                  var sym = document.createElement('span');
+                  sym.className = 'cur-sym';
+                  sym.textContent = KIP;
+                  frag.appendChild(sym);
+                  last = KIP_RE.lastIndex;
+              }
+              if (last < v.length) frag.appendChild(document.createTextNode(v.slice(last)));
+              p.replaceChild(frag, node);
           }
           function walkAndFix(root) {
               if (!root) return;
@@ -53,8 +73,10 @@ if (!isset($base_path)) {
               var tag = root.tagName;
               if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEXTAREA') return;
               var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
-              var n;
-              while ((n = walker.nextNode())) fixKipInNode(n);
+              var n, found = [];
+              // ເກັບກ່ອນແລ້ວຈຶ່ງແກ້: ການແທນ node ລະຫວ່າງເດີນ walker ຈະເຮັດໃຫ້ມັນຫຼົງທາງ
+              while ((n = walker.nextNode())) if (n.nodeValue.indexOf(KIP) !== -1) found.push(n);
+              for (var i = 0; i < found.length; i++) fixKipInNode(found[i]);
           }
           function boot() {
               walkAndFix(document.body);

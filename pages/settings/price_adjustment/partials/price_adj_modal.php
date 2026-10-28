@@ -96,11 +96,11 @@
           <div class="row" id="old_prices_display" style="display: flex;">
             <div class="col-md-6 mb-3">
               <label class="font-weight-bold text-muted small mb-1"><?php echo htmlspecialchars(t('price_adjustment.label_old_bprice', 'ລາຄາຊື້ເກົ່າ:')); ?></label>
-              <input type="text" id="cur_bprice" class="form-control bg-light text-right" readonly placeholder="0 ₭" style="height: 42px;">
+              <input type="text" id="cur_bprice" class="form-control bg-light text-right" readonly placeholder="0 <?php echo kipSymbol(); ?>" style="height: 42px;">
             </div>
             <div class="col-md-6 mb-3">
               <label class="font-weight-bold text-muted small mb-1"><?php echo htmlspecialchars(t('price_adjustment.label_old_price', 'ລາຄາຂາຍເກົ່າ:')); ?></label>
-              <input type="text" id="cur_price" class="form-control bg-light text-right font-weight-bold text-primary" readonly placeholder="0 ₭" style="height: 42px;">
+              <input type="text" id="cur_price" class="form-control bg-light text-right font-weight-bold text-primary" readonly placeholder="0 <?php echo kipSymbol(); ?>" style="height: 42px;">
             </div>
           </div>
 
@@ -131,7 +131,7 @@
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('price_adjustment.label_adjust_value', 'ຈຳນວນເງິນປັບ:')); ?> <span class="text-danger">*</span></label>
               <div class="input-group">
                 <input type="text" inputmode="decimal" name="adjust_value" id="adjust_value" class="form-control font-weight-bold text-danger text-right" placeholder="0" required style="height: 42px;" oninput="formatNumberInput(this)">
-                <div class="input-group-append"><span class="input-group-text font-weight-bold">₭</span></div>
+                <div class="input-group-append"><span class="input-group-text font-weight-bold"><?php echo kipSymbol(); ?></span></div>
               </div>
             </div>
 

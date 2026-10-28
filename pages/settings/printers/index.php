@@ -410,7 +410,7 @@ function prnConfirmSubmit(form, text, danger) {
       ? <?php echo json_encode(t('printers.confirm_delete_btn', 'ລົບເລີຍ'), JSON_UNESCAPED_UNICODE); ?>
       : <?php echo json_encode(t('printers.confirm_ok_btn', 'ຕົກລົງ'), JSON_UNESCAPED_UNICODE); ?>,
     cancelButtonText: <?php echo json_encode(t('printers.cancel', 'ຍົກເລີກ'), JSON_UNESCAPED_UNICODE); ?>,
-    reverseButtons: true
+    reverseButtons: false
   }).then(function (r) { if (r.isConfirmed) form.submit(); });
   return false;
 }

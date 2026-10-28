@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $pdo->commit();
                 $message = sprintf(t('import_stock.msg_bill_success', 'ບັນທຶກໃບບິນຮັບສິນຄ້າເຂົ້າເລກທີ %s ສຳເລັດ (ລວມ %s ລາຍການ)!'), $invoice_number, $insertedCount);
                 $message_type = 'success';
-                logActivity($pdo, "ຮັບສິນຄ້າເຂົ້າ (ໃບບິນ)", "ໃບບິນ: $invoice_number, $insertedCount ລາຍການ, ລວມ: " . number_format($total_bill_cost) . " ₭");
+                logActivity($pdo, "ຮັບສິນຄ້າເຂົ້າ (ໃບບິນ)", "ໃບບິນ: $invoice_number, $insertedCount ລາຍການ, ລວມ: " . number_format($total_bill_cost) . " " . kipSymbol());
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
                 $message = t('import_stock.err_prefix', 'ຜິດພາດ: ') . $e->getMessage();

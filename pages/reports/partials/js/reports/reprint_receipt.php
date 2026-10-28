@@ -169,11 +169,12 @@
       }
       priceHtml = '<span style="font-weight:bold; color:#059669;">' + fmt(0) + ' (' + rpT('pos.receipt_free_gift') + ')</span>';
     } else if (origUnitPrice > curUnitPrice && curUnitPrice >= 0) {
-      priceHtml = '<del style="color:#64748b; font-size:0.85em;">' + fmt(origUnitPrice * qty) + '</del><br><span style="font-weight:bold;">' + fmt(totalAmt) + '</span>';
+      // ລາຄາຫຼັງສ່ວນຫຼຸດ: ຂະໜາດ/ນ້ຳໜັກດຽວກັບລາຄາແຖວອື່ນ (ຄືກັບບິນຕອນຂາຍ — receipt_ui.php)
+      priceHtml = '<del style="color:#64748b; font-size:0.85em;">' + fmt(origUnitPrice * qty) + '</del><br><span>' + fmt(totalAmt) + '</span>';
     } else {
       priceHtml = fmt(totalAmt);
     }
-    var unitVal = REP_CUR.isKip ? Math.round(curUnitPrice) : (curUnitPrice / REP_CUR.rate);
+    var unitVal = REP_CUR.isKip ? Math.round(curUnitPrice) : Math.ceil(Math.round(curUnitPrice / REP_CUR.rate * 1e6) / 1e6);
     var unitPriceTxt = unitVal.toLocaleString('en-US', { minimumFractionDigits: REP_CUR.decimals, maximumFractionDigits: REP_CUR.decimals });
     var unitSubHtml = '<div style="color:#000;">' + unitPriceTxt + ' x ' + qty + '</div>';
     tbody.append(
@@ -258,7 +259,7 @@ function printReportReceiptHtml(printContent) {
       @font-face { font-family: 'Receipt Latin'; src: url('../../assets/fonts/NotoSans-Latin-400.woff2') format('woff2'); font-weight: 400; size-adjust: 90%; unicode-range: U+0041-005A, U+0061-007A, U+00C0-024F; }
       @font-face { font-family: 'Receipt Latin'; src: url('../../assets/fonts/NotoSans-Latin-700.woff2') format('woff2'); font-weight: 700; }
       @font-face { font-family: 'Receipt Latin'; src: url('../../assets/fonts/NotoSans-Latin-700.woff2') format('woff2'); font-weight: 700; size-adjust: 90%; unicode-range: U+0041-005A, U+0061-007A, U+00C0-024F; }
-      * { box-sizing: border-box; font-family: 'Receipt Latin', 'Noto Sans Lao Local', 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif !important; color: #000 !important; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+      * { box-sizing: border-box; font-family: 'Nuanta', 'Receipt Latin', 'Noto Sans Lao Local', 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif !important; color: #000 !important; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
       html, body { width: 80mm; margin: 0 auto; padding: 8px 6px; background: #fff; color: #000 !important; font-size: 17px; font-weight: 400; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       /* No Bootstrap in this iframe — without this, headings keep the browser's default
          ~2.33em top margin and push the shop name far below the logo. */

@@ -14,18 +14,19 @@
       <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;">
         <i class="fas fa-check-circle" style="font-size:2.2rem;color:#16a34a;line-height:1;"></i>
         <h2 style="font-size:1.85rem;font-weight:800;color:#0f172a;margin:0;line-height:1.2;">
-          ຊຳລະເງິນສຳເລັດ
+          <?php echo htmlspecialchars(t('cd.pay_success')); ?>
         </h2>
       </div>
 
       <!-- 2. ຈຳນວນເງິນທີ່ຊຳລະ (ມຸມ 4px) -->
       <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:4px;padding:16px 20px;margin-bottom:14px;text-align:center;">
         <div style="font-size:0.92rem;color:#475569;font-weight:700;margin-bottom:4px;">
-          ຈຳນວນເງິນທີ່ຊຳລະ
+          <?php echo htmlspecialchars(t('cd.amount_paid')); ?>
         </div>
         <div id="paySuccessAmount" style="font-size:2.85rem;font-weight:900;color:#15803d;line-height:1.12;word-break:break-all;">
-          0 ₭
+          0 <?php echo kipSymbol(); ?>
         </div>
+        <div id="paySuccessAmountKip" style="display:none;font-size:1.35rem;color:#64748b;font-weight:800;margin-top:4px;"></div>
       </div>
 
       <!-- 3. ຊ່ອງທາງການຊຳລະ & ທະນາຄານ (ໄອຄອນ ແລະ ທະນາຄານ ບໍ່ມີກາດຫຸ້ມ) -->
@@ -34,7 +35,7 @@
           <span id="paySuccessMethodIcon" style="font-size:1.05rem;display:inline-flex;align-items:center;">
             <i class="fas fa-money-bill-wave text-success"></i>
           </span>
-          <span id="paySuccessMethodText" style="color:#334155;">ຊຳລະດ້ວຍ: ເງິນສົດ</span>
+          <span id="paySuccessMethodText" style="color:#334155;"><?php echo htmlspecialchars(t('cd.paid_by_cash')); ?></span>
         </div>
         <div id="paySuccessBankWrap" style="display:none;align-items:center;gap:7px;">
           <img id="paySuccessBankLogo" src="" alt="" style="width:22px;height:22px;object-fit:contain;display:none;" onerror="this.style.display='none'">
@@ -48,35 +49,35 @@
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;" id="paySuccessCashRow">
           <span style="color:#475569;font-weight:700;display:inline-flex;align-items:center;gap:8px;">
             <i class="fas fa-money-bill-wave" style="color:#16a34a;width:18px;text-align:center;"></i>
-            <span>ຮັບເງິນສົດ</span>
+            <span><?php echo htmlspecialchars(t('cd.cash_received')); ?></span>
           </span>
-          <span id="paySuccessCashAmt" style="font-weight:800;color:#0f172a;font-size:1.1rem;">0 ₭</span>
+          <span id="paySuccessCashAmt" style="font-weight:800;color:#0f172a;font-size:1.1rem;">0 <?php echo kipSymbol(); ?></span>
         </div>
         <!-- QR Transfer Row -->
         <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;" id="paySuccessQrRow">
           <span style="color:#475569;font-weight:700;display:inline-flex;align-items:center;gap:8px;">
             <i class="fas fa-qrcode" style="color:#0284c7;width:18px;text-align:center;"></i>
-            <span>ຮັບເງິນໂອນ <span id="paySuccessQrBankInline" style="color:#0284c7;font-weight:700;"></span></span>
+            <span><?php echo htmlspecialchars(t('cd.transfer_received')); ?> <span id="paySuccessQrBankInline" style="color:#0284c7;font-weight:700;"></span></span>
           </span>
-          <span id="paySuccessQrAmt" style="font-weight:800;color:#0f172a;font-size:1.1rem;">0 ₭</span>
+          <span id="paySuccessQrAmt" style="font-weight:800;color:#0f172a;font-size:1.1rem;">0 <?php echo kipSymbol(); ?></span>
         </div>
         <!-- Change Row (ສະແດງສະເພາະເມື່ອມີເງິນທອນ > 0) -->
         <div style="display:none;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px dashed #cbd5e1;" id="paySuccessChangeRow">
           <span style="color:#475569;font-weight:700;display:inline-flex;align-items:center;gap:8px;">
             <i class="fas fa-hand-holding-usd" style="color:#d97706;width:18px;text-align:center;"></i>
-            <span>ເງິນທອນ</span>
+            <span><?php echo htmlspecialchars(t('cd.change')); ?></span>
           </span>
-          <span id="paySuccessChange" style="font-weight:900;color:#16a34a;font-size:1.18rem;">0 ₭</span>
+          <span id="paySuccessChange" style="font-weight:900;color:#16a34a;font-size:1.18rem;">0 <?php echo kipSymbol(); ?></span>
         </div>
       </div>
 
       <!-- 5. Footer: ເລກທີໃບບິນ & ເວລາ 24 ຊົ່ວໂມງ (ບໍ່ມີກາດຫຸ້ມ) -->
       <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.88rem;color:#64748b;font-weight:600;padding:0 4px;">
-        <span id="paySuccessInvoiceNo">ເລກທີໃບບິນ: -</span>
+        <span id="paySuccessInvoiceNo"><?php echo htmlspecialchars(t('cd.invoice_no')); ?> -</span>
         <div style="display:inline-flex;align-items:center;gap:12px;">
           <span id="paySuccessTimeText" style="color:#64748b;">00:00:00</span>
           <span id="paySuccessQueueBadge" style="display:none;color:#1d4ed8;font-weight:800;">
-            ຄິວທີ: <strong id="paySuccessQueueNo"></strong>
+            <?php echo htmlspecialchars(t('cd.queue_no')); ?> <strong id="paySuccessQueueNo"></strong>
           </span>
         </div>
       </div>
@@ -92,9 +93,9 @@
   <!-- Queue-number flash (coffee-shop style) — shown briefly on payment success -->
   <div id="queueFlash" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(15,23,42,0.94);
        flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;">
-    <div style="font-size:2rem;font-weight:700;letter-spacing:2px;color:#93c5fd;">ບັດຄິວທີ</div>
+    <div style="font-size:2rem;font-weight:700;letter-spacing:2px;color:#93c5fd;"><?php echo htmlspecialchars(t('cd.queue_ticket')); ?></div>
     <div id="queueFlashNo" style="font-size:26vh;font-weight:900;line-height:1;text-shadow:0 8px 30px rgba(0,0,0,0.5);">0</div>
-    <div style="font-size:1.6rem;font-weight:700;color:#cbd5e1;margin-top:10px;">ຂອບໃຈທີ່ມາອຸດໜູນ</div>
+    <div style="font-size:1.6rem;font-weight:700;color:#cbd5e1;margin-top:10px;"><?php echo htmlspecialchars(t('cd.thank_you')); ?></div>
   </div>
 
   <!-- QR ທະນາຄານທີ່ພະນັກງານເລືອກຊຳລະ — ເດັ້ງຂຶ້ນຕອນໂອນ/ແຍກຈ່າຍ (renderDisplayData ໃນ display_js.php) -->
@@ -111,9 +112,10 @@
         <span class="qr-corner qr-corner-br"></span>
         <img id="bppQr" class="bpp-qr" src="" alt="QR" onerror="this.style.visibility='hidden'">
       </div>
-      <div class="bpp-amount-label">ຈຳນວນເງິນທີ່ຕ້ອງໂອນ</div>
+      <div class="bpp-amount-label"><?php echo htmlspecialchars(t('cd.amount_to_transfer')); ?></div>
       <div class="bpp-amount" id="bppAmount">0</div>
-      <div class="bpp-hint"><i class="fas fa-mobile-alt"></i> ສະແກນ QR ດ້ວຍແອັບທະນາຄານ</div>
+      <div class="bpp-amount-kip" id="bppAmountKip" style="display:none;"></div>
+      <div class="bpp-hint"><i class="fas fa-mobile-alt"></i> <?php echo htmlspecialchars(t('cd.scan_qr_hint')); ?></div>
     </div>
   </div>
 
@@ -175,32 +177,32 @@
       <!-- Order Items Table -->
       <div class="cart-card">
         <div class="display-table-body">
-          <table class="w-100 border-0 mb-0 display-cols-table">
+          <table class="w-100 border-0 mb-0 display-cols-table" style="width: 100% !important; table-layout: fixed;">
             <!-- ຖັນຊື່ສິນຄ້າກວ້າງສຸດ ໃຫ້ຊື່ຍາວຢູ່ 1–2 ແຖວ ພ້ອມຫົວໜ່ວຍ -->
             <colgroup>
               <col style="width: 7%;">
-              <col style="width: 12%;">
-              <col style="width: 41%;">
-              <col style="width: 11%;">
-              <col style="width: 14%;">
+              <col style="width: 10%;">
+              <col style="width: 42%;">
+              <col style="width: 10%;">
               <col style="width: 15%;">
+              <col style="width: 16%;">
             </colgroup>
             <thead class="display-table-head">
               <tr>
-                <th class="text-center" style="white-space: nowrap; text-align: center !important;">ລຳດັບ</th>
-                <th class="text-center" style="white-space: nowrap; text-align: center !important;">ຮູບສິນຄ້າ</th>
-                <th class="text-left" style="white-space: nowrap; text-align: left !important; padding-left: 14px !important;">ລາຍການສິນຄ້າ</th>
-                <th class="text-center" style="white-space: nowrap; text-align: center !important;">ຈຳນວນ</th>
-                <th class="text-center" style="white-space: nowrap; text-align: center !important;">ລາຄາ</th>
-                <th class="text-center" style="white-space: nowrap; text-align: center !important;">ລວມ</th>
+                <th class="text-center" style="white-space: nowrap; text-align: center !important;"><?php echo htmlspecialchars(t('cd.col_no')); ?></th>
+                <th class="text-center" style="white-space: nowrap; text-align: center !important;"><?php echo htmlspecialchars(t('cd.col_image')); ?></th>
+                <th class="text-left" style="white-space: nowrap; text-align: left !important; padding-left: 10px !important;"><?php echo htmlspecialchars(t('cd.col_item')); ?></th>
+                <th class="text-center" style="white-space: nowrap; text-align: center !important;"><?php echo htmlspecialchars(t('cd.col_qty')); ?></th>
+                <th class="text-center" style="white-space: nowrap; text-align: center !important;"><?php echo htmlspecialchars(t('cd.col_price')); ?></th>
+                <th class="text-center" style="white-space: nowrap; text-align: center !important;"><?php echo htmlspecialchars(t('cd.col_total')); ?></th>
               </tr>
             </thead>
             <tbody id="displayCartBody"></tbody>
           </table>
           <div class="display-cart-empty" id="displayCartEmpty">
             <i class="fas fa-shopping-basket"></i>
-            <h4>ຍັງບໍ່ມີລາຍການສິນຄ້າ</h4>
-            <p>ກະລຸນາລໍຖ້າພະນັກງານສະແກນ ຫຼື ເລືອກສິນຄ້າ...</p>
+            <h4><?php echo htmlspecialchars(t('cd.empty_title')); ?></h4>
+            <p><?php echo htmlspecialchars(t('cd.empty_hint')); ?></p>
           </div>
         </div>
       </div>
@@ -213,34 +215,35 @@
   <div class="grand-total-banner">
     <div class="gt-substats">
       <div class="gt-substat">
-        <span class="gt-substat-label"><i class="fas fa-boxes"></i> ລາຍການສິນຄ້າ</span>
-        <span class="gt-substat-value" id="displayItemCount">0 ລາຍການ / 0 ອັນ</span>
+        <span class="gt-substat-label"><i class="fas fa-boxes"></i> <?php echo htmlspecialchars(t('cd.items')); ?></span>
+        <span class="gt-substat-value" id="displayItemCount">0 <?php echo htmlspecialchars(t('cd.lines')); ?> / 0 <?php echo htmlspecialchars(t('cd.pieces')); ?></span>
       </div>
       <div class="gt-substat">
-        <span class="gt-substat-label"><i class="fas fa-calculator"></i> ຍອດລວມ</span>
+        <span class="gt-substat-label"><i class="fas fa-calculator"></i> <?php echo htmlspecialchars(t('cd.subtotal')); ?></span>
         <span class="gt-substat-value" id="displaySubtotal">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
       </div>
       <div class="gt-substat">
-        <span class="gt-substat-label"><i class="fas fa-percent"></i> ສ່ວນຫຼຸດ</span>
+        <span class="gt-substat-label"><i class="fas fa-percent"></i> <?php echo htmlspecialchars(t('cd.discount')); ?></span>
         <span class="gt-substat-value" id="displayDiscount">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
       </div>
       <div class="gt-substat">
-        <span class="gt-substat-label"><i class="fas fa-qrcode"></i> ຮັບເງິນໂອນ</span>
+        <span class="gt-substat-label"><i class="fas fa-qrcode"></i> <?php echo htmlspecialchars(t('cd.transfer_received')); ?></span>
         <span class="gt-substat-value" id="displayQrReceived">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
       </div>
       <div class="gt-substat">
-        <span class="gt-substat-label"><i class="fas fa-money-bill-wave"></i> ຮັບເງິນສົດ</span>
+        <span class="gt-substat-label"><i class="fas fa-money-bill-wave"></i> <?php echo htmlspecialchars(t('cd.cash_received')); ?></span>
         <span class="gt-substat-value" id="displayCashReceived">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
       </div>
       <div class="gt-substat">
-        <span class="gt-substat-label"><i class="fas fa-hand-holding-usd"></i> ເງິນທອນ</span>
+        <span class="gt-substat-label"><i class="fas fa-hand-holding-usd"></i> <?php echo htmlspecialchars(t('cd.change')); ?></span>
         <span class="gt-substat-value" id="displayChangeAmount">0 <?php echo htmlspecialchars($cd['symbol']); ?></span>
       </div>
     </div>
 
     <div class="gt-final">
-      <span class="gt-final-label"><i class="fas fa-wallet mr-1"></i> ຍອດທີ່ຕ້ອງຊຳລະ</span>
+      <span class="gt-final-label"><i class="fas fa-wallet mr-1"></i> <?php echo htmlspecialchars(t('cd.amount_due')); ?></span>
       <h2 id="displayGrandTotal">0 <?php echo htmlspecialchars($cd['symbol']); ?></h2>
+      <div id="displayGrandTotalKip" style="display:none;font-size:1.15rem;color:#bbf7d0;font-weight:700;margin-top:2px;"></div>
     </div>
   </div>
 </div>

@@ -32,7 +32,7 @@
   <div class="report-filter-box no-print mb-3.5" style="padding: 12px 16px;">
     <form method="GET" action="financial.php" class="d-flex flex-column flex-md-row align-items-md-end flex-wrap" style="gap: 12px;">
       <!-- Per Page Dropdown (ໂຊລາຍການ - ໜ້າສຸດ) -->
-      <div style="flex: 1 1 140px; width: 100%;">
+      <div style="flex: 0 0 120px; width: 120px; max-width: 120px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-layer-group text-primary mr-1"></i> <?php echo htmlspecialchars(t('reports.per_page_label', 'ໂຊລາຍການ:')); ?>
         </label>
@@ -247,10 +247,10 @@
             <tfoot style="background: #f8fafc; border-top: 2px solid #cbd5e1;">
               <tr class="font-weight-bold" style="font-size: 0.9rem; color: #0f172a;">
                 <td colspan="4" class="text-center py-3 text-uppercase font-weight-bold" style="background: #f8fafc; color: #0f172a;"><?php echo htmlspecialchars(t('reports.total_all_label', 'ລວມທັງໝົດ:')); ?></td>
-                <td class="text-right py-3 text-dark font-weight-bold" style="background: #f8fafc; color: #0f172a;" id="tot_cash">0 ₭</td>
-                <td class="text-right py-3 text-primary font-weight-bold" style="background: #f8fafc;" id="tot_qr">0 ₭</td>
-                <td class="text-right py-3 text-info font-weight-bold" style="background: #f8fafc;" id="tot_change">0 ₭</td>
-                <td class="text-right py-3 text-success font-weight-bold" style="background: #f8fafc; font-size: 0.96rem;" id="tot_rec">0 ₭</td>
+                <td class="text-right py-3 text-dark font-weight-bold" style="background: #f8fafc; color: #0f172a;" id="tot_cash">0 <?php echo kipSymbol(); ?></td>
+                <td class="text-right py-3 text-primary font-weight-bold" style="background: #f8fafc;" id="tot_qr">0 <?php echo kipSymbol(); ?></td>
+                <td class="text-right py-3 text-info font-weight-bold" style="background: #f8fafc;" id="tot_change">0 <?php echo kipSymbol(); ?></td>
+                <td class="text-right py-3 text-success font-weight-bold" style="background: #f8fafc; font-size: 0.96rem;" id="tot_rec">0 <?php echo kipSymbol(); ?></td>
                 <td colspan="2" style="background: #f8fafc;"></td>
               </tr>
             </tfoot>

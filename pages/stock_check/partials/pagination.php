@@ -2,7 +2,7 @@
 /*
  * ສ່ວນ: ແບ່ງໜ້າ (ວົງມົນ ແບບດຽວກັບໜ້າລາຍງານ .report-pagination)
  * ລິ້ງເກັບຕົວກອງເດີມໄວ້ທັງໝົດ (view/from/to/q), ປ່ຽນແຕ່ page.
- * ຖືກ require ຈາກ list_view.php ແລະ history_view.php (ໃຊ້ $scPage, $scTotalPages, $scTotalRows, $scPageOffset, $scPerPage).
+ * ຖືກ require ຈາກ list_view.php (ໃຊ້ $scPage, $scTotalPages, $scTotalRows, $scPageOffset, $scPerPage).
  */
 $scPgLink = function ($p) {
     $q = $_GET;

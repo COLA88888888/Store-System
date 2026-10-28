@@ -69,9 +69,9 @@
     .fullscreen-toggle-btn { top: 13px; right: 12px; width: 30px; height: 30px; font-size: 0.8rem; }
 
     /* ===== ພື້ນທີ່ຫຼັກ: ຕາຕະລາງ ແລະ ຮ້ານ 3D ===== */
-    .display-main { padding: 12px 14px; gap: 14px; }
-    .left-store-panel { flex: 1.1; display: flex; flex-direction: column; min-width: 0; }
-    .right-order-panel { flex: 1.2; min-width: 0; }
+    .display-main { flex: 1 1 0; min-height: 0; display: flex; overflow: hidden; padding: 12px 14px; gap: 14px; }
+    .left-store-panel { flex: 1.1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+    .right-order-panel { flex: 1.2; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
     .particle-canvas { display: none; }
 
     /* ແຜງຮ້ານ 3D ມິນິມາດ (ເຕັມແຜງຊ້າຍມື 100% ບໍ່ມີ QR) */
@@ -86,14 +86,15 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      flex: 1;
+      min-height: 0;
+      flex: 1 1 0;
     }
     .minimart-3d-wrap {
       position: relative;
       width: 100%;
       height: 100%;
-      min-height: 420px;
-      flex: 1;
+      min-height: 0;
+      flex: 1 1 0;
       display: flex;
       flex-direction: column;
       border-radius: 16px;
@@ -203,26 +204,49 @@
     }
 
     /* ===== ຕາຕະລາງລາຍການ: ຫົວອ່ອນ, ຊື່ ແລະ ຍອດລວມໃຫຍ່ ອ່ານງ່າຍ ===== */
-    .cart-card { border: 1px solid #dbe3f0; border-radius: 16px; box-shadow: 0 6px 20px rgba(36, 72, 134, 0.08); }
-    .display-cols-table { border-collapse: collapse; border-spacing: 0; }
+    .w-100 { width: 100% !important; }
+    .cart-card {
+      border: 1px solid #dbe3f0; border-radius: 16px; box-shadow: 0 6px 20px rgba(36, 72, 134, 0.08);
+      flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .display-table-body {
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1 1 0;
+      min-height: 0;
+      width: 100%;
+    }
+    .display-cols-table {
+      width: 100% !important;
+      max-width: 100% !important;
+      table-layout: fixed;
+      border-collapse: collapse;
+      border-spacing: 0;
+    }
     .display-table-head th {
       background: #eef2fb; color: #1e3a6e; font-size: 0.9rem; font-weight: 800;
-      padding: 10px 14px; border: none; border-bottom: 2px solid #dbe3f0;
+      padding: 8px 6px; border: none; border-bottom: 2px solid #dbe3f0;
       white-space: nowrap;
       text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .display-table-head th:nth-child(3) {
       text-align: left !important;
-      padding-left: 14px !important;
+      padding-left: 10px !important;
     }
     /* ແຖວກະທັດຮັດ: ໂຕໜັງສື ແລະ ຮູບນ້ອຍລົງ, ຖັນຊື່ສິນຄ້າກວ້າງຂຶ້ນ (colgroup ໃນ page_body.php) ບໍ່ໃຫ້ຊື່ລົງຫຼາຍແຖວ */
-    .display-table-body td { border: none; border-bottom: 1px solid #eef2f7; height: 50px; padding: 6px 12px; font-size: 0.95rem; }
+    .display-table-body td {
+      border: none; border-bottom: 1px solid #eef2f7; height: 50px; padding: 6px 8px; font-size: 0.95rem;
+      overflow: hidden;
+    }
     .display-table-body tr:nth-child(even) { background: #fafbfe; }
     .display-table-body tr.display-row-newest td { background: #e8f1ff; }
     .display-table-body tr.display-row-newest td:first-child { box-shadow: inset 4px 0 0 #2563eb; }
     .display-table-body td:nth-child(1) { text-align: center !important; }
     .display-table-body td:nth-child(2) { text-align: center !important; }
-    .display-table-body td:nth-child(3) { font-size: 1rem !important; color: #0f172a !important; line-height: 1.35; text-align: left !important; padding-left: 14px !important; }
+    .display-table-body td:nth-child(3) { font-size: 1rem !important; color: #0f172a !important; line-height: 1.35; text-align: left !important; padding-left: 10px !important; }
     .display-table-body td:nth-child(3) small { font-size: 0.72rem !important; }
     .display-table-body td:nth-child(4),
     .display-table-body td:nth-child(5),
@@ -244,19 +268,26 @@
 
     /* ===== ແຖບຍອດລວມ: ຍອດທີ່ຕ້ອງຊຳລະ ເດັ່ນສຸດ ===== */
     .grand-total-banner {
-      margin: 0 14px 12px; padding: 10px 14px 10px 18px; border-radius: 14px; gap: 14px;
+      flex-shrink: 0;
+      margin: 0 14px 10px; padding: 8px 14px 8px 16px; border-radius: 14px; gap: 10px;
       background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
       animation: none; box-shadow: 0 8px 24px rgba(4, 120, 87, 0.28);
       border: 1px solid rgba(255, 255, 255, 0.12);
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     .gt-substats {
       justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: nowrap;
       align-items: stretch;
+      flex: 1 1 0;
+      min-width: 0;
     }
     .gt-substat {
-      padding: 7px 11px;
+      padding: 6px 8px;
       border-radius: 8px;
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 100%);
       border: 1px solid rgba(255, 255, 255, 0.18);
@@ -272,69 +303,96 @@
     }
     /* ປ່ອງທຳອິດ (ລາຍການສິນຄ້າ: 25 ລາຍການ / 31 ອັນ) ໃຫ້ກວ້າງກວ່າປ່ອງອື່ນ ເພື່ອບໍ່ໃຫ້ຕົວໜັງສືລົ້ນອອກຂອບໃນຈໍສຳພັດ 2 ໜ້າຈໍ */
     .gt-substat:first-child {
-      flex: 1.42 0 auto;
+      flex: 1.3 0 auto;
     }
     .gt-substat:hover {
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0.08) 100%);
       border-color: rgba(255, 255, 255, 0.30);
     }
     .gt-substat-label {
-      font-size: clamp(0.74rem, 0.82vw, 0.84rem);
+      font-size: clamp(0.70rem, 0.78vw, 0.82rem);
       font-weight: 700;
       color: #a7f3d0;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       letter-spacing: 0.1px;
       opacity: 0.95;
     }
     .gt-substat-label i {
       color: #6ee7b7;
-      font-size: 0.82rem;
+      font-size: 0.80rem;
     }
     .gt-substat-value {
-      font-size: clamp(1.02rem, 1.22vw, 1.32rem);
+      font-size: clamp(0.95rem, 1.15vw, 1.25rem);
       font-weight: 900;
       color: #ffffff;
       line-height: 1.2;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
     }
     #displayItemCount {
-      font-size: clamp(0.88rem, 0.98vw, 1.08rem);
+      font-size: clamp(0.82rem, 0.92vw, 1.02rem);
       font-weight: 800;
       letter-spacing: -0.2px;
     }
     .gt-final {
-      border-left: none; padding: 8px 20px; border-radius: 12px;
-      background: #ffffff; min-width: 245px;
+      border-left: none; padding: 6px 16px; border-radius: 12px;
+      background: #ffffff; min-width: 210px; flex-shrink: 0;
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
     }
-    .gt-final-label { color: #047857; font-size: 0.90rem; font-weight: 800; text-transform: none; letter-spacing: 0; }
-    .gt-final h2 { color: #065f46; font-size: 2.85rem; font-weight: 900; text-shadow: none; line-height: 1.1; }
+    .gt-final-label { color: #047857; font-size: 0.85rem; font-weight: 800; text-transform: none; letter-spacing: 0; }
+    .gt-final h2 { color: #065f46; font-size: clamp(1.9rem, 2.4vw, 2.6rem); font-weight: 900; text-shadow: none; line-height: 1.1; margin: 0; }
 
     @media (max-height: 720px) {
-      .display-header { min-height: 48px; padding: 4px 14px; }
-      .header-logo { width: 36px; height: 36px; }
-      .header-store-name { font-size: 1rem; }
-      .header-store-sub { font-size: 0.68rem; }
-      .header-welcome { font-size: 0.85rem; padding: 2px 12px; }
-      .header-datetime .header-clock { font-size: 1.05rem; }
-      .fullscreen-toggle-btn { top: 9px; }
-      .display-main { padding: 8px 10px; gap: 8px; }
+      .display-header { min-height: 44px; padding: 3px 12px; }
+      .header-logo { width: 34px; height: 34px; }
+      .header-store-name { font-size: 0.95rem; }
+      .header-store-sub { font-size: 0.65rem; }
+      .header-sys-name { font-size: 1.15rem; }
+      .header-datetime .header-clock { font-size: 1rem; }
+      .fullscreen-toggle-btn { top: 7px; width: 28px; height: 28px; }
+      .display-main { padding: 6px 10px; gap: 8px; }
       .pay-qr-heading { font-size: 0.95rem; margin-bottom: 8px; }
       .pay-qr-card .pqc-qr { width: min(clamp(130px, 15vw, 190px), calc(100vh - 300px)); height: auto; }
       .pay-qr-wrap.count-2 .pqc-qr, .pay-qr-wrap.count-3 .pqc-qr { width: 100%; max-width: min(170px, calc(100vh - 310px)); }
-      .display-table-body td { height: 44px; font-size: 0.88rem; }
-      .display-table-body td:nth-child(3) { font-size: 0.92rem !important; }
-      .display-table-body td:last-child { font-size: 0.98rem !important; }
-      .display-pro-img { width: 32px; height: 32px; }
-      .gt-substat { padding: 4px 10px; min-width: 100px; }
-      .gt-substat-value { font-size: 1.1rem; }
-      .gt-final { min-width: 240px; padding: 6px 16px; }
-      .gt-final h2 { font-size: 2.2rem; }
+      .display-table-body td { height: 42px; font-size: 0.88rem; padding: 4px 6px; }
+      .display-table-body td:nth-child(3) { font-size: 0.90rem !important; }
+      .display-table-body td:last-child { font-size: 0.95rem !important; }
+      .display-pro-img { width: 30px; height: 30px; }
+      .grand-total-banner { margin: 0 10px 8px; padding: 6px 10px; gap: 8px; }
+      .gt-substat { padding: 4px 6px; }
+      .gt-substat-label { font-size: 0.68rem; }
+      .gt-substat-value { font-size: 0.98rem; }
+      .gt-final { min-width: 180px; padding: 4px 12px; }
+      .gt-final h2 { font-size: 1.9rem; }
+    }
+
+    @media (max-height: 560px) {
+      .display-header { min-height: 38px; padding: 2px 10px; }
+      .header-logo { width: 28px; height: 28px; }
+      .header-store-name { font-size: 0.88rem; }
+      .header-store-sub { display: none; }
+      .header-sys-name { font-size: 1.05rem; }
+      .header-datetime .header-clock { font-size: 0.92rem; }
+      .fullscreen-toggle-btn { top: 5px; width: 26px; height: 26px; }
+      .display-main { padding: 4px 8px; gap: 6px; }
+      .display-table-body td { height: 36px; font-size: 0.82rem; padding: 3px 5px; }
+      .display-table-body td:nth-child(3) { font-size: 0.84rem !important; }
+      .display-table-body td:last-child { font-size: 0.88rem !important; }
+      .display-pro-img { width: 26px; height: 26px; }
+      .grand-total-banner { margin: 0 8px 6px; padding: 4px 8px; gap: 6px; }
+      .gt-substat { padding: 2px 5px; }
+      .gt-substat-label { font-size: 0.62rem; }
+      .gt-substat-value { font-size: 0.85rem; }
+      .gt-final { min-width: 150px; padding: 3px 8px; }
+      .gt-final h2 { font-size: 1.45rem; }
     }
 
     /* QR ທະນາຄານທີ່ເລືອກຊຳລະ — ເດັ້ງກາງຈໍ ພ້ອມຈຳນວນເງິນທີ່ຕ້ອງໂອນ */
@@ -437,6 +495,7 @@
     }
     .bpp-amount-label { font-size: 1.05rem; font-weight: 700; color: #64748b; margin-top: 4px; }
     .bpp-amount { font-size: 2.6rem; font-weight: 900; color: #7c3aed; line-height: 1.1; }
+    .bpp-amount-kip { font-size: 1.45rem; font-weight: 800; color: #64748b; margin-top: -2px; }
     .bpp-hint { font-size: 1rem; font-weight: 700; color: #475569; }
     .bpp-hint i { color: #244886; margin-right: 6px; }
 
@@ -444,6 +503,15 @@
     @media (max-width: 1100px) {
       .header-sys-name { font-size: 1.15rem; padding: 0; }
       .header-datetime { gap: 8px; margin-right: 32px; }
-      .gt-final { min-width: 220px; }
+      .gt-final { min-width: 180px; }
+      .gt-substat { padding: 4px 6px; }
+    }
+    @media (max-width: 900px) {
+      .gt-substats { gap: 4px; }
+      .gt-substat { padding: 3px 4px; }
+      .gt-substat-label { font-size: 0.65rem; }
+      .gt-substat-value { font-size: 0.85rem; }
+      .gt-final { min-width: 150px; }
+      .gt-final h2 { font-size: 1.5rem; }
     }
   

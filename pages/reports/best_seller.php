@@ -171,7 +171,7 @@ require_once __DIR__ . '/../../layouts/header.php';
   <div class="report-filter-box no-print mb-3.5" style="padding: 12px 16px;">
     <form method="GET" action="best_seller.php" class="d-flex flex-column flex-md-row align-items-md-end flex-wrap" style="gap: 12px;">
       <!-- Per Page Dropdown (ໂຊລາຍການ) -->
-      <div style="flex: 1 1 140px; width: 100%;">
+      <div style="flex: 0 0 120px; width: 120px; max-width: 120px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-layer-group text-primary mr-1"></i> <?php echo htmlspecialchars(t('reports.per_page_label', 'ໂຊລາຍການ:')); ?>
         </label>
@@ -223,7 +223,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 <?php $shiftSelBoxStyle = 'flex: 1 1 150px; width: 100%;'; require __DIR__ . '/partials' . '/shift_filter_select.php'; /* ບັອກເລືອກກະ — ສາຂາທີ່ບໍ່ມີກະ: ເຊື່ອງ */ ?>
 
       <!-- Currency Filter (ສະກຸນເງິນ) -->
-      <div style="flex: 1 1 150px; width: 100%;">
+      <div style="flex: 0 0 140px; width: 140px; max-width: 140px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-coins text-warning mr-1"></i> <?php echo htmlspecialchars(t('reports.currency_label', 'ສະກຸນເງິນ:')); ?>
         </label>

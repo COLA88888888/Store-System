@@ -97,15 +97,16 @@
                 <!-- ລະຫັດຜ່ານ -->
                 <div class="col-md-6 form-group mb-3">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_password', 'ລະຫັດຜ່ານ:')); ?> <span class="text-danger">*</span></label>
-                  <div class="input-group">
-                    <input type="password" name="password" id="add_password" class="form-control"
-                           placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_password', 'ປ້ອນລະຫັດຜ່ານ')); ?>" required>
-                    <div class="input-group-append">
-                      <button type="button" class="btn btn-outline-secondary"
-                              onclick="togglePassVisibility('add_password', this)">
-                        <i class="fas fa-eye"></i>
-                      </button>
-                    </div>
+                  <div class="position-relative">
+                    <input type="password" name="password" id="add_password" class="form-control font-weight-bold"
+                           placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_password', 'ປ້ອນລະຫັດຜ່ານ')); ?>" required
+                           style="height: 42px; border-radius: 8px; padding-right: 42px;">
+                    <button type="button" class="btn text-muted p-0 border-0"
+                            onclick="togglePassVisibility('add_password', this)"
+                            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: transparent; z-index: 5; line-height: 1; outline: none; box-shadow: none;"
+                            title="<?php echo htmlspecialchars(t('users_manage.toggle_password_title', 'ສະແດງ/ເຊື່ອງລະຫັດຜ່ານ')); ?>">
+                      <i class="fas fa-eye-slash" style="font-size: 1.1rem; color: #64748b;"></i>
+                    </button>
                   </div>
                 </div>
 
@@ -127,15 +128,16 @@
                 </div>
                 <div class="col-md-6 form-group mb-3">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_confirm_password', 'ຢືນຢັນລະຫັດ:')); ?></label>
-                  <div class="input-group">
+                  <div class="position-relative">
                     <input type="password" name="confirm_password" id="add_confirm_password"
-                           class="form-control" placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_confirm_password', 'ຢືນຢັນລະຫັດ')); ?>">
-                    <div class="input-group-append">
-                      <button type="button" class="btn btn-outline-secondary"
-                              onclick="togglePassVisibility('add_confirm_password', this)">
-                        <i class="fas fa-eye"></i>
-                      </button>
-                    </div>
+                           class="form-control font-weight-bold" placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_confirm_password', 'ຢືນຢັນລະຫັດ')); ?>"
+                           style="height: 42px; border-radius: 8px; padding-right: 42px;">
+                    <button type="button" class="btn text-muted p-0 border-0"
+                            onclick="togglePassVisibility('add_confirm_password', this)"
+                            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: transparent; z-index: 5; line-height: 1; outline: none; box-shadow: none;"
+                            title="<?php echo htmlspecialchars(t('users_manage.toggle_password_title', 'ສະແດງ/ເຊື່ອງລະຫັດຜ່ານ')); ?>">
+                      <i class="fas fa-eye-slash" style="font-size: 1.1rem; color: #64748b;"></i>
+                    </button>
                   </div>
                 </div>
 
@@ -143,8 +145,7 @@
                 <div class="col-md-6 form-group mb-3">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_dob', 'ວັນເດືອນປີເກີດ:')); ?> <span class="text-danger">*</span></label>
                   <input type="date" name="dob" id="add_dob"
-                         onclick="this.showPicker ? this.showPicker() : null"
-                         class="form-control" style="cursor:pointer;" required>
+                         class="form-control font-weight-bold" style="height: 42px; border-radius: 8px; cursor: pointer;" required>
                 </div>
                 <!-- ເບີໂທ & ທີ່ຢູ່ -->
                 <div class="col-md-6 form-group mb-3">

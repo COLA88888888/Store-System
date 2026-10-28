@@ -86,7 +86,7 @@ return [
     'reports.col_price'              => '单价',
     'reports.col_gross'              => '总金额',
     'reports.col_net'                => '净额',
-    'reports.col_total_kip'          => '合计 (₭)',
+    'reports.col_total_kip'          => '合计 (基普)',
     'reports.col_total_amount'       => '合计金额',
     'reports.col_total_money'        => '合计金额',
     'reports.col_employee'           => '员工',

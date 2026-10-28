@@ -10,10 +10,10 @@
 // ==========================================
 window.POS_EX_RATES = window.POS_EX_RATES || { KIP: 1, THB: 0, USD: 0, CNY: 0 };
 window.POS_CURRENCY_META = window.POS_CURRENCY_META || {
-  KIP: { name: 'ກີບ', symbol: '₭', decimals: 0 },
-  THB: { name: 'ບາດ', symbol: '฿', decimals: 2 },
-  USD: { name: 'ໂດລາ', symbol: '$', decimals: 2 },
-  CNY: { name: 'ຢວນ', symbol: '¥', decimals: 2 }
+  KIP: { name: 'ກີບ', symbol: '<?php echo kipSymbol(); ?>', decimals: 0 },
+  THB: { name: 'ບາດ', symbol: '฿', decimals: 0 },
+  USD: { name: 'ໂດລາ', symbol: '$', decimals: 0 },
+  CNY: { name: 'ຢວນ', symbol: '¥', decimals: 0 }
 };
 window.POS_DISPLAY_CURRENCY = window.POS_DISPLAY_CURRENCY || 'KIP';
 
@@ -58,7 +58,7 @@ function posMoneyIn(amountKip, code, rate) {
   if (code === 'KIP') return rcNum(amountKip) + ' <span class="cur-sym">' + meta.symbol + '</span>';
   rate = parseFloat(rate) || parseFloat(window.POS_EX_RATES[code]) || 0;
   if (rate <= 0) return '-';
-  return rcNum((amountKip || 0) / rate) + ' <span class="cur-sym">' + meta.symbol + '</span>';
+  return rcNum(posRoundUnits((amountKip || 0) / rate)) + ' <span class="cur-sym">' + meta.symbol + '</span>';
 }
 
 // Receipt money in the bill's tender currency, whole numbers (prices, discount, cash,
@@ -66,7 +66,7 @@ function posMoneyIn(amountKip, code, rate) {
 // A bill that carries VAT (window.RC_TAXED, set per receipt) shows every amount to 2 decimals.
 function rcMoney(kip) {
   if (window.RC_TAXED) return rcMoneyExact(kip);
-  return window.POSCUR ? POSCUR.fmt(kip) : Math.round(parseFloat(kip) || 0).toLocaleString('en-US') + ' ₭';
+  return window.POSCUR ? POSCUR.fmt(kip) : Math.round(parseFloat(kip) || 0).toLocaleString('en-US') + ' <?php echo kipSymbol(); ?>';
 }
 // VAT and the net total of a taxed bill: 2 decimals (13,454.55 ₭) so they add up exactly.
 function rcMoneyExact(kip) {

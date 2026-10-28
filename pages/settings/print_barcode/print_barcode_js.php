@@ -55,7 +55,7 @@ function renderPageBarcodeBlocks() {
 
     var pName    = p.product_name || '';
     var pBarcode = (p.barcode && p.barcode.trim() !== '') ? p.barcode.trim() : String(pId);
-    var pPrice   = Number(p.price || 0).toLocaleString('en-US') + ' ₭';
+    var pPrice   = Number(p.price || 0).toLocaleString('en-US') + ' <?php echo kipSymbol(); ?>';
     var pUnit    = p.unit || '';
     var pCatId   = String(p.category_id || '');
 

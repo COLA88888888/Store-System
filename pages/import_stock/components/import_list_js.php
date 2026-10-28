@@ -1,8 +1,8 @@
 <?php
 /**
  * ໂຄງສ້າງໄຟລ໌ (ແຍກເປັນໄຟລ໌ຍ່ອຍເພື່ອໃຫ້ອ່ານງ່າຍ — ແຕ່ລະໄຟລ໌ບໍ່ເກີນ 500 ແຖວ):
- * JS ຂອງໜ້າລາຍການນຳເຂົ້າ: ຕາຕະລາງປະຫວັດ, ສົ່ງອອກ Excel, popup ບິນ/ແກ້ໄຂ/ລົບ ແລະ popup ເລືອກສິນຄ້າ.
- *   - import_list/history_table.php : ຕາຕະລາງປະຫວັດ ແລະ Excel
+ * JS ຂອງໜ້າລາຍການນຳເຂົ້າ: ຕາຕະລາງປະຫວັດ, popup ບິນ/ແກ້ໄຂ/ລົບ ແລະ popup ເລືອກສິນຄ້າ.
+ *   - import_list/history_table.php : ຕາຕະລາງປະຫວັດ
  *   - import_list/modal_products.php : Popup ເລືອກສິນຄ້າ
  */
 // Component: JavaScript Logic for Import List (import_list.php)
@@ -10,7 +10,7 @@
 <script>
 <?php $__idc = getDisplayCurrency($pdo); ?>
 window.IMP_CUR = { code: <?php echo json_encode($__idc['code']); ?>, symbol: <?php echo json_encode($__idc['symbol'], JSON_UNESCAPED_UNICODE); ?>, decimals: <?php echo (int)$__idc['decimals']; ?>, rate: <?php echo json_encode((float)$__idc['rate']); ?>, isKip: <?php echo ($__idc['code']==='KIP')?'true':'false'; ?> };
-function impFmtFromKip(n){ n=parseFloat(n)||0; var v=IMP_CUR.isKip?Math.round(n):(n/IMP_CUR.rate); return v.toLocaleString('en-US',{minimumFractionDigits:IMP_CUR.decimals,maximumFractionDigits:IMP_CUR.decimals}) + ' <span class="cur-sym">' + IMP_CUR.symbol + '</span>'; }
+function impFmtFromKip(n){ n=parseFloat(n)||0; var v=IMP_CUR.isKip?Math.round(n):Math.ceil(Math.round(n/IMP_CUR.rate*1e6)/1e6); return v.toLocaleString('en-US',{minimumFractionDigits:IMP_CUR.decimals,maximumFractionDigits:IMP_CUR.decimals}) + ' <span class="cur-sym">' + IMP_CUR.symbol + '</span>'; }
   var I18N_IMPORT_LIST = <?php echo tjson([
       'import_list.default_unit' => 'ອັນ',
       'import_list.js_no_items_in_bill' => 'ບໍ່ມີລາຍການສິນຄ້າໃນໃບບິນນີ້',
@@ -52,7 +52,7 @@ function impFmtFromKip(n){ n=parseFloat(n)||0; var v=IMP_CUR.isKip?Math.round(n)
       var id = $(this).data('id');
       var invoice = $(this).data('invoice');
       var supplier = $(this).data('supplier');
-      var date = $(this).data('date');
+      var date = $(this).data('raw-date') || $(this).data('date');
       var cost = parseFloat($(this).data('cost') || 0);
       openBillDetailsModal(id, invoice, supplier, date, cost);
     });
@@ -107,7 +107,7 @@ function impFmtFromKip(n){ n=parseFloat(n)||0; var v=IMP_CUR.isKip?Math.round(n)
     });
   });
 
-<?php require __DIR__ . '/import_list/history_table.php'; /* ຕາຕະລາງປະຫວັດ ແລະ Excel */ ?>
+<?php require __DIR__ . '/import_list/history_table.php'; /* ຕາຕະລາງປະຫວັດ */ ?>
   function openBillDetailsModal(importId, invoiceNo, supplier, importDate, totalCost) {
     currentModalImportId = importId;
     $('#modal_invoice_no').text(invoiceNo);

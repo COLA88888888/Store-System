@@ -67,21 +67,6 @@ window.SHIFT_REPORT_MODE = 'revenue';
 </script>
 
 <div class="container-fluid p-3 p-md-4">
-  <!-- Top Navigation Tabs (ແຍກ ລາຍງານປິດກະ ແລະ ລາຍງານລາຍຮັບຕາມກະ) -->
-  <div class="d-flex align-items-center mb-3">
-    <ul class="nav nav-pills" style="gap: 8px;">
-      <li class="nav-item">
-        <a class="nav-link font-weight-bold border bg-white text-dark shadow-xs" href="shift_close_report.php" style="border-radius: 4px;">
-          <i class="fas fa-cash-register text-primary mr-1.5"></i> <?php echo htmlspecialchars(t('layout.shift_close_report', 'ລາຍງານປິດກະ')); ?>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link active font-weight-bold" href="shift_revenue_report.php" style="border-radius: 4px; background: #059669; color: #fff;">
-          <i class="fas fa-chart-line mr-1.5"></i> <?php echo htmlspecialchars(t('layout.shift_revenue_report', 'ລາຍງານລາຍຮັບຕາມກະ')); ?>
-        </a>
-      </li>
-    </ul>
-  </div>
 
   <!-- Page Header -->
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap: 12px;">
@@ -116,7 +101,7 @@ window.SHIFT_REPORT_MODE = 'revenue';
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #10b981 0%, #047857 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title">ຍອດລາຍຮັບລວມທຸກກະ</div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiRevTotalSales">0 ₭</div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiRevTotalSales">0 <?php echo kipSymbol(); ?></div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-coins"></i></div>
     </div>
@@ -125,7 +110,7 @@ window.SHIFT_REPORT_MODE = 'revenue';
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title">ຍອດຂາຍເງິນສົດ</div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiRevCashSales">0 ₭</div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiRevCashSales">0 <?php echo kipSymbol(); ?></div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-money-bill-wave"></i></div>
     </div>
@@ -134,7 +119,7 @@ window.SHIFT_REPORT_MODE = 'revenue';
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title">ຍອດຂາຍໂອນ / QR</div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiRevTransferSales">0 ₭</div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiRevTransferSales">0 <?php echo kipSymbol(); ?></div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-qrcode"></i></div>
     </div>

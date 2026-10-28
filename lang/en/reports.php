@@ -87,7 +87,7 @@ return [
     'reports.col_price'              => 'Price',
     'reports.col_gross'              => 'Gross Amount',
     'reports.col_net'                => 'Net',
-    'reports.col_total_kip'          => 'Total (₭)',
+    'reports.col_total_kip'          => 'Total (Kip)',
     'reports.col_total_amount'       => 'Total Amount',
     'reports.col_total_money'        => 'Total',
     'reports.col_employee'           => 'Employee',

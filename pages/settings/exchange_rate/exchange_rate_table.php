@@ -70,28 +70,28 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
                 <span class="badge border px-2.5 py-1.5 font-weight-bold text-dark d-inline-flex align-items-center" style="font-size: 0.88rem; border-radius: 6px; background-color: #f8fafc; border-color: #cbd5e1;">
                   <img src="<?php echo $bp; ?>assets/img/flag_img/Flag_of_Laos.webp" alt="LAK" style="width: 24px; height: 16px; margin-right: 6px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.18);" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                   <span class="flag-icon flag-icon-la mr-1.5" style="display:none;"></span>
-                  1,000 ₭
+                  1 <?php echo kipSymbol(); ?>
                 </span>
               </td>
               <td class="text-right">
                 <span class="badge border px-2.5 py-1.5 font-weight-bold text-success d-inline-flex align-items-center" style="font-size: 0.88rem; background-color: #f0fdf4; border-color: #bbf7d0; border-radius: 6px;">
                   <img src="<?php echo $bp; ?>assets/img/flag_img/Flag_of_Thailand.webp" alt="THB" style="width: 24px; height: 16px; margin-right: 6px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.18);" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                   <span class="flag-icon flag-icon-th mr-1.5" style="display:none;"></span>
-                  <?php echo number_format($thbVal, 0); ?> ₭
+                  1 <?php echo htmlspecialchars(t('exchange_rate.col_thb', 'ບາດ')); ?> = <?php echo number_format($thbVal, 0); ?> <?php echo kipSymbol(); ?>
                 </span>
               </td>
               <td class="text-right">
                 <span class="badge border px-2.5 py-1.5 font-weight-bold text-primary d-inline-flex align-items-center" style="font-size: 0.88rem; background-color: #eff6ff; border-color: #bfdbfe; border-radius: 6px;">
                   <img src="<?php echo $bp; ?>assets/img/flag_img/flag-Stars.webp" alt="USD" style="width: 24px; height: 16px; margin-right: 6px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.18);" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                   <span class="flag-icon flag-icon-us mr-1.5" style="display:none;"></span>
-                  <?php echo number_format($usdVal, 0); ?> ₭
+                  1 <?php echo htmlspecialchars(t('exchange_rate.col_usd', 'ໂດລາ')); ?> = <?php echo number_format($usdVal, 0); ?> <?php echo kipSymbol(); ?>
                 </span>
               </td>
               <td class="text-right">
                 <span class="badge border px-2.5 py-1.5 font-weight-bold text-warning d-inline-flex align-items-center" style="font-size: 0.88rem; background-color: #fffbeb; border-color: #fde68a; border-radius: 6px; color: #b45309 !important;">
                   <img src="<?php echo $bp; ?>assets/img/flag_img/Flag-chaina.webp" alt="CNY" style="width: 24px; height: 16px; margin-right: 6px; border-radius: 3px; object-fit: cover; box-shadow: 0 1px 2px rgba(0,0,0,0.18);" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
                   <span class="flag-icon flag-icon-cn mr-1.5" style="display:none;"></span>
-                  <?php echo number_format($cnyVal, 0); ?> ₭
+                  1 <?php echo htmlspecialchars(t('exchange_rate.col_cny', 'ຢວນ')); ?> = <?php echo number_format($cnyVal, 0); ?> <?php echo kipSymbol(); ?>
                 </span>
               </td>
               <td class="text-center">

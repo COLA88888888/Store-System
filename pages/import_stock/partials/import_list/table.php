@@ -212,7 +212,7 @@
                         </td>
 
                         <td class="align-middle font-weight-bold <?php echo $isTrfOut ? 'text-danger' : 'text-dark'; ?>">
-                          <?php echo htmlspecialchars($row['product_name']); ?>
+                          <?php echo htmlspecialchars($row['product_name'] ?? '-'); /* ສິນຄ້າຖືກລຶບອອກຈາກລະບົບແລ້ວ → '-' (ຄືກັບ Excel/PDF) */ ?>
                           <?php if (!empty($row['supplier_name'])): ?>
                             <small class="text-muted font-weight-normal ml-2"><i class="fas fa-store mr-1"></i><?php echo htmlspecialchars($row['supplier_name']); ?></small>
                           <?php endif; ?>

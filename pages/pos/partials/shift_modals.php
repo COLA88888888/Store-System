@@ -97,7 +97,7 @@
             <div class="input-group input-group-lg">
               <input type="text" inputmode="numeric" class="form-control text-right font-weight-bold text-primary" id="posInitialCashInput" name="initial_cash" value="" placeholder="ປ້ອນຈຳນວນເງິນ (ບໍ່ມີໃຫ້ໃສ່ 0)" required style="border-radius: 6px 0 0 6px; font-size: 1.55rem; height: 54px;" oninput="formatNumberInput(this)">
               <div class="input-group-append">
-                <span class="input-group-text font-weight-bold bg-light" style="border-radius: 0 6px 6px 0; font-size: 1.35rem; padding: 0 16px;">₭</span>
+                <span class="input-group-text font-weight-bold bg-light" style="border-radius: 0 6px 6px 0; font-size: 1.35rem; padding: 0 16px;"><?php echo kipSymbol(); ?></span>
               </div>
             </div>
             <small class="text-muted d-block mt-1">
@@ -184,7 +184,7 @@
           <div class="mb-3" id="posCloseSysGrid">
             <div class="p-2.5 bg-white border text-center shadow-xs" style="border-radius: 4px;">
               <small class="text-muted d-block" style="font-size: 0.82rem;">ເງິນລິ້ນຊັກຕອນເປີດກະ</small>
-              <span class="font-weight-bold text-secondary" style="font-size: 1.15rem;" id="posCloseInitialCashDisplay">0 ₭</span>
+              <span class="font-weight-bold text-secondary" style="font-size: 1.15rem;" id="posCloseInitialCashDisplay">0 <?php echo kipSymbol(); ?></span>
             </div>
           </div>
 
@@ -202,7 +202,7 @@
             <div class="input-group input-group-lg">
               <input type="text" inputmode="numeric" class="form-control text-right font-weight-bold text-dark" id="posCloseCountedCashInput" name="counted_sales_cash" value="" placeholder="ປ້ອນເງິນທີ່ນັບໄດ້ (ບໍ່ມີໃຫ້ໃສ່ 0)" required style="border-radius: 4px 0 0 4px; font-size: 1.45rem; background: #ffffff;" oninput="formatNumberInput(this);">
               <div class="input-group-append">
-                <span class="input-group-text font-weight-bold bg-white" style="border-radius: 0 4px 4px 0;">₭</span>
+                <span class="input-group-text font-weight-bold bg-white" style="border-radius: 0 4px 4px 0;"><?php echo kipSymbol(); ?></span>
               </div>
             </div>
 

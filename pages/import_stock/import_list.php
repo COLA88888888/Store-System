@@ -5,6 +5,7 @@
  *   - partials/import_list/actions.php : ການກະທຳ POST
  *   - partials/import_list/data.php : ຂໍ້ມູນ: ຕົວກັ່ນຕອງ ແລະ ລາຍການນຳເຂົ້າ
  *   - partials/import_list/table.php : ຕາຕະລາງລາຍການນຳເຂົ້າ
+ *   - partials/import_list/export.php : Excel / PDF / ພິມ ລາຍການຮັບເຂົ້າ (ຫຼັງ footer)
  */
 session_start();
 $scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
@@ -50,6 +51,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 ?>
 
 <link rel="stylesheet" href="../../themes/import_stock.css?v=<?php echo filemtime(__DIR__ . '/../../themes/import_stock.css'); ?>">
+<?php echo themeCssLink('report-table.css'); /* ປຸ່ມ Excel / PDF / ພິມ ແບບດຽວກັນທົ່ວລະບົບ (.rpt-btn) */ ?>
 
 <div class="content-wrapper bg-light">
   
@@ -115,7 +117,8 @@ require_once __DIR__ . '/../../layouts/header.php';
                 <i class="fas fa-table text-primary mr-2"></i> <?php echo htmlspecialchars(t('import_list.table_card_title', 'ຕາຕະລາງລາຍການສິນຄ້າຮັບເຂົ້າ')); ?>
               </h5>
             </div>
-            <div class="col-md-6 text-right d-flex align-items-center justify-content-end">
+            <div class="col-md-6 text-right d-flex align-items-center justify-content-end flex-wrap" style="gap: 8px;">
+<?php require __DIR__ . '/../../layouts/partials/report/export_buttons.php'; /* Excel / PDF / ພິມ — partials/import_list/export.php */ ?>
               <span class="badge badge-success px-3 py-2 font-weight-bold" style="font-size: 0.9rem; height: 34px; line-height: 18px;">
                 <?php echo htmlspecialchars(t('import_list.total_prefix', 'ລວມ')); ?> <?php echo number_format($total_records); ?> <?php echo ($view_type === 'bill') ? htmlspecialchars(t('import_list.unit_bills', 'ໃບບິນ')) : htmlspecialchars(t('import_list.unit_items', 'ລາຍການ')); ?>
               </span>
@@ -174,3 +177,4 @@ require_once __DIR__ . '/../../layouts/header.php';
 
 <!-- JAVASCRIPT LOGIC -->
 <?php require_once __DIR__ . '/components/import_list_js.php'; ?>
+<?php require __DIR__ . '/partials/import_list/export.php'; /* Excel / PDF / ພິມ ລາຍການຮັບເຂົ້າ */ ?>

@@ -109,4 +109,9 @@ return [
     'import_list.js_delete_bill_title' => 'ลบบิลรับเข้าสินค้า?',
     'import_list.js_delete_bill_text' => 'คุณต้องการลบบิลเลขที่ [%s] ทั้งหมดใช่หรือไม่? สินค้าทั้งหมดในบิลนี้จะถูกปรับลดสต็อกกลับคืน!',
     'import_list.js_export_name' => 'รายการสินค้ารับเข้า',
+    'import_list.all_branches' => 'ทุกสาขา',
+    'import_list.export_date_range' => 'วันที่',
+    'import_list.view_by_bill' => 'แสดงตามใบเสร็จ',
+    'import_list.view_by_item' => 'แสดงตามรายการสินค้า',
+    'import_list.search_label' => 'ค้นหา:',
 ];

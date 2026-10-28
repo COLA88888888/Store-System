@@ -102,6 +102,7 @@ function onCheckoutCurrencyChange(code) {
   } else {
     calculateChange();
   }
+  try { broadcastPaymentLive(); } catch (e) {}
 }
 
 // Closing the modal (cancel or after a sale) restores the POS-wide display currency so
@@ -168,7 +169,14 @@ function broadcastPaymentLive() {
     changeAmount: changeKip,
     // ຈຳນວນທີ່ລູກຄ້າຕ້ອງໂອນ: ແຍກຈ່າຍ = ສ່ວນ QR, ໂອນທັງໝົດ = ຍອດທັງໝົດ
     transferDue: currentPayMode === 'split' ? qrKip : (usesTransfer ? Math.max(qrKip, totalKip) : 0),
-    payBank: bank
+    payBank: bank,
+    tenderCurrency: {
+      code: POSCUR.code,
+      symbol: POSCUR.symbol,
+      rate: POSCUR.rate,
+      decimals: POSCUR.decimals,
+      isKip: POSCUR.code === 'KIP'
+    }
   });
 }
 

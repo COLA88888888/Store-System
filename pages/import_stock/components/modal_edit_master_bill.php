@@ -28,7 +28,7 @@
           <!-- Import Date -->
           <div class="form-group">
             <label class="form-label font-weight-bold text-dark"><?php echo htmlspecialchars(t('import_list.modal_import_date_label', 'ວັນທີຮັບເຂົ້າ:')); ?></label>
-            <input type="date" name="import_date" id="edit_master_date" class="form-control font-weight-bold" required style="border-radius: 8px; height: 42px;">
+            <input type="date" name="import_date" id="edit_master_date" class="form-control font-weight-bold" required style="border-radius: 8px; height: 42px; cursor: pointer;">
           </div>
 
           <!-- Notes -->

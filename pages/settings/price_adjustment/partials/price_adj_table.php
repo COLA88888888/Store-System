@@ -84,22 +84,22 @@
 
               <!-- 5. ລາຄາເກົ່າ -->
               <td class="text-right text-muted font-weight-bold">
-                <?php echo number_format($oldP, 0); ?> ₭
+                <?php echo number_format($oldP, 0); ?> <?php echo kipSymbol(); ?>
               </td>
 
               <!-- 6. ລາຄາໃໝ່ -->
               <td class="text-right font-weight-bold text-primary">
-                <?php echo number_format($newP, 0); ?> ₭
+                <?php echo number_format($newP, 0); ?> <?php echo kipSymbol(); ?>
               </td>
 
               <!-- 7. ຜົນຕ່າງ -->
               <td class="text-right font-weight-bold">
                 <?php if ($diff > 0): ?>
-                  <span class="text-danger"><i class="fas fa-arrow-up mr-1" style="font-size:0.7rem;"></i>+<?php echo number_format($diff, 0); ?> ₭</span>
+                  <span class="text-danger"><i class="fas fa-arrow-up mr-1" style="font-size:0.7rem;"></i>+<?php echo number_format($diff, 0); ?> <?php echo kipSymbol(); ?></span>
                 <?php elseif ($diff < 0): ?>
-                  <span class="text-success"><i class="fas fa-arrow-down mr-1" style="font-size:0.7rem;"></i><?php echo number_format($diff, 0); ?> ₭</span>
+                  <span class="text-success"><i class="fas fa-arrow-down mr-1" style="font-size:0.7rem;"></i><?php echo number_format($diff, 0); ?> <?php echo kipSymbol(); ?></span>
                 <?php else: ?>
-                  <span class="text-muted">0 ₭</span>
+                  <span class="text-muted">0 <?php echo kipSymbol(); ?></span>
                 <?php endif; ?>
               </td>
 

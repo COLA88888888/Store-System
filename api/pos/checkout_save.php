@@ -54,7 +54,9 @@
             $stmtSalesTable->execute([
                 ':invoice_no'      => $invoice_no,
                 ':sold_by_id'      => $sold_by_id,
-                ':customer_id'     => $customer_id,
+                // st_sales.customer_id ເປັນ INT: ລູກຄ້າທົ່ວໄປ ('') ຕ້ອງເປັນ NULL — ບໍ່ດັ່ງນັ້ນ MySQL strict ປະຕິເສດທັງແຖວ
+                // (ບິນລູກຄ້າທົ່ວໄປບໍ່ຖືກບັນທຶກລົງ st_sales ເລີຍ ຕັ້ງແຕ່ 14/10/2026)
+                ':customer_id'     => (intval($customer_id) > 0 ? intval($customer_id) : null),
                 ':customer_name'   => $customer_name,
                 ':subtotal'        => $subtotal,
                 ':discount_bill'   => $discount_bill,
@@ -72,8 +74,11 @@
                 ':paid_rate'         => $paid_rate,
                 ':paid_amount_foreign' => $paid_amount_foreign
             ]);
-        } catch (Throwable $ex) {}
-        
+        } catch (Throwable $ex) {
+            // ບໍ່ຢຸດການຂາຍ (ບິນຫຼັກຢູ່ st_tbsale_save) ແຕ່ຂຽນລົງ log ໃຫ້ເຫັນ — ເຄີຍລົ້ມງຽບໆ 2 ອາທິດ
+            error_log('checkout st_sales insert failed for ' . $invoice_no . ': ' . $ex->getMessage());
+        }
+
         // Insert into tbsale_save_detail and update inventory
         $stmtDetail = $pdo->prepare("
             INSERT INTO st_tbsale_save_detail (save_bill, save_date, save_time, save_proid, save_proname, save_qty, save_price, save_orig_price, save_discount_item, is_reward, cost_price, save_money, save_net_money, user_receives, multiplier)
@@ -109,7 +114,8 @@
 
         foreach ($cart as $item) {
             $pid = intval($item['product_id']);
-            $proname = $item['product_name'] . ' (' . $item['unit_name'] . ')';
+            $unitLabel = trim((string)($item['unit_name'] ?? ''));
+            $proname = $item['product_name'] . ($unitLabel !== '' ? ' (' . $unitLabel . ')' : '');
             $qty = floatval($item['quantity']);
             $price = floatval($item['unit_price']);
             $cost = floatval($item['cost_price']);

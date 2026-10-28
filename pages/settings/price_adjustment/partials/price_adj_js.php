@@ -71,8 +71,8 @@ function quickFindProduct(val) {
 
     $('#product_id_hidden').val(pId);
     $('#product_name_display').val(pName);
-    $('#cur_bprice').val(Number(bprice).toLocaleString() + ' ₭');
-    $('#cur_price').val(Number(price).toLocaleString() + ' ₭');
+    $('#cur_bprice').val(Number(bprice).toLocaleString() + ' <?php echo kipSymbol(); ?>');
+    $('#cur_price').val(Number(price).toLocaleString() + ' <?php echo kipSymbol(); ?>');
   } else {
     $('#product_id_hidden').val('');
     $('#product_name_display').val(I18N_PRICE_ADJUSTMENT['price_adjustment.not_found_placeholder']);
@@ -160,8 +160,8 @@ function editPriceAdjLog(d) {
   $('#quick_search_code').closest('#product_scan_wrap').hide();  // no re-scan when editing
   $('#product_id_hidden').val(d.product_id);
   $('#product_name_display').val(d.product_name || ('ID: ' + d.product_id));
-  $('#cur_bprice').val(Number(d.old_bprice || 0).toLocaleString() + ' ₭');
-  $('#cur_price').val(Number(d.old_price || 0).toLocaleString() + ' ₭');
+  $('#cur_bprice').val(Number(d.old_bprice || 0).toLocaleString() + ' <?php echo kipSymbol(); ?>');
+  $('#cur_price').val(Number(d.old_price || 0).toLocaleString() + ' <?php echo kipSymbol(); ?>');
 
   $('#target_price_type').val(d.target_price_type || 'price');
   $('#calc_type').val(d.calc_type || 'set');

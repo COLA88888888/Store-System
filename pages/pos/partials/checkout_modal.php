@@ -25,7 +25,7 @@
               <div style="color:rgba(255,255,255,0.82);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px;position:relative;">
                 <?php echo htmlspecialchars(t('pos.amount_due', 'ຍອດທີ່ຕ້ອງຊຳລະ')); ?>
               </div>
-              <div class="font-weight-bold" id="checkoutTotalDisplay" style="font-size:1.55rem;color:#fff;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;line-height:1.2;word-break:break-all;text-shadow:0 2px 8px rgba(0,0,0,0.15);position:relative;">0 ₭</div>
+              <div class="font-weight-bold" id="checkoutTotalDisplay" style="font-size:1.55rem;color:#fff;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;line-height:1.2;word-break:break-all;text-shadow:0 2px 8px rgba(0,0,0,0.15);position:relative;">0 <?php echo kipSymbol(); ?></div>
             </div>
 
             <!-- Pay Mode -->
@@ -135,7 +135,7 @@
 
             <!-- Tender currency (per bill) — feeds the daily report's "money received by currency" breakdown -->
             <?php
-              $__coMeta  = function_exists('getCurrencyMeta') ? getCurrencyMeta() : ['KIP' => ['name' => 'ກີບ', 'symbol' => '₭']];
+              $__coMeta  = function_exists('getCurrencyMeta') ? getCurrencyMeta() : ['KIP' => ['name' => 'ກີບ', 'symbol' => kipSymbol()]];
               $__coRates = function_exists('getExchangeRates') ? getExchangeRates($pdo) : [];
               $__coCurrencies = ['KIP'];
               foreach (['THB', 'USD', 'CNY'] as $__cc) {
@@ -151,7 +151,7 @@
                   <div class="font-weight-bold mb-1" style="font-size:0.80rem;color:#475569;"><?php echo htmlspecialchars(t('pos.tender_currency_label', 'ສະກຸນເງິນທີ່ຮັບ')); ?></div>
                   <select id="checkoutCurrency" class="form-control font-weight-bold" style="height:42px;border:2px solid #244886;border-radius:10px;color:#1a3666;font-size:0.90rem;" onchange="onCheckoutCurrencyChange(this.value)">
                     <?php foreach ($__coCurrencies as $__cc): ?>
-                      <option value="<?php echo $__cc; ?>"><?php echo htmlspecialchars(($__coMeta[$__cc]['name'] ?? $__cc) . ' (' . ($__coMeta[$__cc]['symbol'] ?? $__cc) . ')'); ?></option>
+                      <option value="<?php echo $__cc; ?>"><?php echo htmlspecialchars(($__coMeta[$__cc]['name'] ?? $__cc) . ($__cc === 'KIP' ? '' : ' (' . ($__coMeta[$__cc]['symbol'] ?? $__cc) . ')')); ?></option>
                     <?php endforeach; ?>
                   </select>
                 </div>
@@ -165,7 +165,7 @@
                       placeholder="0" oninput="formatMoneyInput(this);calculateChange();"
                       style="height:42px;font-size:1.2rem;color:#1a3666;background:#fff;border:2px solid #244886 !important;border-right:none !important;border-top-left-radius:10px !important;border-bottom-left-radius:10px !important;border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                     <div class="input-group-append">
-                      <span class="input-group-text font-weight-bold text-white" style="background:#244886;border:2px solid #244886 !important;border-left:none !important;padding:0 14px;font-size:1rem;border-top-right-radius:10px !important;border-bottom-right-radius:10px !important;border-top-left-radius:0 !important;border-bottom-left-radius:0 !important;">₭</span>
+                      <span class="input-group-text font-weight-bold text-white" style="background:#244886;border:2px solid #244886 !important;border-left:none !important;padding:0 14px;font-size:1rem;border-top-right-radius:10px !important;border-bottom-right-radius:10px !important;border-top-left-radius:0 !important;border-bottom-left-radius:0 !important;"><?php echo kipSymbol(); ?></span>
                     </div>
                   </div>
                 </div>
@@ -196,7 +196,7 @@
                       placeholder="0" oninput="formatMoneyInput(this);calcSplitRemaining();"
                       style="height:40px;font-size:1.1rem;color:#16a34a;background:#f0fdf4;border:2px solid #22c55e !important;border-right:none !important;border-top-left-radius:10px !important;border-bottom-left-radius:10px !important;border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                     <div class="input-group-append">
-                      <span class="input-group-text font-weight-bold text-white" style="background:#22c55e;border:2px solid #22c55e !important;border-left:none !important;padding:0 12px;font-size:0.95rem;border-top-right-radius:10px !important;border-bottom-right-radius:10px !important;border-top-left-radius:0 !important;border-bottom-left-radius:0 !important;">₭</span>
+                      <span class="input-group-text font-weight-bold text-white" style="background:#22c55e;border:2px solid #22c55e !important;border-left:none !important;padding:0 12px;font-size:0.95rem;border-top-right-radius:10px !important;border-bottom-right-radius:10px !important;border-top-left-radius:0 !important;border-bottom-left-radius:0 !important;"><?php echo kipSymbol(); ?></span>
                     </div>
                   </div>
                   <div class="d-flex flex-wrap" style="gap:4px; margin-top: 8px;">
@@ -219,7 +219,7 @@
                       placeholder="0" oninput="formatMoneyInput(this);calcSplitRemaining();"
                       style="height:40px;font-size:1.1rem;color:#7c3aed;background:#faf5ff;border:2px solid #a78bfa !important;border-right:none !important;border-top-left-radius:10px !important;border-bottom-left-radius:10px !important;border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
                     <div class="input-group-append">
-                      <span class="input-group-text font-weight-bold text-white" style="background:#7c3aed;border:2px solid #a78bfa !important;border-left:none !important;padding:0 12px;font-size:0.95rem;border-top-right-radius:10px !important;border-bottom-right-radius:10px !important;border-top-left-radius:0 !important;border-bottom-left-radius:0 !important;">₭</span>
+                      <span class="input-group-text font-weight-bold text-white" style="background:#7c3aed;border:2px solid #a78bfa !important;border-left:none !important;padding:0 12px;font-size:0.95rem;border-top-right-radius:10px !important;border-bottom-right-radius:10px !important;border-top-left-radius:0 !important;border-bottom-left-radius:0 !important;"><?php echo kipSymbol(); ?></span>
                     </div>
                   </div>
                   <div class="d-flex" style="margin-top: 8px;">
@@ -242,16 +242,16 @@
                 <div style="font-size:0.82rem;color:#64748b;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;"><?php echo htmlspecialchars(t('pos.payment_summary', 'ສຳຫຼວດການຊຳລະ')); ?></div>
                 <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.total_label', 'ລວມ:')); ?></span>
-                  <span class="font-weight-bold text-dark text-truncate ml-2" id="singleTotalLbl">0 ₭</span>
+                  <span class="font-weight-bold text-dark text-truncate ml-2" id="singleTotalLbl">0 <?php echo kipSymbol(); ?></span>
                 </div>
                 <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.received_label', 'ຮັບມາ:')); ?></span>
-                  <span class="font-weight-bold text-primary text-truncate ml-2" id="singleCashLbl">0 ₭</span>
+                  <span class="font-weight-bold text-primary text-truncate ml-2" id="singleCashLbl">0 <?php echo kipSymbol(); ?></span>
                 </div>
                 <div style="border-top:1px dashed #e2e8f0;margin:6px 0;"></div>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                   <span class="font-weight-bold" style="font-size:0.95rem;"><?php echo htmlspecialchars(t('pos.change_label', 'ເງິນທອນ:')); ?></span>
-                  <span class="font-weight-bold text-success" id="changeDisplay" style="font-size:1.4rem;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">0 ₭</span>
+                  <span class="font-weight-bold text-success" id="changeDisplay" style="font-size:1.4rem;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;">0 <?php echo kipSymbol(); ?></span>
                 </div>
               </div>
             </div>
@@ -262,20 +262,20 @@
                 <div style="font-size:0.82rem;color:#64748b;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;"><?php echo htmlspecialchars(t('pos.payment_summary', 'ສຳຫຼວດການຊຳລະ')); ?></div>
                 <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.grand_total_label', 'ຍອດທັງໝົດ:')); ?></span>
-                  <span class="font-weight-bold text-dark text-truncate ml-2" id="splitTotal">0 ₭</span>
+                  <span class="font-weight-bold text-dark text-truncate ml-2" id="splitTotal">0 <?php echo kipSymbol(); ?></span>
                 </div>
                 <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.pay_type_cash', 'ເງິນສົດ')); ?>:</span>
-                  <span class="font-weight-bold text-success text-truncate ml-2" id="splitCashDisplay">0 ₭</span>
+                  <span class="font-weight-bold text-success text-truncate ml-2" id="splitCashDisplay">0 <?php echo kipSymbol(); ?></span>
                 </div>
                 <div class="d-flex justify-content-between mb-1" style="font-size:0.95rem;">
                   <span class="text-muted"><?php echo htmlspecialchars(t('pos.pay_type_qr', 'ໂອນ / QR')); ?>:</span>
-                  <span class="font-weight-bold text-truncate ml-2" style="color:#7c3aed;" id="splitQrDisplay">0 ₭</span>
+                  <span class="font-weight-bold text-truncate ml-2" style="color:#7c3aed;" id="splitQrDisplay">0 <?php echo kipSymbol(); ?></span>
                 </div>
                 <div style="border-top:1px dashed #e2e8f0;margin:6px 0;"></div>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                   <span class="font-weight-bold" style="font-size:0.95rem;" id="splitStatusLabel"><?php echo htmlspecialchars(t('pos.split_status_remaining', 'ຍັງຄ້າງ:')); ?></span>
-                  <span class="font-weight-bold" style="font-size:1.35rem;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;" id="splitRemainingDisplay">0 ₭</span>
+                  <span class="font-weight-bold" style="font-size:1.35rem;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;word-break:break-all;" id="splitRemainingDisplay">0 <?php echo kipSymbol(); ?></span>
                 </div>
               </div>
             </div>

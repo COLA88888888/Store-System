@@ -20,7 +20,7 @@
       <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
         <?php echo htmlspecialchars(t('stock_transfer.transfer_date_label', 'ວັນທີໂອນ')); ?> <span class="text-danger">*</span>
       </label>
-      <input type="date" name="transfer_date" class="form-control font-weight-bold" value="<?php echo date('Y-m-d'); ?>" required style="height: 42px; border-radius: 8px;">
+      <input type="date" name="transfer_date" id="transfer_date" class="form-control font-weight-bold" value="<?php echo date('Y-m-d'); ?>" required style="height: 42px; border-radius: 8px; cursor: pointer;">
     </div>
 
     <!-- 3. From Store -->

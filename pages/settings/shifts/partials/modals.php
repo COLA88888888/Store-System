@@ -215,7 +215,7 @@
             <div class="input-group input-group-lg">
               <input type="text" class="form-control text-right font-weight-bold text-primary" id="openShiftInitialCash" name="initial_cash" value="" placeholder="ປ້ອນຈຳນວນເງິນ (ບໍ່ມີໃຫ້ໃສ່ 0)" required style="border-radius: 4px 0 0 4px; font-size: 1.35rem;" oninput="formatNumberInput(this)">
               <div class="input-group-append">
-                <span class="input-group-text font-weight-bold bg-light" style="border-radius: 0 4px 4px 0;">₭</span>
+                <span class="input-group-text font-weight-bold bg-light" style="border-radius: 0 4px 4px 0;"><?php echo kipSymbol(); ?></span>
               </div>
             </div>
             <small class="text-muted d-block mt-1">
@@ -275,25 +275,25 @@
             <div class="col-6 col-md-3 mb-2">
               <div class="p-2.5 bg-white border text-center shadow-xs" style="border-radius: 4px;">
                 <small class="text-muted d-block" style="font-size: 0.78rem;">ເງິນລິ້ນຊັກຕອນເປີດ</small>
-                <span class="font-weight-bold text-secondary" style="font-size: 1.05rem;" id="closeShiftInitialCashDisplay">0 ₭</span>
+                <span class="font-weight-bold text-secondary" style="font-size: 1.05rem;" id="closeShiftInitialCashDisplay">0 <?php echo kipSymbol(); ?></span>
               </div>
             </div>
             <div class="col-6 col-md-3 mb-2">
               <div class="p-2.5 bg-white border text-center shadow-xs" style="border-radius: 4px;">
                 <small class="text-muted d-block" style="font-size: 0.78rem;">ຂາຍເງິນສົດ (ລະບົບ)</small>
-                <span class="font-weight-bold text-success" style="font-size: 1.05rem;" id="closeShiftSysCashDisplay">0 ₭</span>
+                <span class="font-weight-bold text-success" style="font-size: 1.05rem;" id="closeShiftSysCashDisplay">0 <?php echo kipSymbol(); ?></span>
               </div>
             </div>
             <div class="col-6 col-md-3 mb-2">
               <div class="p-2.5 bg-white border text-center shadow-xs" style="border-radius: 4px;">
                 <small class="text-muted d-block" style="font-size: 0.78rem;">ຂາຍໂອນ / QR (ລະບົບ)</small>
-                <span class="font-weight-bold text-info" style="font-size: 1.05rem;" id="closeShiftSysTransferDisplay">0 ₭</span>
+                <span class="font-weight-bold text-info" style="font-size: 1.05rem;" id="closeShiftSysTransferDisplay">0 <?php echo kipSymbol(); ?></span>
               </div>
             </div>
             <div class="col-6 col-md-3 mb-2">
               <div class="p-2.5 bg-white border text-center shadow-xs" style="border-radius: 4px;">
                 <small class="text-muted d-block" style="font-size: 0.78rem;">ຍອດຂາຍລວມ (<span id="closeShiftTotalBillsDisplay">0</span> ບິນ)</small>
-                <span class="font-weight-bold text-primary" style="font-size: 1.05rem;" id="closeShiftSysTotalDisplay">0 ₭</span>
+                <span class="font-weight-bold text-primary" style="font-size: 1.05rem;" id="closeShiftSysTotalDisplay">0 <?php echo kipSymbol(); ?></span>
               </div>
             </div>
           </div>
@@ -312,14 +312,14 @@
             <div class="input-group input-group-lg mb-2">
               <input type="text" class="form-control text-right font-weight-bold text-dark" id="closeShiftCountedCash" name="counted_sales_cash" value="0" placeholder="0" required style="border-radius: 4px 0 0 4px; font-size: 1.45rem; background: #ffffff;" oninput="formatNumberInput(this); calculateShiftDifference();">
               <div class="input-group-append">
-                <span class="input-group-text font-weight-bold bg-white" style="border-radius: 0 4px 4px 0;">₭</span>
+                <span class="input-group-text font-weight-bold bg-white" style="border-radius: 0 4px 4px 0;"><?php echo kipSymbol(); ?></span>
               </div>
             </div>
 
             <!-- Dynamic Live Difference Indicator -->
             <div id="shiftDiffAlert" class="alert alert-secondary py-2 px-3 mb-0 d-flex justify-content-between align-items-center" style="border-radius: 4px;">
               <span><strong>ສ່ວນຕ່າງເງິນສົດ (ຕົວຈິງ - ລະບົບ):</strong></span>
-              <span class="font-weight-bold" id="shiftDiffDisplay" style="font-size: 1.2rem;">0 ₭</span>
+              <span class="font-weight-bold" id="shiftDiffDisplay" style="font-size: 1.2rem;">0 <?php echo kipSymbol(); ?></span>
             </div>
           </div>
 

@@ -133,11 +133,11 @@
                   <span class="badge badge-light border text-primary px-2 py-1"><i class="fas fa-store mr-1"></i><?php echo htmlspecialchars($row['store_name'] ?? 'ສາຂາ'); ?></span>
                 </td>
                 <td class="text-center font-weight-bold text-dark"><?php echo number_format($row['qty']); ?></td>
-                <td class="text-right font-weight-bold text-secondary"><?php echo number_format($row['gross'], 0); ?> ₭</td>
-                <td class="text-right text-danger font-weight-bold"><?php echo number_format($row['discount'], 0); ?> ₭</td>
-                <td class="text-right font-weight-bold text-success" style="font-size: 0.94rem;"><?php echo number_format($row['net'], 0); ?> ₭</td>
-                <td class="text-right font-weight-bold text-dark"><?php echo number_format($row['cash'], 0); ?> ₭</td>
-                <td class="text-right font-weight-bold text-primary"><?php echo number_format($row['qr'], 0); ?> ₭</td>
+                <td class="text-right font-weight-bold text-secondary"><?php echo number_format($row['gross'], 0); ?> <?php echo kipSymbol(); ?></td>
+                <td class="text-right text-danger font-weight-bold"><?php echo number_format($row['discount'], 0); ?> <?php echo kipSymbol(); ?></td>
+                <td class="text-right font-weight-bold text-success" style="font-size: 0.94rem;"><?php echo number_format($row['net'], 0); ?> <?php echo kipSymbol(); ?></td>
+                <td class="text-right font-weight-bold text-dark"><?php echo number_format($row['cash'], 0); ?> <?php echo kipSymbol(); ?></td>
+                <td class="text-right font-weight-bold text-primary"><?php echo number_format($row['qr'], 0); ?> <?php echo kipSymbol(); ?></td>
                 <td class="text-center align-middle">
                   <?php if (!empty($row['qr']) && $row['qr'] > 0): ?>
                     <?php
@@ -161,7 +161,7 @@
                     <span class="text-muted font-weight-bold">-</span>
                   <?php endif; ?>
                 </td>
-                <td class="text-right font-weight-bold text-info"><?php echo number_format($row['change'] ?? 0, 0); ?> ₭</td>
+                <td class="text-right font-weight-bold text-info"><?php echo number_format($row['change'] ?? 0, 0); ?> <?php echo kipSymbol(); ?></td>
                 <td class="text-left font-weight-bold text-dark" style="font-size: 0.84rem;"><?php echo htmlspecialchars($row['cashier']); ?></td>
                 <td class="text-center no-print" style="white-space: nowrap !important;">
                   <div class="d-inline-flex align-items-center" style="gap: 6px;">
@@ -195,20 +195,20 @@
             <?php if ($view_mode === 'item'): ?>
               <td colspan="6" class="text-right text-dark">ລວມທັງໝົດ:</td>
               <td class="text-center text-dark"><?php echo number_format($total_qty); ?></td>
-              <td class="text-right text-secondary"><?php echo number_format($total_gross, 0); ?> ₭</td>
-              <td class="text-right text-danger"><?php echo number_format($total_disc, 0); ?> ₭</td>
-              <td class="text-right text-success" style="font-size: 1.0rem;"><?php echo number_format($total_net, 0); ?> ₭</td>
+              <td class="text-right text-secondary"><?php echo number_format($total_gross, 0); ?> <?php echo kipSymbol(); ?></td>
+              <td class="text-right text-danger"><?php echo number_format($total_disc, 0); ?> <?php echo kipSymbol(); ?></td>
+              <td class="text-right text-success" style="font-size: 1.0rem;"><?php echo number_format($total_net, 0); ?> <?php echo kipSymbol(); ?></td>
               <td></td>
             <?php else: ?>
               <td colspan="4" class="text-right text-dark">ລວມທັງໝົດ:</td>
               <td class="text-center text-dark"><?php echo number_format($total_qty); ?></td>
-              <td class="text-right text-secondary"><?php echo number_format($total_gross, 0); ?> ₭</td>
-              <td class="text-right text-danger"><?php echo number_format($total_disc, 0); ?> ₭</td>
-              <td class="text-right text-success" style="font-size: 1.0rem;"><?php echo number_format($total_net, 0); ?> ₭</td>
-              <td class="text-right text-dark"><?php echo number_format($total_cash, 0); ?> ₭</td>
-              <td class="text-right text-primary"><?php echo number_format($total_qr, 0); ?> ₭</td>
+              <td class="text-right text-secondary"><?php echo number_format($total_gross, 0); ?> <?php echo kipSymbol(); ?></td>
+              <td class="text-right text-danger"><?php echo number_format($total_disc, 0); ?> <?php echo kipSymbol(); ?></td>
+              <td class="text-right text-success" style="font-size: 1.0rem;"><?php echo number_format($total_net, 0); ?> <?php echo kipSymbol(); ?></td>
+              <td class="text-right text-dark"><?php echo number_format($total_cash, 0); ?> <?php echo kipSymbol(); ?></td>
+              <td class="text-right text-primary"><?php echo number_format($total_qr, 0); ?> <?php echo kipSymbol(); ?></td>
               <td></td>
-              <td class="text-right text-info"><?php echo number_format($total_change ?? 0, 0); ?> ₭</td>
+              <td class="text-right text-info"><?php echo number_format($total_change ?? 0, 0); ?> <?php echo kipSymbol(); ?></td>
               <td colspan="2"></td>
             <?php endif; ?>
           </tr>

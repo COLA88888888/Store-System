@@ -230,37 +230,6 @@
     border-radius: 6px !important;
 }
 
-/* ===== RESPONSIVE NAVBAR LOGOUT BUTTON ===== */
-.logout-nav-btn {
-    font-size: 0.85rem !important;
-    color: #ffffff !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 5px !important;
-    padding: 6px 10px !important;
-    border-radius: 6px !important;
-    background: rgba(255, 255, 255, 0.16) !important;
-    border: 1px solid rgba(255, 255, 255, 0.28) !important;
-    transition: all 0.2s ease !important;
-}
-.logout-nav-btn i {
-    font-size: 0.95rem !important;
-    color: #ffffff !important;
-}
-
-@media (max-width: 767.98px) {
-    .logout-nav-btn {
-        border: none !important;
-        background: transparent !important;
-        box-shadow: none !important;
-        padding: 4px 6px !important;
-    }
-    .logout-nav-btn i {
-        font-size: 1.25rem !important;
-    }
-}
-
 /* ===== MOBILE RESPONSIVE & HIGH PERFORMANCE OPTIMIZATIONS ===== */
 html {
     -webkit-text-size-adjust: 100%;
@@ -344,5 +313,6 @@ body {
     }
 }
 
-/* Multi-currency: make the currency symbol stand out a bit larger */
-.cur-sym { font-size: 1.28em; font-weight: 800; letter-spacing: 0.5px; }
+/* ຫົວໜ່ວຍເງິນ (ກີບ / Kip / ฿ / $) ຫຼັງຈຳນວນເງິນ: ຂະໜາດ ແລະ ຄວາມໜາເທົ່າກັບຕົວເລກ.
+   footer.php ຫໍ່ "ຕົວເລກ + ກີບ" ທີ່ພິມໄວ້ໃນໜ້າດ້ວຍ <span class="cur-sym"> ໃຫ້ອັດຕະໂນມັດ */
+.cur-sym { font-size: 1em; font-weight: inherit; letter-spacing: 0; }

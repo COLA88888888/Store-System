@@ -1,10 +1,14 @@
 /* MiniPos flatpickr calendar (used with minipos-datepicker.js): plain white calendar —
    white header, grey arrows, month dropdown + year, round days, selected day a blue
    circle, today a thin grey ring. Sizes are flatpickr's own defaults. */
-.flatpickr-calendar { font-family: 'Nuanta', 'Noto Sans Lao', 'Phetsarath OT', sans-serif; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12); }
+/* ຟອນປະຕິທິນ: ຕົວອັກສອນລາວແບບບໍ່ມີຫົວ (Noto Sans Lao, ໄຟລ໌ໃນ assets/fonts) ໂຫຼດໂດຍກົງ ດ້ວຍຊື່ຂອງຕົນເອງ —
+   ທຸກໜ້າສະແດງຊື່ເດືອນ/ວັນ ແບບດຽວກັບດາສບອດ. ຟອນລາວແບບມີຫົວ (Nuanta) ເຮັດໃຫ້ "ຕຸລາ" ເບິ່ງຄືໜັງສືໄທ ໃນບັອກເລືອກເດືອນ */
+@font-face { font-family: 'MP Calendar Lao'; src: url('../../assets/fonts/NotoSansLao-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'MP Calendar Lao'; src: url('../../assets/fonts/NotoSansLao-Bold.ttf') format('truetype'); font-weight: 600 900; font-display: swap; }
+.flatpickr-calendar { font-family: 'MP Calendar Lao', 'Noto Sans Lao', 'Phetsarath OT', sans-serif; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12); z-index: 999999 !important; }
 .flatpickr-calendar.arrowTop:before, .flatpickr-calendar.arrowTop:after,
 .flatpickr-calendar.arrowBottom:before, .flatpickr-calendar.arrowBottom:after { display: none; }
-.flatpickr-calendar select, .flatpickr-calendar input, .flatpickr-weekday { font-family: 'Nuanta', 'Noto Sans Lao', 'Phetsarath OT', sans-serif !important; }
+.flatpickr-calendar, .flatpickr-calendar select, .flatpickr-calendar input, .flatpickr-calendar .flatpickr-weekday, .flatpickr-calendar .flatpickr-day { font-family: 'MP Calendar Lao', 'Noto Sans Lao', 'Phetsarath OT', sans-serif !important; }
 .flatpickr-months .flatpickr-month { background: #ffffff; color: #1e293b; fill: #1e293b; height: 40px; }
 .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { color: #334155; fill: #334155; padding: 12px; }
 .flatpickr-months .flatpickr-prev-month:hover svg, .flatpickr-months .flatpickr-next-month:hover svg { fill: #0f172a; }
@@ -62,4 +66,4 @@ html.mp-dp-on input[type="date"]:not([data-native-date="1"])::-webkit-calendar-p
 .flatpickr-day.mp-in-range.prevMonthDay, .flatpickr-day.mp-in-range.nextMonthDay { color: #9ca3af; }
 
 /* ປະຕິທິນທີ່ເປີດຢູ່ ຕິດກັບຈໍ (ບໍ່ເຮັດໃຫ້ໜ້າຍາວຂຶ້ນ → ບໍ່ມີແຖບເລື່ອນຂວາມື). top/left ຕັ້ງໂດຍ pinCalendar() ໃນ minipos-datepicker.js */
-.flatpickr-calendar.mp-fixed.open:not(.inline):not(.static) { position: fixed !important; }
+.flatpickr-calendar.mp-fixed.open:not(.inline):not(.static) { position: fixed !important; z-index: 999999 !important; }

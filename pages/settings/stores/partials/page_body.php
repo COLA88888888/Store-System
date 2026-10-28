@@ -170,15 +170,7 @@
             <input type="text" name="receipt_footer" id="input_store_footer" class="form-control <?php echo $sharedFieldClass; ?>"
                    value="<?php echo htmlspecialchars($company['barcode'] ?? ''); ?>"
                    placeholder="<?php echo htmlspecialchars(t('stores.field_footer_ph', 'ເຊັ່ນ: ຂອບໃຈທີ່ມາອຸດໜູນ, ສິນຄ້າຊື້ແລ້ວບໍ່ຮັບປ່ຽນຄືນ...')); ?>" <?php echo $sharedReadonly; ?>>
-            <?php /* ຂໍ້ຄວາມທ້າຍບິນພາສາອື່ນ: ໃບບິນສະແດງຕາມພາສາທີ່ເລືອກ, ຫວ່າງໄວ້ = ໃຊ້ພາສາລາວຂ້າງເທິງ (layouts/receipt_template.php) */ ?>
-            <small class="text-muted d-block mt-2 mb-1"><?php echo htmlspecialchars(t('stores.field_footer_other_hint', 'ຂໍ້ຄວາມທ້າຍບິນພາສາອື່ນ — ໃບບິນຈະປ່ຽນຕາມພາສາທີ່ເລືອກ (ຫວ່າງໄວ້ = ໃຊ້ພາສາລາວ)')); ?></small>
-            <?php foreach (['en' => 'English', 'th' => 'ไทย', 'zh' => '中文'] as $__fl => $__flName): ?>
-              <div class="input-group input-group-sm mb-1">
-                <div class="input-group-prepend"><span class="input-group-text font-weight-bold" style="min-width: 72px;"><?php echo $__flName; ?></span></div>
-                <input type="text" name="receipt_footer_<?php echo $__fl; ?>" class="form-control <?php echo $sharedFieldClass; ?>"
-                       value="<?php echo htmlspecialchars($company['receipt_footer_' . $__fl] ?? ''); ?>" <?php echo $sharedReadonly; ?>>
-              </div>
-            <?php endforeach; ?>
+            <?php /* ບັອກດຽວ: ພິມໃສ່ພາສາໃດ ໃບບິນກໍສະແດງຕາມນັ້ນ ທຸກພາສາ (layouts/receipt_template.php) */ ?>
           </div>
 
           <!-- Queue number on receipt (coffee-shop style) -->

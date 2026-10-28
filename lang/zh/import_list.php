@@ -109,4 +109,9 @@ return [
     'import_list.js_delete_bill_title' => '删除该入库单据？',
     'import_list.js_delete_bill_text' => '确定要删除整张单据 [%s] 吗？该单据上的所有商品库存都将被减回！',
     'import_list.js_export_name' => '入库商品列表',
+    'import_list.all_branches' => '全部分店',
+    'import_list.export_date_range' => '日期',
+    'import_list.view_by_bill' => '按单据',
+    'import_list.view_by_item' => '按商品明细',
+    'import_list.search_label' => '搜索:',
 ];

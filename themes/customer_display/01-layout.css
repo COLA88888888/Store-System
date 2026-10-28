@@ -108,7 +108,8 @@
 
     /* ===== MAIN DUAL PANEL (Left = Large Logo & Store Info, Right = Order List & Payment) ===== */
     .display-main {
-      flex: 1;
+      flex: 1 1 0;
+      min-height: 0;
       display: flex;
       overflow: hidden;
       padding: 16px;

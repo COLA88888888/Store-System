@@ -15,7 +15,7 @@ return [
     'home.default_currency_opt' => '-- ค่าเริ่มต้นร้าน --',
     'home.default_currency_short' => 'ค่าเริ่มต้น',
     'home.card_total_sales' => 'ยอดขายทั้งหมด',
-    'home.card_total_cost' => 'ต้นทุนสินค้าทั้งหมด',
+    'home.card_total_cost' => 'ต้นทุนนำเข้าสินค้าทั้งหมด',
     'home.card_cogs' => 'ต้นทุนการขาย',
     'home.card_total_profit' => 'กำไรทั้งหมด',
     'home.card_profit_pct' => 'กำไร %',

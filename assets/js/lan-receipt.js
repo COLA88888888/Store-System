@@ -3,7 +3,8 @@
  * ເພື່ອໃຫ້ພາສາລາວ, ໂລໂກ້ ແລະ QR ອອກຄືກັບເຄື່ອງພິມທົ່ວໄປທຸກຢ່າງ.
  */
 (function (window, document) {
-  var FONT_FILES = [['NotoSansLao-Regular.ttf', 'NotoSansLao-Bold.ttf']];
+  // ຟອນບິນ = ຟອນດຽວກັບລະບົບ (Nuanta, ມີທັງລາວ ອັງກິດ ແລະ ຕົວເລກ); ຖ້າໂຫຼດບໍ່ໄດ້ ໃຊ້ Noto Sans Lao ແທນ
+  var FONT_FILES = [['Nuanta-Regular.ttf', 'Nuanta-Bold.ttf'], ['NotoSansLao-Regular.ttf', 'NotoSansLao-Bold.ttf']];
   var fontCache = null;
 
   function fontFaces(basePath) {
@@ -234,7 +235,7 @@
   // Minimal stand-in for the Bootstrap utilities the receipt markup uses — the foreignObject
   // document can't see the page's stylesheets. Matches the POS receipt's print CSS.
   var RECEIPT_CSS =
-    ' *{box-sizing:border-box;font-family:"Receipt Latin","Receipt Lao",Arial,sans-serif !important;color:#000 !important;}' +
+    ' *{box-sizing:border-box;font-family:"Receipt Lao","Receipt Latin",Arial,sans-serif !important;color:#000 !important;}' +
     ' body,.rcpt-root{margin:0;font-size:17px;font-weight:400;line-height:1.5;background:#fff;}' +
     ' h1,h2,h3,h4,h5,h6{margin:0 !important;} h6{font-size:20px !important;white-space:nowrap;line-height:1.3 !important;}' +
     ' .text-center{text-align:center !important;} .text-right{text-align:right !important;}' +

@@ -296,7 +296,7 @@
               <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="font-weight-bold text-dark" style="font-size: 0.9rem;">
                   <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: <?php echo $cColor; ?>; margin-right: 6px; vertical-align: middle;"></span>
-                  <?php echo htmlspecialchars($cName); ?> <span class="text-muted">(<?php echo htmlspecialchars($cSym); ?>)</span>
+                  <?php echo htmlspecialchars($cName); ?><?php if ($cSym !== $cName): ?> <span class="text-muted">(<?php echo htmlspecialchars($cSym); ?>)</span><?php endif; ?>
                 </span>
                 <span class="badge badge-light border text-muted font-weight-bold" style="font-size: 0.7rem;"><?php echo number_format($cRow['bills']); ?> <?php echo htmlspecialchars(t('reports.bills_unit', 'ບິນ')); ?></span>
               </div>

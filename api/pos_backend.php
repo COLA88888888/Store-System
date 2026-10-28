@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if ($paid_currency !== 'KIP') {
         $__srvRate = (float)(getExchangeRates($pdo)[$paid_currency] ?? 0);
         if ($__srvRate <= 0 || abs($paid_rate - $__srvRate) > 0.000001 * $__srvRate) {
-            echo json_encode(['success' => false, 'message' => 'ອັດຕາແລກປ່ຽນ ' . $paid_currency . ' ຖືກປ່ຽນແລ້ວ (ປັດຈຸບັນ 1 = ' . number_format($__srvRate) . ' ₭) — ກະລຸນາໂຫຼດໜ້າຂາຍໃໝ່ ແລ້ວຊຳລະອີກຄັ້ງ']);
+            echo json_encode(['success' => false, 'message' => 'ອັດຕາແລກປ່ຽນ ' . $paid_currency . ' ຖືກປ່ຽນແລ້ວ (ປັດຈຸບັນ 1 = ' . number_format($__srvRate) . ' ' . kipSymbol() . ') — ກະລຸນາໂຫຼດໜ້າຂາຍໃໝ່ ແລ້ວຊຳລະອີກຄັ້ງ']);
             exit();
         }
     }

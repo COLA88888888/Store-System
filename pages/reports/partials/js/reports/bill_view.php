@@ -70,7 +70,7 @@ function reprintReceiptFallback() {
 // ===== Report display currency (data is stored in KIP; reports show the active currency) =====
 <?php
   $__rdc = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo)
-         : ['code' => 'KIP', 'symbol' => '₭', 'decimals' => 0, 'rate' => 1, 'rates' => ['KIP' => 1]];
+         : ['code' => 'KIP', 'symbol' => kipSymbol(), 'decimals' => 0, 'rate' => 1, 'rates' => ['KIP' => 1]];
 ?>
 window.REP_CUR = {
   code: <?php echo json_encode($__rdc['code']); ?>,
@@ -129,7 +129,7 @@ function repMoneyInCode(kip, code, rate) {
   if (code === 'KIP') return repRcNum(kip) + ' ' + m.symbol;
   var r = parseFloat(rate) || parseFloat(REP_CUR.rates[code]) || 0;
   if (r <= 0) return '-';
-  return repRcNum(kip / r) + ' ' + m.symbol;
+  return repRcNum(Math.ceil(Math.round(kip / r * 1e6) / 1e6)) + ' ' + m.symbol;
 }
 // The reprint receipt's net-total currency block: only the currency the bill was paid in
 // (same as the checkout receipt, renderReceiptMultiCurrency).
@@ -153,7 +153,7 @@ function fillReprintMultiCurrency(netKip, paidCode, paidRate) {
 // n is a KIP amount -> formatted string in the report currency
 function repMoneyFromKip(n) {
   n = parseFloat(n) || 0;
-  var v = REP_CUR.isKip ? Math.round(n) : (n / REP_CUR.rate);
+  var v = REP_CUR.isKip ? Math.round(n) : Math.ceil(Math.round(n / REP_CUR.rate * 1e6) / 1e6);
   return v.toLocaleString('en-US', { minimumFractionDigits: REP_CUR.decimals, maximumFractionDigits: REP_CUR.decimals }) + ' <span class="cur-sym">' + REP_CUR.symbol + '</span>';
 }
 // Reprinted receipt money — same rules as the checkout receipt: whole numbers

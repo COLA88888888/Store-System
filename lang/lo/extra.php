@@ -43,7 +43,6 @@ return [
     'promotions.col_code' => 'ລະຫັດ',
     'stores.logo_remove_title' => 'ລຶບຮູບໂລໂກ້',
     'stores.branch_own_info_note' => 'ຂໍ້ມູນນີ້ແມ່ນຂອງສາຂານີ້ໂດຍສະເພາະ, ບໍ່ປົນກັບສາຂາອື່ນ.',
-    'stores.field_footer_other_hint' => 'ຂໍ້ຄວາມທ້າຍບິນພາສາອື່ນ — ໃບບິນຈະປ່ຽນຕາມພາສາທີ່ເລືອກ (ຫວ່າງໄວ້ = ໃຊ້ພາສາລາວ)',
     'suppliers.col_code' => 'ລະຫັດ',
     'units.hint_code_locked' => 'ລະຫັດຫົວໜ່ວຍ (ແກ້ໄຂບໍ່ໄດ້)',
     'units.page_showing' => 'ສະແດງ',

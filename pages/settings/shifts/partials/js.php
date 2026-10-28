@@ -178,11 +178,11 @@ function loadCurrentShiftStatus() {
       $('#activeShiftName').text(res.session.shift_name);
       $('#activeShiftOpenTime').text(res.session.open_time);
       $('#activeShiftOpenedBy').text(res.session.opened_by_name);
-      $('#activeShiftInitialCash').text(formatNumber(res.session.initial_cash) + ' ₭');
+      $('#activeShiftInitialCash').text(formatNumber(res.session.initial_cash) + ' <?php echo kipSymbol(); ?>');
       $('#activeShiftBills').text(formatNumber(res.session.system_total_bills));
-      $('#activeShiftCashSales').text(formatNumber(res.session.system_sales_cash) + ' ₭');
-      $('#activeShiftTransferSales').text(formatNumber(res.session.system_sales_transfer) + ' ₭');
-      $('#activeShiftTotalSales').text(formatNumber(res.session.system_total_sales) + ' ₭');
+      $('#activeShiftCashSales').text(formatNumber(res.session.system_sales_cash) + ' <?php echo kipSymbol(); ?>');
+      $('#activeShiftTransferSales').text(formatNumber(res.session.system_sales_transfer) + ' <?php echo kipSymbol(); ?>');
+      $('#activeShiftTotalSales').text(formatNumber(res.session.system_total_sales) + ' <?php echo kipSymbol(); ?>');
 
       // ປຸ່ມສະຫຼຸບ (ປຸ່ມປິດກະຢູ່ແຖບນີ້ ເອົາອອກແລ້ວ — ປິດກະທີ່ໜ້າຂາຍ)
       $('#btnBannerViewSummary').off('click').on('click', function () {
@@ -574,10 +574,10 @@ function openCloseShiftModal(sessionId) {
     $('#closeShiftNameDisplay').text(s.shift_name);
     $('#closeShiftOpenTimeDisplay').text(s.open_time);
     $('#closeShiftOpenedByDisplay').text(s.opened_by_name);
-    $('#closeShiftInitialCashDisplay').text(formatNumber(s.initial_cash) + ' ₭');
-    $('#closeShiftSysCashDisplay').text(formatNumber(s.system_sales_cash) + ' ₭');
-    $('#closeShiftSysTransferDisplay').text(formatNumber(s.system_sales_transfer) + ' ₭');
-    $('#closeShiftSysTotalDisplay').text(formatNumber(s.system_total_sales) + ' ₭');
+    $('#closeShiftInitialCashDisplay').text(formatNumber(s.initial_cash) + ' <?php echo kipSymbol(); ?>');
+    $('#closeShiftSysCashDisplay').text(formatNumber(s.system_sales_cash) + ' <?php echo kipSymbol(); ?>');
+    $('#closeShiftSysTransferDisplay').text(formatNumber(s.system_sales_transfer) + ' <?php echo kipSymbol(); ?>');
+    $('#closeShiftSysTotalDisplay').text(formatNumber(s.system_total_sales) + ' <?php echo kipSymbol(); ?>');
     $('#closeShiftTotalBillsDisplay').text(formatNumber(s.system_total_bills));
 
     window.activeClosingShift = s;
@@ -605,13 +605,13 @@ function calculateShiftDifference() {
 
   if (diff === 0) {
     alertBox.addClass('alert-success');
-    display.html('<i class="fas fa-check-circle mr-1"></i> ດຸ່ນດ່ຽງພໍດີ (0 ₭)').css('color', '#15803d');
+    display.html('<i class="fas fa-check-circle mr-1"></i> ດຸ່ນດ່ຽງພໍດີ (0 <?php echo kipSymbol(); ?>)').css('color', '#15803d');
   } else if (diff > 0) {
     alertBox.addClass('alert-info');
-    display.html('<i class="fas fa-arrow-up mr-1"></i> ເງິນເກີນ: +' + formatNumber(diff) + ' ₭').css('color', '#0284c7');
+    display.html('<i class="fas fa-arrow-up mr-1"></i> ເງິນເກີນ: +' + formatNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#0284c7');
   } else {
     alertBox.addClass('alert-danger');
-    display.html('<i class="fas fa-arrow-down mr-1"></i> ເງິນຂາດ: ' + formatNumber(diff) + ' ₭').css('color', '#dc2626');
+    display.html('<i class="fas fa-arrow-down mr-1"></i> ເງິນຂາດ: ' + formatNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#dc2626');
   }
 }
 
@@ -711,21 +711,21 @@ function loadSessionsHistory() {
 
     // ບັດສະຫຼຸບປິດກະ (Shift Close KPI)
     $('#kpiTotalShifts, #kpiCloseTotalShifts').text(formatNumber((res.sessions || []).length));
-    $('#kpiCloseTotalDrawer').text(formatNumber(sumInit) + ' ₭');
-    $('#kpiCloseTotalCounted').text(formatNumber(sumCounted) + ' ₭');
+    $('#kpiCloseTotalDrawer').text(formatNumber(sumInit) + ' <?php echo kipSymbol(); ?>');
+    $('#kpiCloseTotalCounted').text(formatNumber(sumCounted) + ' <?php echo kipSymbol(); ?>');
     var diffEl = $('#kpiTotalDiff, #kpiCloseTotalDiff');
     if (totalDiff > 0) {
-      diffEl.text('+' + formatNumber(totalDiff) + ' ₭');
+      diffEl.text('+' + formatNumber(totalDiff) + ' <?php echo kipSymbol(); ?>');
     } else if (totalDiff < 0) {
-      diffEl.text(formatNumber(totalDiff) + ' ₭');
+      diffEl.text(formatNumber(totalDiff) + ' <?php echo kipSymbol(); ?>');
     } else {
-      diffEl.text('0 ₭');
+      diffEl.text('0 <?php echo kipSymbol(); ?>');
     }
 
     // ບັດສະຫຼຸບລາຍຮັບ (Shift Revenue KPI)
-    $('#kpiRevTotalSales, #kpiTotalSales').text(formatNumber(totalSales) + ' ₭');
-    $('#kpiRevCashSales').text(formatNumber(sumCash) + ' ₭');
-    $('#kpiRevTransferSales').text(formatNumber(sumTrf) + ' ₭');
+    $('#kpiRevTotalSales, #kpiTotalSales').text(formatNumber(totalSales) + ' <?php echo kipSymbol(); ?>');
+    $('#kpiRevCashSales').text(formatNumber(sumCash) + ' <?php echo kipSymbol(); ?>');
+    $('#kpiRevTransferSales').text(formatNumber(sumTrf) + ' <?php echo kipSymbol(); ?>');
     $('#kpiRevTotalBills, #kpiTotalBills').text(formatNumber(totalBills));
 
     window.allSessionsRaw = res.sessions || [];
@@ -820,10 +820,10 @@ function renderSessionsPage() {
           <div><i class="fas fa-user text-primary mr-1"></i>${$('<div>').text(s.staff_names || s.opened_by_name || '-').html()}</div>
         </td>
         <td class="text-center align-middle font-weight-bold text-dark">${formatNumber(s.system_total_bills)}</td>
-        <td class="text-right align-middle font-weight-bold text-success">${formatNumber(s.system_sales_cash)} ₭</td>
-        <td class="text-right align-middle font-weight-bold text-info">${formatNumber(s.system_sales_transfer)} ₭</td>
-        <td class="text-right align-middle font-weight-bold text-warning">${formatNumber(s.system_sales_debt)} ₭</td>
-        <td class="text-right align-middle font-weight-bold text-primary" style="font-size: 1rem;">${formatNumber(s.system_total_sales)} ₭</td>
+        <td class="text-right align-middle font-weight-bold text-success">${formatNumber(s.system_sales_cash)} <?php echo kipSymbol(); ?></td>
+        <td class="text-right align-middle font-weight-bold text-info">${formatNumber(s.system_sales_transfer)} <?php echo kipSymbol(); ?></td>
+        <td class="text-right align-middle font-weight-bold text-warning">${formatNumber(s.system_sales_debt)} <?php echo kipSymbol(); ?></td>
+        <td class="text-right align-middle font-weight-bold text-primary" style="font-size: 1rem;">${formatNumber(s.system_total_sales)} <?php echo kipSymbol(); ?></td>
         <td class="text-center align-middle">
           <button type="button" class="btn btn-sm btn-outline-success shift-detail-btn d-inline-flex align-items-center justify-content-center" onclick="openShiftReportModal(${s.id})" title="ເບິ່ງລາຍການສິນຄ້າ ແລະ ບິນຂາຍ" style="width: 32px; height: 32px; padding: 0; border-radius: 6px; font-size: 0.95rem;">
             <i class="fas fa-list-alt"></i>
@@ -844,11 +844,11 @@ function renderSessionsPage() {
       if (s.difference_cash !== null) {
         var d = parseFloat(s.difference_cash);
         if (d === 0) {
-          diffBadge = '<span class="badge badge-success font-weight-bold">0 ₭ (' + srT('shifts.rpt_balanced') + ')</span>';
+          diffBadge = '<span class="badge badge-success font-weight-bold">0 <?php echo kipSymbol(); ?> (' + srT('shifts.rpt_balanced') + ')</span>';
         } else if (d > 0) {
-          diffBadge = '<span class="badge badge-info font-weight-bold">+' + formatNumber(d) + ' ₭</span>';
+          diffBadge = '<span class="badge badge-info font-weight-bold">+' + formatNumber(d) + ' <?php echo kipSymbol(); ?></span>';
         } else {
-          diffBadge = '<span class="badge badge-danger font-weight-bold">' + formatNumber(d) + ' ₭</span>';
+          diffBadge = '<span class="badge badge-danger font-weight-bold">' + formatNumber(d) + ' <?php echo kipSymbol(); ?></span>';
         }
       }
 
@@ -865,9 +865,9 @@ function renderSessionsPage() {
           <div><strong>${srT('shifts.pg_lbl_open')}</strong> ${s.opened_by_name}</div>
           <div><strong>${srT('shifts.pg_lbl_close')}</strong> ${shiftCloserName(s.closed_by_name)}</div>
         </td>
-        <td class="text-right align-middle font-weight-bold text-secondary">${formatNumber(s.initial_cash)} ₭</td>
-        <td class="text-right align-middle font-weight-bold text-success">${formatNumber(s.system_sales_cash)} ₭</td>
-        <td class="text-right align-middle font-weight-bold text-dark">${s.counted_sales_cash !== null ? formatNumber(s.counted_sales_cash) + ' ₭' : '-'}</td>
+        <td class="text-right align-middle font-weight-bold text-secondary">${formatNumber(s.initial_cash)} <?php echo kipSymbol(); ?></td>
+        <td class="text-right align-middle font-weight-bold text-success">${formatNumber(s.system_sales_cash)} <?php echo kipSymbol(); ?></td>
+        <td class="text-right align-middle font-weight-bold text-dark">${s.counted_sales_cash !== null ? formatNumber(s.counted_sales_cash) + ' <?php echo kipSymbol(); ?>' : '-'}</td>
         <td class="text-center align-middle">${diffBadge}</td>
         <td class="text-center align-middle">${statusBadge}</td>
         <td class="text-center align-middle">
@@ -1031,13 +1031,13 @@ function cashBadge() {
 
 function renderShiftReportContent(s, bills) {
   var diff = s.difference_cash !== null ? parseFloat(s.difference_cash) : 0;
-  var diffText = '0 ₭ (' + srT('shifts.rpt_balanced') + ')';
+  var diffText = '0 <?php echo kipSymbol(); ?> (' + srT('shifts.rpt_balanced') + ')';
   var diffColor = '#15803d';
   if (diff > 0) {
-    diffText = '+' + formatNumber(diff) + ' ₭ (' + srT('shifts.rpt_over') + ')';
+    diffText = '+' + formatNumber(diff) + ' <?php echo kipSymbol(); ?> (' + srT('shifts.rpt_over') + ')';
     diffColor = '#0284c7';
   } else if (diff < 0) {
-    diffText = formatNumber(diff) + ' ₭ (' + srT('shifts.rpt_short') + ')';
+    diffText = formatNumber(diff) + ' <?php echo kipSymbol(); ?> (' + srT('shifts.rpt_short') + ')';
     diffColor = '#dc2626';
   }
 
@@ -1066,8 +1066,8 @@ function renderShiftReportContent(s, bills) {
         var cashPart = parseFloat(b.cash_part) || 0, trfPart = parseFloat(b.transfer_part) || 0;
         var bankHtml = isTransfer ? payTypeHtml.replace(cashBadge() + ' ', '') : '';
         channelCells =
-          `<td class="text-center" style="white-space: nowrap;">${cashPart > 0 ? cashBadge() + `<div class="small font-weight-bold text-success mt-1">${formatNumber(cashPart)} ₭</div>` : '<span class="text-muted">-</span>'}</td>` +
-          `<td class="text-center" style="white-space: nowrap;">${trfPart > 0 ? bankHtml + `<div class="small font-weight-bold text-info mt-1">${formatNumber(trfPart)} ₭</div>` : '<span class="text-muted">-</span>'}</td>`;
+          `<td class="text-center" style="white-space: nowrap;">${cashPart > 0 ? cashBadge() + `<div class="small font-weight-bold text-success mt-1">${formatNumber(cashPart)} <?php echo kipSymbol(); ?></div>` : '<span class="text-muted">-</span>'}</td>` +
+          `<td class="text-center" style="white-space: nowrap;">${trfPart > 0 ? bankHtml + `<div class="small font-weight-bold text-info mt-1">${formatNumber(trfPart)} <?php echo kipSymbol(); ?></div>` : '<span class="text-muted">-</span>'}</td>`;
       }
 
       billsRows += `
@@ -1077,7 +1077,7 @@ function renderShiftReportContent(s, bills) {
           <td class="text-center" style="white-space: nowrap;">${b.sale_date} ${b.sale_time}</td>
           <td style="white-space: nowrap;">${b.user_receive}</td>
           ${channelCells}
-          <td class="text-right font-weight-bold text-dark" style="white-space: nowrap;">${formatNumber(b.sale_barlance)} ₭</td>
+          <td class="text-right font-weight-bold text-dark" style="white-space: nowrap;">${formatNumber(b.sale_barlance)} <?php echo kipSymbol(); ?></td>
         </tr>
       `;
     });
@@ -1095,9 +1095,9 @@ function renderShiftReportContent(s, bills) {
           <td class="text-center" style="white-space: nowrap;">${i + 1}</td>
           <td style="white-space: nowrap;">${$('<div>').text(it.product_name || '-').html()}</td>
           <td class="text-center font-weight-bold" style="white-space: nowrap;">${formatNumber(it.qty)}</td>
-          <td class="text-right" style="white-space: nowrap;">${formatNumber(it.price)} ₭</td>
-          <td class="text-right" style="white-space: nowrap;">${it.discount ? formatNumber(it.discount) + ' ₭' : '-'}</td>
-          <td class="text-right font-weight-bold text-dark" style="white-space: nowrap;">${formatNumber(it.net)} ₭</td>
+          <td class="text-right" style="white-space: nowrap;">${formatNumber(it.price)} <?php echo kipSymbol(); ?></td>
+          <td class="text-right" style="white-space: nowrap;">${it.discount ? formatNumber(it.discount) + ' <?php echo kipSymbol(); ?>' : '-'}</td>
+          <td class="text-right font-weight-bold text-dark" style="white-space: nowrap;">${formatNumber(it.net)} <?php echo kipSymbol(); ?></td>
         </tr>`;
   }).join('') || '<tr><td colspan="6" class="text-center text-muted py-3">' + srT('shifts.rpt_no_items') + '</td></tr>';
 
@@ -1121,7 +1121,7 @@ function renderShiftReportContent(s, bills) {
   };
   var transferBanksHtml = channels.filter(function (c) { return c.type === 'transfer'; }).map(function (c) {
     return `<tr><td class="pl-5 text-muted" style="font-size: 0.86rem;"><span class="d-inline-flex align-items-center" style="gap: 6px;">${bankLogo(c.bank_logo_url, c.bank_name)} ${esc(c.bank_name)} <span class="small">(${c.bill_count} ບິນ)</span></span></td>
-            <td class="text-right pr-3 text-info" style="font-size: 0.9rem;">${formatNumber(c.total)} ₭</td></tr>`;
+            <td class="text-right pr-3 text-info" style="font-size: 0.9rem;">${formatNumber(c.total)} <?php echo kipSymbol(); ?></td></tr>`;
   }).join('');
   // ຕາຕະລາງດຽວ ຈັດຕາມບິນ: ສິນຄ້າຂອງແຕ່ລະບິນ (bills[].lines) + ຖັນ "ການຊຳລະ" ຮວມແຖວຂອງບິນ ບອກຮັບແຕ່ລະທາງເທົ່າໃດ
   // (bills[].cash_part / transfer_part / debt_part — ຈ່າຍປົນ ເງິນສົດ + ໂອນ ສະແດງທັງສອງ ພ້ອມຈຳນວນ)
@@ -1138,7 +1138,7 @@ function renderShiftReportContent(s, bills) {
     var parts = [['cash', b.cash_part], ['transfer', b.transfer_part], ['debt', b.debt_part]].filter(function (p) { return p[1] > 0; });
     if (parts.length === 1) return payBox(parts[0][0], b);
     return '<span class="d-inline-flex align-items-center text-nowrap" style="gap: 6px;">' + parts.map(function (p) {
-      return payBox(p[0], b) + '<span class="font-weight-bold small">' + formatNumber(p[1]) + ' ₭</span>';
+      return payBox(p[0], b) + '<span class="font-weight-bold small">' + formatNumber(p[1]) + ' <?php echo kipSymbol(); ?></span>';
     }).join('<span class="text-muted">+</span>') + '</span>';
   };
   var chOrder = { cash: 0, transfer: 1, mixed: 2, debt: 3 };
@@ -1157,8 +1157,8 @@ function renderShiftReportContent(s, bills) {
         <td class="text-center">${chRowNo}</td>
         <td class="font-weight-bold">${esc(b.sale_save_bill)}</td>
         <td>${esc(it.product_name)}</td>
-        <td class="text-center font-weight-bold">${formatNumber(it.qty)}</td><td class="text-right">${formatNumber(it.price)} ₭</td>
-        <td class="text-right">${it.discount ? formatNumber(it.discount) + ' ₭' : '-'}</td><td class="text-right font-weight-bold">${formatNumber(it.net)} ₭</td>
+        <td class="text-center font-weight-bold">${formatNumber(it.qty)}</td><td class="text-right">${formatNumber(it.price)} <?php echo kipSymbol(); ?></td>
+        <td class="text-right">${it.discount ? formatNumber(it.discount) + ' <?php echo kipSymbol(); ?>' : '-'}</td><td class="text-right font-weight-bold">${formatNumber(it.net)} <?php echo kipSymbol(); ?></td>
         <td>${pay}</td>
       </tr>`;
     }).join('');
@@ -1177,12 +1177,12 @@ function renderShiftReportContent(s, bills) {
             ${chRowNo ? `<tfoot><tr class="font-weight-bold" style="background: #f1f5f9;">
               <td colspan="3" class="text-right">${srT('shifts.rpt_items_total')}</td>
               <td class="text-center">${formatNumber(chTotal.qty)}</td><td></td>
-              <td class="text-right">${chTotal.discount ? formatNumber(chTotal.discount) + ' ₭' : '-'}</td>
-              <td class="text-right text-primary">${formatNumber(chTotal.net)} ₭</td>
+              <td class="text-right">${chTotal.discount ? formatNumber(chTotal.discount) + ' <?php echo kipSymbol(); ?>' : '-'}</td>
+              <td class="text-right text-primary">${formatNumber(chTotal.net)} <?php echo kipSymbol(); ?></td>
               <td>
-                <div class="d-flex justify-content-between"><span class="text-success">ຮັບເງິນສົດ</span><span class="text-success">${formatNumber(chTotal.cash)} ₭</span></div>
-                <div class="d-flex justify-content-between"><span class="text-info">ຮັບເງິນໂອນ</span><span class="text-info">${formatNumber(chTotal.transfer)} ₭</span></div>
-                ${chTotal.debt ? `<div class="d-flex justify-content-between"><span class="text-warning">ຕິດໜີ້</span><span class="text-warning">${formatNumber(chTotal.debt)} ₭</span></div>` : ''}
+                <div class="d-flex justify-content-between"><span class="text-success">ຮັບເງິນສົດ</span><span class="text-success">${formatNumber(chTotal.cash)} <?php echo kipSymbol(); ?></span></div>
+                <div class="d-flex justify-content-between"><span class="text-info">ຮັບເງິນໂອນ</span><span class="text-info">${formatNumber(chTotal.transfer)} <?php echo kipSymbol(); ?></span></div>
+                ${chTotal.debt ? `<div class="d-flex justify-content-between"><span class="text-warning">ຕິດໜີ້</span><span class="text-warning">${formatNumber(chTotal.debt)} <?php echo kipSymbol(); ?></span></div>` : ''}
               </td>
             </tr></tfoot>` : ''}
           </table>
@@ -1201,20 +1201,20 @@ function renderShiftReportContent(s, bills) {
             <tbody>
               <tr>
                 <td style="width: 55%;" class="pl-3 font-weight-bold">1. ຍອດຂາຍເງິນສົດ</td>
-                <td class="text-right pr-3 font-weight-bold text-success" style="font-size: 1rem;">${formatNumber(s.system_sales_cash)} ₭</td>
+                <td class="text-right pr-3 font-weight-bold text-success" style="font-size: 1rem;">${formatNumber(s.system_sales_cash)} <?php echo kipSymbol(); ?></td>
               </tr>
               <tr>
                 <td class="pl-3 font-weight-bold">2. ຍອດຂາຍໂອນ / QR</td>
-                <td class="text-right pr-3 font-weight-bold text-info" style="font-size: 1rem;">${formatNumber(s.system_sales_transfer)} ₭</td>
+                <td class="text-right pr-3 font-weight-bold text-info" style="font-size: 1rem;">${formatNumber(s.system_sales_transfer)} <?php echo kipSymbol(); ?></td>
               </tr>
               ${transferBanksHtml}
               <tr>
                 <td class="pl-3 font-weight-bold">3. ຍອດຂາຍຕິດໜີ້</td>
-                <td class="text-right pr-3 font-weight-bold text-warning" style="font-size: 1rem;">${formatNumber(s.system_sales_debt)} ₭</td>
+                <td class="text-right pr-3 font-weight-bold text-warning" style="font-size: 1rem;">${formatNumber(s.system_sales_debt)} <?php echo kipSymbol(); ?></td>
               </tr>
               <tr class="bg-light font-weight-bold" style="background: #f1f5f9;">
                 <td class="pl-3" style="font-size: 0.98rem;">ລວມລາຍຮັບຍອດຂາຍທັງໝົດ (${formatNumber(s.system_total_bills)} ບິນ)</td>
-                <td class="text-right pr-3 font-weight-bold text-primary" style="font-size: 1.15rem;">${formatNumber(s.system_total_sales)} ₭</td>
+                <td class="text-right pr-3 font-weight-bold text-primary" style="font-size: 1.15rem;">${formatNumber(s.system_total_sales)} <?php echo kipSymbol(); ?></td>
               </tr>
             </tbody>
           </table>
@@ -1233,28 +1233,28 @@ function renderShiftReportContent(s, bills) {
             <tbody>
               <tr>
                 <td style="width: 55%;" class="pl-3">${srT('shifts.rpt_initial_cash')}</td>
-                <td class="text-right pr-3 font-weight-bold text-secondary">${formatNumber(s.initial_cash)} ₭</td>
+                <td class="text-right pr-3 font-weight-bold text-secondary">${formatNumber(s.initial_cash)} <?php echo kipSymbol(); ?></td>
               </tr>
               <tr>
                 <td class="pl-3">${srT('shifts.rpt_cash_sales')}</td>
-                <td class="text-right pr-3 font-weight-bold text-success">${formatNumber(s.system_sales_cash)} ₭</td>
+                <td class="text-right pr-3 font-weight-bold text-success">${formatNumber(s.system_sales_cash)} <?php echo kipSymbol(); ?></td>
               </tr>
               <tr>
                 <td class="pl-3">${srT('shifts.rpt_transfer_sales')}</td>
-                <td class="text-right pr-3 font-weight-bold text-info">${formatNumber(s.system_sales_transfer)} ₭</td>
+                <td class="text-right pr-3 font-weight-bold text-info">${formatNumber(s.system_sales_transfer)} <?php echo kipSymbol(); ?></td>
               </tr>
               <tr>
                 <td class="pl-3">${srT('shifts.rpt_credit_sales')}</td>
-                <td class="text-right pr-3 font-weight-bold text-warning">${formatNumber(s.system_sales_debt)} ₭</td>
+                <td class="text-right pr-3 font-weight-bold text-warning">${formatNumber(s.system_sales_debt)} <?php echo kipSymbol(); ?></td>
               </tr>
               <tr class="bg-light font-weight-bold">
                 <td class="pl-3">${srT('shifts.rpt_total_sales', formatNumber(s.system_total_bills))}</td>
-                <td class="text-right pr-3 font-weight-bold text-primary" style="font-size: 1.05rem;">${formatNumber(s.system_total_sales)} ₭</td>
+                <td class="text-right pr-3 font-weight-bold text-primary" style="font-size: 1.05rem;">${formatNumber(s.system_total_sales)} <?php echo kipSymbol(); ?></td>
               </tr>
               <tr style="background: #f1f5f9;">
                 <td class="pl-3 font-weight-bold text-dark">${srT('shifts.rpt_counted_cash')}</td>
                 <td class="text-right pr-3 font-weight-bold text-dark" style="font-size: 1.05rem;">
-                  ${s.counted_sales_cash !== null ? formatNumber(s.counted_sales_cash) + ' ₭' : '-'}
+                  ${s.counted_sales_cash !== null ? formatNumber(s.counted_sales_cash) + ' <?php echo kipSymbol(); ?>' : '-'}
                 </td>
               </tr>
               ${s.diff_hidden ? '' : `<tr style="background: #e2e8f0; font-weight: bold;">
@@ -1314,8 +1314,8 @@ ${channelsHtml}
               <td colspan="2" class="text-right" style="white-space: nowrap;">${srT('shifts.rpt_items_total')}</td>
               <td class="text-center" style="white-space: nowrap;">${formatNumber(itemsTotal.qty)}</td>
               <td style="white-space: nowrap;"></td>
-              <td class="text-right" style="white-space: nowrap;">${itemsTotal.discount ? formatNumber(itemsTotal.discount) + ' ₭' : '-'}</td>
-              <td class="text-right text-primary" style="white-space: nowrap;">${formatNumber(itemsTotal.net)} ₭</td>
+              <td class="text-right" style="white-space: nowrap;">${itemsTotal.discount ? formatNumber(itemsTotal.discount) + ' <?php echo kipSymbol(); ?>' : '-'}</td>
+              <td class="text-right text-primary" style="white-space: nowrap;">${formatNumber(itemsTotal.net)} <?php echo kipSymbol(); ?></td>
             </tr></tfoot>` : ''}
           </table>
         </div>
@@ -1356,7 +1356,7 @@ function printShiftThermalSlip() {
   if (!window.currentReportSession) return;
   var s = window.currentReportSession;
   var diff = s.difference_cash !== null ? parseFloat(s.difference_cash) : 0;
-  var diffText = diff === 0 ? '0 ₭ (' + srT('shifts.rpt_balanced') + ')' : (diff > 0 ? '+' + formatNumber(diff) + ' ₭ (' + srT('shifts.rpt_over') + ')' : formatNumber(diff) + ' ₭ (' + srT('shifts.rpt_short') + ')');
+  var diffText = diff === 0 ? '0 <?php echo kipSymbol(); ?> (' + srT('shifts.rpt_balanced') + ')' : (diff > 0 ? '+' + formatNumber(diff) + ' <?php echo kipSymbol(); ?> (' + srT('shifts.rpt_over') + ')' : formatNumber(diff) + ' <?php echo kipSymbol(); ?> (' + srT('shifts.rpt_short') + ')');
 
   var slipHtml = `<!DOCTYPE html>
     <html>
@@ -1384,14 +1384,14 @@ function printShiftThermalSlip() {
       <div class="row"><span>${srT('shifts.rpt_closed_by')}</span><span>${s.closed_by_name || '-'}</span></div>
 
       <div class="border-top"></div>
-      <div class="row"><span>${srT('shifts.rpt_initial_cash')}</span><span class="font-bold">${formatNumber(s.initial_cash)} ₭</span></div>
-      <div class="row"><span>${srT('shifts.rpt_cash_sales')}</span><span class="font-bold">${formatNumber(s.system_sales_cash)} ₭</span></div>
-      <div class="row"><span>${srT('shifts.rpt_transfer_sales')}</span><span class="font-bold">${formatNumber(s.system_sales_transfer)} ₭</span></div>
-      <div class="row"><span>${srT('shifts.rpt_credit_sales')}</span><span class="font-bold">${formatNumber(s.system_sales_debt)} ₭</span></div>
-      <div class="row font-bold" style="font-size: 13.5px;"><span>${srT('shifts.rpt_total_sales', s.system_total_bills)}</span><span>${formatNumber(s.system_total_sales)} ₭</span></div>
+      <div class="row"><span>${srT('shifts.rpt_initial_cash')}</span><span class="font-bold">${formatNumber(s.initial_cash)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row"><span>${srT('shifts.rpt_cash_sales')}</span><span class="font-bold">${formatNumber(s.system_sales_cash)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row"><span>${srT('shifts.rpt_transfer_sales')}</span><span class="font-bold">${formatNumber(s.system_sales_transfer)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row"><span>${srT('shifts.rpt_credit_sales')}</span><span class="font-bold">${formatNumber(s.system_sales_debt)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row font-bold" style="font-size: 13.5px;"><span>${srT('shifts.rpt_total_sales', s.system_total_bills)}</span><span>${formatNumber(s.system_total_sales)} <?php echo kipSymbol(); ?></span></div>
 
       <div class="border-top"></div>
-      <div class="row font-bold"><span>${srT('shifts.rpt_counted_cash')}</span><span>${s.counted_sales_cash !== null ? formatNumber(s.counted_sales_cash) + ' ₭' : '-'}</span></div>
+      <div class="row font-bold"><span>${srT('shifts.rpt_counted_cash')}</span><span>${s.counted_sales_cash !== null ? formatNumber(s.counted_sales_cash) + ' <?php echo kipSymbol(); ?>' : '-'}</span></div>
       ${s.diff_hidden ? '' : `<div class="row font-bold"><span>${srT('shifts.rpt_diff')}</span><span>${s.difference_cash === null ? '-' : diffText}</span></div>`}
 
       <div class="border-top text-center" style="margin-top: 15px; font-size: 11px;">

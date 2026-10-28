@@ -263,7 +263,7 @@
                       <small class="text-muted ml-1.5"><?php echo date('d/m/Y', strtotime($np['created_at'] ?? 'now')); ?></small>
                     </div>
                     <div class="text-nowrap flex-shrink-0">
-                      <span class="badge badge-light border text-dark font-weight-bold" style="font-size: 0.76rem;"><?php echo number_format($np['price'], 0); ?> ₭</span>
+                      <span class="badge badge-light border text-dark font-weight-bold" style="font-size: 0.76rem;"><?php echo number_format($np['price'], 0); ?> <?php echo kipSymbol(); ?></span>
                     </div>
                   </div>
                 <?php endforeach; ?>
@@ -352,12 +352,37 @@
         </div>
       </li>
 
-      <!-- Logout button -->
-      <li class="nav-item">
-        <a class="nav-link logout-nav-btn font-weight-bold" href="javascript:void(0);" onclick="confirmLogout()" data-i18n-title="layout.logout" title="<?php echo htmlspecialchars(t('layout.logout', 'ອອກຈາກລະບົບ')); ?>">
-          <i class="fas fa-power-off"></i>
-          <span class="d-none d-md-inline" data-i18n="layout.logout"><?php echo htmlspecialchars(t('layout.logout', 'ອອກຈາກລະບົບ')); ?></span>
+      <!-- ຜູ້ໃຊ້ທີ່ເຂົ້າສູ່ລະບົບ: ຮູບ + ຊື່ + ສະຖານະ. ຄລິກ → ດັອບດາວ (ເລື່ອນລົງເລັກນ້ອຍ — themes/dashboard-shell.css .nav-user-menu)
+           ທີ່ມີປຸ່ມອອກຈາກລະບົບ. ຈໍນ້ອຍ: ສະແດງແຕ່ຮູບ. $display_name / $profile_img_path ມາຈາກ home/dashboard.php -->
+      <li class="nav-item dropdown nav-user-chip">
+        <a class="nav-link d-flex align-items-center px-1 nav-user-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" title="<?php echo htmlspecialchars($display_name); ?>">
+          <img src="<?php echo htmlspecialchars($profile_img_path); ?>" alt="User Avatar" class="img-circle"
+               style="width: 36px; height: 36px; object-fit: cover; border: 2px solid rgba(255,255,255,0.6); flex-shrink: 0;">
+          <div class="d-none d-md-flex flex-column ml-2" style="line-height: 1.15; max-width: 150px;">
+            <span class="text-white font-weight-bold" style="font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($display_name); ?></span>
+            <span style="font-size: 0.72rem; color: #4ade80; font-weight: 600; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+              <i class="fas fa-circle" style="font-size: 6px;"></i> <span data-i18n="layout.online_status"><?php echo htmlspecialchars(t('layout.online_status', 'ກຳລັງໃຊ້ງານ')); ?></span>
+            </span>
+          </div>
+          <i class="fas fa-chevron-down text-white ml-2 nav-user-caret"></i>
         </a>
+        <div class="dropdown-menu dropdown-menu-right nav-user-menu shadow-lg border-0">
+          <div class="d-flex align-items-center px-3 pt-2 pb-2">
+            <img src="<?php echo htmlspecialchars($profile_img_path); ?>" alt="" class="img-circle" style="width: 42px; height: 42px; object-fit: cover; flex-shrink: 0;">
+            <div class="ml-2" style="min-width: 0; line-height: 1.25;">
+              <div class="font-weight-bold text-dark" style="font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($display_name); ?></div>
+              <div class="text-muted" style="font-size: 0.78rem;"><?php echo htmlspecialchars($_SESSION['status'] ?? ''); ?></div>
+              <!-- ສະຖານະໃຊ້ງານ: ສະແດງສະເພາະຈໍນ້ອຍ (ຈໍໃຫຍ່ມີຢູ່ແລ້ວຂ້າງຮູບໃນແຖບເທິງ) -->
+              <div class="d-flex d-md-none align-items-center" style="font-size: 0.75rem; color: #16a34a; font-weight: 600; gap: 4px; white-space: nowrap;">
+                <i class="fas fa-circle" style="font-size: 6px;"></i> <span data-i18n="layout.online_status"><?php echo htmlspecialchars(t('layout.online_status', 'ກຳລັງໃຊ້ງານ')); ?></span>
+              </div>
+            </div>
+          </div>
+          <div class="dropdown-divider my-1"></div>
+          <a class="dropdown-item nav-user-logout font-weight-bold" href="javascript:void(0);" onclick="confirmLogout()">
+            <i class="fas fa-power-off mr-2"></i><span data-i18n="layout.logout"><?php echo htmlspecialchars(t('layout.logout', 'ອອກຈາກລະບົບ')); ?></span>
+          </a>
+        </div>
       </li>
     </ul>
   </nav>

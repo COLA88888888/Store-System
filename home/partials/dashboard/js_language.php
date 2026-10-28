@@ -210,6 +210,13 @@
           return null;
         }
 
+        // ຫົວໜ່ວຍເງິນກີບຫຼັງຕົວເລກ ("132,000 ກີບ" → "132,000 Kip", "(ກີບ)" → "(Kip)")
+        var fromKip = (I18N_ALL_MERGED[fromLang] || {})['currency.kip'];
+        var toKip = toDict['currency.kip'];
+        var KIP_AMOUNT_RE = (fromKip && toKip && fromKip !== toKip)
+          ? new RegExp('([\\d(][\\s\\u00A0]*)' + fromKip.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')
+          : null;
+
         var node;
         while ((node = walker.nextNode())) {
           var trimmed = node.nodeValue.trim();
@@ -219,6 +226,8 @@
             var lead = node.nodeValue.match(/^\s*/)[0];
             var trail = node.nodeValue.match(/\s*$/)[0];
             node.nodeValue = lead + translated + trail;
+          } else if (KIP_AMOUNT_RE && node.nodeValue.indexOf(fromKip) !== -1) {
+            node.nodeValue = node.nodeValue.replace(KIP_AMOUNT_RE, '$1' + toKip);
           }
         }
 
@@ -316,10 +325,20 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'lang=' + encodeURIComponent(lang)
-          }).then(function() { reloadFrameAfterLangChange(); }).catch(function() {});
+          }).then(function() {
+            reloadFrameAfterLangChange();
+            notifyCustomerDisplayLang(lang);
+          }).catch(function() {});
         });
       });
     });
+
+    // ແຈ້ງຈໍລູກຄ້າ (pages/pos/customer_display.php, ໜ້າຕ່າງແຍກ) ໃຫ້ປ່ຽນພາສານຳ — ສົ່ງຫຼັງ set_lang.php ບັນທຶກແລ້ວ
+    // ເພື່ອໃຫ້ຈໍລູກຄ້າໂຫຼດໃໝ່ເປັນພາສາໃໝ່. BroadcastChannel + localStorage (ກໍລະນີ browser ບໍ່ຮອງຮັບ channel).
+    function notifyCustomerDisplayLang(lang) {
+      try { new BroadcastChannel('StoreMini.ui_lang_channel').postMessage({ lang: lang }); } catch (e) {}
+      try { localStorage.setItem('StoreMini.ui_lang', JSON.stringify({ lang: lang, at: Date.now() })); } catch (e) {}
+    }
 
     // ໂຫຼດໜ້າໃນ iframe ໃໝ່ຫຼັງປ່ຽນພາສາ (ບໍ່ຕ້ອງກົດ refresh). ຂ້າມ:
     //  - ໜ້າທີ່ປ່ຽນພາສາສົດໄດ້ເອງ ແລະ ມີຂໍ້ມູນຄ້າງຢູ່ (window.POS_LANG_LIVE = true — ໜ້າຂາຍ/ກະຕ່າ)

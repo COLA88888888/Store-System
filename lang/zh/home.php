@@ -15,7 +15,7 @@ return [
     'home.default_currency_opt' => '-- 商店默认 --',
     'home.default_currency_short' => '默认',
     'home.card_total_sales' => '总销售额',
-    'home.card_total_cost' => '商品总成本',
+    'home.card_total_cost' => '进货总成本',
     'home.card_cogs' => '销售成本',
     'home.card_total_profit' => '总利润',
     'home.card_profit_pct' => '利润率 %',

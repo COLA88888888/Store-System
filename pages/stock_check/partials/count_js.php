@@ -4,7 +4,7 @@
  * - ຄິດໄລ່ ແລະ ສະແດງຜົນ ຄົບ / ບໍ່ພໍ / ເກີນ ແລະ ສ່ວນຕ່າງ ແບບ Real-time ຂະນະນັບ
  * - ສະແກນບາໂຄ້ດ (ບວກ 1 ອັດຕະໂນມັດ ຫຼື ໂຟກັສຊ່ອງ)
  * - ກັ່ນຕອງ (ທັງໝົດ, ຄົບ, ບໍ່ພໍ, ເກີນ, ຍັງບໍ່ນັບ), ແບ່ງໜ້າ, ບັນທຶກ (Ctrl+S)
- * - ສົ່ງຂໍອະນຸມັດ ແລະ ປັບສະຕັອກ
+ * - ປັບສະຕັອກໃຫ້ຕົງ (ຂັ້ນດຽວ, ບໍ່ມີຂັ້ນອະນຸມັດ)
  */
 ?>
 <script>
@@ -27,7 +27,7 @@ try {
   if (scSavedPer) SC_PER_PAGE = scSavedPer === 'all' ? Infinity : (parseInt(scSavedPer, 10) || 50);
 } catch (e) {}
 
-var scFilter = 'all', scPage = 1, scDirty = {}, scSaving = false;
+var scPage = 1, scDirty = {}, scSaving = false;
 
 function scFmt(n) { return Number(n || 0).toLocaleString('en-US'); }
 
@@ -142,16 +142,11 @@ function scUpdateStats() {
   $('#scStatUncountedBig').text(scFmt(s.uncounted));
   $('#scStatMismatchTotal').text(scFmt(s.shortN + s.overN));
   $('#scStatValue').text((s.net > 0 ? '+' : '') + scFmt(s.net));
-  $('#scFilterTotalBadge').text(scFmt(s.total));
-  $('#scFilterCountedBadge').text(scFmt(s.counted));
-  $('#scFilterMismatchBadge').text(scFmt(s.shortN + s.overN));
-  $('#scFilterUncountedBadge').text(scFmt(s.uncounted));
 }
 
 // ---------- ກັ່ນຕອງ + ແບ່ງໜ້າ ----------
 function scMatches(el) {
-  var $r = $(el), st = $r.attr('data-state');
-  var isDirty = !!scDirty[$r.attr('data-id')];
+  var $r = $(el);
 
   var q = ($('#scScanInput').val() || '').trim().toLowerCase();
   var okText = !q
@@ -160,17 +155,13 @@ function scMatches(el) {
             || ($r.attr('data-zone') || '').indexOf(q) !== -1
             || ($r.attr('data-shelf') || '').indexOf(q) !== -1
             || String($r.attr('data-pid')) === q;
-  var okState = (scFilter === 'all')
-             || (scFilter === 'uncounted' && (st === 'uncounted' || isDirty))
-             || (scFilter === 'counted' && st !== 'uncounted' && !isDirty)
-             || (scFilter === 'mismatch' && (st === 'short' || st === 'over'))
-             || (scFilter === st);
-  var zFilter = $('#scZoneFilter').length ? ($('#scZoneFilter').val() || '').trim().toLowerCase() : '';
-  var rRawZone = ($r.attr('data-raw-zone') || '').trim().toLowerCase();
-  var okZone = !zFilter
-            || (zFilter === '__unassigned__' && !rRawZone)
-            || rRawZone === zFilter;
-  return okText && okState && okZone;
+  // ບັອກ ໂຊນ / ຊັ້ນ: ຄ່າຫວ່າງ = ທັງໝົດ, __unassigned__ = ບໍ່ລະບຸ
+  var okPlace = function(selectId, attr) {
+    var f = $(selectId).length ? ($(selectId).val() || '').trim().toLowerCase() : '';
+    var v = ($r.attr(attr) || '').trim().toLowerCase();
+    return !f || (f === '__unassigned__' && !v) || v === f;
+  };
+  return okText && okPlace('#scZoneFilter', 'data-raw-zone') && okPlace('#scShelfFilter', 'data-raw-shelf');
 }
 
 function scRender() {
@@ -200,8 +191,8 @@ function scGoToRow($r) {
   var matched = $('.sc-row').get().filter(scMatches);
   var idx = matched.indexOf($r.get(0));
   if (idx === -1) {
-    scFilter = 'all';
-    $('.sc-filter .btn').removeClass('active').filter('[data-filter="all"]').addClass('active');
+    // ລາຍການທີ່ສະແກນຖືກເຊື່ອງໂດຍບັອກ ໂຊນ / ຊັ້ນ → ລ້າງບັອກ ໃຫ້ເຫັນລາຍການນັ້ນ
+    $('#scZoneFilter, #scShelfFilter').val('');
     matched = $('.sc-row').get().filter(scMatches);
     idx = matched.indexOf($r.get(0));
   }
@@ -351,7 +342,7 @@ function scSave(silent) {
   $('#scBtnSave').prop('disabled', true);
   $('#scSaveStatus').html('<i class="fas fa-spinner fa-spin mr-1"></i> ' + scT('sc.s093'));
 
-  $.post(SC_BACKEND, { action: 'save_counts', check_id: SC_CHECK_ID, items: JSON.stringify(items), note: $('#scNote').val() || '' }, null, 'json')
+  $.post(SC_BACKEND, { action: 'save_counts', check_id: SC_CHECK_ID, items: JSON.stringify(items) }, null, 'json')
     .done(function(res) {
       if (res && res.success) {
         scDirty = {};
@@ -395,21 +386,21 @@ function scSummaryBox() {
       scT('sc.s107') + ' <b class="text-warning">' + scFmt(s.overN) + ' ' + scT('sc.s108') + scFmt(s.overQ) + ')</b><br>' +
       scT('sc.s109') + ' <b>' + (s.net > 0 ? '+' : '') + scFmt(s.net) + '</b>' +
     '</div>' +
-    // ກັນໂກງ: ຫົວໜ້າເຫັນມູນຄ່າສິນຄ້າທີ່ຂາດ (ຈຳນວນຂາດ × ຕົ້ນທຶນ) ກ່ອນອະນຸມັດ
+    // ມູນຄ່າສິນຄ້າທີ່ຂາດ (ຈຳນວນຂາດ × ຕົ້ນທຶນ) ໃຫ້ເຫັນກ່ອນປັບສະຕັອກ
     (s.shortN > 0 ? '<div class="alert alert-danger text-left py-2 mt-2 mb-0 font-weight-bold" style="font-size:0.92rem;">' +
       '<i class="fas fa-exclamation-triangle mr-1"></i>ສິນຄ້າຂາດ ' + scFmt(s.shortQ) + ' ໜ່ວຍ' +
-      (s.shortValue > 0 ? ' · ມູນຄ່າ (ຕົ້ນທຶນ) ' + scFmt(Math.round(s.shortValue)) + ' ₭' : '') +
-      '<div class="small font-weight-normal mt-1">ກວດລາຍການ "ບໍ່ພໍ" ແລະ ປະຫວັດການແກ້ຕົວເລກ (ປ້າຍ "ປ່ຽນ N ເທື່ອ") ກ່ອນອະນຸມັດ — ຫຼື ສົ່ງກັບໃຫ້ນັບໃໝ່</div></div>' : '');
+      (s.shortValue > 0 ? ' · ມູນຄ່າ (ຕົ້ນທຶນ) ' + scFmt(Math.round(s.shortValue)) + ' <?php echo kipSymbol(); ?>' : '') +
+      '<div class="small font-weight-normal mt-1">ກວດລາຍການ "ບໍ່ພໍ" ກ່ອນປັບສະຕັອກ — ປັບແລ້ວແກ້ຄືນບໍ່ໄດ້</div></div>' : '');
 }
 
 function scPostAction(act, title, html, btnText, btnColor) {
   var s = scStats();
-  if (act !== 'reject_adjustment' && s.counted === 0) {
+  if (s.counted === 0) {
     Swal.fire({ icon: 'warning', title: scT('sc.s110'), text: scT('sc.s111') });
     return;
   }
   Swal.fire({
-    icon: act === 'reject_adjustment' ? 'question' : 'warning',
+    icon: 'warning',
     title: title,
     html: html,
     showCancelButton: true,
@@ -422,7 +413,7 @@ function scPostAction(act, title, html, btnText, btnColor) {
     if (!r.isConfirmed) return;
     var items = $('.sc-row').map(function() { return scRowPayload($(this)); }).get();
     Swal.fire({ title: scT('sc.s113'), allowOutsideClick: false, didOpen: function() { Swal.showLoading(); } });
-    $.post(SC_BACKEND, { action: act, check_id: SC_CHECK_ID, items: JSON.stringify(items), note: $('#scNote').val() || '' }, null, 'json')
+    $.post(SC_BACKEND, { action: act, check_id: SC_CHECK_ID, items: JSON.stringify(items) }, null, 'json')
       .done(function(res) {
         if (res && res.success) {
           scDirty = {};
@@ -435,26 +426,10 @@ function scPostAction(act, title, html, btnText, btnColor) {
   });
 }
 
-function scSubmitApproval() {
-  scPostAction('submit_for_approval', scT('sc.s116'),
-    '<div class="text-left small text-muted mb-2">' + scT('sc.s117') + '</div>' + scSummaryBox(),
-    '<i class="fas fa-paper-plane mr-1"></i> ' + scT('sc.s118'), '#d97706');
-}
-
 function scApproveAdjustment() {
   scPostAction('approve_adjustment', scT('sc.s119'),
     '<div class="alert alert-warning text-left py-2 mb-2" style="font-size:0.9rem;"><i class="fas fa-check-double mr-1"></i>' + scT('sc.s120') + '</div>' + scSummaryBox(),
     '<i class="fas fa-check-double mr-1"></i> ' + scT('sc.s016'), '#16a34a');
-}
-
-function scRejectAdjustment() {
-  scPostAction('reject_adjustment', scT('sc.s121'), scT('sc.s123') + ' "' + scT('sc.s005') + '" ' + scT('sc.s122'), '<i class="fas fa-undo mr-1"></i> ' + scT('sc.s124'), '#ef4444');
-}
-
-function scComplete() {
-  scPostAction('complete_check', scT('sc.s125'),
-    '<div class="alert alert-warning text-left py-2 mb-2" style="font-size:0.9rem;"><i class="fas fa-lock mr-1"></i>' + scT('sc.s126') + '</div>' + scSummaryBox(),
-    '<i class="fas fa-check-double mr-1"></i> ' + scT('sc.s127'), '#16a34a');
 }
 
 function scStartNewRound() {
@@ -620,15 +595,12 @@ $(function() {
       scGoToRow($hit);
       scFlash($hit);
     }
-  } else {
-    scFilter = 'all';
-    scRender();
   }
 
-  // ຈັບແຕ່ບັອກສະແກນຢ່າງດຽວ (ບໍ່ຈັບບັອກຈຳນວນ)
-  setTimeout(function() {
-    $('#scScanInput').focus().select();
-  }, 100);
+  // ບໍ່ auto-focus ຕອນເປີດໜ້າ ເພື່ອບໍ່ໃຫ້ແປ້ນພິມເດັ້ງຂຶ້ນໃນຈໍສຳພັດ/ມືຖື
+  // setTimeout(function() {
+  //   $('#scScanInput').focus().select();
+  // }, 100);
 
   // ຄົ້ນຫາ & ສະແກນ
   $('#scScanInput').on('input', function() {
@@ -641,17 +613,8 @@ $(function() {
     }
   });
 
-  // ກັ່ນຕອງຕາມໂຊນ
-  $('#scZoneFilter').on('change', function() {
-    scPage = 1;
-    scRender();
-  });
-
-  // ປຸ່ມກັ່ນຕອງ
-  $('.sc-filter .btn').on('click', function() {
-    $('.sc-filter .btn').removeClass('active');
-    $(this).addClass('active');
-    scFilter = $(this).attr('data-filter');
+  // ກັ່ນຕອງຕາມ ໂຊນ / ຊັ້ນ
+  $('#scZoneFilter, #scShelfFilter').on('change', function() {
     scPage = 1;
     scRender();
   });
@@ -737,7 +700,6 @@ $(function() {
     }
   });
 
-  $('#scNote').on('input', function() { scRefreshDirtyUi(); });
 
   window.addEventListener('beforeunload', function(e) {
     if (Object.keys(scDirty).length) { e.preventDefault(); e.returnValue = ''; }

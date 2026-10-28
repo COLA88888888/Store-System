@@ -68,7 +68,7 @@ function bcDrawLabel(ctx, x0, y0, wD, hD, item, cfg, o) {
   var p = item.product;
   var code = (p.barcode && String(p.barcode).trim() !== '') ? String(p.barcode).trim() : String(p.product_id);
   var name = (p.product_name || '') + (p.unit ? ' (' + p.unit + ')' : '');
-  var price = Number(p.price || 0).toLocaleString('en-US') + ' ₭';
+  var price = Number(p.price || 0).toLocaleString('en-US') + ' <?php echo kipSymbol(); ?>';
   var shopC = bcCss(cfg.shopTitleCss), prodC = bcCss(cfg.prodTitleCss), priceC = bcCss(cfg.priceTitleCss);
   var textMaxW = Math.min(wD - 8, (prodC.maxW || (wD / BC_DOTS_MM - 3)) * BC_DOTS_MM);
 

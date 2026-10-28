@@ -54,7 +54,7 @@
               <div class="input-group">
                 <input type="number" name="cost_price" id="edit_cost_price" class="form-control font-weight-bold" step="0.01" min="0" required style="border-radius: 8px 0 0 8px;">
                 <div class="input-group-append">
-                  <span class="input-group-text font-weight-bold bg-light" style="border-radius: 0 8px 8px 0;">₭</span>
+                  <span class="input-group-text font-weight-bold bg-light" style="border-radius: 0 8px 8px 0;"><?php echo kipSymbol(); ?></span>
                 </div>
               </div>
             </div>
@@ -62,7 +62,7 @@
             <!-- Expiry Date -->
             <div class="col-md-6 form-group">
               <label class="form-label font-weight-bold text-dark"><?php echo htmlspecialchars(t('import_list.modal_expiry_label', 'ວັນໝົດອາຍຸ (ຖ້າມີ):')); ?></label>
-              <input type="date" name="expiry_date" id="edit_expiry_date" class="form-control" style="border-radius: 8px;">
+              <input type="date" name="expiry_date" id="edit_expiry_date" class="form-control font-weight-bold" style="border-radius: 8px; height: 42px; cursor: pointer;">
             </div>
           </div>
 

@@ -126,7 +126,19 @@
         var fp = this._flatpickr;
         if (!fp || this._mpSyncing || v === toYmd(fp)) return;
         this._mpSyncing = true;
-        try { fp.setDate(v || null, false, 'Y-m-d'); } finally { this._mpSyncing = false; }
+        try {
+          var parsed = null;
+          if (v) {
+            if (/^\d{2}\/\d{2}\/\d{4}/.test(v)) {
+              parsed = fp.parseDate(v.slice(0, 10), 'd/m/Y');
+            } else if (/^\d{4}-\d{2}-\d{2}/.test(v)) {
+              parsed = fp.parseDate(v.slice(0, 10), 'Y-m-d');
+            } else {
+              parsed = fp.parseDate(v);
+            }
+          }
+          fp.setDate(parsed || null, false);
+        } finally { this._mpSyncing = false; }
       }
     });
   }
@@ -470,6 +482,10 @@
   document.addEventListener('DOMContentLoaded', function () {
     patchModalFocus();
     scan(document.body);
+    reattachCalendars();
+  });
+  document.addEventListener('shown.bs.modal', function (e) {
+    scan(e.target || document.body);
     reattachCalendars();
   });
   window.addEventListener('load', reattachCalendars);

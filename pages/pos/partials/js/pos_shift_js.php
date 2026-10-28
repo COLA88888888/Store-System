@@ -271,7 +271,7 @@ function submitPosOpenShift(e) {
       Swal.fire({
         icon: 'success',
         title: 'ເປີດກະສຳເລັດ!',
-        text: `ເລີ່ມຕົ້ນກະ "${res.shift_name}" ເງິນລິ້ນຊັກ: ${formatPosNumber(res.initial_cash)} ₭`,
+        text: `ເລີ່ມຕົ້ນກະ "${res.shift_name}" ເງິນລິ້ນຊັກ: ${formatPosNumber(res.initial_cash)} <?php echo kipSymbol(); ?>`,
         timer: 1800,
         showConfirmButton: false
       });
@@ -306,10 +306,10 @@ function openPosCloseShiftModal() {
     $('#posCloseShiftNameDisplay').text(s.shift_name);
     $('#posCloseShiftOpenTimeDisplay').text(s.open_time);
     $('#posCloseShiftOpenedByDisplay').text(s.opened_by_name);
-    $('#posCloseInitialCashDisplay').text(formatPosNumber(s.initial_cash) + ' ₭');
-    $('#posCloseSysCashDisplay').text(formatPosNumber(s.system_sales_cash) + ' ₭');
-    $('#posCloseSysTransferDisplay').text(formatPosNumber(s.system_sales_transfer) + ' ₭');
-    $('#posCloseSysTotalDisplay').text(formatPosNumber(s.system_total_sales) + ' ₭');
+    $('#posCloseInitialCashDisplay').text(formatPosNumber(s.initial_cash) + ' <?php echo kipSymbol(); ?>');
+    $('#posCloseSysCashDisplay').text(formatPosNumber(s.system_sales_cash) + ' <?php echo kipSymbol(); ?>');
+    $('#posCloseSysTransferDisplay').text(formatPosNumber(s.system_sales_transfer) + ' <?php echo kipSymbol(); ?>');
+    $('#posCloseSysTotalDisplay').text(formatPosNumber(s.system_total_sales) + ' <?php echo kipSymbol(); ?>');
     $('#posCloseTotalBillsDisplay').text(formatPosNumber(s.system_total_bills));
 
     // ນັບເງິນແບບບໍ່ຮູ້ຍອດ (ທຸກຕຳແໜ່ງ): ຟອມສະແດງແຕ່ເງິນລິ້ນຊັກຕອນເປີດ; ບັອກເງິນນັບໄດ້ວ່າງ ຕ້ອງປ້ອນເອງ
@@ -337,13 +337,13 @@ function calculatePosShiftDifference() {
 
   if (diff === 0) {
     alertBox.addClass('alert-success');
-    display.html('<i class="fas fa-check-circle mr-1"></i> ດຸ່ນດ່ຽງພໍດີ (0 ₭)').css('color', '#15803d');
+    display.html('<i class="fas fa-check-circle mr-1"></i> ດຸ່ນດ່ຽງພໍດີ (0 <?php echo kipSymbol(); ?>)').css('color', '#15803d');
   } else if (diff > 0) {
     alertBox.addClass('alert-info');
-    display.html('<i class="fas fa-arrow-up mr-1"></i> ເງິນເກີນ: +' + formatPosNumber(diff) + ' ₭').css('color', '#0284c7');
+    display.html('<i class="fas fa-arrow-up mr-1"></i> ເງິນເກີນ: +' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#0284c7');
   } else {
     alertBox.addClass('alert-danger');
-    display.html('<i class="fas fa-arrow-down mr-1"></i> ເງິນຂາດ: ' + formatPosNumber(diff) + ' ₭').css('color', '#dc2626');
+    display.html('<i class="fas fa-arrow-down mr-1"></i> ເງິນຂາດ: ' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#dc2626');
   }
 }
 
@@ -437,7 +437,7 @@ function showPosShiftSummaryModal(sessionId) {
 
     var s = res.session;
     var diff = s.difference_cash !== null ? parseFloat(s.difference_cash) : 0;
-    var diffText = diff === 0 ? '0 ₭ (ດຸ່ນດ່ຽງ)' : (diff > 0 ? '+' + formatPosNumber(diff) + ' ₭ (ເກີນ)' : formatPosNumber(diff) + ' ₭ (ຂາດ)');
+    var diffText = diff === 0 ? '0 <?php echo kipSymbol(); ?> (ດຸ່ນດ່ຽງ)' : (diff > 0 ? '+' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> (ເກີນ)' : formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> (ຂາດ)');
     var diffColor = diff === 0 ? '#15803d' : (diff > 0 ? '#0284c7' : '#dc2626');
     // ພະນັກງານ: ເຊີເວີບໍ່ສົ່ງສ່ວນຕ່າງ (diff_hidden) → ບໍ່ສະແດງແຖວສ່ວນຕ່າງ (ສະເພາະຜູ້ຈັດການ/ຜູ້ບໍລິຫານ)
     var diffRow = s.diff_hidden ? '' : `
@@ -449,7 +449,7 @@ function showPosShiftSummaryModal(sessionId) {
     var esc = function (v) { return $('<div>').text(v == null ? '' : String(v)).html(); };
     var billRows = (res.bills || []).map(function (b, i) {
       return `<tr style="white-space: nowrap;"><td class="text-center" style="white-space: nowrap;">${i + 1}</td><td style="white-space: nowrap;">${esc(b.sale_save_bill)}</td><td class="text-center" style="white-space: nowrap;">${esc((b.sale_time || '').substr(0, 5))}</td>
-              <td style="white-space: nowrap;">${esc(b.type_pay)}</td><td class="text-right font-weight-bold" style="white-space: nowrap;">${formatPosNumber(b.sale_barlance)} ₭</td></tr>`;
+              <td style="white-space: nowrap;">${esc(b.type_pay)}</td><td class="text-right font-weight-bold" style="white-space: nowrap;">${formatPosNumber(b.sale_barlance)} <?php echo kipSymbol(); ?></td></tr>`;
     }).join('');
     var billsHtml = `
         <div class="font-weight-bold text-dark mb-2"><i class="fas fa-receipt text-primary mr-1"></i> ລາຍການຂາຍໃນກະນີ້ (${(res.bills || []).length} ບິນ)</div>
@@ -466,7 +466,7 @@ function showPosShiftSummaryModal(sessionId) {
     var itemRows = items.map(function (it, i) {
       itTot.qty += it.qty; itTot.net += it.net;
       return `<tr style="white-space: nowrap;"><td class="text-center" style="white-space: nowrap;">${i + 1}</td><td style="white-space: nowrap;">${esc(it.product_name)}</td><td class="text-center font-weight-bold" style="white-space: nowrap;">${formatPosNumber(it.qty)}</td>
-              <td class="text-right" style="white-space: nowrap;">${formatPosNumber(it.price)} ₭</td><td class="text-right font-weight-bold" style="white-space: nowrap;">${formatPosNumber(it.net)} ₭</td></tr>`;
+              <td class="text-right" style="white-space: nowrap;">${formatPosNumber(it.price)} <?php echo kipSymbol(); ?></td><td class="text-right font-weight-bold" style="white-space: nowrap;">${formatPosNumber(it.net)} <?php echo kipSymbol(); ?></td></tr>`;
     }).join('');
     var itemsHtml = `
         <div class="font-weight-bold text-dark mb-2"><i class="fas fa-box-open text-primary mr-1"></i> ສິນຄ້າທີ່ຂາຍໃນກະ (${items.length} ລາຍການ)</div>
@@ -475,7 +475,7 @@ function showPosShiftSummaryModal(sessionId) {
             <thead class="bg-light"><tr style="white-space: nowrap;"><th class="text-center" style="white-space: nowrap;">#</th><th style="white-space: nowrap;">ສິນຄ້າ</th><th class="text-center" style="white-space: nowrap;">ຈຳນວນ</th><th class="text-right" style="white-space: nowrap;">ລາຄາ</th><th class="text-right" style="white-space: nowrap;">ລວມ</th></tr></thead>
             <tbody>${itemRows || '<tr><td colspan="5" class="text-center text-muted py-3">ບໍ່ມີສິນຄ້າທີ່ຂາຍໃນກະນີ້</td></tr>'}</tbody>
             ${items.length ? `<tfoot><tr class="font-weight-bold" style="background: #f1f5f9; white-space: nowrap;"><td colspan="2" class="text-right" style="white-space: nowrap;">ລວມທັງໝົດ</td>
-              <td class="text-center" style="white-space: nowrap;">${formatPosNumber(itTot.qty)}</td><td style="white-space: nowrap;"></td><td class="text-right text-primary" style="white-space: nowrap;">${formatPosNumber(itTot.net)} ₭</td></tr></tfoot>` : ''}
+              <td class="text-center" style="white-space: nowrap;">${formatPosNumber(itTot.qty)}</td><td style="white-space: nowrap;"></td><td class="text-right text-primary" style="white-space: nowrap;">${formatPosNumber(itTot.net)} <?php echo kipSymbol(); ?></td></tr></tfoot>` : ''}
           </table>
         </div>`;
 
@@ -496,27 +496,27 @@ function showPosShiftSummaryModal(sessionId) {
           <tbody>
             <tr>
               <td class="bg-light font-weight-bold" style="width: 55%;">1. ເງິນສົດໃນລິ້ນຊັກ (ຕອນເປີດກະ)</td>
-              <td class="text-right font-weight-bold text-secondary">${formatPosNumber(s.initial_cash)} ₭</td>
+              <td class="text-right font-weight-bold text-secondary">${formatPosNumber(s.initial_cash)} <?php echo kipSymbol(); ?></td>
             </tr>
             <tr>
               <td>2. ຍອດຂາຍເງິນສົດໃນລະບົບ</td>
-              <td class="text-right font-weight-bold text-success">${formatPosNumber(s.system_sales_cash)} ₭</td>
+              <td class="text-right font-weight-bold text-success">${formatPosNumber(s.system_sales_cash)} <?php echo kipSymbol(); ?></td>
             </tr>
             <tr>
               <td>3. ຍອດຂາຍໂອນ / QR ໃນລະບົບ</td>
-              <td class="text-right font-weight-bold text-info">${formatPosNumber(s.system_sales_transfer)} ₭</td>
+              <td class="text-right font-weight-bold text-info">${formatPosNumber(s.system_sales_transfer)} <?php echo kipSymbol(); ?></td>
             </tr>
             <tr>
               <td>4. ຍອດຂາຍຕິດໜີ້</td>
-              <td class="text-right font-weight-bold text-warning">${formatPosNumber(s.system_sales_debt)} ₭</td>
+              <td class="text-right font-weight-bold text-warning">${formatPosNumber(s.system_sales_debt)} <?php echo kipSymbol(); ?></td>
             </tr>
             <tr class="bg-light font-weight-bold">
               <td>ຍອດຂາຍລວມທັງໝົດ (${formatPosNumber(s.system_total_bills)} ບິນ)</td>
-              <td class="text-right font-weight-bold text-primary" style="font-size: 1.1rem;">${formatPosNumber(s.system_total_sales)} ₭</td>
+              <td class="text-right font-weight-bold text-primary" style="font-size: 1.1rem;">${formatPosNumber(s.system_total_sales)} <?php echo kipSymbol(); ?></td>
             </tr>
             <tr style="background: #f8fafc;">
               <td class="font-weight-bold text-dark">5. ເງິນສົດນັບໄດ້ຕົວຈິງ (ສະເພາະຂາຍ ບໍ່ລວມເງິນລິ້ນຊັກ)</td>
-              <td class="text-right font-weight-bold text-dark" style="font-size: 1.1rem;">${formatPosNumber(s.counted_sales_cash)} ₭</td>
+              <td class="text-right font-weight-bold text-dark" style="font-size: 1.1rem;">${formatPosNumber(s.counted_sales_cash)} <?php echo kipSymbol(); ?></td>
             </tr>${diffRow}
           </tbody>
         </table>
@@ -543,7 +543,7 @@ function printPosShiftThermalSlip() {
   if (!window.posReportSession) return;
   var s = window.posReportSession;
   var diff = s.difference_cash !== null ? parseFloat(s.difference_cash) : 0;
-  var diffText = diff === 0 ? '0 ₭ (ດຸ່ນດ່ຽງ)' : (diff > 0 ? '+' + formatPosNumber(diff) + ' ₭ (ເກີນ)' : formatPosNumber(diff) + ' ₭ (ຂາດ)');
+  var diffText = diff === 0 ? '0 <?php echo kipSymbol(); ?> (ດຸ່ນດ່ຽງ)' : (diff > 0 ? '+' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> (ເກີນ)' : formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> (ຂາດ)');
 
   var slipHtml = `<!DOCTYPE html>
     <html>
@@ -573,20 +573,20 @@ function printPosShiftThermalSlip() {
       ${s.staff_names ? `<div class="row"><span>ພະນັກງານ:</span><span>${$('<div>').text(s.staff_names).html()}</span></div>` : ''}
 
       <div class="border-top"></div>
-      <div class="row"><span>ເງິນລິ້ນຊັກຕອນເປີດ:</span><span class="font-bold">${formatPosNumber(s.initial_cash)} ₭</span></div>
-      <div class="row"><span>ຂາຍເງິນສົດ (ລະບົບ):</span><span class="font-bold">${formatPosNumber(s.system_sales_cash)} ₭</span></div>
-      <div class="row"><span>ຂາຍໂອນ / QR:</span><span class="font-bold">${formatPosNumber(s.system_sales_transfer)} ₭</span></div>
-      <div class="row"><span>ຂາຍຕິດໜີ້:</span><span class="font-bold">${formatPosNumber(s.system_sales_debt)} ₭</span></div>
-      <div class="row font-bold" style="font-size: 13.5px;"><span>ຍອດຂາຍລວມ (${s.system_total_bills} ບິນ):</span><span>${formatPosNumber(s.system_total_sales)} ₭</span></div>
+      <div class="row"><span>ເງິນລິ້ນຊັກຕອນເປີດ:</span><span class="font-bold">${formatPosNumber(s.initial_cash)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row"><span>ຂາຍເງິນສົດ (ລະບົບ):</span><span class="font-bold">${formatPosNumber(s.system_sales_cash)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row"><span>ຂາຍໂອນ / QR:</span><span class="font-bold">${formatPosNumber(s.system_sales_transfer)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row"><span>ຂາຍຕິດໜີ້:</span><span class="font-bold">${formatPosNumber(s.system_sales_debt)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row font-bold" style="font-size: 13.5px;"><span>ຍອດຂາຍລວມ (${s.system_total_bills} ບິນ):</span><span>${formatPosNumber(s.system_total_sales)} <?php echo kipSymbol(); ?></span></div>
 
       ${(window.posReportItems || []).length ? `<div class="border-top"></div>
       <div class="font-bold" style="margin-bottom: 3px;">ສິນຄ້າທີ່ຂາຍ (${window.posReportItems.length} ລາຍການ):</div>
       ${window.posReportItems.map(function (it) {
-        return `<div class="row"><span>${$('<div>').text(it.product_name || '-').html()} x${formatPosNumber(it.qty)}</span><span>${formatPosNumber(it.net)} ₭</span></div>`;
+        return `<div class="row"><span>${$('<div>').text(it.product_name || '-').html()} x${formatPosNumber(it.qty)}</span><span>${formatPosNumber(it.net)} <?php echo kipSymbol(); ?></span></div>`;
       }).join('')}` : ''}
 
       <div class="border-top"></div>
-      <div class="row font-bold"><span>ເງິນສົດນັບໄດ້ (ຂາຍ):</span><span>${formatPosNumber(s.counted_sales_cash)} ₭</span></div>
+      <div class="row font-bold"><span>ເງິນສົດນັບໄດ້ (ຂາຍ):</span><span>${formatPosNumber(s.counted_sales_cash)} <?php echo kipSymbol(); ?></span></div>
       ${s.diff_hidden ? '' : `<div class="row font-bold"><span>ສ່ວນຕ່າງເງິນສົດ:</span><span>${diffText}</span></div>`}
 
       <div class="border-top text-center" style="margin-top: 15px; font-size: 11px;">
@@ -629,9 +629,9 @@ function printPosShiftThermalSlip() {
 function posShiftReportData() {
   var s = window.posReportSession || {};
   var bills = window.posReportBills || [];
-  var K = function (n) { return formatPosNumber(n) + ' ₭'; };
+  var K = function (n) { return formatPosNumber(n) + ' <?php echo kipSymbol(); ?>'; };
   var diff = s.difference_cash !== null && s.difference_cash !== undefined ? parseFloat(s.difference_cash) : null;
-  var diffText = diff === null ? '-' : (diff === 0 ? '0 ₭ (ດຸ່ນດ່ຽງ)' : (diff > 0 ? '+' + K(diff) + ' (ເກີນ)' : K(diff) + ' (ຂາດ)'));
+  var diffText = diff === null ? '-' : (diff === 0 ? '0 <?php echo kipSymbol(); ?> (ດຸ່ນດ່ຽງ)' : (diff > 0 ? '+' + K(diff) + ' (ເກີນ)' : K(diff) + ' (ຂາດ)'));
   var meta = ['ເວລາ: ' + (s.open_time || '') + ' - ' + (s.close_time || ''),
               'ຜູ້ເປີດ: ' + (s.opened_by_name || '-') + '  ຜູ້ປິດ: ' + (s.closed_by_name || '-')];
   if (s.staff_names) meta.push('ພະນັກງານໃນກະ: ' + s.staff_names);

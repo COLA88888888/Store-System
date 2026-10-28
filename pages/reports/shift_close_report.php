@@ -62,21 +62,6 @@ window.SHIFT_REPORT_MODE = 'close';
 </script>
 
 <div class="container-fluid p-3 p-md-4">
-  <!-- Top Navigation Tabs (ແຍກ ລາຍງານປິດກະ ແລະ ລາຍງານລາຍຮັບຕາມກະ) -->
-  <div class="d-flex align-items-center mb-3">
-    <ul class="nav nav-pills" style="gap: 8px;">
-      <li class="nav-item">
-        <a class="nav-link active font-weight-bold" href="shift_close_report.php" style="border-radius: 4px; background: #2c5aa0; color: #fff;">
-          <i class="fas fa-cash-register mr-1.5"></i> <?php echo htmlspecialchars(t('layout.shift_close_report', 'ລາຍງານປິດກະ')); ?>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link font-weight-bold border bg-white text-dark shadow-xs" href="shift_revenue_report.php" style="border-radius: 4px;">
-          <i class="fas fa-chart-line text-success mr-1.5"></i> <?php echo htmlspecialchars(t('layout.shift_revenue_report', 'ລາຍງານລາຍຮັບຕາມກະ')); ?>
-        </a>
-      </li>
-    </ul>
-  </div>
 
   <!-- Page Header -->
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap: 12px;">
@@ -121,7 +106,7 @@ window.SHIFT_REPORT_MODE = 'close';
             <span class="mx-2">•</span>
             <span><i class="fas fa-user mr-1"></i> <?php echo $sr('shifts.pg_opener'); ?> <strong id="activeShiftOpenedBy">-</strong></span>
             <span class="mx-2">•</span>
-            <span><i class="fas fa-coins mr-1"></i> <?php echo $sr('shifts.pg_drawer_open'); ?> <strong id="activeShiftInitialCash">0 ₭</strong></span>
+            <span><i class="fas fa-coins mr-1"></i> <?php echo $sr('shifts.pg_drawer_open'); ?> <strong id="activeShiftInitialCash">0 <?php echo kipSymbol(); ?></strong></span>
           </div>
         </div>
 
@@ -164,7 +149,7 @@ window.SHIFT_REPORT_MODE = 'close';
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #475569 0%, #334155 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title">ເງິນລິ້ນຊັກເປີດລວມ</div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiCloseTotalDrawer">0 ₭</div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiCloseTotalDrawer">0 <?php echo kipSymbol(); ?></div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-coins"></i></div>
     </div>
@@ -173,7 +158,7 @@ window.SHIFT_REPORT_MODE = 'close';
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title">ເງິນສົດນັບໄດ້ຕົວຈິງ (ຂາຍ)</div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiCloseTotalCounted">0 ₭</div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiCloseTotalCounted">0 <?php echo kipSymbol(); ?></div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-money-bill-wave"></i></div>
     </div>
@@ -182,7 +167,7 @@ window.SHIFT_REPORT_MODE = 'close';
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);<?php echo $isCashier ? ' display: none !important;' : ''; ?>">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo $sr('shifts.pg_kpi_diff'); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiTotalDiff">0 ₭</div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiTotalDiff">0 <?php echo kipSymbol(); ?></div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-balance-scale"></i></div>
     </div>
@@ -313,6 +298,12 @@ window.SHIFT_REPORT_MODE = 'close';
 
 <?php require_once __DIR__ . '/../settings/shifts/partials/modals.php'; ?>
 <?php require_once __DIR__ . '/../settings/shifts/partials/js.php'; ?>
+<?php if (!empty($_GET['open_session'])): ?>
+<script>
+// ມາຈາກແຈ້ງເຕືອນປິດກະ (home/partials/dashboard/js_shift_close_notif.php) → ເປີດໃບສະຫຼຸບ + ລາຍການຂາຍຂອງກະນັ້ນທັນທີ
+$(function () { openShiftReportModal(<?php echo (int)$_GET['open_session']; ?>); });
+</script>
+<?php endif; ?>
 <?php
 $shStoreStmt = $pdo->prepare("SELECT store_name FROM st_tbstore WHERE store_id = ?");
 $shStoreStmt->execute([getActiveStoreId($pdo)]);

@@ -87,7 +87,7 @@ return [
     'reports.col_price'              => 'ລາຄາ',
     'reports.col_gross'              => 'ລາຄາລວມ',
     'reports.col_net'                => 'ສຸດທິ',
-    'reports.col_total_kip'          => 'ລວມ (₭)',
+    'reports.col_total_kip'          => 'ລວມ (ກີບ)',
     'reports.col_total_amount'       => 'ລວມເປັນເງິນ',
     'reports.col_total_money'        => 'ລວມເງິນ',
     'reports.col_employee'           => 'ພະນັກງານ',

@@ -288,7 +288,7 @@ function doExportExcel() {
           tr.insertBefore(emptyTd, td);
         }
       }
-      var isRight = td.classList.contains('text-right') || /[\d,\.]+\s*(?:₭|LAK|THB|USD|%)/.test(td.textContent);
+      var isRight = td.classList.contains('text-right') || /[\d,\.]+\s*(?:<?php echo kipSymbol(); ?>|LAK|THB|USD|%)/.test(td.textContent);
       td.style.cssText = F + B + 'height: 26pt; font-size: 12pt; font-weight: bold; background-color: #f3f4f6; vertical-align: middle; padding: 6px 10px; white-space: nowrap; text-align: ' + (isRight ? 'right' : 'center') + ';';
     });
   });

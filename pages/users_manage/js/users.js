@@ -54,6 +54,15 @@ $(document).ready(function() {
     // ລະຫັດຜູ້ນຳໃຊ້: ປ້ອນດ້ວຍຕົນເອງ
     var codeEl = document.getElementById('add_user_code');
     if (codeEl) { codeEl.value = ''; }
+    ['add_password', 'add_confirm_password'].forEach(function(pid) {
+      var pEl = document.getElementById(pid);
+      if (pEl) {
+        pEl.type = 'password';
+        pEl.value = '';
+        var ic = pEl.parentElement ? pEl.parentElement.querySelector('button i') : null;
+        if (ic) { ic.className = 'fas fa-eye-slash'; }
+      }
+    });
   });
 
   // Live Real-Time Search Filter
@@ -150,7 +159,7 @@ function removeAvatar(inputId, previewId, removeBtnId) {
   }
 }
 
-// Toggle Password Visibility
+// Toggle Password Visibility (ເລີ່ມຕົ້ນເຊື່ອງລະຫັດ = ປິດຕາ fa-eye-slash, ກົດເບິ່ງ = ເປີດຕາ fa-eye)
 function togglePassVisibility(inputId, btn) {
   var input = document.getElementById(inputId);
   if (!input) return;
@@ -158,14 +167,14 @@ function togglePassVisibility(inputId, btn) {
   if (input.type === 'password') {
     input.type = 'text';
     if (icon) {
-      icon.classList.remove('fa-eye');
-      icon.classList.add('fa-eye-slash');
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
     }
   } else {
     input.type = 'password';
     if (icon) {
-      icon.classList.remove('fa-eye-slash');
-      icon.classList.add('fa-eye');
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
     }
   }
 }

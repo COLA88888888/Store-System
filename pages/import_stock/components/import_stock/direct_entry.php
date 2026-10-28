@@ -6,7 +6,7 @@
  */
 ?>  // ====== DIRECT ENTRY FORM JS LOGIC ======
   $(document).ready(function() {
-    $('#direct_barcode_input').focus();
+    // ບໍ່ໃຫ້ auto-focus ເພື່ອປ້ອງກັນແປ້ນພິມ virtual/on-screen keyboard ເດັ້ງຂຶ້ນມາເອງໃນຈໍສຳພັດ
   });
 
   function playImportBeep() {
@@ -242,7 +242,7 @@
     selectedProduct = p;
     $('#direct_matched_name').text(p.product_name);
     $('#direct_matched_barcode').text(p.barcode || '-');
-    $('#direct_matched_bprice').text(parseFloat(p.bprice || 0).toLocaleString() + ' ₭');
+    $('#direct_matched_bprice').text(parseFloat(p.bprice || 0).toLocaleString() + ' <?php echo kipSymbol(); ?>');
     $('#direct_matched_stock').text(parseInt(p.qty || 0).toLocaleString());
     $('#direct_matched_banner').removeClass('d-none').addClass('d-flex');
 

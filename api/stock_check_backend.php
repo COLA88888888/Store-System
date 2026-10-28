@@ -2,17 +2,15 @@
 /**
  * ເຊັກສະຕັອກ — controller ຂອງ pages/stock_check/stock_check.php ແລະ ເປົ້າໝາຍ AJAX ໃນໄຟລ໌ດຽວກັນ.
  *
- * ຂັ້ນຕອນ: ເລີ່ມນັບ (create_check) → ລະບົບຖ່າຍຈຳນວນໃນລະບົບ (system_qty) ຂອງທຸກສິນຄ້າທີ່ຕັດສະຕັອກໄວ້
- * → ພະນັກງານປ້ອນ/ສະແກນຈຳນວນທີ່ນັບໄດ້ ແລະ ບັນທຶກ (save_counts) ໄດ້ຫຼາຍເທື່ອ            [draft]
- * → ສົ່ງໃຫ້ຫົວໜ້າ/ຜູ້ຈັດການກວດສອບ (submit_for_approval) — ພະນັກງານແກ້ຕົວເລກບໍ່ໄດ້ອີກ   [pending]
- * → ຫົວໜ້າກົດ "ອະນຸມັດ ແລະ ປັບສະຕັອກ" (approve_adjustment) — ອະນຸມັດ + ປັບສະຕັອກໃນຂັ້ນດຽວ [completed]
- *   ຫຼື ສົ່ງກັບໃຫ້ນັບໃໝ່ (reject_adjustment → draft).
- *   ຫົວໜ້າແກ້ຕົວເລກໄດ້ໃນ pending, ແລະ ອະນຸມັດໃບທີ່ຕົນເອງນັບ (draft) ໄດ້ເລີຍ ບໍ່ຕ້ອງສົ່ງ.
+ * ຂັ້ນຕອນ (ງ່າຍໆ 2 ຂັ້ນ): ເລີ່ມນັບ (create_check) → ລະບົບຖ່າຍຈຳນວນໃນລະບົບ (system_qty) ຂອງທຸກສິນຄ້າທີ່ຕັດສະຕັອກໄວ້
+ * → 1. ນັບ: ປ້ອນ/ສະແກນຈຳນວນທີ່ນັບໄດ້ ແລະ ບັນທຶກ (save_counts) ໄດ້ຫຼາຍເທື່ອ — ບັນທຶກຜູ້ນັບ/ເວລາ ລາຍສິນຄ້າ  [draft]
+ * → 2. ປັບ: ກົດ "ປັບສະຕັອກໃຫ້ຕົງ" (approve_adjustment) — ທຸກຄົນທີ່ມີສິດນັບ ກົດໄດ້ເລີຍ ບໍ່ມີຂັ້ນອະນຸມັດ [completed]
+ *   ບັນທຶກຜູ້ປັບ/ເວລາ ໃນ completed_by / completed_at (ໜ້າ "ປະຫວັດ" ສະແດງ ຜູ້ນັບ ແລະ ຜູ້ປັບ).
+ *   ໃບເກົ່າທີ່ຄ້າງສະຖານະ pending/approved (ຈາກຂັ້ນອະນຸມັດເດີມ) ນັບຕໍ່ ແລະ ປັບໄດ້ຄືກັບ draft.
  *   ປັບ st_products.qty ດ້ວຍສ່ວນຕ່າງ (counted - system) ຂອງລາຍການທີ່ນັບແລ້ວ (scAdjustStock).
- *   complete_check ຍັງຮັບໄວ້ສຳລັບໃບເກົ່າທີ່ຄ້າງຢູ່ສະຖານະ 'approved' (ກ່ອນລວມເປັນຂັ້ນດຽວ).
  *   ໃຊ້ສ່ວນຕ່າງແທນການຕັ້ງຄ່າທັບ ເພື່ອບໍ່ໃຫ້ລົບລ້າງການຂາຍ/ນຳເຂົ້າທີ່ເກີດຂຶ້ນລະຫວ່າງນັບ.
  *   ລາຍການທີ່ບໍ່ໄດ້ນັບ (counted_qty = NULL) ບໍ່ຖືກແຕະ.
- * ໃບທີ່ຍັງບໍ່ຢືນຢັນ ລຶບໄດ້ (delete_check); ໃບທີ່ຢືນຢັນແລ້ວ ເບິ່ງ/ພິມໄດ້ຢ່າງດຽວ.
+ * ໃບທີ່ຍັງບໍ່ປັບ ລຶບໄດ້ (delete_check, ຫົວໜ້າ); ໃບທີ່ປັບແລ້ວ ເບິ່ງ/ພິມໄດ້ຢ່າງດຽວ.
  * ສາຂາ: ໃຊ້ getActiveStoreId() ສະເໝີ.
  */
 if (session_status() === PHP_SESSION_NONE) {
@@ -24,33 +22,26 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 require_once __DIR__ . '/../config/db.php';
 
 $scIsAjax = ($_SERVER['REQUEST_METHOD'] === 'POST')
-    && in_array($_POST['action'] ?? '', ['save_counts', 'submit_for_approval', 'approve_adjustment', 'reject_adjustment', 'complete_check', 'delete_check', 'check_item_stock'], true);
+    && in_array($_POST['action'] ?? '', ['save_counts', 'approve_adjustment', 'delete_check', 'check_item_stock'], true);
 
-// ສິດ:
-//   ພະນັກງານທົ່ວໄປ: ບໍ່ໃຫ້ເຫັນຍອດໃນລະບົບ (Blind count) ໃຫ້ເຫັນແຕ່ຈຳນວນຕົວຈິງ, ແລະ ບໍ່ຕ້ອງສົ່ງຂໍອະນຸມັດ — ກົດບັນທຶກປັບສະຕັອກໄດ້ເລີຍ
-//   ຫົວໜ້າ/ຜູ້ບໍລິຫານ: ເຫັນຍອດໃນລະບົບ, ສ່ວນຕ່າງ (ຄົບ/ບໍ່ພໍ/ເກີນ), ແລະ ຈັດການໃບເຊັກສະຕັອກໄດ້
+// ສິດ: ທຸກຄົນທີ່ມີສິດນັບ ນັບ ແລະ ປັບສະຕັອກໃຫ້ຕົງໄດ້ເລີຍ (ບໍ່ມີຂັ້ນສົ່ງ/ອະນຸມັດ), ເຫັນຍອດໃນລະບົບ ແລະ ສ່ວນຕ່າງ.
+// ລຶບໃບທີ່ຍັງບໍ່ປັບ: ສະເພາະຫົວໜ້າ/ຜູ້ບໍລິຫານ.
 $scLoggedIn   = !empty($_SESSION['user_id']);
 $userStatus   = trim($_SESSION['status'] ?? '');
 $isBossRole   = in_array($userStatus, ['admin', 'Admin', 'super admin', 'Super Admin', 'ຜູ້ບໍລິຫານ']);
 $isMgrRole    = in_array($userStatus, ['manager', 'Manager', 'ຜູ້ຈັດການ']);
 $scIsBoss     = $scLoggedIn && (isOwnerUser() || $isBossRole || isAdminAccount($pdo, $_SESSION['user_id']));
 $scIsManager  = $scLoggedIn && ($scIsBoss || $isMgrRole || isManagerRole());
-$scIsStaff    = ($scLoggedIn && !$scIsBoss && !$scIsManager); // ພະນັກງານທົ່ວໄປ
 
 $scIsCounter  = $scLoggedIn && ($scIsManager || hasPermission('stock_check') || hasPermission('stock_count'));
 $scCanStart   = $scIsCounter;
-// ກັນໂກງ: ພະນັກງານນັບ ແລ້ວ "ສົ່ງໃຫ້ຫົວໜ້າກວດ" ເທົ່ານັ້ນ — ປັບສະຕັອກ/ອະນຸມັດ/ສົ່ງກັບ ສະເພາະຜູ້ຈັດການ/ຜູ້ບໍລິຫານ
-// (ບໍ່ດັ່ງນັ້ນ ພະນັກງານທີ່ເອົາສິນຄ້າໄປ ກົດປັບສະຕັອກເອງ ສ່ວນຂາດກໍຫາຍໄປໂດຍຫົວໜ້າບໍ່ໄດ້ເຫັນ)
-$scCanConfirm = $scIsManager;
-$scCanApprove = $scIsManager;
-$scCanDelete  = $scIsManager;
 $scCanCount   = $scIsCounter;
+$scCanApprove = $scIsCounter;   // ປັບສະຕັອກໃຫ້ຕົງ
+$scCanDelete  = $scIsManager;
 
-// ພະນັກງານບໍ່ໃຫ້ເຫັນໃນລະບົບ ໃຫ້ເຫັນແຕ່ຈຳນວນຕົວຈິງ (Blind stock take)
-// ສະເພາະຫົວໜ້າ/ຜູ້ບໍລິຫານຈຶ່ງເຫັນຍອດໃນລະບົບ ແລະ ສ່ວນຕ່າງ
-$scShowSystem = !$scIsStaff;
-$scShowDiff   = !$scIsStaff;
-$scSeeResults = !$scIsStaff;
+$scShowSystem = true;
+$scShowDiff   = true;
+$scSeeResults = true;
 
 if (empty($_SESSION['user_id']) || (!$scIsManager && !$scIsCounter)) {
     if ($scIsAjax) {
@@ -200,10 +191,7 @@ if ($scIsAjax) {
 
     $allowed = [
         'save_counts'         => $scCanCount,
-        'submit_for_approval' => $scCanCount,
         'approve_adjustment'  => $scCanApprove,
-        'reject_adjustment'   => $scCanApprove,
-        'complete_check'      => $scCanCount || $scCanConfirm,
         'delete_check'        => $scCanDelete,
         'check_item_stock'    => $scCanCount,
     ][$action] ?? false;
@@ -251,16 +239,6 @@ if ($scIsAjax) {
             }
             $pdo->commit();
 
-            // ກັນໂກງ (ນັບແບບບໍ່ເຫັນລະບົບ): ພະນັກງານບໍ່ໄດ້ຮັບຈຳນວນໃນລະບົບ / ສະຕັອກລ່າສຸດ / ຄົບ-ບໍ່ຄົບ —
-            // ບໍ່ດັ່ງນັ້ນເປີດ DevTools ກໍຮູ້ວ່າຕ້ອງປ້ອນເທົ່າໃດໃຫ້ "ຄົບ"
-            if ($scIsStaff) {
-                echo json_encode(['success' => true, 'item' => [
-                    'id' => $item['id'], 'product_id' => $item['product_id'], 'barcode' => $item['barcode'],
-                    'product_name' => $item['product_name'], 'unit' => $item['unit'],
-                ]]);
-                exit();
-            }
-
             $counted = ($item['counted_qty'] === null) ? null : intval($item['counted_qty']);
             // ຖ້ານັບຄົບແລ້ວ ແລະ ບໍ່ມີການຕັດສະຕັອກ
             $isComplete = ($counted !== null && $counted === $liveQty && !$stockCut);
@@ -286,26 +264,9 @@ if ($scIsAjax) {
             exit();
         }
 
-        // ໃຜແກ້ຕົວເລກໄດ້ຕອນນີ້: draft = ຜູ້ນັບ, pending/approved = ຫົວໜ້າເທົ່ານັ້ນ (ສົ່ງແລ້ວ ພະນັກງານແກ້ບໍ່ໄດ້)
-        $st = $check['status'];
-        $canEditNow = ($st === 'draft' && $scCanCount) || (in_array($st, ['pending', 'approved'], true) && $scCanApprove);
+        // ໃບທີ່ຍັງບໍ່ປັບ (draft, ຫຼື pending/approved ທີ່ຄ້າງຈາກຂັ້ນອະນຸມັດເດີມ): ຜູ້ມີສິດນັບ ແກ້ຕົວເລກໄດ້
+        $canEditNow = $scCanCount;
 
-        // ລຳດັບຂັ້ນຕອນ: ກວດສະຖານະກ່ອນບັນທຶກຫຍັງ
-        if ($action === 'save_counts' && !$canEditNow) {
-            throw new Exception(t('sc.s209'));
-        }
-        if ($action === 'submit_for_approval' && $st !== 'draft') {
-            throw new Exception(t('sc.s210'));
-        }
-        if ($action === 'approve_adjustment' && !in_array($st, ['draft', 'pending', 'approved'], true)) {
-            throw new Exception(t('sc.s211'));
-        }
-        if ($action === 'reject_adjustment' && !in_array($st, ['pending', 'approved'], true)) {
-            throw new Exception(t('sc.s212'));
-        }
-        if ($action === 'complete_check' && $st !== 'approved') {
-            throw new Exception(t('sc.s213'));
-        }
         if ($action === 'approve_adjustment') {
             $cnt = (int)$pdo->query("SELECT COUNT(*) FROM st_stock_check_items WHERE check_id = " . intval($checkId) . " AND counted_qty IS NOT NULL")->fetchColumn();
             if ($cnt <= 0 && empty($items)) {
@@ -315,11 +276,6 @@ if ($scIsAjax) {
 
         // ລາຍການທີ່ສົ່ງມາພ້ອມ: ບັນທຶກສະເພາະຜູ້ທີ່ແກ້ໄດ້ໃນສະຖານະນີ້ (ຄົນອື່ນ — ບໍ່ສົນ ບໍ່ປ່ຽນຕົວເລກ)
         $savedRows = (!empty($items) && $canEditNow) ? scSaveItems($pdo, $checkId, $items, $scUserId) : [];
-        if ($scIsStaff) {
-            // ກັນໂກງ: ພະນັກງານບໍ່ໄດ້ຮັບຈຳນວນໃນລະບົບ / ສ່ວນຕ່າງ ໃນຄຳຕອບ
-            foreach ($savedRows as &$sr) { unset($sr['system_qty'], $sr['diff']); }
-            unset($sr);
-        }
         if (isset($_POST['note']) && $canEditNow) {
             $pdo->prepare("UPDATE st_stock_checks SET note = ? WHERE id = ?")
                 ->execute([mb_substr(trim($_POST['note']), 0, 255), $checkId]);
@@ -331,49 +287,12 @@ if ($scIsAjax) {
             exit();
         }
 
-        // ສົ່ງໃຫ້ຫົວໜ້າກວດສອບ ແລະ ອະນຸຍາດປັບສະຕັອກ
-        if ($action === 'submit_for_approval') {
-            $cnt = (int)$pdo->query("SELECT COUNT(*) FROM st_stock_check_items WHERE check_id = " . intval($checkId) . " AND counted_qty IS NOT NULL")->fetchColumn();
-            if ($cnt <= 0) {
-                throw new Exception(t('sc.s215'));
-            }
-            // submitted_by/at: ຫົວໜ້າໄດ້ແຈ້ງເຕືອນວ່າໃຜສົ່ງ, ແລະ ອະນຸມັດແລ້ວແຈ້ງກັບຫາຜູ້ສົ່ງ (config/helpers/stock_check_alerts.php)
-            $pdo->prepare("UPDATE st_stock_checks SET status = 'pending', submitted_by = ?, submitted_at = NOW() WHERE id = ?")->execute([$scUserId, $checkId]);
-            $pdo->commit();
-            logActivity($pdo, 'ສົ່ງໃບເຊັກສະຕັອກຂໍອະນຸມັດ', 'ເລກທີ: ' . $check['check_no']);
-            echo json_encode(['success' => true, 'message' => t('sc.s216')]);
-            exit();
-        }
-
-        // ຫົວໜ້າ "ອະນຸມັດ ແລະ ປັບສະຕັອກ" — ຂັ້ນດຽວ, transaction ດຽວ
-        if ($action === 'approve_adjustment') {
-            $pdo->prepare("UPDATE st_stock_checks SET approved_by = ?, approved_at = NOW() WHERE id = ?")
-                ->execute([$scUserId, $checkId]);
-            $adjusted = scAdjustStock($pdo, $checkId, $scStoreId, $scUserId);
-            $pdo->commit();
-            logActivity($pdo, 'ປັບສະຕັອກໃຫ້ຕົງ', 'ເລກທີ: ' . $check['check_no'] . ', ປັບສະຕັອກ ' . $adjusted . ' ລາຍການ');
-            echo json_encode(['success' => true, 'adjusted' => $adjusted,
-                'message' => t('sc.s217') . $adjusted . ' ' . t('sc.s075') . ')']);
-            exit();
-        }
-
-        // ຫົວໜ້າຕີກັບໃຫ້ນັບໃໝ່ / ແກ້ໄຂຄືນ
-        if ($action === 'reject_adjustment') {
-            $pdo->prepare("UPDATE st_stock_checks SET status = 'draft', approved_by = NULL, approved_at = NULL WHERE id = ?")
-                ->execute([$checkId]);
-            $pdo->commit();
-            logActivity($pdo, 'ສົ່ງກັບໃຫ້ນັບສະຕັອກໃໝ່', 'ເລກທີ: ' . $check['check_no']);
-            echo json_encode(['success' => true, 'message' => t('sc.s218')]);
-            exit();
-        }
-
-        // complete_check (ໃບເກົ່າທີ່ຄ້າງ 'approved' — ກວດຢູ່ຂ້າງເທິງ): ປັບສະຕັອກໃຫ້ຕົງກັບລະບົບ
+        // ປັບສະຕັອກໃຫ້ຕົງ — transaction ດຽວ; ຜູ້ປັບ/ເວລາ ບັນທຶກໃນ completed_by / completed_at (scAdjustStock)
         $adjusted = scAdjustStock($pdo, $checkId, $scStoreId, $scUserId);
         $pdo->commit();
-
-        logActivity($pdo, 'ຢືນຢັນເຊັກສະຕັອກ', 'ເລກທີ: ' . $check['check_no'] . ', ປັບສະຕັອກ ' . $adjusted . ' ລາຍການ');
+        logActivity($pdo, 'ປັບສະຕັອກໃຫ້ຕົງ', 'ເລກທີ: ' . $check['check_no'] . ', ປັບສະຕັອກ ' . $adjusted . ' ລາຍການ');
         echo json_encode(['success' => true, 'adjusted' => $adjusted,
-            'message' => t('sc.s219') . $adjusted . ' ' . t('sc.s075') . ')']);
+            'message' => t('sc.s217') . $adjusted . ' ' . t('sc.s075') . ')']);
         exit();
     } catch (Throwable $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
@@ -435,7 +354,7 @@ $od = $pdo->prepare("SELECT id, check_no, status, created_at FROM st_stock_check
 $od->execute([$scStoreId]);
 $scOpenDraft = $od->fetch(PDO::FETCH_ASSOC) ?: null;
 
-// ຖ້າບໍ່ມີ id ແລະ ບໍ່ໄດ້ກົດເບິ່ງປະຫວັດ (?view=checks ຫຼື ?view=history)
+// ຖ້າບໍ່ມີ id ແລະ ບໍ່ໄດ້ກົດເບິ່ງປະຫວັດ (?view=checks)
 // ໃຫ້ເປີດໜ້ານັບສິນຄ້າທັນທີ (ເຂົ້າເຖິງງ່າຍ ເຫັນສິນຄ້າໂລດ ບໍ່ຕ້ອງກົດຫຼາຍຂັ້ນຕອນ)
 if (empty($_GET['id']) && empty($_GET['view'])) {
     if ($scOpenDraft) {
@@ -482,59 +401,32 @@ if (!empty($_GET['id']) && empty($_GET['view'])) {
         $it->execute([$scCheck['id']]);
         $scItems = $it->fetchAll(PDO::FETCH_ASSOC);
 
-        // ກັນໂກງ: ປະຫວັດການແກ້ຈຳນວນນັບຂອງແຕ່ລະລາຍການ (ສະເພາະຫົວໜ້າ/ຜູ້ບໍລິຫານ ເຫັນ) — count_view.php ສະແດງ "ແກ້ໄຂ N ເທື່ອ"
-        if (!$scIsStaff) {
-            try {
-                $lg = $pdo->prepare("SELECT l.item_id, l.old_qty, l.new_qty, l.created_at, $scUserNameSql AS who
-                                     FROM st_stock_check_count_log l LEFT JOIN st_tbuser u ON u.Id = l.user_id
-                                     WHERE l.check_id = ? ORDER BY l.id ASC");
-                $lg->execute([$scCheck['id']]);
-                $logByItem = [];
-                foreach ($lg->fetchAll(PDO::FETCH_ASSOC) as $l) $logByItem[$l['item_id']][] = $l;
-                foreach ($scItems as &$sci) $sci['edit_log'] = $logByItem[$sci['id']] ?? [];
-                unset($sci);
-            } catch (Throwable $e) {}
-        }
+        // ປະຫວັດການແກ້ຈຳນວນນັບຂອງແຕ່ລະລາຍການ (ໃຜ / ເວລາ / ຈາກ → ເປັນ) — count_view.php ສະແດງ "ປ່ຽນ N ເທື່ອ"
+        try {
+            $lg = $pdo->prepare("SELECT l.item_id, l.old_qty, l.new_qty, l.created_at, $scUserNameSql AS who
+                                 FROM st_stock_check_count_log l LEFT JOIN st_tbuser u ON u.Id = l.user_id
+                                 WHERE l.check_id = ? ORDER BY l.id ASC");
+            $lg->execute([$scCheck['id']]);
+            $logByItem = [];
+            foreach ($lg->fetchAll(PDO::FETCH_ASSOC) as $l) $logByItem[$l['item_id']][] = $l;
+            foreach ($scItems as &$sci) $sci['edit_log'] = $logByItem[$sci['id']] ?? [];
+            unset($sci);
+        } catch (Throwable $e) {}
     } else {
         $sc_message = t('sc.s222');
         $sc_message_type = 'danger';
     }
 }
 
-// ແຖບ: 'checks' = ລາຍການໃບ, 'history' = ປະຫວັດການນັບລາຍສິນຄ້າ (ທຸກໃບ)
-$scView = (($_GET['view'] ?? '') === 'history') ? 'history' : 'checks';
-$scHistory = [];
+// ໜ້າ "ປະຫວັດ" (?view=checks): ລາຍການໃບ ພ້ອມ ຜູ້ນັບ (ທຸກຄົນທີ່ນັບໃນໃບ) ແລະ ຜູ້ປັບ / ເວລາປັບ.
+// ກົດເບິ່ງໃບ → ລະອຽດລາຍສິນຄ້າ (ໃຜນັບ ເວລາໃດ, ໃນລະບົບ / ຕົວຈິງ / ສ່ວນຕ່າງ) ໃນ count_view.php
 $scSearch = trim($_GET['q'] ?? '');
-$scHistorySearch = $scSearch;
-$scHistoryLimit = 5000;   // ເພດານຂໍ້ມູນທີ່ດຶງ (ສະແດງເປັນໜ້າ, Excel/PDF/ພິມ ໃຊ້ທັງໝົດ)
-
-if (!$scCheck && $scView === 'history') {
-    $sql = "SELECT i.*, c.id AS check_id, c.check_no, c.status, $scUserNameSql AS counted_by_name
-            FROM st_stock_check_items i
-            JOIN st_stock_checks c ON c.id = i.check_id
-            LEFT JOIN st_tbuser u ON u.Id = i.counted_by
-            WHERE c.store_id = ? AND i.counted_qty IS NOT NULL
-              AND DATE(COALESCE(i.counted_at, c.created_at)) BETWEEN ? AND ?";
-    $params = [$scStoreId, $scDateFrom, $scDateTo];
-    if ($scSearch !== '') {
-        if ($scSearch === 'ບໍ່ລະບຸ') {
-            $sql .= " AND (i.zone IS NULL OR i.zone = '' OR i.shelf IS NULL OR i.shelf = '' OR i.product_name LIKE ? OR i.barcode LIKE ?)";
-            $params[] = '%' . $scSearch . '%';
-            $params[] = '%' . $scSearch . '%';
-        } else {
-            $sql .= " AND (i.product_name LIKE ? OR i.barcode LIKE ? OR i.zone LIKE ? OR i.shelf LIKE ? OR i.product_id = ?)";
-            $params[] = '%' . $scSearch . '%';
-            $params[] = '%' . $scSearch . '%';
-            $params[] = '%' . $scSearch . '%';
-            $params[] = '%' . $scSearch . '%';
-            $params[] = $scSearch;
-        }
-    }
-    $sql .= " ORDER BY COALESCE(i.counted_at, c.created_at) DESC, i.id DESC LIMIT " . ($scHistoryLimit + 1);
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $scHistory = $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+$scCheckerCols = "GROUP_CONCAT(DISTINCT COALESCE(NULLIF(TRIM(CONCAT(IFNULL(ku.fname,''), ' ', IFNULL(ku.lname,''))), ''), ku.username)
+                                   ORDER BY ku.username SEPARATOR ', ') AS counted_by_names,
+                  MIN(i.counted_at) AS first_counted_at,
+                  MAX(i.counted_at) AS last_counted_at,
+                  (SELECT COALESCE(NULLIF(TRIM(CONCAT(IFNULL(au.fname,''), ' ', IFNULL(au.lname,''))), ''), au.username)
+                     FROM st_tbuser au WHERE au.Id = c.completed_by) AS completed_by_name";
 
 if (!$scCheck) {
     if ($scSearch !== '') {
@@ -544,13 +436,15 @@ if (!$scCheck) {
                              SUM(i.counted_qty IS NOT NULL) AS counted_count,
                              SUM(CASE WHEN i.counted_qty < i.system_qty THEN i.system_qty - i.counted_qty ELSE 0 END) AS short_qty,
                              SUM(CASE WHEN i.counted_qty > i.system_qty THEN i.counted_qty - i.system_qty ELSE 0 END) AS over_qty,
-                             SUM(CASE WHEN i.counted_qty IS NOT NULL THEN i.counted_qty - i.system_qty ELSE 0 END) AS diff_qty,
+                             SUM(CASE WHEN i.counted_qty IS NOT NULL THEN i.counted_qty - i.system_qty ELSE 0 END) AS diff_qty, SUM(i.counted_qty IS NOT NULL AND i.counted_qty <> i.system_qty) AS mismatch_count,
                              (SELECT i2.product_name FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_name,
                              (SELECT i2.barcode FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_barcode,
-                             (SELECT i2.counted_qty FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_qty
+                             (SELECT i2.counted_qty FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_qty,
+                             $scCheckerCols
                       FROM st_stock_checks c
                       LEFT JOIN st_tbuser u ON u.Id = c.user_id
                       LEFT JOIN st_stock_check_items i ON i.check_id = c.id
+                      LEFT JOIN st_tbuser ku ON ku.Id = i.counted_by
                       WHERE c.store_id = ?
                         AND (
                             (DATE(c.created_at) BETWEEN ? AND ?)
@@ -613,13 +507,15 @@ if (!$scCheck) {
                                       SUM(i.counted_qty IS NOT NULL) AS counted_count,
                                       SUM(CASE WHEN i.counted_qty < i.system_qty THEN i.system_qty - i.counted_qty ELSE 0 END) AS short_qty,
                                       SUM(CASE WHEN i.counted_qty > i.system_qty THEN i.counted_qty - i.system_qty ELSE 0 END) AS over_qty,
-                                      SUM(CASE WHEN i.counted_qty IS NOT NULL THEN i.counted_qty - i.system_qty ELSE 0 END) AS diff_qty,
+                                      SUM(CASE WHEN i.counted_qty IS NOT NULL THEN i.counted_qty - i.system_qty ELSE 0 END) AS diff_qty, SUM(i.counted_qty IS NOT NULL AND i.counted_qty <> i.system_qty) AS mismatch_count,
                                       (SELECT i2.product_name FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_name,
                                       (SELECT i2.barcode FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_barcode,
-                                      (SELECT i2.counted_qty FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_qty
+                                      (SELECT i2.counted_qty FROM st_stock_check_items i2 WHERE i2.check_id = c.id AND i2.counted_qty IS NOT NULL ORDER BY i2.counted_at DESC, i2.id DESC LIMIT 1) AS last_counted_qty,
+                                      $scCheckerCols
                                FROM st_stock_checks c
                                LEFT JOIN st_tbuser u ON u.Id = c.user_id
                                LEFT JOIN st_stock_check_items i ON i.check_id = c.id
+                               LEFT JOIN st_tbuser ku ON ku.Id = i.counted_by
                                WHERE c.store_id = ? AND DATE(c.created_at) BETWEEN ? AND ?
                                GROUP BY c.id
                                ORDER BY c.id DESC");
@@ -637,7 +533,7 @@ $scOpenDraft = $od->fetch(PDO::FETCH_ASSOC) ?: null;
 // ຈຳນວນແຖວຕໍ່ໜ້າ: ເລືອກໄດ້ຈາກບັອກ "ສະແດງ N ລາຍການ" (?per_page=10|20|50|100|all)
 $scPerPageOptions = [10, 20, 50, 100];
 $scPerPageParam = $_GET['per_page'] ?? '';
-$scAllRows = ($scView === 'history') ? array_slice($scHistory, 0, $scHistoryLimit) : $scChecks;
+$scAllRows = $scChecks;
 $scTotalRows = count($scAllRows);
 if ($scPerPageParam === 'all') {
     $scPerPage = max(1, $scTotalRows);

@@ -42,10 +42,18 @@ if (!function_exists('changeCustomerPoints')) {
     }
 }
 
+if (!function_exists('kipSymbol')) {
+    // ຫົວໜ່ວຍເງິນກີບທີ່ສະແດງຫຼັງຈຳນວນເງິນ: ໃຊ້ຄຳຕາມພາສາ (ລາວ "ກີບ", ອັງກິດ "Kip") ແທນສັນຍາລັກ ₭
+    function kipSymbol()
+    {
+        return function_exists('t') ? t('currency.kip', 'ກີບ') : 'ກີບ';
+    }
+}
+
 if (!function_exists('formatCurrency')) {
     function formatCurrency($amount)
     {
-        return number_format((float)$amount, 0, '.', ',') . ' ₭';
+        return number_format((float)$amount, 0, '.', ',') . ' ' . kipSymbol();
     }
 }
 
@@ -79,7 +87,7 @@ if (!function_exists('getCurrencyMeta')) {
         // separator and no decimal point (e.g. "1,234 $").
         // ຊື່ສະກຸນເງິນຕາມພາສາທີ່ເລືອກ (lang/*/currency.php) — ສະແດງໃນໜ້າຂາຍ, ລາຍງານ, ຕັ້ງຄ່າ ທຸກບ່ອນທີ່ໃຊ້ meta ນີ້
         return [
-            'KIP' => ['name' => t('currency.kip', 'ກີບ'),  'symbol' => '₭', 'decimals' => 0],
+            'KIP' => ['name' => t('currency.kip', 'ກີບ'),  'symbol' => kipSymbol(), 'decimals' => 0],
             'THB' => ['name' => t('currency.thb', 'ບາດ'),  'symbol' => '฿', 'decimals' => 0],
             'USD' => ['name' => t('currency.usd', 'ໂດລາ'), 'symbol' => '$', 'decimals' => 0],
             'CNY' => ['name' => t('currency.cny', 'ຢວນ'),  'symbol' => '¥', 'decimals' => 0],
@@ -114,7 +122,11 @@ if (!function_exists('getDisplayCurrency')) {
 }
 
 if (!function_exists('convertFromKip')) {
-    /** Convert a KIP amount into `$code`, rounded to that currency's decimals. */
+    /**
+     * Convert a KIP amount into `$code`: KIP ÷ ອັດຕາແລກປ່ຽນທີ່ຕັ້ງໄວ້ (ກີບຕໍ່ 1 ໜ່ວຍ),
+     * ແລ້ວປັດເປັນຈຳນວນເຕັມ: ເສດບໍ່ກາຍ .50 ປັດລົງ, ກາຍ .50 ປັດຂຶ້ນ (160.50 → 160, 160.62 → 161).
+     * ຈຳນວນລົບ ປັດຕາມຄ່າສົມບູນ ເພື່ອໃຫ້ສົມມາດກັບຄ່າບວກ.
+     */
     function convertFromKip($amountKip, $code, $rates = null, $pdo = null)
     {
         $code = strtoupper((string)$code);
@@ -122,14 +134,25 @@ if (!function_exists('convertFromKip')) {
         if ($rates === null) $rates = getExchangeRates($pdo);
         $rate = isset($rates[$code]) ? (float)$rates[$code] : 0.0;
         if ($rate <= 0) return (float)$amountKip;
-        $meta = getCurrencyMeta();
-        $dec  = $meta[$code]['decimals'] ?? 2;
-        return round((float)$amountKip / $rate, $dec);
+        return roundForeignUnits((float)$amountKip / $rate);
+    }
+}
+
+if (!function_exists('roundForeignUnits')) {
+    /** ປັດເປັນຈຳນວນເຕັມ: ເສດບໍ່ກາຍ .50 ປັດລົງ, ກາຍ .50 ປັດຂຶ້ນ (ຕັດ error ຂອງ floating point ກ່ອນ). */
+    function roundForeignUnits($v)
+    {
+        $v = round((float)$v, 6);
+        $neg = $v < 0;
+        if ($neg) $v = -$v;
+        $f = floor($v);
+        $r = ($v - $f > 0.5) ? $f + 1 : $f;
+        return $neg ? -$r : $r;
     }
 }
 
 if (!function_exists('formatMoneyIn')) {
-    /** Format a KIP amount as a string in currency `$code` (e.g. "$ 12.50", "1,000 ₭"). */
+    /** Format a KIP amount as a string in currency `$code` (e.g. "$ 12.50", "1,000 ກີບ"). */
     function formatMoneyIn($amountKip, $code, $rates = null, $pdo = null)
     {
         $code = strtoupper((string)$code) ?: 'KIP';

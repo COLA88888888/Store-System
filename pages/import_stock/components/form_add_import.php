@@ -57,7 +57,7 @@
                 <span class="font-weight-bold text-dark d-block" id="matched_name" style="font-size: 0.98rem;">-</span>
                 <small class="text-muted">
                   <i class="fas fa-barcode mr-1"></i> ບາໂຄ້ດ: <span id="matched_barcode" class="font-weight-bold text-primary mr-2">-</span>
-                  <i class="fas fa-tag mr-1 text-warning"></i> ລາຄາຊື້: <span id="matched_bprice" class="font-weight-bold text-danger mr-2">0 ₭</span>
+                  <i class="fas fa-tag mr-1 text-warning"></i> ລາຄາຊື້: <span id="matched_bprice" class="font-weight-bold text-danger mr-2">0 <?php echo kipSymbol(); ?></span>
                   <i class="fas fa-boxes mr-1 text-success"></i> ສະຕັອກ: <span id="matched_stock" class="font-weight-bold text-success">0</span>
                 </small>
               </div>
@@ -110,7 +110,7 @@
                     <i class="fas fa-tag text-warning mr-1"></i> ລາຄາຊື້ / ຫົວໜ່ວຍ <small class="text-muted">(ລັອກອັດໂນມັດ)</small>
                   </label>
                   <div class="p-2 px-3 rounded font-weight-bold" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-size: 0.95rem; min-height: 42px; display: flex; align-items: center; justify-content: space-between;">
-                    <span id="import_cost_display">0 ₭</span>
+                    <span id="import_cost_display">0 <?php echo kipSymbol(); ?></span>
                     <i class="fas fa-lock text-warning" style="font-size: 0.85rem;" title="ລັອກອັດໂນມັດ"></i>
                   </div>
                   <input type="hidden" name="cost_price" id="import_cost" value="0">
@@ -155,7 +155,7 @@
               <span class="font-weight-bold text-dark" style="font-size: 0.98rem;">
                 <i class="fas fa-calculator text-success mr-1"></i> ມູນຄ່າທຶນລວມໃບບິນ (ເງິນລວມ): <small class="text-muted">(ຄິດໄລ່ອັດໂນມັດ)</small>
               </span>
-              <span class="h4 mb-0 font-weight-bold text-success" id="calc_total_cost_display">0 ₭</span>
+              <span class="h4 mb-0 font-weight-bold text-success" id="calc_total_cost_display">0 <?php echo kipSymbol(); ?></span>
             </div>
           </div>
         </div>

@@ -70,7 +70,7 @@ function exportShiftReportExcel() {
   html += row(26, td(esc(srT('shifts.rpt_items_title', items.length)), 'font-size:12pt;font-weight:bold;', 6));
   html += row(28, td('#', B + GREY + 'font-weight:bold;text-align:center;') +
     td(esc(srT('shifts.rpt_col_product')), B + GREY + 'font-weight:bold;text-align:center;', 2) +
-    [srT('shifts.rpt_col_qty'), srT('shifts.rpt_col_discount') + ' (₭)', srT('shifts.rpt_col_total') + ' (₭)'].map(function (h) {
+    [srT('shifts.rpt_col_qty'), srT('shifts.rpt_col_discount') + ' (<?php echo kipSymbol(); ?>)', srT('shifts.rpt_col_total') + ' (<?php echo kipSymbol(); ?>)'].map(function (h) {
       return td(esc(h), B + GREY + 'font-weight:bold;text-align:center;');
     }).join(''));
   var itTot = { qty: 0, discount: 0, net: 0 };
@@ -94,7 +94,7 @@ function exportShiftReportExcel() {
   // ລາຍການບິນ
   html += row(26, td(esc(srT('shifts.rpt_bills_title', bills.length)), 'font-size:12pt;font-weight:bold;', 6));
   html += row(28, ['#', srT('shifts.rpt_col_bill'), srT('shifts.rpt_col_datetime'), srT('shifts.rpt_col_cashier'),
-    srT('shifts.rpt_col_channel'), srT('shifts.rpt_col_amount') + ' (₭)'].map(function (h) {
+    srT('shifts.rpt_col_channel'), srT('shifts.rpt_col_amount') + ' (<?php echo kipSymbol(); ?>)'].map(function (h) {
     return td(esc(h), B + GREY + 'font-weight:bold;text-align:center;');
   }).join(''));
   var total = 0;

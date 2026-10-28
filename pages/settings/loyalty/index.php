@@ -59,7 +59,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
 var LP_I18N = <?php echo tjson([
     'loyalty.add_reward_title'    => 'ເພີ່ມລາຍການແລກຄະແນນ',
     'loyalty.edit_reward_title'   => 'ແກ້ໄຂລາຍການແລກຄະແນນ',
-    'loyalty.preview_spend_hint'  => 'ລູກຄ້າຕ້ອງຊື້ປະມານ %s ₭ ຈຶ່ງຈະໄດ້ຄະແນນພໍແລກ (ຄືນໃຫ້ລູກຄ້າປະມານ %s%%)',
+    'loyalty.preview_spend_hint'  => 'ລູກຄ້າຕ້ອງຊື້ປະມານ %s ' . kipSymbol() . ' ຈຶ່ງຈະໄດ້ຄະແນນພໍແລກ (ຄືນໃຫ້ລູກຄ້າປະມານ %s%%)',
 ]); ?>;
 function lpT(key) {
   var s = LP_I18N[key] || key, args = Array.prototype.slice.call(arguments, 1);

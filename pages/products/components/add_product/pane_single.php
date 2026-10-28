@@ -130,7 +130,7 @@
                 </div>
                 <div class="col-md-6 mb-3">
                   <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_expiry_date', 'ວັນໝົດອາຍຸ:')); ?></label>
-                  <input type="date" id="add_expiry_date" name="expiry_date" class="form-control" style="height: 40px; border-radius: 6px;">
+                  <input type="date" id="add_expiry_date" name="expiry_date" class="form-control font-weight-bold" style="height: 40px; border-radius: 6px; cursor: pointer;">
                   <small class="text-muted"><?php echo htmlspecialchars(t('products.field_expiry_hint', 'ບໍ່ໃສ່ກໍໄດ້ — ໃສ່ແລ້ວລະບົບຈະແຈ້ງເຕືອນກ່ອນໝົດອາຍຸ')); ?></small>
                 </div>
               </div>
@@ -177,14 +177,14 @@
                   <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_bprice', 'ລາຄາຊື້:')); ?></label>
                   <div class="input-group">
                     <input type="text" id="add_bprice" name="bprice" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #475569;" oninput="formatPriceInput(this)">
-                    <div class="input-group-append"><span class="input-group-text" style="border-radius: 0 6px 6px 0; font-size: 0.85rem;">₭</span></div>
+                    <div class="input-group-append"><span class="input-group-text" style="border-radius: 0 6px 6px 0; font-size: 0.85rem;"><?php echo kipSymbol(); ?></span></div>
                   </div>
                 </div>
                 <div class="col-6">
                   <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_price', 'ລາຄາຂາຍ:')); ?> <span class="text-danger">*</span></label>
                   <div class="input-group">
                     <input type="text" id="add_price" name="price" class="form-control price-input text-right font-weight-bold" placeholder="0" style="border-radius: 6px 0 0 6px; height: 40px; color: #16a34a;" oninput="formatPriceInput(this)" >
-                    <div class="input-group-append"><span class="input-group-text" style="border-radius: 0 6px 6px 0; font-size: 0.85rem;">₭</span></div>
+                    <div class="input-group-append"><span class="input-group-text" style="border-radius: 0 6px 6px 0; font-size: 0.85rem;"><?php echo kipSymbol(); ?></span></div>
                   </div>
                 </div>
               </div>

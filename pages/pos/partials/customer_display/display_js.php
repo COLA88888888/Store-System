@@ -6,12 +6,17 @@
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/pos/customer_display.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 ?><script>
+// ຂໍ້ຄວາມທີ່ JS ສ້າງ ຕາມພາສາທີ່ເລືອກ (lang/*/customer_display.php)
+var CD_I18N = <?php echo tjson(array_fill_keys(['cd.qr_show', 'cd.qr_pay', 'cd.paid_by_cash', 'cd.paid_by_transfer', 'cd.paid_by_split',
+                                                 'cd.bank', 'cd.invoice_no', 'cd.lines', 'cd.pieces'], null)); ?>;
+function cdT(key) { return CD_I18N[key] || key; }
+
 // ===== Display currency (cart data arrives in KIP; shown in the active currency) =====
 <?php
   // $cd ກຳນົດໄວ້ແລ້ວໃນ pages/pos/customer_display.php (ກ່ອນ page_body)
   if (!isset($cd)) {
     $cd = function_exists('getDisplayCurrency') ? getDisplayCurrency($pdo)
-        : ['code' => 'KIP', 'symbol' => '₭', 'decimals' => 0, 'rate' => 1];
+        : ['code' => 'KIP', 'symbol' => kipSymbol(), 'decimals' => 0, 'rate' => 1];
   }
 ?>
 window.CD_CUR = {
@@ -21,14 +26,29 @@ window.CD_CUR = {
   rate: <?php echo json_encode((float)$cd['rate']); ?>,
   isKip: <?php echo ($cd['code'] === 'KIP') ? 'true' : 'false'; ?>
 };
+window.CD_DEFAULT_CUR = Object.assign({}, window.CD_CUR);
+
 function cdFmt(v) {
   v = parseFloat(v) || 0;
   return v.toLocaleString('en-US', { minimumFractionDigits: CD_CUR.decimals, maximumFractionDigits: CD_CUR.decimals }) + ' <span class="cur-sym">' + CD_CUR.symbol + '</span>';
 }
+function cdFmtKip(kip) {
+  var v = Math.round(parseFloat(kip) || 0);
+  return v.toLocaleString('en-US') + ' <span class="cur-sym">' + (cdT('cd.kip') || 'ກີບ') + '</span>';
+}
 // kip -> formatted display string
 function cdMoney(kip) {
   kip = parseFloat(kip) || 0;
-  return cdFmt(CD_CUR.isKip ? Math.round(kip) : (kip / CD_CUR.rate));
+  return cdFmt(CD_CUR.isKip ? Math.round(kip) : cdCeil(kip / CD_CUR.rate));
+}
+// ສະກຸນຕ່າງປະເທດ: ກີບ ÷ ອັດຕາແລກປ່ຽນ ແລ້ວປັດເປັນຈຳນວນເຕັມ (ຄືກັບໜ້າຂາຍ POSCUR.fromKip):
+// ເສດບໍ່ກາຍ .50 ປັດລົງ, ກາຍ .50 ປັດຂຶ້ນ
+function cdCeil(v) {
+  v = Math.round((parseFloat(v) || 0) * 1e6) / 1e6;
+  var neg = v < 0; if (neg) v = -v;
+  var f = Math.floor(v);
+  var r = (v - f > 0.5) ? f + 1 : f;
+  return neg ? -r : r;
 }
 
 // Toggle QR Dock at bottom of 3D minimart
@@ -38,7 +58,7 @@ window.toggleQrDock = function() {
   if (!dock) return;
   dock.classList.toggle('collapsed');
   if (txt) {
-    txt.textContent = dock.classList.contains('collapsed') ? 'ໂຊ QR' : 'QR ຊຳລະ';
+    txt.textContent = dock.classList.contains('collapsed') ? cdT('cd.qr_show') : cdT('cd.qr_pay');
   }
 };
 
@@ -353,7 +373,30 @@ window.addEventListener('storage', function(e) {
       renderDisplayData(JSON.parse(e.newValue));
     } catch(err) {}
   }
+  if (e.key === 'StoreMini.ui_lang' && e.newValue) {
+    try { cdApplyLang(JSON.parse(e.newValue).lang); } catch(err) {}
+  }
 });
+
+// ປ່ຽນພາສາຢູ່ໜ້າຫຼັກ (ທຸງໃນ navbar → home/partials/dashboard/js_language.php) → ຈໍລູກຄ້າປ່ຽນນຳ:
+// ພາສາເກັບໄວ້ໃນ session ແລ້ວ ຈຶ່ງໂຫຼດໜ້ານີ້ໃໝ່ (ກະຕ່າກັບມາເອງຈາກ localStorage — loadInitialData).
+// ລະຫວ່າງລູກຄ້າກຳລັງຊຳລະ (QR / ຊຳລະສຳເລັດ ເປີດຢູ່) ລໍໃຫ້ປິດກ່ອນ ຈຶ່ງໂຫຼດໃໝ່.
+var CD_LANG = <?php echo json_encode(getCurrentLang()); ?>;
+var _cdLangTimer = null;
+function cdApplyLang(lang) {
+  if (!lang || lang === CD_LANG) return;
+  if ($('#bankPayPopup').is(':visible') || $('#paymentSuccessOverlay').is(':visible') || $('#queueFlash').is(':visible')) {
+    clearTimeout(_cdLangTimer);
+    _cdLangTimer = setTimeout(function () { cdApplyLang(lang); }, 1500);
+    return;
+  }
+  window.location.reload();
+}
+try {
+  new BroadcastChannel('StoreMini.ui_lang_channel').onmessage = function(e) {
+    if (e.data && e.data.lang) cdApplyLang(e.data.lang);
+  };
+} catch(e) {}
 
 function loadInitialData() {
   var raw = localStorage.getItem('StoreMini.customer_display_data');
@@ -414,7 +457,13 @@ function renderBankPopup(data) {
   $('#bppBankName').text(local.name || b.name || '');
   if (local.logo) $('#bppLogo').attr('src', local.logo).show(); else $('#bppLogo').hide();
   if ($('#bppQr').attr('src') !== qr) $('#bppQr').css('visibility', 'visible').attr('src', qr);
-  $('#bppAmount').html(cdMoney(data.transferDue || data.qrReceived || 0));
+  var transferKip = parseFloat(data.transferDue || data.qrReceived || 0);
+  $('#bppAmount').html(cdMoney(transferKip));
+  if (!CD_CUR.isKip && transferKip > 0) {
+    $('#bppAmountKip').html('≈ ' + cdFmtKip(transferKip)).show();
+  } else {
+    $('#bppAmountKip').hide().empty();
+  }
   $pop.css('display', 'flex');
 }
 
@@ -506,6 +555,11 @@ function showPaymentSuccessModal(data) {
 
   var total = parseFloat(data.totalAmount || data.paidAmount || 0);
   $('#paySuccessAmount').html(cdMoney(total));
+  if (!CD_CUR.isKip && total > 0) {
+    $('#paySuccessAmountKip').html('≈ ' + cdFmtKip(total)).show();
+  } else {
+    $('#paySuccessAmountKip').hide().empty();
+  }
 
   var cash = parseFloat(data.cashReceived || 0);
   var qr = parseFloat(data.qrReceived || 0);
@@ -533,13 +587,13 @@ function showPaymentSuccessModal(data) {
 
   if (isSplit) {
     $('#paySuccessMethodIcon').html('<i class="fas fa-coins text-warning"></i>');
-    $('#paySuccessMethodText').text('ຊຳລະດ້ວຍ: ແຍກຈ່າຍ (ເງິນສົດ + ໂອນ)');
+    $('#paySuccessMethodText').text(cdT('cd.paid_by_split'));
   } else if (isTransfer) {
     $('#paySuccessMethodIcon').html('<i class="fas fa-qrcode text-primary"></i>');
-    $('#paySuccessMethodText').text('ຊຳລະດ້ວຍ: ໂອນຜ່ານທະນາຄານ');
+    $('#paySuccessMethodText').text(cdT('cd.paid_by_transfer'));
   } else {
     $('#paySuccessMethodIcon').html('<i class="fas fa-money-bill-wave text-success"></i>');
-    $('#paySuccessMethodText').text('ຊຳລະດ້ວຍ: ເງິນສົດ');
+    $('#paySuccessMethodText').text(cdT('cd.paid_by_cash'));
   }
 
   // Bank Info section in badge
@@ -549,7 +603,7 @@ function showPaymentSuccessModal(data) {
     } else {
       $('#paySuccessBankLogo').hide();
     }
-    $('#paySuccessBankName').text(bankName ? ('ທະນາຄານ ' + bankName) : '').show();
+    $('#paySuccessBankName').text(bankName ? (cdT('cd.bank') + ' ' + bankName) : '').show();
     $('#paySuccessBankWrap').css('display', 'flex');
   } else {
     $('#paySuccessBankWrap').hide();
@@ -586,9 +640,9 @@ function showPaymentSuccessModal(data) {
   var nowTime = new Date();
   $('#paySuccessTimeText').text(formatTime24(nowTime));
   if (data.invoiceNumber) {
-    $('#paySuccessInvoiceNo').text('ເລກທີໃບບິນ: ' + data.invoiceNumber).show();
+    $('#paySuccessInvoiceNo').text(cdT('cd.invoice_no') + ' ' + data.invoiceNumber).show();
   } else {
-    $('#paySuccessInvoiceNo').text('ເລກທີໃບບິນ: -').show();
+    $('#paySuccessInvoiceNo').text(cdT('cd.invoice_no') + ' -').show();
   }
 
   // Queue Number
@@ -621,7 +675,7 @@ function showPaymentSuccessModal(data) {
 }
 
 function resetDisplayTotals() {
-  $('#displayItemCount').text('0 ລາຍການ / 0 ອັນ');
+  $('#displayItemCount').text('0 ' + cdT('cd.lines') + ' / 0 ' + cdT('cd.pieces'));
   ['displaySubtotal', 'displayDiscount', 'displayGrandTotal', 'displayCashReceived', 'displayQrReceived', 'displayChangeAmount'].forEach(function(id) {
     $('#' + id).html(cdFmt(0));
   });
@@ -653,6 +707,20 @@ function resetDisplayTotals() {
 
 function renderDisplayData(data) {
   if (!data) return;
+
+  // Real-time currency switching from POS cashier selection
+  if (data.tenderCurrency && data.tenderCurrency.code) {
+    window.CD_CUR = {
+      code: data.tenderCurrency.code,
+      symbol: data.tenderCurrency.symbol || data.tenderCurrency.code,
+      decimals: typeof data.tenderCurrency.decimals === 'number' ? data.tenderCurrency.decimals : 0,
+      rate: parseFloat(data.tenderCurrency.rate) || 1,
+      isKip: data.tenderCurrency.code === 'KIP'
+    };
+  } else if (data.checkoutState === 'shopping') {
+    window.CD_CUR = Object.assign({}, window.CD_DEFAULT_CUR);
+  }
+
   renderBankPopup(data);
 
   // Trigger payment success overlay with amount paid
@@ -676,7 +744,7 @@ function renderDisplayData(data) {
   var cart = data.cart || [];
   $('#displayCartEmpty').toggle(cart.length === 0);
 
-  var cartFingerprint = (cart || []).map(function(it){
+  var cartFingerprint = CD_CUR.code + '@' + (cart || []).map(function(it){
     return (it.product_id || it.id || '') + ':' + (it.quantity || 0) + ':' + (it.unit_price || 0) + ':' + (it.item_discount || 0) + ':' + (it.is_free_gift ? 1 : 0);
   }).join('|');
 
@@ -707,10 +775,10 @@ function renderDisplayData(data) {
           : (hasLineDisc && origUnitPrice > curUnitPrice
               ? `<del style="color:#94a3b8; font-size:0.85em; text-decoration:line-through; font-weight:normal;" class="mr-1">${cdMoney(origUnitPrice)}</del><span class="text-danger font-weight-bold">${cdMoney(curUnitPrice)}</span>`
               : cdMoney(curUnitPrice));
-        var unitNameStr = item.unit_name ? item.unit_name : 'ອັນ';
+        var unitNameStr = item.unit_name ? item.unit_name : cdT('cd.pieces');
         var giftBadgeHtml = isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.82rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i>ແຖມຟຣີ</span>` : '';
         var discBadgeHtml = hasLineDisc 
-          ? `<span class="badge badge-danger font-weight-bold ml-1" style="font-size:0.80rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-tag mr-1"></i>-${item.item_discount_text || cdMoney(origUnitPrice - curUnitPrice)}</span>` 
+          ? `<span class="text-danger font-weight-bold ml-1" style="font-size:0.85rem; white-space:nowrap;">-${item.item_discount_text || cdMoney(origUnitPrice - curUnitPrice)}</span>` 
           : '';
 
         var rawImg = item.image || item.img_url || '';
@@ -723,7 +791,7 @@ function renderDisplayData(data) {
             <td class="text-center" style="text-align: center !important;">
               <img src="${imgSrc}" alt="${item.product_name}" class="display-pro-img" onerror="this.src='../../assets/img/image.jpg';">
             </td>
-            <td class="text-left font-weight-bold text-dark" style="font-size: 1.05rem; text-align: left !important; padding-left: 14px !important;">
+            <td class="text-left font-weight-bold text-dark" style="font-size: 1.05rem; text-align: left !important; padding-left: 10px !important;">
               <span>${item.product_name}</span>
               <span class="badge badge-light border text-primary font-weight-bold ml-1" style="font-size:0.82rem; padding:2px 7px; border-radius:4px; vertical-align:middle;">${unitNameStr}</span>
               ${giftBadgeHtml}
@@ -759,7 +827,7 @@ function renderDisplayData(data) {
   // Animated number counter helper. targetKip is in KIP; displayed in CD_CUR.
   function animateNumber(elementId, targetKip) {
     var $el = $('#' + elementId);
-    var target = CD_CUR.isKip ? Math.round(targetKip) : (parseFloat(targetKip) || 0) / CD_CUR.rate;
+    var target = CD_CUR.isKip ? Math.round(targetKip) : cdCeil((parseFloat(targetKip) || 0) / CD_CUR.rate);
     var startValue = parseFloat(($el.text() || '').replace(/[^0-9.]/g, '')) || 0;
     if (startValue === target) { $el.html(cdFmt(target)); return; }
     var duration = 400;
@@ -780,10 +848,15 @@ function renderDisplayData(data) {
     window.requestAnimationFrame(step);
   }
 
-  $('#displayItemCount').text(lineCount + ' ລາຍການ / ' + totalQty + ' ອັນ');
+  $('#displayItemCount').text(lineCount + ' ' + cdT('cd.lines') + ' / ' + totalQty + ' ' + cdT('cd.pieces'));
   animateNumber('displaySubtotal', subtotal);
   animateNumber('displayDiscount', discountVal);
   animateNumber('displayGrandTotal', netGrandTotal);
+  if (!CD_CUR.isKip && netGrandTotal > 0) {
+    $('#displayGrandTotalKip').html('≈ ' + cdFmtKip(netGrandTotal)).show();
+  } else {
+    $('#displayGrandTotalKip').hide().empty();
+  }
 
   // 3. Cash, QR, and Change Breakdown
   // ຄ່າເຫຼົ່ານີ້ສະແດງສະເພາະຕອນພະນັກງານກຳລັງປ້ອນເງິນໃນໜ້າຕ່າງຊຳລະ (payment_live).

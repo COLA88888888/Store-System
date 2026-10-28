@@ -202,7 +202,8 @@
         priceHtml = '<span style="font-weight:bold; color:#059669;">' + rcMoney(0) + ' (' + posT('pos.receipt_free_gift') + ')</span>';
       } else if (origUnitPrice > curUnitPrice && curUnitPrice >= 0) {
         var origTotal = origUnitPrice * d.qty;
-        priceHtml = `<del style="color:#64748b; font-size:0.85em;">${rcMoney(origTotal)}</del><br><span style="font-weight:bold;">${rcMoney(totalAmt)}</span>`;
+        // ລາຄາຫຼັງສ່ວນຫຼຸດ: ຂະໜາດ/ນ້ຳໜັກດຽວກັບລາຄາແຖວອື່ນ (ບໍ່ໜາ ບໍ່ໃຫຍ່ກວ່າ) — ລາຄາເດີມຂີດຂ້າ ນ້ອຍກວ່າເລັກນ້ອຍ
+        priceHtml = `<del style="color:#64748b; font-size:0.85em;">${rcMoney(origTotal)}</del><br><span>${rcMoney(totalAmt)}</span>`;
       } else {
         priceHtml = `${rcMoney(totalAmt)}`;
       }

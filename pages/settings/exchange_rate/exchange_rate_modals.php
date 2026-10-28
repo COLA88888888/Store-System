@@ -25,8 +25,8 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
               <?php echo htmlspecialchars(t('exchange_rate.label_thb', '1 ບາດ (THB ➔ LAK):')); ?> <span class="text-danger">*</span>
             </label>
             <div class="input-group">
-              <input type="text" name="ex_kip_bath" class="form-control text-right font-weight-bold text-success" placeholder="0" value="720" oninput="formatPriceInput(this)" required style="height: 42px; font-size: 1.05rem;">
-              <div class="input-group-append"><span class="input-group-text font-weight-bold">₭</span></div>
+              <input type="text" name="ex_kip_bath" class="form-control text-right font-weight-bold text-success" placeholder="0" value="650" oninput="formatPriceInput(this)" required style="height: 42px; font-size: 1.05rem;">
+              <div class="input-group-append"><span class="input-group-text font-weight-bold"><?php echo kipSymbol(); ?></span></div>
             </div>
           </div>
           <div class="form-group mb-3">
@@ -37,7 +37,7 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
             </label>
             <div class="input-group">
               <input type="text" name="ex_kip_us" class="form-control text-right font-weight-bold text-primary" placeholder="0" value="22,000" oninput="formatPriceInput(this)" required style="height: 42px; font-size: 1.05rem;">
-              <div class="input-group-append"><span class="input-group-text font-weight-bold">₭</span></div>
+              <div class="input-group-append"><span class="input-group-text font-weight-bold"><?php echo kipSymbol(); ?></span></div>
             </div>
           </div>
           <div class="form-group mb-3">
@@ -48,7 +48,7 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
             </label>
             <div class="input-group">
               <input type="text" name="ex_kip_cn" class="form-control text-right font-weight-bold text-warning" placeholder="0" value="3,100" oninput="formatPriceInput(this)" required style="height: 42px; font-size: 1.05rem; color: #b45309 !important;">
-              <div class="input-group-append"><span class="input-group-text font-weight-bold">₭</span></div>
+              <div class="input-group-append"><span class="input-group-text font-weight-bold"><?php echo kipSymbol(); ?></span></div>
             </div>
           </div>
         </div>
@@ -83,7 +83,7 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
             </label>
             <div class="input-group">
               <input type="text" name="ex_kip_bath" id="edit_ex_kip_bath" class="form-control text-right font-weight-bold text-success" placeholder="0" oninput="formatPriceInput(this)" required style="height: 42px; font-size: 1.05rem;">
-              <div class="input-group-append"><span class="input-group-text font-weight-bold">₭</span></div>
+              <div class="input-group-append"><span class="input-group-text font-weight-bold"><?php echo kipSymbol(); ?></span></div>
             </div>
           </div>
           <div class="form-group mb-3">
@@ -94,7 +94,7 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
             </label>
             <div class="input-group">
               <input type="text" name="ex_kip_us" id="edit_ex_kip_us" class="form-control text-right font-weight-bold text-primary" placeholder="0" oninput="formatPriceInput(this)" required style="height: 42px; font-size: 1.05rem;">
-              <div class="input-group-append"><span class="input-group-text font-weight-bold">₭</span></div>
+              <div class="input-group-append"><span class="input-group-text font-weight-bold"><?php echo kipSymbol(); ?></span></div>
             </div>
           </div>
           <div class="form-group mb-3">
@@ -105,7 +105,7 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
             </label>
             <div class="input-group">
               <input type="text" name="ex_kip_cn" id="edit_ex_kip_cn" class="form-control text-right font-weight-bold text-warning" placeholder="0" oninput="formatPriceInput(this)" required style="height: 42px; font-size: 1.05rem; color: #b45309 !important;">
-              <div class="input-group-append"><span class="input-group-text font-weight-bold">₭</span></div>
+              <div class="input-group-append"><span class="input-group-text font-weight-bold"><?php echo kipSymbol(); ?></span></div>
             </div>
           </div>
         </div>

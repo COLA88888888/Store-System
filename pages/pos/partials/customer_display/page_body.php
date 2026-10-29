@@ -162,8 +162,11 @@
           <script>
           (function() {
             try {
+              ['StoreMini.mm3d_poster_v1', 'StoreMini.mm3d_poster_v2', 'StoreMini.mm3d_poster_v3', 'StoreMini.mm3d_poster_v4', 'StoreMini.mm3d_poster_v5'].forEach(function(k) {
+                localStorage.removeItem(k);
+              });
               var c = document.getElementById('minimart3dContainer');
-              var p = localStorage.getItem('StoreMini.mm3d_poster_v5');
+              var p = localStorage.getItem('StoreMini.mm3d_poster_v6');
               if (c && p) c.style.backgroundImage = 'url(' + p + ')';
             } catch(e) {}
           })();

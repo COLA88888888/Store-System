@@ -15,7 +15,7 @@
         <div class="row">
           <!-- LEFT COLUMN: Profile Avatar & Main Info -->
           <div class="col-md-4 text-center border-right pr-md-3 py-2 d-flex flex-column align-items-center justify-content-center">
-            <img id="view_avatar" src="" class="shadow-sm mb-3" style="width: 135px; height: 135px; object-fit: cover; border-radius: 14px; border: 4px solid #38bdf8; background-color: #f8fafc;">
+            <img id="view_avatar" src="" class="shadow-sm mb-3 previewable-image" style="width: 135px; height: 135px; object-fit: cover; border-radius: 14px; border: 4px solid #38bdf8; background-color: #f8fafc; cursor: pointer;" title="<?php echo htmlspecialchars(t('users_manage.click_to_view_large', 'ຄລິກເພື່ອເບິ່ງຮູບໃຫຍ່')); ?>">
             <h5 id="view_fullname" class="font-weight-bold text-dark mb-1"></h5>
             <div id="view_status_badge" class="mb-2"></div>
             <small class="text-muted">ID: #<span id="view_id"></span> <span id="view_user_code_wrap">| <span id="view_user_code"></span></span></small>

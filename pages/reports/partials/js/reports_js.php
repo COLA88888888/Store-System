@@ -9,17 +9,10 @@
   // bill then goes straight to that printer with no print preview, same as the POS checkout.
   $__repReceiptPrinter = null;
   try {
-      $__rpStmt = $pdo->prepare("SELECT id, name, type, paper_width FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 AND branch_id = ? LIMIT 1");
-      $__rpStmt->execute([getActiveStoreId($pdo)]);
+      $activeStore = getActiveStoreId($pdo);
+      $__rpStmt = $pdo->prepare("SELECT id, name, type, paper_width FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 AND (branch_id = ? OR branch_id = 0 OR branch_id IS NULL) ORDER BY (branch_id = ?) DESC, id DESC LIMIT 1");
+      $__rpStmt->execute([$activeStore, $activeStore]);
       $__rpRow = $__rpStmt->fetch(PDO::FETCH_ASSOC);
-      if (!$__rpRow) {
-          $fbStmt = $pdo->query("SELECT id, name, type, paper_width FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 ORDER BY (type = 'usb') DESC, id DESC LIMIT 1");
-          $__rpRow = $fbStmt ? $fbStmt->fetch(PDO::FETCH_ASSOC) : null;
-      }
-      if (!$__rpRow) {
-          $fbUsb = $pdo->query("SELECT id, name, type, paper_width FROM st_tbl_printer WHERE type = 'usb' AND status = 1 ORDER BY id DESC LIMIT 1");
-          $__rpRow = $fbUsb ? $fbUsb->fetch(PDO::FETCH_ASSOC) : null;
-      }
       if ($__rpRow) {
           $__repReceiptPrinter = [
               'printer_id'   => (int)$__rpRow['id'],

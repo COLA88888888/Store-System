@@ -3,7 +3,6 @@
  * ເພື່ອໃຫ້ພາສາລາວ, ໂລໂກ້ ແລະ QR ອອກຄືກັບເຄື່ອງພິມທົ່ວໄປທຸກຢ່າງ.
  */
 (function (window, document) {
-  // ຟອນບິນ = ຟອນດຽວກັບລະບົບ (Nuanta, ມີທັງລາວ ອັງກິດ ແລະ ຕົວເລກ); ຖ້າໂຫຼດບໍ່ໄດ້ ໃຊ້ Noto Sans Lao ແທນ
   var FONT_FILES = [['Nuanta-Regular.ttf', 'Nuanta-Bold.ttf'], ['NotoSansLao-Regular.ttf', 'NotoSansLao-Bold.ttf']];
   var fontCache = null;
 
@@ -42,7 +41,6 @@
     });
   }
 
-  // ຟອນຕົວອັກສອນອັງກິດ ແລະ ຕົວເລກ (Receipt Latin) ເພື່ອໃຫ້ຂະໜາດສົມດຸນກັບຟອນລາວ
   var LATIN_FONT_FILES = [['NotoSans-Latin-400.woff2', 400], ['NotoSans-Latin-700.woff2', 700]];
   var latinCache = null;
   var LATIN_LETTERS = 'U+0041-005A,U+0061-007A,U+00C0-024F';
@@ -85,7 +83,6 @@
     return thr;
   }
 
-  // ແປງໂລໂກ້ເປັນດຳ-ຂາວຄົມຊັດ ສຳລັບຫົວພິມຄວາມຮ້ອນ
   var LOGO_BW_THRESHOLD = 215;
   function toBlackWhite(ctx, w, h) {
     var d = ctx.getImageData(0, 0, w, h), p = d.data, n = w * h, dark = 0, i;
@@ -106,7 +103,6 @@
     ctx.putImageData(d, 0, 0);
   }
 
-  // ແປງ QR ທະນາຄານເປັນດຳ-ຂາວຄົມຊັດເພື່ອໃຫ້ສະແກນງ່າຍ
   var QR_MIN_PX = 600;
   function qrCanvas(img) {
     var w = img.naturalWidth || 1, h = img.naturalHeight || 1;
@@ -127,8 +123,6 @@
     return c;
   }
 
-  // Logo files often carry a wide blank border, which printed as a big gap between the logo and
-  // the shop name. Cut the (already black/white) canvas down to its black pixels.
   function cropToInk(c) {
     var w = c.width, h = c.height, p = c.getContext('2d').getImageData(0, 0, w, h).data;
     var minX = w, minY = h, maxX = -1, maxY = -1;
@@ -156,9 +150,6 @@
     return '';
   }
 
-  // Images inside the SVG must be data: URIs or the canvas is tainted and can't be exported.
-  // mode 'logo' (see toBlackWhite) or 'qr' (see qrCanvas) also converts it for the thermal head.
-  // ຜົນການແປງໂລໂກ້/QR ຈື່ໄວ້ (ຕາມ src + mode) — ຮູບເດີມທຸກບິນ, ບໍ່ຕ້ອງແປງໃໝ່ທຸກເທື່ອ → ພິມໄວຂຶ້ນ
   var imageUriCache = {};
   function imageToDataUri(src, mode) {
     var cacheKey = (mode || '') + '|' + (src || '');
@@ -196,7 +187,6 @@
     });
   }
 
-  // ຖອດລະຫັດຮູບ data: ໄວ້ກ່ອນແຕ້ມ SVG — QR ໃຫຍ່ທີ່ຍັງຖອດບໍ່ທັນ ຖືກແຕ້ມເປັນຊ່ອງຂາວ (ບິນອອກມາບໍ່ມີ QR)
   function preDecode(uri) {
     return new Promise(function (resolve) {
       var im = new Image();
@@ -206,7 +196,6 @@
     });
   }
 
-  // Convert the logo/QR inside `root` (in place) to their print-ready black/white data: URIs.
   function convertImages(root) {
     return Promise.all(Array.prototype.map.call(root.querySelectorAll('img'), function (img) {
       if (img.style.display === 'none') return Promise.resolve();
@@ -217,8 +206,6 @@
     }));
   }
 
-  // innerHTML of a receipt element with its logo/QR already converted — for the browser print
-  // dialog, so it prints the same logo and QR as the LAN printer.
   function printHtml(source) {
     var clone = source.cloneNode(true);
     return convertImages(clone).then(function () { return clone.innerHTML; });
@@ -232,8 +219,11 @@
     } catch (e) { return ''; }
   }
 
-  // Minimal stand-in for the Bootstrap utilities the receipt markup uses — the foreignObject
-  // document can't see the page's stylesheets. Matches the POS receipt's print CSS.
+  // ==========================================
+  // RECEIPT_CSS ສຳລັບ LAN: 
+  // - ໂລໂກ້ ແລະ ຫົວຂໍ້ຮ້ານຄົງຢູ່ເຄິ່ງກາງປົກກະຕິ (ບໍ່ຖືກຍັບ)
+  // - ເສັ້ນຂີດປະ ແລະ ຕາຕະລາງລາຍການ ຍັບຊ້າຍ 2 ຂີດ (-12px) ແລະ ຂະຫຍາຍຂວາ 2 ຂີດ (width calc(100% + 12px)) ພໍດີເປະ ບໍ່ຕັດໜັງສື
+  // ==========================================
   var RECEIPT_CSS =
     ' *{box-sizing:border-box;font-family:"Receipt Lao","Receipt Latin",Arial,sans-serif !important;color:#000 !important;}' +
     ' body,.rcpt-root{margin:0;font-size:17px;font-weight:400;line-height:1.5;background:#fff;}' +
@@ -247,23 +237,28 @@
     ' .mt-2{margin-top:8px !important;}' +
     ' .text-muted{color:#000 !important;font-weight:400 !important;}' +
     ' .receipt-header-address,.receipt-header-tel{font-size:15px !important;font-weight:400 !important;color:#000 !important;line-height:1.4 !important;}' +
-    ' .receipt-footer-msg{font-size:15px !important;font-weight:400 !important;color:#000 !important;border-top:1px dashed #000 !important;margin-top:10px !important;padding-top:8px !important;text-align:center !important;}' +
-    // Logo: bigger; already converted to pure black/white by imageToDataUri(…, true)
+    
+    // ຍັບສະເພາະເນື້ອໃນຕາຕະລາງ ແລະ ເສັ້ນຂີດປະ (ຊ້າຍ -12px, ຂວາ +12px)
+    ' div[style*="dashed"],.rc-divider{border-top:1px dashed #000 !important;margin:6px 0 !important;margin-left:-12px !important;width:calc(100% + 12px) !important;}' +
+    ' tr.rc-strong{border-top:none !important;border-bottom:none !important;}' +
+    ' thead tr, tr:first-child th { border-bottom: 1px dashed #000 !important; padding-bottom: 4px !important; }' +
+    ' th [style*="dashed"],th .rc-divider,.receipt-qr-box [style*="dashed"],.receipt-qr-box .rc-divider{display:none !important;}' +
+    
+    ' .receipt-meta,table,#rc_payment_rows,#rc_rep_payment_rows,.rc-sum-wrap,.rc-change-wrap,#rc_multicur,#rc_rep_multicur,.receipt-qr-box,.receipt-footer-msg,.rc-sum,.rc-net{margin-left:-12px !important;width:calc(100% + 12px) !important;}' +
+    
+    // ຫົວຂໍ້ ແລະ ໂລໂກ້ ໃຫ້ຢູ່ເຄິ່ງກາງປົກກະຕິ
+    ' .receipt-header-block{margin-left:0px !important;width:100% !important;text-align:center !important;}' +
+    
+    ' .receipt-footer-msg{font-size:15px !important;font-weight:400 !important;color:#000 !important;margin-top:10px !important;padding-top:8px !important;text-align:center !important;margin-left:-12px !important;width:calc(100% + 12px) !important;}' +
     ' img.receipt-logo{max-width:90px !important;max-height:90px !important;height:auto !important;display:block !important;margin:0 auto 12px auto !important;object-fit:contain !important;}' +
-    // QR: big enough that each module is several printer dots wide, or phones can't read it
     ' img.receipt-qr-img{width:50% !important;max-width:50% !important;max-height:none !important;height:auto !important;display:block;margin:6px auto 2px auto !important;object-fit:contain !important;}' +
     ' table{width:100%;border-collapse:collapse;margin:4px 0;font-size:15px !important;color:#000 !important;}' +
     ' td,th{padding:4px 0;vertical-align:top;color:#000 !important;font-weight:400 !important;}' +
     ' th{font-weight:400 !important;}' +
-    // Headings, net total, change: regular weight + a hair of outline — heavier than the body
-    // text but not as thick as Bold (Noto Sans Lao has no weight in between)
     ' .rc-strong,.rc-strong *{font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}' +
-    // ແຖວສະຫຼຸບ (ຮັບເງິນ, ລວມ, ສ່ວນຫຼຸດ, ອມພ, ເງິນທອນ): ຂະໜາດເທົ່າຕາຕະລາງລາຍການ (15px), ດຳເຂັ້ມ ແຕ່ບໍ່ໜາ;
-    // ຍອດສຸດທິ ໃຫຍ່ກວ່າເລັກນ້ອຍ (17px) — layouts/receipt_template.php .rc-sum / .rc-net
     ' .rc-sum,.rc-sum *{font-size:15px !important;font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}' +
     ' .rc-net,.rc-net *{font-size:17px !important;font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}';
 
-  // CSS ເພີ່ມເຕີມສຳລັບບິນ Bluetooth: ຍັບໜັງສືເຂົ້າໃຫ້ກະທັດຮັດພໍດີ ແລະ ຫົວຂໍ້ໜາດຳຂຶ້ນເລັກນ້ອຍ
   var BT_EXTRA_CSS =
     ' *{letter-spacing:0px !important;}' +
     ' body,.rcpt-root{line-height:1.45 !important;}' +
@@ -277,7 +272,6 @@
     ' .receipt-qr-box{margin:6px 0 !important;padding-top:6px !important;}' +
     ' .receipt-footer-msg{margin-top:8px !important;padding-top:7px !important;line-height:1.42 !important;}';
 
-  // ແປງ SVG ໃບບິນເປັນ canvas ດຳ-ຂາວ ຕາມຄວາມກວ້າງຈຸດຫົວພິມ (targetDots: 576 ສຳລັບ 80mm, 384 ສຳລັບ 58mm)
   var INK_THRESHOLD = 155;
   var BT_INK_THRESHOLD = 148;
   var PAPER_LUM = 250;
@@ -333,7 +327,6 @@
     }
     if (maxX < 0) return 0;
     var inkW = maxX - minX + 1;
-    // Bluetooth: ຍັບຊ້າຍມືເຂົ້າຊິດ dot 0 (-minX) ເພື່ອຍັບມາທາງຊ້າຍມືອີກ 1 ຂີດ
     var left = isBt ? 0 : (Math.round((w - inkW) / 2) + PRINT_SHIFT_DOTS);
     left = Math.max(0, Math.min(w - inkW, left));
     return left - minX;
@@ -357,9 +350,6 @@
     return n;
   }
 
-  // ກວດໃຫ້ຟອນໃນ SVG ໂຫຼດຄົບກ່ອນສົ່ງພິມ (ຖ້າໂຫຼດຟອນແລ້ວ ແຕ້ມພຽງ 1 ຮອບທັນທີ ເພື່ອໃຫ້ບິນອອກໄວທີ່ສຸດ)
-  // ບິນທີ່ມີຮູບ (ໂລໂກ້/QR): ແຕ້ມຈົນໝຶກເທົ່າກັນ 2 ຮອບຕິດກັນສະເໝີ — ຮອບດຽວບາງເທື່ອ QR ຍັງບໍ່ຖືກແຕ້ມ
-  // (ຖອດລະຫັດບໍ່ທັນ) ແຕ່ຕົວໜັງສືມີໝຶກແລ້ວ ຈຶ່ງເຄີຍຮັບຮອບນັ້ນ → ບິນອອກມາມີຊ່ອງຂາວແທນ QR. ໃຊ້ຮອບທີ່ໝຶກຫຼາຍສຸດ.
   var RENDER_MAX_PASSES = 3, RENDER_IMG_MAX_PASSES = 6, RENDER_PASS_WAIT = 15, fontsWarmed = false;
   function renderStable(svg, svgUri, widthPx, h, targetDots) {
     var last = -1, pass = 0, best = null, bestN = -1;
@@ -384,7 +374,6 @@
   }
   function loadSvgImage(svg, svgUri) { return decodeSvg(svg, svgUri); }
 
-  // ຄືກັບ toImage ແຕ່ສົ່ງຄືນ canvas (ດຳ-ຂາວ, ກວ້າງເທົ່າຈຸດຫົວພິມ targetDots) — ເຄື່ອງພິມ Bluetooth ໃຊ້ໂດຍກົງ
   function toCanvas(source, widthPx, basePath, extraCss, targetDots) {
     return renderReceipt(source, widthPx, basePath, extraCss, targetDots);
   }
@@ -395,7 +384,6 @@
     });
   }
 
-  // ໂຫຼດຟອນ ແລະ ແປງໂລໂກ້/QR ໄວ້ລ່ວງໜ້າ (ຕອນເປີດໜ້າຂາຍ) — ບິນທຳອິດຂອງວັນບໍ່ຕ້ອງລໍໂຫຼດ
   function warmUp(source, widthPx, basePath, extraCss) {
     if (!source) return Promise.resolve();
     return renderReceipt(source, widthPx, basePath, extraCss).then(function () {}, function () {});
@@ -403,7 +391,7 @@
 
   function renderReceipt(source, widthPx, basePath, extraCss, targetDots) {
     if (!source) return Promise.reject(new Error('no receipt element'));
-    var pad = targetDots ? '8px 13px 8px 0px' : '8px 12px';
+    var pad = targetDots ? '4px 8px 4px 12px' : '4px 8px 8px 12px';
     var renderCss = 'width:' + widthPx + 'px;background:#fff;margin:0;padding:' + pad + ';box-sizing:border-box;';
     var clone = source.cloneNode(true);
     clone.removeAttribute('id');
@@ -445,7 +433,6 @@
     return (parseInt(paperWidth, 10) === 58) ? 219 : 302;
   }
 
-  // ບິນ USB: ຍັບຊ້າຍ 0.15 mm (ລົບ = ຊ້າຍ). ຮູບບິນ 72 mm ຢູ່ກາງໜ້າ 80 mm.
   var USB_PRINT_SHIFT_MM = -0.15;
   function imageHtml(dataUri, paperWidth) {
     if (isBuiltInPrinterDevice()) {
@@ -456,7 +443,6 @@
       'mm;max-width:none;height:auto;margin:0 auto;position:relative;left:' + USB_PRINT_SHIFT_MM + 'mm;">';
   }
 
-  // ເຄື່ອງຈໍສຳພັດທີ່ມີເຄື່ອງພິມໃນຕົວ (POS ຕັ້ງໂຕະ Windows, ຫຼື Sunmi/iMin Android): ໃຊ້ໂໝດພໍດີເຈ້ຍ
   function isAndroid() { return /Android/i.test(navigator.userAgent || ''); }
   function isBuiltInPrinterDevice() {
     try {
@@ -474,28 +460,22 @@
   }
   var FIT_PRINT_SHIFT_MM = -1.5;
 
-  // ເຈ້ຍແຜ່ນ A5 (148) / A4 (210) — ຕັ້ງຢູ່ ຕັ້ງຄ່າ > ເຄື່ອງພິມ (st_tbl_printer.paper_width ເປັນ mm).
-  // ເຄື່ອງພິມຄວາມຮ້ອນ (LAN/Bluetooth) ພິມໄດ້ແຕ່ມ້ວນ 58/80, ສະນັ້ນ A4/A5 ພິມຜ່ານໜ້າຕ່າງພິມສະເໝີ
-  // ເປັນ HTML ເຕັມໜ້າ (ບໍ່ແມ່ນຮູບແຄບ 72 mm) — ຕາຕະລາງຂະຫຍາຍເຕັມຄວາມກວ້າງຂອງເຈ້ຍ.
   function isPagePaper(paperWidth) {
     var w = parseInt(paperWidth, 10);
     return w === 148 || w === 210;
   }
-  // ເຄື່ອງນີ້ເລືອກ A5/A4 ໄວ້ໃນ ຕັ້ງຄ່າ > ເຄື່ອງພິມ > Bluetooth ("ຂະໜາດເຈ້ຍ", ເກັບໃນ localStorage ຂອງເຄື່ອງ —
-  // ສ່ວນຫຼາຍແມ່ນໂທລະສັບ) → ຄືນ 148/210, ບໍ່ດັ່ງນັ້ນ null.
   function devicePagePaper() {
     try {
       var s = JSON.parse(localStorage.getItem('StoreMini.bt_printer_settings') || '{}') || {};
       return isPagePaper(s.paper) ? parseInt(s.paper, 10) : null;
     } catch (e) { return null; }
   }
-  // ຂະໜາດເຈ້ຍໃບບິນທີ່ໃຊ້ແທ້ໃນເຄື່ອງນີ້: A5/A4 ທີ່ເລືອກໄວ້ໃນເຄື່ອງ ມາກ່ອນ, ບໍ່ດັ່ງນັ້ນຂອງເຄື່ອງພິມໃບບິນຂອງສາຂາ
   function receiptPaper(serverPaper) {
     return devicePagePaper() || serverPaper;
   }
   function pagePaperCss(paperWidth) {
     var a4 = parseInt(paperWidth, 10) === 210;
-    var base = a4 ? 16 : 14;   // px
+    var base = a4 ? 16 : 14;
     return '@page { size: ' + (a4 ? 'A4' : 'A5') + ' portrait; margin: ' + (a4 ? 14 : 10) + 'mm; } ' +
       'html, body { width: auto !important; max-width: none !important; margin: 0 !important; padding: 0 !important; font-size: ' + base + 'px !important; } ' +
       'body:has(.receipt-print-img) { padding: 0 !important; } ' +
@@ -509,7 +489,6 @@
       '#rc_total, #rc_rep_total { font-size: ' + (base + 6) + 'px !important; }';
   }
 
-  // CSS ທ້າຍສຸດຂອງ iframe ພິມ: A4/A5 → ໜ້າເຕັມ; ເຄື່ອງພິມໃນຕົວ → ພໍດີເຈ້ຍ; ອື່ນໆ → ບໍ່ເພີ່ມ
   function dialogPageCss(paperWidth) {
     if (isPagePaper(paperWidth)) return pagePaperCss(paperWidth);
     if (!isBuiltInPrinterDevice()) return '';
@@ -525,7 +504,7 @@
     opts = opts || {};
     var basePath = opts.basePath || '../../';
     if (!printer || printer.printer_type !== 'ip') {
-      return Promise.resolve({ success: false, message: 'no LAN receipt printer' });
+      return Promise.resolve({ success: false, message: 'no receipt printer' });
     }
     if (isPagePaper(printer.paper_width)) {
       return Promise.resolve({ success: false, message: 'A4/A5 prints through the print dialog' });

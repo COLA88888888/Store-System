@@ -108,7 +108,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_bill_details') {
         }
 
         $stmtD = $pdo->prepare("
-            SELECT d.*, p.product_name, cat.category_name 
+            SELECT d.*, p.product_name, p.unit, cat.category_name 
             FROM st_tbsale_save_detail d
             LEFT JOIN st_tbsale_save s ON d.save_bill = s.sale_save_bill
             LEFT JOIN st_products p ON (d.save_proid = p.product_id AND (p.store_id = s.store_id OR s.store_id IS NULL OR s.store_id <= 1))

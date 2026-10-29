@@ -170,8 +170,11 @@
                   ?>
                   <?php if ($imgPath): ?>
                     <img src="<?php echo htmlspecialchars($imgPath); ?>"
-                         style="width:50px; height:50px; object-fit:cover; background:#fff; padding:0; border-radius:10px; border:1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.04);"
+                         class="previewable-image"
+                         style="width:50px; height:50px; object-fit:cover; background:#fff; padding:0; border-radius:10px; border:1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.04); cursor: pointer;"
                          alt="<?php echo htmlspecialchars($p['product_name']); ?>"
+                         data-preview-title="<?php echo htmlspecialchars($p['product_name']); ?>"
+                         title="<?php echo htmlspecialchars(t('products.click_to_view_large', 'ຄລິກເພື່ອເບິ່ງຮູບໃຫຍ່')); ?>"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <div style="width:50px; height:50px; border-radius:10px; background:#f1f5f9; border:1px solid #e2e8f0; display:none; align-items:center; justify-content:center; margin: 0 auto;">
                       <i class="fas fa-image" style="color:#cbd5e1; font-size:1.2rem;"></i>
@@ -203,12 +206,11 @@
 
                 <!-- ຊື່ສິນຄ້າ -->
                 <td class="product-name-cell">
-                  <span class="font-weight-bold" style="color: #1e293b;"><?php echo htmlspecialchars($p['product_name']); ?></span>
-                  <?php if (!empty($p['unit'])): ?>
-                    <span class="badge badge-light border ml-1 px-2 py-0.5" style="font-size:0.78rem; color:#64748b; font-weight: 500;">
-                      <i class="fas fa-box-open mr-1" style="font-size:0.72rem; color:#94a3b8;"></i><?php echo htmlspecialchars($p['unit']); ?>
-                    </span>
-                  <?php endif; ?>
+                  <?php
+                    $uSuffix = (!empty($p['unit']) && strpos($p['product_name'], '(' . $p['unit'] . ')') === false)
+                        ? ' (' . $p['unit'] . ')' : '';
+                  ?>
+                  <span class="font-weight-bold" style="color: #1e293b;"><?php echo htmlspecialchars($p['product_name'] . $uSuffix); ?></span>
                   <?php if (!empty($p['expiry_date'])): ?>
                     <?php
                       $expDaysLeft = (int)floor((strtotime($p['expiry_date']) - strtotime(date('Y-m-d'))) / 86400);

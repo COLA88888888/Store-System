@@ -25,8 +25,7 @@
     /* ຮູບຜູ້ໃຊ້ໃນແຖບເທິງ → ດັອບດາວ ອອກຈາກລະບົບ (home/partials/dashboard/navbar.php) */
     .nav-user-toggle { border-radius: 10px; transition: background 0.15s; }
     .nav-user-toggle:hover, .nav-user-chip.show .nav-user-toggle { background: rgba(255, 255, 255, 0.15); }
-    .nav-user-caret { font-size: 0.7rem; opacity: 0.85; transition: transform 0.2s; }
-    .nav-user-chip.show .nav-user-caret { transform: rotate(180deg); }
+    .nav-user-caret { display: none !important; }
     .nav-user-menu { min-width: 220px; border-radius: 10px; padding: 4px 0; margin-top: 6px; }
     /* ເປີດ: ເລື່ອນລົງເລັກນ້ອຍ ພ້ອມຄ່ອຍໆຊັດ */
     .nav-user-menu.show { animation: navUserMenuIn 0.2s ease-out; }
@@ -116,5 +115,44 @@
     .pos-theme-swatch:hover { transform: scale(1.15); }
     .pos-theme-swatch.active {
       box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111827 !important;
+    }
+
+    /* Sidebar Version Footer Styling (Keep exact sidebar background color, clean font) */
+    .sidebar-custom-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.18) !important;
+      background-color: inherit !important;
+      background: inherit !important;
+    }
+    .sidebar-custom-footer .sidebar-brand-name {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.92);
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sidebar-custom-footer .sidebar-version-text {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 0.78rem;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.85) !important;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .main-sidebar .sidebar {
+      height: calc(100vh - 64px - 38px) !important;
+    }
+    .main-sidebar .sidebar nav {
+      padding-bottom: 25px !important;
+    }
+    /* Collapsed sidebar: center the version cleanly */
+    .sidebar-collapse .sidebar-custom-footer {
+      justify-content: center !important;
+      padding: 0 4px !important;
+    }
+    .sidebar-collapse .sidebar-custom-footer .sidebar-brand-name {
+      display: none !important;
     }
   

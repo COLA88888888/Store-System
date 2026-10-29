@@ -67,7 +67,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   <th class="text-center py-3"><?php echo htmlspecialchars(t('users_manage.th_status', 'ສະຖານະ')); ?></th>
                   <th class="text-center py-3"><?php echo htmlspecialchars(t('users_manage.th_role', 'ຕຳແໜ່ງ')); ?></th>
                   <?php if (isOwnerUser()): ?>
-                    <th class="text-center py-3"><?php echo htmlspecialchars(t('users_manage.th_access_expiry', 'ວັນໝົດອາຍຸການໃຊ້ງານ')); ?></th>
+                    <th class="text-center py-3"><?php echo htmlspecialchars(t('users_manage.th_access_age', 'ອາຍຸການໃຊ້ງານ')); ?></th>
                   <?php endif; ?>
                   <th class="text-center py-3" style="width: 140px;"><?php echo htmlspecialchars(t('users_manage.th_actions', 'ຈັດການ')); ?></th>
                 </tr>
@@ -107,7 +107,12 @@ require_once __DIR__ . '/../../layouts/header.php';
                       <td class="text-center align-middle font-weight-bold text-muted"><?php echo $idx++; ?></td>
                       <td class="align-middle text-secondary font-weight-bold"><?php echo $u['user_code'] !== '' && $u['user_code'] !== null ? branchCodeHtml($u['user_code']) : '-'; ?></td>
                       <td class="text-center align-middle">
-                        <img src="<?php echo $base_path . 'assets/img/users/' . htmlspecialchars($imgName); ?>" class="shadow-sm" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; border: 2px solid #e2e8f0;">
+                        <img src="<?php echo $base_path . 'assets/img/users/' . htmlspecialchars($imgName); ?>"
+                             class="shadow-sm previewable-image"
+                             style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; border: 2px solid #e2e8f0; cursor: pointer;"
+                             alt="<?php echo htmlspecialchars($u['fname'] ?: ($u['username'] ?? '')); ?>"
+                             data-preview-title="<?php echo htmlspecialchars($u['fname'] ?: ($u['username'] ?? '')); ?>"
+                             title="<?php echo htmlspecialchars(t('users_manage.click_to_view_large', 'ຄລິກເພື່ອເບິ່ງຮູບໃຫຍ່')); ?>">
                       </td>
                       <td class="align-middle font-weight-bold text-dark">
                         <?php echo htmlspecialchars($u['fname'] ?: ($u['username'] ?? '')); ?>
@@ -120,20 +125,39 @@ require_once __DIR__ . '/../../layouts/header.php';
                       <td class="align-middle text-muted"><?php echo htmlspecialchars($u['tel'] ?: '-'); ?></td>
                       
                       <!-- COLUMN 1: ສະຖານະ (Online / Offline) -->
-                      <td class="text-center align-middle user-online-status-td" data-user-id="<?php echo $u['Id']; ?>">
-                        <?php if (!$isAccountActive): ?>
-                          <span class="badge badge-dark px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;">
-                            <i class="fas fa-user-slash mr-1"></i> <?php echo htmlspecialchars(t('users_manage.status_disabled', 'ປິດໃຊ້ງານ (ລາອອກ)')); ?>
-                          </span>
-                        <?php elseif ($isOnline): ?>
-                          <span class="badge badge-success px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;">
-                            <i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> <?php echo htmlspecialchars(t('users_manage.status_online', 'ໃຊ້ງານຢູ່')); ?>
-                          </span>
-                        <?php else: ?>
-                          <span class="badge badge-danger px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;">
-                            <i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> <?php echo htmlspecialchars(t('users_manage.status_offline', 'ບໍ່ໄດ້ໃຊ້ງານ')); ?>
-                          </span>
-                        <?php endif; ?>
+                      <td class="text-center align-middle">
+                        <div class="user-online-badge-box" data-user-id="<?php echo $u['Id']; ?>">
+                          <?php if (!$isAccountActive): ?>
+                            <span class="badge badge-dark px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;">
+                              <i class="fas fa-user-slash mr-1"></i> <?php echo htmlspecialchars(t('users_manage.status_disabled', 'ປິດໃຊ້ງານ (ລາອອກ)')); ?>
+                            </span>
+                          <?php elseif ($isOnline): ?>
+                            <span class="badge badge-success px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;">
+                              <i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> <?php echo htmlspecialchars(t('users_manage.status_online', 'ໃຊ້ງານຢູ່')); ?>
+                            </span>
+                          <?php else: ?>
+                            <span class="badge badge-danger px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;">
+                              <i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> <?php echo htmlspecialchars(t('users_manage.status_offline', 'ບໍ່ໄດ້ໃຊ້ງານ')); ?>
+                            </span>
+                          <?php endif; ?>
+                        </div>
+                        <?php
+                          $lastOnlineStr = '-';
+                          if (!empty($u['last_activity'])) {
+                              $lastTs = strtotime($u['last_activity']);
+                              if ($lastTs) {
+                                  // ຖ້າອອນລາຍມື້ນີ້: ສະແດງແຕ່ເວລາ (H:i); ຖ້າກາຍມື້ນີ້: ສະແດງວັນທີ (H:i d/m/Y)
+                                  if (date('Y-m-d', $lastTs) === date('Y-m-d')) {
+                                      $lastOnlineStr = date('H:i', $lastTs);
+                                  } else {
+                                      $lastOnlineStr = date('H:i d/m/Y', $lastTs);
+                                  }
+                              }
+                          }
+                        ?>
+                        <div class="user-last-active-text text-muted mt-1" style="font-size: 0.74rem; line-height: 1.25;<?php echo $isOnline ? ' display:none;' : ''; ?>">
+                          <i class="far fa-clock mr-1 text-secondary"></i>ອອນລາຍລ່າສຸດ: <?php echo htmlspecialchars($lastOnlineStr); ?>
+                        </div>
                       </td>
 
                       <!-- COLUMN 2: ຕຳແໜ່ງ (Role / Position) -->
@@ -268,5 +292,65 @@ require_once __DIR__ . '/components/form_edit_user.php';
 </script>
 <script src="js/users.js?v=<?php echo filemtime(__DIR__ . '/js/users.js'); ?>"></script>
 <script src="js/users_modals.js?v=<?php echo filemtime(__DIR__ . '/js/users_modals.js'); ?>"></script>
+<script>
+// Real-Time Polling: ອັບເດດສະຖານະ Online/Offline ໂດຍບໍ່ລຶບ "ອອນລາຍລ່າສຸດ"
+window.pollLiveUserStatuses = function() {
+  var apiUrl = typeof API_URL !== 'undefined' ? API_URL : '../../api/users_api.php';
+  $.ajax({
+    url: apiUrl + '?action=get_live_user_statuses',
+    type: 'GET',
+    dataType: 'json',
+    success: function(res) {
+      if (res.status === 'success' && Array.isArray(res.users)) {
+        var i18n = typeof I18N_USERS !== 'undefined' ? I18N_USERS : {};
+        var onlineText = i18n['users_manage.status_online'] || 'ໃຊ້ງານຢູ່';
+        var offlineText = i18n['users_manage.status_offline'] || 'ບໍ່ໄດ້ໃຊ້ງານ';
+        var disabledText = i18n['users_manage.status_disabled'] || 'ປິດໃຊ້ງານ (ລາອອກ)';
+        var formatLastOnlineJs = function(dtStr) {
+          if (!dtStr) return '-';
+          var d = new Date(dtStr.replace(/-/g, '/'));
+          if (isNaN(d.getTime())) return dtStr;
+          var now = new Date();
+          var isToday = d.getFullYear() === now.getFullYear() &&
+                        d.getMonth() === now.getMonth() &&
+                        d.getDate() === now.getDate();
+          var pad = function(n) { return (n < 10 ? '0' : '') + n; };
+          var timeStr = pad(d.getHours()) + ':' + pad(d.getMinutes());
+          if (isToday) {
+            return timeStr;
+          } else {
+            var dateStr = pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear();
+            return timeStr + ' ' + dateStr;
+          }
+        };
+
+        res.users.forEach(function(u) {
+          var box = $('.user-online-badge-box[data-user-id="' + u.id + '"]');
+          if (box.length > 0) {
+            var lastText = box.siblings('.user-last-active-text');
+            if (u.last_activity && lastText.length > 0) {
+              lastText.html('<i class="far fa-clock mr-1 text-secondary"></i>ອອນລາຍລ່າສຸດ: ' + formatLastOnlineJs(u.last_activity));
+            }
+            var bHtml = '';
+            if (u.account_active === 0) {
+              bHtml = '<span class="badge badge-dark px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-user-slash mr-1"></i> ' + disabledText + '</span>';
+              lastText.show();
+            } else if (u.is_online) {
+              bHtml = '<span class="badge badge-success px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + onlineText + '</span>';
+              lastText.hide();
+            } else {
+              bHtml = '<span class="badge badge-danger px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + offlineText + '</span>';
+              lastText.show();
+            }
+            if (box.html().trim() !== bHtml) {
+              box.html(bHtml);
+            }
+          }
+        });
+      }
+    }
+  });
+};
+</script>
 
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

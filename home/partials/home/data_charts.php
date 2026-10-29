@@ -70,18 +70,18 @@ foreach ($chart_keys as $k) {
 // Chart titles/badges for the current mode
 if ($chart_mode === 'hour') {
     $chart_title_key = 'home.chart_revenue_hourly'; $chart_title_def = 'ກາຟລາຍຮັບລາຍຊົ່ວໂມງ';
-    $chart_period_text = date('d/m/Y', strtotime($chartFrom));
+    $chart_period_text = 'ວັນທີ ' . date('d/m/Y', strtotime($chartFrom));
     $chart_badge_key = 'home.badge_hours'; $chart_badge_def = '24 ຊົ່ວໂມງ'; $chart_badge_n = null;
 } elseif ($chart_mode === 'day') {
     $chart_title_key = 'home.chart_revenue_daily'; $chart_title_def = 'ກາຟລາຍຮັບລາຍວັນ';
-    $chart_period_text = date('d/m/Y', strtotime($chartFrom)) . ' – ' . date('d/m/Y', strtotime($chartTo));
+    $chart_period_text = 'ວັນທີ ' . date('d/m/Y', strtotime($chartFrom)) . ' – ວັນທີ ' . date('d/m/Y', strtotime($chartTo));
     $chart_badge_key = 'home.badge_days'; $chart_badge_def = '%s ວັນ'; $chart_badge_n = count($chart_keys);
 } else {
     $chart_title_key = 'home.chart_monthly_revenue'; $chart_title_def = 'ກາຟລາຍຮັບປະຈຳເດືອນ';
     $sameYear = substr($chartFrom, 0, 4) === substr($chartTo, 0, 4);
     $chart_period_text = ($sameYear && substr($chartFrom, 5) === '01-01' && substr($chartTo, 5) === '12-31')
         ? sprintf(t('home.year_label', 'ປີ %d'), (int)substr($chartFrom, 0, 4))
-        : date('m/Y', strtotime($chartFrom)) . ' – ' . date('m/Y', strtotime($chartTo));
+        : 'ເດືອນ ' . date('m/Y', strtotime($chartFrom)) . ' – ເດືອນ ' . date('m/Y', strtotime($chartTo));
     $chart_badge_key = 'home.badge_months'; $chart_badge_def = '%s ເດືອນ'; $chart_badge_n = count($chart_keys);
 }
 $chart_badge_text = $chart_badge_n === null ? t($chart_badge_key, $chart_badge_def) : sprintf(t($chart_badge_key, $chart_badge_def), $chart_badge_n);

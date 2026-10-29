@@ -197,7 +197,7 @@ require __DIR__ . '/partials/actions.php';
                           <i class="fas fa-vial"></i>
                         </button>
                       <?php endif; ?>
-                      <?php if (in_array($pr['type'], ['ip', 'usb'], true) && !empty($pr['ip_address']) && hasPermission('printers', 'edit')): ?>
+                      <?php if (((in_array($pr['type'], ['ip', 'usb'], true) && !empty($pr['ip_address'])) || $pr['type'] === 'browser') && hasPermission('printers', 'edit')): ?>
                         <form action="" method="POST" style="display:inline;">
                           <input type="hidden" name="action" value="<?php echo !empty($pr['is_receipt_printer']) ? 'unset_receipt_printer' : 'set_receipt_printer'; ?>">
                           <input type="hidden" name="id" value="<?php echo $pr['id']; ?>">

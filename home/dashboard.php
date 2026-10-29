@@ -301,7 +301,15 @@ if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSI
       (function() {
         var defaultSrc = '<?php echo $default_iframe_src; ?>';
         var hasDashboardPerm = <?php echo hasPermission('dashboard') ? 'true' : 'false'; ?>;
-        var savedSrc = sessionStorage.getItem('StoreMini.currentIframeSrc');
+        var urlParams = new URLSearchParams(window.location.search);
+        var forceHome = (urlParams.get('open_home') === '1' || urlParams.get('home') === '1');
+        if (forceHome) {
+          try { sessionStorage.removeItem('StoreMini.currentIframeSrc'); } catch (e) {}
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        }
+        var savedSrc = forceHome ? null : sessionStorage.getItem('StoreMini.currentIframeSrc');
         var forceShiftOpen = <?php echo $forceShiftOpen ? 'true' : 'false'; ?>;   // ພະນັກງານຕ້ອງເປີດກະກ່ອນ → ໜ້າຂາຍ
         if (forceShiftOpen || (!hasDashboardPerm && (!savedSrc || savedSrc === 'home.php' || savedSrc.endsWith('/home.php')))) {
           savedSrc = defaultSrc;
@@ -309,6 +317,8 @@ if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSI
         }
         if (savedSrc) {
           document.getElementsByName('frame')[0].src = savedSrc;
+        } else {
+          document.getElementsByName('frame')[0].src = defaultSrc;
         }
         // Failsafe ສຳລັບການເປີດໜ້າທຳອິດ
         loaderSafetyTimer = setTimeout(hideFastLoader, 15000);
@@ -379,5 +389,6 @@ if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSI
   })();
 </script>
 
+<?php require_once __DIR__ . '/../layouts/image_preview_modal.php'; /* Lightbox ສະແດງຮູບສິນຄ້າ & ຮູບຜູ້ນຳໃຊ້ */ ?>
 </body>
 </html>

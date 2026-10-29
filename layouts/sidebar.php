@@ -309,10 +309,13 @@
     </nav>
   </div>
 
-  <!-- Pinned Sidebar Footer (ເສັ້ນຂີດຂັ້ນ & Wlaodev Pos System V 3.8.26 ຕິດຢູ່ດ້ານລຸ່ມສຸດ, ລັອກສະແດງໄວ້ເລີຍ) -->
-  <div class="sidebar-custom-footer" style="position: absolute; bottom: 0; left: 0; right: 0; height: 38px; border-top: 1px solid rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: center; background-color: inherit; z-index: 1040; padding: 0 8px; overflow: hidden; box-sizing: border-box; user-select: none;">
-    <span class="sidebar-version-text" style="font-weight: 700; color: rgba(255, 255, 255, 0.9); font-size: 0.78rem; letter-spacing: 0.3px; white-space: nowrap; display: block;">
-      Wlaodev Pos System V 4.10.26
+  <!-- Pinned Sidebar Footer (ເສັ້ນຂີດຂັ້ນ & Wlaodev Pos System v4.10.26 ຕິດຢູ່ດ້ານລຸ່ມສຸດ ຕາມສະໄຕຣ Fortinet UI) -->
+  <div class="sidebar-custom-footer" style="position: absolute; bottom: 0; left: 0; right: 0; height: 38px; border-top: 1px solid rgba(255, 255, 255, 0.18); display: flex; align-items: center; justify-content: space-between; background-color: inherit; z-index: 1040; padding: 0 14px; overflow: hidden; box-sizing: border-box; user-select: none;">
+    <span class="sidebar-brand-name" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 0.75rem; font-weight: 600; color: rgba(255, 255, 255, 0.9); letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+      Wlaodev Pos System
+    </span>
+    <span class="sidebar-version-text" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-weight: 400; color: rgba(255, 255, 255, 0.85); font-size: 0.78rem; letter-spacing: 0.4px; white-space: nowrap; display: inline-block;">
+      v4.10.26
     </span>
   </div>
 </aside>

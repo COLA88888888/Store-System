@@ -120,18 +120,18 @@ function sendToPrinter($ip, $bytes) {
     // still reports success, the printer drops the rest, and the leftover raster prints as garbled
     // text on the next job). So: a small head start, then a clock-based rate a little above
     // print speed.
-    $bytesPerSec = 120000;  // same as LAN_PRINT_BYTES_PER_SEC in api/lan_printer.php
-    $headStart   = 8192;    // same as LAN_PRINT_HEAD_START
+    $bytesPerSec = 300000;  // same as LAN_PRINT_BYTES_PER_SEC in api/lan_printer.php
+    $headStart   = 65536;   // same as LAN_PRINT_HEAD_START
     $len = strlen($bytes);
     $sent = 0;
     $start = microtime(true);
     while ($sent < $len) {
         $allowed = $headStart + (int)((microtime(true) - $start) * $bytesPerSec);
         if ($sent >= $allowed) {
-            usleep(2000);
+            usleep(1000);
             continue;
         }
-        $written = @fwrite($sock, substr($bytes, $sent, min(2048, $len - $sent, $allowed - $sent)));
+        $written = @fwrite($sock, substr($bytes, $sent, min(8192, $len - $sent, $allowed - $sent)));
         if ($written === false || $written === 0) {
             fclose($sock);
             throw new Exception("Write failed after $sent bytes");

@@ -92,7 +92,8 @@ if ($action === 'get_live_user_statuses') {
                 'id' => (int)$u['Id'],
                 'is_online' => $isOnline,
                 'account_active' => (int)($u['account_active'] ?? 1),
-                'status' => trim($u['status'] ?? $u['userstatus'] ?? 'ພະນັກງານ')
+                'status' => trim($u['status'] ?? $u['userstatus'] ?? 'ພະນັກງານ'),
+                'last_activity' => $u['last_activity'] ?? null
             ];
         }
         echo json_encode(['status' => 'success', 'users' => $result]);

@@ -38,4 +38,7 @@ return [
     'home.period_month' => 'This Month', 'home.period_year' => 'Whole Year',
     'home.chart_revenue_hourly' => 'Hourly Revenue Chart', 'home.chart_revenue_daily' => 'Daily Revenue Chart',
     'home.badge_hours' => '24 Hours', 'home.badge_days' => '%s Days', 'home.badge_months' => '%s Months',
+    'home.lbl_date' => 'Date', 'home.lbl_month' => 'Month', 'home.lbl_year' => 'Year', 'home.lbl_time' => 'Time',
+    'home.unit_hour' => 'h', 'home.unit_qty' => 'pcs',
+    'home.million_suffix' => 'M', 'home.thousand_suffix' => 'k',
 ];

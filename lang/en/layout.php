@@ -103,4 +103,7 @@ return [
     'layout.zones' => 'Product Zones',
     'layout.shelves' => 'Product Shelves',
     'layout.shifts' => 'Manage Work Shifts',
+    'layout.role_admin' => 'Administrator',
+    'layout.role_manager' => 'Manager',
+    'layout.role_staff' => 'Staff',
 ];

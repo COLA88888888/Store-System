@@ -67,7 +67,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Chart instances + the translation key behind each label, so the pos:langchange handler
   // below can switch them to another language on an instant (no-reload) language change.
-  var CUR_SUFFIX = ' (<?php echo addslashes($__sym); ?>)';
+  var CUR_SYM = <?php echo json_encode($__sym, JSON_UNESCAPED_UNICODE); ?>;
+  var CUR_SUFFIX = ' (' + CUR_SYM + ')';
   var billTooltipPrefix = <?php echo json_encode(t('reports.chart_tooltip_bill', 'ບິນ:') . ' ', JSON_UNESCAPED_UNICODE); ?>;
 
   // Bar Chart: Daily Net Sales
@@ -77,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
       labels: labels,
       datasets: [{
         _key: 'reports.chart_legend_net',
-        label: <?php echo json_encode(t('reports.chart_legend_net', 'ສຸດທິ'), JSON_UNESCAPED_UNICODE); ?> + ' (<?php echo addslashes($__sym); ?>)',
+        label: <?php echo json_encode(t('reports.chart_legend_net', 'ສຸດທິ'), JSON_UNESCAPED_UNICODE); ?> + CUR_SUFFIX,
         data: netData,
         backgroundColor: 'rgba(37,99,235,0.75)',
         borderColor: '#1d4ed8',
@@ -85,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
         borderRadius: 6,
       }, {
         _key: 'reports.chart_legend_cash',
-        label: <?php echo json_encode(t('reports.chart_legend_cash', 'ເງິນສົດ'), JSON_UNESCAPED_UNICODE); ?> + ' (<?php echo addslashes($__sym); ?>)',
+        label: <?php echo json_encode(t('reports.chart_legend_cash', 'ເງິນສົດ'), JSON_UNESCAPED_UNICODE); ?> + CUR_SUFFIX,
         data: cashData,
         backgroundColor: 'rgba(99,102,241,0.55)',
         borderColor: '#4338ca',
@@ -93,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
         borderRadius: 4,
       }, {
         _key: 'reports.chart_legend_transfer',
-        label: <?php echo json_encode(t('reports.chart_legend_transfer', 'ໂອນ'), JSON_UNESCAPED_UNICODE); ?> + ' (<?php echo addslashes($__sym); ?>)',
+        label: <?php echo json_encode(t('reports.chart_legend_transfer', 'ໂອນ'), JSON_UNESCAPED_UNICODE); ?> + CUR_SUFFIX,
         data: qrData,
         backgroundColor: 'rgba(6,182,212,0.55)',
         borderColor: '#0e7490',
@@ -108,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
         tooltip: {
           callbacks: {
             label: function(ctx) {
-              return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString('en-US',{maximumFractionDigits:<?php echo $__dec; ?>}) + ' <?php echo addslashes($__sym); ?>';
+              return ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString('en-US',{maximumFractionDigits:<?php echo $__dec; ?>}) + ' ' + CUR_SYM;
             }
           }
         }
@@ -119,7 +120,9 @@ document.addEventListener('DOMContentLoaded', function () {
           grid: { color: 'rgba(0,0,0,0.05)' },
           ticks: {
             font: { size: 10 },
-            callback: function(v) { return <?php echo ($__dc['code']==='KIP')?'true':'false'; ?> ? (v/1000).toFixed(0) + 'K' : v.toLocaleString('en-US',{maximumFractionDigits:<?php echo $__dec; ?>}); }
+            callback: function(v) {
+              return Number(v).toLocaleString('en-US', {maximumFractionDigits: <?php echo $__dec; ?>}) + ' ' + CUR_SYM;
+            }
           }
         }
       }
@@ -149,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
           callbacks: {
             label: function(ctx) {
               var pct = ((ctx.parsed / totalPay) * 100).toFixed(1);
-              return ctx.label + ': ' + ctx.parsed.toLocaleString('en-US',{maximumFractionDigits:<?php echo $__dec; ?>}) + ' <?php echo addslashes($__sym); ?> (' + pct + '%)';
+              return ctx.label + ': ' + Number(ctx.parsed).toLocaleString('en-US',{maximumFractionDigits:<?php echo $__dec; ?>}) + ' ' + CUR_SYM + ' (' + pct + '%)';
             }
           }
         }

@@ -103,4 +103,7 @@ return [
     'layout.zones' => 'ໂຊນສິນຄ້າ',
     'layout.shelves' => 'ຊັ້ນວາງສິນຄ້າ',
     'layout.shifts' => 'ຈັດການກະເຮັດວຽກ',
+    'layout.role_admin' => 'ຜູ້ບໍລິຫານ',
+    'layout.role_manager' => 'ຜູ້ຈັດການ',
+    'layout.role_staff' => 'ພະນັກງານ',
 ];

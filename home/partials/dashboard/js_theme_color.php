@@ -153,7 +153,7 @@
         }
         var side = document.querySelector('.main-sidebar');
         if (side) side.style.setProperty('background-color', color, 'important');
-        document.querySelectorAll('.main-sidebar .brand-link').forEach(function(el) {
+        document.querySelectorAll('.main-sidebar .brand-link, .main-sidebar .sidebar-custom-footer').forEach(function(el) {
           el.style.setProperty('background-color', color, 'important');
         });
         // The .wrapper::before "shield" (fixed block behind the logo that hides the white

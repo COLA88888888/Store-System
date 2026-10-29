@@ -13,6 +13,14 @@ var I18N_HOME = <?php echo tjson([
     'home.legend_qty_sold' => 'ຈຳນວນຂາຍ',
     'home.no_sales_data' => 'ບໍ່ມີຂໍ້ມູນການຂາຍ',
     'home.year_label' => 'ປີ %d',
+    'home.lbl_date' => 'ວັນທີ',
+    'home.lbl_month' => 'ເດືອນ',
+    'home.lbl_year' => 'ປີ',
+    'home.lbl_time' => 'ເວລາ',
+    'home.unit_hour' => 'ໂມງ',
+    'home.unit_qty' => 'ອັນ',
+    'home.million_suffix' => 'ລ້ານກີບ',
+    'home.thousand_suffix' => 'ພັນກີບ',
     'home.month_1' => 'ມັງກອນ', 'home.month_2' => 'ກຸມພາ', 'home.month_3' => 'ມີນາ',
     'home.month_4' => 'ເມສາ', 'home.month_5' => 'ພຶດສະພາ', 'home.month_6' => 'ມິຖຸນາ',
     'home.month_7' => 'ກໍລະກົດ', 'home.month_8' => 'ສິງຫາ', 'home.month_9' => 'ກັນຍາ',
@@ -64,20 +72,46 @@ $(document).ready(function() {
     Chart.defaults.font.family = "'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif";
   } catch(e) {}
 
-  // Function to format long labels into multi-line arrays
+  // Function to format long labels into multi-line arrays respecting Lao script
   function formatChartLabel(str, maxLen) {
-    maxLen = maxLen || 16;
+    maxLen = maxLen || 14;
     if (!str) return '';
     if (typeof str !== 'string') return str;
     if (str.length <= maxLen) return str;
-    
+
+    var isMark = function (ch) { return /[ັຳ-ຼ່-ໍ]/.test(ch || ''); };
+
+    function chunkLao(text, limit) {
+      var chunks = [];
+      var start = 0;
+      while (start < text.length) {
+        if (text.length - start <= limit) {
+          chunks.push(text.substring(start));
+          break;
+        }
+        var end = start + limit;
+        while (end < text.length && end > start + 1 && isMark(text.charAt(end))) end--;
+        chunks.push(text.substring(start, end));
+        start = end;
+      }
+      return chunks;
+    }
+
     if (str.indexOf(' ') !== -1) {
       var words = str.split(' ');
       var lines = [];
       var currentLine = '';
       for (var i = 0; i < words.length; i++) {
         var w = words[i];
-        if ((currentLine ? currentLine + ' ' + w : w).length <= maxLen) {
+        if (!w) continue;
+        if (w.length > maxLen) {
+          if (currentLine) { lines.push(currentLine); currentLine = ''; }
+          var wChunks = chunkLao(w, maxLen);
+          for (var j = 0; j < wChunks.length - 1; j++) {
+            lines.push(wChunks[j]);
+          }
+          currentLine = wChunks[wChunks.length - 1];
+        } else if ((currentLine ? currentLine + ' ' + w : w).length <= maxLen) {
           currentLine = currentLine ? currentLine + ' ' + w : w;
         } else {
           if (currentLine) lines.push(currentLine);
@@ -87,19 +121,8 @@ $(document).ready(function() {
       if (currentLine) lines.push(currentLine);
       if (lines.length > 1) return lines;
     }
-    
-    // No spaces (typical Lao): cut every maxLen chars, but never in front of a Lao
-    // vowel / tone mark — it belongs to the consonant before it
-    var isMark = function (ch) { return /[ັຳ-ຼ່-ໍ]/.test(ch || ''); };
-    var chunks = [];
-    var start = 0;
-    while (start < str.length) {
-      var end = Math.min(start + maxLen, str.length);
-      while (end < str.length && end > start + 1 && isMark(str.charAt(end))) end--;
-      chunks.push(str.substring(start, end));
-      start = end;
-    }
-    return chunks;
+
+    return chunkLao(str, maxLen);
   }
 
   // Multi-currency: append the active symbol in brackets to chart legends.
@@ -113,10 +136,20 @@ $(document).ready(function() {
   var chartKeys     = <?php echo json_encode(array_values($chart_keys)); ?>;
   var CHART_MULTI_YEAR = <?php echo json_encode($chart_mode === 'month' && substr($chartFrom, 0, 4) !== substr($chartTo, 0, 4)); ?>;
   function chartBucketLabel(k) {
-    if (CHART_MODE === 'hour') return (k < 10 ? '0' : '') + k + ':00';
-    if (CHART_MODE === 'day') return k.slice(8, 10) + '/' + k.slice(5, 7);
-    var name = I18N_HOME['home.month_' + parseInt(k.slice(5, 7), 10)] || k.slice(5, 7);
-    return CHART_MULTI_YEAR ? name + ' ' + k.slice(0, 4) : name;
+    var dPrefix = I18N_HOME['home.lbl_date'] || 'ວັນທີ';
+    var mPrefix = I18N_HOME['home.lbl_month'] || 'ເດືອນ';
+    var hUnit   = I18N_HOME['home.unit_hour'] || 'ໂມງ';
+
+    if (CHART_MODE === 'hour') return (k < 10 ? '0' : '') + k + ':00 ' + hUnit;
+    if (CHART_MODE === 'day') {
+      var d = parseInt(k.slice(8, 10), 10);
+      var m = parseInt(k.slice(5, 7), 10);
+      return dPrefix + ' ' + d + '/' + (m < 10 ? '0' : '') + m;
+    }
+    var mNum = parseInt(k.slice(5, 7), 10);
+    var name = I18N_HOME['home.month_' + mNum] || k.slice(5, 7);
+    var fullMonth = mPrefix + ' ' + name;
+    return CHART_MULTI_YEAR ? fullMonth + ' ' + k.slice(0, 4) : fullMonth;
   }
   var monthLabels   = chartKeys.map(chartBucketLabel);
   var monthlySales  = <?php echo json_encode(array_map($__hcvt, array_values($chart_sales))); ?>;
@@ -161,14 +194,10 @@ $(document).ready(function() {
   // Change over time -> lines, not grouped bars. Sales carries a soft area fill; profit and cost
   // are thin lines on the same (single) axis. Hovering anywhere in a column shows a crosshair and
   // one tooltip with every series for that day / hour / month.
-  var REV_COLORS = { sales: '#2a78d6', cost: '#eb6834', profit: '#1baf7a' };
+  var REV_COLORS = { sales: '#2563eb', cost: '#f43f5e', profit: '#10b981' };
   var CUR_IS_KIP = <?php echo ($__hdc['code']==='KIP')?'true':'false'; ?>;
   function shortMoney(val) {
-    if (!CUR_IS_KIP) return curAxis(val);
-    var a = Math.abs(val);
-    if (a >= 1000000) return (val / 1000000).toLocaleString('en-US', { maximumFractionDigits: 1 }) + 'M';
-    if (a >= 1000) return (val / 1000).toLocaleString('en-US', { maximumFractionDigits: 0 }) + 'k';
-    return val;
+    return curAxis(val);
   }
 
   // Dashed vertical guide under the hovered column
@@ -182,8 +211,8 @@ $(document).ready(function() {
       c.beginPath();
       c.moveTo(x, area.top);
       c.lineTo(x, area.bottom);
-      c.lineWidth = 1;
-      c.strokeStyle = 'rgba(15, 23, 42, 0.25)';
+      c.lineWidth = 1.5;
+      c.strokeStyle = 'rgba(37, 99, 235, 0.3)';
       c.setLineDash([4, 4]);
       c.stroke();
       c.restore();
@@ -199,29 +228,40 @@ $(document).ready(function() {
         label: curLabel(I18N_HOME[labelKey]),
         data: data,
         borderColor: REV_COLORS[key],
-        backgroundColor: withFill ? function(ctx) {
+        backgroundColor: function(ctx) {
           var area = ctx.chart.chartArea;
-          if (!area) return 'rgba(42, 120, 214, 0.12)';
+          if (!area) return 'rgba(37, 99, 235, 0.08)';
           var g = ctx.chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
-          g.addColorStop(0, 'rgba(42, 120, 214, 0.22)');
-          g.addColorStop(1, 'rgba(42, 120, 214, 0.01)');
+          if (key === 'sales') {
+            g.addColorStop(0, 'rgba(37, 99, 235, 0.30)');
+            g.addColorStop(0.6, 'rgba(37, 99, 235, 0.08)');
+            g.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
+          } else if (key === 'profit') {
+            g.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+            g.addColorStop(0.6, 'rgba(16, 185, 129, 0.05)');
+            g.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
+          } else {
+            g.addColorStop(0, 'rgba(244, 63, 94, 0.16)');
+            g.addColorStop(1, 'rgba(244, 63, 94, 0.00)');
+          }
           return g;
-        } : REV_COLORS[key],
+        },
         fill: withFill ? 'origin' : false,
-        borderWidth: 2,
-        tension: 0.35,
+        borderWidth: key === 'sales' ? 3 : 2.4,
+        tension: 0.38,
         cubicInterpolationMode: 'monotone',
-        pointRadius: few ? 4 : 0,
-        pointHoverRadius: 5,
+        pointRadius: few ? 5 : 2.5,
+        pointHoverRadius: 7,
         pointBackgroundColor: REV_COLORS[key],
         pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
-        pointHitRadius: 12
+        pointHoverBorderWidth: 3,
+        pointHitRadius: 14
       };
     };
     var revDatasets = [revLine('sales', 'home.legend_sales', monthlySales, true)];
     if (hasProductCostData) revDatasets.push(revLine('cost', 'home.legend_cost', monthlyCost, false));
-    revDatasets.push(revLine('profit', 'home.legend_profit', monthlyProfit, false));
+    revDatasets.push(revLine('profit', 'home.legend_profit', monthlyProfit, true));
 
     monthlyRevenueChartObj = new Chart(ctxMonthly, {
       type: 'line',
@@ -231,12 +271,12 @@ $(document).ready(function() {
         responsive: true,
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
-        layout: { padding: { top: 4, right: 8 } },
+        layout: { padding: { top: 4, right: (window.innerWidth < 768 ? 4 : 8), left: 4, bottom: 0 } },
         plugins: {
           legend: {
             position: 'top',
             align: 'center',
-            labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 11, boxHeight: 11, padding: 22, color: '#334155', font: { size: 14, weight: '600' } }
+            labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 10, boxHeight: 10, padding: 16, color: '#334155', font: { size: (window.innerWidth < 768 ? 11 : 13), weight: '700' } }
           },
           tooltip: {
             backgroundColor: '#ffffff',
@@ -245,11 +285,39 @@ $(document).ready(function() {
             borderColor: '#e2e8f0',
             borderWidth: 1,
             padding: 12,
-            cornerRadius: 10,
+            cornerRadius: 12,
             usePointStyle: true,
             boxPadding: 6,
             titleFont: { weight: '700' },
             callbacks: {
+              title: function(items) {
+                if (!items.length) return '';
+                var idx = items[0].dataIndex;
+                var rawKey = chartKeys[idx];
+                var dPrefix = I18N_HOME['home.lbl_date'] || 'ວັນທີ';
+                var mPrefix = I18N_HOME['home.lbl_month'] || 'ເດືອນ';
+                var yPrefix = I18N_HOME['home.lbl_year'] || 'ປີ';
+                var tPrefix = I18N_HOME['home.lbl_time'] || 'ເວລາ';
+                var hUnit   = I18N_HOME['home.unit_hour'] || 'ໂມງ';
+
+                if (CHART_MODE === 'day' && rawKey) {
+                  var d = parseInt(rawKey.slice(8, 10), 10);
+                  var m = parseInt(rawKey.slice(5, 7), 10);
+                  var y = rawKey.slice(0, 4);
+                  var mName = I18N_HOME['home.month_' + m] || m;
+                  return dPrefix + ' ' + d + ' ' + mPrefix + ' ' + mName + ' ' + yPrefix + ' ' + y;
+                }
+                if (CHART_MODE === 'month' && rawKey) {
+                  var m = parseInt(rawKey.slice(5, 7), 10);
+                  var y = rawKey.slice(0, 4);
+                  var mName = I18N_HOME['home.month_' + m] || m;
+                  return mPrefix + ' ' + mName + ' ' + yPrefix + ' ' + y;
+                }
+                if (CHART_MODE === 'hour') {
+                  return tPrefix + ' ' + items[0].label;
+                }
+                return items[0].label || '';
+              },
               label: function(ctx) { return ' ' + ctx.dataset.label + ': ' + curAxis(ctx.parsed.y); },
               afterBody: function(items) {
                 if (!items.length) return '';
@@ -261,15 +329,38 @@ $(document).ready(function() {
         },
         scales: {
           x: {
-            grid: { display: false },
+            grid: {
+              display: true,
+              color: 'rgba(226, 232, 240, 0.75)'
+            },
             border: { color: '#e2e8f0' },
-            ticks: { color: '#64748b', maxRotation: 0, autoSkip: true, autoSkipPadding: 12 }
+            ticks: {
+              color: '#64748b',
+              font: { size: (window.innerWidth < 768 ? 10 : 12), weight: '600' },
+              maxRotation: 0,
+              autoSkip: true,
+              autoSkipPadding: (window.innerWidth < 768 ? 8 : 12)
+            }
           },
           y: {
             beginAtZero: true,
-            grid: { color: '#eef2f7' },
+            grid: {
+              display: true,
+              color: 'rgba(226, 232, 240, 0.75)'
+            },
             border: { display: false },
-            ticks: { color: '#64748b', padding: 8, maxTicksLimit: 6, callback: shortMoney }
+            ticks: {
+              color: '#64748b',
+              font: { size: (window.innerWidth < 768 ? 9.5 : 12), weight: '600' },
+              crossAlign: 'far',
+              padding: 4,
+              maxTicksLimit: (window.innerWidth < 768 ? 5 : 6),
+              callback: shortMoney
+            },
+            afterFit: function(axis) {
+              var isMob = (window.innerWidth < 768);
+              axis.width = Math.max(axis.width, isMob ? 100 : 125);
+            }
           }
         }
       }

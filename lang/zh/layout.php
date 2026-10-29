@@ -103,4 +103,7 @@ return [
     'layout.zones' => '商品区域',
     'layout.shelves' => '商品货架',
     'layout.shifts' => '班次管理',
+    'layout.role_admin' => '管理员',
+    'layout.role_manager' => '经理',
+    'layout.role_staff' => '员工',
 ];

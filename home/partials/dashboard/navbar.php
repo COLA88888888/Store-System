@@ -364,14 +364,22 @@
               <i class="fas fa-circle" style="font-size: 6px;"></i> <span data-i18n="layout.online_status"><?php echo htmlspecialchars(t('layout.online_status', 'ກຳລັງໃຊ້ງານ')); ?></span>
             </span>
           </div>
-          <i class="fas fa-chevron-down text-white ml-2 nav-user-caret"></i>
         </a>
         <div class="dropdown-menu dropdown-menu-right nav-user-menu shadow-lg border-0">
           <div class="d-flex align-items-center px-3 pt-2 pb-2">
             <img src="<?php echo htmlspecialchars($profile_img_path); ?>" alt="" class="img-circle" style="width: 42px; height: 42px; object-fit: cover; flex-shrink: 0;">
             <div class="ml-2" style="min-width: 0; line-height: 1.25;">
               <div class="font-weight-bold text-dark" style="font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($display_name); ?></div>
-              <div class="text-muted" style="font-size: 0.78rem;"><?php echo htmlspecialchars($_SESSION['status'] ?? ''); ?></div>
+              <?php
+                // ຕຳແໜ່ງ (st_tbuser.status ເກັບເປັນພາສາລາວ) → key ແປພາສາ ເພື່ອໃຫ້ປ່ຽນພາສາທັນທີ (data-i18n, js_language.php)
+                $__navRole = trim((string)($_SESSION['status'] ?? ''));
+                $__navRoleKey = [
+                    'ຜູ້ບໍລິຫານ' => 'layout.role_admin', 'admin' => 'layout.role_admin', 'super admin' => 'layout.role_admin',
+                    'ຜູ້ຈັດການ' => 'layout.role_manager', 'manager' => 'layout.role_manager',
+                    'ພະນັກງານ' => 'layout.role_staff', 'staff' => 'layout.role_staff',
+                ][mb_strtolower($__navRole)] ?? null;
+              ?>
+              <div class="text-muted" style="font-size: 0.78rem;"<?php echo $__navRoleKey ? ' data-i18n="' . $__navRoleKey . '"' : ''; ?>><?php echo htmlspecialchars($__navRoleKey ? t($__navRoleKey, $__navRole) : $__navRole); ?></div>
               <!-- ສະຖານະໃຊ້ງານ: ສະແດງສະເພາະຈໍນ້ອຍ (ຈໍໃຫຍ່ມີຢູ່ແລ້ວຂ້າງຮູບໃນແຖບເທິງ) -->
               <div class="d-flex d-md-none align-items-center" style="font-size: 0.75rem; color: #16a34a; font-weight: 600; gap: 4px; white-space: nowrap;">
                 <i class="fas fa-circle" style="font-size: 6px;"></i> <span data-i18n="layout.online_status"><?php echo htmlspecialchars(t('layout.online_status', 'ກຳລັງໃຊ້ງານ')); ?></span>

@@ -17,7 +17,6 @@
     name = (name == null ? '' : String(name)).trim();
     return (!name || DEFAULT_ALIASES.indexOf(name) !== -1) ? rpT('pos.customer_default') : name;
   }
-  // Checkout prints the date as d/m/Y H:i
   function saleDate(d, t) {
     var m = String(d || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
     var hm = String(t || '').slice(0, 5);
@@ -29,8 +28,6 @@
   $(P + 'date').text(saleDate(b.sale_date, b.sale_time));
   $(P + 'cashier').text(b.user_receive || 'Admin');
 
-  // Queue number: same rule as checkout — printed only while the shop has queue numbers
-  // switched on (the bill always stores one), using the bill's own saved number
   if (window.REPORT_QUEUE_ENABLED && b.queue_no !== undefined && b.queue_no !== null && String(b.queue_no).trim() !== '') {
     $(P + 'queue_no').text(b.queue_no);
     $(P + 'queue_wrap').css('display', 'block');
@@ -50,7 +47,6 @@
   var discount = parseFloat(b.sale_discount_bill || 0);
   var net      = parseFloat(b.sale_barlance || 0);
   var change   = parseFloat(b.sale_return || 0);
-  // VAT on this bill → every amount on the receipt gets 2 decimals, same as at checkout
   if ((b.tax_type || 'none') !== 'none' && (parseFloat(b.vat_rate) || 0) > 0) fmt = fmtExact;
   $(P + 'subtotal').html(fmt(subtotal));
   if (discount > 0) {
@@ -99,13 +95,11 @@
   $(P + 'change').html(fmt(change));
   fillReprintMultiCurrency(net, b.paid_currency, b.paid_rate);
 
-  // Loyalty points are never printed on the receipt — same as at checkout
   $(P + 'points_row, ' + P + 'points_redeem_row, ' + P + 'points_discount_row, ' + P + 'points_balance_row').hide();
 
   var cashAmt = parseFloat(b.cash_received) || 0;
   var qrAmt   = parseFloat(b.qr_received) || 0;
   var pType   = b.type_pay || b.payment_type || '';
-  // ຂາຍຕິດໜີ້: cash/qr hold only the deposit; the rest of the bill was put on credit.
   var creditAmt = (pType === 'ຕິດໜີ້') ? Math.max(0, net - cashAmt - qrAmt) : 0;
   if (cashAmt === 0 && qrAmt === 0 && pType !== 'ຕິດໜີ້') {
     if (pType === 'ເງິນສົດ') cashAmt = net + change;
@@ -120,7 +114,6 @@
   $(P + 'cash_row').toggle(cashAmt > 0 || (cashAmt === 0 && qrAmt === 0 && creditAmt <= 0));
   $(P + 'qr_row').toggle(qrAmt > 0);
 
-  // Bank QR — the exact bank/QR used for this sale
   var isTransferPayment = (qrAmt > 0) || (pType && (pType.indexOf('ໂອນ') !== -1 || pType.indexOf('QR') !== -1));
   var $qrBox = $('#reportReceiptPrintArea .receipt-qr-box');
   if (isTransferPayment) {
@@ -132,18 +125,15 @@
       var scanLbl = rpT('pos.receipt_scan_transfer');
       $(P + 'bank_name_lbl').text(labelBank ? scanLbl + ' (' + labelBank + ')' : scanLbl);
     } else {
-      // Bank has no QR: print no QR at all, just which bank the transfer went to
       $(P + 'bank_qr_img').removeAttr('src').hide();
       $(P + 'bank_name_lbl').text(rpT('pos.receipt_transfer_bank', labelBank));
     }
-    // ເສັ້ນເທິງກ່ອງ QR ແທນເສັ້ນທີ່ເຄີຍຢູ່ໃຕ້ເງິນທອນ (layouts/receipt_template.php) — ບໍ່ມີ QR ກໍ່ເຫຼືອເສັ້ນດຽວ
     if (hasQr || labelBank) $qrBox.attr('style', 'display:block!important; text-align:center; margin:6px 0 8px 0; padding-top:6px; border-top:1px dashed #000;').show();
     else $qrBox.attr('style', 'display:none!important;').hide();
   } else {
     $qrBox.attr('style', 'display:none!important;').hide();
   }
 
-  // Item lines — same format as checkout: name (unit), xQty, price / gift / reward / promo
   var tbody = $(P + 'items');
   tbody.empty();
   (details || []).forEach(function (d) {
@@ -155,8 +145,8 @@
     var totalAmt = parseFloat(d.save_money) || (curUnitPrice * qty);
     var isReward = parseInt(d.is_reward, 10) === 1;
     var isGift = curUnitPrice === 0 || rawName.indexOf('(ແຖມ)') !== -1;
-    // ຕັດຂະໜາດ/ຫົວໜ່ວຍໃນວົງເລັບ () ອອກ ເອົາແຕ່ຊື່ສິນຄ້າສັ້ນໆ
-    var displayName = rawName.replace(/\s*\([^)]*\)/g, '').trim() || rawName;
+    
+    var displayName = rawName.trim() || rawName;
 
     var nameHtml = displayName;
     var priceHtml;
@@ -169,7 +159,6 @@
       }
       priceHtml = '<span style="font-weight:bold; color:#059669;">' + fmt(0) + ' (' + rpT('pos.receipt_free_gift') + ')</span>';
     } else if (origUnitPrice > curUnitPrice && curUnitPrice >= 0) {
-      // ລາຄາຫຼັງສ່ວນຫຼຸດ: ຂະໜາດ/ນ້ຳໜັກດຽວກັບລາຄາແຖວອື່ນ (ຄືກັບບິນຕອນຂາຍ — receipt_ui.php)
       priceHtml = '<del style="color:#64748b; font-size:0.85em;">' + fmt(origUnitPrice * qty) + '</del><br><span>' + fmt(totalAmt) + '</span>';
     } else {
       priceHtml = fmt(totalAmt);
@@ -189,7 +178,6 @@
 
 function printBill(billNo) {
   if (!billNo) return;
-
   $.ajax({
     url: 'reports.php',
     type: 'GET',
@@ -209,27 +197,35 @@ function printBill(billNo) {
   });
 }
 
-// ປຸ່ມ "ພິມໃບບິນ" ໃນ popup ໃບບິນ: ເຊື່ອມເຄື່ອງພິມ Bluetooth ຢູ່ → ອອກເຄື່ອງ Bluetooth ທັນທີ;
-// ບໍ່ດັ່ງນັ້ນ LAN → ໜ້າຕ່າງພິມ (ລຳດັບດຽວກັບ reprintReceiptAuto ໃນ bill_view.php)
 function doPrintReportReceipt() {
   reprintReceiptAuto();
 }
 
 function doPrintReportReceiptDialog() {
   var area = document.getElementById("reportReceiptPrintArea");
-  // lan-receipt.js missing (e.g. not uploaded to the server): still print, with the images as-is
   if (!window.MiniposLanReceipt) { printReportReceiptHtml(area.innerHTML); return; }
-  // Print the very image the LAN printer gets, so the dialog's bill is identical to a LAN
-  // bill; the HTML version is only a fallback if rendering the image fails.
   var paper = MiniposLanReceipt.receiptPaper ? MiniposLanReceipt.receiptPaper((window.REPORT_RECEIPT_PRINTER || {}).paper_width) : (window.REPORT_RECEIPT_PRINTER || {}).paper_width;
-  // A4/A5: ພິມ HTML ເຕັມໜ້າ (ບໍ່ແມ່ນຮູບບິນແຄບ) — ຂະໜາດໜ້າມາຈາກ MiniposLanReceipt.dialogPageCss(paper)
   if (MiniposLanReceipt.isPagePaper && MiniposLanReceipt.isPagePaper(paper)) {
     Promise.resolve(MiniposLanReceipt.printHtml(area)).then(printReportReceiptHtml);
     return;
   }
-  // dialogPaperPx: ເຄື່ອງພິມໃນຕົວ (Android) ວາງບິນແບບ 58mm ບໍ່ໃຫ້ຖືກຕັດຂວາ; ເຄື່ອງອື່ນຄືເກົ່າ
   var dialogPx = MiniposLanReceipt.dialogPaperPx ? MiniposLanReceipt.dialogPaperPx(paper) : MiniposLanReceipt.paperPx(paper);
-  MiniposLanReceipt.toImage(area, dialogPx, '../../', REPORT_RCPT_EXTRA_CSS).then(function (uri) {
+
+  // ==========================================
+  // ດັກ CSS ສະເພາະບຣາວເຊີ: 
+  // ຍັບໂຕໜັງສືເຂົ້າມາໃຫ້ຕົງກັບເສັ້ນຊ້າຍມື (padding-left: 10px) 
+  // ແລະ ຈັດ width ໃຫ້ພໍດີເປະບໍ່ໃຫ້ຂາດທາງຂວາ
+  // ==========================================
+  var BROWSER_CSS = (typeof REPORT_RCPT_EXTRA_CSS !== 'undefined' ? REPORT_RCPT_EXTRA_CSS : '') +
+    ' .rcpt-root > div { padding: 4px 6px 8px 10px !important; }' +
+    ' .receipt-meta,table,#rc_payment_rows,#rc_rep_payment_rows,.rc-sum-wrap,.rc-change-wrap,#rc_multicur,#rc_rep_multicur,.receipt-qr-box,.receipt-footer-msg,.receipt-header-block,.rc-sum,.rc-net' +
+    ' { margin-left: 0px !important; width: 100% !important; }' +
+    ' div[style*="dashed"],.rc-divider,th [style*="dashed"],th .rc-divider,.receipt-qr-box [style*="dashed"],.receipt-qr-box .rc-divider' +
+    ' { margin-left: 0px !important; width: 100% !important; }' +
+    ' tr.rc-strong { border-bottom: none !important; }' +
+    ' thead tr, tr:first-child th { border-bottom: 1px dashed #000 !important; padding-bottom: 4px !important; }';
+
+  MiniposLanReceipt.toImage(area, dialogPx, '../../', BROWSER_CSS).then(function (uri) {
     return MiniposLanReceipt.imageHtml(uri, paper);
   }).catch(function (err) {
     console.warn('Receipt image failed, printing HTML instead:', err);
@@ -260,9 +256,7 @@ function printReportReceiptHtml(printContent) {
       @font-face { font-family: 'Receipt Latin'; src: url('../../assets/fonts/NotoSans-Latin-700.woff2') format('woff2'); font-weight: 700; }
       @font-face { font-family: 'Receipt Latin'; src: url('../../assets/fonts/NotoSans-Latin-700.woff2') format('woff2'); font-weight: 700; size-adjust: 90%; unicode-range: U+0041-005A, U+0061-007A, U+00C0-024F; }
       * { box-sizing: border-box; font-family: 'Nuanta', 'Receipt Latin', 'Noto Sans Lao Local', 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif !important; color: #000 !important; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-      html, body { width: 80mm; margin: 0 auto; padding: 8px 6px; background: #fff; color: #000 !important; font-size: 17px; font-weight: 400; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      /* No Bootstrap in this iframe — without this, headings keep the browser's default
-         ~2.33em top margin and push the shop name far below the logo. */
+      html, body { width: 80mm; margin: 0 auto; padding: 8px 6px 8px 10px; background: #fff; color: #000 !important; font-size: 17px; font-weight: 400; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       h1,h2,h3,h4,h5,h6 { margin: 0 !important; } h6 { font-size: 20px !important; white-space: nowrap; }
       .text-center { text-align: center !important; } .text-right { text-align: right !important; }
       .font-weight-bold { font-weight: 400 !important; color: #000 !important; }
@@ -273,11 +267,22 @@ function printReportReceiptHtml(printContent) {
       .mt-2{margin-top:8px!important}
       .text-muted { color: #000 !important; font-weight: 400 !important; }
       .receipt-header-address, .receipt-header-tel { font-size: 15px !important; font-weight: 400 !important; color: #000 !important; line-height: 1.4 !important; }
-      .receipt-footer-msg { font-size: 15px !important; font-weight: 400 !important; color: #000 !important; border-top: 1px dashed #000 !important; margin-top: 10px !important; padding-top: 8px !important; text-align: center !important; }
-      /* logo + QR arrive already converted to black/white by MiniposLanReceipt.printHtml() */
+      
+      /* ສ່ວນ HTML Fallback */
+      .receipt-meta, table, #rc_payment_rows, #rc_rep_payment_rows, .rc-sum-wrap, .rc-change-wrap, #rc_multicur, #rc_rep_multicur, .receipt-qr-box, .receipt-footer-msg, .receipt-header-block, .rc-sum, .rc-net {
+        margin-left: 0px !important; width: 100% !important;
+      }
+      div[style*="dashed"], .rc-divider, th [style*="dashed"], th .rc-divider, .receipt-qr-box [style*="dashed"], .receipt-qr-box .rc-divider {
+        margin-left: 0px !important; width: 100% !important;
+      }
+      div[style*="dashed"], .rc-divider { border-top: 1px dashed #000 !important; margin: 6px 0 !important; }
+      tr.rc-strong { border-top: none !important; border-bottom: none !important; }
+      thead tr, tr:first-child th { border-bottom: 1px dashed #000 !important; padding-bottom: 4px !important; }
+
+      .receipt-footer-msg { font-size: 15px !important; font-weight: 400 !important; color: #000 !important; margin-top: 10px !important; padding-top: 8px !important; text-align: center !important; }
       img.receipt-logo { max-width:90px!important; max-height:90px!important; height:auto!important; display:block!important; margin:0 auto 12px auto!important; object-fit:contain!important; }
       img.receipt-qr-img { width:50%!important; max-width:50%!important; max-height:none!important; height:auto!important; display:block; margin:6px auto 2px auto!important; object-fit:contain!important; }
-      table { width:100%; border-collapse:collapse; margin:4px 0; font-size:15px !important; color: #000 !important; }
+      table { border-collapse:collapse; margin:4px 0; font-size:15px !important; color: #000 !important; }
       td,th { padding:4px 0; vertical-align:top; color: #000 !important; font-weight: 400 !important; }
       th { font-weight: 400 !important; }
       .rc-strong, .rc-strong * { font-weight: 400 !important; -webkit-text-stroke: 0.25px #000; }
@@ -286,7 +291,6 @@ function printReportReceiptHtml(printContent) {
       .rc-net, .rc-net * { font-size: 17px !important; font-weight: 400 !important; -webkit-text-stroke: 0.25px #000; }
       #rc_rep_multicur { font-size: 14.5px !important; }
       #rc_rep_bank_name_lbl { font-size: 15px !important; }
-      /* The bill image already carries its own margins — let it span the whole page */
       html:has(.receipt-print-img), body:has(.receipt-print-img) { width: auto; padding: 0 !important; }
       @media print {
         html,body { width:100%; margin:0; padding:2mm; color: #000 !important; }
@@ -332,4 +336,3 @@ function printReportReceiptHtml(printContent) {
     }
   }
 }
-

@@ -176,7 +176,7 @@ try {
             $_SESSION['profile_img'] = 'default.png';
 
             // ສົ່ງທຸກຄົນໄປທີ່ໜ້າ dashboard.php (Unified Dashboard)
-            $redirect = '../home/dashboard.php';
+            $redirect = '../home/dashboard.php?open_home=1';
             
             logActivity($pdo, "ເຂົ້າສູ່ລະບົບ", "ຊື່ຜູ້ໃຊ້: " . $user['username']);
 

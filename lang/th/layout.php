@@ -103,4 +103,7 @@ return [
     'layout.zones' => 'โซนสินค้า',
     'layout.shelves' => 'ชั้นวางสินค้า',
     'layout.shifts' => 'จัดการกะทำงาน',
+    'layout.role_admin' => 'ผู้บริหาร',
+    'layout.role_manager' => 'ผู้จัดการ',
+    'layout.role_staff' => 'พนักงาน',
 ];

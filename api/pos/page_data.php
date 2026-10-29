@@ -17,17 +17,9 @@ $categories = $categoriesStmt->fetchAll();
 $posReceiptPrinter = null;
 $posReceiptPrinterIp = '';
 try {
-    $rpStmt = $pdo->prepare("SELECT id, name, type, paper_width, ip_address FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 AND branch_id = ? LIMIT 1");
-    $rpStmt->execute([$activeStoreId]);
+    $rpStmt = $pdo->prepare("SELECT id, name, type, paper_width, ip_address FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 AND (branch_id = ? OR branch_id = 0 OR branch_id IS NULL) ORDER BY (branch_id = ?) DESC, id DESC LIMIT 1");
+    $rpStmt->execute([$activeStoreId, $activeStoreId]);
     $rpRow = $rpStmt->fetch();
-    if (!$rpRow) {
-        $fbStmt = $pdo->query("SELECT id, name, type, paper_width, ip_address FROM st_tbl_printer WHERE is_receipt_printer = 1 AND status = 1 ORDER BY (type = 'usb') DESC, id DESC LIMIT 1");
-        $rpRow = $fbStmt ? $fbStmt->fetch() : null;
-    }
-    if (!$rpRow) {
-        $fbUsb = $pdo->query("SELECT id, name, type, paper_width, ip_address FROM st_tbl_printer WHERE type = 'usb' AND status = 1 ORDER BY id DESC LIMIT 1");
-        $rpRow = $fbUsb ? $fbUsb->fetch() : null;
-    }
     if ($rpRow) {
         $posReceiptPrinter = [
             'printer_id'   => (int)$rpRow['id'],

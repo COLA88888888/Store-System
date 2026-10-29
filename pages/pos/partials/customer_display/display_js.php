@@ -6,9 +6,15 @@
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/pos/customer_display.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 ?><script>
-// ຂໍ້ຄວາມທີ່ JS ສ້າງ ຕາມພາສາທີ່ເລືອກ (lang/*/customer_display.php)
-var CD_I18N = <?php echo tjson(array_fill_keys(['cd.qr_show', 'cd.qr_pay', 'cd.paid_by_cash', 'cd.paid_by_transfer', 'cd.paid_by_split',
-                                                 'cd.bank', 'cd.invoice_no', 'cd.lines', 'cd.pieces'], null)); ?>;
+// ຂໍ້ຄວາມຂອງຈໍລູກຄ້າ ທຸກພາສາ (lang/*/customer_display.php; ຄຳທີ່ຂາດ → ພາສາລາວ) — ປ່ຽນພາສາທັນທີໂດຍບໍ່ໂຫຼດໜ້າໃໝ່ (cdApplyLang)
+var CD_ALL_LANG = <?php
+  $__cdLo = loadLangDomain('lo', 'customer_display');
+  $__cdAll = [];
+  foreach (POS_SUPPORTED_LANGS as $__lc) { $__cdAll[$__lc] = array_merge($__cdLo, array_filter(loadLangDomain($__lc, 'customer_display'), 'strlen')); }
+  echo json_encode($__cdAll, JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG);
+?>;
+var CD_LANG = <?php echo json_encode(getCurrentLang()); ?>;
+var CD_I18N = Object.assign({}, CD_ALL_LANG[CD_LANG] || CD_ALL_LANG.lo);
 function cdT(key) { return CD_I18N[key] || key; }
 
 // ===== Display currency (cart data arrives in KIP; shown in the active currency) =====
@@ -30,7 +36,9 @@ window.CD_DEFAULT_CUR = Object.assign({}, window.CD_CUR);
 
 function cdFmt(v) {
   v = parseFloat(v) || 0;
-  return v.toLocaleString('en-US', { minimumFractionDigits: CD_CUR.decimals, maximumFractionDigits: CD_CUR.decimals }) + ' <span class="cur-sym">' + CD_CUR.symbol + '</span>';
+  // ກີບ: ໃຊ້ຄຳຂອງພາສາປັດຈຸບັນສະເໝີ (ໜ້າຂາຍອາດສົ່ງສັນຍາລັກພາສາເກົ່າມາ ຫຼັງປ່ຽນພາສາ)
+  var sym = CD_CUR.isKip ? cdT('cd.kip') : CD_CUR.symbol;
+  return v.toLocaleString('en-US', { minimumFractionDigits: CD_CUR.decimals, maximumFractionDigits: CD_CUR.decimals }) + ' <span class="cur-sym">' + sym + '</span>';
 }
 function cdFmtKip(kip) {
   var v = Math.round(parseFloat(kip) || 0);
@@ -378,19 +386,48 @@ window.addEventListener('storage', function(e) {
   }
 });
 
-// ປ່ຽນພາສາຢູ່ໜ້າຫຼັກ (ທຸງໃນ navbar → home/partials/dashboard/js_language.php) → ຈໍລູກຄ້າປ່ຽນນຳ:
-// ພາສາເກັບໄວ້ໃນ session ແລ້ວ ຈຶ່ງໂຫຼດໜ້ານີ້ໃໝ່ (ກະຕ່າກັບມາເອງຈາກ localStorage — loadInitialData).
-// ລະຫວ່າງລູກຄ້າກຳລັງຊຳລະ (QR / ຊຳລະສຳເລັດ ເປີດຢູ່) ລໍໃຫ້ປິດກ່ອນ ຈຶ່ງໂຫຼດໃໝ່.
-var CD_LANG = <?php echo json_encode(getCurrentLang()); ?>;
+// ປ່ຽນພາສາຢູ່ໜ້າຫຼັກ (ທຸງໃນ navbar → home/partials/dashboard/js_language.php) → ຈໍລູກຄ້າປ່ຽນນຳທັນທີ ບໍ່ໂຫຼດໜ້າໃໝ່:
+//  1. ແປຂໍ້ຄວາມທີ່ແຕ້ມໄວ້ແລ້ວ: ຂໍ້ຄວາມໃດກົງກັບຄຳຂອງພາສາເກົ່າ → ຄຳດຽວກັນຂອງພາສາໃໝ່ (CD_ALL_LANG)
+//  2. ແຕ້ມລາຍການ/ຍອດເງິນຄືນ ດ້ວຍຂໍ້ມູນລ່າສຸດ (localStorage) — ຫົວໜ່ວຍ, ກີບ, "N ລາຍການ / N ອັນ"
+//  3. ສາກ 3D: ປ້າຍຮ້ານ/ໃບບິນ (minimart3dSetLang ໃນ minimart_3d.php)
+// ລະຫວ່າງລູກຄ້າກຳລັງຊຳລະ (QR / ຊຳລະສຳເລັດ ເປີດຢູ່) ລໍໃຫ້ປິດກ່ອນ ຈຶ່ງປ່ຽນ.
 var _cdLangTimer = null;
+function cdTranslateDom(fromLang, toLang) {
+  var from = CD_ALL_LANG[fromLang] || {}, to = CD_ALL_LANG[toLang] || {}, rev = {};
+  Object.keys(from).forEach(function (k) { var v = String(from[k] || '').trim(); if (v && to[k]) rev[v] = to[k]; });
+  var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: function (n) { return /^(SCRIPT|STYLE)$/.test(n.parentNode && n.parentNode.nodeName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; }
+  });
+  var nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(function (n) { var t = n.nodeValue.trim(); if (t && rev[t]) n.nodeValue = n.nodeValue.replace(t, rev[t]); });
+  document.querySelectorAll('[title]').forEach(function (el) { var t = el.getAttribute('title').trim(); if (rev[t]) el.setAttribute('title', rev[t]); });
+}
 function cdApplyLang(lang) {
-  if (!lang || lang === CD_LANG) return;
+  if (!lang || lang === CD_LANG || !CD_ALL_LANG[lang]) return;
   if ($('#bankPayPopup').is(':visible') || $('#paymentSuccessOverlay').is(':visible') || $('#queueFlash').is(':visible')) {
     clearTimeout(_cdLangTimer);
     _cdLangTimer = setTimeout(function () { cdApplyLang(lang); }, 1500);
     return;
   }
-  window.location.reload();
+  var fromLang = CD_LANG;
+  cdTranslateDom(fromLang, lang);
+  CD_LANG = lang;
+  CD_I18N = Object.assign({}, CD_ALL_LANG[lang]);
+  document.documentElement.lang = lang;
+  // ແຕ້ມຄືນດ້ວຍຂໍ້ມູນລ່າສຸດ (ບໍ່ໃຫ້ປັອບອັບຊຳລະສຳເລັດເກົ່າເດັ້ງຄືນ — ຄືກັບ loadInitialData)
+  var d = null;
+  try { d = JSON.parse(localStorage.getItem('StoreMini.customer_display_data') || 'null'); } catch (e) {}
+  if (!d) d = { cart: [], discount: 0, checkoutState: 'shopping' };
+  if (d.checkoutState === 'payment_success') {
+    d.cart = []; d.cashReceived = 0; d.qrReceived = 0; d.changeAmount = 0; d.totalAmount = 0; d.paidAmount = 0;
+    d.checkoutState = 'shopping';
+  }
+  window._currentTbodyFingerprint = null;   // ບັງຄັບແຕ້ມຕາຕະລາງໃໝ່ (ຫົວໜ່ວຍ/ຄຳ ຕາມພາສາໃໝ່)
+  renderDisplayData(d);
+  if (typeof window.minimart3dSetLang === 'function') {
+    try { window.minimart3dSetLang(CD_ALL_LANG[fromLang], CD_ALL_LANG[lang]); } catch (e) {}
+  }
 }
 try {
   new BroadcastChannel('StoreMini.ui_lang_channel').onmessage = function(e) {

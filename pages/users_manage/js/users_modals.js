@@ -25,7 +25,11 @@ function openViewModal(user) {
   document.getElementById('view_notes').innerText = user.notes || '-';
 
   var imgName = user.profile_img || 'default.png';
-  document.getElementById('view_avatar').src = basePath + 'assets/img/users/' + imgName;
+  var viewAv = document.getElementById('view_avatar');
+  if (viewAv) {
+    viewAv.src = basePath + 'assets/img/users/' + imgName;
+    viewAv.setAttribute('data-preview-title', (user.fname || user.username || '') + (user.user_code ? ' (' + user.user_code + ')' : ''));
+  }
 
   var st = (user.status || user.userstatus || 'ພະນັກງານ').trim();
   var isOnline = !!user.is_online;

@@ -38,4 +38,7 @@ return [
     'home.period_month' => '本月', 'home.period_year' => '全年',
     'home.chart_revenue_hourly' => '每小时收入图表', 'home.chart_revenue_daily' => '每日收入图表',
     'home.badge_hours' => '24 小时', 'home.badge_days' => '%s 天', 'home.badge_months' => '%s 个月',
+    'home.lbl_date' => '日期', 'home.lbl_month' => '月份', 'home.lbl_year' => '年', 'home.lbl_time' => '时间',
+    'home.unit_hour' => '点', 'home.unit_qty' => '件',
+    'home.million_suffix' => '百万基普', 'home.thousand_suffix' => '千基普',
 ];

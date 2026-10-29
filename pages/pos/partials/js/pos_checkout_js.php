@@ -48,6 +48,9 @@ function resetPOS() {
     localStorage.setItem('StoreMini.active_bills', JSON.stringify(activeBills));
     loadBillState(currentBillId);
   }
+  if (window.POSCUR && POSCUR.setCurrency) POSCUR.setCurrency('KIP');
+  $('#checkoutCurrency').val('KIP');
+  try { localStorage.removeItem('StoreMini.tender_currency'); } catch (e) {}
   $('#receiptModal').modal('hide');
   $('#barcodeInput').val('').focus();
 }
@@ -87,11 +90,16 @@ function formatPriceInput(input) {
 
 // Tender-currency selector inside the checkout modal (per-bill). Switching it re-bases
 // POSCUR so the amount field, change calc and the checkout payload all use that currency.
+// ບໍ່ໃຫ້ບັນທຶກລົງ localStorage ຂ້າມບິນ — ຖ້າເລືອກໃນລະຫວ່າງຍັງບໍ່ຊຳລະແມ່ນຄ້າງສະເພາະບິນນີ້, ເມື່ອປິດອອກ ຫຼື ຊຳລະສຳເລັດຈະກັບເປັນກີບສະເໝີ.
 function onCheckoutCurrencyChange(code) {
   if (!window.POSCUR || !POSCUR.setCurrency) return;
   POSCUR.setCurrency(code || 'KIP');
-  try { localStorage.setItem('StoreMini.tender_currency', POSCUR.code); } catch (e) {}
+  try { localStorage.removeItem('StoreMini.tender_currency'); } catch (e) {}
   var netKip = window.CART_NET_KIP || 0;
+  $('#checkoutCurrency').val(POSCUR.code);
+  $('#cashReceived').closest('.input-group').find('.input-group-text').text(POSCUR.symbol || '₭');
+  $('#splitCashAmount').closest('.input-group').find('.input-group-text').text(POSCUR.symbol || '₭');
+  $('#splitQrAmount').closest('.input-group').find('.input-group-text').text(POSCUR.symbol || '₭');
   $('#checkoutTotalDisplay').html(posFmtTotal(netKip));
   $('#cashReceived').val(POSCUR.num(netKip));
   $('#splitCashAmount').val(POSCUR.num(netKip));
@@ -117,7 +125,12 @@ if (window.jQuery) {
           window.parent.document.body.classList.remove('pos-modal-open');
         }
       } catch (e) {}
-      if (window.POSCUR && POSCUR.setCurrency) POSCUR.setCurrency(window.POS_DISPLAY_CURRENCY || 'KIP');
+      if (window.POSCUR && POSCUR.setCurrency) POSCUR.setCurrency('KIP');
+      $('#checkoutCurrency').val('KIP');
+      $('#cashReceived').closest('.input-group').find('.input-group-text').text(window.POSCUR ? POSCUR.symbol : '₭');
+      $('#splitCashAmount').closest('.input-group').find('.input-group-text').text(window.POSCUR ? POSCUR.symbol : '₭');
+      $('#splitQrAmount').closest('.input-group').find('.input-group-text').text(window.POSCUR ? POSCUR.symbol : '₭');
+      try { localStorage.removeItem('StoreMini.tender_currency'); } catch (e) {}
 
       // ຖ້າຫາກ modal ປິດຍ້ອນຊຳລະເງິນສຳເລັດ: ຫ້າມສົ່ງ 'shopping' ໄປທັບໜ້າຈໍລູກຄ້າ (ໃຫ້ຈໍລູກຄ້າສະແດງຍອດຊຳລະສຳເລັດຄ້າງໄວ້)
       if (window.__isCheckoutSuccessFinishing) {

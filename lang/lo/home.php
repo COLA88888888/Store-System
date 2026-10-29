@@ -38,4 +38,7 @@ return [
     'home.period_month' => 'ເດືອນນີ້', 'home.period_year' => 'ທັງປີ',
     'home.chart_revenue_hourly' => 'ກາຟລາຍຮັບລາຍຊົ່ວໂມງ', 'home.chart_revenue_daily' => 'ກາຟລາຍຮັບລາຍວັນ',
     'home.badge_hours' => '24 ຊົ່ວໂມງ', 'home.badge_days' => '%s ວັນ', 'home.badge_months' => '%s ເດືອນ',
+    'home.lbl_date' => 'ວັນທີ', 'home.lbl_month' => 'ເດືອນ', 'home.lbl_year' => 'ປີ', 'home.lbl_time' => 'ເວລາ',
+    'home.unit_hour' => 'ໂມງ', 'home.unit_qty' => 'ອັນ',
+    'home.million_suffix' => 'ລ້ານກີບ', 'home.thousand_suffix' => 'ພັນກີບ',
 ];

@@ -376,5 +376,7 @@ if (!isset($base_path)) {
           }, true);
       })();
     </script>
+
+    <?php require_once __DIR__ . '/image_preview_modal.php'; /* Lightbox ສະແດງຮູບສິນຄ້າ & ຮູບຜູ້ນຳໃຊ້ */ ?>
   </body>
 </html>

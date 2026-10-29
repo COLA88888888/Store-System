@@ -323,7 +323,7 @@
     $chartTip    = [];
     $chartBills  = [];
     foreach (($perDayRows ?? []) as $row) {
-      $chartLabels[] = $row['day_date'];
+      $chartLabels[] = !empty($row['day_date']) ? date('d/m/Y', strtotime($row['day_date'])) : '';
       $chartNet[]    = (float)$row['day_net'];
       $chartCash[]   = (float)$row['day_cash'];
       $chartQr[]     = (float)$row['day_qr'];
@@ -332,7 +332,7 @@
     }
     // If no data, use today as placeholder with 0
     if (empty($chartLabels)) {
-      $chartLabels = [date('Y-m-d')];
+      $chartLabels = [date('d/m/Y')];
       $chartNet = $chartCash = $chartQr = $chartTip = $chartBills = [0];
     }
     $totalCash = array_sum($chartCash);

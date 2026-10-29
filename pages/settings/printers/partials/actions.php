@@ -64,16 +64,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         // Only one printer at a time gets the customer receipt (mirrors tbstore.is_main:
         // setting a new one unsets the old one) — scoped to THIS branch only, so setting a
         // receipt printer here never touches another branch's own receipt-printer choice.
-        // Restricted to Network LAN printers — a 'browser' printer needs no designation,
-        // it's already what happens by default.
         $id = intval($_POST['id'] ?? 0);
         try {
             $target = $pdo->prepare("SELECT type, status, branch_id FROM st_tbl_printer WHERE id = ?");
             $target->execute([$id]);
             $row = $target->fetch();
             $ownsRow = $row && (int)$row['branch_id'] === $myPrinterStoreId;
-            if (!$row || !$ownsRow || !in_array($row['type'], ['ip', 'usb'], true) || !$row['status']) {
-                $message = t('printers.receipt_needs_lan', 'ເລືອກໄດ້ສະເພາະເຄື່ອງພິມ Network LAN ທີ່ເປີດໃຊ້ງານຢູ່ເທົ່ານັ້ນ!');
+            if (!$row || !$ownsRow || !in_array($row['type'], ['ip', 'usb', 'browser'], true) || !$row['status']) {
+                $message = t('printers.receipt_needs_lan', 'ເລືອກໄດ້ສະເພາະເຄື່ອງພິມທີ່ເປີດໃຊ້ງານຢູ່ເທົ່ານັ້ນ!');
                 $message_type = 'warning';
             } else {
                 $rowBranchId = (int)$row['branch_id'];

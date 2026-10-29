@@ -57,14 +57,13 @@ function openCheckoutModal() {
   $('#posNoQrMessage').hide();
   $('#posActiveBankNameTitle').text('');
 
-  // Tender currency: reuse the cashier's last pick (a shop that always takes Baht sets it
-  // once), falling back to the POS display currency. Still changeable per bill.
-  var savedTender = '';
-  try { savedTender = localStorage.getItem('StoreMini.tender_currency') || ''; } catch (e) {}
-  var wantTender = (savedTender && $('#checkoutCurrency option[value="' + savedTender + '"]').length)
-    ? savedTender : (window.POS_DISPLAY_CURRENCY || 'KIP');
-  if (window.POSCUR && POSCUR.setCurrency) POSCUR.setCurrency(wantTender);
-  $('#checkoutCurrency').val(POSCUR ? POSCUR.code : 'KIP');
+  // ເລີ່ມຕົ້ນສະກຸນເງິນເປັນ ກີບ (KIP) ສະເໝີ — ບໍ່ໃຫ້ຄ້າງຄ່າສະກຸນເງິນເກົ່າ (ປິດອອກ ຫຼື ຊຳລະເລີ່ມຕົ້ນເປັນກີບ)
+  try { localStorage.removeItem('StoreMini.tender_currency'); } catch (e) {}
+  if (window.POSCUR && POSCUR.setCurrency) POSCUR.setCurrency('KIP');
+  $('#checkoutCurrency').val('KIP');
+  $('#cashReceived').closest('.input-group').find('.input-group-text').text(window.POSCUR ? POSCUR.symbol : '₭');
+  $('#splitCashAmount').closest('.input-group').find('.input-group-text').text(window.POSCUR ? POSCUR.symbol : '₭');
+  $('#splitQrAmount').closest('.input-group').find('.input-group-text').text(window.POSCUR ? POSCUR.symbol : '₭');
 
   selectPayTypeTab('ເງິນສົດ');
   var netKip = window.CART_NET_KIP || 0;

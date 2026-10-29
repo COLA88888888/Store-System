@@ -7,81 +7,49 @@
  * - ລູກຄ້າ 18 ຄົນ ຍ່າງເລືອກຊື້ເຄື່ອງ (ນ້ຳສົ້ມ, ເຂົ້າໜົມ, ເຄື່ອງສຳອາງ) ເດ່ມືหยິບສິນຄ້າໃສ່ກະຕ່າ ແລ້ວຍ່າງໄປຊຳລະເງິນໜ້າເຄົ້າເຕີຄືຄົນຈິງ
  */
 
-$__mmStoreId = function_exists('getPosStoreId') ? (int)getPosStoreId() : (int)($_SESSION['active_store_id'] ?? ($_SESSION['store_id'] ?? 1));
-$__compRawName = !empty($company['com_name']) ? trim(str_replace('#', '', (string)$company['com_name'])) : '';
-$__mmStoreName = $__compRawName !== '' ? $__compRawName : 'WlaoDev MiniMart';
-$__mmBranchName = '';
+$__mmStoreId   = function_exists('getPosStoreId') ? (int)getPosStoreId() : (int)($_SESSION['active_store_id'] ?? ($_SESSION['store_id'] ?? 1));
+$__mmStoreName = '';
+$__mmAddress   = '';
 
 try {
-    $__extractNameAndBranch = function (string $text): array {
-        $text = trim(str_replace('#', '', $text));
-        if ($text !== '' && preg_match('/^(.*?)\s*(ສາຂາ.*)$/u', $text, $m)) {
-            return [
-                'name'   => trim($m[1], " \t\n\r\0\x0B-_:"),
-                'branch' => trim($m[2]),
-            ];
-        }
-        return ['name' => $text, 'branch' => ''];
-    };
-
-    $__parsedComp = $__extractNameAndBranch($__compRawName);
-    $__bestStoreName = $__parsedComp['name'];
-    $__bestBranchName = $__parsedComp['branch'];
-
     if (isset($pdo) && $pdo) {
-        $__cStmt = $pdo->query("SELECT com_name_la FROM st_tbcompanyinfo ORDER BY branch_id ASC LIMIT 1");
-        if ($__cStmt) {
-            $__mainCompRaw = trim((string)$__cStmt->fetchColumn());
-            $__parsedMain = $__extractNameAndBranch($__mainCompRaw);
-            if (mb_strlen($__parsedMain['name'], 'UTF-8') > mb_strlen($__bestStoreName, 'UTF-8')) {
-                $__bestStoreName = $__parsedMain['name'];
-            }
-            if ($__bestBranchName === '' && $__parsedMain['branch'] !== '') {
-                $__bestBranchName = $__parsedMain['branch'];
-            }
-        }
-
-        $__bStmt = $pdo->prepare("SELECT store_name, store_code, is_main FROM st_tbstore WHERE store_id = ? LIMIT 1");
+        $__bStmt = $pdo->prepare("SELECT store_name, address FROM st_tbstore WHERE store_id = ? LIMIT 1");
         $__bStmt->execute([$__mmStoreId]);
         $__bRow = $__bStmt->fetch(PDO::FETCH_ASSOC);
 
         if ($__bRow) {
-            $__rawStoreName = trim(str_replace('#', '', (string)($__bRow['store_name'] ?? '')));
-            $__storeCode    = trim(str_replace('#', '', (string)($__bRow['store_code'] ?? '')));
-            $__isMain       = !empty($__bRow['is_main']);
+            $__mmStoreName = trim((string)($__bRow['store_name'] ?? ''));
+            $__mmAddress   = trim((string)($__bRow['address'] ?? ''));
+        }
 
-            $__parsedStore = $__extractNameAndBranch($__rawStoreName);
-            if (mb_strlen($__parsedStore['name'], 'UTF-8') > mb_strlen($__bestStoreName, 'UTF-8')) {
-                $__bestStoreName = $__parsedStore['name'];
-            }
-            if ($__parsedStore['branch'] !== '') {
-                $__bestBranchName = $__parsedStore['branch'];
-            } elseif ($__bestBranchName === '') {
-                if ($__rawStoreName !== '' && $__rawStoreName !== $__bestStoreName && mb_strpos($__bestStoreName, $__rawStoreName) === false) {
-                    $__bestBranchName = t('cd.branch') . ' ' . $__rawStoreName;
-                } elseif ($__storeCode !== '') {
-                    $__bestBranchName = t('cd.branch') . ' ' . $__storeCode;
-                } elseif ($__isMain) {
-                    $__bestBranchName = t('cd.main_branch');
-                } else {
-                    $__bestBranchName = t('cd.branch') . ' ' . $__mmStoreId;
+        if ($__mmStoreName === '' || $__mmAddress === '') {
+            $__cStmt = $pdo->query("SELECT com_name_la, com_address FROM st_tbcompanyinfo ORDER BY branch_id ASC LIMIT 1");
+            if ($__cStmt && ($__cRow = $__cStmt->fetch(PDO::FETCH_ASSOC))) {
+                if ($__mmStoreName === '') {
+                    $__mmStoreName = trim((string)($__cRow['com_name_la'] ?? ''));
+                }
+                if ($__mmAddress === '') {
+                    $__mmAddress = trim((string)($__cRow['com_address'] ?? ''));
                 }
             }
         }
     }
-
-    if ($__bestStoreName !== '') {
-        $__mmStoreName = $__bestStoreName;
-    }
-    $__mmBranchName = $__bestBranchName;
 } catch (Throwable $e) {}
+
+if ($__mmStoreName === '') {
+    $__mmStoreName = !empty($company['com_name']) ? trim((string)$company['com_name']) : 'POS MiniMart';
+}
+if ($__mmAddress === '') {
+    $__mmAddress = !empty($company['com_address']) ? trim((string)$company['com_address']) : '';
+}
 ?>
 <script>
 (function() {
   'use strict';
 
   var MM_STORE_NAME  = <?php echo json_encode($__mmStoreName, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
-  var MM_BRANCH_NAME = <?php echo json_encode($__mmBranchName, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+  var MM_ADDRESS     = <?php echo json_encode($__mmAddress, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+  var MM_BRANCH_NAME = MM_ADDRESS;
   // ຂໍ້ຄວາມທີ່ແຕ້ມເທິງຈໍ/ໃບບິນໃນສາກ 3D ຕາມພາສາທີ່ເລືອກ (lang/*/customer_display.php)
   var CD_MM_T = <?php echo tjson(array_fill_keys(['cd.col_item', 'cd.col_qty', 'cd.col_total', 'cd.receipt', 'cd.thank_you', 'cd.scanning', 'cd.scan_ok',
                                                   'cd.demo_juice', 'cd.demo_chips', 'cd.demo_lotion', 'cd.demo_lipstick', 'cd.demo_milk'], null)); ?>;
@@ -212,26 +180,13 @@ try {
         ctx.beginPath(); ctx.arc(pt[0], pt[1], 11, 0, Math.PI * 2); ctx.fill();
       });
 
-      var mainText = String(MM_STORE_NAME || 'WlaoDev MiniMart').trim();
-      var subText  = String(MM_BRANCH_NAME || '').trim();
-
-      var mSplit = mainText.match(/^(.*?)\s*(ສາຂາ.*)$/);
-      if (mSplit && mSplit[1].trim()) {
-        mainText = mSplit[1].trim();
-        if (!subText) subText = mSplit[2].trim();
-      }
-      var sSplit = subText.match(/^(.*?)\s*(ສາຂາ.*)$/);
-      if (sSplit && sSplit[2].trim()) {
-        if (sSplit[1].trim().length > mainText.length) {
-          mainText = sSplit[1].trim();
-        }
-        subText = sSplit[2].trim();
-      }
+      var mainText = String(MM_STORE_NAME || 'POS MiniMart').trim();
+      var subText  = String(MM_ADDRESS || '').trim();
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      // ປັບຂະໜາດຟອນຊື່ເຕັມຮ້ານອັດຕະໂນມັດໃຫ້ສົມສ່ວນເປັນແຖວດຽວ (ບໍ່ລົ້ນຂອບ ແລະ ເຫັນສະຫຼະ/วรรณยุกต์ລາວຄົບຖ້ວນ)
+      // ປັບຂະໜາດຟອນຊື່ຮ້ານ (ແຖວທີ 1) ອັດຕະໂນມັດໃຫ້ສົມສ່ວນເປັນແຖວດຽວ (ບໍ່ລົ້ນຂອບ ແລະ ເຫັນສະຫຼະ/วรรณยุกต์ລາວຄົບຖ້ວນ)
       var mainFontSize = 136;
       var fontStack = '"Nuanta", "Noto Sans Lao", "Phetsarath OT", "Souliyo", sans-serif';
       ctx.font = '900 ' + mainFontSize + 'px ' + fontStack;
@@ -240,8 +195,8 @@ try {
         ctx.font = '900 ' + mainFontSize + 'px ' + fontStack;
       }
 
-      // ວາງ mainY ຢູ່ 202px ເພື່ອໃຫ້ສົມສ່ວນກັບແຖວສາຂາທາງລຸ່ມ
-      var mainY = subText ? 202 : 255;
+      // ຖ້າມີແຖວທີ 2 (ສະຖານທີ່ຢູ່) ໃຫ້ວາງແຖວ 1 ຢູ່ y = 195, ຖ້າບໍ່ມີໃຫ້ວາງຢູ່ກາງປ້າຍ y = 250
+      var mainY = subText ? 195 : 250;
       var maxExtrude = Math.max(5, Math.round(mainFontSize * 0.065));
       var strokeW = Math.max(3, Math.round(mainFontSize * 0.038));
 
@@ -271,23 +226,23 @@ try {
       ctx.fillStyle = faceGrad;
       ctx.fillText(mainText, W / 2, mainY);
 
-      // 4) ແຖວທີ 2: ຊື່ສາຂາຢູ່ລຸ່ມ (ບໍ່ມີກາດຫຸ້ມ, ແຖວດຽວສົມສ່ວນ)
+      // 4) ແຖວທີ 2: ສະຖານທີ່ຢູ່ (Location / Address) ແຖວດຽວສົມສ່ວນ
       if (subText) {
-        var subY = 376;
-        var subFontSize = Math.min(76, Math.max(46, Math.round(mainFontSize * 0.68)));
-        ctx.font = '800 ' + subFontSize + 'px ' + fontStack;
-        while (subFontSize > 40 && ctx.measureText(subText).width > W - 240) {
-          subFontSize -= 3;
-          ctx.font = '800 ' + subFontSize + 'px ' + fontStack;
+        var subY = 368;
+        var subFontSize = Math.min(68, Math.max(36, Math.round(mainFontSize * 0.55)));
+        ctx.font = '700 ' + subFontSize + 'px ' + fontStack;
+        while (subFontSize > 30 && ctx.measureText(subText).width > W - 220) {
+          subFontSize -= 2;
+          ctx.font = '700 ' + subFontSize + 'px ' + fontStack;
         }
 
-        // ເງົາ 3D ທາງລຸ່ມຂອງຊື່ສາຂາ (ບໍ່ມີກາດ/ກອບ Pill ຫຸ້ມ)
+        // ເງົາ 3D ທາງລຸ່ມຂອງສະຖານທີ່ຢູ່
         ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
-        ctx.fillText(subText, W / 2 + 5, subY + 7);
+        ctx.fillText(subText, W / 2 + 4, subY + 5);
 
-        ctx.lineWidth = Math.max(2.5, Math.round(subFontSize * 0.05));
+        ctx.lineWidth = Math.max(2, Math.round(subFontSize * 0.05));
         ctx.strokeStyle = '#082f49';
-        ctx.strokeText(subText, W / 2 + 2, subY + 3);
+        ctx.strokeText(subText, W / 2 + 1, subY + 2);
 
         var subGrad = ctx.createLinearGradient(0, subY - subFontSize * 0.5, 0, subY + subFontSize * 0.5);
         subGrad.addColorStop(0, '#ffffff');
@@ -605,7 +560,7 @@ try {
 
       ctx.fillStyle = '#e0f2fe';
       ctx.font = 'bold 13px sans-serif';
-      ctx.fillText((MM_BRANCH_NAME || MM_STORE_NAME).substring(0, 18), 352, 26);
+      ctx.fillText(MM_STORE_NAME.substring(0, 18), 352, 26);
 
       // Left Product Grid Panel
       ctx.fillStyle = '#ffffff';
@@ -716,7 +671,7 @@ try {
       ctx.fillText((MM_STORE_NAME || 'WlaoDev POS').substring(0, 20), 128, 42);
       ctx.font = 'bold 16px sans-serif';
       ctx.fillStyle = '#244886';
-      ctx.fillText(MM_BRANCH_NAME || CD_MM_T['cd.receipt'], 128, 70);
+      ctx.fillText(MM_ADDRESS ? MM_ADDRESS.substring(0, 24) : CD_MM_T['cd.receipt'], 128, 70);
       ctx.textAlign = 'left';
 
       ctx.fillStyle = '#64748b';
@@ -2031,7 +1986,7 @@ try {
         renderer.render(scene, camera);
         var posterUrl = renderer.domElement.toDataURL('image/jpeg', 0.82);
         if (posterUrl && posterUrl.length > 100) {
-          localStorage.setItem('StoreMini.mm3d_poster_v5', posterUrl);
+          localStorage.setItem('StoreMini.mm3d_poster_v6', posterUrl);
           container.style.backgroundImage = 'url(' + posterUrl + ')';
         }
       } catch(e) {}
@@ -2047,6 +2002,20 @@ try {
     window.minimart3dCelebrate = function() {
       coinMesh.visible = true;
       setTimeout(function() { coinMesh.visible = false; }, 2500);
+    };
+
+    // ປ່ຽນພາສາທັນທີ (display_js.php cdApplyLang): ຄຳໃນສາກ 3D, ແລ້ວແຕ້ມປ້າຍ + ໃບບິນໃໝ່.
+    // ຈໍ POS ໃນສາກ (drawPosScreen) ແຕ້ມຄືນທຸກເຟຣມຈາກ CD_MM_T ຢູ່ແລ້ວ.
+    window.minimart3dSetLang = function(fromDict, toDict) {
+      fromDict = fromDict || {}; toDict = toDict || {};
+      Object.keys(CD_MM_T).forEach(function(k) { if (toDict[k]) CD_MM_T[k] = toDict[k]; });
+      renderStoreSignCanvas();
+      var oldTex = receiptMat.map;
+      receiptMat.map = createReceiptTexture();
+      receiptMat.needsUpdate = true;
+      if (oldTex && oldTex.dispose) oldTex.dispose();
+      renderer.render(scene, camera);
+      setTimeout(savePosterSnapshot, 350);   // ພາບສຳຮອງ (localStorage) ເປັນພາສາໃໝ່ ສຳລັບການເປີດຄັ້ງຕໍ່ໄປ
     };
   }
 

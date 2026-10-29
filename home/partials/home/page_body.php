@@ -201,7 +201,7 @@
   <!-- Row 2: 2 Primary Charts (Monthly Revenue for Selected Year & Yearly Sales Comparison) -->
   <div class="row mb-4">
     <!-- Chart 1: Monthly Revenue for Selected Year -->
-    <div class="col-lg-8 mb-4 mb-lg-0">
+    <div class="col-lg-6 mb-4 mb-lg-0">
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: #ffffff;">
         <div class="card-header bg-white border-0 py-3 px-3.5 d-flex justify-content-between align-items-center">
           <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
@@ -218,7 +218,7 @@
     </div>
 
     <!-- Chart 2: Yearly Sales Comparison -->
-    <div class="col-lg-4">
+    <div class="col-lg-6">
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: #ffffff;">
         <div class="card-header bg-white border-0 py-3 px-3.5 d-flex justify-content-between align-items-center">
           <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
@@ -226,7 +226,7 @@
           </h6>
         </div>
         <div class="card-body p-3">
-          <div style="position: relative; height: 320px; width: 100%;">
+          <div style="position: relative; height: 380px; width: 100%;">
             <canvas id="yearlySalesChart"></canvas>
           </div>
         </div>
@@ -262,7 +262,7 @@
           <span class="badge badge-light border text-danger font-weight-bold px-2.5 py-1">Top 10</span>
         </div>
         <div class="card-body p-3">
-          <div style="position: relative; min-height: 360px; height: 360px; width: 100%;">
+          <div style="position: relative; min-height: 380px; height: 380px; width: 100%;">
             <canvas id="topSellersChart"></canvas>
           </div>
         </div>

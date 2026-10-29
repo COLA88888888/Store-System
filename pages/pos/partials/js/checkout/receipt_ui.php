@@ -183,8 +183,15 @@
     res.details.forEach(function(d) {
       var rawName = d.proname || '';
       var isGift = !!d.is_free_gift || d.price === 0 || rawName.includes('(ແຖມ)');
-      // ຕັດຂະໜາດ/ຫົວໜ່ວຍໃນວົງເລັບ () ອອກ ເອົາແຕ່ຊື່ສິນຄ້າສັ້ນໆ
-      var displayName = rawName.replace(/\s*\([^)]*\)/g, '').trim() || rawName;
+      // ເອົາຫົວໜ່ວຍໃສ່ນຳ ຖັດຈາກຊື່ສິນຄ້າ ເຊັ່ນ: (ແພັກ), (ຖົງ)
+      var uName = (d.unit_name || d.unit || '').trim();
+      var cleanName = rawName.replace(/\(ແຖມ\)/g, '').trim();
+      if (!uName) {
+        var m = cleanName.match(/\(([^)]+)\)/);
+        if (m) uName = m[1].trim();
+      }
+      var baseName = cleanName.replace(/\s*\([^)]*\)/g, '').trim() || cleanName;
+      var displayName = uName ? (baseName + ' (' + uName + ')') : baseName;
       var origUnitPrice = parseFloat(d.original_price || d.price) || 0;
       var curUnitPrice = parseFloat(d.price) || 0;
       var totalAmt = parseFloat(d.total) || (curUnitPrice * d.qty);

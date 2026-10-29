@@ -38,4 +38,7 @@ return [
     'home.period_month' => 'เดือนนี้', 'home.period_year' => 'ทั้งปี',
     'home.chart_revenue_hourly' => 'กราฟรายรับรายชั่วโมง', 'home.chart_revenue_daily' => 'กราฟรายรับรายวัน',
     'home.badge_hours' => '24 ชั่วโมง', 'home.badge_days' => '%s วัน', 'home.badge_months' => '%s เดือน',
+    'home.lbl_date' => 'วันที่', 'home.lbl_month' => 'เดือน', 'home.lbl_year' => 'ปี', 'home.lbl_time' => 'เวลา',
+    'home.unit_hour' => 'น.', 'home.unit_qty' => 'ชิ้น',
+    'home.million_suffix' => 'ล้านกีบ', 'home.thousand_suffix' => 'พันกีบ',
 ];

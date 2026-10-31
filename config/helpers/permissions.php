@@ -114,8 +114,10 @@ if (!function_exists('hasPermission')) {
             'shift_report'         => 'report',
             'shift_close_report'   => 'report',
             'shift_revenue_report' => 'report',
+            'expiry_report'        => 'report',
             'stock_transfer'   => 'stock_transfer',
-            'transfer_history' => 'transfer_history'
+            'transfer_history' => 'transfer_history',
+            'clear_data'       => 'clear_data'
         ];
 
         $targetModule = $aliasMap[$module] ?? $module;
@@ -198,10 +200,8 @@ if (!function_exists('isAdminAccount')) {
             return true;
         }
         if (!$row) return false;
-        $status = trim((string)($row['status'] ?? $row['userstatus'] ?? ''));
-        return $status === 'ຜູ້ບໍລິຫານ'
-            || strtolower($status) === 'admin'
-            || strtolower($status) === 'super admin';
+        $status = mb_strtolower(trim((string)($row['status'] ?? $row['userstatus'] ?? '')));
+        return in_array($status, ['ຜູ້ບໍລິຫານ', 'ผู้บริหาร', 'admin', 'administrator', 'super admin', 'superadmin'], true);
     }
 }
 
@@ -220,7 +220,8 @@ if (!function_exists('managerRoleName')) {
 if (!function_exists('isManagerRole')) {
     function isManagerRole($status = null) {
         if ($status === null) $status = $_SESSION['status'] ?? '';
-        return trim((string)$status) === managerRoleName();
+        $s = mb_strtolower(trim((string)$status));
+        return in_array($s, ['ຜູ້ຈັດການ', 'ผู้จัดการ', 'manager'], true);
     }
 }
 if (!function_exists('managerDefaultPermissions')) {

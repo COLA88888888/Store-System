@@ -388,9 +388,9 @@ function scSummaryBox() {
     '</div>' +
     // ມູນຄ່າສິນຄ້າທີ່ຂາດ (ຈຳນວນຂາດ × ຕົ້ນທຶນ) ໃຫ້ເຫັນກ່ອນປັບສະຕັອກ
     (s.shortN > 0 ? '<div class="alert alert-danger text-left py-2 mt-2 mb-0 font-weight-bold" style="font-size:0.92rem;">' +
-      '<i class="fas fa-exclamation-triangle mr-1"></i>ສິນຄ້າຂາດ ' + scFmt(s.shortQ) + ' ໜ່ວຍ' +
-      (s.shortValue > 0 ? ' · ມູນຄ່າ (ຕົ້ນທຶນ) ' + scFmt(Math.round(s.shortValue)) + ' <?php echo kipSymbol(); ?>' : '') +
-      '<div class="small font-weight-normal mt-1">ກວດລາຍການ "ບໍ່ພໍ" ກ່ອນປັບສະຕັອກ — ປັບແລ້ວແກ້ຄືນບໍ່ໄດ້</div></div>' : '');
+      '<i class="fas fa-exclamation-triangle mr-1"></i><?php echo tlj('ສິນຄ້າຂາດ'); ?> ' + scFmt(s.shortQ) + ' <?php echo tlj('ໜ່ວຍ'); ?>' +
+      (s.shortValue > 0 ? ' · <?php echo tlj('ມູນຄ່າ (ຕົ້ນທຶນ)'); ?> ' + scFmt(Math.round(s.shortValue)) + ' <?php echo kipSymbol(); ?>' : '') +
+      '<div class="small font-weight-normal mt-1"><?php echo tlj('ກວດລາຍການ'); ?> "<?php echo tlj('ບໍ່ພໍ'); ?>" <?php echo tlj('ກ່ອນປັບສະຕັອກ'); ?> — <?php echo tlj('ປັບແລ້ວແກ້ຄືນບໍ່ໄດ້'); ?></div></div>' : '');
 }
 
 function scPostAction(act, title, html, btnText, btnColor) {

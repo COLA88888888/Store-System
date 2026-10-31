@@ -17,7 +17,7 @@ require_once dirname(__DIR__, 2) . '/config/db.php';
 
 if (!function_exists('__cvtArr')) { function __cvtArr($dc, $arr){ return array_map(function($v) use ($dc){ return convertFromKip($v, $dc['code'], $dc['rates']); }, (array)$arr); } }
 
-if (!hasPermission('daily_report') && !hasPermission('report')) {
+if (!hasPermission('daily_report')) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }

@@ -148,6 +148,7 @@ if ($conn && !empty($_SESSION['user_id'])) {
             // ລາຍງານປິດກະ, ລາຍງານລາຍຮັບຕາມກະ / ຈັດການກະ — ມີສະວິດຂອງຕົນເອງໃນໜ້າກຳນົດສິດ; ກ່ອນນັ້ນໃຊ້ report / setup
             'shift_close_report' => $isAdmin ? 1 : (int)($refresh_row['shift_close_report'] ?? $refresh_row['report'] ?? 0),
             'shift_revenue_report' => $isAdmin ? 1 : (int)($refresh_row['shift_revenue_report'] ?? $refresh_row['report'] ?? 0),
+            'expiry_report' => $isAdmin ? 1 : (int)($refresh_row['expiry_report'] ?? $refresh_row['report'] ?? 0),
             'shifts' => $isAdmin ? 1 : (int)($refresh_row['shifts'] ?? $refresh_row['setup'] ?? 0),
             'accounting' => $isAdmin ? 1 : (int)($refresh_row['accounting'] ?? 0),
             'setup' => $isAdmin ? 1 : (int)($refresh_row['setup'] ?? 0),
@@ -193,9 +194,9 @@ if ($conn && !empty($_SESSION['user_id'])) {
                     // Destroy session and redirect to login
                     session_unset();
                     session_destroy();
-                    $bName = htmlspecialchars($bRow['store_name'] ?? 'ສາຂານີ້');
+                    $bName = htmlspecialchars($bRow['store_name'] ?? tl('ສາຂານີ້'));
                     $baseLoginPath = (basename($scriptDir) === 'pages') ? '../login.php' : '../../login.php';
-                    echo "<script>alert('ສາຂາ ({$bName}) ຖືກປິດໃຊ້ງານຊົ່ວຄາວ! ລະບົບຈະອອກຈາກປະຕູເຂົ້າໃຊ້ງານ.'); window.location.href = '{$baseLoginPath}';</script>";
+                    echo ("<script>alert('" . tl('ສາຂາ') . " ({$bName}) " . tl('ຖືກປິດໃຊ້ງານຊົ່ວຄາວ! ລະບົບຈະອອກຈາກປະຕູເຂົ້າໃຊ້ງານ.') . "'); window.location.href = '{$baseLoginPath}';</script>");
                     exit();
                 }
             }

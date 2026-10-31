@@ -116,6 +116,19 @@
       <div class="bpp-amount" id="bppAmount">0</div>
       <div class="bpp-amount-kip" id="bppAmountKip" style="display:none;"></div>
       <div class="bpp-hint"><i class="fas fa-mobile-alt"></i> <?php echo htmlspecialchars(t('cd.scan_qr_hint')); ?></div>
+      <!-- Split Payment: ສະແດງເງິນສົດທີ່ຕ້ອງຈ່າຍພ້ອມ ຢູ່ລຸ່ມ QR -->
+      <div id="bppSplitSection" class="bpp-split-section" style="display:none;">
+        <div class="bpp-split-divider"></div>
+        <div class="bpp-split-cash-box" id="bppSplitCashBox">
+          <div class="bpp-split-cash-header">
+            <div class="bpp-split-cash-icon" id="bppSplitCashIcon"><i class="fas fa-money-bill-wave"></i></div>
+            <span class="bpp-split-cash-label" id="bppSplitCashLabel"><?php echo htmlspecialchars(t('cd.cash_to_pay', 'ເງິນສົດທີ່ຕ້ອງຈ່າຍ')); ?></span>
+          </div>
+          <div class="bpp-split-cash-amount" id="bppSplitCashAmount">0</div>
+          <div class="bpp-split-cash-kip" id="bppSplitCashKip" style="display:none;"></div>
+          <div class="bpp-split-cash-sub" id="bppSplitCashSub" style="display:none;"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -156,7 +169,7 @@
     <div class="left-store-panel">
       <div class="store-card minimart-store-card" style="background:#f1f5f9;">
         <!-- 3D Mini-Mart World -->
-        <div class="minimart-3d-wrap" id="minimart3dWrap" style="background:#f1f5f9;">
+        <div class="minimart-3d-wrap" id="minimart3dWrap" style="background:#f1f5f9;position:relative;">
           <!-- 3D Canvas Viewport (ເຕັມແຜງຊ້າຍມື 100%) -->
           <div id="minimart3dContainer" class="minimart-3d-container" style="position:relative;width:100%;height:100%;overflow:hidden;background-color:#f1f5f9;background-size:100% 100%;background-position:center;background-repeat:no-repeat;"></div>
           <script>

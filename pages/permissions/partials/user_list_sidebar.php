@@ -45,7 +45,9 @@
         <?php foreach ($users as $index => $u): ?>
           <?php 
             $uStatus = $u['status'] ?? $u['userstatus'] ?? '';
-            $isAdmin = (strtolower($uStatus) === 'admin' || $uStatus === 'ຜູ້ບໍລິຫານ' || $u['Id'] == 1);
+            $uStatusClean = mb_strtolower(trim((string)$uStatus));
+            $isAdmin = ($u['Id'] == 1 || in_array($uStatusClean, ['ຜູ້ບໍລິຫານ', 'ผู้บริหาร', 'admin', 'administrator', 'super admin', 'superadmin'], true));
+            $isManager = in_array($uStatusClean, ['ຜູ້ຈັດການ', 'ผู้จัดการ', 'manager'], true);
             $displayName = htmlspecialchars($u['username'] ?? 'User');
             $isActiveFirst = ($index === 0); // ເລືອກເຈົ້າຂອງລະບົບ (ຄົນທຳອິດ) ເປັນຄ່າເລີ່ມຕົ້ນ
             
@@ -63,7 +65,10 @@
                id="user-item-<?php echo $u['Id']; ?>"
                data-user-id="<?php echo $u['Id']; ?>"
                data-username="<?php echo strtolower($displayName); ?>"
-               data-status="<?php echo strtolower($uStatus); ?>"
+               data-status="<?php 
+                 $uRoleTrans = ($u['Id'] == 1) ? 'admin' : ($isManager ? t('layout.role_manager', 'ຜູ້ຈັດການ') : ($isAdmin ? t('layout.role_admin', 'ຜູ້ບໍລິຫານ') : t('layout.role_staff', 'ພະນັກງານ')));
+                 echo strtolower($uStatus . ' ' . $uRoleTrans); 
+               ?>"
                onclick="selectUser(<?php echo $u['Id']; ?>)">
             
             <div class="d-flex align-items-center overflow-hidden">
@@ -85,11 +90,12 @@
                   <?php if ($u['Id'] == 1): ?>
                     <span class="badge badge-danger" style="font-size: 0.7rem; border-radius: 4px;"><?php echo htmlspecialchars(t('permissions.badge_super_admin', 'Admin')); ?></span>
                   <?php elseif ($isAdmin): ?>
-                    <span class="badge badge-primary" style="font-size: 0.7rem; border-radius: 4px;"><?php echo htmlspecialchars(t('permissions.role_admin_badge', 'ຜູ້ບໍລິຫານ')); ?></span>
+                    <span class="badge badge-primary" style="font-size: 0.7rem; border-radius: 4px;"><?php echo htmlspecialchars(t('layout.role_admin', 'ຜູ້ບໍລິຫານ')); ?></span>
+                  <?php elseif ($isManager): ?>
+                    <span class="badge badge-dark" style="font-size: 0.7rem; border-radius: 4px;"><?php echo htmlspecialchars(t('layout.role_manager', 'ຜູ້ຈັດການ')); ?></span>
                   <?php else: ?>
-                    <span class="badge badge-secondary" style="font-size: 0.7rem; border-radius: 4px;"><?php echo htmlspecialchars($uStatus ?: t('permissions.role_employee_default', 'ພະນັກງານ')); ?></span>
+                    <span class="badge badge-secondary" style="font-size: 0.7rem; border-radius: 4px;"><?php echo htmlspecialchars(t('layout.role_staff', 'ພະນັກງານ')); ?></span>
                   <?php endif; ?>
-                  <!-- <span class="text-muted ml-1" style="font-size: 0.75rem;">ID: #<?php echo $u['Id']; ?></span> -->
                 </div>
               </div>
             </div>

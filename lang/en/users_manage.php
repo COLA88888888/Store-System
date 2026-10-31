@@ -12,6 +12,7 @@ return [
     'users_manage.th_tel' => 'Phone',
     'users_manage.th_status' => 'Status',
     'users_manage.th_role' => 'Role',
+    'users_manage.th_access_age' => 'Access Expiry',
     'users_manage.th_actions' => 'Actions',
     'users_manage.default_store' => 'Main Branch',
     'users_manage.status_online' => 'Online',

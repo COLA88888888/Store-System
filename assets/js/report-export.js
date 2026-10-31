@@ -76,7 +76,7 @@
       }).join('') + '</table>';
     }
     html += '<table><thead><tr>' + r.headers.map(function (h) { return '<th>' + esc(h.t) + '</th>'; }).join('') + '</tr></thead><tbody>';
-    if (!r.rows.length) html += '<tr><td class="a-c" colspan="' + r.headers.length + '">ບໍ່ມີຂໍ້ມູນ</td></tr>';
+    if (!r.rows.length) html += '<tr><td class="a-c" colspan="' + r.headers.length + '">' + (window.__tl||String)("ບໍ່ມີຂໍ້ມູນ") + '</td></tr>';
     r.rows.forEach(function (row) {
       html += '<tr>' + row.map(function (c, i) { return '<td class="' + cls(c, r.headers[i]) + '">' + esc(cellText(c)) + '</td>'; }).join('') + '</tr>';
     });
@@ -85,7 +85,7 @@
       html += '<tfoot><tr>' + r.footer.map(function (c, i) { return '<td class="' + cls(c, r.headers[i]) + '">' + esc(cellText(c)) + '</td>'; }).join('') + '</tr></tfoot>';
     }
     html += '</table>';
-    html += '<div class="rp-foot"><span>ພິມໂດຍ: ' + esc(cfg.printedBy) + '</span><span>ວັນທີພິມ: ' + nowText() + '</span></div>';
+    html += '<div class="rp-foot"><span>' + (window.__tl||String)("ພິມໂດຍ:") + ' ' + esc(cfg.printedBy) + '</span><span>' + (window.__tl||String)("ວັນທີພິມ:") + ' ' + nowText() + '</span></div>';
     return html;
   }
 
@@ -175,7 +175,7 @@
       return '<td style="' + F + B + NW + 'font-size:12pt;font-weight:bold;text-align:center;vertical-align:middle;background:#E7E6E6;">' + esc(h.t) + '</td>';
     }).join(''));
     r._freezeRows = top + 1;
-    if (!r.rows.length) html += row(24, '<td colspan="' + n + '" style="' + F + B + 'font-size:11pt;text-align:center;">ບໍ່ມີຂໍ້ມູນ</td>');
+    if (!r.rows.length) html += row(24, '<td colspan="' + n + '" style="' + F + B + 'font-size:11pt;text-align:center;">' + (window.__tl||String)("ບໍ່ມີຂໍ້ມູນ") + '</td>');
     r.rows.forEach(function (cells, ri) {
       var zebra = ri % 2 === 1 ? 'background:#F7F7F7;' : '';   // ແຖວສະຫຼັບສີອ່ອນ ອ່ານງ່າຍ
       html += row(22, cells.map(function (c, i) {
@@ -190,7 +190,7 @@
       }).join(''));
     }
     html += row(10, '<td colspan="' + n + '"></td>');
-    html += row(22, '<td colspan="' + n + '" style="' + F + 'font-size:11pt;">ພິມໂດຍ: ' + esc(cfg.printedBy) + '   |   ວັນທີພິມ: ' + nowText() + '</td>');
+    html += row(22, '<td colspan="' + n + '" style="' + F + 'font-size:11pt;">' + (window.__tl||String)("ພິມໂດຍ:") + ' ' + esc(cfg.printedBy) + '   |   ' + (window.__tl||String)("ວັນທີພິມ:") + ' ' + nowText() + '</td>');
     return html + '</table>';
   }
 

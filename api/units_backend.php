@@ -32,23 +32,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $checkExists = $pdo->prepare("SELECT COUNT(*) FROM st_units WHERE unit_id = ?");
                     $checkExists->execute([$unit_id]);
                     if ((int)$checkExists->fetchColumn() > 0) {
-                        $unit_message = 'ຜິດພາດ: ລະຫັດຫົວໜ່ວຍ ' . $unit_id . ' ນີ້ມີໃນລະບົບແລ້ວ! ກະລຸນາປ້ອນລະຫັດອື່ນ.';
+                        $unit_message = (tl('ຜິດພາດ: ລະຫັດຫົວໜ່ວຍ') . ' ') . $unit_id . (' ' . tl('ນີ້ມີໃນລະບົບແລ້ວ! ກະລຸນາປ້ອນລະຫັດອື່ນ.'));
                         $unit_message_type = 'danger';
                     } else {
                         // branch_no = ລຳດັບໃນສາຂານີ້ → ລະຫັດທີ່ສະແດງ "<ລະຫັດສາຂາ>-<branch_no>"
                         $stmt = $pdo->prepare("INSERT INTO st_units (unit_id, unit_name, description, store_id, branch_no) VALUES (?, ?, ?, ?, ?)");
                         $stmt->execute([$unit_id, $name, $desc, $unitActiveStoreId, nextBranchNo($pdo, 'st_units', $unitActiveStoreId)]);
 
-                        $unit_message = 'ເພີ່ມຫົວໜ່ວຍສຳເລັດ!';
+                        $unit_message = tl('ເພີ່ມຫົວໜ່ວຍສຳເລັດ!');
                         $unit_message_type = 'success';
                         logActivity($pdo, "ເພີ່ມຫົວໜ່ວຍ", "ລະຫັດ: $unit_id, ຊື່: $name");
                     }
                 } catch (Exception $e) {
-                    $unit_message = 'ຜິດພາດ: ລະຫັດນີ້ອາດຊ້ຳກັນ ຫຼື ' . $e->getMessage();
+                    $unit_message = (tl('ຜິດພາດ: ລະຫັດນີ້ອາດຊ້ຳກັນ ຫຼື') . ' ') . $e->getMessage();
                     $unit_message_type = 'danger';
                 }
             } else {
-                $unit_message = 'ກະລຸນາປ້ອນລະຫັດ ແລະ ຊື່ຫົວໜ່ວຍໃຫ້ຄົບ!';
+                $unit_message = tl('ກະລຸນາປ້ອນລະຫັດ ແລະ ຊື່ຫົວໜ່ວຍໃຫ້ຄົບ!');
                 $unit_message_type = 'danger';
             }
         }
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $chk = $pdo->prepare("SELECT COUNT(*) FROM st_units WHERE unit_id = ?");
                         $chk->execute([$new_id]);
                         if ((int)$chk->fetchColumn() > 0) {
-                            throw new Exception("ລະຫັດຫົວໜ່ວຍ $new_id ນີ້ມີໃນລະບົບແລ້ວ!");
+                            throw new Exception(("" . tl('ລະຫັດຫົວໜ່ວຍ') . " $new_id " . tl('ນີ້ມີໃນລະບົບແລ້ວ!') . ""));
                         }
                     }
 
@@ -80,14 +80,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     $pdo->commit();
 
-                    $unit_message = 'ແກ້ໄຂຫົວໜ່ວຍສຳເລັດ!';
+                    $unit_message = tl('ແກ້ໄຂຫົວໜ່ວຍສຳເລັດ!');
                     $unit_message_type = 'success';
                     logActivity($pdo, "ແກ້ໄຂຫົວໜ່ວຍ", "ID: $new_id, ຊື່ໃໝ່: $name");
                 } catch (Exception $e) {
                     if ($pdo->inTransaction()) {
                         $pdo->rollBack();
                     }
-                    $unit_message = 'ຜິດພາດ: ' . $e->getMessage();
+                    $unit_message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                     $unit_message_type = 'danger';
                 }
             }
@@ -101,17 +101,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $count = (int)$checkStmt->fetchColumn();
 
                 if ($count > 0) {
-                    $unit_message = 'ບໍ່ສາມາດລົບຫົວໜ່ວຍນີ້ໄດ້! ເພາະມີລາຍການສິນຄ້າໃຊ້ຫົວໜ່ວຍນີ້ ' . $count . ' ລາຍການ.';
+                    $unit_message = (tl('ບໍ່ສາມາດລົບຫົວໜ່ວຍນີ້ໄດ້! ເພາະມີລາຍການສິນຄ້າໃຊ້ຫົວໜ່ວຍນີ້') . ' ') . $count . (' ' . tl('ລາຍການ.'));
                     $unit_message_type = 'danger';
                 } else {
                     try {
                         $stmt = $pdo->prepare("DELETE FROM st_units WHERE unit_id = ?");
                         $stmt->execute([$id]);
-                        $unit_message = 'ລົບຫົວໜ່ວຍສຳເລັດ!';
+                        $unit_message = tl('ລົບຫົວໜ່ວຍສຳເລັດ!');
                         $unit_message_type = 'success';
                         logActivity($pdo, "ລົບຫົວໜ່ວຍ", "ID: $id");
                     } catch (Exception $e) {
-                        $unit_message = 'ຜິດພາດ: ' . $e->getMessage();
+                        $unit_message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                         $unit_message_type = 'danger';
                     }
                 }

@@ -8,7 +8,7 @@ session_start();
 $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
-if (empty($_SESSION['user_id']) || (!hasPermission('printers') && !hasPermission('setup'))) {
+if (empty($_SESSION['user_id']) || (!hasPermission('printers'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -94,9 +94,9 @@ require __DIR__ . '/partials/actions.php';
     <div class="card-body px-4 py-3">
       <div class="row">
       <div class="col-lg-6 mb-2">
-      <form action="" method="POST" class="form-inline mb-2">
+      <form action="" method="POST" class="d-flex flex-wrap align-items-center mb-2" style="gap: 8px;">
         <input type="hidden" name="action" value="set_print_mode">
-        <select name="print_mode" class="form-control mr-2" style="height: 42px; min-width: 280px;">
+        <select name="print_mode" class="form-control" style="height: 42px; flex: 1 1 200px; min-width: 0; width: auto;">
           <option value="direct" <?php echo $printMode === 'direct' ? 'selected' : ''; ?>>
             <?php echo htmlspecialchars(t('printers.mode_direct', 'ພິມໂດຍກົງ — ລະບົບແລ່ນຢູ່ຄອມໃນຮ້ານ')); ?>
           </option>
@@ -260,10 +260,10 @@ require __DIR__ . '/partials/actions.php';
             </select>
           </div>
           <div class="form-group mb-0">
-            <label class="font-weight-bold text-dark small mb-1" id="add_printer_ip_label">ຊື່ເຄື່ອງພິມໃນ Windows (USB Printer): <span class="text-danger">*</span></label>
+            <label class="font-weight-bold text-dark small mb-1" id="add_printer_ip_label"><?php echo tlh('ຊື່ເຄື່ອງພິມໃນ Windows (USB Printer):'); ?> <span class="text-danger">*</span></label>
             <div class="input-group">
               <div class="input-group-prepend"><span class="input-group-text" id="add_printer_icon"><i class="fab fa-usb text-primary"></i></span></div>
-              <input type="text" name="ip_address" id="add_printer_ip" list="winPrinterList" autocomplete="off" class="form-control font-weight-bold text-primary" placeholder="ເລືອກ ຫຼື ພິມຊື່ເຊັ່ນ: XP-80C" style="height: 42px;">
+              <input type="text" name="ip_address" id="add_printer_ip" list="winPrinterList" autocomplete="off" class="form-control font-weight-bold text-primary" placeholder="<?php echo tlh('ເລືອກ ຫຼື ພິມຊື່ເຊັ່ນ:'); ?> XP-80C" style="height: 42px;">
             </div>
             <small class="text-muted d-block mt-1"><?php echo htmlspecialchars(t('printers.lan_hint', 'ເຄື່ອງພິມ Network LAN ຈະໄດ້ຮັບໃບຍ່ອຍໂດຍກົງ ບໍ່ຕ້ອງກົດພິມ. ໃສ່ IP ຂອງເຄື່ອງພິມ (ພອດ 9100 ເປັນຄ່າເລີ່ມຕົ້ນ ຫຼື IP:ພອດ)')); ?></small>
             <small class="text-info d-block mt-1"><i class="fab fa-usb mr-1"></i><?php echo htmlspecialchars(t('printers.usb_hint', 'USB: ໃສ່ຊື່ເຄື່ອງພິມໃນ Windows (ເລືອກຈາກລາຍການໄດ້). ໃບບິນຈະອອກຄືກັບ LAN ທຸກຢ່າງ, ບໍ່ມີໜ້າຕ່າງພິມ.')); ?></small>
@@ -371,15 +371,15 @@ function updatePrinterModalFields(prefix) {
   if (!typeEl || !inputEl) return;
   var val = typeEl.value;
   if (val === 'usb') {
-    if (labelEl) labelEl.innerHTML = 'ຊື່ເຄື່ອງພິມໃນ Windows (USB Printer): <span class="text-danger">*</span>';
-    inputEl.placeholder = 'ເລືອກ ຫຼື ພິມຊື່ເຊັ່ນ: XP-80C';
+    if (labelEl) labelEl.innerHTML = '<?php echo tlj('ຊື່ເຄື່ອງພິມໃນ Windows (USB Printer):'); ?> <span class="text-danger">*</span>';
+    inputEl.placeholder = '<?php echo tlj('ເລືອກ ຫຼື ພິມຊື່ເຊັ່ນ:'); ?> XP-80C';
     if (iconEl) iconEl.innerHTML = '<i class="fab fa-usb text-primary"></i>';
   } else if (val === 'ip') {
-    if (labelEl) labelEl.innerHTML = 'IP Address ເຄື່ອງພິມ (Network LAN): <span class="text-danger">*</span>';
+    if (labelEl) labelEl.innerHTML = 'IP Address <?php echo tlj('ເຄື່ອງພິມ (Network LAN):'); ?> <span class="text-danger">*</span>';
     inputEl.placeholder = '192.168.1.200';
     if (iconEl) iconEl.innerHTML = '<i class="fas fa-network-wired text-primary"></i>';
   } else {
-    if (labelEl) labelEl.innerHTML = 'IP Address ຫຼື ຊື່ (ຖ້າມີ):';
+    if (labelEl) labelEl.innerHTML = 'IP Address <?php echo tlj('ຫຼື ຊື່ (ຖ້າມີ):'); ?>';
     inputEl.placeholder = '-';
     if (iconEl) iconEl.innerHTML = '<i class="fas fa-print text-muted"></i>';
   }

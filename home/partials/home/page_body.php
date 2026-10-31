@@ -54,7 +54,7 @@
           <i class="fas fa-clock text-primary mr-1"></i> <span data-i18n-key="home.period_label"><?php echo htmlspecialchars(t('home.period_label', 'ຊ່ວງເວລາ:')); ?></span>
         </label>
         <div class="home-period-group">
-          <?php foreach (['today' => ['home.period_today', 'ມື້ນີ້'], 'month' => ['home.period_month', 'ເດືອນນີ້'], 'year' => ['home.period_year', 'ທັງປີ']] as $__pk => $__pl): ?>
+          <?php foreach (['today' => ['home.period_today', tl('ມື້ນີ້')], 'month' => ['home.period_month', tl('ເດືອນນີ້')], 'year' => ['home.period_year', tl('ທັງປີ')]] as $__pk => $__pl): ?>
             <button type="button" class="home-period-btn<?php echo $active_period === $__pk ? ' active' : ''; ?>" onclick="homeSetPeriod('<?php echo $__pk; ?>', this.form)">
               <span data-i18n-key="<?php echo $__pl[0]; ?>"><?php echo htmlspecialchars(t($__pl[0], $__pl[1])); ?></span>
             </button>
@@ -205,7 +205,7 @@
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: #ffffff;">
         <div class="card-header bg-white border-0 py-3 px-3.5 d-flex justify-content-between align-items-center">
           <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-            <i class="fas fa-chart-area text-primary mr-2"></i> <span data-i18n-key="<?php echo $chart_title_key; ?>"><?php echo htmlspecialchars(t($chart_title_key, $chart_title_def)); ?></span> (<?php echo htmlspecialchars($chart_period_text); ?>)
+            <i class="fas fa-chart-area text-primary mr-2"></i> <span data-i18n-key="<?php echo $chart_title_key; ?>"><?php echo htmlspecialchars(t($chart_title_key, $chart_title_def)); ?></span> (<span class="chart-period-text"><?php echo htmlspecialchars($chart_period_text); ?></span>)
           </h6>
           <span class="badge badge-light border text-primary font-weight-bold px-2.5 py-1"><?php echo htmlspecialchars($chart_badge_text); ?></span>
         </div>
@@ -241,7 +241,7 @@
       <div class="card border-0 shadow-sm h-100" style="border-radius: 14px; background: #ffffff;">
         <div class="card-header bg-white border-0 py-3 px-3.5 d-flex justify-content-between align-items-center">
           <h6 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-            <i class="fas fa-percentage text-warning mr-2"></i> <span><?php echo htmlspecialchars(t('home.chart_profit_margin', 'ກາຟອັດຕາກຳໄລ %')); ?></span> (<?php echo htmlspecialchars($chart_period_text); ?>)
+            <i class="fas fa-percentage text-warning mr-2"></i> <span><?php echo htmlspecialchars(t('home.chart_profit_margin', 'ກາຟອັດຕາກຳໄລ %')); ?></span> (<span class="chart-period-text"><?php echo htmlspecialchars($chart_period_text); ?></span>)
           </h6>
         </div>
         <div class="card-body p-3">

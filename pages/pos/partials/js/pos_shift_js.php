@@ -9,16 +9,18 @@ function getCurrentShiftLang() {
   if (l.indexOf('en') !== -1) return 'en';
   if (l.indexOf('th') !== -1) return 'th';
   if (l.indexOf('zh') !== -1) return 'zh';
+  if (l.indexOf('vi') !== -1) return 'vi';
   return 'lo';
 }
 
 function getTimeWords() {
   var lang = getCurrentShiftLang();
   var dict = {
-    lo: { hour: 'ໂມງ', minute: 'ນາທີ' },
+    lo: { hour: '<?php echo tlj('ໂມງ'); ?>', minute: '<?php echo tlj('ນາທີ'); ?>' },
     th: { hour: 'โมง', minute: 'นาที' },
     en: { hour: 'hr', minute: 'min' },
-    zh: { hour: '点', minute: '分' }
+    zh: { hour: '点', minute: '分' },
+    vi: { hour: 'giờ', minute: 'phút' }
   };
   return dict[lang] || dict['lo'];
 }
@@ -35,6 +37,52 @@ function formatFriendlyTime(timeStr) {
   var words = getTimeWords();
   return h + ' ' + words.hour + ' ' + mPad + ' ' + words.minute;
 }
+function shiftCloserName(name) {
+  if (!name) return '-';
+  var trimmed = String(name).trim();
+  var autoPatterns = [
+    'ລະບົບ (ປິດອໍໂຕ້)', 'ລະບົບ (ປິດອັດຕະໂນມັດ)', 'ລະບົບ',
+    'ระบบ (ปิดอัตโนมัติ)', 'ระบบ (ปิดออโต้)', 'ระบบ',
+    'System (auto-closed)', 'System (auto closed)', 'System (Auto-closed)', 'System',
+    'Hệ thống (tự đóng)', 'Hệ thống',
+    '系统（自动交班）', '系统(自动交班)', '系统（自动关闭）', '系统(自动关闭)', '系统'
+  ];
+  if (autoPatterns.indexOf(trimmed) !== -1 || trimmed.toLowerCase().indexOf('auto-close') !== -1 || trimmed.indexOf('ປິດອໍໂຕ້') !== -1 || trimmed.indexOf('ปิดอัตโนมัติ') !== -1 || trimmed.indexOf('tự đóng') !== -1 || trimmed.indexOf('自动交班') !== -1) {
+    var lang = getCurrentShiftLang();
+    var dict = {
+      lo: 'ລະບົບ (ປິດອໍໂຕ້)',
+      th: 'ระบบ (ปิดอัตโนมัติ)',
+      en: 'System (auto-closed)',
+      zh: '系统（自动交班）',
+      vi: 'Hệ thống (tự đóng)'
+    };
+    return dict[lang] || dict['lo'];
+  }
+  return name;
+}
+
+function formatShiftName(name) {
+  var n = String(name || '').trim();
+  if (!n) return '';
+  var lang = getCurrentShiftLang();
+  var shiftGroups = [
+    { keys: ['ກະເຊົ້າ', 'กะเช้า', 'morning shift', 'morning', 'ca sáng', '早班'], trans: { lo: 'ກະເຊົ້າ', th: 'กะเช้า', en: 'Morning Shift', zh: '早班', vi: 'Ca sáng' } },
+    { keys: ['ກະບ່າຍ', 'กะบ่าย', 'afternoon shift', 'afternoon', 'ca chiều', '下午班'], trans: { lo: 'ກະບ່າຍ', th: 'กะบ่าย', en: 'Afternoon Shift', zh: '下午班', vi: 'Ca chiều' } },
+    { keys: ['ກະແລງ', 'กะเย็น', 'evening shift', 'evening', 'ca tối', '晚班'], trans: { lo: 'ກະແລງ', th: 'กะเย็น', en: 'Evening Shift', zh: '晚班', vi: 'Ca tối' } },
+    { keys: ['ກະກາງຄືນ', 'ກະດຶກ', 'กะดึก', 'night shift', 'night', 'ca đêm', '夜班'], trans: { lo: 'ກະດຶກ', th: 'กะดึก', en: 'Night Shift', zh: '夜班', vi: 'Ca đêm' } }
+  ];
+  var nLower = n.toLowerCase();
+  for (var i = 0; i < shiftGroups.length; i++) {
+    var g = shiftGroups[i];
+    for (var k = 0; k < g.keys.length; k++) {
+      if (nLower === g.keys[k].toLowerCase()) {
+        return g.trans[lang] || g.trans['lo'];
+      }
+    }
+  }
+  return n;
+}
+
 window.posReportSession = null;
 window.posReportBills = [];
 
@@ -59,6 +107,35 @@ function formatNumberInput(input) {
 // ============================================================================
 // 1. ກວດສອບສະຖານະກະຕອນໂຫຼດໜ້າ POS
 // ============================================================================
+// ປຸ່ມກະເມື່ອກະເປີດຢູ່: "<ຊື່ກະ> · ກຳລັງໃຊ້ງານ" (ກົດ = ປິດກະ). ໃຊ້ທັງຕອນໂຫຼດໜ້າ ແລະ ທັນທີຫຼັງເປີດກະສຳເລັດ
+// (ບໍ່ຕ້ອງລໍຖາມສະຖານະຈາກເຊີເວີອີກຮອບ)
+function posPaintShiftActive(session) {
+  $('#posShiftEarlyLockModal').modal('hide');
+  $('#posShiftOpenModal').modal('hide');
+  $('#posShiftStatusText').html('<strong>' + $('<div>').text(session.shift_name || '').html() + '</strong> · <?php echo tlj('ກຳລັງໃຊ້ງານ'); ?>');
+  $('#posShiftStatusMobileText').text('<?php echo tlj('ກຳລັງໃຊ້ງານ'); ?>');
+  $('#btnPosShiftAction').removeClass('is-closed d-none').addClass('is-open').toggleClass('d-none', !window.IS_CASHIER)
+    .attr('title', '<?php echo tlj('ກະ:'); ?> ' + (session.shift_name || '') + ' | <?php echo tlj('ເປີດໂດຍ:'); ?> ' + (session.opened_by_name || '') +
+          (session.staff_names ? ' | <?php echo tlj('ພະນັກງານ:'); ?> ' + session.staff_names : '') + ' — <?php echo tlj('ກົດເພື່ອປິດກະ'); ?>');
+}
+
+// ກະຕ່າ (ລາຍການຂາຍ) ເປັນຂອງກະ: ຈື່ id ກະໄວ້ກັບກະຕ່າໃນ browser.
+//  - ກະເດີມຍັງເປີດຢູ່ (logout ກ່ອນໂມງປິດ ແລ້ວລັອກອິນຄືນ) → ກະຕ່າຢູ່ຄືເກົ່າ
+//  - ກະປິດແລ້ວ (ສົ່ງລາຍງານແລ້ວ) ຫຼື ເປັນກະໃໝ່ → ລ້າງກະຕ່າ ເລີ່ມໃໝ່
+function posSyncCartWithShift(sessionId) {
+  if (!window.IS_CASHIER) return;
+  var KEY = 'StoreMini.cart_shift_session';
+  var prev = localStorage.getItem(KEY);
+  var cur = sessionId ? String(sessionId) : '';
+  if (prev === cur) return;
+  if (prev !== null || !cur) {
+    localStorage.removeItem('StoreMini.bill_opened');
+    localStorage.removeItem('StoreMini.active_bills');
+    if (typeof initActiveBills === 'function') initActiveBills();
+  }
+  if (cur) localStorage.setItem(KEY, cur); else localStorage.removeItem(KEY);
+}
+
 function checkShiftStatusOnPosLoad() {
   $.get(window.SHIFTS_API, { action: 'get_current_status' }, function (res) {
     if (!res || !res.success) return;
@@ -69,16 +146,14 @@ function checkShiftStatusOnPosLoad() {
     var btnAction = $('#btnPosShiftAction');
 
     if (res.has_active_shift && res.session) {
-      // ມີກະທີ່ກຳລັງເປີດຢູ່ → ປຸ່ມປິດກະ (ສະເພາະພະນັກງານຂາຍ; ຜູ້ບໍລິຫານ/ຜູ້ຈັດການບໍ່ມີປຸ່ມກະ)
-      $('#posShiftEarlyLockModal').modal('hide');
-      $('#posShiftOpenModal').modal('hide');
-
-      btnText.html('<strong>' + $('<div>').text(res.session.shift_name).html() + '</strong> (ປິດກະ)');
-      $('#posShiftStatusMobileText').text('ປິດກະ');
-      btnAction.removeClass('is-closed').addClass('is-open').toggleClass('d-none', !window.IS_CASHIER)
-               .attr('title', 'ກະ: ' + res.session.shift_name + ' | ເປີດໂດຍ: ' + res.session.opened_by_name +
-                     (res.session.staff_names ? ' | ພະນັກງານ: ' + res.session.staff_names : '') + ' — ກົດເພື່ອປິດກະ');
-    } else if (!res.has_shifts) {
+      // ມີກະທີ່ກຳລັງເປີດຢູ່ → ປຸ່ມ "ກຳລັງໃຊ້ງານ" (ກົດ = ປິດກະ; ສະເພາະພະນັກງານຂາຍ — ຜູ້ບໍລິຫານ/ຜູ້ຈັດການບໍ່ມີປຸ່ມກະ)
+      posSyncCartWithShift(res.session.id);
+      posPaintShiftActive(res.session);
+    } else if (res.has_shifts) {
+      posSyncCartWithShift(null);   // ກະປິດແລ້ວ → ກະຕ່າຂອງກະນັ້ນບໍ່ໃຊ້ຕໍ່
+    }
+    if (res.has_active_shift && res.session) return;
+    if (!res.has_shifts) {
       // ສາຂານີ້ບໍ່ໄດ້ຕັ້ງກະໄວ້ (ຕັ້ງຄ່າ > ກະເຮັດວຽກ) → ເຊື່ອງປຸ່ມ ແລະ ບໍ່ບັງຄັບເປີດກະ
       btnAction.addClass('d-none');
       $('#posShiftEarlyLockModal').modal('hide');
@@ -92,7 +167,7 @@ function checkShiftStatusOnPosLoad() {
       if (window.IS_CASHIER) {
         if (!res.can_open_any) {
           // ຍັງບໍ່ຮອດໂມງເປີດກະ
-          var nextInfo = res.next_shift ? `ກະ "${res.next_shift.shift_name}" ຈະເລີ່ມເວລາ <strong>${formatFriendlyTime(res.next_shift.start_time)}</strong>` : 'ບໍ່ມີກະທີ່ເປີດໃຊ້ງານ';
+          var nextInfo = res.next_shift ? `<?php echo tlj('ກະ'); ?> "${res.next_shift.shift_name}" <?php echo tlj('ຈະເລີ່ມເວລາ'); ?> <strong>${formatFriendlyTime(res.next_shift.start_time)}</strong>` : '<?php echo tlj('ບໍ່ມີກະທີ່ເປີດໃຊ້ງານ'); ?>';
           $('#posEarlyShiftMessage').html(nextInfo);
           $('#posEarlyCurrentClock').text(res.current_time_clock || '--:--');
           $('#posShiftEarlyLockModal').modal('show');
@@ -117,13 +192,13 @@ function handlePosShiftAction() {
       var heldCount = parseInt(res.session.held_count, 10) || 0;
       if (cartCount > 0 || heldCount > 0) {
         var lines = [];
-        if (cartCount > 0) lines.push('ສິນຄ້າໃນກະຕ່າ <strong>' + cartCount + '</strong> ລາຍການ');
-        if (heldCount > 0) lines.push('ບິນທີ່ພັກໄວ້ <strong>' + heldCount + '</strong> ບິນ');
+        if (cartCount > 0) lines.push('<?php echo tlj('ສິນຄ້າໃນກະຕ່າ'); ?> <strong>' + cartCount + '</strong> <?php echo tlj('ລາຍການ'); ?>');
+        if (heldCount > 0) lines.push('<?php echo tlj('ບິນທີ່ພັກໄວ້'); ?> <strong>' + heldCount + '</strong> <?php echo tlj('ບິນ'); ?>');
         Swal.fire({
           icon: 'warning',
-          title: 'ຍັງມີລາຍການຄ້າງ — ປິດກະບໍ່ໄດ້',
-          html: lines.join('<br>') + '<div class="mt-2">ກະລຸນາຊຳລະໃຫ້ໝົດກ່ອນ ຈຶ່ງປິດກະໄດ້</div>',
-          confirmButtonText: 'ຕົກລົງ',
+          title: '<?php echo tlj('ຍັງມີລາຍການຄ້າງ'); ?> — <?php echo tlj('ປິດກະບໍ່ໄດ້'); ?>',
+          html: lines.join('<br>') + '<div class="mt-2"><?php echo tlj('ກະລຸນາຊຳລະໃຫ້ໝົດກ່ອນ ຈຶ່ງປິດກະໄດ້'); ?></div>',
+          confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
           confirmButtonColor: '#244886'
         });
         return;
@@ -146,10 +221,10 @@ function posWarnTooEarlyClose(shiftName, scheduledEnd, message) {
   var endClock = scheduledEnd ? String(scheduledEnd).substr(11, 5) : '';
   Swal.fire({
     icon: 'warning',
-    title: 'ຍັງບໍ່ທັນຮອດໂມງປິດກະ',
+    title: '<?php echo tlj('ຍັງບໍ່ທັນຮອດໂມງປິດກະ'); ?>',
     html: message ? $('<div>').text(message).html()
-                  : 'ກະ "<strong>' + $('<div>').text(shiftName || '').html() + '</strong>" ປິດໄດ້ເວລາ <strong>' + formatFriendlyTime(endClock) + '</strong>',
-    confirmButtonText: 'ຕົກລົງ',
+                  : '<?php echo tlj('ກະ'); ?> "<strong>' + $('<div>').text(shiftName || '').html() + '</strong>" <?php echo tlj('ປິດໄດ້ເວລາ'); ?> <strong>' + formatFriendlyTime(endClock) + '</strong>',
+    confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
     confirmButtonColor: '#244886'
   });
 }
@@ -179,7 +254,7 @@ function posShiftHeartbeat() {
 function populatePosOpenShiftModal(res) {
   var select = $('#posSelectShiftId');
   select.empty();
-  select.append('<option value="">-- ເລືອກກະເຮັດວຽກ --</option>');
+  select.append('<option value="">-- <?php echo tlj('ເລືອກກະເຮັດວຽກ'); ?> --</option>');
 
   $('#posCurrentClockDisplay').text(res.current_time_clock || '--:--');
 
@@ -232,7 +307,7 @@ function onPosShiftSelectionChange() {
   var textEl = $('#posShiftTimeWarningText');
 
   if (sel.val() && canOpen === false) {
-    textEl.html(`<strong>ຍັງບໍ່ຮອດໂມງເປີດກະ!</strong> ກະ "${shiftName}" ເປີດເວລາ <strong>${formatFriendlyTime(startTime)}</strong>`);
+    textEl.html(`<strong><?php echo tlj('ຍັງບໍ່ຮອດໂມງເປີດກະ!'); ?></strong> <?php echo tlj('ກະ'); ?> "${shiftName}" <?php echo tlj('ເປີດເວລາ'); ?> <strong>${formatFriendlyTime(startTime)}</strong>`);
     alertBox.slideDown(150);
     btn.prop('disabled', true);
   } else {
@@ -248,11 +323,11 @@ function submitPosOpenShift(e) {
   var initialCash = $('#posInitialCashInput').val();
 
   if (!shiftId) {
-    Swal.fire({ icon: 'warning', title: 'ກະລຸນາເລືອກກະເຮັດວຽກ' });
+    Swal.fire({ icon: 'warning', title: '<?php echo tlj('ກະລຸນາເລືອກກະເຮັດວຽກ'); ?>' });
     return;
   }
   if ($.trim(initialCash) === '') {
-    Swal.fire({ icon: 'warning', title: 'ກະລຸນາປ້ອນເງິນສົດໃນລິ້ນຊັກ', text: 'ຖ້າບໍ່ມີເງິນທອນ ໃຫ້ປ້ອນ 0', confirmButtonText: 'ຕົກລົງ', confirmButtonColor: '#244886' })
+    Swal.fire({ icon: 'warning', title: '<?php echo tlj('ກະລຸນາປ້ອນເງິນສົດໃນລິ້ນຊັກ'); ?>', text: '<?php echo tlj('ຖ້າບໍ່ມີເງິນທອນ ໃຫ້ປ້ອນ'); ?> 0', confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>', confirmButtonColor: '#244886' })
       .then(function () { $('#posInitialCashInput').trigger('focus'); });
     return;
   }
@@ -267,11 +342,14 @@ function submitPosOpenShift(e) {
   }, function (res) {
     btn.prop('disabled', false);
     if (res && res.success) {
+      // ປຸ່ມຂຶ້ນ "ກຳລັງໃຊ້ງານ" ທັນທີ + ກະຕ່າເປັນຂອງກະໃໝ່
+      posSyncCartWithShift(res.session_id);
+      posPaintShiftActive({ shift_name: res.shift_name, opened_by_name: window.CURRENT_USER_NAME || '' });
       $('#posShiftOpenModal').modal('hide');
       Swal.fire({
         icon: 'success',
-        title: 'ເປີດກະສຳເລັດ!',
-        text: `ເລີ່ມຕົ້ນກະ "${res.shift_name}" ເງິນລິ້ນຊັກ: ${formatPosNumber(res.initial_cash)} <?php echo kipSymbol(); ?>`,
+        title: '<?php echo tlj('ເປີດກະສຳເລັດ!'); ?>',
+        text: `<?php echo tlj('ເລີ່ມຕົ້ນກະ'); ?> "${res.shift_name}" <?php echo tlj('ເງິນລິ້ນຊັກ:'); ?> ${formatPosNumber(res.initial_cash)} <?php echo kipSymbol(); ?>`,
         timer: 1800,
         showConfirmButton: false
       });
@@ -279,13 +357,13 @@ function submitPosOpenShift(e) {
     } else {
       Swal.fire({
         icon: res && res.too_early ? 'warning' : 'error',
-        title: res && res.too_early ? 'ຍັງບໍ່ຮອດໂມງເປີດກະ' : 'ຜິດພາດ',
-        text: res ? res.message : 'ເກີດຂໍ້ຜິດພາດ'
+        title: res && res.too_early ? '<?php echo tlj('ຍັງບໍ່ຮອດໂມງເປີດກະ'); ?>' : '<?php echo tlj('ຜິດພາດ'); ?>',
+        text: res ? res.message : '<?php echo tlj('ເກີດຂໍ້ຜິດພາດ'); ?>'
       });
     }
   }, 'json').fail(function () {
     btn.prop('disabled', false);
-    Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້' });
+    Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: '<?php echo tlj('ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້'); ?>' });
   });
 }
 
@@ -295,7 +373,7 @@ function submitPosOpenShift(e) {
 function openPosCloseShiftModal() {
   $.get(window.SHIFTS_API, { action: 'get_shift_summary' }, function (res) {
     if (!res || !res.success || !res.session) {
-      Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: res ? res.message : 'ບໍ່ພົບກະທີ່ເປີດຢູ່' });
+      Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: res ? res.message : '<?php echo tlj('ບໍ່ພົບກະທີ່ເປີດຢູ່'); ?>' });
       return;
     }
 
@@ -316,7 +394,7 @@ function openPosCloseShiftModal() {
     // → ກົດປິດກະແລ້ວເບິ່ງລາຍງານ (ສ່ວນຕ່າງ ສະເພາະຜູ້ຈັດການ/ຜູ້ບໍລິຫານ ເຫັນໃນລາຍງານ)
     $('#posCloseCountedCashInput').val('');
     $('#posCloseShiftNotes').val('');
-    $('#posCloseSubmitLabel').text('ປິດກະ & ເບິ່ງລາຍງານ');
+    $('#posCloseSubmitLabel').text('<?php echo tlj('ປິດກະ & ເບິ່ງລາຍງານ'); ?>');
     $('#posShiftCloseModal').one('shown.bs.modal', function () { $('#posCloseCountedCashInput').trigger('focus'); });
 
     $('#posShiftCloseModal').modal('show');
@@ -337,13 +415,13 @@ function calculatePosShiftDifference() {
 
   if (diff === 0) {
     alertBox.addClass('alert-success');
-    display.html('<i class="fas fa-check-circle mr-1"></i> ດຸ່ນດ່ຽງພໍດີ (0 <?php echo kipSymbol(); ?>)').css('color', '#15803d');
+    display.html('<i class="fas fa-check-circle mr-1"></i> <?php echo tlj('ດຸ່ນດ່ຽງພໍດີ'); ?> (0 <?php echo kipSymbol(); ?>)').css('color', '#15803d');
   } else if (diff > 0) {
     alertBox.addClass('alert-info');
-    display.html('<i class="fas fa-arrow-up mr-1"></i> ເງິນເກີນ: +' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#0284c7');
+    display.html('<i class="fas fa-arrow-up mr-1"></i> <?php echo tlj('ເງິນເກີນ:'); ?> +' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#0284c7');
   } else {
     alertBox.addClass('alert-danger');
-    display.html('<i class="fas fa-arrow-down mr-1"></i> ເງິນຂາດ: ' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#dc2626');
+    display.html('<i class="fas fa-arrow-down mr-1"></i> <?php echo tlj('ເງິນຂາດ:'); ?> ' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#dc2626');
   }
 }
 
@@ -353,21 +431,21 @@ function submitPosCloseShift(e, forceEarly) {
   var countedCash = $('#posCloseCountedCashInput').val();
   var notes = $('#posCloseShiftNotes').val();
   if ($.trim(countedCash) === '') {
-    Swal.fire({ icon: 'warning', title: 'ກະລຸນາປ້ອນເງິນສົດທີ່ນັບໄດ້ຕົວຈິງ', text: 'ນັບເງິນສົດທີ່ໄດ້ຈາກການຂາຍ (ບໍ່ລວມເງິນລິ້ນຊັກຕອນເປີດ) — ບໍ່ມີໃຫ້ປ້ອນ 0', confirmButtonText: 'ຕົກລົງ', confirmButtonColor: '#244886' })
+    Swal.fire({ icon: 'warning', title: '<?php echo tlj('ກະລຸນາປ້ອນເງິນສົດທີ່ນັບໄດ້ຕົວຈິງ'); ?>', text: '<?php echo tlj('ນັບເງິນສົດທີ່ໄດ້ຈາກການຂາຍ (ບໍ່ລວມເງິນລິ້ນຊັກຕອນເປີດ)'); ?> — <?php echo tlj('ບໍ່ມີໃຫ້ປ້ອນ'); ?> 0', confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>', confirmButtonColor: '#244886' })
       .then(function () { $('#posCloseCountedCashInput').trigger('focus'); });
     return;
   }
   if (forceEarly) { posPostCloseShift(sessionId, countedCash, notes, true); return; }
 
   Swal.fire({
-    title: 'ຢືນຢັນການປິດກະ?',
-    text: 'ທ່ານຕ້ອງການປິດກະເຮັດວຽກນີ້ ແລະ ສະຫຼຸບຍອດຂາຍແທ້ບໍ່?',
+    title: '<?php echo tlj('ຢືນຢັນການປິດກະ?'); ?>',
+    text: '<?php echo tlj('ທ່ານຕ້ອງການປິດກະເຮັດວຽກນີ້ ແລະ ສະຫຼຸບຍອດຂາຍແທ້ບໍ່?'); ?>',
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#dc2626',
     cancelButtonColor: '#64748b',
-    confirmButtonText: 'ຢືນຢັນປິດກະ',
-    cancelButtonText: 'ຍົກເລີກ'
+    confirmButtonText: '<?php echo tlj('ຢືນຢັນປິດກະ'); ?>',
+    cancelButtonText: '<?php echo tlj('ຍົກເລີກ'); ?>'
   }).then(function (result) {
     if (result.isConfirmed) posPostCloseShift(sessionId, countedCash, notes, false);
   });
@@ -392,24 +470,24 @@ function posPostCloseShift(sessionId, countedCash, notes, forceEarly) {
     } else if (res && res.too_early_close && res.can_force) {
       Swal.fire({
         icon: 'warning',
-        title: 'ຍັງບໍ່ທັນຮອດໂມງປິດກະ',
-        text: res.message + ' — ຕ້ອງການປິດກ່ອນເວລາບໍ່?',
+        title: '<?php echo tlj('ຍັງບໍ່ທັນຮອດໂມງປິດກະ'); ?>',
+        text: res.message + ' — <?php echo tlj('ຕ້ອງການປິດກ່ອນເວລາບໍ່?'); ?>',
         showCancelButton: true,
         confirmButtonColor: '#dc2626',
         cancelButtonColor: '#64748b',
-        confirmButtonText: 'ປິດກ່ອນເວລາ',
-        cancelButtonText: 'ຍົກເລີກ'
+        confirmButtonText: '<?php echo tlj('ປິດກ່ອນເວລາ'); ?>',
+        cancelButtonText: '<?php echo tlj('ຍົກເລີກ'); ?>'
       }).then(function (r) { if (r.isConfirmed) posPostCloseShift(sessionId, countedCash, notes, true); });
     } else if (res && res.too_early_close) {
       posWarnTooEarlyClose('', res.scheduled_end, res.message);
     } else if (res && res.pending_held) {
-      Swal.fire({ icon: 'warning', title: 'ຍັງມີບິນພັກໄວ້ — ປິດກະບໍ່ໄດ້', text: res.message, confirmButtonText: 'ຕົກລົງ', confirmButtonColor: '#244886' });
+      Swal.fire({ icon: 'warning', title: '<?php echo tlj('ຍັງມີບິນພັກໄວ້'); ?> — <?php echo tlj('ປິດກະບໍ່ໄດ້'); ?>', text: res.message, confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>', confirmButtonColor: '#244886' });
     } else {
-      Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: res ? res.message : 'ເກີດຂໍ້ຜິດພາດ' });
+      Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: res ? res.message : '<?php echo tlj('ເກີດຂໍ້ຜິດພາດ'); ?>' });
     }
   }, 'json').fail(function () {
     btn.prop('disabled', false);
-    Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້' });
+    Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: '<?php echo tlj('ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້'); ?>' });
   });
 }
 
@@ -421,13 +499,13 @@ function showPosShiftSummaryModal(sessionId) {
   $('#posShiftReportModalContent').html(`
     <div class="text-center py-5">
       <i class="fas fa-spinner fa-spin fa-2x text-primary mb-2"></i>
-      <p class="text-muted">ກຳລັງໂຫຼດລາຍງານສະຫຼຸບ...</p>
+      <p class="text-muted"><?php echo tlj('ກຳລັງໂຫຼດລາຍງານສະຫຼຸບ...'); ?></p>
     </div>
   `);
 
   $.get(window.SHIFTS_API, { action: 'get_session_details', session_id: sessionId }, function (res) {
     if (!res || !res.success || !res.session) {
-      $('#posShiftReportModalContent').html('<div class="alert alert-danger">ບໍ່ພົບຂໍ້ມູນກະ</div>');
+      $('#posShiftReportModalContent').html('<div class="alert alert-danger"><?php echo tlj('ບໍ່ພົບຂໍ້ມູນກະ'); ?></div>');
       return;
     }
 
@@ -437,12 +515,12 @@ function showPosShiftSummaryModal(sessionId) {
 
     var s = res.session;
     var diff = s.difference_cash !== null ? parseFloat(s.difference_cash) : 0;
-    var diffText = diff === 0 ? '0 <?php echo kipSymbol(); ?> (ດຸ່ນດ່ຽງ)' : (diff > 0 ? '+' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> (ເກີນ)' : formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> (ຂາດ)');
+    var diffText = diff === 0 ? '0 <?php echo kipSymbol(); ?> <?php echo tlj('(ດຸ່ນດ່ຽງ)'); ?>' : (diff > 0 ? '+' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> <?php echo tlj('(ເກີນ)'); ?>' : formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> <?php echo tlj('(ຂາດ)'); ?>');
     var diffColor = diff === 0 ? '#15803d' : (diff > 0 ? '#0284c7' : '#dc2626');
     // ພະນັກງານ: ເຊີເວີບໍ່ສົ່ງສ່ວນຕ່າງ (diff_hidden) → ບໍ່ສະແດງແຖວສ່ວນຕ່າງ (ສະເພາະຜູ້ຈັດການ/ຜູ້ບໍລິຫານ)
     var diffRow = s.diff_hidden ? '' : `
             <tr style="background: #e2e8f0; font-weight: bold;">
-              <td>ສ່ວນຕ່າງເງິນສົດ (ຕົວຈິງ - ລະບົບ)</td>
+              <td><?php echo tlj('ສ່ວນຕ່າງເງິນສົດ (ຕົວຈິງ - ລະບົບ)'); ?></td>
               <td class="text-right" style="color: ${diffColor}; font-size: 1.15rem;">${diffText}</td>
             </tr>`;
     // ລາຍການຂາຍຂອງກະນີ້ (ກະຂອງຕົນເອງ)
@@ -452,11 +530,11 @@ function showPosShiftSummaryModal(sessionId) {
               <td style="white-space: nowrap;">${esc(b.type_pay)}</td><td class="text-right font-weight-bold" style="white-space: nowrap;">${formatPosNumber(b.sale_barlance)} <?php echo kipSymbol(); ?></td></tr>`;
     }).join('');
     var billsHtml = `
-        <div class="font-weight-bold text-dark mb-2"><i class="fas fa-receipt text-primary mr-1"></i> ລາຍການຂາຍໃນກະນີ້ (${(res.bills || []).length} ບິນ)</div>
+        <div class="font-weight-bold text-dark mb-2"><i class="fas fa-receipt text-primary mr-1"></i> <?php echo tlj('ລາຍການຂາຍໃນກະນີ້'); ?> (${(res.bills || []).length} <?php echo tlj('ບິນ)'); ?></div>
         <div class="table-responsive mb-3" style="max-height: 240px; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch;">
           <table class="table table-sm table-bordered mb-0 text-nowrap" style="font-size: 0.86rem; white-space: nowrap;">
-            <thead class="bg-light"><tr style="white-space: nowrap;"><th class="text-center" style="white-space: nowrap;">#</th><th style="white-space: nowrap;">ເລກບິນ</th><th class="text-center" style="white-space: nowrap;">ເວລາ</th><th style="white-space: nowrap;">ຊ່ອງທາງ</th><th class="text-right" style="white-space: nowrap;">ມູນຄ່າ</th></tr></thead>
-            <tbody>${billRows || '<tr><td colspan="5" class="text-center text-muted py-3">ບໍ່ມີລາຍການຂາຍໃນກະນີ້</td></tr>'}</tbody>
+            <thead class="bg-light"><tr style="white-space: nowrap;"><th class="text-center" style="white-space: nowrap;">#</th><th style="white-space: nowrap;"><?php echo tlj('ເລກບິນ'); ?></th><th class="text-center" style="white-space: nowrap;"><?php echo tlj('ເວລາ'); ?></th><th style="white-space: nowrap;"><?php echo tlj('ຊ່ອງທາງ'); ?></th><th class="text-right" style="white-space: nowrap;"><?php echo tlj('ມູນຄ່າ'); ?></th></tr></thead>
+            <tbody>${billRows || '<tr><td colspan="5" class="text-center text-muted py-3"><?php echo tlj('ບໍ່ມີລາຍການຂາຍໃນກະນີ້'); ?></td></tr>'}</tbody>
           </table>
         </div>`;
 
@@ -469,12 +547,12 @@ function showPosShiftSummaryModal(sessionId) {
               <td class="text-right" style="white-space: nowrap;">${formatPosNumber(it.price)} <?php echo kipSymbol(); ?></td><td class="text-right font-weight-bold" style="white-space: nowrap;">${formatPosNumber(it.net)} <?php echo kipSymbol(); ?></td></tr>`;
     }).join('');
     var itemsHtml = `
-        <div class="font-weight-bold text-dark mb-2"><i class="fas fa-box-open text-primary mr-1"></i> ສິນຄ້າທີ່ຂາຍໃນກະ (${items.length} ລາຍການ)</div>
+        <div class="font-weight-bold text-dark mb-2"><i class="fas fa-box-open text-primary mr-1"></i> <?php echo tlj('ສິນຄ້າທີ່ຂາຍໃນກະ'); ?> (${items.length} <?php echo tlj('ລາຍການ)'); ?></div>
         <div class="table-responsive mb-3" style="max-height: 260px; overflow-x: auto; overflow-y: auto; -webkit-overflow-scrolling: touch;">
           <table class="table table-sm table-bordered mb-0 text-nowrap" style="font-size: 0.86rem; white-space: nowrap;">
-            <thead class="bg-light"><tr style="white-space: nowrap;"><th class="text-center" style="white-space: nowrap;">#</th><th style="white-space: nowrap;">ສິນຄ້າ</th><th class="text-center" style="white-space: nowrap;">ຈຳນວນ</th><th class="text-right" style="white-space: nowrap;">ລາຄາ</th><th class="text-right" style="white-space: nowrap;">ລວມ</th></tr></thead>
-            <tbody>${itemRows || '<tr><td colspan="5" class="text-center text-muted py-3">ບໍ່ມີສິນຄ້າທີ່ຂາຍໃນກະນີ້</td></tr>'}</tbody>
-            ${items.length ? `<tfoot><tr class="font-weight-bold" style="background: #f1f5f9; white-space: nowrap;"><td colspan="2" class="text-right" style="white-space: nowrap;">ລວມທັງໝົດ</td>
+            <thead class="bg-light"><tr style="white-space: nowrap;"><th class="text-center" style="white-space: nowrap;">#</th><th style="white-space: nowrap;"><?php echo tlj('ສິນຄ້າ'); ?></th><th class="text-center" style="white-space: nowrap;"><?php echo tlj('ຈຳນວນ'); ?></th><th class="text-right" style="white-space: nowrap;"><?php echo tlj('ລາຄາ'); ?></th><th class="text-right" style="white-space: nowrap;"><?php echo tlj('ລວມ'); ?></th></tr></thead>
+            <tbody>${itemRows || '<tr><td colspan="5" class="text-center text-muted py-3"><?php echo tlj('ບໍ່ມີສິນຄ້າທີ່ຂາຍໃນກະນີ້'); ?></td></tr>'}</tbody>
+            ${items.length ? `<tfoot><tr class="font-weight-bold" style="background: #f1f5f9; white-space: nowrap;"><td colspan="2" class="text-right" style="white-space: nowrap;"><?php echo tlj('ລວມທັງໝົດ'); ?></td>
               <td class="text-center" style="white-space: nowrap;">${formatPosNumber(itTot.qty)}</td><td style="white-space: nowrap;"></td><td class="text-right text-primary" style="white-space: nowrap;">${formatPosNumber(itTot.net)} <?php echo kipSymbol(); ?></td></tr></tfoot>` : ''}
           </table>
         </div>`;
@@ -482,40 +560,40 @@ function showPosShiftSummaryModal(sessionId) {
     var html = `
       <div id="posExportContentArea" style="font-family: 'Nuanta', 'Noto Sans Lao', sans-serif;">
         <div class="text-center border-bottom pb-3 mb-3">
-          <h4 class="font-weight-bold mb-1" style="color: #1e293b;">ໃບສະຫຼຸບປິດກະເຮັດວຽກ</h4>
+          <h4 class="font-weight-bold mb-1" style="color: #1e293b;"><?php echo tlj('ໃບສະຫຼຸບປິດກະເຮັດວຽກ'); ?></h4>
           <div class="text-muted" style="font-size: 0.95rem;">
-            ${s.store_name ? `<strong>ສາຂາ:</strong> ${esc(s.store_name)} | ` : ''}<strong>ກະ:</strong> ${s.shift_name} | <strong>ເວລາ:</strong> ${s.open_time} - ${s.close_time}
+            ${s.store_name ? `<strong><?php echo tlj('ສາຂາ:'); ?></strong> ${esc(s.store_name)} | ` : ''}<strong><?php echo tlj('ກະ:'); ?></strong> ${formatShiftName(s.shift_name)} | <strong><?php echo tlj('ເວລາ:'); ?></strong> ${s.open_time} - ${s.close_time}
           </div>
           <div class="text-muted" style="font-size: 0.88rem;">
-            <strong>ຜູ້ເປີດ:</strong> ${s.opened_by_name} | <strong>ຜູ້ປິດ:</strong> ${s.closed_by_name}
+            <strong><?php echo tlj('ຜູ້ເປີດ:'); ?></strong> ${s.opened_by_name} | <strong><?php echo tlj('ຜູ້ປິດ:'); ?></strong> ${shiftCloserName(s.closed_by_name)}
           </div>
-          ${s.staff_names ? `<div class="text-muted" style="font-size: 0.88rem;"><strong>ພະນັກງານໃນກະ:</strong> ${$('<div>').text(s.staff_names).html()}</div>` : ''}
+          ${s.staff_names ? `<div class="text-muted" style="font-size: 0.88rem;"><strong><?php echo tlj('ພະນັກງານໃນກະ:'); ?></strong> ${$('<div>').text(s.staff_names).html()}</div>` : ''}
         </div>
 
         <table class="table table-bordered mb-3" style="font-size: 0.95rem;">
           <tbody>
             <tr>
-              <td class="bg-light font-weight-bold" style="width: 55%;">1. ເງິນສົດໃນລິ້ນຊັກ (ຕອນເປີດກະ)</td>
+              <td class="bg-light font-weight-bold" style="width: 55%;">1. <?php echo tlj('ເງິນສົດໃນລິ້ນຊັກ (ຕອນເປີດກະ)'); ?></td>
               <td class="text-right font-weight-bold text-secondary">${formatPosNumber(s.initial_cash)} <?php echo kipSymbol(); ?></td>
             </tr>
             <tr>
-              <td>2. ຍອດຂາຍເງິນສົດໃນລະບົບ</td>
+              <td>2. <?php echo tlj('ຍອດຂາຍເງິນສົດໃນລະບົບ'); ?></td>
               <td class="text-right font-weight-bold text-success">${formatPosNumber(s.system_sales_cash)} <?php echo kipSymbol(); ?></td>
             </tr>
             <tr>
-              <td>3. ຍອດຂາຍໂອນ / QR ໃນລະບົບ</td>
+              <td>3. <?php echo tlj('ຍອດຂາຍໂອນ / QR ໃນລະບົບ'); ?></td>
               <td class="text-right font-weight-bold text-info">${formatPosNumber(s.system_sales_transfer)} <?php echo kipSymbol(); ?></td>
             </tr>
             <tr>
-              <td>4. ຍອດຂາຍຕິດໜີ້</td>
+              <td>4. <?php echo tlj('ຍອດຂາຍຕິດໜີ້'); ?></td>
               <td class="text-right font-weight-bold text-warning">${formatPosNumber(s.system_sales_debt)} <?php echo kipSymbol(); ?></td>
             </tr>
             <tr class="bg-light font-weight-bold">
-              <td>ຍອດຂາຍລວມທັງໝົດ (${formatPosNumber(s.system_total_bills)} ບິນ)</td>
+              <td><?php echo tlj('ຍອດຂາຍລວມທັງໝົດ'); ?> (${formatPosNumber(s.system_total_bills)} <?php echo tlj('ບິນ)'); ?></td>
               <td class="text-right font-weight-bold text-primary" style="font-size: 1.1rem;">${formatPosNumber(s.system_total_sales)} <?php echo kipSymbol(); ?></td>
             </tr>
             <tr style="background: #f8fafc;">
-              <td class="font-weight-bold text-dark">5. ເງິນສົດນັບໄດ້ຕົວຈິງ (ສະເພາະຂາຍ ບໍ່ລວມເງິນລິ້ນຊັກ)</td>
+              <td class="font-weight-bold text-dark">5. <?php echo tlj('ເງິນສົດນັບໄດ້ຕົວຈິງ (ສະເພາະຂາຍ ບໍ່ລວມເງິນລິ້ນຊັກ)'); ?></td>
               <td class="text-right font-weight-bold text-dark" style="font-size: 1.1rem;">${formatPosNumber(s.counted_sales_cash)} <?php echo kipSymbol(); ?></td>
             </tr>${diffRow}
           </tbody>
@@ -523,9 +601,9 @@ function showPosShiftSummaryModal(sessionId) {
 ${itemsHtml}
 ${billsHtml}
 
-        ${s.notes ? `<div class="alert alert-secondary py-2 px-3 mb-2 small"><strong>ໝາຍເຫດ:</strong> ${s.notes}</div>` : ''}
+        ${s.notes ? `<div class="alert alert-secondary py-2 px-3 mb-2 small"><strong><?php echo tlj('ໝາຍເຫດ:'); ?></strong> ${s.notes}</div>` : ''}
         <div class="alert alert-warning py-2 px-3 small font-weight-bold text-center">
-          <i class="fas fa-info-circle mr-1"></i> ເມື່ອກົດ "ອອກຈາກລະບົບ" ທ່ານຈະອອກຈາກລະບົບທັນທີ ແລະ ບໍ່ສາມາດເຂົ້າຂາຍໄດ້ຈົນກວ່າຈະຮອດໂມງເປີດກະຖັດໄປ
+          <i class="fas fa-info-circle mr-1"></i> <?php echo tlj('ເມື່ອກົດ'); ?> "<?php echo tlj('ອອກຈາກລະບົບ'); ?>" <?php echo tlj('ທ່ານຈະອອກຈາກລະບົບທັນທີ ແລະ ບໍ່ສາມາດເຂົ້າຂາຍໄດ້ຈົນກວ່າຈະຮອດໂມງເປີດກະຖັດໄປ'); ?>
         </div>
       </div>
     `;
@@ -543,7 +621,7 @@ function printPosShiftThermalSlip() {
   if (!window.posReportSession) return;
   var s = window.posReportSession;
   var diff = s.difference_cash !== null ? parseFloat(s.difference_cash) : 0;
-  var diffText = diff === 0 ? '0 <?php echo kipSymbol(); ?> (ດຸ່ນດ່ຽງ)' : (diff > 0 ? '+' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> (ເກີນ)' : formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> (ຂາດ)');
+  var diffText = diff === 0 ? '0 <?php echo kipSymbol(); ?> <?php echo tlj('(ດຸ່ນດ່ຽງ)'); ?>' : (diff > 0 ? '+' + formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> <?php echo tlj('(ເກີນ)'); ?>' : formatPosNumber(diff) + ' <?php echo kipSymbol(); ?> <?php echo tlj('(ຂາດ)'); ?>');
 
   var slipHtml = `<!DOCTYPE html>
     <html>
@@ -563,34 +641,34 @@ function printPosShiftThermalSlip() {
       </style>
     </head>
     <body>
-      <div class="text-center font-bold" style="font-size: 15px;">ໃບສະຫຼຸບປິດກະເຮັດວຽກ</div>
-      ${s.store_name ? `<div class="text-center" style="font-size: 12px;">ສາຂາ: ${$('<div>').text(s.store_name).html()}</div>` : ''}
-      <div class="text-center font-bold" style="font-size: 13px;">${s.shift_name}</div>
+      <div class="text-center font-bold" style="font-size: 15px;"><?php echo tlj('ໃບສະຫຼຸບປິດກະເຮັດວຽກ'); ?></div>
+      ${s.store_name ? `<div class="text-center" style="font-size: 12px;"><?php echo tlj('ສາຂາ:'); ?> ${$('<div>').text(s.store_name).html()}</div>` : ''}
+      <div class="text-center font-bold" style="font-size: 13px;">${formatShiftName(s.shift_name)}</div>
       <div class="text-center border-bottom" style="font-size: 12px;">${s.open_time} - ${s.close_time}</div>
 
-      <div class="row"><span>ຜູ້ເປີດ:</span><span>${s.opened_by_name}</span></div>
-      <div class="row"><span>ຜູ້ປິດ:</span><span>${s.closed_by_name}</span></div>
-      ${s.staff_names ? `<div class="row"><span>ພະນັກງານ:</span><span>${$('<div>').text(s.staff_names).html()}</span></div>` : ''}
+      <div class="row"><span><?php echo tlj('ຜູ້ເປີດ:'); ?></span><span>${s.opened_by_name}</span></div>
+      <div class="row"><span><?php echo tlj('ຜູ້ປິດ:'); ?></span><span>${shiftCloserName(s.closed_by_name)}</span></div>
+      ${s.staff_names ? `<div class="row"><span><?php echo tlj('ພະນັກງານ:'); ?></span><span>${$('<div>').text(s.staff_names).html()}</span></div>` : ''}
 
       <div class="border-top"></div>
-      <div class="row"><span>ເງິນລິ້ນຊັກຕອນເປີດ:</span><span class="font-bold">${formatPosNumber(s.initial_cash)} <?php echo kipSymbol(); ?></span></div>
-      <div class="row"><span>ຂາຍເງິນສົດ (ລະບົບ):</span><span class="font-bold">${formatPosNumber(s.system_sales_cash)} <?php echo kipSymbol(); ?></span></div>
-      <div class="row"><span>ຂາຍໂອນ / QR:</span><span class="font-bold">${formatPosNumber(s.system_sales_transfer)} <?php echo kipSymbol(); ?></span></div>
-      <div class="row"><span>ຂາຍຕິດໜີ້:</span><span class="font-bold">${formatPosNumber(s.system_sales_debt)} <?php echo kipSymbol(); ?></span></div>
-      <div class="row font-bold" style="font-size: 13.5px;"><span>ຍອດຂາຍລວມ (${s.system_total_bills} ບິນ):</span><span>${formatPosNumber(s.system_total_sales)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row"><span><?php echo tlj('ເງິນລິ້ນຊັກຕອນເປີດ:'); ?></span><span class="font-bold">${formatPosNumber(s.initial_cash)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row"><span><?php echo tlj('ຂາຍເງິນສົດ (ລະບົບ):'); ?></span><span class="font-bold">${formatPosNumber(s.system_sales_cash)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row"><span><?php echo tlj('ຂາຍໂອນ / QR:'); ?></span><span class="font-bold">${formatPosNumber(s.system_sales_transfer)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row"><span><?php echo tlj('ຂາຍຕິດໜີ້:'); ?></span><span class="font-bold">${formatPosNumber(s.system_sales_debt)} <?php echo kipSymbol(); ?></span></div>
+      <div class="row font-bold" style="font-size: 13.5px;"><span><?php echo tlj('ຍອດຂາຍລວມ'); ?> (${s.system_total_bills} <?php echo tlj('ບິນ):'); ?></span><span>${formatPosNumber(s.system_total_sales)} <?php echo kipSymbol(); ?></span></div>
 
       ${(window.posReportItems || []).length ? `<div class="border-top"></div>
-      <div class="font-bold" style="margin-bottom: 3px;">ສິນຄ້າທີ່ຂາຍ (${window.posReportItems.length} ລາຍການ):</div>
+      <div class="font-bold" style="margin-bottom: 3px;"><?php echo tlj('ສິນຄ້າທີ່ຂາຍ'); ?> (${window.posReportItems.length} <?php echo tlj('ລາຍການ):'); ?></div>
       ${window.posReportItems.map(function (it) {
         return `<div class="row"><span>${$('<div>').text(it.product_name || '-').html()} x${formatPosNumber(it.qty)}</span><span>${formatPosNumber(it.net)} <?php echo kipSymbol(); ?></span></div>`;
       }).join('')}` : ''}
 
       <div class="border-top"></div>
-      <div class="row font-bold"><span>ເງິນສົດນັບໄດ້ (ຂາຍ):</span><span>${formatPosNumber(s.counted_sales_cash)} <?php echo kipSymbol(); ?></span></div>
-      ${s.diff_hidden ? '' : `<div class="row font-bold"><span>ສ່ວນຕ່າງເງິນສົດ:</span><span>${diffText}</span></div>`}
+      <div class="row font-bold"><span><?php echo tlj('ເງິນສົດນັບໄດ້ (ຂາຍ):'); ?></span><span>${formatPosNumber(s.counted_sales_cash)} <?php echo kipSymbol(); ?></span></div>
+      ${s.diff_hidden ? '' : `<div class="row font-bold"><span><?php echo tlj('ສ່ວນຕ່າງເງິນສົດ:'); ?></span><span>${diffText}</span></div>`}
 
       <div class="border-top text-center" style="margin-top: 15px; font-size: 11px;">
-        ພິມເມື່ອ: ${new Date().toLocaleString()}
+        <?php echo tlj('ພິມເມື່ອ:'); ?> ${new Date().toLocaleString()}
       </div>
     </body>
     </html>
@@ -631,24 +709,24 @@ function posShiftReportData() {
   var bills = window.posReportBills || [];
   var K = function (n) { return formatPosNumber(n) + ' <?php echo kipSymbol(); ?>'; };
   var diff = s.difference_cash !== null && s.difference_cash !== undefined ? parseFloat(s.difference_cash) : null;
-  var diffText = diff === null ? '-' : (diff === 0 ? '0 <?php echo kipSymbol(); ?> (ດຸ່ນດ່ຽງ)' : (diff > 0 ? '+' + K(diff) + ' (ເກີນ)' : K(diff) + ' (ຂາດ)'));
-  var meta = ['ເວລາ: ' + (s.open_time || '') + ' - ' + (s.close_time || ''),
-              'ຜູ້ເປີດ: ' + (s.opened_by_name || '-') + '  ຜູ້ປິດ: ' + (s.closed_by_name || '-')];
-  if (s.staff_names) meta.push('ພະນັກງານໃນກະ: ' + s.staff_names);
+  var diffText = diff === null ? '-' : (diff === 0 ? '0 <?php echo kipSymbol(); ?> <?php echo tlj('(ດຸ່ນດ່ຽງ)'); ?>' : (diff > 0 ? '+' + K(diff) + ' <?php echo tlj('(ເກີນ)'); ?>' : K(diff) + ' <?php echo tlj('(ຂາດ)'); ?>'));
+  var meta = ['<?php echo tlj('ເວລາ:'); ?> ' + (s.open_time || '') + ' - ' + (s.close_time || ''),
+              '<?php echo tlj('ຜູ້ເປີດ:'); ?> ' + (s.opened_by_name || '-') + '  <?php echo tlj('ຜູ້ປິດ:'); ?> ' + (shiftCloserName(s.closed_by_name) || '-')];
+  if (s.staff_names) meta.push('<?php echo tlj('ພະນັກງານໃນກະ:'); ?> ' + s.staff_names);
   var summary = [
-    ['1. ເງິນສົດໃນລິ້ນຊັກ (ຕອນເປີດກະ)', K(s.initial_cash)],
-    ['2. ຍອດຂາຍເງິນສົດໃນລະບົບ', K(s.system_sales_cash)],
-    ['3. ຍອດຂາຍໂອນ / QR', K(s.system_sales_transfer)],
-    ['4. ຍອດຂາຍຕິດໜີ້', K(s.system_sales_debt)],
-    ['ຍອດຂາຍລວມທັງໝົດ (' + formatPosNumber(s.system_total_bills) + ' ບິນ)', K(s.system_total_sales), true],
-    ['5. ເງິນສົດນັບໄດ້ຕົວຈິງ (ສະເພາະຂາຍ ບໍ່ລວມເງິນລິ້ນຊັກ)', K(s.counted_sales_cash)]
+    ['1. <?php echo tlj('ເງິນສົດໃນລິ້ນຊັກ (ຕອນເປີດກະ)'); ?>', K(s.initial_cash)],
+    ['2. <?php echo tlj('ຍອດຂາຍເງິນສົດໃນລະບົບ'); ?>', K(s.system_sales_cash)],
+    ['3. <?php echo tlj('ຍອດຂາຍໂອນ'); ?> / QR', K(s.system_sales_transfer)],
+    ['4. <?php echo tlj('ຍອດຂາຍຕິດໜີ້'); ?>', K(s.system_sales_debt)],
+    ['<?php echo tlj('ຍອດຂາຍລວມທັງໝົດ'); ?> (' + formatPosNumber(s.system_total_bills) + ' <?php echo tlj('ບິນ)'); ?>', K(s.system_total_sales), true],
+    ['5. <?php echo tlj('ເງິນສົດນັບໄດ້ຕົວຈິງ (ສະເພາະຂາຍ ບໍ່ລວມເງິນລິ້ນຊັກ)'); ?>', K(s.counted_sales_cash)]
   ];
-  if (!s.diff_hidden) summary.push(['ສ່ວນຕ່າງເງິນສົດ (ຕົວຈິງ - ລະບົບ)', diffText, true]);   // ພະນັກງານບໍ່ເຫັນ
-  if (s.notes) summary.push(['ໝາຍເຫດ', s.notes]);
+  if (!s.diff_hidden) summary.push(['<?php echo tlj('ສ່ວນຕ່າງເງິນສົດ (ຕົວຈິງ - ລະບົບ)'); ?>', diffText, true]);   // ພະນັກງານບໍ່ເຫັນ
+  if (s.notes) summary.push(['<?php echo tlj('ໝາຍເຫດ'); ?>', s.notes]);
   // ສິນຄ້າທີ່ຂາຍໃນກະ — RptExport ມີຕາຕະລາງຫຼັກດຽວ (ບິນ) ຈຶ່ງໃສ່ໃນຕາຕະລາງສະຫຼຸບ: "ຊື່ x ຈຳນວນ" | ລວມ
   var items = window.posReportItems || [];
   if (items.length) {
-    summary.push(['ສິນຄ້າທີ່ຂາຍໃນກະ (' + items.length + ' ລາຍການ)', '', true]);
+    summary.push(['<?php echo tlj('ສິນຄ້າທີ່ຂາຍໃນກະ'); ?> (' + items.length + ' <?php echo tlj('ລາຍການ)'); ?>', '', true]);
     items.forEach(function (it) { summary.push([(it.product_name || '-') + '  x' + formatPosNumber(it.qty), K(it.net)]); });
   }
   var total = 0;
@@ -657,19 +735,19 @@ function posShiftReportData() {
     return [i + 1, b.sale_save_bill, (b.sale_date || '') + ' ' + (b.sale_time || ''), b.user_receive || '', b.type_pay || '', K(b.sale_barlance)];
   });
   return {
-    title: 'ລາຍງານສະຫຼຸບປິດກະ: ' + (s.shift_name || ''),
+    title: '<?php echo tlj('ລາຍງານສະຫຼຸບປິດກະ:'); ?> ' + (s.shift_name || ''),
     fileBase: 'shift_report_' + String(s.shift_name || 'shift').replace(/[\\\/:*?"<>|\s]+/g, '_'),
-    store: s.store_name ? 'ສາຂາ: ' + s.store_name : '',
+    store: s.store_name ? '<?php echo tlj('ສາຂາ:'); ?> ' + s.store_name : '',
     meta: meta,
     summary: summary,
-    headers: [{t: '#', a: 'c'}, {t: 'ເລກບິນ'}, {t: 'ວັນທີ-ເວລາ', a: 'c'}, {t: 'ພະນັກງານຂາຍ'}, {t: 'ຊ່ອງທາງ', a: 'c'}, {t: 'ມູນຄ່າ', a: 'r'}],
+    headers: [{t: '#', a: 'c'}, {t: '<?php echo tlj('ເລກບິນ'); ?>'}, {t: '<?php echo tlj('ວັນທີ-ເວລາ'); ?>', a: 'c'}, {t: '<?php echo tlj('ພະນັກງານຂາຍ'); ?>'}, {t: '<?php echo tlj('ຊ່ອງທາງ'); ?>', a: 'c'}, {t: '<?php echo tlj('ມູນຄ່າ'); ?>', a: 'r'}],
     rows: rows,
-    footer: rows.length ? ['', 'ລວມ ' + rows.length + ' ບິນ', '', '', '', K(total)] : null
+    footer: rows.length ? ['', '<?php echo tlj('ລວມ'); ?> ' + rows.length + ' <?php echo tlj('ບິນ'); ?>', '', '', '', K(total)] : null
   };
 }
 function posShiftExportReady() {
   if (!window.posReportSession) return false;
-  if (!window.RptExport) { Swal.fire({ icon: 'error', title: 'ໂຫຼດ assets/js/report-export.js ບໍ່ໄດ້' }); return false; }
+  if (!window.RptExport) { Swal.fire({ icon: 'error', title: '<?php echo tlj('ໂຫຼດ assets/js/report-export.js ບໍ່ໄດ້'); ?>' }); return false; }
   RptExport.config({ printedBy: window.CURRENT_USER_NAME || '' });
   return true;
 }

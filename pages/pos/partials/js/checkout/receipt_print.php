@@ -39,7 +39,7 @@ function printReceiptLan() {
       url: window.POS_BACKEND_URL || '../../api/pos_backend.php',
       type: 'POST',
       dataType: 'json',
-      data: { action: 'print_lan_ticket', printer_id: rp.printer_id, image: dataUri }
+      data: { action: 'print_lan_ticket', printer_id: rp.printer_id, image: dataUri, bw: 1 }
     });
   }).then(function (res) {
     if (res && res.success) return true;
@@ -91,21 +91,8 @@ function printReceipt() {
   }
   var dialogPx = MiniposLanReceipt.dialogPaperPx ? MiniposLanReceipt.dialogPaperPx(paper) : MiniposLanReceipt.paperPx(paper);
 
-  // ==========================================
-  // ດັກ CSS ສະເພາະບຣາວເຊີ: 
-  // ປັບ padding ດ້ານຂວາໃຫ້ຫົດເຂົ້າມາ 1 ຂີດ (padding-right: 6px) 
-  // ເພື່ອໃຫ້ເສັ້ນຂີດປະ ແລະ ຕົວໜັງສືຝັ່ງຂວາຫົດເຂົ້າມາພໍດີ
-  // ==========================================
-  var BROWSER_CSS = (typeof POS_RCPT_EXTRA_CSS !== 'undefined' ? POS_RCPT_EXTRA_CSS : '') +
-    ' .rcpt-root > div { padding: 4px 6px 8px 10px !important; }' +
-    ' .receipt-meta,table,#rc_payment_rows,#rc_rep_payment_rows,.rc-sum-wrap,.rc-change-wrap,#rc_multicur,#rc_rep_multicur,.receipt-qr-box,.receipt-footer-msg,.receipt-header-block,.rc-sum,.rc-net' +
-    ' { margin-left: 0px !important; width: 100% !important; }' +
-    ' div[style*="dashed"],.rc-divider,th [style*="dashed"],th .rc-divider,.receipt-qr-box [style*="dashed"],.receipt-qr-box .rc-divider' +
-    ' { margin-left: 0px !important; width: 100% !important; }' +
-    ' tr.rc-strong { border-bottom: none !important; }' +
-    ' thead tr, tr:first-child th { border-bottom: 1px dashed #000 !important; padding-bottom: 4px !important; }';
-
-  MiniposLanReceipt.toImage(area, dialogPx, '<?php echo $base_path; ?>', BROWSER_CSS).then(function (uri) {
+  // ໂຄງຮ່າງບິນມາຈາກ RECEIPT_CSS ໃນ assets/js/lan-receipt.js — ດຽວກັນກັບ LAN/USB/Bluetooth
+  MiniposLanReceipt.toImage(area, dialogPx, '<?php echo $base_path; ?>', POS_RCPT_EXTRA_CSS).then(function (uri) {
     return MiniposLanReceipt.imageHtml(uri, paper);
   }).catch(function (err) {
     console.warn('Receipt image failed, printing HTML instead:', err);
@@ -136,7 +123,7 @@ function printReceiptHtml(printContent) {
       @font-face { font-family: 'Receipt Latin'; src: url('<?php echo $base_path; ?>assets/fonts/NotoSans-Latin-700.woff2') format('woff2'); font-weight: 700; }
       @font-face { font-family: 'Receipt Latin'; src: url('<?php echo $base_path; ?>assets/fonts/NotoSans-Latin-700.woff2') format('woff2'); font-weight: 700; size-adjust: 90%; unicode-range: U+0041-005A, U+0061-007A, U+00C0-024F; }
       * { box-sizing: border-box; font-family: 'Nuanta', 'Receipt Latin', 'Noto Sans Lao Local', 'Noto Sans Lao', 'Souliyo', 'Boon', Arial, sans-serif !important; color: #000 !important; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-      html, body { width: 80mm; margin: 0 auto; padding: 8px 6px 8px 10px; background: #fff; color: #000 !important; font-size: 17px; font-weight: 400; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      html, body { width: 80mm; margin: 0 auto; padding: 8px 6px; background: #fff; color: #000 !important; font-size: 17px; font-weight: 400; line-height: 1.5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       
       h1,h2,h3,h4,h5,h6 { margin: 0 !important; } h6 { font-size: 20px !important; white-space: nowrap; }
       .text-center { text-align: center !important; } .text-right { text-align: right !important; }
@@ -149,13 +136,16 @@ function printReceiptHtml(printContent) {
       .text-muted { color: #000 !important; font-weight: 400 !important; }
       .receipt-header-address, .receipt-header-tel { font-size: 15px !important; font-weight: 400 !important; color: #000 !important; line-height: 1.4 !important; }
       
-      /* ສ່ວນ HTML Fallback: ປັບ padding ຂວາ 6px */
-      html, body { padding-right: 6px !important; padding-left: 10px !important; }
-      .receipt-meta, table, #rc_payment_rows, #rc_rep_payment_rows, .rc-sum-wrap, .rc-change-wrap, #rc_multicur, #rc_rep_multicur, .receipt-qr-box, .receipt-footer-msg, .receipt-header-block, .rc-sum, .rc-net {
-        margin-left: 0px !important; width: 100% !important;
+      /* ສ່ວນ HTML Fallback: ຫຍັບເສັ້ນຂີດປະ ແລະ ຕົວໜັງສືມາຂວາ 1 ຂີດ (margin-left: -6px) */
+      .receipt-meta, table, #rc_payment_rows, #rc_rep_payment_rows, .rc-sum-wrap, .rc-change-wrap, #rc_multicur, #rc_rep_multicur, .receipt-qr-box, .receipt-footer-msg, .rc-sum, .rc-net {
+        margin-left: 0px !important; width: calc(100% - 6px) !important;
       }
-      div[style*="dashed"], .rc-divider, th [style*="dashed"], th .rc-divider, .receipt-qr-box [style*="dashed"], .receipt-qr-box .rc-divider {
-        margin-left: 0px !important; width: 100% !important;
+      .receipt-header-block { margin-left: 0px !important; width: 100% !important; text-align: center !important; }
+      div[style*="dashed"], .rc-divider {
+        border-top: 1px dashed #000 !important; margin: 6px 0 !important; margin-left: 0px !important; width: calc(100% - 6px) !important;
+      }
+      th [style*="dashed"], th .rc-divider, .receipt-qr-box [style*="dashed"], .receipt-qr-box .rc-divider {
+        display: none !important;
       }
       div[style*="dashed"], .rc-divider { border-top: 1px dashed #000 !important; margin: 6px 0 !important; }
       tr.rc-strong { border-top: none !important; border-bottom: none !important; }

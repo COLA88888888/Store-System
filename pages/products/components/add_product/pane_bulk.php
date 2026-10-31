@@ -43,6 +43,7 @@
                 <?php endforeach; ?>
               </select>
             </div>
+            <?php $hasZones = !empty($zones); $hasShelves = !empty($shelves); ?>
             <div class="col-md-4">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="font-weight-bold text-dark mb-0"><i class="fas fa-map-marker-alt text-info mr-1"></i><?php echo htmlspecialchars(t('products_q.zone_all_rows')); ?></label>
@@ -50,8 +51,8 @@
                   <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_zone_link')); ?>
                 </a>
               </div>
-              <select name="bulk_zone" id="bulk_zone" class="form-control" style="height: 40px; border-radius: 6px;" onchange="onZoneSelectChange('bulk')">
-                <option value=""><?php echo htmlspecialchars(t('products_q.zone_none_opt')); ?></option>
+              <select name="bulk_zone" id="bulk_zone" class="form-control" style="height: 40px; border-radius: 6px;" onchange="onZoneSelectChange('bulk')" <?php echo !$hasZones ? 'disabled' : ''; ?>>
+                <option value=""><?php echo htmlspecialchars($hasZones ? t('products_q.zone_none_opt') : t('products_q.no_zone_short', '-- ບໍ່ມີໂຊນ --')); ?></option>
                 <?php foreach (($zones ?? []) as $z): ?>
                   <option value="<?php echo htmlspecialchars($z['zone_name']); ?>" data-id="<?php echo (int)$z['zone_id']; ?>"><?php echo htmlspecialchars($z['zone_name']); ?></option>
                 <?php endforeach; ?>
@@ -64,8 +65,8 @@
                   <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_shelf_link')); ?>
                 </a>
               </div>
-              <select name="bulk_shelf" id="bulk_shelf" class="form-control" style="height: 40px; border-radius: 6px;">
-                <option value=""><?php echo htmlspecialchars(t('products_q.shelf_none_opt')); ?></option>
+              <select name="bulk_shelf" id="bulk_shelf" class="form-control" style="height: 40px; border-radius: 6px;" <?php echo !$hasShelves ? 'disabled' : ''; ?>>
+                <option value=""><?php echo htmlspecialchars($hasShelves ? t('products_q.shelf_none_opt') : t('products_q.no_shelf_short', '-- ບໍ່ມີຊັ້ນວາງ --')); ?></option>
                 <?php foreach (($shelves ?? []) as $sh): ?>
                   <option value="<?php echo htmlspecialchars($sh['shelf_name']); ?>" data-zone-id="<?php echo (int)($sh['zone_id'] ?? 0); ?>" data-zone-name="<?php echo htmlspecialchars($sh['zone_name'] ?? ''); ?>"><?php echo htmlspecialchars($sh['shelf_name']); ?></option>
                 <?php endforeach; ?>
@@ -73,23 +74,24 @@
             </div>
             <div class="col-12 mt-1">
               <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="bulk_no_cut_qty" name="bulk_no_cut_qty" value="1">
-                <label class="custom-control-label font-weight-bold text-dark" for="bulk_no_cut_qty">
-                  <?php echo htmlspecialchars(t('products.bulk_no_cut_qty', 'ບໍ່ຕັດສະຕັອກ ສຳລັບທຸກລາຍການໃນຊຸດນີ້')); ?>
+                <!-- ຄືກັບຟອມເພີ່ມດ່ຽວ: ເປີດໄວ້ = ຕັດສະຕັອກ (ຄ່າເລີ່ມຕົ້ນ); ປິດ = ບໍ່ຕັດ (ບໍລິການ / ສິນຄ້າສັ່ງເຮັດ) -->
+                <input type="checkbox" class="custom-control-input" id="bulk_cut_qty" name="bulk_cut_qty" value="1" checked>
+                <label class="custom-control-label font-weight-bold text-dark" for="bulk_cut_qty">
+                  <?php echo htmlspecialchars(t('products.bulk_cut_qty', 'ຕັດສະຕັອກເມື່ອຂາຍ — ທຸກລາຍການໃນຊຸດນີ້')); ?>
                 </label>
-                <small class="text-muted d-block"><?php echo htmlspecialchars(t('products.bulk_no_cut_qty_hint', 'ໃຊ້ສຳລັບບໍລິການ / ສິນຄ້າສັ່ງເຮັດ — ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ. ຕັ້ງທີ່ນີ້ຄັ້ງດຽວ ແທນທີ່ຈະໄປແກ້ໄຂເອົາທີລະລາຍການພາຍຫຼັງ')); ?></small>
+                <small class="text-muted d-block"><?php echo htmlspecialchars(t('products.bulk_cut_qty_hint', 'ປິດໄວ້ສຳລັບ ບໍລິການ / ສິນຄ້າສັ່ງເຮັດ (ຂາຍໄດ້ໂດຍບໍ່ຕັດຈຳນວນຄັງ)')); ?></small>
               </div>
             </div>
           </div>
 
           <div id="bulk_rows_container"></div>
 
-          <div class="btn-group btn-group-sm mt-2" role="group">
-            <button type="button" class="btn btn-outline-primary font-weight-bold" style="border-radius: 6px 0 0 6px;" onclick="bulkAddRows(1)">
-              <i class="fas fa-plus mr-1"></i> <?php echo htmlspecialchars(t('products.bulk_add_row', 'ເພີ່ມແຖວ')); ?>
+          <div class="d-flex align-items-center mt-3" style="gap: 8px;">
+            <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold px-2.5 py-1" style="border-radius: 6px; font-size: 0.8rem; height: 32px; display: inline-flex; align-items: center;" onclick="bulkAddRows(1)">
+              <i class="fas fa-plus mr-1" style="font-size: 0.72rem;"></i> <?php echo htmlspecialchars(t('products.bulk_add_row', 'ເພີ່ມແຖວ')); ?>
             </button>
-            <button type="button" class="btn btn-outline-primary font-weight-bold px-3" onclick="bulkAddRows(5)">+5</button>
-            <button type="button" class="btn btn-outline-primary font-weight-bold px-3" style="border-radius: 0 6px 6px 0;" onclick="bulkAddRows(10)">+10</button>
+            <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold px-2.5 py-1" style="border-radius: 6px; font-size: 0.8rem; height: 32px; display: inline-flex; align-items: center;" onclick="bulkAddRows(5)">+5</button>
+            <button type="button" class="btn btn-sm btn-outline-primary font-weight-bold px-2.5 py-1" style="border-radius: 6px; font-size: 0.8rem; height: 32px; display: inline-flex; align-items: center;" onclick="bulkAddRows(10)">+10</button>
           </div>
         </div>
 

@@ -6,7 +6,7 @@
  */
 ?>          <!-- TABLE RENDER: VIEW TYPE == 'bill' OR 'detail' -->
           <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle text-nowrap">
+            <table class="table table-hover mb-0 align-middle text-nowrap import-list-table">
               
               <?php if ($view_type === 'bill'): ?>
                 <!-- HEADER FOR MODE 1: ຕາມບິນ -->

@@ -74,7 +74,7 @@ window.SHIFT_REPORT_MODE = 'revenue';
       <h5 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
         <i class="fas fa-chart-line mr-2" style="color: #059669;"></i> <?php echo htmlspecialchars(t('layout.shift_revenue_report', 'ລາຍງານລາຍຮັບຕາມກະ')); ?>
       </h5>
-      <small class="text-muted" style="font-size: 0.82rem;">ສະຫຼຸບລາຍຮັບຍອດຂາຍ, ຊ່ອງທາງການຊຳລະເງິນ ແລະ ຈຳນວນບິນຂາຍຕາມແຕ່ລະກະ</small>
+      <small class="text-muted" style="font-size: 0.82rem;"><?php echo tlh('ສະຫຼຸບລາຍຮັບຍອດຂາຍ, ຊ່ອງທາງການຊຳລະເງິນ ແລະ ຈຳນວນບິນຂາຍຕາມແຕ່ລະກະ'); ?></small>
     </div>
     <?php if ($shHasShifts): ?>
     <div class="page-actions">
@@ -100,8 +100,10 @@ window.SHIFT_REPORT_MODE = 'revenue';
     <!-- 1. ຍອດລາຍຮັບລວມທຸກກະ -->
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #10b981 0%, #047857 100%);">
       <div style="z-index: 2; min-width: 0;">
-        <div class="kpi-card-title">ຍອດລາຍຮັບລວມທຸກກະ</div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiRevTotalSales">0 <?php echo kipSymbol(); ?></div>
+        <div class="kpi-card-title"><?php echo tlh('ຍອດລາຍຮັບລວມທຸກກະ'); ?></div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <span class="counter-num" id="kpiRevTotalSales">0 <?php echo kipSymbol(); ?></span>
+        </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-coins"></i></div>
     </div>
@@ -109,8 +111,10 @@ window.SHIFT_REPORT_MODE = 'revenue';
     <!-- 2. ຍອດຂາຍເງິນສົດ -->
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
       <div style="z-index: 2; min-width: 0;">
-        <div class="kpi-card-title">ຍອດຂາຍເງິນສົດ</div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiRevCashSales">0 <?php echo kipSymbol(); ?></div>
+        <div class="kpi-card-title"><?php echo tlh('ຍອດຂາຍເງິນສົດ'); ?></div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <span class="counter-num" id="kpiRevCashSales">0 <?php echo kipSymbol(); ?></span>
+        </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-money-bill-wave"></i></div>
     </div>
@@ -118,8 +122,10 @@ window.SHIFT_REPORT_MODE = 'revenue';
     <!-- 3. ຍອດຂາຍໂອນ / QR -->
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
       <div style="z-index: 2; min-width: 0;">
-        <div class="kpi-card-title">ຍອດຂາຍໂອນ / QR</div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiRevTransferSales">0 <?php echo kipSymbol(); ?></div>
+        <div class="kpi-card-title"><?php echo tlh('ຍອດຂາຍໂອນ'); ?> / QR</div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <span class="counter-num" id="kpiRevTransferSales">0 <?php echo kipSymbol(); ?></span>
+        </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-qrcode"></i></div>
     </div>
@@ -127,8 +133,10 @@ window.SHIFT_REPORT_MODE = 'revenue';
     <!-- 4. ຈຳນວນບິນຂາຍທັງໝົດ -->
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);">
       <div style="z-index: 2; min-width: 0;">
-        <div class="kpi-card-title">ຈຳນວນບິນຂາຍທັງໝົດ</div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiRevTotalBills">0 ບິນ</div>
+        <div class="kpi-card-title"><?php echo tlh('ຈຳນວນບິນຂາຍທັງໝົດ'); ?></div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <span class="counter-num" id="kpiRevTotalBills">0 <?php echo tlh('ບິນ'); ?></span>
+        </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
     </div>
@@ -142,7 +150,7 @@ window.SHIFT_REPORT_MODE = 'revenue';
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-search text-primary mr-1"></i> <?php echo $sr('shifts.pg_f_search'); ?>
         </label>
-        <input type="text" class="form-control form-control-sm font-weight-bold" id="filterSessionSearch" autocomplete="off" placeholder="ຄົ້ນຫາຊື່ກະ, ພະນັກງານ, ວັນທີ..." oninput="applySessionsSearch()" style="border-radius: 4px; height: 38px; font-size: 0.85rem; width: 100%; border: 1.5px solid #cbd5e1;">
+        <input type="text" class="form-control form-control-sm font-weight-bold" id="filterSessionSearch" autocomplete="off" placeholder="<?php echo tlh('ຄົ້ນຫາຊື່ກະ, ພະນັກງານ, ວັນທີ...'); ?>" oninput="applySessionsSearch()" style="border-radius: 4px; height: 38px; font-size: 0.85rem; width: 100%; border: 1.5px solid #cbd5e1;">
       </div>
 
       <!-- From Date -->
@@ -221,14 +229,14 @@ window.SHIFT_REPORT_MODE = 'revenue';
             <th class="text-center" style="width: 45px;">#</th>
             <th><?php echo $sr('shifts.pg_th_branch'); ?></th>
             <th><?php echo $sr('shifts.pg_th_name'); ?></th>
-            <th>ວັນທີ - ເວລາຂາຍ</th>
-            <th>ພະນັກງານຂາຍ</th>
-            <th class="text-center" style="width: 80px;">ຈຳນວນບິນ</th>
+            <th><?php echo tlh('ວັນທີ - ເວລາຂາຍ'); ?></th>
+            <th><?php echo tlh('ພະນັກງານຂາຍ'); ?></th>
+            <th class="text-center" style="width: 80px;"><?php echo tlh('ຈຳນວນບິນ'); ?></th>
             <th class="text-right"><?php echo $sr('shifts.pg_th_cash'); ?></th>
             <th class="text-right"><?php echo $sr('shifts.pg_th_transfer'); ?></th>
-            <th class="text-right">ຂາຍຕິດໜີ້</th>
-            <th class="text-right">ຍອດລາຍຮັບລວມ</th>
-            <th class="text-center" style="width: 90px;">ລາຍລະອຽດ</th>
+            <th class="text-right"><?php echo tlh('ຂາຍຕິດໜີ້'); ?></th>
+            <th class="text-right"><?php echo tlh('ຍອດລາຍຮັບລວມ'); ?></th>
+            <th class="text-center" style="width: 90px;"><?php echo tlh('ລາຍລະອຽດ'); ?></th>
           </tr>
         </thead>
         <tbody id="sessionsTableBody">
@@ -280,7 +288,7 @@ window.rptExport = function (action) {
     sum.total += parseFloat(s.system_total_sales) || 0;
     var trfText = num(s.system_sales_transfer);
     if (s.transfer_banks_text) trfText += ' (' + s.transfer_banks_text + ')';
-    return [i + 1, s.store_name || '-', s.shift_name || '-', (s.open_time || '-') + ' - ' + (s.close_time || 'ກຳລັງຂາຍ'),
+    return [i + 1, s.store_name || '-', s.shift_name || '-', (s.open_time || '-') + ' - ' + (s.close_time || '<?php echo tlj('ກຳລັງຂາຍ'); ?>'),
             s.staff_names || s.opened_by_name || '-',
             num(s.system_total_bills),
             num(s.system_sales_cash), trfText, num(s.system_sales_debt),
@@ -291,18 +299,18 @@ window.rptExport = function (action) {
   var fmtD = function (v) { var p = String(v || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : v; };
   var storeSel = $('#filterStoreSelect option:selected');
   RptExport.run(action, {
-    title: 'ລາຍງານລາຍຮັບຕາມກະ',
+    title: '<?php echo tlj('ລາຍງານລາຍຮັບຕາມກະ'); ?>',
     fileBase: 'shift_revenue_report',
-    store: storeSel.length ? (storeSel.val() === '0' ? 'ທຸກສາຂາ' : storeSel.text()) : undefined,
-    meta: ['ວັນທີ ' + fmtD($('#filterDateFrom').val()) + ' - ' + fmtD($('#filterDateTo').val()),
-           shiftSel.val() !== '0' ? 'ກະ: ' + shiftSel.text() : 'ທຸກກະ',
-           q ? 'ຄົ້ນຫາ: ' + q : '',
-           'ທັງໝົດ ' + rows.length + ' ກະ', 'ສະກຸນເງິນ: LAK'].filter(Boolean),
-    headers: [{t: 'ລຳດັບ', a: 'c'}, {t: 'ສາຂາ'}, {t: 'ຊື່ກະ'}, {t: 'ວັນທີ-ເວລາຂາຍ'}, {t: 'ພະນັກງານຂາຍ'},
-              {t: 'ຈຳນວນບິນ', a: 'c'}, {t: 'ຂາຍເງິນສົດ', a: 'r'}, {t: 'ຂາຍໂອນ/QR', a: 'r'}, {t: 'ຂາຍຕິດໜີ້', a: 'r'},
-              {t: 'ຍອດລາຍຮັບລວມ', a: 'r'}],
+    store: storeSel.length ? (storeSel.val() === '0' ? '<?php echo tlj('ທຸກສາຂາ'); ?>' : storeSel.text()) : undefined,
+    meta: ['<?php echo tlj('ວັນທີ'); ?> ' + fmtD($('#filterDateFrom').val()) + ' - ' + fmtD($('#filterDateTo').val()),
+           shiftSel.val() !== '0' ? '<?php echo tlj('ກະ:'); ?> ' + shiftSel.text() : '<?php echo tlj('ທຸກກະ'); ?>',
+           q ? '<?php echo tlj('ຄົ້ນຫາ:'); ?> ' + q : '',
+           '<?php echo tlj('ທັງໝົດ'); ?> ' + rows.length + ' <?php echo tlj('ກະ'); ?>', '<?php echo tlj('ສະກຸນເງິນ:'); ?> LAK'].filter(Boolean),
+    headers: [{t: '<?php echo tlj('ລຳດັບ'); ?>', a: 'c'}, {t: '<?php echo tlj('ສາຂາ'); ?>'}, {t: '<?php echo tlj('ຊື່ກະ'); ?>'}, {t: '<?php echo tlj('ວັນທີ-ເວລາຂາຍ'); ?>'}, {t: '<?php echo tlj('ພະນັກງານຂາຍ'); ?>'},
+              {t: '<?php echo tlj('ຈຳນວນບິນ'); ?>', a: 'c'}, {t: '<?php echo tlj('ຂາຍເງິນສົດ'); ?>', a: 'r'}, {t: '<?php echo tlj('ຂາຍໂອນ'); ?>/QR', a: 'r'}, {t: '<?php echo tlj('ຂາຍຕິດໜີ້'); ?>', a: 'r'},
+              {t: '<?php echo tlj('ຍອດລາຍຮັບລວມ'); ?>', a: 'r'}],
     rows: rows,
-    footer: rows.length ? ['', 'ລວມ', '', '', '', num(sum.bills), num(sum.cash), num(sum.trf), num(sum.debt), num(sum.total)] : null
+    footer: rows.length ? ['', '<?php echo tlj('ລວມ'); ?>', '', '', '', num(sum.bills), num(sum.cash), num(sum.trf), num(sum.debt), num(sum.total)] : null
   });
 };
 </script>

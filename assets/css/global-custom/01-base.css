@@ -3,12 +3,15 @@
  * ຂະໜາດຟອນ, ປຸ່ມ, ປຸ່ມເລືອກລູກຄ້າ, sidebar ເລື່ອນໄດ້, scrollbar ແລະ user panel/ໂລໂກ້.
  * ແຍກອອກມາຈາກ assets/css/global-custom.css — ໂຫຼດຕາມລຳດັບເລກໜ້າຊື່ໄຟລ໌ (ລຳດັບສຳຄັນສຳລັບ CSS).
  */
-body { font-family: 'Nuanta', 'Noto Sans Lao', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+body { font-family: 'Nuanta', 'Noto Sans Lao', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; letter-spacing: 0.022em; }
 *:not(.fas):not(.far):not(.fab):not(.fa) { font-family: 'Nuanta', 'Noto Sans Lao', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
 /* ===== GLOBAL BASE FONT SIZE (bumped up from AdminLTE's default 14px) ===== */
-html { font-size: 16px !important; }
+html { font-size: 16px !important; letter-spacing: 0.022em; }
 body { font-size: 1rem !important; }
+h1, h2, h3, h4, h5, h6, .btn, .form-control, .card-title, table, th, td, label, select, input, .badge {
+    letter-spacing: 0.022em;
+}
 
 /* ===== GLOBAL BUTTON & SAVE BUTTON CURSOR POINTER ===== */
 button:not(:disabled):not(.disabled),

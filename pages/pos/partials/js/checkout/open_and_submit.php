@@ -16,9 +16,9 @@ function checkShiftSalePermission() {
   if (typeof Swal !== 'undefined' && !Swal.isVisible()) {
     Swal.fire({
       icon: 'warning',
-      title: 'ບໍ່ສາມາດຂາຍໄດ້',
-      html: 'ສາຂານີ້ມີການຕັ້ງກະເຮັດວຽກແລ້ວ<br><strong>ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການບໍ່ສາມາດຂາຍໄດ້</strong><br>ກະລຸນາໃຫ້ພະນັກງານຂາຍເປີດກະເພື່ອຂາຍ',
-      confirmButtonText: 'ຕົກລົງ',
+      title: '<?php echo tlj('ບໍ່ສາມາດຂາຍໄດ້'); ?>',
+      html: '<?php echo tlj('ສາຂານີ້ມີການຕັ້ງກະເຮັດວຽກແລ້ວ'); ?><br><strong><?php echo tlj('ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການບໍ່ສາມາດຂາຍໄດ້'); ?></strong><br><?php echo tlj('ກະລຸນາໃຫ້ພະນັກງານຂາຍເປີດກະເພື່ອຂາຍ'); ?>',
+      confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
       confirmButtonColor: '#244886'
     });
   }
@@ -44,8 +44,9 @@ function openCheckoutModal() {
   paintPayModeButtons('single');
   // Split-payment amounts belong to this one bill only — left as-is, the next sale opened
   // straight in split mode would start pre-filled with the last customer's cash/QR split.
-  $('#splitCashAmount').val('0');
-  $('#splitQrAmount').val('0');
+  $('#splitCashAmount').val('0').css('box-shadow', 'none');
+  $('#splitQrAmount').val('0').css('box-shadow', 'none');
+  window.lastFocusedSplitInput = 'splitCashAmount';
   window.currentSelectedBankId = null;
   window.currentSelectedBankName = null;
   window.currentSelectedBankQrPath = '';

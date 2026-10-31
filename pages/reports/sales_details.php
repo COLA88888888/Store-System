@@ -14,7 +14,7 @@ require_once __DIR__ . '/../../layouts/header.php';
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
     <div>
       <h5 class="font-weight-bold text-dark mb-1" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-        <i class="fas fa-list-alt text-primary"></i> ລາຍລະອຽດການຂາຍ
+        <i class="fas fa-list-alt text-primary"></i> <?php echo tlh('ລາຍລະອຽດການຂາຍ'); ?>
       </h5>
     </div>
   </div>

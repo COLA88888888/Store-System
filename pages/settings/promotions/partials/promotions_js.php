@@ -49,12 +49,12 @@ function promoUpdateTargetHint(mode) {
   }
   var hit = promoLookupProduct(val);
   if (hit) {
-    var us = (hit.units && hit.units.length) ? ' — ຫົວໜ່ວຍ: ' + hit.units.join(', ') : '';
+    var us = (hit.units && hit.units.length) ? ' — <?php echo tlj('ຫົວໜ່ວຍ:'); ?> ' + hit.units.join(', ') : '';
     hintEl.textContent = '✓ ' + hit.name + us;
     hintEl.style.color = '#16a34a';
     promoFillUnitDatalist(hit.units || []);
   } else {
-    hintEl.textContent = 'ບໍ່ພົບສິນຄ້ານີ້ໃນລະບົບ';
+    hintEl.textContent = '<?php echo tlj('ບໍ່ພົບສິນຄ້ານີ້ໃນລະບົບ'); ?>';
     hintEl.style.color = '#f59e0b';
     promoFillUnitDatalist(null);
   }

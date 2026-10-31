@@ -30,9 +30,9 @@ function bcBtPaintTarget() {
   var def = saved || (/XP-?\d{3}B|TSC|label|sticker/i.test(name) ? 'tspl' : 'escpos');
   var esc = function (t) { return $('<div>').text(t).html(); };
   $sel.html(
-    '<option value="tspl">' + esc(name) + ' — ເຄື່ອງພິມສະຕິກເກີ (TSPL)</option>' +
-    '<option value="escpos">' + esc(name) + ' — ເຄື່ອງພິມບິນ (ESC/POS)</option>' +
-    '<option value="browser">ໜ້າຕ່າງພິມ (ເຄື່ອງພິມ Windows)</option>'
+    '<option value="tspl">' + esc(name) + ' — <?php echo tlj('ເຄື່ອງພິມສະຕິກເກີ (TSPL)'); ?></option>' +
+    '<option value="escpos">' + esc(name) + ' — <?php echo tlj('ເຄື່ອງພິມບິນ (ESC/POS)'); ?></option>' +
+    '<option value="browser"><?php echo tlj('ໜ້າຕ່າງພິມ (ເຄື່ອງພິມ Windows)'); ?></option>'
   ).val(def).data('printer', name);
   $wrap.removeClass('d-none').addClass('d-flex');
 }
@@ -94,7 +94,7 @@ function bcDrawLabel(ctx, x0, y0, wD, hD, item, cfg, o) {
   var hOf = function (r) { return r.bc ? (bc ? bc.height : bcH) : (r.c.fs * r.c.lh + r.c.mt + r.c.mb) * BC_PX; };
   var total = rows.reduce(function (s, r) { return s + hOf(r); }, 0);
   var y = y0 + Math.max(0, (hD - total) / 2) + (o.verticalOffsetMm || 0) * BC_DOTS_MM;
-  var cx = x0 + wD / 2;
+  var cx = x0 + wD / 2 + (o.horizontalOffsetMm || 0) * BC_DOTS_MM;
 
   ctx.fillStyle = '#000';
   ctx.textAlign = 'center';
@@ -102,7 +102,7 @@ function bcDrawLabel(ctx, x0, y0, wD, hD, item, cfg, o) {
   rows.forEach(function (r) {
     if (r.bc) {
       if (bc) {
-        var dw = Math.min(bc.width, wD);
+        var dw = Math.min(wD - 8, maxBcD);
         ctx.drawImage(bc, Math.round(cx - dw / 2), Math.round(y), dw, bc.height);
       }
       y += hOf(r);
@@ -111,7 +111,7 @@ function bcDrawLabel(ctx, x0, y0, wD, hD, item, cfg, o) {
     var fsD = r.c.fs * BC_PX;
     var maxW = textMaxW;
     if (r.mono) {   // ເລກໃຕ້ບາໂຄ້ດ: ໂຕໃຫຍ່ (14px) ຫຍໍ້ລົງພໍດີກວ້າງບາໂຄ້ດ, ວາງຕິດແທ່ງ ຫ່າງ 0.4mm ວັດຈາກຂອບເທິງຕົວເລກແທ້
-      maxW = Math.min(wD - 4, bc ? bc.width : maxBcD);
+      maxW = Math.min(wD - 4, dw || maxBcD);
       var fs = 14;
       ctx.font = r.w + ' ' + (fs * BC_PX) + 'px monospace';
       while (ctx.measureText(r.t).width > maxW && fs > 6) { fs -= 0.5; ctx.font = r.w + ' ' + (fs * BC_PX) + 'px monospace'; }
@@ -199,7 +199,7 @@ function barcodeBluetoothPrint(items, cfg, o) {
   var P = bcBtPrinter(), lang = $('#bcBtTarget').val();
   if (!P || !P.info || !P.info().connected || !lang || lang === 'browser' || cfg.mode === 'grid_a4') return false;
   if (typeof P.write !== 'function') {
-    Swal.fire({ icon: 'info', title: 'ກະລຸນາໂຫຼດໜ້າໃໝ່', text: 'ກົດ Ctrl+F5 ເພື່ອໂຫຼດລະບົບເຄື່ອງພິມ Bluetooth ລຸ້ນໃໝ່ ແລ້ວພິມອີກຄັ້ງ' });
+    Swal.fire({ icon: 'info', title: '<?php echo tlj('ກະລຸນາໂຫຼດໜ້າໃໝ່'); ?>', text: '<?php echo tlj('ກົດ Ctrl+F5 ເພື່ອໂຫຼດລະບົບເຄື່ອງພິມ Bluetooth ລຸ້ນໃໝ່ ແລ້ວພິມອີກຄັ້ງ'); ?>' });
     return true;
   }
 
@@ -215,7 +215,7 @@ function barcodeBluetoothPrint(items, cfg, o) {
   if (cur.length) batches.push(cur);
 
   var name = P.info().name;
-  Swal.fire({ title: 'ກຳລັງພິມ ' + built.count + ' ດວງ…', text: name, allowOutsideClick: false, showConfirmButton: false, didOpen: function () { Swal.showLoading(); } });
+  Swal.fire({ title: '<?php echo tlj('ກຳລັງພິມ'); ?> ' + built.count + ' <?php echo tlj('ດວງ'); ?>…', text: name, allowOutsideClick: false, showConfirmButton: false, didOpen: function () { Swal.showLoading(); } });
   var chain = Promise.resolve();
   batches.forEach(function (parts, i) {
     chain = chain.then(function () {
@@ -225,9 +225,9 @@ function barcodeBluetoothPrint(items, cfg, o) {
   });
   chain.then(function () {
     clearPageBarcodeSelection();   // ພິມສຳເລັດ → ເອົາຕິກອອກ (ບໍ່ສຳເລັດ → ຄ້າງໄວ້ ພິມໃໝ່ໄດ້)
-    Swal.fire({ icon: 'success', title: 'ພິມແລ້ວ ' + built.count + ' ດວງ', text: name, timer: 1800, showConfirmButton: false });
+    Swal.fire({ icon: 'success', title: '<?php echo tlj('ພິມແລ້ວ'); ?> ' + built.count + ' <?php echo tlj('ດວງ'); ?>', text: name, timer: 1800, showConfirmButton: false });
   }, function (err) {
-    Swal.fire({ icon: 'error', title: 'ພິມຜ່ານ Bluetooth ບໍ່ສຳເລັດ', text: ((err && err.message) || '') + ' — ລອງເລືອກ "ໜ້າຕ່າງພິມ" ແທນ' });
+    Swal.fire({ icon: 'error', title: '<?php echo tlj('ພິມຜ່ານ Bluetooth ບໍ່ສຳເລັດ'); ?>', text: ((err && err.message) || '') + ' — <?php echo tlj('ລອງເລືອກ'); ?> "<?php echo tlj('ໜ້າຕ່າງພິມ'); ?>" <?php echo tlj('ແທນ'); ?>' });
   });
   return true;
 }

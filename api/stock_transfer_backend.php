@@ -162,23 +162,23 @@ if ($action === 'get_transfer_details') {
         if ($activeStoreCount < 2) {
             echo json_encode([
                 'success' => false,
-                'message' => 'ລະບົບຕ້ອງມີຢ່າງໜ້ອຍ 2 ສາຂາຂຶ້ນໄປ ຈຶ່ງສາມາດໂອນສິນຄ້າລະຫວ່າງສາຂາໄດ້!'
+                'message' => tl('ລະບົບຕ້ອງມີຢ່າງໜ້ອຍ 2 ສາຂາຂຶ້ນໄປ ຈຶ່ງສາມາດໂອນສິນຄ້າລະຫວ່າງສາຂາໄດ້!')
             ]);
             exit();
         }
 
         if ($from_store_id <= 0 || $to_store_id <= 0) {
-            echo json_encode(['success' => false, 'message' => 'ກະລຸນາເລືອກສາຂາຕົ້ນທາງ ແລະ ສາຂາປາຍທາງ!']);
+            echo json_encode(['success' => false, 'message' => tl('ກະລຸນາເລືອກສາຂາຕົ້ນທາງ ແລະ ສາຂາປາຍທາງ!')]);
             exit();
         }
 
         if ($from_store_id === $to_store_id) {
-            echo json_encode(['success' => false, 'message' => 'ສາຂາຕົ້ນທາງ ແລະ ສາຂາປາຍທາງ ຕ້ອງບໍ່ແມ່ນສາຂາດຽວກັນ!']);
+            echo json_encode(['success' => false, 'message' => tl('ສາຂາຕົ້ນທາງ ແລະ ສາຂາປາຍທາງ ຕ້ອງບໍ່ແມ່ນສາຂາດຽວກັນ!')]);
             exit();
         }
 
         if (empty($items) || !is_array($items)) {
-            echo json_encode(['success' => false, 'message' => 'ກະລຸນາເພີ່ມສິນຄ້າໃສ່ລາຍການໂອນຢ່າງນ້ອຍ 1 ລາຍການ!']);
+            echo json_encode(['success' => false, 'message' => tl('ກະລຸນາເພີ່ມສິນຄ້າໃສ່ລາຍການໂອນຢ່າງນ້ອຍ 1 ລາຍການ!')]);
             exit();
         }
 
@@ -214,7 +214,7 @@ if ($action === 'get_transfer_details') {
 
             // Must exist in destination branch
             if (!$dst) {
-                $errors[] = "• ສິນຄ້າ \"{$pName}\" ຍັງບໍ່ມີໃນສາຂາປາຍທາງ! ຕ້ອງໄດ້ເພີ່ມເຂົ້າທາງນັ້ນກ່ອນ ຈຶ່ງສາມາດໂອນໄດ້.";
+                $errors[] = ("• " . tl('ສິນຄ້າ') . " \"{$pName}\" " . tl('ຍັງບໍ່ມີໃນສາຂາປາຍທາງ! ຕ້ອງໄດ້ເພີ່ມເຂົ້າທາງນັ້ນກ່ອນ ຈຶ່ງສາມາດໂອນໄດ້.') . "");
                 continue;
             }
 
@@ -222,9 +222,9 @@ if ($action === 'get_transfer_details') {
             $srcCat = trim($src['category_name'] ?? '');
             $dstCat = trim($dst['category_name'] ?? '');
             if (mb_strtolower($srcCat) !== mb_strtolower($dstCat)) {
-                $srcCatShow = $srcCat ?: 'ບໍ່ມີປະເພດ';
-                $dstCatShow = $dstCat ?: 'ບໍ່ມີປະເພດ';
-                $errors[] = "• ສິນຄ້າ \"{$pName}\" ມີປະເພດບໍ່ຕົງກັນ (ຕົ້ນທາງ: \"{$srcCatShow}\", ປາຍທາງ: \"{$dstCatShow}\")! ຕ້ອງເປັນປະເພດສິນຄ້າດຽວກັນ.";
+                $srcCatShow = $srcCat ?: tl('ບໍ່ມີປະເພດ');
+                $dstCatShow = $dstCat ?: tl('ບໍ່ມີປະເພດ');
+                $errors[] = ("• " . tl('ສິນຄ້າ') . " \"{$pName}\" " . tl('ມີປະເພດບໍ່ຕົງກັນ (ຕົ້ນທາງ:') . " \"{$srcCatShow}\", " . tl('ປາຍທາງ:') . " \"{$dstCatShow}\")! " . tl('ຕ້ອງເປັນປະເພດສິນຄ້າດຽວກັນ.') . "");
             }
 
             // Must have same unit
@@ -233,7 +233,7 @@ if ($action === 'get_transfer_details') {
             if (mb_strtolower($srcUnit) !== mb_strtolower($dstUnit)) {
                 $srcUnitShow = $srcUnit ?: 'ອັນ';
                 $dstUnitShow = $dstUnit ?: 'ອັນ';
-                $errors[] = "• ສິນຄ້າ \"{$pName}\" ມີຫົວໜ່ວຍບໍ່ຕົງກັນ (ຕົ້ນທາງ: \"{$srcUnitShow}\", ປາຍທາງ: \"{$dstUnitShow}\")! ຕ້ອງເປັນຫົວໜ່ວຍດຽວກັນ.";
+                $errors[] = ("• " . tl('ສິນຄ້າ') . " \"{$pName}\" " . tl('ມີຫົວໜ່ວຍບໍ່ຕົງກັນ (ຕົ້ນທາງ:') . " \"{$srcUnitShow}\", " . tl('ປາຍທາງ:') . " \"{$dstUnitShow}\")! " . tl('ຕ້ອງເປັນຫົວໜ່ວຍດຽວກັນ.') . "");
             }
         }
 
@@ -252,6 +252,12 @@ if ($action === 'get_transfer_details') {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         exit();
     }
+} elseif ($action === 'get_next_transfer_code') {
+    $storeId = intval($_GET['store_id'] ?? $_POST['store_id'] ?? 0);
+    $dateStr = trim($_GET['date'] ?? $_POST['date'] ?? '');
+    $code = generateTransferCode($pdo, $storeId, $dateStr ?: null);
+    echo json_encode(['success' => true, 'transfer_code' => $code]);
+    exit();
 } else {
     echo json_encode(['success' => false, 'message' => 'Invalid action']);
     exit();

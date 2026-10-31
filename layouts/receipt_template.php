@@ -105,13 +105,14 @@ $rcP      = $rcP ?? 'rc_';
             'Thank you for your purchase, see you again!',
             'ขอบคุณที่อุดหนุน แล้วพบกันใหม่!',
             '感谢惠顾，欢迎下次光临！',
+            'Cảm ơn quý khách, hẹn gặp lại!',
           ];
           $footerRaw = trim((string)($company['barcode'] ?? ''));
           $footerIsDefault = ($footerRaw === '' || in_array($footerRaw, $footerDefaults, true));
           // ຂໍ້ຄວາມທີ່ຮ້ານຕັ້ງເອງ (ບັອກດຽວ) ສະແດງຕາມທີ່ພິມໄວ້ ທຸກພາສາ — ພິມພາສາໃດ ກໍເປັນພາສານັ້ນ.
           // ທຸກພາສາຝັງໄວ້ໃນ data-footer-* ເພື່ອໃຫ້ກົດທຸງແລ້ວປ່ຽນທັນທີໂດຍບໍ່ໂຫຼດໜ້າ (pages/pos/pos.php, pos:langchange).
           $footerByLang = [];
-          foreach (['lo', 'en', 'th', 'zh'] as $__fl) {
+          foreach (POS_SUPPORTED_LANGS as $__fl) {
               if ($footerIsDefault) {
                   $__fd = loadLangDictionary($__fl);
                   $footerByLang[$__fl] = $__fd['pos.receipt_thank_you'] ?? 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!';

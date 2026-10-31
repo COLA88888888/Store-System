@@ -99,14 +99,21 @@
               <!-- 7. ສິນຄ້າ/ປະເພດ -->
               <td>
                 <?php
-                  $targetDisplay = $p['target_name'] ?? t('promotions.all_products', 'ທຸກສິນຄ້າ');
+                  $rawTarget = trim((string)($p['target_name'] ?? ''));
+                  $isAllTarget = (($p['target_type'] ?? '') === 'all' || empty($rawTarget) || in_array($rawTarget, ['ທຸກສິນຄ້າ', 'ทุกสินค้า', 'All Products', 'All', 'all', 'Tất cả sản phẩm', '所有商品'], true));
+                  $targetDisplay = $isAllTarget ? t('promotions.all_products', 'ທຸກສິນຄ້າ') : $rawTarget;
                   // If a code was entered as the target, show the matching product name instead
-                  if (($p['target_type'] ?? '') === 'product' && !empty($productNameByCode[trim((string)($p['target_name'] ?? ''))])) {
-                      $targetDisplay = $productNameByCode[trim((string)$p['target_name'])];
+                  if (!$isAllTarget && ($p['target_type'] ?? '') === 'product' && !empty($productNameByCode[$rawTarget])) {
+                      $targetDisplay = $productNameByCode[$rawTarget];
                   }
                 ?>
                 <span class="badge font-weight-bold px-2 py-1" style="font-size: 0.76rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd;">
-                  <i class="fas fa-box-open mr-1"></i> <?php echo htmlspecialchars($targetDisplay); ?>
+                  <i class="fas fa-box-open mr-1"></i>
+                  <?php if ($isAllTarget): ?>
+                    <span data-i18n="promotions.all_products"><?php echo htmlspecialchars(t('promotions.all_products', 'ທຸກສິນຄ້າ')); ?></span>
+                  <?php else: ?>
+                    <?php echo htmlspecialchars($targetDisplay); ?>
+                  <?php endif; ?>
                 </span>
               </td>
 

@@ -34,7 +34,7 @@ function exportShiftReportExcel() {
   html += row(34, td(esc(srT('shifts.rpt_title')), 'font-size:16pt;font-weight:bold;text-align:center;', 6));
   var store = s.store_name || window.SHIFT_A4_STORE;
   if (store) html += row(24, td(esc(store), 'font-size:12pt;font-weight:bold;text-align:center;', 6));
-  html += row(22, td(esc((s.store_name ? srT('shifts.rpt_branch') + ' ' + s.store_name + '   |   ' : '') + srT('shifts.rpt_shift') + ' ' + s.shift_name + '   |   ' + srT('shifts.rpt_status') + ' ' +
+  html += row(22, td(esc((s.store_name ? srT('shifts.rpt_branch') + ' ' + s.store_name + '   |   ' : '') + srT('shifts.rpt_shift') + ' ' + formatShiftName(s.shift_name) + '   |   ' + srT('shifts.rpt_status') + ' ' +
     (s.status === 'open' ? srT('shifts.rpt_status_open') : srT('shifts.rpt_status_closed'))), 'text-align:center;', 6));
   html += blank(8);
 
@@ -44,7 +44,7 @@ function exportShiftReportExcel() {
       td(esc(k2), B + LIGHT + 'font-weight:bold;') + td(esc(v2), B + TXT, 2));
   };
   html += info(srT('shifts.rpt_open_time'), s.open_time, srT('shifts.rpt_close_time'), s.close_time || srT('shifts.rpt_not_closed'));
-  html += info(srT('shifts.rpt_opened_by'), s.opened_by_name, srT('shifts.rpt_closed_by'), s.closed_by_name || '-');
+  html += info(srT('shifts.rpt_opened_by'), s.opened_by_name, srT('shifts.rpt_closed_by'), shiftCloserName(s.closed_by_name));
   html += blank(10);
 
   // ສະຫຼຸບລາຍຮັບ: ຫົວຂໍ້ (ຖັນ 1-4) ຄ່າ (ຖັນ 5-6)

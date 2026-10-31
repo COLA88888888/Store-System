@@ -99,8 +99,8 @@ if ($view_mode === 'item') {
             'bill_no'   => $r['save_bill'],
             'date_time' => date('d/m/Y', strtotime($r['sale_date'])) . ' ' . substr($r['sale_time'], 0, 5),
             'pro_code'  => $r['save_proid'] ?: ($r['product_id'] ?? '-'),
-            'pro_name'  => $r['save_proname'] ?: ($r['product_name'] ?? 'ສິນຄ້າ'),
-            'store_name'=> $r['store_name'] ?? 'ສາຂາ',
+            'pro_name'  => $r['save_proname'] ?: ($r['product_name'] ?? tl('ສິນຄ້າ')),
+            'store_name'=> $r['store_name'] ?? tl('ສາຂາ'),
             'qty'       => $qty,
             'price'     => $price,
             'gross'     => $gross,
@@ -233,7 +233,7 @@ if ($view_mode === 'item') {
         $sales_data[] = [
             'bill_no'         => $r['sale_save_bill'],
             'date_time'       => date('d/m/Y', strtotime($r['sale_date'])) . ' ' . substr($r['sale_time'], 0, 5),
-            'store_name'      => $r['store_name'] ?? 'ສາຂາ',
+            'store_name'      => $r['store_name'] ?? tl('ສາຂາ'),
             'qty'             => $qty,
             'gross'           => $gross,
             'discount'        => $disc,
@@ -249,7 +249,11 @@ if ($view_mode === 'item') {
             'bank_code'       => $bCode,
             'bank_logo'       => $bLogo,
             'cashier'         => $r['user_receive'] ?? 'Admin',
-            'customer'        => $r['customer_name'] ?? 'ລູກຄ້າທົ່ວໄປ',
+            'customer'        => (function($cn) {
+                $aliases = ['ລູກຄ້າທົ່ວໄປ', 'Walk-in Customer', 'ลูกค้าทั่วไป', '散客', '普通顾客', 'Khách lẻ', 'Khách thông thường', 'General Customer'];
+                $clean = trim((string)$cn);
+                return (empty($clean) || in_array($clean, $aliases, true)) ? t('reports.default_customer', 'ລູກຄ້າທົ່ວໄປ') : $clean;
+            })($r['customer_name'] ?? ''),
             'currency'        => strtoupper($r['paid_currency'] ?? 'KIP') ?: 'KIP'
         ];
 

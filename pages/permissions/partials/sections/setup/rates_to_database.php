@@ -329,3 +329,33 @@
   <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
   <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
 </tr>
+
+<!-- 7.12 ລຶບ/ລ້າງຂໍ້ມູນລະບົບ (Clear System Data) -->
+<tr>
+  <td class="pl-4">
+    <div class="perm-module-info">
+      <div class="perm-module-icon" style="background: #fee2e2; color: #dc2626;">
+        <i class="fas fa-trash-alt"></i>
+      </div>
+      <div>
+        <div class="perm-module-title" data-i18n="permissions.module_clear_data_title"><?php echo htmlspecialchars(t('permissions.module_clear_data_title', 'ລຶບ/ລ້າງຂໍ້ມູນລະບົບ')); ?></div>
+        <div class="perm-module-desc" data-i18n="permissions.module_clear_data_desc"><?php echo htmlspecialchars(t('permissions.module_clear_data_desc', 'ລຶບຂໍ້ມູນການຂາຍ, ປະຫວັດກະ, ສະຕັອກ ຫຼື ລ້າງຂໍ້ມູນລະບົບທັງໝົດ')); ?></div>
+      </div>
+    </div>
+  </td>
+  <td class="text-center">
+    <label class="matrix-switch">
+      <input type="checkbox" 
+             id="perm_clear_data_view_<?php echo $u['Id']; ?>" 
+             data-perm="clear_data" 
+             data-user-id="<?php echo $u['Id']; ?>"
+             <?php echo (!empty($u['clear_data']) || $isAdmin) ? 'checked' : ''; ?>
+             <?php echo ($isAdmin && $u['Id'] == 1) ? 'disabled' : ''; ?>
+             onchange="toggleUserPerm(<?php echo $u['Id']; ?>, 'clear_data', this)">
+      <span class="matrix-slider"></span>
+    </label>
+  </td>
+  <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
+  <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
+  <td class="text-center"><span class="perm-na-badge"><?php echo htmlspecialchars(t('permissions.na', 'ບໍ່ມີ')); ?></span></td>
+</tr>

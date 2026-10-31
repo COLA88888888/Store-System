@@ -12,6 +12,7 @@ return [
     'users_manage.th_tel' => '电话号码',
     'users_manage.th_status' => '状态',
     'users_manage.th_role' => '角色',
+    'users_manage.th_access_age' => '使用有效期',
     'users_manage.th_actions' => '操作',
     'users_manage.default_store' => '总店',
     'users_manage.status_online' => '在线',

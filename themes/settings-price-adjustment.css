@@ -15,3 +15,19 @@
 .pagination-circle .page-item.active .page-link { color: #fff !important; background: #2563eb !important; border-color: #2563eb !important; box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45) !important; transform: scale(1.04); }
 .pagination-circle .page-item.disabled .page-link { color: #cbd5e1 !important; background-color: #f8fafc !important; border-color: #f1f5f9 !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; opacity: 0.9; }
 .pagination-circle .page-link i { font-size: 0.85rem; font-weight: 900; }
+
+/* ໂທລະສັບ: ບັອກເລືອກສາຂາ ແລະ ປຸ່ມ "ປັບລາຄາສິນຄ້າໃໝ່" ຢູ່ແຖວດຽວກັນ (ບັອກສາຂາກວ້າງເທົ່າທີ່ເຫຼືອ) */
+@media (max-width: 575.98px) {
+    .pa-head-actions {
+        flex-wrap: nowrap !important;
+        width: 100%;
+    }
+    .pa-store-form {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    .pa-store-form select {
+        width: 100%;
+        min-width: 0 !important;
+    }
+}

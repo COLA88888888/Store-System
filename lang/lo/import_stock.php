@@ -21,6 +21,7 @@ return [
     'import_stock.supplier_empty_hint' => 'ຍັງບໍ່ມີຜູ້ສະໜອງ — ເພີ່ມໄດ້ທີ່ເມນູ "ຈັດການຜູ້ສະໜອງ"',
     'import_stock.scan_barcode_label' => 'ສະແກນບາໂຄ້ດ / ລະຫັດສິນຄ້າ',
     'import_stock.scan_barcode_placeholder' => 'ສະແກນບາໂຄ້ດ ຫຼື ປ້ອນລະຫັດ...',
+    'import_stock.scan_hint' => 'ສະແກນ ຫຼື ກົດ Enter — ສິນຄ້າເຂົ້າລາຍການທັນທີ. ແກ້ຈຳນວນ, ຫົວໜ່ວຍ ແລະ ວັນໝົດອາຍຸ ໃນຕາຕະລາງຂ້າງລຸ່ມ',
     'import_stock.open_select_product_modal' => 'ເປີດປັອບອັບເລືອກສິນຄ້າ',
     'import_stock.select_product_button' => 'ເລືອກສິນຄ້າ',
     'import_stock.qty_label' => 'ຈຳນວນ',

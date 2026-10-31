@@ -13,7 +13,7 @@ require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../layouts/header.php';
 
 // Check permissions
-if (empty($_SESSION['user_id']) || (!hasPermission('database') && !hasPermission('setup') && !hasPermission('permissions'))) {
+if (empty($_SESSION['user_id']) || (!hasPermission('database'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }

@@ -9,7 +9,9 @@ if (!isset($base_path)) {
 require_once __DIR__ . '/../config/db.php';
 
 // Check authorization
-if (empty($_SESSION['user_id']) || (!hasPermission('branches') && !hasPermission('setup'))) {
+// ສະລັບສາຂາຈາກແຖບເທິງ (switch_branch) ບໍ່ຕ້ອງມີສິດໜ້າຈັດການສາຂາ — ກວດ canViewAllBranches() ຂ້າງລຸ່ມແທນ
+$isBranchSwitchOnly = ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && ($_POST['action'] ?? '') === 'switch_branch';
+if (empty($_SESSION['user_id']) || (!hasPermission('branches') && !$isBranchSwitchOnly)) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -27,6 +29,11 @@ if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[
     $_SESSION['active_store_id'] = $store_id;
     header('Content-Type: application/json');
     echo json_encode(['success' => true, 'store_id' => $store_id]);
+    exit();
+}
+if ($isBranchSwitchOnly) {
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false]);
     exit();
 }
 
@@ -53,15 +60,15 @@ if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[
             }
             $stmt = $pdo->prepare("INSERT INTO st_tbstore (store_code, store_name, is_main, address, tel, status) VALUES (?, ?, ?, ?, ?, 'active')");
             $stmt->execute([$store_code, $store_name, $is_main, $address, $tel]);
-            $message = 'ເພີ່ມສາຂາໃໝ່ ສຳເລັດແລ້ວ!';
+            $message = tl('ເພີ່ມສາຂາໃໝ່ ສຳເລັດແລ້ວ!');
             $message_type = 'success';
             logActivity($pdo, "ເພີ່ມສາຂາໃໝ່", $store_name);
         } catch (Exception $e) {
-            $message = 'ຜິດພາດ: ' . $e->getMessage();
+            $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
             $message_type = 'danger';
         }
     } else {
-        $message = 'ກະລຸນາປ້ອນລະຫັດສາຂາ ແລະ ຊື່ສາຂາ!';
+        $message = tl('ກະລຸນາປ້ອນລະຫັດສາຂາ ແລະ ຊື່ສາຂາ!');
         $message_type = 'warning';
     }
 }
@@ -83,11 +90,11 @@ if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[
             }
             $stmt = $pdo->prepare("UPDATE st_tbstore SET store_code = ?, store_name = ?, is_main = ?, address = ?, tel = ?, status = ? WHERE store_id = ?");
             $stmt->execute([$store_code, $store_name, $is_main, $address, $tel, $status, $store_id]);
-            $message = 'ແກ້ໄຂຂໍ້ມູນສາຂາ ສຳເລັດແລ້ວ!';
+            $message = tl('ແກ້ໄຂຂໍ້ມູນສາຂາ ສຳເລັດແລ້ວ!');
             $message_type = 'success';
             logActivity($pdo, "ແກ້ໄຂຂໍ້ມູນສາຂາ", $store_name);
         } catch (Exception $e) {
-            $message = 'ຜິດພາດ: ' . $e->getMessage();
+            $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
             $message_type = 'danger';
         }
     }
@@ -104,13 +111,13 @@ if ($canManageBranches && isset($_GET['toggle_status_id'])) {
                 $stmt = $pdo->prepare("UPDATE st_tbstore SET status = ? WHERE store_id = ?");
                 $stmt->execute([$newStatus, $toggle_id]);
 
-                $statusLabel = ($newStatus === 'active') ? 'ເປີດໃຊ້ງານ' : 'ປິດໃຊ້ງານ';
-                $message = "ປ່ຽນສະຖານະສາຂາ \"{$curStatus['store_name']}\" ເປັນ {$statusLabel} ສຳເລັດແລ້ວ!";
+                $statusLabel = ($newStatus === 'active') ? tl('ເປີດໃຊ້ງານ') : tl('ປິດໃຊ້ງານ');
+                $message = ("" . tl('ປ່ຽນສະຖານະສາຂາ') . ((" \"{$curStatus['store_name']}\" " . tl('ເປັນ') . " {$statusLabel} ")) . tl('ສຳເລັດແລ້ວ!') . "");
                 $message_type = 'success';
                 logActivity($pdo, "ປ່ຽນສະຖານະສາຂາ", "{$curStatus['store_name']} ({$statusLabel})");
             }
         } catch (Exception $e) {
-            $message = 'ຜິດພາດ: ' . $e->getMessage();
+            $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
             $message_type = 'danger';
         }
     }
@@ -123,10 +130,10 @@ if ($canManageBranches && isset($_GET['delete_branch_id'])) {
         try {
             $branch = $pdo->query("SELECT store_name, is_main FROM st_tbstore WHERE store_id = {$del_id}")->fetch(PDO::FETCH_ASSOC);
             if (!$branch) {
-                $message = 'ບໍ່ພົບຂໍ້ມູນສາຂານີ້!';
+                $message = tl('ບໍ່ພົບຂໍ້ມູນສາຂານີ້!');
                 $message_type = 'danger';
             } elseif ($branch['is_main']) {
-                $message = 'ບໍ່ສາມາດລົບສາຂາໃຫຍ່ໄດ້!';
+                $message = tl('ບໍ່ສາມາດລົບສາຂາໃຫຍ່ໄດ້!');
                 $message_type = 'warning';
             } else {
                 // A branch that used to be "main" can be re-flagged non-main by adding/editing
@@ -148,19 +155,19 @@ if ($canManageBranches && isset($_GET['delete_branch_id'])) {
                     }
                 }
                 if ($blockedBy !== null) {
-                    $message = "ບໍ່ສາມາດລົບສາຂາໄດ້ ເນື່ອງຈາກຍັງມີຂໍ້ມູນ{$blockedBy}ຢູ່ໃນສາຂານີ້! ກະລຸນາຍ້າຍຂໍ້ມູນອອກກ່ອນ.";
+                    $message = ((("" . tl('ບໍ່ສາມາດລົບສາຂາໄດ້ ເນື່ອງຈາກຍັງມີຂໍ້ມູນ') . "{$blockedBy}")) . tl('ຢູ່ໃນສາຂານີ້! ກະລຸນາຍ້າຍຂໍ້ມູນອອກກ່ອນ.') . "");
                     $message_type = 'warning';
                 } else {
                     $pdo->prepare("DELETE FROM st_tbstore WHERE store_id = ?")->execute([$del_id]);
                     // ສາຂາຖືກລົບແລ້ວ — ໂລໂກ້ຂອງສາຂານັ້ນ (ຖ້າບໍ່ມີສາຂາອື່ນໃຊ້ນຳ) ບໍ່ຕ້ອງຄ້າງໃນໂຟນເດີ
                     cleanupUnusedLogos($pdo);
-                    $message = "ລົບສາຂາ \"{$branch['store_name']}\" ສຳເລັດແລ້ວ!";
+                    $message = ("" . tl('ລົບສາຂາ') . " \"{$branch['store_name']}\" " . tl('ສຳເລັດແລ້ວ!') . "");
                     $message_type = 'success';
                     logActivity($pdo, "ລົບສາຂາ", $branch['store_name']);
                 }
             }
         } catch (Exception $e) {
-            $message = 'ຜິດພາດ: ' . $e->getMessage();
+            $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
             $message_type = 'danger';
         }
     }

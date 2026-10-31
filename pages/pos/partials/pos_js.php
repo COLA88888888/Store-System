@@ -17,7 +17,7 @@ window.POS_RCPT_I18N['pos.stock_out'] = <?php echo json_encode(t('pos.stock_out'
 window.POS_RCPT_I18N['pos.stock_low'] = <?php echo json_encode(t('pos.stock_low', 'ໃກ້ໝົດ'), JSON_UNESCAPED_UNICODE); ?>;
 window.posStockLabel = function (kind) {
   var k = (kind === 'out') ? 'pos.stock_out' : 'pos.stock_low';
-  return (window.POS_RCPT_I18N && POS_RCPT_I18N[k]) || (kind === 'out' ? 'ໝົດແລ້ວ' : 'ໃກ້ໝົດ');
+  return (window.POS_RCPT_I18N && POS_RCPT_I18N[k]) || (kind === 'out' ? '<?php echo tlj('ໝົດແລ້ວ'); ?>' : '<?php echo tlj('ໃກ້ໝົດ'); ?>');
 };
 
 // Stock / cart alert strings — built with interpolation at click time, so the flag switcher's
@@ -45,7 +45,7 @@ window.posT = function (key) {
   return s.replace(/%s/g, function () { return args.length ? args.shift() : ''; });
 };
 // The default name may have been saved in any language on older bills — recognise them all.
-window.POS_CUSTOMER_DEFAULT_ALIASES = ['ລູກຄ້າທົ່ວໄປ', 'Walk-in Customer', 'ลูกค้าทั่วไป', '散客'];
+window.POS_CUSTOMER_DEFAULT_ALIASES = ['ລູກຄ້າທົ່ວໄປ', 'Walk-in Customer', 'ลูกค้าทั่วไป', '散客', '普通顾客', 'Khách lẻ', 'Khách thông thường', 'General Customer'];
 window.posCustomerDisplayName = function (name) {
   name = (name == null ? '' : String(name)).trim();
   if (!name || window.POS_CUSTOMER_DEFAULT_ALIASES.indexOf(name) !== -1) {
@@ -75,9 +75,9 @@ window.POSCUR = (function () {
   var rates = window.POS_EX_RATES || { KIP: 1, THB: 0, USD: 0, CNY: 0 };
   var metaAll = window.POS_CURRENCY_META || {
     KIP: { name: 'ກີບ', symbol: '<?php echo kipSymbol(); ?>', decimals: 0 },
-    THB: { name: 'ບາດ', symbol: '฿', decimals: 0 },
-    USD: { name: 'ໂດລາ', symbol: '$', decimals: 0 },
-    CNY: { name: 'ຢວນ', symbol: '¥', decimals: 0 }
+    THB: { name: '<?php echo tlj('ບາດ'); ?>', symbol: '฿', decimals: 0 },
+    USD: { name: '<?php echo tlj('ໂດລາ'); ?>', symbol: '$', decimals: 0 },
+    CNY: { name: '<?php echo tlj('ຢວນ'); ?>', symbol: '¥', decimals: 0 }
   };
   // Mutable so the checkout modal can switch the tender currency per bill via
   // POSCUR.setCurrency(); every helper below reads these at call time.

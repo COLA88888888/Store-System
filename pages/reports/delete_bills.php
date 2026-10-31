@@ -7,7 +7,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 
 require_once dirname(__DIR__, 2) . '/config/db.php';
 
-if (!hasPermission('delete_bills') && !hasPermission('report')) {
+if (!hasPermission('delete_bills')) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }

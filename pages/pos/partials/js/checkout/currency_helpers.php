@@ -11,9 +11,9 @@
 window.POS_EX_RATES = window.POS_EX_RATES || { KIP: 1, THB: 0, USD: 0, CNY: 0 };
 window.POS_CURRENCY_META = window.POS_CURRENCY_META || {
   KIP: { name: 'ກີບ', symbol: '<?php echo kipSymbol(); ?>', decimals: 0 },
-  THB: { name: 'ບາດ', symbol: '฿', decimals: 0 },
-  USD: { name: 'ໂດລາ', symbol: '$', decimals: 0 },
-  CNY: { name: 'ຢວນ', symbol: '¥', decimals: 0 }
+  THB: { name: '<?php echo tlj('ບາດ'); ?>', symbol: '฿', decimals: 0 },
+  USD: { name: '<?php echo tlj('ໂດລາ'); ?>', symbol: '$', decimals: 0 },
+  CNY: { name: '<?php echo tlj('ຢວນ'); ?>', symbol: '¥', decimals: 0 }
 };
 window.POS_DISPLAY_CURRENCY = window.POS_DISPLAY_CURRENCY || 'KIP';
 

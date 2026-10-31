@@ -39,13 +39,13 @@ require_once __DIR__ . '/../../layouts/header.php';
     <div class="container-fluid">
       <!-- MAIN USERS TABLE CARD -->
       <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
-        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center w-100">
+        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center w-100 mp-search-head">
           <h6 class="card-title m-0 font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon'; color: #0f172a;">
             <?php echo htmlspecialchars(t('users_manage.card_title_all_users', 'ລາຍງານຜູ້ໃຊ້ງານທັງໝົດ')); ?>
           </h6>
 
           <!-- Search Box Aligned Absolute Far Right directly under Add User button -->
-          <div class="position-relative ml-auto" style="width: 260px; max-width: 100%;">
+          <div class="position-relative ml-auto mp-search-box" style="width: 260px; max-width: 100%;">
             <i class="fas fa-search position-absolute text-muted" style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.85rem; z-index: 5;"></i>
             <input type="text" id="userSearchInput" class="form-control form-control-sm shadow-none"
                    placeholder="<?php echo htmlspecialchars(t('users_manage.search_placeholder', 'ຄົ້ນຫາຜູ້ໃຊ້ງານ...')); ?>"
@@ -67,7 +67,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                   <th class="text-center py-3"><?php echo htmlspecialchars(t('users_manage.th_status', 'ສະຖານະ')); ?></th>
                   <th class="text-center py-3"><?php echo htmlspecialchars(t('users_manage.th_role', 'ຕຳແໜ່ງ')); ?></th>
                   <?php if (isOwnerUser()): ?>
-                    <th class="text-center py-3"><?php echo htmlspecialchars(t('users_manage.th_access_age', 'ອາຍຸການໃຊ້ງານ')); ?></th>
+                    <th class="text-center py-3" data-i18n="users_manage.th_access_age"><?php echo htmlspecialchars(t('users_manage.th_access_age', 'ອາຍຸການໃຊ້ງານ')); ?></th>
                   <?php endif; ?>
                   <th class="text-center py-3" style="width: 140px;"><?php echo htmlspecialchars(t('users_manage.th_actions', 'ຈັດການ')); ?></th>
                 </tr>
@@ -155,16 +155,21 @@ require_once __DIR__ . '/../../layouts/header.php';
                               }
                           }
                         ?>
-                        <div class="user-last-active-text text-muted mt-1" style="font-size: 0.74rem; line-height: 1.25;<?php echo $isOnline ? ' display:none;' : ''; ?>">
-                          <i class="far fa-clock mr-1 text-secondary"></i>ອອນລາຍລ່າສຸດ: <?php echo htmlspecialchars($lastOnlineStr); ?>
-                        </div>
+                        <span class="user-last-active-text text-muted ml-1" style="font-size: 0.74rem; line-height: 1.25;<?php echo $isOnline ? ' display:none;' : ''; ?>">
+                          <i class="far fa-clock mr-1 text-secondary"></i><?php echo tlh('ອອນລາຍລ່າສຸດ:'); ?> <?php echo htmlspecialchars($lastOnlineStr); ?>
+                        </span>
                       </td>
 
                       <!-- COLUMN 2: ຕຳແໜ່ງ (Role / Position) -->
                       <td class="text-center align-middle">
-                        <?php if ($userStatus === 'ຜູ້ບໍລິຫານ' || strtolower($userStatus) === 'admin'): ?>
+                        <?php 
+                          $cleanStatus = mb_strtolower(trim((string)$userStatus));
+                          $isRowAdmin = (intval($u['Id']) === 1 || in_array($cleanStatus, ['ຜູ້ບໍລິຫານ', 'ผู้บริหาร', 'admin', 'administrator', 'super admin', 'superadmin'], true));
+                          $isRowManager = in_array($cleanStatus, ['ຜູ້ຈັດການ', 'ผู้จัดการ', 'manager'], true);
+                          if ($isRowAdmin): 
+                        ?>
                           <span class="badge badge-primary px-2.5 py-1.5" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-user-shield mr-1"></i> <?php echo htmlspecialchars(t('users_manage.role_admin', 'ຜູ້ບໍລິຫານ')); ?></span>
-                        <?php elseif (isManagerRole($userStatus)): ?>
+                        <?php elseif ($isRowManager): ?>
                           <span class="badge badge-info px-2.5 py-1.5" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-user-tie mr-1"></i> <?php echo htmlspecialchars(t('users_manage.role_manager_short', 'ຜູ້ຈັດການ')); ?></span>
                         <?php else: ?>
                           <span class="badge badge-secondary px-2.5 py-1.5" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-user mr-1"></i> <?php echo htmlspecialchars(t('users_manage.role_employee', 'ພະນັກງານ')); ?></span>
@@ -303,9 +308,9 @@ window.pollLiveUserStatuses = function() {
     success: function(res) {
       if (res.status === 'success' && Array.isArray(res.users)) {
         var i18n = typeof I18N_USERS !== 'undefined' ? I18N_USERS : {};
-        var onlineText = i18n['users_manage.status_online'] || 'ໃຊ້ງານຢູ່';
-        var offlineText = i18n['users_manage.status_offline'] || 'ບໍ່ໄດ້ໃຊ້ງານ';
-        var disabledText = i18n['users_manage.status_disabled'] || 'ປິດໃຊ້ງານ (ລາອອກ)';
+        var onlineText = i18n['users_manage.status_online'] || '<?php echo tlj('ໃຊ້ງານຢູ່'); ?>';
+        var offlineText = i18n['users_manage.status_offline'] || '<?php echo tlj('ບໍ່ໄດ້ໃຊ້ງານ'); ?>';
+        var disabledText = i18n['users_manage.status_disabled'] || '<?php echo tlj('ປິດໃຊ້ງານ (ລາອອກ)'); ?>';
         var formatLastOnlineJs = function(dtStr) {
           if (!dtStr) return '-';
           var d = new Date(dtStr.replace(/-/g, '/'));
@@ -329,7 +334,7 @@ window.pollLiveUserStatuses = function() {
           if (box.length > 0) {
             var lastText = box.siblings('.user-last-active-text');
             if (u.last_activity && lastText.length > 0) {
-              lastText.html('<i class="far fa-clock mr-1 text-secondary"></i>ອອນລາຍລ່າສຸດ: ' + formatLastOnlineJs(u.last_activity));
+              lastText.html('<i class="far fa-clock mr-1 text-secondary"></i><?php echo tlj('ອອນລາຍລ່າສຸດ:'); ?> ' + formatLastOnlineJs(u.last_activity));
             }
             var bHtml = '';
             if (u.account_active === 0) {

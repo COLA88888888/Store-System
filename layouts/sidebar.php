@@ -94,7 +94,7 @@
           </li>
 
           <!-- Dropdown Treeview: ລາຍງານ -->
-          <li class="nav-item has-treeview"<?php echo permMenuAttr('report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales', 'delete_bills', 'expiry', 'shifts', 'shift_report', 'shift_close_report', 'shift_revenue_report'); ?>>
+          <li class="nav-item has-treeview"<?php echo permMenuAttr('daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales', 'expiry_report', 'shift_close_report', 'shift_revenue_report', 'delete_bills'); ?>>
             <a class="nav-link" role="button" style="cursor: pointer;">
               <i class="nav-icon fas fa-file-invoice-dollar text-orange"></i>
               <p>
@@ -152,7 +152,7 @@
               </li>
 
               <!-- 8. ລາຍງານສິນຄ້າໝົດອາຍຸ -->
-              <li class="nav-item"<?php echo permMenuAttr('report', 'expiry'); ?>>
+              <li class="nav-item"<?php echo permMenuAttr('expiry_report'); ?>>
                 <a href="<?php echo $bp; ?>pages/reports/expiry_report.php" target="frame" class="nav-link">
                   <i class="nav-icon fas fa-hourglass-half text-warning"></i>
                   <p data-i18n="layout.expiry_report"><?php echo htmlspecialchars(t('layout.expiry_report', 'ລາຍງານສິນຄ້າໝົດອາຍຸ')); ?></p>
@@ -187,7 +187,7 @@
           </li>
 
           <!-- Header: Administration & Settings -->
-          <li class="nav-header text-uppercase"<?php echo permMenuAttr('users', 'permissions', 'branches', 'stores', 'print_barcode', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'expiry', 'shifts', 'database'); ?> style="color: rgba(255,255,255,0.85); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;" data-i18n="layout.admin_header"><?php echo htmlspecialchars(t('layout.admin_header', 'ການຈັດການລະບົບ')); ?></li>
+          <li class="nav-header text-uppercase"<?php echo permMenuAttr('users', 'permissions', 'branches', 'stores', 'print_barcode', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'expiry', 'shifts', 'clear_data', 'database'); ?> style="color: rgba(255,255,255,0.85); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;" data-i18n="layout.admin_header"><?php echo htmlspecialchars(t('layout.admin_header', 'ການຈັດການລະບົບ')); ?></li>
 
             <!-- Menu: Users Management -->
             <li class="nav-item"<?php echo permMenuAttr('users'); ?>>
@@ -214,7 +214,7 @@
             </li>
 
             <!-- Dropdown Treeview: ຕັ້ງຄ່າລະບົບ -->
-            <li class="nav-item has-treeview"<?php echo permMenuAttr('stores', 'print_barcode', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'expiry', 'shifts'); ?>>
+            <li class="nav-item has-treeview"<?php echo permMenuAttr('stores', 'print_barcode', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'expiry', 'shifts', 'clear_data'); ?>>
               <a class="nav-link" role="button" style="cursor: pointer;">
                 <i class="nav-icon fas fa-cogs text-secondary"></i>
                 <p>
@@ -292,6 +292,14 @@
                   <a href="<?php echo $bp; ?>pages/settings/shifts/index.php" target="frame" class="nav-link">
                     <i class="nav-icon fas fa-user-clock text-info"></i>
                     <p data-i18n="layout.shifts"><?php echo htmlspecialchars(t('layout.shifts', 'ຈັດການກະເຮັດວຽກ')); ?></p>
+                  </a>
+                </li>
+
+                <!-- 10. ລຶບ/ລ້າງຂໍ້ມູນລະບົບ -->
+                <li class="nav-item"<?php echo permMenuAttr('clear_data'); ?>>
+                  <a href="<?php echo $bp; ?>pages/settings/clear_data/index.php" target="frame" class="nav-link">
+                    <i class="nav-icon fas fa-trash-alt text-danger"></i>
+                    <p data-i18n="layout.clear_data"><?php echo htmlspecialchars(t('layout.clear_data', 'ລຶບ/ລ້າງຂໍ້ມູນລະບົບ')); ?></p>
                   </a>
                 </li>
               </ul>

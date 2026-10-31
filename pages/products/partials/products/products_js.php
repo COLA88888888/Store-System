@@ -34,7 +34,7 @@
       var isImage = (file.type && file.type.startsWith('image/')) || allowedExts.includes(ext);
 
       if (!isImage) {
-        Swal.fire({ icon: 'error', title: 'ຮູບແບບໄຟລ໌ບໍ່ຖືກຕ້ອງ', text: 'ກະລຸນາເລືອກສະເພາະໄຟລ໌ຮູບພາບ (JPG, PNG, WEBP, GIF, JFIF)', confirmButtonColor: '#2563eb', confirmButtonText: 'ຕົກລົງ' });
+        Swal.fire({ icon: 'error', title: '<?php echo tlj('ຮູບແບບໄຟລ໌ບໍ່ຖືກຕ້ອງ'); ?>', text: '<?php echo tlj('ກະລຸນາເລືອກສະເພາະໄຟລ໌ຮູບພາບ (JPG, PNG, WEBP, GIF, JFIF)'); ?>', confirmButtonColor: '#2563eb', confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>' });
         input.value = '';
         return;
       }
@@ -42,7 +42,7 @@
       // 2. ກວດສອບຂະໜາດໄຟລ໌ (ບໍ່ໃຫ້ເກີນ 10MB)
       if (file.size > MAX_IMG_SIZE) {
         var fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
-        Swal.fire({ icon: 'warning', title: 'ຂະໜາດຮູບພາບໃຫຍ່ເກີນໄປ', html: 'ຂະໜາດຮູບຂອງທ່ານ: <strong>' + fileSizeMB + ' MB</strong><br>ລະບົບຮອງຮັບຂະໜາດສູງສຸດບໍ່ເກີນ <strong>10 MB</strong>', confirmButtonColor: '#2563eb', confirmButtonText: 'ຕົກລົງ' });
+        Swal.fire({ icon: 'warning', title: '<?php echo tlj('ຂະໜາດຮູບພາບໃຫຍ່ເກີນໄປ'); ?>', html: '<?php echo tlj('ຂະໜາດຮູບຂອງທ່ານ:'); ?> <strong>' + fileSizeMB + ' MB</strong><br><?php echo tlj('ລະບົບຮອງຮັບຂະໜາດສູງສຸດບໍ່ເກີນ'); ?> <strong>10 MB</strong>', confirmButtonColor: '#2563eb', confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>' });
         input.value = '';
         return;
       }
@@ -143,9 +143,9 @@
       cat = prefix.slice(1);
     }
 
-    return '<span style="color: #dc2626;" title="ລະຫັດສາຂາ">' + branch + '</span>' +
-           '<span style="color: #2563eb;" title="ລະຫັດປະເພດສິນຄ້າ">' + cat + '</span>' +
-           '<span style="color: #0f172a;" title="ລະຫັດສິນຄ້າ">' + seq + '</span>';
+    return '<span style="color: #dc2626;" title="<?php echo tlj('ລະຫັດສາຂາ'); ?>">' + branch + '</span>' +
+           '<span style="color: #2563eb;" title="<?php echo tlj('ລະຫັດປະເພດສິນຄ້າ'); ?>">' + cat + '</span>' +
+           '<span style="color: #0f172a;" title="<?php echo tlj('ລະຫັດສິນຄ້າ'); ?>">' + seq + '</span>';
   }
 
   // ====== Edit Modal: Populate fields ======
@@ -166,7 +166,7 @@
       editUnitSelect.val(p.unit_id);
     } else if (p.unit) {
       if (editUnitSelect.find('option[value=""]').length > 0) {
-        editUnitSelect.find('option[value=""]').text('-- ' + p.unit + ' (ກະລຸນາເລືອກໃໝ່) --');
+        editUnitSelect.find('option[value=""]').text('-- ' + p.unit + ' <?php echo tlj('(ກະລຸນາເລືອກໃໝ່)'); ?> --');
       }
       editUnitSelect.val('');
     } else {

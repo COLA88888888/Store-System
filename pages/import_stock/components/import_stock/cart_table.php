@@ -27,12 +27,14 @@
 
   function renderCartTable() {
     var tbody = $('#cart_table_body');
+    // ປິດປະຕິທິນວັນໝົດອາຍຸຂອງແຖວເກົ່າກ່ອນ (ບໍ່ດັ່ງນັ້ນກ່ອງປະຕິທິນຄ້າງຢູ່ໃນ <body> ທຸກເທື່ອທີ່ແຕ້ມໃໝ່)
+    tbody.find('input').each(function () { if (this._flatpickr) this._flatpickr.destroy(); });
     tbody.empty();
 
     if (cartItems.length === 0) {
       tbody.html(`
         <tr id="empty_cart_row">
-          <td colspan="7" class="text-center text-muted py-5">
+          <td colspan="8" class="text-center text-muted py-5">
             <i class="fas fa-box-open fa-3x d-block mb-2 text-muted" style="opacity: 0.4;"></i>
             <span class="font-weight-bold">${I18N_IMPORT_STOCK['import_stock.js_empty_cart_title']}</span><br>
             <small>${I18N_IMPORT_STOCK['import_stock.js_empty_cart_hint']}</small>
@@ -73,15 +75,16 @@
           <td class="text-center align-middle font-weight-bold text-muted">${idx + 1}</td>
           <td class="align-middle">
             <span class="font-weight-bold text-dark d-block" style="font-size: 0.98rem;">${escapeHtml(item.product_name)}</span>
-            <small class="text-muted"><i class="fas fa-barcode mr-1"></i> ${escapeHtml(item.barcode)} ${item.expiry_date ? '| ' + I18N_IMPORT_STOCK['import_stock.js_expiry_prefix'] + ' ' + item.expiry_date : ''}</small>
+            <small class="text-muted"><i class="fas fa-barcode mr-1"></i> ${escapeHtml(item.barcode)}</small>
           </td>
           <td class="text-center align-middle">
-            <div class="input-group input-group-sm mx-auto" style="max-width: 130px;">
+            <div class="input-group input-group-sm mx-auto" style="max-width: 190px;">
               <input type="text" inputmode="numeric" class="form-control text-center font-weight-bold cart-qty-input" value="${qty}" data-col="qty" onfocus="this.select()" oninput="liveCartQty(${idx}, this)" onblur="updateCartQty(${idx}, this.value, this)" onkeydown="cartInputKey(event, this)">
-              <div class="input-group-append">
-                <span class="input-group-text bg-light font-weight-bold text-dark">${escapeHtml(item.unit_name)}</span>
-              </div>
+              <div class="input-group-append">${cartUnitCell(item, idx)}</div>
             </div>
+          </td>
+          <td class="text-center align-middle">
+            <input type="date" class="form-control form-control-sm font-weight-bold mx-auto" style="max-width: 140px;" value="${escapeHtml(item.expiry_date || '')}" placeholder="${I18N_IMPORT_STOCK['import_stock.expiry_date_label'] || ''}" onchange="updateCartExpiry(${idx}, this.value)">
           </td>
           <td class="text-right align-middle">
             <input type="text" inputmode="decimal" class="form-control form-control-sm text-right font-weight-bold text-danger ml-auto" style="max-width: 120px;" value="${cost.toLocaleString('en-US')}" data-col="cost" onfocus="this.select()" oninput="formatNumberInput(this); updateCartCost(${idx}, this.value)" onkeydown="cartInputKey(event, this)">
@@ -203,6 +206,42 @@
     if (!cartItems[idx]) return;
     cartItems[idx].cost_price = parsePrice(val);
     refreshCartLine(idx);
+  }
+
+  // ຫົວໜ່ວຍໃນແຖວ: ສິນຄ້າທີ່ມີຫຼາຍຫົວໜ່ວຍ → ເລືອກໄດ້ (ຫົວໜ່ວຍຫຼັກ / ແພັກ / ແກັດ…); ບໍ່ດັ່ງນັ້ນສະແດງຊື່ຫົວໜ່ວຍຢ່າງດຽວ
+  function cartUnitCell(item, idx) {
+    var units = PRODUCTS_UNITS[item.product_id] || [];
+    if (!units.length) {
+      return `<span class="input-group-text bg-light font-weight-bold text-dark">${escapeHtml(item.unit_name)}</span>`;
+    }
+    var opts = `<option value="base"${item.unit_key == 'base' ? ' selected' : ''}>${escapeHtml(item.base_unit)}</option>`;
+    units.forEach(function (u) {
+      opts += `<option value="${u.id}"${item.unit_key == u.id ? ' selected' : ''}>${escapeHtml(u.unit_name)} (×${parseInt(u.multiplier || 1, 10)})</option>`;
+    });
+    return `<select class="custom-select custom-select-sm font-weight-bold" style="border-radius: 0 4px 4px 0; max-width: 110px;" onchange="updateCartUnit(${idx}, this.value)">${opts}</select>`;
+  }
+
+  // ປ່ຽນຫົວໜ່ວຍ: ລາຄາຊື້/ຂາຍ ເປັນລາຄາຂອງຫົວໜ່ວຍນັ້ນ (ຖ້າບໍ່ໄດ້ຕັ້ງ = ລາຄາຫົວໜ່ວຍຫຼັກ × ຈຳນວນຕໍ່ຫົວໜ່ວຍ)
+  function updateCartUnit(idx, unitKey) {
+    var item = cartItems[idx];
+    if (!item) return;
+    var p = PRODUCTS_LIST.find(function (x) { return x.product_id == item.product_id; }) || {};
+    var baseCost = parseFloat(p.bprice || 0), baseSell = parseFloat(p.price || 0);
+    var u = unitKey === 'base' ? null : (PRODUCTS_UNITS[item.product_id] || []).find(function (x) { return x.id == unitKey; });
+    var mult = u ? (parseInt(u.multiplier || 1, 10) || 1) : 1;
+    item.unit_key = u ? u.id : 'base';
+    item.unit_name = u ? u.unit_name : item.base_unit;
+    item.multiplier = mult;
+    item.barcode = (u && u.barcode) ? u.barcode : (p.barcode || '-');
+    item.cost_price = (u && parseFloat(u.bprice) > 0) ? parseFloat(u.bprice) : baseCost * mult;
+    item.sell_price = (u && parseFloat(u.price) > 0) ? parseFloat(u.price) : baseSell * mult;
+    renderCartTable();
+  }
+
+  function updateCartExpiry(idx, val) {
+    if (!cartItems[idx]) return;
+    cartItems[idx].expiry_date = (val || '').trim();
+    updateCartTotals();
   }
 
   function updateCartSell(idx, val) {

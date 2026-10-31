@@ -53,7 +53,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 <link rel="stylesheet" href="../../themes/import_stock.css?v=<?php echo filemtime(__DIR__ . '/../../themes/import_stock.css'); ?>">
 <?php echo themeCssLink('report-table.css'); /* ປຸ່ມ Excel / PDF / ພິມ ແບບດຽວກັນທົ່ວລະບົບ (.rpt-btn) */ ?>
 
-<div class="content-wrapper bg-light">
+<div class="content-wrapper bg-light mp-compact">
   
   <!-- Page Header -->
   <section class="content-header py-3">
@@ -90,7 +90,7 @@ require_once __DIR__ . '/../../layouts/header.php';
         <?php if ($message_type === 'success'): ?>
           <script>
             $(document).ready(function() {
-              var swalTitle = '<?php echo (strpos($message, "ລົບ") !== false || strpos($message, "ຍົກເລີກ") !== false) ? "ລົບສຳເລັດ!" : htmlspecialchars(t("import_list.swal_success_title", "ດຳເນີນການສຳເລັດ!"), ENT_QUOTES); ?>';
+              var swalTitle = '<?php echo (strpos($message, "ລົບ") !== false || strpos($message, "ຍົກເລີກ") !== false) ? tl('ລົບສຳເລັດ!') : htmlspecialchars(t("import_list.swal_success_title", "ດຳເນີນການສຳເລັດ!"), ENT_QUOTES); ?>';
               Swal.fire({
                 title: swalTitle,
                 text: '<?php echo addslashes($message); ?>',

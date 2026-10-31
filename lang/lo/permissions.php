@@ -172,4 +172,11 @@ return [
 
     // Admin-account edit lock
     'permissions.admin_locked_badge' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ແກ້ໄຂໄດ້',
+    'permissions.module_shift_close_report_title' => '↳ ລາຍງານປິດກະ',
+    'permissions.module_shift_revenue_report_title' => '↳ ລາຍງານລາຍຮັບຕາມກະ',
+    'permissions.module_clear_data_title' => 'ລຶບ/ລ້າງຂໍ້ມູນລະບົບ',
+    'permissions.module_clear_data_desc' => 'ລຶບຂໍ້ມູນການຂາຍ, ປະຫວັດກະ, ສະຕັອກ ຫຼື ລ້າງຂໍ້ມູນລະບົບທັງໝົດ',
+    'permissions.module_shifts_title' => 'ຈັດການກະເຮັດວຽກ',
+    'permissions.module_shifts_desc' => 'ຕັ້ງຄ່າກະ, ເວລາເປີດ-ປິດ ແລະ ພະນັກງານປະຈຳກະ',
+    'permissions.module_expiry_report_title' => '↳ ລາຍງານສິນຄ້າໝົດອາຍຸ',
 ];

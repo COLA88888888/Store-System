@@ -11,7 +11,7 @@ if (!defined('MINIPOS_APP')) {
 }
 ?>
 <?php
-  $selected_branch_name = 'ທຸກສາຂາ (All Branches)';
+  $selected_branch_name = tl('ທຸກສາຂາ (All Branches)');
   if (!empty($filter_store_id) && $filter_store_id > 0) {
     foreach ($branches_list as $b) {
       if ($b['store_id'] == $filter_store_id) {

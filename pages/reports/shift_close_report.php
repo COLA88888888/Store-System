@@ -69,7 +69,7 @@ window.SHIFT_REPORT_MODE = 'close';
       <h5 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
         <i class="fas fa-cash-register mr-2" style="color: #2c5aa0;"></i> <?php echo htmlspecialchars(t('layout.shift_close_report', 'ລາຍງານປິດກະ')); ?>
       </h5>
-      <small class="text-muted" style="font-size: 0.82rem;">ຕິດຕາມປະຫວັດການເປີດ-ປິດກະ, ກວດສອບເງິນລິ້ນຊັກ, ເງິນສົດນັບໄດ້ຕົວຈິງ ແລະ ສ່ວນຕ່າງເງິນສົດ</small>
+      <small class="text-muted" style="font-size: 0.82rem;"><?php echo tlh('ຕິດຕາມປະຫວັດການເປີດ-ປິດກະ, ກວດສອບເງິນລິ້ນຊັກ, ເງິນສົດນັບໄດ້ຕົວຈິງ ແລະ ສ່ວນຕ່າງເງິນສົດ'); ?></small>
     </div>
     <?php if ($shHasShifts): ?>
     <div class="page-actions">
@@ -140,7 +140,9 @@ window.SHIFT_REPORT_MODE = 'close';
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo $sr('shifts.pg_kpi_shifts'); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiTotalShifts">0</div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <span class="counter-num" id="kpiTotalShifts">0</span>
+        </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-calendar-check"></i></div>
     </div>
@@ -148,8 +150,10 @@ window.SHIFT_REPORT_MODE = 'close';
     <!-- 2. ເງິນລິ້ນຊັກເປີດລວມ -->
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #475569 0%, #334155 100%);">
       <div style="z-index: 2; min-width: 0;">
-        <div class="kpi-card-title">ເງິນລິ້ນຊັກເປີດລວມ</div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiCloseTotalDrawer">0 <?php echo kipSymbol(); ?></div>
+        <div class="kpi-card-title"><?php echo tlh('ເງິນລິ້ນຊັກເປີດລວມ'); ?></div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <span class="counter-num" id="kpiCloseTotalDrawer">0 <?php echo kipSymbol(); ?></span>
+        </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-coins"></i></div>
     </div>
@@ -157,8 +161,10 @@ window.SHIFT_REPORT_MODE = 'close';
     <!-- 3. ເງິນສົດນັບໄດ້ຕົວຈິງລວມ -->
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
       <div style="z-index: 2; min-width: 0;">
-        <div class="kpi-card-title">ເງິນສົດນັບໄດ້ຕົວຈິງ (ຂາຍ)</div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiCloseTotalCounted">0 <?php echo kipSymbol(); ?></div>
+        <div class="kpi-card-title"><?php echo tlh('ເງິນສົດນັບໄດ້ຕົວຈິງ (ຂາຍ)'); ?></div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <span class="counter-num" id="kpiCloseTotalCounted">0 <?php echo kipSymbol(); ?></span>
+        </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-money-bill-wave"></i></div>
     </div>
@@ -167,7 +173,9 @@ window.SHIFT_REPORT_MODE = 'close';
     <div class="kpi-card-item d-flex align-items-center justify-content-between text-white" style="background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);<?php echo $isCashier ? ' display: none !important;' : ''; ?>">
       <div style="z-index: 2; min-width: 0;">
         <div class="kpi-card-title"><?php echo $sr('shifts.pg_kpi_diff'); ?></div>
-        <div class="font-weight-bold mt-1 text-white kpi-card-val" id="kpiTotalDiff">0 <?php echo kipSymbol(); ?></div>
+        <div class="font-weight-bold mt-1 text-white kpi-card-val" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+          <span class="counter-num" id="kpiTotalDiff">0 <?php echo kipSymbol(); ?></span>
+        </div>
       </div>
       <div class="kpi-card-icon"><i class="fas fa-balance-scale"></i></div>
     </div>
@@ -267,7 +275,7 @@ window.SHIFT_REPORT_MODE = 'close';
             <th class="text-right"><?php echo $sr('shifts.pg_th_counted'); ?></th>
             <th class="text-center"><?php echo $sr('shifts.pg_th_diff'); ?></th>
             <th class="text-center"><?php echo $sr('shifts.pg_th_status'); ?></th>
-            <th class="text-center" style="width: 90px;">ໃບສະຫຼຸບປິດກະ</th>
+            <th class="text-center" style="width: 90px;"><?php echo tlh('ໃບສະຫຼຸບປິດກະ'); ?></th>
           </tr>
         </thead>
         <tbody id="sessionsTableBody">
@@ -323,30 +331,30 @@ window.rptExport = function (action) {
     sum.cash += parseFloat(s.system_sales_cash) || 0;
     if (s.counted_sales_cash !== null) sum.counted += parseFloat(s.counted_sales_cash) || 0;
     if (d !== null) sum.diff += d;
-    return [i + 1, s.store_name || '-', s.shift_name || '-', s.open_time || '-', s.close_time || 'ກຳລັງຂາຍ',
-            s.opened_by_name || '-', s.closed_by_name || '-',
+    return [i + 1, s.store_name || '-', formatShiftName(s.shift_name) || '-', s.open_time || '-', s.close_time || '<?php echo tlj('ກຳລັງຂາຍ'); ?>',
+            s.opened_by_name || '-', shiftCloserName(s.closed_by_name) || '-',
             num(s.initial_cash), num(s.system_sales_cash),
             s.counted_sales_cash !== null ? num(s.counted_sales_cash) : '-',
             d === null ? '-' : (d > 0 ? '+' : '') + num(d),
-            s.status === 'open' ? 'ກຳລັງເປີດ' : 'ປິດແລ້ວ'];
+            s.status === 'open' ? '<?php echo tlj('ກຳລັງເປີດ'); ?>' : '<?php echo tlj('ປິດແລ້ວ'); ?>'];
   });
   var shiftSel = $('#filterShiftSelect option:selected');
   var q = ($('#filterSessionSearch').val() || '').trim();
   var fmtD = function (v) { var p = String(v || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : v; };
   var storeSel = $('#filterStoreSelect option:selected');
   RptExport.run(action, {
-    title: 'ລາຍງານປິດກະເຮັດວຽກ',
+    title: '<?php echo tlj('ລາຍງານປິດກະເຮັດວຽກ'); ?>',
     fileBase: 'shift_close_report',
-    store: storeSel.length ? (storeSel.val() === '0' ? 'ທຸກສາຂາ' : storeSel.text()) : undefined,
-    meta: ['ວັນທີ ' + fmtD($('#filterDateFrom').val()) + ' - ' + fmtD($('#filterDateTo').val()),
-           shiftSel.val() !== '0' ? 'ກະ: ' + shiftSel.text() : 'ທຸກກະ',
-           q ? 'ຄົ້ນຫາ: ' + q : '',
-           'ທັງໝົດ ' + rows.length + ' ກະ', 'ສະກຸນເງິນ: LAK'].filter(Boolean),
-    headers: [{t: 'ລຳດັບ', a: 'c'}, {t: 'ສາຂາ'}, {t: 'ຊື່ກະ'}, {t: 'ເວລາເປີດ'}, {t: 'ເວລາປິດ'}, {t: 'ຜູ້ເປີດ'}, {t: 'ຜູ້ປິດ'},
-              {t: 'ເງິນລິ້ນຊັກຕອນເປີດ', a: 'r'}, {t: 'ຂາຍເງິນສົດ (ລະບົບ)', a: 'r'},
-              {t: 'ເງິນສົດນັບໄດ້ຕົວຈິງ', a: 'r'}, {t: 'ສ່ວນຕ່າງ', a: 'r'}, {t: 'ສະຖານະ', a: 'c'}],
+    store: storeSel.length ? (storeSel.val() === '0' ? '<?php echo tlj('ທຸກສາຂາ'); ?>' : storeSel.text()) : undefined,
+    meta: ['<?php echo tlj('ວັນທີ'); ?> ' + fmtD($('#filterDateFrom').val()) + ' - ' + fmtD($('#filterDateTo').val()),
+           shiftSel.val() !== '0' ? '<?php echo tlj('ກະ:'); ?> ' + shiftSel.text() : '<?php echo tlj('ທຸກກະ'); ?>',
+           q ? '<?php echo tlj('ຄົ້ນຫາ:'); ?> ' + q : '',
+           '<?php echo tlj('ທັງໝົດ'); ?> ' + rows.length + ' <?php echo tlj('ກະ'); ?>', '<?php echo tlj('ສະກຸນເງິນ:'); ?> LAK'].filter(Boolean),
+    headers: [{t: '<?php echo tlj('ລຳດັບ'); ?>', a: 'c'}, {t: '<?php echo tlj('ສາຂາ'); ?>'}, {t: '<?php echo tlj('ຊື່ກະ'); ?>'}, {t: '<?php echo tlj('ເວລາເປີດ'); ?>'}, {t: '<?php echo tlj('ເວລາປິດ'); ?>'}, {t: '<?php echo tlj('ຜູ້ເປີດ'); ?>'}, {t: '<?php echo tlj('ຜູ້ປິດ'); ?>'},
+              {t: '<?php echo tlj('ເງິນລິ້ນຊັກຕອນເປີດ'); ?>', a: 'r'}, {t: '<?php echo tlj('ຂາຍເງິນສົດ (ລະບົບ)'); ?>', a: 'r'},
+              {t: '<?php echo tlj('ເງິນສົດນັບໄດ້ຕົວຈິງ'); ?>', a: 'r'}, {t: '<?php echo tlj('ສ່ວນຕ່າງ'); ?>', a: 'r'}, {t: '<?php echo tlj('ສະຖານະ'); ?>', a: 'c'}],
     rows: rows,
-    footer: rows.length ? ['', 'ລວມ', '', '', '', '', '', num(sum.init), num(sum.cash),
+    footer: rows.length ? ['', '<?php echo tlj('ລວມ'); ?>', '', '', '', '', '', num(sum.init), num(sum.cash),
                            num(sum.counted), (sum.diff > 0 ? '+' : '') + num(sum.diff), ''] : null
   });
 };

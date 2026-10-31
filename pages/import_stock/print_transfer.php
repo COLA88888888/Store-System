@@ -28,7 +28,7 @@ $trfStmt->execute([$transfer_id]);
 $transfer = $trfStmt->fetch();
 
 if (!$transfer) {
-    exit("ບໍ່ພົບຂໍ້ມູນໃບໂອນນີ້ໃນລະບົບ!");
+    exit(tl('ບໍ່ພົບຂໍ້ມູນໃບໂອນນີ້ໃນລະບົບ!'));
 }
 
 // Fetch transfer details
@@ -51,51 +51,51 @@ $transferDate = !empty($transfer['transfer_date']) ? date('d/m/Y H:i', strtotime
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ໃບໂອນສິນຄ້າ - <?php echo htmlspecialchars($transfer['transfer_code']); ?></title>
+  <title><?php echo tlh('ໃບໂອນສິນຄ້າ'); ?> - <?php echo htmlspecialchars($transfer['transfer_code']); ?></title>
   <link rel="stylesheet" href="../../assets/css/local-font.css">
   <?php echo themeCssLink('print_transfer.css'); /* CSS ຍ້າຍໄປ themes/print_transfer.css */ ?>
 </head>
 <body>
 
   <div class="slip-container">
-    <h3 class="title">ໃບໂອນສິນຄ້າ</h3>
+    <h3 class="title"><?php echo tlh('ໃບໂອນສິນຄ້າ'); ?></h3>
     <div style="text-align: center; font-size: 11px; font-weight: bold; margin-bottom: 10px;">
       (Stock Transfer Receipt)
     </div>
     
     <?php if (!empty($company['tax_id'])): ?>
     <div class="info-line">
-      <span>ເລກປະຈຳຕົວຜູ້ເສຍອາກອນ:</span>
+      <span><?php echo tlh('ເລກປະຈຳຕົວຜູ້ເສຍອາກອນ:'); ?></span>
       <span style="font-weight: 700; font-size: 11px;"><?php echo htmlspecialchars($company['tax_id']); ?></span>
     </div>
     <?php endif; ?>
     <div class="info-line">
-      <span>ເລກທີໃບໂອນ:</span>
+      <span><?php echo tlh('ເລກທີໃບໂອນ:'); ?></span>
       <strong><?php echo htmlspecialchars($transfer['transfer_code']); ?></strong>
     </div>
     <div class="info-line">
-      <span>ວັນທີໂອນ:</span>
+      <span><?php echo tlh('ວັນທີໂອນ:'); ?></span>
       <span><?php echo $transferDate; ?></span>
     </div>
     <div class="info-line">
-      <span>ຜູ້ໂອນ:</span>
+      <span><?php echo tlh('ຜູ້ໂອນ:'); ?></span>
       <span><?php echo htmlspecialchars($creatorName); ?></span>
     </div>
     <div class="info-line">
-      <span>ສະຖານະ:</span>
+      <span><?php echo tlh('ສະຖານະ:'); ?></span>
       <span style="font-weight: bold; text-transform: uppercase; color: <?php echo ($transfer['status'] === 'completed') ? 'green' : 'red'; ?>;">
-        <?php echo ($transfer['status'] === 'completed') ? 'ສຳເລັດ (Success)' : 'ຍົກເລີກ (Cancelled)'; ?>
+        <?php echo ($transfer['status'] === 'completed') ? tl('ສຳເລັດ (Success)') : tl('ຍົກເລີກ (Cancelled)'); ?>
       </span>
     </div>
 
     <div class="divider"></div>
 
     <div class="info-line">
-      <span>ສາຂາຕົ້ນທາງ:</span>
+      <span><?php echo tlh('ສາຂາຕົ້ນທາງ:'); ?></span>
       <strong><?php echo htmlspecialchars($transfer['from_store_name']); ?></strong>
     </div>
     <div class="info-line">
-      <span>ສາຂາປາຍທາງ:</span>
+      <span><?php echo tlh('ສາຂາປາຍທາງ:'); ?></span>
       <strong><?php echo htmlspecialchars($transfer['to_store_name']); ?></strong>
     </div>
 
@@ -104,9 +104,9 @@ $transferDate = !empty($transfer['transfer_date']) ? date('d/m/Y H:i', strtotime
     <table class="table-slip">
       <thead>
         <tr>
-          <th>ລາຍການສິນຄ້າ</th>
-          <th class="qty-col" style="width: 50px;">ຈຳນວນ</th>
-          <th class="price-col" style="width: 80px;">ຫົວໜ່ວຍ</th>
+          <th><?php echo tlh('ລາຍການສິນຄ້າ'); ?></th>
+          <th class="qty-col" style="width: 50px;"><?php echo tlh('ຈຳນວນ'); ?></th>
+          <th class="price-col" style="width: 80px;"><?php echo tlh('ຫົວໜ່ວຍ'); ?></th>
         </tr>
       </thead>
       <tbody>
@@ -120,7 +120,7 @@ $transferDate = !empty($transfer['transfer_date']) ? date('d/m/Y H:i', strtotime
           <tr>
             <td>
               <div><?php echo htmlspecialchars($row['product_name']); ?></div>
-              <small style="color: #475569; font-size: 9px;">ບາໂຄ້ດ: <?php echo htmlspecialchars($row['barcode'] ?: ($row['prod_barcode'] ?: '-')); ?></small>
+              <small style="color: #475569; font-size: 9px;"><?php echo tlh('ບາໂຄ້ດ:'); ?> <?php echo htmlspecialchars($row['barcode'] ?: ($row['prod_barcode'] ?: '-')); ?></small>
             </td>
             <td class="qty-col"><?php echo number_format($row['qty']); ?></td>
             <td class="price-col"><?php echo htmlspecialchars($row['unit'] ?: 'ອັນ'); ?></td>
@@ -132,31 +132,31 @@ $transferDate = !empty($transfer['transfer_date']) ? date('d/m/Y H:i', strtotime
     <div class="divider"></div>
 
     <div class="info-line">
-      <span>ລວມທັງໝົດ:</span>
-      <strong><?php echo $totalItems; ?> ລາຍການ</strong>
+      <span><?php echo tlh('ລວມທັງໝົດ:'); ?></span>
+      <strong><?php echo $totalItems; ?> <?php echo tlh('ລາຍການ'); ?></strong>
     </div>
     <div class="info-line">
-      <span>ຈຳນວນລວມ:</span>
-      <strong><?php echo number_format($totalQty); ?> ອັນ</strong>
+      <span><?php echo tlh('ຈຳນວນລວມ:'); ?></span>
+      <strong><?php echo number_format($totalQty); ?> <?php echo tlh('ອັນ'); ?></strong>
     </div>
 
     <?php if (!empty($transfer['notes'])): ?>
       <div class="notes-box">
-        <strong>ໝາຍເຫດ:</strong> <?php echo htmlspecialchars($transfer['notes']); ?>
+        <strong><?php echo tlh('ໝາຍເຫດ:'); ?></strong> <?php echo htmlspecialchars($transfer['notes']); ?>
       </div>
     <?php endif; ?>
 
     <div class="divider" style="margin-top: 25px;"></div>
     
     <div style="text-align: center; font-size: 9px; margin-top: 10px; color: #475569;">
-      ລະບົບ Mini POS - ຈັດການສາຂາ & ສະຕັອກ
+      <?php echo tlh('ລະບົບ Mini POS - ຈັດການສາຂາ & ສະຕັອກ'); ?>
     </div>
 
     <!-- Print Button (Hidden during print) -->
     <div class="no-print" style="margin-top: 20px; text-align: center;">
       <button onclick="window.print();" style="background: #2563eb; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-        ພິມໃບບິນ
+        <?php echo tlh('ພິມໃບບິນ'); ?>
       </button>
     </div>
   </div>

@@ -6,7 +6,7 @@
 ?>
 <!-- GLOBAL IMAGE LIGHTBOX PREVIEW MODAL -->
 <div id="globalImagePreviewModal" class="global-img-preview-backdrop" style="display:none;" aria-hidden="true">
-  <button type="button" class="global-img-preview-close" aria-label="Close" title="ປິດ (ESC)">&times;</button>
+  <button type="button" class="global-img-preview-close" aria-label="Close" title="<?php echo tlh('ປິດ (ESC)'); ?>">&times;</button>
   <div class="global-img-preview-wrap">
     <img id="globalImagePreviewTarget" class="global-img-preview-img" src="" alt="Image Preview">
     <div id="globalImagePreviewCaption" class="global-img-preview-caption" style="display:none;"></div>

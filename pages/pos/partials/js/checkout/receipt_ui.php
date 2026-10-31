@@ -160,12 +160,12 @@
     var labelBank = bName ? bName : '';
     if (hasQr) {
       $('#rc_bank_qr_img').attr('src', bQrImg).show();
-      var scanTransferLbl = (window.POS_RCPT_I18N && POS_RCPT_I18N['pos.receipt_scan_transfer']) || 'ສະແກນ QR ໂອນຊຳລະ';
+      var scanTransferLbl = (window.POS_RCPT_I18N && POS_RCPT_I18N['pos.receipt_scan_transfer']) || '<?php echo tlj('ສະແກນ QR ໂອນຊຳລະ'); ?>';
       $('#rc_bank_name_lbl').text(labelBank ? scanTransferLbl + ' (' + labelBank + ')' : scanTransferLbl);
     } else {
       // Bank has no QR: print no QR at all, just which bank the transfer went to
       $('#rc_bank_qr_img').removeAttr('src').hide();
-      var bankLbl = (window.POS_RCPT_I18N && POS_RCPT_I18N['pos.receipt_transfer_bank']) || 'ໂອນເຂົ້າ: %s';
+      var bankLbl = (window.POS_RCPT_I18N && POS_RCPT_I18N['pos.receipt_transfer_bank']) || '<?php echo tlj('ໂອນເຂົ້າ: %'); ?>s';
       $('#rc_bank_name_lbl').text(bankLbl.replace('%s', labelBank));
     }
     if (hasQr || labelBank) {
@@ -262,8 +262,10 @@
   }, 1000);
 }
 
-// Realistic Cash Register / Money Received Sound for cashier POS
+// ສຽງຕອນກົດຂາຍສຳເລັດແບບໃໝ່ (Modern Melodic POS Sale Confirmation Chime)
 function playPosCashRegisterSound() {
+  // ສຽງໃໝ່: "ຈິ໋ງ!" ລິ້ນຊັກເກັບເງິນ + ກະດິ່ງຫຼຽນ (assets/js/pos-sounds.js); ໂຫຼດບໍ່ໄດ້ → ສຽງເດີມລຸ່ມນີ້
+  if (window.MiniposSounds) { MiniposSounds.saleChime(); return; }
   try {
     var AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
@@ -272,53 +274,43 @@ function playPosCashRegisterSound() {
     var now = ctx.currentTime;
 
     var masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(0.72, now);
+    masterGain.gain.setValueAtTime(0.42, now);
     masterGain.connect(ctx.destination);
 
-    // 1. Drawer latch click
-    var clickOsc = ctx.createOscillator();
-    var clickGain = ctx.createGain();
-    clickOsc.type = 'triangle';
-    clickOsc.frequency.setValueAtTime(320, now);
-    clickOsc.frequency.exponentialRampToValueAtTime(140, now + 0.04);
-    clickGain.gain.setValueAtTime(0.45, now);
-    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-    clickOsc.connect(clickGain);
-    clickGain.connect(masterGain);
-    clickOsc.start(now);
-    clickOsc.stop(now + 0.05);
+    // ສຽງ Chime ອ່ອນນຸ່ມ ສົດໃສ ລະດັບສຽງ C5 -> E5 -> G5 -> C6
+    var chord = [
+      { f: 523.25,  t: 0.00, d: 0.38, g: 0.28 }, // C5
+      { f: 659.25,  t: 0.08, d: 0.44, g: 0.32 }, // E5
+      { f: 783.99,  t: 0.16, d: 0.54, g: 0.36 }, // G5
+      { f: 1046.50, t: 0.24, d: 0.88, g: 0.45 }  // C6 (sparkling crystal top)
+    ];
 
-    // 2. Resonant bells ("Ching!")
-    var bellStart = now + 0.035;
-    var bellFreqs = [2093.0, 2793.8, 3135.9, 4186.0];
-    bellFreqs.forEach(function(freq, idx) {
-      var bellOsc = ctx.createOscillator();
-      var bellGain = ctx.createGain();
-      bellOsc.type = 'sine';
-      bellOsc.frequency.setValueAtTime(freq, bellStart);
-      var initGain = (idx === 0) ? 0.38 : (0.24 / idx);
-      bellGain.gain.setValueAtTime(initGain, bellStart);
-      bellGain.gain.exponentialRampToValueAtTime(0.0001, bellStart + 0.95);
-      bellOsc.connect(bellGain);
-      bellGain.connect(masterGain);
-      bellOsc.start(bellStart);
-      bellOsc.stop(bellStart + 1.0);
-    });
+    chord.forEach(function(n) {
+      var start = now + n.t;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(n.f, start);
+      gain.gain.setValueAtTime(0.001, start);
+      gain.gain.exponentialRampToValueAtTime(n.g, start + 0.014);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + n.d);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(start);
+      osc.stop(start + n.d + 0.02);
 
-    // 3. Coins dropping inside drawer
-    var coinDelays = [0.08, 0.16, 0.24, 0.32];
-    var coinFreqs = [3500, 4200, 3900, 4800];
-    coinDelays.forEach(function(delay, i) {
-      var coinOsc = ctx.createOscillator();
-      var coinGain = ctx.createGain();
-      coinOsc.type = 'sine';
-      coinOsc.frequency.setValueAtTime(coinFreqs[i], now + delay);
-      coinGain.gain.setValueAtTime(0.20, now + delay);
-      coinGain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.14);
-      coinOsc.connect(coinGain);
-      coinGain.connect(masterGain);
-      coinOsc.start(now + delay);
-      coinOsc.stop(now + delay + 0.15);
+      // Warm harmonic overtone
+      var oscH = ctx.createOscillator();
+      var gainH = ctx.createGain();
+      oscH.type = 'triangle';
+      oscH.frequency.setValueAtTime(n.f * 2, start);
+      gainH.gain.setValueAtTime(0.001, start);
+      gainH.gain.exponentialRampToValueAtTime(n.g * 0.18, start + 0.014);
+      gainH.gain.exponentialRampToValueAtTime(0.0001, start + n.d * 0.55);
+      oscH.connect(gainH);
+      gainH.connect(masterGain);
+      oscH.start(start);
+      oscH.stop(start + n.d * 0.55 + 0.02);
     });
   } catch(e) {}
 }

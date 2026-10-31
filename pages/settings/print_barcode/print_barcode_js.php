@@ -44,7 +44,9 @@ function renderPageBarcodeBlocks() {
   var showName  = $('#opt_show_name').is(':checked');
   var showPrice = $('#opt_show_price').is(':checked');
   var showCode  = $('#opt_show_code').is(':checked');
-  var barcodeHeightMm = parseFloat($('#barcode_height_mm').val()) || 8.5;
+  var barcodeWidthMm  = parseFloat($('#barcode_width_mm').val()) || 36;
+  var barcodeHeightMm = parseFloat($('#barcode_height_mm').val()) || 10;
+  var previewBarcodeWidthPx  = Math.max(30, Math.round(barcodeWidthMm * 3.78));
   var previewBarcodeHeightPx = Math.max(10, Math.round(barcodeHeightMm * 3.78));
 
   var visibleCount = 0;
@@ -101,7 +103,7 @@ function renderPageBarcodeBlocks() {
                 ${showName ? `<div class="text-dark font-weight-bold text-truncate" style="font-size: 0.76rem; line-height: 1.1; margin-top: 1px;">${pName}</div>` : ''}
                 
                 <div class="my-1 d-flex align-items-center justify-content-center" style="max-width: 100%; overflow: hidden;">
-                  <svg id="page_svg_${pId}" style="max-width: 100%;"></svg>
+                  <svg id="page_svg_${pId}" style="width: ${previewBarcodeWidthPx}px; max-width: 100%; height: auto; display: block; margin: 0 auto;"></svg>
                 </div>
 
                 ${showPrice ? `<div class="font-weight-bold text-dark" style="font-size: 0.8rem; line-height: 1;">${pPrice}</div>` : ''}
@@ -142,9 +144,10 @@ function renderPageBarcodeBlocks() {
     container.append(blockHtml);
 
     try {
+      var previewModuleWidth = Math.max(0.6, Math.min(2.5, (previewBarcodeWidthPx / 125) * 1.15));
       JsBarcode(`#page_svg_${pId}`, pBarcode, {
         format: "CODE128",
-        width: 1.3,
+        width: previewModuleWidth,
         height: previewBarcodeHeightPx,
         displayValue: showCode,
         fontSize: 12,
@@ -153,6 +156,11 @@ function renderPageBarcodeBlocks() {
         margin: 1,
         textMargin: 1
       });
+      var svgEl = document.getElementById(`page_svg_${pId}`);
+      if (svgEl) {
+        svgEl.style.width = previewBarcodeWidthPx + "px";
+        svgEl.style.maxWidth = "100%";
+      }
     } catch (e) {
       console.error("Barcode render error for product " + pId, e);
     }
@@ -294,7 +302,7 @@ var BARCODE_SIZE_CONFIGS = {
     shopTitleCss: 'font-size: 8px; font-weight: bold; line-height: 1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
     prodTitleCss: 'font-size: 10.5px; font-weight: bold; line-height: 1.1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
     priceTitleCss: 'font-size: 12.5px; font-weight: 800; line-height: 1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center;',
-    maxBarcodeMm: 36,
+    maxBarcodeMm: 39,
     mode: 'single_roll'
   },
   '40x30_horiz': {
@@ -304,7 +312,7 @@ var BARCODE_SIZE_CONFIGS = {
     shopTitleCss: 'font-size: 8px; font-weight: bold; line-height: 1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
     prodTitleCss: 'font-size: 10.5px; font-weight: bold; line-height: 1.1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
     priceTitleCss: 'font-size: 12.5px; font-weight: 800; line-height: 1; max-width: 37mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center;',
-    maxBarcodeMm: 36,
+    maxBarcodeMm: 39,
     mode: 'single_roll'
   },
   '105x25_3up': {
@@ -314,7 +322,7 @@ var BARCODE_SIZE_CONFIGS = {
     shopTitleCss: 'font-size: 7px; font-weight: bold; line-height: 1; max-width: 31mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.5px 0; text-align: center;',
     prodTitleCss: 'font-size: 8px; font-weight: bold; line-height: 1.1; max-width: 31mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 0.5px 0; text-align: center;',
     priceTitleCss: 'font-size: 8.5px; font-weight: 800; line-height: 1; max-width: 31mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0.5px 0 0 0; text-align: center;',
-    maxBarcodeMm: 31,
+    maxBarcodeMm: 31.5,
     mode: '3up_roll'
   },
   '50x30': {
@@ -324,7 +332,7 @@ var BARCODE_SIZE_CONFIGS = {
     shopTitleCss: 'font-size: 9px; font-weight: bold; line-height: 1; max-width: 47mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
     prodTitleCss: 'font-size: 11.5px; font-weight: bold; line-height: 1.1; max-width: 47mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
     priceTitleCss: 'font-size: 13.5px; font-weight: 800; line-height: 1; max-width: 47mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center;',
-    maxBarcodeMm: 46,
+    maxBarcodeMm: 48.5,
     mode: 'single_roll'
   },
   '30x20': {
@@ -334,7 +342,7 @@ var BARCODE_SIZE_CONFIGS = {
     shopTitleCss: 'font-size: 7px; font-weight: bold; line-height: 1; max-width: 28mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
     prodTitleCss: 'font-size: 8.5px; font-weight: bold; line-height: 1.05; max-width: 28mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
     priceTitleCss: 'font-size: 9.5px; font-weight: 800; line-height: 1; max-width: 28mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 1px 0 0 0; text-align: center;',
-    maxBarcodeMm: 27,
+    maxBarcodeMm: 29,
     mode: 'single_roll'
   },
   '50x40': {
@@ -344,7 +352,7 @@ var BARCODE_SIZE_CONFIGS = {
     shopTitleCss: 'font-size: 10px; font-weight: bold; line-height: 1; max-width: 46mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 1px 0; text-align: center;',
     prodTitleCss: 'font-size: 12px; font-weight: bold; line-height: 1.1; max-width: 46mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 2px 0; text-align: center;',
     priceTitleCss: 'font-size: 14px; font-weight: 800; line-height: 1; max-width: 46mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 2px 0 0 0; text-align: center;',
-    maxBarcodeMm: 46,
+    maxBarcodeMm: 48.5,
     mode: 'single_roll'
   },
   'a4': {
@@ -354,7 +362,7 @@ var BARCODE_SIZE_CONFIGS = {
     shopTitleCss: 'font-size: 10px; font-weight: bold; line-height: 1.1; margin: 0 0 2px 0; text-align: center;',
     prodTitleCss: 'font-size: 12px; font-weight: bold; line-height: 1.15; margin: 0 0 2px 0; text-align: center;',
     priceTitleCss: 'font-size: 14px; font-weight: 800; line-height: 1; margin: 2px 0 0 0; text-align: center;',
-    maxBarcodeMm: 50,
+    maxBarcodeMm: 65,
     mode: 'grid_a4'
   }
 };

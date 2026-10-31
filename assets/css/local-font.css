@@ -82,6 +82,7 @@ html, body, *,
 .card, .modal, .table, .btn, .nav-link, input, select, textarea, button,
 h1, h2, h3, h4, h5, h6, p, span, a, label, li, td, th, text, tspan {
   font-family: 'Nuanta', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  letter-spacing: 0.022em;
 }
 
 /* Keep FontAwesome icon glyphs intact */

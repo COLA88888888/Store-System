@@ -125,9 +125,9 @@ function bulkDownloadExcelTemplate() {
     refWs['!cols'] = [{ wch: 22 }, { wch: 16 }, { wch: 24 }, { wch: 18 }, { wch: 18 }];
 
     var wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, form, 'ສິນຄ້າ');
-    XLSX.utils.book_append_sheet(wb, refWs, 'ລາຍຊື່ໃນລະບົບ');
-    XLSX.writeFile(wb, 'ແບບຟອມນຳເຂົ້າສິນຄ້າ.xlsx');
+    XLSX.utils.book_append_sheet(wb, form, '<?php echo tlj('ສິນຄ້າ'); ?>');
+    XLSX.utils.book_append_sheet(wb, refWs, '<?php echo tlj('ລາຍຊື່ໃນລະບົບ'); ?>');
+    XLSX.writeFile(wb, '<?php echo tlj('ແບບຟອມນຳເຂົ້າສິນຄ້າ.'); ?>xlsx');
   });
 }
 
@@ -207,6 +207,37 @@ function submitBulkAddProduct(e) {
     if (!unit)                  { err = [$r.find('.bulk-unit'), I18N_BULK.e_unit]; return false; }
     // ລາຄາຊື້ (bp) ບໍ່ບັງຄັບ — ປ້ອນ ຫຼື ບໍ່ປ້ອນກໍໄດ້ (ວ່າງ = 0)
     if (pr === '' || pr === '0') { err = [$r.find('.bulk-price'), I18N_BULK.e_pr]; return false; }
+
+    // ກວດສອບຫົວໜ່ວຍເພີ່ມເຕີມ (ແພັກ, ແກັດ...)
+    var subErr = null;
+    $r.find('.bulk-sub-unit-row').each(function () {
+      var $sr = $(this);
+      var uName = $sr.find('.bulk-sub-unit-name').val();
+      var uPr   = $sr.find('.bulk-sub-unit-price').val().trim();
+      var uBc   = $sr.find('.bulk-sub-unit-barcode').val().trim();
+
+      if (!uName) {
+        subErr = [$sr.find('.bulk-sub-unit-name'), (I18N_ADD_PRODUCT['products.validate_unit_name'] || 'ກະລຸນາເລືອກຫົວໜ່ວຍເພີ່ມເຕີມ!') + ' (' + name + ')'];
+        return false;
+      }
+      if (!uPr || uPr === '0') {
+        subErr = [$sr.find('.bulk-sub-unit-price'), (I18N_ADD_PRODUCT['products.validate_unit_price'] || 'ກະລຸນາປ້ອນລາຄາຂາຍຫົວໜ່ວຍເພີ່ມເຕີມ!') + ' (' + name + ' - ' + uName + ')'];
+        return false;
+      }
+      if (uBc !== '') {
+        if (!/^[0-9]+$/.test(uBc)) {
+          subErr = [$sr.find('.bulk-sub-unit-barcode'), I18N_BULK.e_bc_num];
+          return false;
+        }
+        if (seen.indexOf(uBc) !== -1) {
+          subErr = [$sr.find('.bulk-sub-unit-barcode'), I18N_BULK.e_bc_dup.replace('{value}', uBc)];
+          return false;
+        }
+        seen.push(uBc);
+      }
+    });
+    if (subErr) { err = subErr; return false; }
+
     validCount++;
   });
 
@@ -245,6 +276,25 @@ function submitBulkAddProduct(e) {
     var isBlank = (!cat && !name && !bc && !unit && (bp === '' || bp === '0') && (pr === '' || pr === '0'));
     if (isBlank) return; // unused box — skip
 
+    var extraUnits = [];
+    $r.find('.bulk-sub-unit-row').each(function () {
+      var $sr = $(this);
+      var uName = $sr.find('.bulk-sub-unit-name').val();
+      var uMult = $sr.find('.bulk-sub-unit-mult').val().trim();
+      var uBp   = $sr.find('.bulk-sub-unit-bprice').val().trim();
+      var uPr   = $sr.find('.bulk-sub-unit-price').val().trim();
+      var uBc   = $sr.find('.bulk-sub-unit-barcode').val().trim();
+      if (uName && uPr && uPr !== '0') {
+        extraUnits.push({
+          unit_name:  uName,
+          multiplier: uMult || 1,
+          bprice:     uBp || '0',
+          price:      uPr,
+          barcode:    uBc
+        });
+      }
+    });
+
     payload.push({
       category_id: cat || '',
       name:        name,
@@ -255,7 +305,9 @@ function submitBulkAddProduct(e) {
       supplier_id: $r.data('supplier') || '',      // Excel only; the batch box overrides on the server
       zone:        $r.find('.bulk-zone').val() || topZone,
       shelf:       $r.find('.bulk-shelf').val() || topShelf,
-      img:         $r.find('.bulk-img').val() || ''
+      expiry:      $r.find('input[name="b_expiry[]"]').val() || '',   // ບັອກເດີມ (Y-m-d), ບໍ່ແມ່ນບັອກທີ່ເຫັນ (d/m/Y)
+      img:         $r.find('.bulk-img').val() || '',
+      extra_units: extraUnits
     });
   });
   var $form = $('#bulkAddProductForm');
@@ -270,7 +322,7 @@ window.cancelAddBulkForm = function () {
   $('#bulk_supplier_id').val('');
   $('#bulk_zone').val('').trigger('change');
   $('#bulk_shelf').val('');
-  $('#bulk_no_cut_qty').prop('checked', false);
+  $('#bulk_cut_qty').prop('checked', true);
   bulkResetRows();
   $('#addProductModal').modal('hide');
 };

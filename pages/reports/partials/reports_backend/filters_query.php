@@ -9,31 +9,31 @@
 // Titles and icons mapping
 $report_meta = [
     'daily' => [
-        'title' => 'ລາຍງານປະຈຳວັນ',
+        'title' => tl('ລາຍງານປະຈຳວັນ'),
         'icon' => 'fas fa-calendar-day text-info'
     ],
     'all_sales' => [
-        'title' => ($view_mode === 'item') ? 'ລາຍການຂາຍສິນຄ້າ' : 'ລາຍງານການຂາຍທັງໝົດ',
+        'title' => ($view_mode === 'item') ? tl('ລາຍການຂາຍສິນຄ້າ') : tl('ລາຍງານການຂາຍທັງໝົດ'),
         'icon' => 'fas fa-file-invoice-dollar text-success'
     ],
     'best_seller' => [
-        'title' => 'ລາຍງານສິນຄ້າຂາຍດີ',
+        'title' => tl('ລາຍງານສິນຄ້າຂາຍດີ'),
         'icon' => 'fas fa-fire text-danger'
     ],
     'profit_cost' => [
-        'title' => 'ລາຍງານກຳໄລ-ຕົ້ນທຶນ',
+        'title' => tl('ລາຍງານກຳໄລ-ຕົ້ນທຶນ'),
         'icon' => 'fas fa-chart-line text-warning'
     ],
     'financial' => [
-        'title' => 'ລາຍງານການເງິນ',
+        'title' => tl('ລາຍງານການເງິນ'),
         'icon' => 'fas fa-wallet text-info'
     ],
     'category' => [
-        'title' => 'ລາຍງານຕາມ/ປະເພດສິນຄ້າ',
+        'title' => tl('ລາຍງານຕາມ/ປະເພດສິນຄ້າ'),
         'icon' => 'fas fa-layer-group text-primary'
     ],
     'delete_bills' => [
-        'title' => 'ປະຫວັດການລົບບິນຂາຍ',
+        'title' => tl('ປະຫວັດການລົບບິນຂາຍ'),
         'icon' => 'fas fa-trash-alt text-danger'
     ]
 ];
@@ -114,9 +114,9 @@ if (!empty($search)) {
 
 if (!empty($bank_filter)) {
     if ($bank_filter === 'cash') {
-        $where[] = "(s.type_pay LIKE '%ເງິນສົດ%' AND (s.type_pay NOT LIKE '%ໂອນ%' AND s.type_pay NOT LIKE '%QR%'))";
+        $where[] = ('(s.type_pay LIKE \'%' . tl('ເງິນສົດ%') . '\' AND (s.type_pay NOT LIKE \'%' . tl('ໂອນ%') . '\' AND s.type_pay NOT LIKE \'%QR%\'))');
     } elseif ($bank_filter === 'transfer') {
-        $where[] = "(s.type_pay LIKE '%ໂອນ%' OR s.type_pay LIKE '%QR%' OR s.bank_account_id > 0)";
+        $where[] = ('(s.type_pay LIKE \'%' . tl('ໂອນ%') . '\' OR s.type_pay LIKE \'%QR%\' OR s.bank_account_id > 0)');
     } elseif (is_numeric($bank_filter) && intval($bank_filter) > 0) {
         $bId = intval($bank_filter);
         $bAcc = $bank_accounts_map[$bId] ?? [];
@@ -144,7 +144,7 @@ if (!empty($bank_filter)) {
         // Include unassigned transfer sales under the primary bank account (e.g. BCEL One)
         $firstBankId = !empty($bank_accounts) ? intval($bank_accounts[0]['id']) : 1;
         if ($bId === $firstBankId) {
-            $bankConds[] = "( (s.bank_account_id IS NULL OR s.bank_account_id = 0) AND (s.bank_name IS NULL OR s.bank_name = '') AND (s.type_pay LIKE '%ໂອນ%' OR s.type_pay LIKE '%QR%') )";
+            $bankConds[] = ('( (s.bank_account_id IS NULL OR s.bank_account_id = 0) AND (s.bank_name IS NULL OR s.bank_name = \'\') AND (s.type_pay LIKE \'%' . tl('ໂອນ%') . '\' OR s.type_pay LIKE \'%QR%\') )');
         }
 
         $where[] = "(" . implode(" OR ", $bankConds) . ")";

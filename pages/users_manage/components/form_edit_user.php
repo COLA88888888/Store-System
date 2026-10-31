@@ -63,12 +63,12 @@
             <div class="col-md-8 col-lg-9 pl-md-4 py-2">
               <div class="row">
                 <!-- ລະຫັດ & ສະຖານະ -->
-                <div class="col-md-6 form-group mb-3">
+                <div class="col-md-6 form-group mb-3 order-1 order-md-0">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_user_code', 'ລະຫັດຜູ້ນຳໃຊ້:')); ?> <span class="text-danger">*</span></label>
                   <input type="text" name="user_code" id="edit_user_code" class="form-control"
                          placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_edit_user_code', 'ລະຫັດຜູ້ນຳໃຊ້')); ?>" required>
                 </div>
-                <div class="col-md-6 form-group mb-3">
+                <div class="col-md-6 form-group mb-3 order-2 order-md-0">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_status_role', 'ສະຖານະ / ຕຳແໜ່ງ:')); ?> <span class="text-danger">*</span></label>
                   <select name="status" id="edit_status" class="form-control" required>
                     <option value=""><?php echo htmlspecialchars(t('users_manage.option_select_status', 'ເລືອກສະຖານະ...')); ?></option>
@@ -79,12 +79,12 @@
                 </div>
 
                 <!-- ຊື່ຜູ້ໃຊ້ (ໃຊ້ເຂົ້າລະບົບ) & ສາຂາ -->
-                <div class="col-md-6 form-group mb-3">
+                <div class="col-md-6 form-group mb-3 order-3 order-md-0">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_username_edit', 'ຊື່ຜູ້ໃຊ້ງານ:')); ?> <span class="text-danger">*</span></label>
                   <input type="text" name="fname" id="edit_fname" class="form-control"
                          placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_username', 'ກະລຸນາປ້ອນຊື່')); ?>" required>
                 </div>
-                <div class="col-md-6 form-group mb-3">
+                <div class="col-md-6 form-group mb-3 order-9 order-md-0 mp-wide">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_branch', 'ປະຈຳສາຂາ:')); ?> <span class="text-danger">*</span></label>
                   <select name="store_id" id="edit_store_id" class="form-control" required>
                     <?php if (!empty($storesList)): ?>
@@ -100,7 +100,7 @@
                 </div>
 
                 <!-- ລະຫັດຜ່ານ -->
-                <div class="col-md-6 form-group mb-3">
+                <div class="col-md-6 form-group mb-3 order-5 order-md-0">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_password_new', 'ລະຫັດຜ່ານໃໝ່ (ປ່ຽນ):')); ?></label>
                   <div class="position-relative">
                     <input type="password" name="password" id="edit_password" class="form-control font-weight-bold"
@@ -116,7 +116,7 @@
                 </div>
 
                 <!-- ເພດ & ຢືນຢັນລະຫັດ -->
-                <div class="col-md-6 form-group mb-3 d-flex align-items-center flex-wrap" style="min-height:45px;">
+                <div class="col-md-6 form-group mb-3 d-flex align-items-center flex-wrap order-7 order-md-0" style="min-height:45px;">
                   <label class="font-weight-bold text-muted mb-0 mr-3"><?php echo htmlspecialchars(t('users_manage.label_gender', 'ເພດ:')); ?> <span class="text-danger">*</span></label>
                   <div class="d-flex align-items-center">
                     <div class="custom-control custom-radio custom-control-inline mr-4 mb-0">
@@ -129,7 +129,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-md-6 form-group mb-3">
+                <div class="col-md-6 form-group mb-3 order-6 order-md-0">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_confirm_password', 'ຢືນຢັນລະຫັດ:')); ?></label>
                   <div class="position-relative">
                     <input type="password" name="confirm_password" id="edit_confirm_password" class="form-control font-weight-bold"
@@ -145,25 +145,25 @@
                 </div>
 
                 <!-- ວັນເດືອນປີເກີດ & ເບີໂທ -->
-                <div class="col-md-6 form-group mb-3">
+                <div class="col-md-6 form-group mb-3 order-8 order-md-0">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_dob', 'ວັນເດືອນປີເກີດ:')); ?> <span class="text-danger">*</span></label>
                   <input type="date" name="dob" id="edit_dob"
                          class="form-control font-weight-bold" style="height: 42px; border-radius: 8px; cursor: pointer;" required>
                 </div>
                 <!-- ເບີໂທ & ທີ່ຢູ່ -->
-                <div class="col-md-6 form-group mb-3">
+                <div class="col-md-6 form-group mb-3 order-4 order-md-0">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_tel', 'ເບີໂທ:')); ?> <span class="text-danger">*</span></label>
                   <input type="text" name="tel" id="edit_tel" class="form-control"
                          placeholder="020..." required>
                 </div>
-                <div class="col-md-6 form-group mb-3">
+                <div class="col-md-6 form-group mb-3 order-10 order-md-0 mp-wide">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_address', 'ທີ່ຢູ່:')); ?> <span class="text-danger">*</span></label>
                   <textarea name="address" id="edit_address" class="form-control" rows="1"
                             placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_address_edit', 'ບ້ານ, ເມືອງ, ແຂວງ')); ?>"></textarea>
                 </div>
 
                 <!-- ໝາຍເຫດ (ດ້ານລຸ່ມ) -->
-                <div class="col-md-12 form-group mb-3">
+                <div class="col-md-12 form-group mb-3 order-12 order-md-0 mp-wide">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_notes', 'ໝາຍເຫດ:')); ?></label>
                   <textarea name="notes" id="edit_notes" class="form-control" rows="2"
                             placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_notes_optional', 'ໝາຍເຫດ (ບໍ່ບັງຄັບ)')); ?>"></textarea>
@@ -171,7 +171,7 @@
 
                 <?php if (isOwnerUser()): ?>
                 <!-- ຈຳນວນມື້ອະນຸຍາດໃຫ້ໃຊ້ງານ (ສະເພາະຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ກຳນົດໄດ້; ຊ່ອນສຳລັບ ID 1 ດ້ວຍ JS) -->
-                <div class="col-md-6 form-group mb-3" id="edit_access_days_group">
+                <div class="col-md-6 form-group mb-3 order-11 order-md-0 mp-wide" id="edit_access_days_group">
                   <label class="font-weight-bold text-muted mb-1"><?php echo htmlspecialchars(t('users_manage.label_access_days', 'ຈຳນວນມື້ອະນຸຍາດໃຫ້ໃຊ້ງານ:')); ?></label>
                   <input type="number" name="access_days" id="edit_access_days" min="1" class="form-control"
                          placeholder="<?php echo htmlspecialchars(t('users_manage.placeholder_access_days', 'ຫວ່າງໄວ້ = ບໍ່ຈຳກັດ')); ?>">

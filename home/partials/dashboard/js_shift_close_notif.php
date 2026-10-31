@@ -13,10 +13,10 @@
     var SHC_COLOR = '#7c3aed', SHC_BG = '#f5f3ff';
 
     function shcLine(n) {
-      return (n.who || '-') + (n.by_logout ? ' ອອກຈາກລະບົບ — ປິດກະ ' : ' ປິດກະ ') + (n.shift_name || '');
+      return (n.who || '-') + (n.by_logout ? ' <?php echo tlj('ອອກຈາກລະບົບ'); ?> — <?php echo tlj('ປິດກະ'); ?> ' : ' <?php echo tlj('ປິດກະ'); ?> ') + (n.shift_name || '');
     }
     function shcSub(n) {
-      return 'ຍອດຂາຍ ' + Number(n.total || 0).toLocaleString('en-US') + ' <?php echo kipSymbol(); ?> · ' + (n.bills || 0) + ' ບິນ';
+      return '<?php echo tlj('ຍອດຂາຍ'); ?> ' + Number(n.total || 0).toLocaleString('en-US') + ' <?php echo kipSymbol(); ?> · ' + (n.bills || 0) + ' <?php echo tlj('ບິນ'); ?>';
     }
 
     function countUnreadShiftCloses(list, readKeys) {
@@ -30,7 +30,7 @@
       list = (list || []).filter(function(it) { return readKeys.indexOf(it.key) === -1; });
       if (!list.length) return '';
       var html = '<div id="shcNotifHead" class="px-3 py-1.5 font-weight-bold border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: ' + SHC_BG + '; font-size: 0.82rem; white-space: nowrap;">';
-      html += '<span class="text-truncate" style="color: ' + SHC_COLOR + ';"><i class="fas fa-cash-register mr-1"></i> ປິດກະແລ້ວ</span>';
+      html += '<span class="text-truncate" style="color: ' + SHC_COLOR + ';"><i class="fas fa-cash-register mr-1"></i> <?php echo tlj('ປິດກະແລ້ວ'); ?></span>';
       html += '<span id="shcNotifCount" class="badge font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px; background: ' + SHC_COLOR + '; color: #fff;">' + list.length + '</span>';
       html += '</div>';
       list.forEach(function(it) {
@@ -78,7 +78,7 @@
       Swal.fire({
         toast: true, position: 'top-end', icon: 'info',
         title: scNotifEsc(shcLine(fresh)),
-        html: '<div style="font-size: 0.85rem;">' + scNotifEsc(shcSub(fresh)) + '<br><a href="#" class="font-weight-bold" style="color: ' + SHC_COLOR + ';">ກົດເພື່ອເບິ່ງລາຍການຂາຍຂອງກະ</a></div>',
+        html: '<div style="font-size: 0.85rem;">' + scNotifEsc(shcSub(fresh)) + '<br><a href="#" class="font-weight-bold" style="color: ' + SHC_COLOR + ';"><?php echo tlj('ກົດເພື່ອເບິ່ງລາຍການຂາຍຂອງກະ'); ?></a></div>',
         showConfirmButton: false, showCloseButton: true, timer: 10000, timerProgressBar: true,
         didOpen: function(el) {
           el.style.cursor = 'pointer';

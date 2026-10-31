@@ -172,4 +172,11 @@ return [
 
     // Admin-account edit lock
     'permissions.admin_locked_badge' => 'Only the first admin can edit this',
+    'permissions.module_shift_close_report_title' => '↳ Shift Close Report',
+    'permissions.module_shift_revenue_report_title' => '↳ Shift Revenue Report',
+    'permissions.module_clear_data_title' => 'Clear System Data',
+    'permissions.module_clear_data_desc' => 'Clear sales transactions, shift history, stock movements, or factory reset',
+    'permissions.module_shifts_title' => 'Work Shifts',
+    'permissions.module_shifts_desc' => 'Set up shifts, opening/closing times and shift staff',
+    'permissions.module_expiry_report_title' => '↳ Expiry Report',
 ];

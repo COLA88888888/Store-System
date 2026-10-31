@@ -7,7 +7,7 @@ session_start();
 $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
-if (empty($_SESSION['user_id']) || (!hasPermission('promotions') && !hasPermission('setup'))) {
+if (empty($_SESSION['user_id']) || (!hasPermission('promotions'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $min_qty           = intval(str_replace(',', '', $_POST['min_qty'] ?? 0));
         $min_amount        = floatval(str_replace(',', '', $_POST['min_amount'] ?? 0));
         $target_type       = $_POST['target_type'] ?? 'all';
-        $target_name       = trim($_POST['target_name'] ?? 'ທຸກສິນຄ້າ');
+        $target_name       = trim($_POST['target_name'] ?? tl('ທຸກສິນຄ້າ'));
         $target_unit_name  = trim($_POST['target_unit_name'] ?? 'all');
         if (empty($target_unit_name)) $target_unit_name = 'all';
         $status            = intval($_POST['status'] ?? 1);
@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
 
         if ($target_type === 'all') {
-            $target_name = 'ທຸກສິນຄ້າ';
+            $target_name = tl('ທຸກສິນຄ້າ');
         }
 
         if ($promo_name !== '') {
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $min_qty           = intval(str_replace(',', '', $_POST['min_qty'] ?? 0));
         $min_amount        = floatval(str_replace(',', '', $_POST['min_amount'] ?? 0));
         $target_type       = $_POST['target_type'] ?? 'all';
-        $target_name       = trim($_POST['target_name'] ?? 'ທຸກສິນຄ້າ');
+        $target_name       = trim($_POST['target_name'] ?? tl('ທຸກສິນຄ້າ'));
         $target_unit_name  = trim($_POST['target_unit_name'] ?? 'all');
         if (empty($target_unit_name)) $target_unit_name = 'all';
 
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
 
         if ($target_type === 'all') {
-            $target_name = 'ທຸກສິນຄ້າ';
+            $target_name = tl('ທຸກສິນຄ້າ');
         }
 
         if ($id > 0 && $promo_name !== '') {

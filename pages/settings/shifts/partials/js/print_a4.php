@@ -108,7 +108,7 @@ function buildShiftReportA4(s, bills) {
       ((s.store_name || window.SHIFT_A4_STORE) ? '<div class="store">' + esc(s.store_name || window.SHIFT_A4_STORE) + '</div>' : '') +
       '<h1>' + esc(srT('shifts.rpt_title')) + '</h1>' +
       '<div class="sub">' + (s.store_name ? '<b>' + esc(srT('shifts.rpt_branch')) + '</b> ' + esc(s.store_name) + ' &nbsp;|&nbsp; ' : '') +
-        '<b>' + esc(srT('shifts.rpt_shift')) + '</b> ' + esc(s.shift_name) + ' &nbsp;|&nbsp; <b>' + esc(srT('shifts.rpt_status')) + '</b> ' +
+        '<b>' + esc(srT('shifts.rpt_shift')) + '</b> ' + esc(formatShiftName(s.shift_name)) + ' &nbsp;|&nbsp; <b>' + esc(srT('shifts.rpt_status')) + '</b> ' +
         esc(s.status === 'open' ? srT('shifts.rpt_status_open') : srT('shifts.rpt_status_closed')) + '</div>' +
     '</div>' +
 
@@ -116,7 +116,7 @@ function buildShiftReportA4(s, bills) {
       '<tr><td class="k">' + esc(srT('shifts.rpt_open_time')) + '</td><td class="v">' + esc(s.open_time) + '</td>' +
       '<td class="k">' + esc(srT('shifts.rpt_close_time')) + '</td><td class="v">' + esc(s.close_time || srT('shifts.rpt_not_closed')) + '</td></tr>' +
       '<tr><td class="k">' + esc(srT('shifts.rpt_opened_by')) + '</td><td class="v">' + esc(s.opened_by_name) + '</td>' +
-      '<td class="k">' + esc(srT('shifts.rpt_closed_by')) + '</td><td class="v">' + esc(s.closed_by_name || '-') + '</td></tr>' +
+      '<td class="k">' + esc(srT('shifts.rpt_closed_by')) + '</td><td class="v">' + esc(shiftCloserName(s.closed_by_name)) + '</td></tr>' +
     '</table>' +
 
     '<div class="sec">' + esc(srT('shifts.rpt_summary_title')) + '</div>' +

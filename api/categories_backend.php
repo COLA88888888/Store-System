@@ -33,23 +33,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $checkExists = $pdo->prepare("SELECT COUNT(*) FROM st_categories WHERE category_id = ?");
                     $checkExists->execute([$cat_id]);
                     if ((int)$checkExists->fetchColumn() > 0) {
-                        $message = 'ຜິດພາດ: ລະຫັດປະເພດສິນຄ້າ ' . $cat_id . ' ນີ້ມີໃນລະບົບແລ້ວ! ກະລຸນາປ້ອນລະຫັດອື່ນ.';
+                        $message = (tl('ຜິດພາດ: ລະຫັດປະເພດສິນຄ້າ') . ' ') . $cat_id . (' ' . tl('ນີ້ມີໃນລະບົບແລ້ວ! ກະລຸນາປ້ອນລະຫັດອື່ນ.'));
                         $message_type = 'danger';
                     } else {
                         // branch_no = ລຳດັບໃນສາຂານີ້ → ລະຫັດທີ່ສະແດງ "<ລະຫັດສາຂາ>-<branch_no>"
                         $stmt = $pdo->prepare("INSERT INTO st_categories (category_id, category_name, description, store_id, branch_no, printer_id) VALUES (?, ?, ?, ?, ?, ?)");
                         $stmt->execute([$cat_id, $name, $desc, $catActiveStoreId, nextBranchNo($pdo, 'st_categories', $catActiveStoreId), $printer_id]);
 
-                        $message = 'ເພີ່ມປະເພດສິນຄ້າສຳເລັດ!';
+                        $message = tl('ເພີ່ມປະເພດສິນຄ້າສຳເລັດ!');
                         $message_type = 'success';
                         logActivity($pdo, "ເພີ່ມປະເພດສິນຄ້າ", "ລະຫັດ: $cat_id, ຊື່: $name");
                     }
                 } catch (Exception $e) {
-                    $message = 'ຜິດພາດ: ລະຫັດນີ້ອາດຊ້ຳກັນ ຫຼື ' . $e->getMessage();
+                    $message = (tl('ຜິດພາດ: ລະຫັດນີ້ອາດຊ້ຳກັນ ຫຼື') . ' ') . $e->getMessage();
                     $message_type = 'danger';
                 }
             } else {
-                $message = 'ກະລຸນາປ້ອນລະຫັດ ແລະ ຊື່ປະເພດສິນຄ້າໃຫ້ຄົບ!';
+                $message = tl('ກະລຸນາປ້ອນລະຫັດ ແລະ ຊື່ປະເພດສິນຄ້າໃຫ້ຄົບ!');
                 $message_type = 'danger';
             }
         }
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $chk = $pdo->prepare("SELECT COUNT(*) FROM st_categories WHERE category_id = ?");
                         $chk->execute([$new_id]);
                         if ((int)$chk->fetchColumn() > 0) {
-                            throw new Exception("ລະຫັດປະເພດສິນຄ້າ $new_id ນີ້ມີໃນລະບົບແລ້ວ!");
+                            throw new Exception(("" . tl('ລະຫັດປະເພດສິນຄ້າ') . " $new_id " . tl('ນີ້ມີໃນລະບົບແລ້ວ!') . ""));
                         }
                     }
 
@@ -81,14 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     $pdo->commit();
 
-                    $message = 'ແກ້ໄຂປະເພດສິນຄ້າສຳເລັດ!';
+                    $message = tl('ແກ້ໄຂປະເພດສິນຄ້າສຳເລັດ!');
                     $message_type = 'success';
                     logActivity($pdo, "ແກ້ໄຂປະເພດສິນຄ້າ", "ID: $new_id, ຊື່ໃໝ່: $name");
                 } catch (Exception $e) {
                     if ($pdo->inTransaction()) {
                         $pdo->rollBack();
                     }
-                    $message = 'ຜິດພາດ: ' . $e->getMessage();
+                    $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                     $message_type = 'danger';
                 }
             }
@@ -102,11 +102,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     $stmt = $pdo->prepare("UPDATE st_categories SET printer_id = ? WHERE store_id = ?");
                     $stmt->execute([$printer_id, $catActiveStoreId]);
-                    $message = 'ຕັ້ງເຄື່ອງພິມໃຫ້ທຸກໝວດໝູ່ສຳເລັດ! (' . $stmt->rowCount() . ' ໝວດ)';
+                    $message = (tl('ຕັ້ງເຄື່ອງພິມໃຫ້ທຸກໝວດໝູ່ສຳເລັດ!') . ' (') . $stmt->rowCount() . (' ' . tl('ໝວດ)'));
                     $message_type = 'success';
                     logActivity($pdo, "ຕັ້ງເຄື່ອງພິມໃຫ້ທຸກໝວດໝູ່", $printer_id ? "printer_id: $printer_id" : "ຍົກເລີກເຄື່ອງພິມ");
                 } catch (Exception $e) {
-                    $message = 'ຜິດພາດ: ' . $e->getMessage();
+                    $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                     $message_type = 'danger';
                 }
             }
@@ -120,17 +120,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $count = (int)$checkStmt->fetchColumn();
 
                 if ($count > 0) {
-                    $message = 'ບໍ່ສາມາດລົບປະເພດສິນຄ້ານີ້ໄດ້! ເພາະມີລາຍການສິນຄ້າໃນໝວດໝູ່ນີ້ ' . $count . ' ລາຍການ.';
+                    $message = (tl('ບໍ່ສາມາດລົບປະເພດສິນຄ້ານີ້ໄດ້! ເພາະມີລາຍການສິນຄ້າໃນໝວດໝູ່ນີ້') . ' ') . $count . (' ' . tl('ລາຍການ.'));
                     $message_type = 'danger';
                 } else {
                     try {
                         $stmt = $pdo->prepare("DELETE FROM st_categories WHERE category_id = ?");
                         $stmt->execute([$id]);
-                        $message = 'ລົບປະເພດສິນຄ້າສຳເລັດ!';
+                        $message = tl('ລົບປະເພດສິນຄ້າສຳເລັດ!');
                         $message_type = 'success';
                         logActivity($pdo, "ລົບປະເພດສິນຄ້າ", "ID: $id");
                     } catch (Exception $e) {
-                        $message = 'ຜິດພາດ: ' . $e->getMessage();
+                        $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                         $message_type = 'danger';
                     }
                 }

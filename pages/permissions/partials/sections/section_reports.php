@@ -179,7 +179,7 @@
     <div class="perm-module-info">
       <i class="fas fa-trash-alt text-danger mr-2"></i>
       <div>
-        <div class="perm-module-title" style="font-size: 0.92rem;"><?php echo htmlspecialchars(t('permissions.module_delete_bills_title', '↳ ປະຫວັດການລົບບິນຂາຍ')); ?></div>
+        <div class="perm-module-title" data-i18n="permissions.module_delete_bills_title" style="font-size: 0.92rem;"><?php echo htmlspecialchars(t('permissions.module_delete_bills_title', '↳ ປະຫວັດການລົບບິນຂາຍ')); ?></div>
       </div>
     </div>
   </td>
@@ -204,16 +204,18 @@
 // 6.8 / 6.9 ລາຍງານປິດກະ ແລະ ລາຍງານລາຍຮັບຕາມກະ (ເມນູ ລາຍງານ › … — pages/reports/shift_close_report.php,
 // shift_revenue_report.php) — ສະວິດເບິ່ງຂອງແຕ່ລະໜ້າ; ບໍ່ມີສະວິດ = ຕາມຖັນ report (hasPermission alias)
 foreach ([
-    ['shift_close_report',   'fa-cash-register', t('permissions.module_shift_close_report_title', '↳ ລາຍງານປິດກະ')],
-    ['shift_revenue_report', 'fa-user-clock',    t('permissions.module_shift_revenue_report_title', '↳ ລາຍງານລາຍຮັບຕາມກະ')],
-] as [$__shMod, $__shIcon, $__shTitle]):
+    ['shift_close_report',   'fa-cash-register', t('permissions.module_shift_close_report_title', '↳ ລາຍງານປິດກະ'), 'permissions.module_shift_close_report_title'],
+    ['shift_revenue_report', 'fa-user-clock',    t('permissions.module_shift_revenue_report_title', '↳ ລາຍງານລາຍຮັບຕາມກະ'), 'permissions.module_shift_revenue_report_title'],
+    // ລາຍງານສິນຄ້າໝົດອາຍຸ (pages/reports/expiry_report.php) — ເມື່ອກ່ອນໃຊ້ສິດ report ລວມ, ບໍ່ມີສະວິດຂອງຕົນເອງ
+    ['expiry_report',        'fa-hourglass-end', t('permissions.module_expiry_report_title', '↳ ລາຍງານສິນຄ້າໝົດອາຍຸ'), 'permissions.module_expiry_report_title'],
+] as [$__shMod, $__shIcon, $__shTitle, $__shKey]):
 ?>
 <tr class="bg-light">
   <td class="pl-4">
     <div class="perm-module-info">
       <i class="fas <?php echo $__shIcon; ?> text-info mr-2"></i>
       <div>
-        <div class="perm-module-title" style="font-size: 0.92rem;"><?php echo htmlspecialchars($__shTitle); ?></div>
+        <div class="perm-module-title" data-i18n="<?php echo $__shKey; ?>" style="font-size: 0.92rem;"><?php echo htmlspecialchars($__shTitle); ?></div>
       </div>
     </div>
   </td>

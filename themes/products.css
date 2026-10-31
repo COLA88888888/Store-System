@@ -300,21 +300,29 @@ label.font-weight-bold {
 }
 
 /* === Responsive === */
-@media (max-width: 768px) {
-    .category-card-header {
-        flex-direction: column;
-        gap: 12px;
-        align-items: stretch !important;
-    }
+/* ແທັບເລັດ: ບັອກກັ່ນກອງແຖວລະ 2, ບັອກຄົ້ນຫາເຕັມແຖວ; ໂທລະສັບ (≤575px): ແຖວລະ 1 */
+@media (max-width: 991.98px) {
     .category-card-header > div:last-child {
         width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
     }
-    .prod-filter-wrap,
+    .prod-filter-wrap {
+        flex: 1 1 calc(50% - 5px);
+        width: auto !important;
+        min-width: 0;
+    }
     .search-box-wrap {
+        flex: 1 1 100%;
         width: 100% !important;
+    }
+}
+@media (max-width: 575.98px) {
+    .prod-filter-wrap {
+        flex-basis: 100%;
+    }
+}
+@media (max-width: 768px) {
+    .category-card-header {
+        gap: 12px;
     }
     .table-custom th,
     .table-custom td {
@@ -466,4 +474,14 @@ input[type="number"].no-spin {
 .input-group.barcode-combo .input-group-append .btn:hover:not(#__z) {
     background: #2563eb !important;
     color: #ffffff !important;
+}
+
+/* === Disabled form selects (Zone & Shelf when empty) === */
+select:disabled,
+select.select-disabled {
+    background-color: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    border-color: #e2e8f0 !important;
+    opacity: 0.85;
 }

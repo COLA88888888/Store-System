@@ -114,9 +114,20 @@ try {
                 $branchInfo = $stmtBranchCheck->fetch(PDO::FETCH_ASSOC);
 
                 if ($branchInfo && ($branchInfo['status'] ?? '') !== 'active') {
-                    $branchName = htmlspecialchars($branchInfo['store_name'] ?? 'ສາຂານີ້');
-                    header("Location: ../login.php?error=branch_inactive&msg=" . urlencode("ສາຂາ ({$branchName}) ຖືກປິດໃຊ້ງານຊົ່ວຄາວ! ບໍ່ສາມາດເຂົ້າໃຊ້ງານໄດ້"));
+                    $branchName = htmlspecialchars($branchInfo['store_name'] ?? tl('ສາຂານີ້'));
+                    header("Location: ../login.php?error=branch_inactive&msg=" . urlencode(("" . tl('ສາຂາ') . " ({$branchName}) " . tl('ຖືກປິດໃຊ້ງານຊົ່ວຄາວ! ບໍ່ສາມາດເຂົ້າໃຊ້ງານໄດ້') . "")));
                     exit();
+                }
+            }
+
+            // ພະນັກງານຂາຍ (ບໍ່ແມ່ນຜູ້ບໍລິຫານ/ຜູ້ຈັດການ) — ກົດກະ (config/helpers/shift_auto.php):
+            //  1) ກະທີ່ໝົດໂມງ ແລະ ພະນັກງານບໍ່ອອນລາຍ → ປິດ + ສົ່ງລາຍງານເອງ (ກວດກ່ອນອັບເດດ last_activity ລຸ່ມນີ້) → ເຂົ້າແລ້ວເປີດກະໃໝ່
+            //  2) ຍັງບໍ່ຮອດໂມງເປີດກະ (ແລະ ບໍ່ມີກະເປີດຄ້າງ) → ເຂົ້າລະບົບບໍ່ໄດ້
+            if (!$isAdmin && !(function_exists('isManagerRole') && isManagerRole($userStatusVal))) {
+                if (function_exists('shiftAutoCloseStale')) shiftAutoCloseStale($pdo, $userStoreId);
+                $shiftBlock = function_exists('shiftLoginBlockMessage') ? shiftLoginBlockMessage($pdo, (int)$user['Id'], $userStoreId) : '';
+                if ($shiftBlock !== '') {
+                    respond_json(['success' => false, 'message' => $shiftBlock]);
                 }
             }
 
@@ -160,6 +171,7 @@ try {
                 'delete_bills' => $isAdmin ? 1 : (int)($user['delete_bills'] ?? 0),
                 'shift_close_report' => $isAdmin ? 1 : (int)($user['shift_close_report'] ?? $user['report'] ?? 0),
                 'shift_revenue_report' => $isAdmin ? 1 : (int)($user['shift_revenue_report'] ?? $user['report'] ?? 0),
+                'expiry_report' => $isAdmin ? 1 : (int)($user['expiry_report'] ?? $user['report'] ?? 0),
                 'shifts' => $isAdmin ? 1 : (int)($user['shifts'] ?? $user['setup'] ?? 0),
                 'accounting' => $isAdmin ? 1 : (int)($user['accounting'] ?? 0),
                 'setup' => $isAdmin ? 1 : (int)($user['setup'] ?? 0),
@@ -180,9 +192,15 @@ try {
             
             logActivity($pdo, "ເຂົ້າສູ່ລະບົບ", "ຊື່ຜູ້ໃຊ້: " . $user['username']);
 
+            $employeeName = !empty($user['fname']) ? trim($user['fname']) : $user['username'];
             respond_json([
                 'success' => true,
-                'redirect' => $redirect
+                'redirect' => $redirect,
+                'user_id' => (int)$user['Id'],
+                'username' => $user['username'],
+                'employee_name' => $employeeName,
+                'gender' => $user['gender'] ?? '',
+                'store_id' => (int)$userStoreId
             ]);
         } else {
             respond_json(['success' => false, 'message' => t('login.err_invalid', 'ລະຫັດບໍ່ຖືກຕ້ອງ ກະລຸນາລອງໃໝ່')]);

@@ -12,6 +12,7 @@ return [
     'users_manage.th_tel' => 'ເບີໂທລະສັບ',
     'users_manage.th_status' => 'ສະຖານະ',
     'users_manage.th_role' => 'ຕຳແໜ່ງ',
+    'users_manage.th_access_age' => 'ອາຍຸການໃຊ້ງານ',
     'users_manage.th_actions' => 'ຈັດການ',
     'users_manage.default_store' => 'ສາຂາຫຼັກ',
     'users_manage.status_online' => 'ໃຊ້ງານຢູ່',

@@ -2,6 +2,12 @@
 // POS Master View Page - Modular & Clean Architecture
 require_once __DIR__ . '/../../api/pos_backend.php';
 
+// ສະວິດ "ຂາຍສິນຄ້າ" ຖືກປິດ → ເຂົ້າໜ້າຂາຍບໍ່ໄດ້ (ກວດຢູ່ໜ້ານີ້ ບໍ່ແມ່ນ pos_backend.php ເພາະໜ້າອື່ນເອີ້ນມັນພິມບິນ)
+if (!hasPermission('sale')) {
+    echo "<script>window.top.location.href = '../../index.php';</script>";
+    exit();
+}
+
 $pos_page = true;
 require_once __DIR__ . '/../../layouts/header.php';
 ?>
@@ -143,16 +149,17 @@ window.POS_LOYALTY = <?php echo json_encode($posLoyalty, JSON_UNESCAPED_UNICODE)
 <link rel="stylesheet" href="../../themes/pos/02-mobile-cart-search.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="../../themes/pos/03-products-checkout.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="../../themes/pos/04-cart-items.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="../../themes/pos/05-product-card-image.css?v=<?php echo time(); ?>">
 
 <div class="pos-wrapper">
   <!-- Mobile Navigation / Tab Switcher (Visible ONLY on Mobile Phones < 768px) -->
   <div class="pos-mobile-nav border-bottom bg-white d-md-none">
     <div class="d-flex" style="gap: 6px;">
       <button type="button" class="btn flex-fill font-weight-bold btn-primary active py-2 px-2 shadow-sm" id="mobileTabProductsBtn" onclick="switchMobilePosTab('products')" style="border-radius: 4px; font-size: 1.35rem; min-height: 40px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-weight: 800;">
-        <i class="fas fa-boxes mr-2" style="font-size: 1.4rem;"></i> ເລືອກສິນຄ້າ
+        <i class="fas fa-boxes mr-2" style="font-size: 1.4rem;"></i> <?php echo tlh('ເລືອກສິນຄ້າ'); ?>
       </button>
       <button type="button" class="btn flex-fill font-weight-bold btn-outline-primary py-2 px-2 shadow-sm" id="mobileTabCartBtn" onclick="switchMobilePosTab('cart')" style="border-radius: 4px; font-size: 1.35rem; min-height: 40px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-weight: 800;">
-        <i class="fas fa-shopping-cart mr-2" style="font-size: 1.4rem;"></i> ລາຍການຂາຍ
+        <i class="fas fa-shopping-cart mr-2" style="font-size: 1.4rem;"></i> <?php echo tlh('ລາຍການຂາຍ'); ?>
         <span class="badge badge-danger ml-2 font-weight-bold" id="mobileCartCountBadge" style="display: none; font-size: 0.9rem; padding: 4px 8px; border-radius: 4px;">0</span>
       </button>
     </div>

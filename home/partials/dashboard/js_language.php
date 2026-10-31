@@ -21,8 +21,8 @@
         'layout.remaining' => 'ເຫຼືອ',
         'layout.default_unit' => 'ອັນ',
         'layout.no_low_stock' => 'ບໍ່ມີສິນຄ້າໃກ້ໝົດ ຫຼື ໝົດແລ້ວ',
-        'layout.no_new_notif' => 'ບໍ່ມີການແຈ້ງເຕືອນໃໝ່',
-        'layout.no_sub_notif' => 'ບໍ່ມີການແຈ້ງເຕືອນໃໝ່ໃນສາຂາ',
+        'layout.no_new_notif' => 'ບໍ່ມີສິນຄ້າໃກ້ໝົດ ຫຼື ໃກ້ໝົດອາຍຸ',
+        'layout.no_sub_notif' => 'ບໍ່ມີສິນຄ້າໃກ້ໝົດ ຫຼື ໃກ້ໝົດອາຍຸ',
         'layout.transfer_list' => 'ລາຍການໂອນສິນຄ້າ',
         'layout.bill_unit' => 'ໃບບິນ',
         'layout.transfer_to' => 'ໂອນໄປຫາ',
@@ -174,6 +174,11 @@
           return; // cross-origin guard, shouldn't happen — the iframe is always same-origin
         }
         if (!frameDoc || !frameDoc.body) return;
+        try {
+          frameDoc.documentElement.setAttribute('lang', toLang);
+          var fWin = frameEl.contentWindow;
+          if (fWin) fWin.POS_CURRENT_LANG = toLang;
+        } catch (e) {}
 
         var rev = getReverseMap(fromLang);
         var toDict = I18N_ALL_MERGED[toLang] || {};
@@ -189,6 +194,67 @@
         // isn't in any dictionary (currency symbol, count, code) — translate the word, keep the rest.
         var BRACKET_TAIL_RE = /^(.+?)(\s*\([^()]*\))$/;
         var patterns = getSprintfPatterns(fromLang);
+
+        var DYNAMIC_ALIASES = [
+          // Clear / auto-closed system
+          {
+            matches: ['ລະບົບ (ປິດອໍໂຕ້)', 'ລະບົບ (ປິດອັດຕະໂນມັດ)', 'ລະບົບ', 'ระบบ (ปิดอัตโนมัติ)', 'ระบบ (ปิดออโต้)', 'ระบบ', 'System (auto-closed)', 'System (auto closed)', 'System', 'Hệ thống (tự đóng)', 'Hệ thống', '系统（自动交班）', '系统(自动交班)', '系统（自动关闭）', '系统(自动关闭)', '系统'],
+            trans: { lo: 'ລະບົບ (ປິດອໍໂຕ້)', th: 'ระบบ (ปิดอัตโนมัติ)', en: 'System (auto-closed)', zh: '系统（自动交班）', vi: 'Hệ thống (tự đóng)' }
+          },
+          // General customer
+          {
+            matches: ['ລູກຄ້າທົ່ວໄປ', 'ลูกค้าทั่วไป', 'Walk-in Customer', 'General Customer', 'Khách lẻ', 'Khách thông thường', '普通顾客', '散客'],
+            trans: { lo: 'ລູກຄ້າທົ່ວໄປ', th: 'ลูกค้าทั่วไป', en: 'Walk-in Customer', zh: '散客', vi: 'Khách lẻ' }
+          },
+          // Cash
+          {
+            matches: ['ເງິນສົດ', 'เงินสด', 'Cash', 'Tiền mặt', '现金'],
+            trans: { lo: 'ເງິນສົດ', th: 'เงินสด', en: 'Cash', zh: '现金', vi: 'Tiền mặt' }
+          },
+          // All products
+          {
+            matches: ['ທຸກສິນຄ້າ', 'ทุกสินค้า', 'All Products', 'All', 'all', 'Tất cả sản phẩm', '所有商品'],
+            trans: { lo: 'ທຸກສິນຄ້າ', th: 'ทุกสินค้า', en: 'All Products', zh: '所有商品', vi: 'Tất cả sản phẩm' }
+          },
+          // Morning Shift
+          {
+            matches: ['ກະເຊົ້າ', 'กะเช้า', 'morning shift', 'morning', 'ca sáng', '早班'],
+            trans: { lo: 'ກະເຊົ້າ', th: 'กะเช้า', en: 'Morning Shift', zh: '早班', vi: 'Ca sáng' }
+          },
+          // Afternoon Shift
+          {
+            matches: ['ກະບ່າຍ', 'กะบ่าย', 'afternoon shift', 'afternoon', 'ca chiều', '下午班'],
+            trans: { lo: 'ກະບ່າຍ', th: 'กะบ่าย', en: 'Afternoon Shift', zh: '下午班', vi: 'Ca chiều' }
+          },
+          // Evening Shift
+          {
+            matches: ['ກະແລງ', 'กะเย็น', 'evening shift', 'evening', 'ca tối', '晚班'],
+            trans: { lo: 'ກະແລງ', th: 'กะเย็น', en: 'Evening Shift', zh: '晚班', vi: 'Ca tối' }
+          },
+          // Night Shift
+          {
+            matches: ['ກະດຶກ', 'ກະກາງຄືນ', 'กะดึก', 'night shift', 'night', 'ca đêm', '夜班'],
+            trans: { lo: 'ກະດຶກ', th: 'กะดึก', en: 'Night Shift', zh: '夜班', vi: 'Ca đêm' }
+          },
+          // Shift closed status
+          {
+            matches: ['ປິດແລ້ວ', 'ປິດໄວ້', 'ปิดแล้ว', 'ปิดไว้', 'Closed', 'closed', 'Đã đóng', '已关闭', '已关班'],
+            trans: { lo: 'ປິດແລ້ວ', th: 'ปิดแล้ว', en: 'Closed', zh: '已关闭', vi: 'Đã đóng' }
+          },
+          // Shift open status
+          {
+            matches: ['ກຳລັງເປີດ', 'ເປີດຢູ່', 'กำลังเปิด', 'เปิดอยู่', 'Open', 'open', 'Đang mở', '进行中', '正在开班'],
+            trans: { lo: 'ກຳລັງເປີດ', th: 'กำลังเปิด', en: 'Open', zh: '进行中', vi: 'Đang mở' }
+          }
+        ];
+
+        var DISC_WORDS = { lo: 'ຫຼຸດ', th: 'ลด', en: 'Off', zh: '减', vi: 'Giảm' };
+        var GIFT_WORDS = { lo: 'ແຖມ', th: 'แถม', en: 'Free', zh: '送', vi: 'Tặng' };
+        var PROMO_DISC_RE = /^([•·\-\s]*)(?:ຫຼຸດ|ລົດ|ลด|giảm|off|discount|减)(\s+)([\d,.]+)([\s\S]*)$/i;
+        var PROMO_NAMED_DISC_RE = /^([^\n·•]+?)([·•\-\s]+)(?:ຫຼຸດ|ລົດ|ลด|giảm|off|discount|减)(\s+)([\d,.]+)([\s\S]*)$/i;
+        var PROMO_GIFT_RE = /^([•·\-\s]*)(?:ແຖມ|แถม|free|tặng|送|赠)(\s+)([\s\S]+)$/i;
+        var EMOJI_PREFIX_RE = /^([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\uFE0F|\uFE0E|[📦🎁🏷️💵💰📅🛒])\s*/;
+
         function translateText(text) {
           var key = rev[text];
           if (key && toDict[key]) return toDict[key];
@@ -197,6 +263,57 @@
             var headKey = rev[m[1].trim()];
             if (headKey && toDict[headKey]) return toDict[headKey] + m[2];
           }
+
+          // Check dynamic database aliases
+          var textLower = text.toLowerCase();
+          for (var a = 0; a < DYNAMIC_ALIASES.length; a++) {
+            var da = DYNAMIC_ALIASES[a];
+            for (var mi = 0; mi < da.matches.length; mi++) {
+              if (text === da.matches[mi] || textLower === da.matches[mi].toLowerCase()) {
+                return da.trans[toLang] || da.trans['lo'];
+              }
+            }
+          }
+
+          // Emoji prefix (e.g. "📦 ທຸກສິນຄ້າ" -> "📦 All Products")
+          var em = text.match(EMOJI_PREFIX_RE);
+          if (em) {
+            var rest = text.substring(em[0].length).trim();
+            var trRest = translateText(rest);
+            if (trRest) return em[0] + trRest;
+          }
+
+          // Promo discount badges (e.g. "• ລົດ 2,000 ກີບ" -> "• 减 2,000 基普")
+          var pdm = text.match(PROMO_DISC_RE);
+          if (pdm) {
+            var dw = DISC_WORDS[toLang] || 'ຫຼຸດ';
+            var amt = pdm[3];
+            var tail = pdm[4] || '';
+            if (KIP_AMOUNT_RE && fromKip && tail.indexOf(fromKip) !== -1) {
+              tail = tail.replace(KIP_AMOUNT_RE, '$1' + toKip);
+            }
+            return pdm[1] + dw + pdm[2] + amt + tail;
+          }
+
+          // Named promo badges (e.g. "ໂປຣ · ຫຼຸດ 2,000 ກີບ")
+          var pndm = text.match(PROMO_NAMED_DISC_RE);
+          if (pndm) {
+            var dw = DISC_WORDS[toLang] || 'ຫຼຸດ';
+            var amt = pndm[4];
+            var tail = pndm[5] || '';
+            if (KIP_AMOUNT_RE && fromKip && tail.indexOf(fromKip) !== -1) {
+              tail = tail.replace(KIP_AMOUNT_RE, '$1' + toKip);
+            }
+            return pndm[1] + pndm[2] + dw + pndm[3] + amt + tail;
+          }
+
+          // Promo gift badges (e.g. "• ແຖມ ນ້ຳດື່ມ")
+          var pgm = text.match(PROMO_GIFT_RE);
+          if (pgm) {
+            var gw = GIFT_WORDS[toLang] || 'ແຖມ';
+            return pgm[1] + gw + pgm[2] + pgm[3];
+          }
+
           // "3 ມື້" / "ສະແດງ 1–10 ຈາກ 25 ລາຍການ": a sprintf string with its values already filled
           // in — match it against the %s/%d patterns and refill the target language's pattern.
           for (var i = 0; i < patterns.length; i++) {

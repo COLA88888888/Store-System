@@ -17,7 +17,7 @@ function buildKitchenTickets(items) {
     if (!it) return;
     var r = routes[String(it.category_id)];
     if (!r) return;
-    var g = groups[r.printer_id] || (groups[r.printer_id] = { printer_id: r.printer_id, name: r.printer_name || ('ເຄື່ອງພິມ ' + r.printer_id), type: r.printer_type || 'browser', paper: parseInt(r.paper_width, 10) || 80, items: [] });
+    var g = groups[r.printer_id] || (groups[r.printer_id] = { printer_id: r.printer_id, name: r.printer_name || ('<?php echo tlj('ເຄື່ອງພິມ'); ?> ' + r.printer_id), type: r.printer_type || 'browser', paper: parseInt(r.paper_width, 10) || 80, items: [] });
     g.items.push({ name: it.product_name || '', qty: parseFloat(it.quantity) || 1, unit: it.unit_name || '' });
   });
   return Object.keys(groups).map(function(k) { return groups[k]; }).filter(function(g) { return g.items.length; });
@@ -90,8 +90,8 @@ var LAN_TICKET_FONT = '"Noto Sans Lao Local", "Noto Sans Lao", Arial, sans-serif
 function ensureLanTicketFont() {
   if (!document.fonts || !document.fonts.load) return Promise.resolve();
   var loads = Promise.all([
-    document.fonts.load('400 24px "Noto Sans Lao Local"', 'ກ'),
-    document.fonts.load('700 24px "Noto Sans Lao Local"', 'ກ')
+    document.fonts.load('400 24px "Noto Sans Lao Local"', '<?php echo tlj('ກ'); ?>'),
+    document.fonts.load('700 24px "Noto Sans Lao Local"', '<?php echo tlj('ກ'); ?>')
   ]).catch(function () {});
   return Promise.race([loads, new Promise(function (resolve) { setTimeout(resolve, 1500); })]);
 }

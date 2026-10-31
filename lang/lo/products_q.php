@@ -2,6 +2,13 @@
 // pages/products — ປຸ່ມ/popup ເພີ່ມດ່ວນ ຫົວໜ່ວຍ, ໂຊນ, ຊັ້ນວາງ + ແຖບເພີ່ມຫຼາຍລາຍການ/Excel
 // strings - Lao
 return [
+    'products_q.add_category_link' => 'ເພີ່ມໝວດໝູ່',
+    'products_q.add_btn_short' => 'ເພີ່ມ',
+    'products_q.cat_title' => 'ເພີ່ມໝວດສິນຄ້າໃໝ່',
+    'products_q.cat_ph' => 'ປ້ອນຊື່ໝວດສິນຄ້າ ເຊັ່ນ: ເຄື່ອງດື່ມ, ຂະໜົມ...',
+    'products_q.cat_required' => 'ກະລຸນາປ້ອນຊື່ໝວດສິນຄ້າ!',
+    'products_q.cat_added' => 'ເພີ່ມໝວດສິນຄ້າສຳເລັດ',
+    'products_q.cat_failed' => 'ເພີ່ມໝວດສິນຄ້າບໍ່ສຳເລັດ',
     'products_q.add_unit_link' => 'ເພີ່ມຫົວໜ່ວຍ',
     'products_q.add_zone_link' => 'ເພີ່ມໂຊນ',
     'products_q.add_shelf_link' => 'ເພີ່ມຊັ້ນວາງ',
@@ -38,6 +45,13 @@ return [
     'products_q.shelf_all_rows' => 'ຊັ້ນວາງ (ໃຊ້ກັບທຸກລາຍການ)',
     'products_q.zone_none_opt' => '-- ບໍ່ລະບຸ / ເລືອກໂຊນ --',
     'products_q.shelf_none_opt' => '-- ບໍ່ລະບຸ / ເລືອກຊັ້ນວາງ --',
+    'products_q.no_zone' => '-- ບໍ່ມີຂໍ້ມູນໂຊນ --',
+    'products_q.no_zone_short' => '-- ບໍ່ມີໂຊນ --',
+    'products_q.no_shelf' => '-- ບໍ່ມີຂໍ້ມູນຊັ້ນວາງ --',
+    'products_q.no_shelf_short' => '-- ບໍ່ມີຊັ້ນວາງ --',
+    'products_q.no_shelf_in_zone' => '-- ບໍ່ມີຊັ້ນວາງໃນໂຊນນີ້ --',
+    'products_q.select_zone' => '-- ເລືອກໂຊນ / ພື້ນທີ່ຈັດວາງ --',
+    'products_q.select_shelf' => '-- ເລືອກຊັ້ນ / ຊ່ອງວາງສິນຄ້າ --',
     'products_q.excel_import' => 'ນຳເຂົ້າຈາກ Excel',
     'products_q.excel_template' => 'ດາວໂຫຼດແບບຟອມ',
     'products_q.excel_columns' => 'ຖັນ: ປະເພດ, ຊື່ສິນຄ້າ, ບາໂຄ້ດ, ຫົວໜ່ວຍ, ລາຄາຊື້, ລາຄາຂາຍ, ຜູ້ສະໜອງ, ໂຊນ, ຊັ້ນວາງ',
@@ -51,4 +65,6 @@ return [
     'products_q.miss_category' => 'ບໍ່ພົບປະເພດໃນລະບົບ',
     'products_q.miss_unit' => 'ບໍ່ພົບຫົວໜ່ວຍໃນລະບົບ',
     'products_q.miss_supplier' => 'ບໍ່ພົບຜູ້ສະໜອງ (ຈະວ່າງໄວ້)',
+    'products_q.add_category_btn' => 'ເພີ່ມໝວດ',
+    'products_q.add_unit_btn' => 'ເພີ່ມຫົວໜ່ວຍ',
 ];

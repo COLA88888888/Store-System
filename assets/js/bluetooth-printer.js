@@ -6,7 +6,7 @@
 (function (window) {
   'use strict';
 
-  var VERSION = 18;
+  var VERSION = 24;
   var W = (function () { try { return window.top || window; } catch (e) { return window; } })();
 
   try {
@@ -34,9 +34,14 @@
 
   var BLE_SIZES = [244, 180, 100], SPEEDS = { fast: 18000, normal: 18000, slow: 8000 }, CONNECT_TIMEOUT = 8000;
   var state = { mode: null, name: '', device: null, ch: null, noResp: false, bridge: false, port: null, writer: null, relinking: false, looping: false, restoreKey: '' };
-  var listeners = [], retryTimer = null, busy = false, reconnecting = null;
+  var listeners = [], retryTimer = null, busy = false, reconnecting = null, watchTimer = null;
 
   function isAndroid() { return /Android/i.test((W.navigator && W.navigator.userAgent) || ''); }
+  // ຂົວ Windows (ble_bridge.php) ໃຊ້ໄດ້ສະເພາະ server ທີ່ເປັນ Windows (ຄອມໃນຮ້ານ). server ອອນລາຍ (Linux, https) ຕອບ
+  // "unsupported" → ເຊື່ອມເຄື່ອງພິມຈາກ browser ໂດຍກົງ (Web Bluetooth) ຄືກັບໂທລະສັບ, ທັງຄອມ ແລະ ໂທລະສັບ.
+  var bridgeOff = false;
+  try { bridgeOff = W.sessionStorage.getItem('StoreMini.bt_bridge_off') === '1'; } catch (e) {}
+  function webBt() { return isAndroid() || bridgeOff; }
   function sendRawBt(bytes) {
     return new Promise(function (resolve) {
       var a = document.createElement('a');
@@ -145,7 +150,7 @@
       W.clearTimeout(retryTimer);
       state.relinking = false; state.looping = false; state.restoreKey = 'ble:' + device.id;
       remember();
-      emit('ເຊື່ອມຕໍ່ແລ້ວ');
+      emit('' + (window.__tl||String)("ເຊື່ອມຕໍ່ແລ້ວ") + '');
       return state.name;
     });
   }
@@ -156,7 +161,7 @@
     state.ch = null;
     if (state.expectDrop || isManualOff()) {
       state.expectDrop = false; state.bridge = false; state.relinking = false;
-      emit('ຕັດການເຊື່ອມຕໍ່ແລ້ວ');
+      emit('' + (window.__tl||String)("ຕັດການເຊື່ອມຕໍ່ແລ້ວ") + '');
       return;
     }
     state.bridge = true;
@@ -170,7 +175,7 @@
     try { if (writer) writer.releaseLock(); } catch (e) {}
     if (port) port.close().catch(function () {});
     state.port = null;
-    if (isManualOff()) { state.relinking = false; emit('ຕັດການເຊື່ອມຕໍ່ແລ້ວ'); return; }
+    if (isManualOff()) { state.relinking = false; emit('' + (window.__tl||String)("ຕັດການເຊື່ອມຕໍ່ແລ້ວ") + ''); return; }
     state.relinking = true;
     scheduleRetry(1000);
   }
@@ -227,21 +232,21 @@
     state.bridge = true;
   }
   function warm() {
-    if (isAndroid() || state.mode !== 'ble') return;
+    if (webBt() || state.mode !== 'ble') return;
     var name = state.name || (remembered() && remembered().name) || '';
     if (!name) return;
     W.fetch(BRIDGE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'warm', name: name }) }).catch(function () {});
   }
   function writeBridge(bytes) {
     var name = state.name || (remembered() && remembered().name) || '';
-    if (!name) return Promise.reject(new Error('ຍັງບໍ່ໄດ້ຕັ້ງເຄື່ອງພິມ Bluetooth'));
+    if (!name) return Promise.reject(new Error('' + (window.__tl||String)("ຍັງບໍ່ໄດ້ຕັ້ງເຄື່ອງພິມ") + ' Bluetooth'));
     releaseBrowserGatt();
     return W.fetch(BRIDGE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: name, data: toBase64(bytes) })
     }).then(function (r) { return r.json(); }).then(function (res) {
-      if (!res || res.status !== 'success') throw new Error((res && res.message) || 'ພິມຜ່ານ Bluetooth ບໍ່ສຳເລັດ');
+      if (!res || res.status !== 'success') throw new Error((res && res.message) || '' + (window.__tl||String)("ພິມຜ່ານ Bluetooth ບໍ່ສຳເລັດ") + '');
     });
   }
 
@@ -254,6 +259,10 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'ping', name: name })
       }).then(function (r) { return r.json(); }).then(function (res) {
+        if (res && res.unsupported) {
+          bridgeOff = true;
+          try { W.sessionStorage.setItem('StoreMini.bt_bridge_off', '1'); } catch (e) {}
+        }
         return !!(res && res.status === 'success');
       }),
       8000,
@@ -277,7 +286,7 @@
       W.clearTimeout(retryTimer);
       state.relinking = false; state.looping = false; state.restoreKey = 'serial:' + state.name;
       remember();
-      emit('ເຊື່ອມຕໍ່ແລ້ວ');
+      emit('' + (window.__tl||String)("ເຊື່ອມຕໍ່ແລ້ວ") + '');
       return state.name;
     });
   }
@@ -297,8 +306,16 @@
     mode = mode === 'serial' ? 'serial' : 'ble';
     if (!isSupported(mode)) {
       return Promise.reject(new Error(mode === 'serial'
-        ? 'browser ນີ້ບໍ່ຮອງຮັບ COM port — ກະລຸນາໃຊ້ Chrome ຫຼື Edge ໃນຄອມ'
-        : 'browser ນີ້ບໍ່ຮອງຮັບ Bluetooth — ກະລຸນາໃຊ້ Chrome ຫຼື Edge (ແລະ ເປີດຜ່ານ https ຫຼື localhost)'));
+        ? 'browser ' + (window.__tl||String)("ນີ້ບໍ່ຮອງຮັບ") + ' COM port — ' + (window.__tl||String)("ກະລຸນາໃຊ້ Chrome ຫຼື Edge ໃນຄອມ") + ''
+        : 'browser ' + (window.__tl||String)("ນີ້ບໍ່ຮອງຮັບ") + ' Bluetooth — ' + (window.__tl||String)("ກະລຸນາໃຊ້ Chrome ຫຼື Edge (ແລະ ເປີດຜ່ານ https ຫຼື localhost)") + ''));
+    }
+    // ໂທລະສັບ Android: Chrome ເປີດ Bluetooth (Web Bluetooth) ໃຫ້ສະເພາະໜ້າ https / localhost. ເປີດລະບົບຜ່ານ
+    // http://192.168.x.x → navigator.bluetooth ບໍ່ມີ → ບອກສາເຫດ ແລະ ວິທີແກ້ ແທນ error ພາສາອັງກິດ
+    if (mode === 'ble' && !(nav() && nav().bluetooth)) {
+      var host = (W.location && W.location.host) || '';
+      return Promise.reject(new Error('' + (window.__tl||String)("ໂທລະສັບນີ້ໃຊ້ Bluetooth ບໍ່ໄດ້ ເພາະເປີດລະບົບຜ່ານ") + ' http (' + host + '). ' +
+        '' + (window.__tl||String)("ແກ້: ເປີດລະບົບຜ່ານ https, ຫຼື ໃນ Chrome ຂອງໂທລະສັບ ເຂົ້າ chrome:") + '//flags → "Insecure origins treated as secure" ' +
+        '→ ' + (window.__tl||String)("ໃສ່ http:") + '//' + host + ' → Enabled → Relaunch'));
     }
     setManualOff(false);
     return dropConn(true).then(function () {
@@ -309,16 +326,17 @@
         ? { filters: [{ name: filterName }], optionalServices: BLE_SERVICES }
         : { acceptAllDevices: true, optionalServices: BLE_SERVICES };
       return nav().bluetooth.requestDevice(opts).then(function (dev) {
-        if (isAndroid()) {
+        if (webBt()) {
           return attachBle(dev, filterName);
         }
         var targetName = dev.name || filterName || 'Bluetooth Printer';
         return pingBridge(targetName).then(function (ok) {
+          if (!ok && bridgeOff) return attachBle(dev, targetName);   // server ບໍ່ມີຂົວ → ເຊື່ອມຈາກ browser
           if (!ok) {
             state.bridge = false;
             state.mode = null;
-            emit('ບໍ່ໄດ້ເຊື່ອມຕໍ່');
-            throw new Error('ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ');
+            emit('' + (window.__tl||String)("ບໍ່ໄດ້ເຊື່ອມຕໍ່") + '');
+            throw new Error('' + (window.__tl||String)("ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ") + '');
           }
           state.mode = 'ble';
           state.device = dev;
@@ -327,15 +345,54 @@
           state.relinking = false;
           state.restoreKey = 'ble:' + dev.id;
           remember();
-          emit('ເຊື່ອມຕໍ່ແລ້ວ');
+          emit('' + (window.__tl||String)("ເຊື່ອມຕໍ່ແລ້ວ") + '');
           return state.name;
         });
       });
     });
   }
 
+  // ເຊື່ອມຄືນຜ່ານ Web Bluetooth: ເຄື່ອງທີ່ browser ເຄີຍອະນຸຍາດແລ້ວ (getDevices) — ບໍ່ຕ້ອງເລືອກເຄື່ອງໃໝ່
+  function reconnectWebBt(last) {
+    var bt = nav() && nav().bluetooth;
+    if (!bt || !bt.getDevices) { state.mode = null; emit('' + (window.__tl||String)("ບໍ່ໄດ້ເຊື່ອມຕໍ່") + ''); return Promise.resolve(false); }
+    return bt.getDevices().then(function (devs) {
+      var dev = (devs || []).filter(function (d) { return d.id === last.id || d.name === last.name; })[0] || (devs || [])[0];
+      if (!dev) { state.bridge = false; state.mode = null; emit('' + (window.__tl||String)("ບໍ່ໄດ້ເຊື່ອມຕໍ່") + ''); return false; }
+      return withTimeout(attachBle(dev, last.name), CONNECT_TIMEOUT, 'off').then(function () { return true; }, function () {
+        state.device = dev; state.bridge = false; state.mode = null; emit('' + (window.__tl||String)("ບໍ່ໄດ້ເຊື່ອມຕໍ່") + '');
+        return false;
+      });
+    }).catch(function () {
+      state.bridge = false; state.mode = null; emit('' + (window.__tl||String)("ບໍ່ໄດ້ເຊື່ອມຕໍ່") + '');
+      return false;
+    });
+  }
+
   var lastProbeTime = 0;
   var lastProbeResult = false;
+
+  // ກວດເຄື່ອງພິມ Bluetooth ທີ່ຕັ້ງໄວ້ເອງເປັນໄລຍະ (Windows, ຜ່ານ ble_helper.ps1 ທີ່ໃຊ້ ~0.3 ວິ):
+  // ເຄື່ອງພິມປິດ → ກວດທຸກ 5 ວິ, ເປີດເຄື່ອງເມື່ອໃດ ສະຖານະເປັນ "ເຊື່ອມຕໍ່ແລ້ວ" ເອງ (ບໍ່ຕ້ອງເພີ່ມເຄື່ອງໃໝ່);
+  // ເຊື່ອມຢູ່ → ກວດທຸກ 2 ວິ (ໂຕຊ່ວຍຖາມເຄື່ອງພິມໂດຍກົງ): ປິດເຄື່ອງພິມ → "ບໍ່ໄດ້ເຊື່ອມຕໍ່" ພາຍໃນ ~2-4 ວິ.
+  // ກວດເບົາ: ໂຕຊ່ວຍອ່ານສະຖານະການເຊື່ອມຕໍ່ຂອງ Windows ທີ່ຖືໄວ້ຢູ່ແລ້ວ (~0.3 ວິ). ບໍ່ກວດລະຫວ່າງກຳລັງພິມ.
+  // ກົດ "ຕັດການເຊື່ອມຕໍ່" ເອງ: ບໍ່ເຊື່ອມຄືນທັນທີ ແຕ່ຍັງເຝົ້າເບິ່ງ — ເມື່ອເຄື່ອງພິມຖືກປິດ (ຫາບໍ່ເຫັນ) ແລ້ວເປີດຄືນ
+  // ກໍເຊື່ອມເອງອີກ (ເມື່ອກ່ອນ ຕັດເອງເທື່ອດຽວ = ບໍ່ກວດຈັບອີກເລີຍ ຈົນກວ່າຈະກົດເຊື່ອມເອງ).
+  function watch() {
+    W.clearTimeout(watchTimer);
+    if (webBt() || !isEnabledSetting()) return;
+    var last = loadList()[0];
+    if (!last || last.mode !== 'ble') return;
+    watchTimer = W.setTimeout(function () {
+      if (busy || reconnecting) { watch(); return; }
+      if (isManualOff()) {
+        pingBridge(last.name).then(function (ok) { if (!ok) setManualOff(false); watch(); });
+        return;
+      }
+      lastProbeTime = 0;
+      reconnect();
+    }, (!isManualOff() && isConnected()) ? 2000 : 5000);
+  }
 
   function reconnect(force) {
     if (force === true) setManualOff(false);
@@ -344,63 +401,53 @@
     var list = loadList();
     if (!list.length) {
       if (!isAndroid()) return Promise.resolve(false);
-      state.mode = 'rawbt'; state.name = 'ເຄື່ອງພິມໃນຕົວ (57x40mm)'; state.restoreKey = 'rawbt:builtin';
-      remember(); emit('ເຊື່ອມຕໍ່ແລ້ວ'); return Promise.resolve(true);
+      state.mode = 'rawbt'; state.name = '' + (window.__tl||String)("ເຄື່ອງພິມໃນຕົວ (57x40mm)") + ''; state.restoreKey = 'rawbt:builtin';
+      remember(); emit('' + (window.__tl||String)("ເຊື່ອມຕໍ່ແລ້ວ") + ''); return Promise.resolve(true);
     }
     var last = list[0];
     if (last && last.mode === 'rawbt') {
-      state.mode = 'rawbt'; state.name = last.name || 'ເຄື່ອງພິມໃນຕົວ (57x40mm)'; state.restoreKey = last.key;
-      state.relinking = false; emit('ເຊື່ອມຕໍ່ແລ້ວ'); return Promise.resolve(true);
+      state.mode = 'rawbt'; state.name = last.name || '' + (window.__tl||String)("ເຄື່ອງພິມໃນຕົວ (57x40mm)") + ''; state.restoreKey = last.key;
+      state.relinking = false; emit('' + (window.__tl||String)("ເຊື່ອມຕໍ່ແລ້ວ") + ''); return Promise.resolve(true);
     }
 
-    if (force !== true && (Date.now() - lastProbeTime < 25000)) {
+    if (force !== true && (Date.now() - lastProbeTime < 3000)) {
       return Promise.resolve(lastProbeResult);
     }
 
     if (last && last.mode === 'ble') {
-      if (isAndroid() && nav() && nav().bluetooth && nav().bluetooth.getDevices) {
-        return nav().bluetooth.getDevices().then(function (devs) {
-          var dev = (devs || []).filter(function (d) { return d.id === last.id || d.name === last.name; })[0] || devs[0];
-          if (!dev) {
-            state.bridge = false; state.mode = null; emit('ບໍ່ໄດ້ເຊື່ອມຕໍ່');
-            return false;
-          }
-          return withTimeout(attachBle(dev, last.name), CONNECT_TIMEOUT, 'off').then(function () { return true; }, function () {
-            state.bridge = false; state.mode = null; emit('ບໍ່ໄດ້ເຊື່ອມຕໍ່');
-            return false;
-          });
-        }).catch(function () {
-          state.bridge = false; state.mode = null; emit('ບໍ່ໄດ້ເຊື່ອມຕໍ່');
-          return false;
-        });
-      }
-
+      if (webBt()) return reconnectWebBt(last);
       lastProbeTime = Date.now();
+      var wasOn = isConnected();
       reconnecting = pingBridge(last.name).then(function (ok) {
         reconnecting = null;
         lastProbeResult = ok;
+        if (!ok && bridgeOff) return reconnectWebBt(last);   // ຫາກໍຮູ້ວ່າ server ບໍ່ມີຂົວ → ລອງ Web Bluetooth ເລີຍ
+        watch();
+        if (ok && wasOn) return true;     // ຍັງເຊື່ອມຢູ່ຄືເກົ່າ — ບໍ່ຕ້ອງແຈ້ງ
+        if (!ok && !wasOn && state.mode === null) return false;
         if (ok) {
           state.mode = 'ble';
           state.name = last.name || 'Bluetooth Printer';
           state.restoreKey = last.key;
           state.bridge = true;
           state.relinking = false;
-          emit('ເຊື່ອມຕໍ່ແລ້ວ');
+          emit('' + (window.__tl||String)("ເຊື່ອມຕໍ່ແລ້ວ") + '');
           return true;
         } else {
           state.bridge = false;
           state.mode = null;
           state.relinking = false;
-          emit('ບໍ່ໄດ້ເຊື່ອມຕໍ່');
+          emit('' + (window.__tl||String)("ບໍ່ໄດ້ເຊື່ອມຕໍ່") + '');
           return false;
         }
       }).catch(function () {
         reconnecting = null;
         lastProbeResult = false;
+        watch();
         state.bridge = false;
         state.mode = null;
         state.relinking = false;
-        emit('ບໍ່ໄດ້ເຊື່ອມຕໍ່');
+        emit('' + (window.__tl||String)("ບໍ່ໄດ້ເຊື່ອມຕໍ່") + '');
         return false;
       });
       return reconnecting;
@@ -410,11 +457,11 @@
     reconnecting = ports.then(function (serialPorts) {
       if (last && last.mode === 'serial' && serialPorts && serialPorts.length) {
         return withTimeout(attachSerial(serialPorts[0], last.name), CONNECT_TIMEOUT, 'off').then(function () { return true; }, function () {
-          state.port = null; state.writer = null; state.mode = null; emit('ບໍ່ໄດ້ເຊື່ອມຕໍ່');
+          state.port = null; state.writer = null; state.mode = null; emit('' + (window.__tl||String)("ບໍ່ໄດ້ເຊື່ອມຕໍ່") + '');
           return false;
         });
       }
-      state.port = null; state.writer = null; state.mode = null; emit('ບໍ່ໄດ້ເຊື່ອມຕໍ່');
+      state.port = null; state.writer = null; state.mode = null; emit('' + (window.__tl||String)("ບໍ່ໄດ້ເຊື່ອມຕໍ່") + '');
       return false;
     }).then(function (ok) { reconnecting = null; return ok; }, function () { reconnecting = null; return false; });
     return reconnecting;
@@ -439,7 +486,7 @@
         .then(function () { return port.close(); }).catch(function () {});
     }
     state.ch = null; state.writer = null; state.port = null;
-    return p.then(function () { if (!silent) emit('ຕັດການເຊື່ອມຕໍ່ແລ້ວ'); });
+    return p.then(function () { if (!silent) emit('' + (window.__tl||String)("ຕັດການເຊື່ອມຕໍ່ແລ້ວ") + ''); });
   }
 
   function forget(key) {
@@ -452,12 +499,12 @@
       state.device = null; state.name = ''; state.mode = null; state.restoreKey = '';
       if (remain[0] && !isManualOff()) reconnect();
     }) : Promise.resolve();
-    return p.then(function () { emit('ລຶບເຄື່ອງພິມແລ້ວ'); });
+    return p.then(function () { emit('' + (window.__tl||String)("ລຶບເຄື່ອງພິມແລ້ວ") + ''); });
   }
 
   function use(key) {
     var p = loadList().filter(function (x) { return x.key === key; })[0];
-    if (!p) return Promise.reject(new Error('ບໍ່ພົບເຄື່ອງພິມນີ້ໃນລາຍຊື່'));
+    if (!p) return Promise.reject(new Error('' + (window.__tl||String)("ບໍ່ພົບເຄື່ອງພິມນີ້ໃນລາຍຊື່") + ''));
     setManualOff(false);
     return dropConn(true).then(function () {
       state.name = p.name; state.restoreKey = p.key;
@@ -466,21 +513,30 @@
         state.relinking = true; emit('');
         return nav().serial.getPorts().then(function (ports) {
           if (!ports.length) return connect('serial', p.name);
-          return withTimeout(attachSerial(ports[0], p.name), CONNECT_TIMEOUT, 'ເຄື່ອງພິມບໍ່ຕອບ — ກວດວ່າເປີດເຄື່ອງແລ້ວ');
+          return withTimeout(attachSerial(ports[0], p.name), CONNECT_TIMEOUT, '' + (window.__tl||String)("ເຄື່ອງພິມບໍ່ຕອບ") + ' — ' + (window.__tl||String)("ກວດວ່າເປີດເຄື່ອງແລ້ວ") + '');
+        });
+      }
+      if (webBt()) {
+        return reconnectWebBt(p).then(function (ok) {
+          if (ok) return p.name;
+          return connect('ble', p.name);   // browser ຍັງບໍ່ເຄີຍອະນຸຍາດເຄື່ອງນີ້ → ເປີດລາຍຊື່ໃຫ້ເລືອກ
         });
       }
       return pingBridge(p.name).then(function (ok) {
+        if (!ok && bridgeOff) {
+          return reconnectWebBt(p).then(function (ok2) { return ok2 ? p.name : connect('ble', p.name); });
+        }
         if (!ok) {
           state.bridge = false;
           state.mode = null;
-          emit('ບໍ່ໄດ້ເຊື່ອມຕໍ່');
-          throw new Error('ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ');
+          emit('' + (window.__tl||String)("ບໍ່ໄດ້ເຊື່ອມຕໍ່") + '');
+          throw new Error('' + (window.__tl||String)("ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ") + '');
         }
         state.mode = 'ble';
         state.bridge = true;
         state.relinking = false;
         remember();
-        emit('ເຊື່ອມຕໍ່ແລ້ວ');
+        emit('' + (window.__tl||String)("ເຊື່ອມຕໍ່ແລ້ວ") + '');
         return p.name;
       });
     });
@@ -493,7 +549,7 @@
 
   // ສົ່ງຂໍ້ມູນພິມ: ຖ້າເປັນເຄື່ອງ POS ມືຖື Android (RawBT) ສົ່ງອອກຫົວພິມໃນຕົວເລີຍ; ຖ້າເປັນ Windows ໃຊ້ BLE Bridge ຫຼື Web Bluetooth
   function write(bytes) {
-    if (!isConnected()) return Promise.reject(new Error('ຍັງບໍ່ໄດ້ເຊື່ອມຕໍ່ເຄື່ອງພິມ Bluetooth'));
+    if (!isConnected()) return Promise.reject(new Error('' + (window.__tl||String)("ຍັງບໍ່ໄດ້ເຊື່ອມຕໍ່ເຄື່ອງພິມ") + ' Bluetooth'));
     busy = true;
     var done = function () { busy = false; };
     var p;
@@ -501,10 +557,13 @@
       p = sendRawBt(bytes);
     } else if (state.mode === 'serial') {
       p = writeSerial(bytes);
-    } else if (isAndroid()) {
+    } else if (webBt()) {
       p = (hasLiveBle() ? Promise.resolve() : (state.device ? withTimeout(attachBle(state.device, state.name), 5000, 'off') : Promise.reject(new Error('off'))))
         .then(function () { return writeBle(bytes); })
-        .catch(function () { return sendRawBt(bytes); });
+        .catch(function (e) {
+          if (isAndroid()) return sendRawBt(bytes);   // ໂທລະສັບ: ສົ່ງຜ່ານແອັບ RawBT ແທນ
+          throw new Error('' + (window.__tl||String)("ພິມຜ່ານ Bluetooth ບໍ່ສຳເລັດ") + ' — ' + (window.__tl||String)("ກວດວ່າເປີດເຄື່ອງພິມຢູ່") + '');
+        });
     } else {
       p = writeBridge(bytes).catch(function (bridgeErr) {
         if (state.device) {
@@ -565,7 +624,7 @@
   (function restore() {
     var last = loadList()[0];
     if (!last && isAndroid()) {
-      last = { key: 'rawbt:builtin', mode: 'rawbt', name: 'ເຄື່ອງພິມໃນຕົວ (57x40mm)', id: '', last: Date.now() };
+      last = { key: 'rawbt:builtin', mode: 'rawbt', name: '' + (window.__tl||String)("ເຄື່ອງພິມໃນຕົວ (57x40mm)") + '', id: '', last: Date.now() };
       saveList([last]);
       try {
         var curCfg = JSON.parse(W.localStorage.getItem('StoreMini.bt_printer_settings') || '{}') || {};
@@ -574,7 +633,8 @@
         W.localStorage.setItem('StoreMini.bt_printer_settings', JSON.stringify(curCfg));
       } catch (e) {}
     }
-    if (!last || isManualOff() || !isEnabledSetting()) return;
+    if (!last || !isEnabledSetting()) return;
+    if (isManualOff()) { watch(); return; }   // ຕັດເອງໄວ້: ເຝົ້າເບິ່ງ ເປີດເຄື່ອງພິມໃໝ່ເມື່ອໃດ ເຊື່ອມເອງ
     state.mode = null;
     state.name = last.name || 'Bluetooth Printer';
     state.restoreKey = last.key;

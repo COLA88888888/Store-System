@@ -12,6 +12,7 @@ return [
     'users_manage.th_tel' => 'เบอร์โทรศัพท์',
     'users_manage.th_status' => 'สถานะ',
     'users_manage.th_role' => 'ตำแหน่ง',
+    'users_manage.th_access_age' => 'อายุการใช้งาน',
     'users_manage.th_actions' => 'จัดการ',
     'users_manage.default_store' => 'สาขาหลัก',
     'users_manage.status_online' => 'ใช้งานอยู่',

@@ -15,6 +15,7 @@ return [
     'print_barcode.barcode_size_label' => '条码尺寸:',
     'print_barcode.barcode_width' => '宽',
     'print_barcode.barcode_height' => '高',
+    'print_barcode.horizontal_offset' => '左移/右移',
     'print_barcode.vertical_offset' => '上移/下移',
     'print_barcode.label_pitch' => '标签间距',
     'print_barcode.label_pitch_hint' => '从一张标签上边缘量到下一张标签上边缘（标签 + 间隙）— 修正打印多张后逐渐偏移',

@@ -53,12 +53,12 @@
 
 <?php $shiftSelBoxStyle = 'flex: 1 1 150px; width: 100%;'; require dirname(__DIR__) . '/shift_filter_select.php'; /* ບັອກເລືອກກະ — ສາຂາທີ່ບໍ່ມີກະ: ເຊື່ອງ */ ?>
 
-      <!-- Currency Filter Dropdown -->
-      <div class="report-filter-date-col" style="min-width: 170px;">
+      <!-- Currency Filter Dropdown - ບັອກກະທັດຮັດ ບໍ່ຍາວໃນທຸກໜ້າຈໍ -->
+      <div style="flex: 0 0 140px; width: 140px; max-width: 140px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-coins text-warning mr-1"></i> <?php echo htmlspecialchars(t('reports.currency_label', 'ສະກຸນເງິນ:')); ?>
         </label>
-        <select name="currency_filter" class="form-control form-control-sm font-weight-bold" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #a16207; color: #854d0e; background: #fefce8;" onchange="this.form.submit()">
+        <select name="currency_filter" class="form-control form-control-sm font-weight-bold" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #a16207; color: #854d0e; background: #fefce8; width: 140px; max-width: 140px !important;" onchange="this.form.submit()">
           <option value=""><?php echo htmlspecialchars(t('reports.all_currencies_opt', '-- ທຸກສະກຸນເງິນ --')); ?></option>
           <?php foreach (getCurrencyMeta() as $__curCode => $__curInfo): ?>
             <option value="<?php echo htmlspecialchars($__curCode); ?>" <?php echo $currency_filter === $__curCode ? 'selected' : ''; ?>>
@@ -235,7 +235,7 @@
             <?php 
               $bAccId = intval($bRow['bank_acc_id']);
               $bInfo = $bank_accounts_map[$bAccId] ?? [];
-              $label = !empty($bInfo['bank_name']) ? $bInfo['bank_name'] : (!empty($bRow['bank_label']) && $bRow['bank_label'] !== 'ບໍ່ໄດ້ລະບຸ' ? $bRow['bank_label'] : 'ບໍ່ໄດ້ລະບຸ');
+              $label = !empty($bInfo['bank_name']) ? $bInfo['bank_name'] : (!empty($bRow['bank_label']) && $bRow['bank_label'] !== 'ບໍ່ໄດ້ລະບຸ' ? $bRow['bank_label'] : tl('ບໍ່ໄດ້ລະບຸ'));
               if ($label === 'ບໍ່ໄດ້ລະບຸ' && !empty($bank_accounts_map)) {
                   $firstBank = reset($bank_accounts_map);
                   $label = $firstBank['bank_name'];
@@ -347,7 +347,8 @@
         <div class="font-weight-bold text-dark mb-3" style="font-size: 0.92rem;">
           <i class="fas fa-chart-bar text-primary mr-2"></i> <?php echo htmlspecialchars(t('reports.chart_daily_net_sales', 'ຍອດຂາຍສຸດທິລາຍວັນ')); ?>
         </div>
-        <canvas id="chartDailySales" style="max-height: 240px;"></canvas>
+        <?php /* ກ່ອງກຳນົດຄວາມສູງ (ໂທລະສັບສູງຂຶ້ນ — .daily-sales-chart-box ໃນ themes/reports.css) */ ?>
+        <div class="daily-sales-chart-box" style="position: relative; height: 240px;"><canvas id="chartDailySales"></canvas></div>
       </div>
     </div>
 

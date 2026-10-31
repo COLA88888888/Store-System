@@ -8,7 +8,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 require_once dirname(__DIR__, 2) . '/config/db.php';
 require_once dirname(__DIR__) . '/products/components/product_image_helpers.php';
 
-if (!hasPermission('best_seller') && !hasPermission('report')) {
+if (!hasPermission('best_seller')) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -290,7 +290,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                            style="width: 60px; height: 60px; object-fit: contain; background: #fff; padding: 2px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer;"
                            alt="<?php echo htmlspecialchars($row['product_name']); ?>"
                            data-preview-title="<?php echo htmlspecialchars($row['product_name']); ?>"
-                           title="ຄລິກເພື່ອເບິ່ງຮູບໃຫຍ່"
+                           title="<?php echo tlh('ຄລິກເພື່ອເບິ່ງຮູບໃຫຍ່'); ?>"
                            onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
                       <div style="width: 60px; height: 60px; border-radius: 10px; background: #f1f5f9; border: 1px solid #e2e8f0; display: none; align-items: center; justify-content: center; margin: 0 auto;">
                         <i class="fas fa-image" style="color: #cbd5e1; font-size: 1.3rem;"></i>

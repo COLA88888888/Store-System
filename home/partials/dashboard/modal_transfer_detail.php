@@ -13,7 +13,7 @@
         <!-- Modal Header -->
         <div class="modal-header bg-primary text-white py-3 px-4" style="border-radius: 16px 16px 0 0;">
           <h5 class="modal-title font-weight-bold" style="font-size: 1.15rem;">
-            <i class="fas fa-truck-loading mr-2"></i> ລາຍລະອຽດການໂອນສິນຄ້າຈາກສາຂາໃຫຍ່
+            <i class="fas fa-truck-loading mr-2"></i> <?php echo tlh('ລາຍລະອຽດການໂອນສິນຄ້າຈາກສາຂາໃຫຍ່'); ?>
           </h5>
           <button type="button" class="close text-white opacity-90" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
@@ -27,23 +27,23 @@
             <div class="card-body p-3">
               <div class="row" style="font-size: 0.92rem;">
                 <div class="col-md-6 mb-2">
-                  <span class="text-muted"><i class="fas fa-file-invoice text-primary mr-1"></i> ລະຫັດໃບບິນໂອນ:</span>
+                  <span class="text-muted"><i class="fas fa-file-invoice text-primary mr-1"></i> <?php echo tlh('ລະຫັດໃບບິນໂອນ:'); ?></span>
                   <strong id="trf_modal_code" class="text-primary font-weight-bold ml-1"></strong>
                 </div>
                 <div class="col-md-6 mb-2">
-                  <span class="text-muted"><i class="far fa-clock text-info mr-1"></i> ວັນທີ-ເວລາໂອນ:</span>
+                  <span class="text-muted"><i class="far fa-clock text-info mr-1"></i> <?php echo tlh('ວັນທີ-ເວລາໂອນ:'); ?></span>
                   <strong id="trf_modal_date" class="text-dark ml-1"></strong>
                 </div>
                 <div class="col-md-6 mb-2">
-                  <span class="text-muted"><i class="fas fa-store text-success mr-1"></i> ຈາກສາຂາ:</span>
+                  <span class="text-muted"><i class="fas fa-store text-success mr-1"></i> <?php echo tlh('ຈາກສາຂາ:'); ?></span>
                   <span id="trf_modal_from" class="font-weight-bold text-dark ml-1"></span>
                 </div>
                 <div class="col-md-6 mb-2">
-                  <span class="text-muted"><i class="fas fa-arrow-right text-muted mr-1"></i> ຫາສາຂາ:</span>
+                  <span class="text-muted"><i class="fas fa-arrow-right text-muted mr-1"></i> <?php echo tlh('ຫາສາຂາ:'); ?></span>
                   <span id="trf_modal_to" class="font-weight-bold text-dark ml-1"></span>
                 </div>
                 <div class="col-md-12 mt-1">
-                  <span class="text-muted"><i class="fas fa-user-edit text-secondary mr-1"></i> ຜູ້ດຳເນີນການ:</span>
+                  <span class="text-muted"><i class="fas fa-user-edit text-secondary mr-1"></i> <?php echo tlh('ຜູ້ດຳເນີນການ:'); ?></span>
                   <span id="trf_modal_creator" class="font-weight-bold text-dark ml-1"></span>
                 </div>
               </div>
@@ -54,7 +54,7 @@
           <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
             <div class="card-header bg-white py-2.5 px-3 border-0 d-flex justify-content-between align-items-center">
               <h6 class="m-0 font-weight-bold text-dark" style="font-size: 0.95rem;">
-                <i class="fas fa-boxes text-primary mr-1"></i> ລາຍການສິນຄ້າທີ່ໂອນມາ (<span id="trf_modal_item_count">0</span>)
+                <i class="fas fa-boxes text-primary mr-1"></i> <?php echo tlh('ລາຍການສິນຄ້າທີ່ໂອນມາ'); ?> (<span id="trf_modal_item_count">0</span>)
               </h6>
               <span class="text-success font-weight-bold" style="font-size: 0.92rem;">
                 <i class="fas fa-coins mr-1"></i> <span id="trf_modal_total_value">0</span> <?php echo kipSymbol(); ?>
@@ -65,11 +65,11 @@
                 <table class="table table-hover table-striped align-middle mb-0 text-nowrap" style="white-space: nowrap;">
                   <thead class="bg-light text-secondary" style="font-size: 0.85rem; white-space: nowrap;">
                     <tr style="white-space: nowrap;">
-                      <th class="text-center py-2.5 text-nowrap" style="width: 50px;">ລຳດັບ</th>
-                      <th class="py-2.5 text-nowrap">ຊື່ສິນຄ້າ</th>
-                      <th class="text-center py-2.5 text-nowrap">ບາໂຄດ</th>
-                      <th class="text-center py-2.5 text-nowrap" style="width: 130px;">ຈຳນວນໂອນ</th>
-                      <th class="text-right py-2.5 text-nowrap" style="width: 130px;">ມູນຄ່າ</th>
+                      <th class="text-center py-2.5 text-nowrap" style="width: 50px;"><?php echo tlh('ລຳດັບ'); ?></th>
+                      <th class="py-2.5 text-nowrap"><?php echo tlh('ຊື່ສິນຄ້າ'); ?></th>
+                      <th class="text-center py-2.5 text-nowrap"><?php echo tlh('ບາໂຄດ'); ?></th>
+                      <th class="text-center py-2.5 text-nowrap" style="width: 130px;"><?php echo tlh('ຈຳນວນໂອນ'); ?></th>
+                      <th class="text-right py-2.5 text-nowrap" style="width: 130px;"><?php echo tlh('ມູນຄ່າ'); ?></th>
                     </tr>
                   </thead>
                   <tbody id="trf_modal_table_body" style="font-size: 0.9rem;">
@@ -83,7 +83,7 @@
 
         <!-- Modal Footer -->
         <div class="modal-footer bg-light py-2.5 px-4" style="border-radius: 0 0 16px 16px;">
-          <button type="button" class="btn btn-secondary px-4 font-weight-bold" data-dismiss="modal" style="border-radius: 8px;">ປິດ</button>
+          <button type="button" class="btn btn-secondary px-4 font-weight-bold" data-dismiss="modal" style="border-radius: 8px;"><?php echo tlh('ປິດ'); ?></button>
         </div>
 
       </div>

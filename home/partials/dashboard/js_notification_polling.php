@@ -16,56 +16,30 @@
           
           var badgeId = res.is_main ? 'mainNotifBadge' : 'subNotifBadge';
           var badge = $('#' + badgeId);
-          var totalServerCount = res.total_count || 0;
-
-          // Own account's access-expiry warning (see MY_ACCESS_DAYS_LEFT above) is folded into
-          // whichever bell this session actually sees — it isn't tracked server-side by
-          // poll_notifications, so it's added here on every poll cycle instead.
-          var hasAccessWarning = (typeof MY_ACCESS_DAYS_LEFT === 'number');
-          if (hasAccessWarning) totalServerCount += 1;
-
-          var readKeys = [];
-          try {
-            readKeys = loadReadNotifKeys(badgeId);
-          } catch(e) { readKeys = []; }
-
+          // ກະດິ່ງແຈ້ງເຕືອນ: ສະເພາະສິນຄ້າໃກ້ໝົດ/ໝົດ ແລະ ສິນຄ້າໃກ້ໝົດອາຍຸ/ໝົດອາຍຸ ເທົ່ານັ້ນ.
+          // ທັງສອງແບບຄ້າງໄວ້ຈົນກວ່າຈະເຕີມສະຕັອກ / ຈັດການສິນຄ້າໝົດອາຍຸ (ກົດອ່ານແລ້ວບໍ່ຫາຍ).
           var unreadCount = 0;
           if (res.is_main) {
-            // Count unread sub-branch stock import items (exactly 1 per imported item detail)
-            (res.sub_branch_imports || []).forEach(function(imp) {
-              if (!readKeys.includes('imp_' + imp.import_detail_id)) unreadCount++;
-            });
-            // Low stock & Out of stock alerts stay active continuously until stock is restocked
             (res.grouped_low_stock || []).forEach(function(grp) {
               unreadCount += (grp.items ? grp.items.length : 0);
             });
-            unreadCount += (res.expiry_list || []).length; // Persistent expiry alert
+            unreadCount += (res.expiry_list || []).length;
           } else {
-            unreadCount += (res.sub_expiry || []).length; // Persistent expiry alert
-            (res.incoming_transfers || []).forEach(function(t) {
-              if (!readKeys.includes('trf_' + t.transfer_id)) unreadCount++;
-            });
-            (res.sub_low_stock || []).forEach(function(s) {
-              unreadCount++; // Persistent low stock alert
-            });
-            (res.sub_new_products || []).forEach(function(p) {
-              if (!readKeys.includes('np_' + p.product_id)) unreadCount++;
-            });
+            unreadCount += (res.sub_low_stock || []).length;
+            unreadCount += (res.sub_expiry || []).length;
           }
-          if (hasAccessWarning) unreadCount++; // persistent, like a low-stock alert
-          // ເຊັກສະຕັອກ: ສົ່ງມາກວດ (ຫົວໜ້າ) / ອະນຸມັດແລ້ວ (ພະນັກງານ) — js_stock_check_notif.php
-          unreadCount += countUnreadStockChecks(res.stock_checks, readKeys);
+          // ເຊັກສະຕັອກ / ປິດກະ: ບໍ່ຢູ່ໃນກະດິ່ງແລ້ວ — ຍັງປ໊ອບອັບມຸມຂວາເທິງຄືເກົ່າ
           toastNewStockChecks(res.stock_checks, badgeId);
-          // ປິດກະ (ຜູ້ບໍລິຫານ/ຜູ້ຈັດການ) — js_shift_close_notif.php
-          unreadCount += countUnreadShiftCloses(res.shift_closes, readKeys);
           toastNewShiftCloses(res.shift_closes, badgeId);
+          var totalServerCount = unreadCount;
+          var readKeys = [];
+          try { readKeys = loadReadNotifKeys(badgeId); } catch (e) { readKeys = []; }
 
           if (lastUnreadCount[badgeId] !== -1 && unreadCount > lastUnreadCount[badgeId]) {
             playNotificationSound();
           }
           lastUnreadCount[badgeId] = unreadCount;
 
-          var btnId = res.is_main ? '#btnMarkAllMain' : '#btnMarkAllSub';
           var titleCountId = res.is_main ? '#mainNotifTitleCount' : '#subNotifTitleCount';
           $(titleCountId).text(totalServerCount);
 
@@ -76,48 +50,18 @@
               var parentAnchor = $('#' + (res.is_main ? 'mainNotifBellIcon' : 'subNotifBellIcon')).parent();
               parentAnchor.append('<span id="' + badgeId + '" class="badge badge-danger font-weight-bold position-absolute" style="top: -2px; right: -4px; font-size: 0.72rem; border-radius: 10px; padding: 2px 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.4); border: 1.5px solid #ffffff;">' + unreadCount + '</span>');
             }
-            $(btnId).show();
           } else {
             if (badge.length > 0) badge.hide();
-            $(btnId).hide();
           }
 
           // Dynamically update dropdown HTML in real time without page refresh
           if (res.is_main) {
             var bodyEl = $('#mainNotifDropdownBody');
             if (bodyEl.length > 0) {
-              var html = buildAccessWarningNotifHtml();
-              html += buildStockCheckNotifHtml(res.stock_checks, 'mainNotifBadge', readKeys, true);
-              html += buildShiftCloseNotifHtml(res.shift_closes, 'mainNotifBadge', readKeys, true);
+              var html = '';
 
-              // 0. Near-expiry / expired products (all branches, so prefix the branch name)
+              // 1. Near-expiry / expired products (all branches, so prefix the branch name)
               html += buildExpiryNotifHtml(res.expiry_list, true);
-
-              // 1. Sub-Branch Stock Additions Section
-              if (res.sub_branch_imports && res.sub_branch_imports.length > 0) {
-                html += '<div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #ecfdf5; font-size: 0.82rem; white-space: nowrap;">';
-                html += '<span class="text-success text-truncate"><i class="fas fa-boxes mr-1"></i> ' + I18N_LAYOUT['layout.sub_branch_imports'] + '</span>';
-                html += '<span class="badge badge-success font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px;">' + res.sub_branch_imports.length + ' ' + I18N_LAYOUT['layout.items_unit'] + '</span>';
-                html += '</div>';
-
-                res.sub_branch_imports.forEach(function(imp) {
-                  var isRead = readKeys.includes('imp_' + imp.import_detail_id);
-                  var costVal = parseFloat(imp.total_cost || 0);
-                  var qtyVal = parseFloat(imp.quantity || 0);
-                  var impJsonStr = JSON.stringify(imp).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-
-                  html += '<div id="notif_item_imp_' + imp.import_detail_id + '" onclick="markItemAsRead(\'imp_' + imp.import_detail_id + '\', \'mainNotifBadge\'); viewSubBranchImportDetail(' + impJsonStr + ')" class="dropdown-item py-2 px-3 border-bottom" style="background-color: #ffffff; cursor: pointer; opacity: ' + (isRead ? '0.55' : '1') + ';">';
-                  html += '<div class="d-flex align-items-center justify-content-between mb-1">';
-                  html += '<strong class="text-dark text-truncate mr-2" style="font-size: 0.82rem;" title="' + (imp.store_name || '') + ' - ' + (imp.product_name || '') + '"><i class="fas fa-store text-info mr-1"></i> ' + (imp.store_name || I18N_LAYOUT['layout.branch_sub_default']) + ': ' + (imp.product_name || I18N_LAYOUT['layout.default_product']) + '</strong>';
-                  html += '<span class="badge badge-success font-weight-bold px-2 py-0.5" style="font-size: 0.73rem;">+' + qtyVal.toLocaleString() + ' ' + (imp.unit_name || I18N_LAYOUT['layout.default_unit']) + '</span>';
-                  html += '</div>';
-                  html += '<div class="d-flex align-items-center justify-content-between text-muted" style="font-size: 0.76rem;">';
-                  html += '<span><i class="fas fa-user-tag text-info mr-1"></i> ' + (imp.creator_name || 'Admin') + '</span>';
-                  html += '<span class="font-weight-bold text-success"><i class="fas fa-coins mr-1"></i> ' + costVal.toLocaleString() + ' <?php echo kipSymbol(); ?></span>';
-                  html += '</div>';
-                  html += '</div>';
-                });
-              }
 
               // 2. Low Stock & Out of Stock Section
               if (res.grouped_low_stock && res.grouped_low_stock.length > 0) {
@@ -153,44 +97,7 @@
           } else {
             var bodyEl = $('#subNotifDropdownBody');
             if (bodyEl.length > 0) {
-              var currentStoreId = <?php echo intval($_SESSION['store_id'] ?? 1); ?>;
-              var html = buildAccessWarningNotifHtml();
-              html += buildStockCheckNotifHtml(res.stock_checks, 'subNotifBadge', readKeys, false);
-              html += buildShiftCloseNotifHtml(res.shift_closes, 'subNotifBadge', readKeys, false);
-
-              html += buildExpiryNotifHtml(res.sub_expiry, false);
-
-              if (res.incoming_transfers && res.incoming_transfers.length > 0) {
-                html += '<div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #eff6ff; font-size: 0.82rem; white-space: nowrap;">';
-                html += '<span class="text-primary text-truncate"><i class="fas fa-exchange-alt mr-1"></i> ' + I18N_LAYOUT['layout.transfer_list'] + '</span>';
-                html += '<span class="badge badge-primary font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px;">' + res.incoming_transfers.length + ' ' + I18N_LAYOUT['layout.bill_unit'] + '</span>';
-                html += '</div>';
-
-                res.incoming_transfers.forEach(function(trf) {
-                  var isOutgoing = (parseInt(trf.from_store_id) === currentStoreId);
-                  var targetStoreName = isOutgoing ? (trf.to_store_name || I18N_LAYOUT['layout.branch_sub_default']) : (trf.from_store_name || I18N_LAYOUT['layout.branch_main_default']);
-                  var directionIcon = isOutgoing ? 'fa-paper-plane text-success' : 'fa-truck-loading text-primary';
-                  var directionPrefix = isOutgoing ? (I18N_LAYOUT['layout.transfer_to'] + ' ') : (I18N_LAYOUT['layout.transfer_from'] + ' ');
-                  var trfCode = trf.transfer_code || ('TRF-' + trf.transfer_id);
-                  var itemSummary = trf.item_summary || I18N_LAYOUT['layout.item_transferred'];
-                  var isRead = readKeys.includes('trf_' + trf.transfer_id);
-
-                  var trfValue = Math.round(parseFloat(trf.total_value || 0));
-
-                  html += '<div id="notif_item_trf_' + trf.transfer_id + '" onclick="markItemAsRead(\'trf_' + trf.transfer_id + '\', \'subNotifBadge\'); viewTransferDetailsModal(' + trf.transfer_id + ')" class="dropdown-item py-2 px-3 border-bottom d-flex flex-column" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden; opacity: ' + (isRead ? '0.55' : '1') + ';">';
-                  html += '<div class="d-flex align-items-center justify-content-between flex-nowrap w-100">';
-                  html += '<div class="d-flex align-items-center text-nowrap mr-2" style="overflow: hidden; text-overflow: ellipsis; min-width: 0;">';
-                  html += '<i class="fas ' + directionIcon + ' mr-2" style="font-size: 0.82rem;"></i>';
-                  html += '<span class="text-dark font-weight-bold" style="font-size: 0.84rem;">' + (trf.formatted_date || '') + '</span>';
-                  html += '</div>';
-                  html += '<div class="d-flex align-items-center text-nowrap flex-shrink-0">';
-                  html += '<span class="badge badge-info font-weight-bold" style="font-size: 0.72rem;">' + (trf.total_items || 1) + ' ' + I18N_LAYOUT['layout.items_unit'] + '</span>';
-                  html += '</div>';
-                  html += '</div>';
-                  html += '<div class="text-success font-weight-bold mt-1" style="font-size: 0.78rem;"><i class="fas fa-coins mr-1"></i> ' + trfValue.toLocaleString() + ' <?php echo kipSymbol(); ?></div>';
-                  html += '</div>';
-                });
-              }
+              var html = buildExpiryNotifHtml(res.sub_expiry, false);
 
               if (res.sub_low_stock && res.sub_low_stock.length > 0) {
                 html += '<div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #fff7ed; font-size: 0.82rem; white-space: nowrap;">';
@@ -212,26 +119,6 @@
                   html += '</div>';
                   html += '<div class="text-nowrap flex-shrink-0">';
                   html += '<span class="badge ' + badgeClass + ' font-weight-bold px-2 py-1" style="font-size: 0.74rem;">' + qtyLabel + '</span>';
-                  html += '</div>';
-                  html += '</div>';
-                });
-              }
-
-              if (res.sub_new_products && res.sub_new_products.length > 0) {
-                html += '<div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #f0fdf4; font-size: 0.82rem; white-space: nowrap;">';
-                html += '<span class="text-success text-truncate"><i class="fas fa-sparkles mr-1"></i> ' + I18N_LAYOUT['layout.new_products'] + '</span>';
-                html += '<span class="badge badge-success font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px;">' + res.sub_new_products.length + ' ' + I18N_LAYOUT['layout.items_unit'] + '</span>';
-                html += '</div>';
-
-                res.sub_new_products.forEach(function(np) {
-                  var isRead = readKeys.includes('np_' + np.product_id);
-                  html += '<div id="notif_item_np_' + np.product_id + '" onclick="markItemAsRead(\'np_' + np.product_id + '\', \'subNotifBadge\')" class="dropdown-item py-2 px-3 border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden; opacity: ' + (isRead ? '0.55' : '1') + ';">';
-                  html += '<div class="d-flex align-items-center text-nowrap mr-2" style="overflow: hidden; text-overflow: ellipsis; min-width: 0;">';
-                  html += '<i class="fas fa-sparkles text-success mr-1.5" style="font-size: 0.82rem;"></i>';
-                  html += '<span class="text-dark font-weight-bold text-truncate" style="font-size: 0.82rem;" title="' + (np.product_name || '') + '">' + (np.product_name || '') + '</span>';
-                  html += '</div>';
-                  html += '<div class="text-nowrap flex-shrink-0">';
-                  html += '<span class="badge badge-light border text-dark font-weight-bold" style="font-size: 0.76rem;">' + (parseInt(np.price || 0).toLocaleString()) + ' <?php echo kipSymbol(); ?></span>';
                   html += '</div>';
                   html += '</div>';
                 });

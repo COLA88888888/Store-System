@@ -22,8 +22,9 @@ $currentReportType = trim($_GET['type'] ?? 'all_sales');
 $reqAction = $_REQUEST['action'] ?? '';
 
 if ($reqAction !== 'get_bill_details') {
-    if ($currentReportType === 'item_sales') {
-        if (!hasPermission('item_sales') && !hasPermission('sale') && !hasPermission('report') && !hasPermission('pos')) {
+    // ໜ້າທີ່ມີສະວິດຂອງຕົນເອງໃນໜ້າກຳນົດສິດ: ກວດສະເພາະສະວິດນັ້ນ (ປິດ = ເຂົ້າບໍ່ໄດ້ ເຖິງມີສິດ report/sale)
+    if (in_array($currentReportType, ['item_sales', 'all_sales', 'delete_bills'], true)) {
+        if (!hasPermission($currentReportType)) {
             echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
             exit();
         }

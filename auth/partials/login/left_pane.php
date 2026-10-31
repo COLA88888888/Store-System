@@ -47,7 +47,7 @@
                     <!-- Header Title: WlaoDev POS ສຳລັບທຸລະກິດທ່ານ -->
                     <div class="login-title-group">
                         <h3 class="login-title-main">
-                            <span class="brand-blue">WlaoDev POS</span> <span class="brand-purple">ສຳລັບທຸລະກິດທ່ານ</span>
+                            <span class="brand-blue">WlaoDev POS</span> <span class="brand-purple"><?php echo tlh('ສຳລັບທຸລະກິດທ່ານ'); ?></span>
                         </h3>
                     </div>
 
@@ -88,7 +88,7 @@
                 <!-- Bottom Info & Social Links -->
                 <div class="login-pane-footer">
                     <div class="login-pane-note">
-                        ລະບົບບໍລິຫານຈັດການຮ້ານຄ້າ ແລະ ຈຸດຂາຍທັນສະໄໝ WlaoDev POS
+                        <?php echo tlh('ລະບົບບໍລິຫານຈັດການຮ້ານຄ້າ ແລະ ຈຸດຂາຍທັນສະໄໝ'); ?> WlaoDev POS
                     </div>
                     <div class="login-pane-links">
                         <span>&copy; 2026 <a href="https://laodev.la/" target="_blank" rel="noopener noreferrer">LaoDev.la</a></span>

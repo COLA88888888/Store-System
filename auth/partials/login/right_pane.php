@@ -9,22 +9,22 @@
                 <!-- 4 ປ້າຍຟີເຈີລະບົບພ້ອມເອັບເຟັກ Shimmer & 3D Wave -->
                 <div class="cartoon-badge badge-1">
                     <span class="cb-icon"><i class="fas fa-barcode"></i></span>
-                    <span>ຂາຍໜ້າຮ້ານວ່ອງໄວ</span>
+                    <span><?php echo tlh('ຂາຍໜ້າຮ້ານວ່ອງໄວ'); ?></span>
                 </div>
 
                 <div class="cartoon-badge badge-2">
                     <span class="cb-icon"><i class="fas fa-boxes"></i></span>
-                    <span>ຕັດສະຕັອກອັດຕະໂນມັດ</span>
+                    <span><?php echo tlh('ຕັດສະຕັອກອັດຕະໂນມັດ'); ?></span>
                 </div>
 
                 <div class="cartoon-badge badge-3">
                     <span class="cb-icon"><i class="fas fa-chart-pie"></i></span>
-                    <span>ລາຍງານກຳໄລ Real-Time</span>
+                    <span><?php echo tlh('ລາຍງານກຳໄລ'); ?> Real-Time</span>
                 </div>
 
                 <div class="cartoon-badge badge-4">
                     <span class="cb-icon"><i class="fas fa-store-alt"></i></span>
-                    <span>ຮອງຮັບຫຼາຍສາຂາ</span>
+                    <span><?php echo tlh('ຮອງຮັບຫຼາຍສາຂາ'); ?></span>
                 </div>
 
                 <!-- ກະຕູນສັດໜ້າຮັກ (ແມວມະຫາເສດຖີ Superhero ຫຼາຍມື) ເຄື່ອນທີ່ຈັບຄອມ ຈັບເງິນ ຈັບເຄື່ອງຍິງບາໂຄ້ດ ຈັບບິນ -->
@@ -95,6 +95,19 @@
                                 <stop offset="50%" stop-color="#38BDF8" stop-opacity="0.38"/>
                                 <stop offset="100%" stop-color="#34D399" stop-opacity="0"/>
                             </linearGradient>
+                            <!-- Camera Photo Flash Gradients for Barcode Scanner -->
+                            <radialGradient id="cameraFlashGlow" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1"/>
+                                <stop offset="35%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+                                <stop offset="65%" stop-color="#E0F2FE" stop-opacity="0.65"/>
+                                <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+                            </radialGradient>
+                            <radialGradient id="cameraFlashAmbient" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85"/>
+                                <stop offset="40%" stop-color="#BAE6FD" stop-opacity="0.45"/>
+                                <stop offset="75%" stop-color="#38BDF8" stop-opacity="0.15"/>
+                                <stop offset="100%" stop-color="#38BDF8" stop-opacity="0"/>
+                            </radialGradient>
                         </defs>
 
                         <!-- ================= RISING MONEY FOUNTAIN STREAM ================= -->
@@ -133,6 +146,8 @@
                                 <line x1="23" y1="-18" x2="23" y2="-6" stroke="#0F172A" stroke-width="1.8"/>
                                 <line x1="28" y1="-18" x2="28" y2="-6" stroke="#0F172A" stroke-width="1.4"/>
                                 <line x1="33" y1="-18" x2="33" y2="-6" stroke="#0F172A" stroke-width="2"/>
+                                <!-- Barcode Tag Surface Flash Reflection -->
+                                <rect class="flash-barcode-overlay" x="0" y="-22" width="40" height="20" rx="3.5" fill="#FFFFFF"/>
                                 <!-- Laser Scan Beam -->
                                 <polygon class="anim-live-pill" points="26,18 2,-6 38,-6" fill="#EF4444" fill-opacity="0.4"/>
                                 <line x1="0" y1="-6" x2="40" y2="-6" stroke="#EF4444" stroke-width="2.4" stroke-linecap="round"/>
@@ -141,6 +156,17 @@
                                 <rect x="18" y="15" width="8" height="12" rx="2" fill="#0F172A"/>
                                 <path d="M36 29 L42 48 L52 46 L46 29 Z" fill="#1E293B" stroke="#94A3B8" stroke-width="1.2"/>
                                 <rect x="33" y="30" width="5" height="7" rx="2" fill="#FACC15"/>
+                                <!-- Camera Photo Flash Effect Burst (Centered on Barcode Tag at 20, -11) -->
+                                <g class="anim-camera-flash" transform="translate(20, -11)">
+                                    <circle class="flash-ambient" cx="0" cy="0" r="42" fill="url(#cameraFlashAmbient)"/>
+                                    <circle class="flash-ring" cx="0" cy="0" r="10" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
+                                    <circle class="flash-core" cx="0" cy="0" r="15" fill="url(#cameraFlashGlow)"/>
+                                    <g class="flash-star">
+                                        <path d="M0 -38 L 2.5 -4 L 38 0 L 2.5 4 L 0 38 L -2.5 4 L -38 0 L -2.5 -4 Z" fill="#FFFFFF"/>
+                                        <path d="M0 -24 L 1.8 -2.5 L 24 0 L 1.8 2.5 L 0 24 L -1.8 2.5 L -24 0 L -1.8 -2.5 Z" fill="#FFFFFF" fill-opacity="0.9" transform="rotate(45)"/>
+                                        <circle cx="0" cy="0" r="4.5" fill="#FFFFFF"/>
+                                    </g>
+                                </g>
                             </g>
                         </g>
 
@@ -344,40 +370,40 @@
                             <circle cx="19" cy="18" r="3" fill="#FCA5A5"/>
                             <circle cx="29" cy="18" r="3" fill="#FDE047"/>
                             <circle cx="39" cy="18" r="3" fill="#86EFAC"/>
-                            <text x="52" y="21" fill="#FFFFFF" font-size="8.5" font-weight="900" letter-spacing="0.3">WlaoDev POS • ລາຍງານ &amp; ກາຟວິເຄາະລະອຽດ</text>
+                            <text x="52" y="21" fill="#FFFFFF" font-size="8.5" font-weight="900" letter-spacing="0.3">WlaoDev POS • <?php echo tlh('ລາຍງານ &amp; ກາຟວິເຄາະລະອຽດ'); ?></text>
                             <rect class="anim-live-pill" x="268" y="13" width="32" height="10" rx="5" fill="#10B981"/>
                             <text x="284" y="20" fill="#FFFFFF" font-size="6" font-weight="900" text-anchor="middle">LIVE</text>
 
                             <!-- 2. Top 3 KPI Summary Cards (Numbers Tick Live via JS!) -->
                             <!-- KPI 1: Total Sales -->
                             <rect x="16" y="33" width="90" height="27" rx="5" fill="#1E293B" stroke="#38BDF8" stroke-width="1"/>
-                            <text x="22" y="43" fill="#94A3B8" font-size="6.2" font-weight="700">ຍອດຂາຍລວມ</text>
+                            <text x="22" y="43" fill="#94A3B8" font-size="6.2" font-weight="700"><?php echo tlh('ຍອດຂາຍລວມ'); ?></text>
                             <text id="svgLiveSales" x="22" y="55" fill="#38BDF8" font-size="9.2" font-weight="900">48,500,000 <?php echo kipSymbol(); ?></text>
                             <rect x="84" y="37" width="18" height="8" rx="3" fill="#064E3B"/>
                             <text x="93" y="43" fill="#34D399" font-size="5.5" font-weight="900" text-anchor="middle">+24%</text>
 
                             <!-- KPI 2: Net Profit -->
                             <rect x="113" y="33" width="90" height="27" rx="5" fill="#1E293B" stroke="#4ADE80" stroke-width="1"/>
-                            <text x="119" y="43" fill="#94A3B8" font-size="6.2" font-weight="700">ກຳໄລສຸດທິ</text>
+                            <text x="119" y="43" fill="#94A3B8" font-size="6.2" font-weight="700"><?php echo tlh('ກຳໄລສຸດທິ'); ?></text>
                             <text id="svgLiveProfit" x="119" y="55" fill="#4ADE80" font-size="9.2" font-weight="900">14,200,000 <?php echo kipSymbol(); ?></text>
                             <rect x="181" y="37" width="18" height="8" rx="3" fill="#064E3B"/>
                             <text x="190" y="43" fill="#34D399" font-size="5.5" font-weight="900" text-anchor="middle">+18%</text>
 
                             <!-- KPI 3: Total Orders -->
                             <rect x="210" y="33" width="90" height="27" rx="5" fill="#1E293B" stroke="#FACC15" stroke-width="1"/>
-                            <text x="216" y="43" fill="#94A3B8" font-size="6.2" font-weight="700">ບິນຂາຍມື້ນີ້</text>
-                            <text id="svgLiveBills" x="216" y="55" fill="#FDE047" font-size="9.5" font-weight="900">328 ໃບບິນ</text>
+                            <text x="216" y="43" fill="#94A3B8" font-size="6.2" font-weight="700"><?php echo tlh('ບິນຂາຍມື້ນີ້'); ?></text>
+                            <text id="svgLiveBills" x="216" y="55" fill="#FDE047" font-size="9.5" font-weight="900">328 <?php echo tlh('ໃບບິນ'); ?></text>
                             <circle class="anim-live-pill" cx="290" cy="47" r="5.5" fill="#F59E0B" fill-opacity="0.38"/>
                             <circle cx="290" cy="47" r="2.6" fill="#FDE047"/>
 
                             <!-- 3. Left Main Panel: Detailed Multi-Bar & Rising Trend Line Chart -->
                             <rect x="16" y="66" width="186" height="88" rx="6" fill="#0B1324" stroke="#334155" stroke-width="1"/>
-                            <text x="24" y="77" fill="#E2E8F0" font-size="6.8" font-weight="800">ກາຟຍອດຂາຍ &amp; ແນວໂນ້ມກຳໄລ (7 ວັນ)</text>
+                            <text x="24" y="77" fill="#E2E8F0" font-size="6.8" font-weight="800"><?php echo tlh('ກາຟຍອດຂາຍ &amp; ແນວໂນ້ມກຳໄລ (7 ວັນ)'); ?></text>
                             <!-- Legend Dots -->
                             <circle cx="152" cy="74.5" r="2.5" fill="#38BDF8"/>
-                            <text x="157" y="77" fill="#94A3B8" font-size="5.5" font-weight="700">ຍອດຂາຍ</text>
+                            <text x="157" y="77" fill="#94A3B8" font-size="5.5" font-weight="700"><?php echo tlh('ຍອດຂາຍ'); ?></text>
                             <circle cx="182" cy="74.5" r="2.5" fill="#4ADE80"/>
-                            <text x="187" y="77" fill="#94A3B8" font-size="5.5" font-weight="700">ກຳໄລ</text>
+                            <text x="187" y="77" fill="#94A3B8" font-size="5.5" font-weight="700"><?php echo tlh('ກຳໄລ'); ?></text>
 
                             <!-- Horizontal Chart Grid Lines -->
                             <line x1="24" y1="88" x2="194" y2="88" stroke="#1E293B" stroke-width="1" stroke-dasharray="2 2"/>
@@ -415,17 +441,17 @@
                             <circle class="anim-peak-dot" cx="179" cy="76" r="3.6" fill="#FFFFFF" stroke="#F59E0B" stroke-width="1.6"/>
 
                             <!-- X-Axis Labels -->
-                            <text x="36" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle">ຈັນ</text>
-                            <text x="60" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle">ອັງຄານ</text>
-                            <text x="84" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle">ພຸດ</text>
-                            <text x="108" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle">ພະຫັດ</text>
-                            <text x="132" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle">ສຸກ</text>
-                            <text x="156" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle">ເສົາ</text>
-                            <text x="180" y="147" fill="#FDE047" font-size="5.5" font-weight="800" text-anchor="middle">ອາທິດ</text>
+                            <text x="36" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle"><?php echo tlh('ຈັນ'); ?></text>
+                            <text x="60" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle"><?php echo tlh('ອັງຄານ'); ?></text>
+                            <text x="84" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle"><?php echo tlh('ພຸດ'); ?></text>
+                            <text x="108" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle"><?php echo tlh('ພະຫັດ'); ?></text>
+                            <text x="132" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle"><?php echo tlh('ສຸກ'); ?></text>
+                            <text x="156" y="147" fill="#64748B" font-size="5.5" font-weight="700" text-anchor="middle"><?php echo tlh('ເສົາ'); ?></text>
+                            <text x="180" y="147" fill="#FDE047" font-size="5.5" font-weight="800" text-anchor="middle"><?php echo tlh('ອາທິດ'); ?></text>
 
                             <!-- 4. Right Panel on Screen: Continuous Rotating Donut Chart & Dynamic Bars -->
                             <rect x="208" y="66" width="92" height="88" rx="6" fill="#0B1324" stroke="#334155" stroke-width="1"/>
-                            <text x="254" y="77" fill="#E2E8F0" font-size="6.5" font-weight="800" text-anchor="middle">ສັດສ່ວນສິນຄ້າຂາຍດີ</text>
+                            <text x="254" y="77" fill="#E2E8F0" font-size="6.5" font-weight="800" text-anchor="middle"><?php echo tlh('ສັດສ່ວນສິນຄ້າຂາຍດີ'); ?></text>
 
                             <!-- Multi-Segment Continuous Spinning Donut Chart -->
                             <g class="anim-donut-ring">

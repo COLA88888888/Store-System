@@ -50,6 +50,25 @@
         addCurrentItemToCart();
       }
     }
+    // ປ່ຽນສາຂາຕົ້ນທາງ ຫຼື ວັນທີໂອນ -> ອັບເດດເລກທີໃບໂອນ
+    $('#from_store_id').on('change', function() {
+      var sid = $(this).val();
+      if (sid && sid != '<?php echo $sourceStoreId; ?>') {
+        window.location.href = 'stock_transfer.php?from_store=' + sid;
+      }
+    });
+
+    $('#transfer_date').on('change', function() {
+      var sid = $('#from_store_id').val();
+      var dt = $(this).val();
+      if (sid) {
+        $.getJSON('../../api/stock_transfer_backend.php?action=get_next_transfer_code&store_id=' + sid + '&date=' + encodeURIComponent(dt || ''), function(res) {
+          if (res && res.success && res.transfer_code) {
+            $('#transfer_code_preview').val(res.transfer_code);
+          }
+        });
+      }
+    });
   });
 
   function onDirectBarcodeChange() {
@@ -391,7 +410,7 @@
     var fromStore = $('#from_store_id').val();
     
     Swal.fire({
-      title: 'ກຳລັງກວດສອບຂໍ້ມູນສິນຄ້າ...',
+      title: '<?php echo tlj('ກຳລັງກວດສອບຂໍ້ມູນສິນຄ້າ...'); ?>',
       allowOutsideClick: false,
       didOpen: function() {
         Swal.showLoading();
@@ -411,10 +430,10 @@
         if (!res.success) {
           Swal.fire({
             icon: 'error',
-            title: 'ບໍ່ສາມາດໂອນສິນຄ້າໄດ້',
-            html: '<div style="text-align: left; font-size: 0.92rem; max-height: 250px; overflow-y: auto; white-space: pre-line; color: #b91c1c; background: #fef2f2; padding: 12px; border-radius: 8px; border: 1px solid #fecaca;">' + escapeHtml(res.message) + '</div><div class="mt-2 text-muted small text-left">* ສາຂາປາຍທາງຕ້ອງມີສິນຄ້າດຽວກັນ, ປະເພດສິນຄ້າດຽວກັນ ແລະ ຫົວໜ່ວຍດຽວກັນ ຈຶ່ງສາມາດໂອນໄດ້.</div>',
+            title: '<?php echo tlj('ບໍ່ສາມາດໂອນສິນຄ້າໄດ້'); ?>',
+            html: '<div style="text-align: left; font-size: 0.92rem; max-height: 250px; overflow-y: auto; white-space: pre-line; color: #b91c1c; background: #fef2f2; padding: 12px; border-radius: 8px; border: 1px solid #fecaca;">' + escapeHtml(res.message) + '</div><div class="mt-2 text-muted small text-left">* <?php echo tlj('ສາຂາປາຍທາງຕ້ອງມີສິນຄ້າດຽວກັນ, ປະເພດສິນຄ້າດຽວກັນ ແລະ ຫົວໜ່ວຍດຽວກັນ ຈຶ່ງສາມາດໂອນໄດ້.'); ?></div>',
             confirmButtonColor: '#2563eb',
-            confirmButtonText: 'ຮັບຊາບ'
+            confirmButtonText: '<?php echo tlj('ຮັບຊາບ'); ?>'
           });
           return;
         }

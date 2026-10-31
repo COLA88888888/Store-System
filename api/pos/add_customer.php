@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $c_notes       = trim($_POST['notes'] ?? '');
 
     if (empty($c_name)) {
-        echo json_encode(['success' => false, 'message' => 'ກະລຸນາປ້ອນຊື່ລູກຄ້າ!']);
+        echo json_encode(['success' => false, 'message' => tl('ກະລຸນາປ້ອນຊື່ລູກຄ້າ!')]);
         exit();
     }
 
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         ]);
         exit();
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'ຜິດພາດ: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => (tl('ຜິດພາດ:') . ' ') . $e->getMessage()]);
         exit();
     }
 }

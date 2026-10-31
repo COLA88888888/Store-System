@@ -19,7 +19,7 @@
       document.addEventListener('DOMContentLoaded', function() {
         Swal.fire({
           icon: '<?php echo $message_type === "success" ? "success" : ($message_type === "warning" ? "warning" : "error"); ?>',
-          title: '<?php echo $message_type === "success" ? "ສຳເລັດ" : "ແຈ້ງເຕືອນ"; ?>',
+          title: '<?php echo $message_type === "success" ? tl('ສຳເລັດ') : tl('ແຈ້ງເຕືອນ'); ?>',
           text: <?php echo json_encode($message); ?>,
           confirmButtonColor: '#2563eb'
         });

@@ -61,7 +61,12 @@
               <!-- Row 1: ປະເພດສິນຄ້າ & ລະຫັດສິນຄ້າ (Readonly) -->
               <div class="row">
                 <div class="col-md-7 mb-3">
-                  <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_category', 'ປະເພດສິນຄ້າ:')); ?> <span class="text-danger">*</span></label>
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <label class="font-weight-bold text-dark mb-0"><?php echo htmlspecialchars(t('products.field_category', 'ໝວດໝູ່:')); ?> <span class="text-danger">*</span></label>
+                    <a href="javascript:void(0)" onclick="quickAddCategoryPrompt('edit', this)" class="text-primary font-weight-bold" style="font-size: 0.78rem;" title="<?php echo htmlspecialchars(t('products_q.add_category_link', 'ເພີ່ມໝວດໝູ່')); ?>">
+                      <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_category_btn', 'ເພີ່ມໝວດ')); ?>
+                    </a>
+                  </div>
                   <select name="category_id" id="edit_category_id" class="form-control" style="border-radius: 6px; height: 40px;" required>
                     <?php foreach ($categories as $cat): ?>
                       <option value="<?php echo $cat['category_id']; ?>"><?php echo htmlspecialchars($cat['category_name']); ?></option>
@@ -76,7 +81,7 @@
 
               <!-- Row 2: ຊື່ສິນຄ້າ & ບາໂຄ້ດຫຼັກ -->
               <div class="row">
-                <div class="col-md-7 mb-3">
+                <div class="col-md-7 mb-3 mp-wide">
                   <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_product_name', 'ຊື່ສິນຄ້າ:')); ?> </label>
 <input type="text" name="product_name" id="edit_product_name" class="form-control" placeholder="<?php echo htmlspecialchars(t('products.product_name_placeholder', 'ປ້ອນຊື່ສິນຄ້າ...')); ?>" style="border-radius: 6px; height: 40px;" required>
                 </div>
@@ -98,8 +103,8 @@
                 <div class="<?php echo $isAdmin ? 'col-md-7' : 'col-md-12'; ?> mb-3">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="font-weight-bold text-dark mb-0"><?php echo htmlspecialchars(t('products.field_unit', 'ຫົວໜ່ວຍ:')); ?> <span class="text-danger">*</span></label>
-                    <a href="javascript:void(0)" onclick="quickAddUnitPrompt('edit')" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
-                      <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_unit_link')); ?>
+                    <a href="javascript:void(0)" onclick="quickAddUnitPrompt('edit')" class="text-primary font-weight-bold" style="font-size: 0.78rem;" title="<?php echo htmlspecialchars(t('products_q.add_unit_link', 'ເພີ່ມຫົວໜ່ວຍ')); ?>">
+                      <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_unit_btn', 'ເພີ່ມຫົວໜ່ວຍ')); ?>
                     </a>
                   </div>
                   <select name="unit_id" id="edit_unit" class="form-control" style="border-radius: 6px; height: 40px;" required>
@@ -111,8 +116,8 @@
                 </div>
                 <?php if ($isAdmin): ?>
                   <div class="col-md-5 mb-3">
-                    <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_qty', 'ຈຳນວນສະຕັອກ:')); ?></label>
-                    <input type="number" name="qty" id="edit_qty" class="form-control text-center font-weight-bold text-primary" placeholder="0" min="0" style="border-radius: 6px; height: 40px;">
+                    <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('products.field_qty_existing', 'ຈຳນວນສະຕັອກທີ່ມີຢູ່:')); ?></label>
+                    <input type="text" inputmode="numeric" name="qty" id="edit_qty" class="form-control text-center font-weight-bold text-primary no-spin" placeholder="0" oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="border-radius: 6px; height: 40px;">
                   </div>
                 <?php endif; ?>
               </div>
@@ -147,8 +152,9 @@
                       <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_zone_link')); ?>
                     </a>
                   </div>
-                  <select id="edit_zone" name="zone" class="form-control" style="border-radius: 6px; height: 40px;" onchange="onZoneSelectChange('edit')">
-                    <option value=""><?php echo htmlspecialchars(t('products.select_zone_placeholder', '-- ບໍ່ລະບຸ / ເລືອກໂຊນ --')); ?></option>
+                  <?php $hasZones = !empty($zones); $hasShelves = !empty($shelves); ?>
+                  <select id="edit_zone" name="zone" class="form-control" style="border-radius: 6px; height: 40px;" onchange="onZoneSelectChange('edit')" <?php echo !$hasZones ? 'disabled' : ''; ?>>
+                    <option value=""><?php echo htmlspecialchars($hasZones ? t('products.select_zone_placeholder', '-- ບໍ່ລະບຸ / ເລືອກໂຊນ --') : t('products_q.no_zone', '-- ບໍ່ມີຂໍ້ມູນໂຊນ --')); ?></option>
                     <?php foreach (($zones ?? []) as $z): ?>
                       <option value="<?php echo htmlspecialchars($z['zone_name']); ?>" data-id="<?php echo (int)$z['zone_id']; ?>"><?php echo htmlspecialchars($z['zone_name']); ?></option>
                     <?php endforeach; ?>
@@ -163,8 +169,8 @@
                       <i class="fas fa-plus mr-1"></i><?php echo htmlspecialchars(t('products_q.add_shelf_link')); ?>
                     </a>
                   </div>
-                  <select id="edit_shelf" name="shelf" class="form-control" style="border-radius: 6px; height: 40px;">
-                    <option value=""><?php echo htmlspecialchars(t('products.select_shelf_placeholder', '-- ບໍ່ລະບຸ / ເລືອກຊັ້ນວາງ --')); ?></option>
+                  <select id="edit_shelf" name="shelf" class="form-control" style="border-radius: 6px; height: 40px;" <?php echo !$hasShelves ? 'disabled' : ''; ?>>
+                    <option value=""><?php echo htmlspecialchars($hasShelves ? t('products.select_shelf_placeholder', '-- ບໍ່ລະບຸ / ເລືອກຊັ້ນວາງ --') : t('products_q.no_shelf', '-- ບໍ່ມີຂໍ້ມູນຊັ້ນວາງ --')); ?></option>
                     <?php foreach (($shelves ?? []) as $sh): ?>
                       <option value="<?php echo htmlspecialchars($sh['shelf_name']); ?>" data-zone-id="<?php echo (int)($sh['zone_id'] ?? 0); ?>" data-zone-name="<?php echo htmlspecialchars($sh['zone_name'] ?? ''); ?>"><?php echo htmlspecialchars($sh['shelf_name']); ?></option>
                     <?php endforeach; ?>

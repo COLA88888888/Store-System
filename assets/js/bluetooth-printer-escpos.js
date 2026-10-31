@@ -32,7 +32,7 @@
         ctx.drawImage(img, 0, 0);
         resolve(c);
       };
-      img.onerror = function () { reject(new Error('ໂຫຼດຮູບໃບບິນບໍ່ໄດ້')); };
+      img.onerror = function () { reject(new Error('' + (window.__tl||String)("ໂຫຼດຮູບໃບບິນບໍ່ໄດ້") + '')); };
       img.src = src;
     });
   }
@@ -102,10 +102,10 @@
     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
     ctx.fillStyle = '#000'; ctx.textAlign = 'center';
     ctx.font = 'bold 30px ' + font;
-    ctx.fillText('ທົດສອບເຄື່ອງພິມ', dots / 2, 50);
+    ctx.fillText('' + (window.__tl||String)("ທົດສອບເຄື່ອງພິມ") + '', dots / 2, 50);
     ctx.font = '22px ' + font;
-    ctx.fillText('ພິມໄດ້ປົກກະຕິ', dots / 2, 92);
-    ctx.fillText('ລາວ · ไทย · 中文 · English', dots / 2, 127);
+    ctx.fillText('' + (window.__tl||String)("ພິມໄດ້ປົກກະຕິ") + '', dots / 2, 92);
+    ctx.fillText('' + (window.__tl||String)("ລາວ") + ' · ไทย · 中文 · English', dots / 2, 127);
     ctx.fillText(printerName || '', dots / 2, 162);
     var d = new Date(), p2 = function (n) { return (n < 10 ? '0' : '') + n; };
     ctx.fillText(p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes()), dots / 2, 197);
@@ -130,7 +130,7 @@
     return server.getPrimaryServices().then(function (services) {
       var i = 0;
       function nextService() {
-        if (i >= services.length) throw new Error('ບໍ່ພົບຊ່ອງສົ່ງຂໍ້ມູນຂອງເຄື່ອງພິມນີ້ (ເຄື່ອງນີ້ອາດບໍ່ແມ່ນ BLE — ລອງແບບ COM port)');
+        if (i >= services.length) throw new Error('' + (window.__tl||String)("ບໍ່ພົບຊ່ອງສົ່ງຂໍ້ມູນຂອງເຄື່ອງພິມນີ້ (ເຄື່ອງນີ້ອາດບໍ່ແມ່ນ") + ' BLE — ' + (window.__tl||String)("ລອງແບບ COM port)") + '');
         var svc = services[i++];
         return svc.getCharacteristics().then(function (chars) {
           for (var k = 0; k < chars.length; k++) {

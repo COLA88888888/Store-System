@@ -96,6 +96,13 @@
         white-space: nowrap !important;
     }
 
+    /* ຊື່ເມນູທີ່ມີເມນູຍ່ອຍ: 01-base-navbar.css ບັງຄັບ display:flex !important (ແຮງກວ່າກົດເຊື່ອງຂ້າງເທິງ) →
+       <p> ຍັງກວ້າງ ~24px ແລະ ດັນໄອຄອນໄປຊ້າຍ ຈົນກວ່າຈະເອົາເມົາໄປຊີ້ (ກົດ :hover ແຮງກວ່າ). ເຊື່ອງດ້ວຍກົດທີ່ແຮງກວ່າ */
+    .sidebar-collapse .main-sidebar .nav-sidebar .has-treeview > .nav-link > p,
+    .sidebar-collapse .main-sidebar:hover .nav-sidebar .has-treeview > .nav-link > p {
+        display: none !important;
+    }
+
     .sidebar-collapse .main-sidebar .sidebar-footer {
         padding: 6px 0 !important;
         justify-content: center !important;

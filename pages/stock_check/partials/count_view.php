@@ -91,23 +91,23 @@ foreach ($scItems as $it) {
       <!-- ບັດສະຫຼຸບແບບກະທັດຮັດ ບໍ່ລາຍຕາ -->
       <div class="sc-kpi-grid mb-3">
         <!-- 1. ສິນຄ້າທັງໝົດ -->
-        <div class="sc-kpi sc-kpi-compact" style="--k: #2563eb;">
+        <div class="sc-kpi sc-kpi-compact" style="--k: #3b82f6; --k2: #1d4ed8;">
           <div><div class="sc-kpi-title"><?php echo $sc('sc.s037'); ?></div><div class="sc-kpi-val" id="scStatTotal">0</div></div>
           <div class="sc-kpi-icon"><i class="fas fa-boxes"></i></div>
         </div>
         <!-- 2. ນັບແລ້ວ -->
-        <div class="sc-kpi sc-kpi-compact" style="--k: #16a34a;">
+        <div class="sc-kpi sc-kpi-compact" style="--k: #10b981; --k2: #047857;">
           <div><div class="sc-kpi-title"><?php echo $sc('sc.s039'); ?></div><div class="sc-kpi-val" id="scStatCountedOnly">0</div></div>
           <div class="sc-kpi-icon"><i class="fas fa-check-circle"></i></div>
         </div>
         <!-- 3. ຍັງບໍ່ນັບ -->
-        <div class="sc-kpi sc-kpi-compact" style="--k: #64748b;">
+        <div class="sc-kpi sc-kpi-compact" style="--k: #64748b; --k2: #334155;">
           <div><div class="sc-kpi-title"><?php echo $sc('sc.s040'); ?></div><div class="sc-kpi-val" id="scStatUncountedBig">0</div></div>
           <div class="sc-kpi-icon"><i class="far fa-clock"></i></div>
         </div>
         <!-- 4. ບໍ່ຕົງກັບລະບົບ (ສະແດງສະເພາະຫົວໜ້າ/ຜູ້ບໍລິຫານ) -->
         <?php if ($scShowSystem): ?>
-        <div class="sc-kpi sc-kpi-compact" style="--k: #dc2626;">
+        <div class="sc-kpi sc-kpi-compact" style="--k: #f87171; --k2: #b91c1c;">
           <div><div class="sc-kpi-title"><?php echo $sc('sc.s041'); ?></div><div class="sc-kpi-val" id="scStatMismatchTotal">0</div></div>
           <div class="sc-kpi-icon"><i class="fas fa-exclamation-triangle"></i></div>
         </div>
@@ -242,8 +242,8 @@ foreach ($scItems as $it) {
                       data-pid="<?php echo htmlspecialchars((string)$it['product_id']); ?>"
                       data-barcode="<?php echo htmlspecialchars(strtolower((string)$it['barcode'])); ?>"
                       data-name="<?php echo htmlspecialchars(mb_strtolower((string)$it['product_name'])); ?>"
-                      data-zone="<?php echo htmlspecialchars(mb_strtolower($itZone !== '' ? $itZone : 'ບໍ່ລະບຸ')); ?>"
-                      data-shelf="<?php echo htmlspecialchars(mb_strtolower($itShelf !== '' ? $itShelf : 'ບໍ່ລະບຸ')); ?>"
+                      data-zone="<?php echo htmlspecialchars(mb_strtolower($itZone !== '' ? $itZone : tl('ບໍ່ລະບຸ'))); ?>"
+                      data-shelf="<?php echo htmlspecialchars(mb_strtolower($itShelf !== '' ? $itShelf : tl('ບໍ່ລະບຸ'))); ?>"
                       data-raw-zone="<?php echo htmlspecialchars(mb_strtolower($itZone)); ?>"
                       data-raw-shelf="<?php echo htmlspecialchars(mb_strtolower($itShelf)); ?>"
                       <?php if ($scShowSystem): ?>data-system="<?php echo $sysQty; ?>"
@@ -302,7 +302,7 @@ foreach ($scItems as $it) {
                             $__warn = $__down > 0 || count($__who) > 1;   // ຫຼຸດຕົວເລກລົງ ຫຼື ຫຼາຍຄົນແກ້ → ຄວນກວດ
                         ?>
                         <span class="badge <?php echo $__warn ? 'badge-warning' : 'badge-light border'; ?> mt-1" style="cursor: help;" title="<?php echo htmlspecialchars(implode("\n", $__lines)); ?>">
-                          <i class="fas fa-history mr-1"></i>ປ່ຽນ <?php echo count($__log); ?> ເທື່ອ<?php echo $__warn ? ' — ຄວນກວດ' : ''; ?>
+                          <i class="fas fa-history mr-1"></i><?php echo tlh('ປ່ຽນ'); ?> <?php echo count($__log); ?> <?php echo tlh('ເທື່ອ'); ?><?php echo $__warn ? (' — ' . tl('ຄວນກວດ')) : ''; ?>
                         </span>
                         <?php endif; ?>
                       <?php else: ?>

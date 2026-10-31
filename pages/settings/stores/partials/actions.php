@@ -108,23 +108,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Text fields are saved either way; a rejected image must say so instead of
                 // reporting plain success while the old logo keeps showing.
                 $imgErrors = array_filter([
-                    $logoErr !== '' ? 'ໂລໂກ້: ' . $logoErr : '',
+                    $logoErr !== '' ? (tl('ໂລໂກ້:') . ' ') . $logoErr : '',
                     $qrErr !== '' ? 'QR: ' . $qrErr : '',
                 ]);
                 if ($imgErrors) {
-                    $message = 'ບັນທຶກຂໍ້ມູນຮ້ານແລ້ວ ແຕ່ຮູບບໍ່ຖືກປ່ຽນ — ' . implode('; ', $imgErrors);
+                    $message = (tl('ບັນທຶກຂໍ້ມູນຮ້ານແລ້ວ ແຕ່ຮູບບໍ່ຖືກປ່ຽນ') . ' — ') . implode('; ', $imgErrors);
                     $message_type = 'warning';
                 } else {
-                    $message = 'ບັນທຶກຂໍ້ມູນຮ້ານຄ້າສຳເລັດແລ້ວ!';
+                    $message = tl('ບັນທຶກຂໍ້ມູນຮ້ານຄ້າສຳເລັດແລ້ວ!');
                     $message_type = 'success';
                 }
                 logActivity($pdo, "ແກ້ໄຂຂໍ້ມູນຮ້ານຄ້າ", $com_name_la);
             } catch (Exception $e) {
-                $message = 'ຜິດພາດ: ' . $e->getMessage();
+                $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                 $message_type = 'danger';
             }
         } else {
-            $message = 'ກະລຸນາປ້ອນຊື່ຮ້ານຄ້າ!';
+            $message = tl('ກະລຸນາປ້ອນຊື່ຮ້ານຄ້າ!');
             $message_type = 'warning';
         }
     }
@@ -178,16 +178,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
-                $message = "ອັບເດດຂໍ້ມູນບັນຊີທະນາຄານ \"$bank_name\" ສຳເລັດແລ້ວ!";
+                $message = ((("" . tl('ອັບເດດຂໍ້ມູນບັນຊີທະນາຄານ') . " \"$bank_name\" ")) . tl('ສຳເລັດແລ້ວ!') . "");
                 $message_type = "success";
             } else {
                 $stmt = $pdo->prepare("INSERT INTO st_bank_accounts (bank_name, account_number, account_name, bank_code, bank_logo, qr_code_img, is_active) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$bank_name, $account_number, $account_name, $bank_code, $bank_logo, $qr_code_img, $is_active]);
-                $message = "ເພີ່ມບັນຊີທະນາຄານ \"$bank_name\" ສຳເລັດແລ້ວ!";
+                $message = ((("" . tl('ເພີ່ມບັນຊີທະນາຄານ') . " \"$bank_name\" ")) . tl('ສຳເລັດແລ້ວ!') . "");
                 $message_type = "success";
             }
         } catch (Exception $e) {
-            $message = "ຜິດພາດ: " . $e->getMessage();
+            $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
             $message_type = "danger";
         }
     }
@@ -217,10 +217,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                $message = "ລົບບັນຊີທະນາຄານສຳເລັດແລ້ວ!";
+                $message = tl('ລົບບັນຊີທະນາຄານສຳເລັດແລ້ວ!');
                 $message_type = "success";
             } catch (Exception $e) {
-                $message = "ຜິດພາດ: " . $e->getMessage();
+                $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                 $message_type = "danger";
             }
         }

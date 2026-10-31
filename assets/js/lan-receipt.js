@@ -220,9 +220,9 @@
   }
 
   // ==========================================
-  // RECEIPT_CSS ສຳລັບ LAN: 
-  // - ໂລໂກ້ ແລະ ຫົວຂໍ້ຮ້ານຄົງຢູ່ເຄິ່ງກາງປົກກະຕິ (ບໍ່ຖືກຍັບ)
-  // - ເສັ້ນຂີດປະ ແລະ ຕາຕະລາງລາຍການ ຍັບຊ້າຍ 2 ຂີດ (-12px) ແລະ ຂະຫຍາຍຂວາ 2 ຂີດ (width calc(100% + 12px)) ພໍດີເປະ ບໍ່ຕັດໜັງສື
+  // RECEIPT_CSS: ໂຄງຮ່າງບິນດຽວ (ແບບບິນພິມຜ່ານ browser) ໃຊ້ຮ່ວມກັນທຸກຊ່ອງທາງ —
+  // browser, LAN, USB ແລະ Bluetooth ຈຶ່ງພິມອອກມາເປັນບິນໜ້າຕາດຽວກັນ.
+  // ຫ້າມເພີ່ມ CSS ສະເພາະຊ່ອງທາງໃດໜຶ່ງ ບໍ່ດັ່ງນັ້ນບິນຈະອອກມາບໍ່ຄືກັນອີກ.
   // ==========================================
   var RECEIPT_CSS =
     ' *{box-sizing:border-box;font-family:"Receipt Lao","Receipt Latin",Arial,sans-serif !important;color:#000 !important;}' +
@@ -237,19 +237,7 @@
     ' .mt-2{margin-top:8px !important;}' +
     ' .text-muted{color:#000 !important;font-weight:400 !important;}' +
     ' .receipt-header-address,.receipt-header-tel{font-size:15px !important;font-weight:400 !important;color:#000 !important;line-height:1.4 !important;}' +
-    
-    // ຍັບສະເພາະເນື້ອໃນຕາຕະລາງ ແລະ ເສັ້ນຂີດປະ (ຊ້າຍ -12px, ຂວາ +12px)
-    ' div[style*="dashed"],.rc-divider{border-top:1px dashed #000 !important;margin:6px 0 !important;margin-left:-12px !important;width:calc(100% + 12px) !important;}' +
-    ' tr.rc-strong{border-top:none !important;border-bottom:none !important;}' +
-    ' thead tr, tr:first-child th { border-bottom: 1px dashed #000 !important; padding-bottom: 4px !important; }' +
-    ' th [style*="dashed"],th .rc-divider,.receipt-qr-box [style*="dashed"],.receipt-qr-box .rc-divider{display:none !important;}' +
-    
-    ' .receipt-meta,table,#rc_payment_rows,#rc_rep_payment_rows,.rc-sum-wrap,.rc-change-wrap,#rc_multicur,#rc_rep_multicur,.receipt-qr-box,.receipt-footer-msg,.rc-sum,.rc-net{margin-left:-12px !important;width:calc(100% + 12px) !important;}' +
-    
-    // ຫົວຂໍ້ ແລະ ໂລໂກ້ ໃຫ້ຢູ່ເຄິ່ງກາງປົກກະຕິ
-    ' .receipt-header-block{margin-left:0px !important;width:100% !important;text-align:center !important;}' +
-    
-    ' .receipt-footer-msg{font-size:15px !important;font-weight:400 !important;color:#000 !important;margin-top:10px !important;padding-top:8px !important;text-align:center !important;margin-left:-12px !important;width:calc(100% + 12px) !important;}' +
+    ' .receipt-footer-msg{font-size:15px !important;font-weight:400 !important;color:#000 !important;margin-top:10px !important;padding-top:8px !important;text-align:center !important;}' +
     ' img.receipt-logo{max-width:90px !important;max-height:90px !important;height:auto !important;display:block !important;margin:0 auto 12px auto !important;object-fit:contain !important;}' +
     ' img.receipt-qr-img{width:50% !important;max-width:50% !important;max-height:none !important;height:auto !important;display:block;margin:6px auto 2px auto !important;object-fit:contain !important;}' +
     ' table{width:100%;border-collapse:collapse;margin:4px 0;font-size:15px !important;color:#000 !important;}' +
@@ -257,30 +245,36 @@
     ' th{font-weight:400 !important;}' +
     ' .rc-strong,.rc-strong *{font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}' +
     ' .rc-sum,.rc-sum *{font-size:15px !important;font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}' +
-    ' .rc-net,.rc-net *{font-size:17px !important;font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}';
+    ' .rc-net,.rc-net *{font-size:17px !important;font-weight:400 !important;-webkit-text-stroke:0.25px #000 !important;}' +
 
-  var BT_EXTRA_CSS =
-    ' *{letter-spacing:0px !important;}' +
-    ' body,.rcpt-root{line-height:1.45 !important;}' +
-    ' .rc-strong,.rc-strong *{font-weight:400 !important;-webkit-text-stroke:0.3px #000 !important;}' +
-    ' .receipt-header-address,.receipt-header-tel{line-height:1.38 !important;margin-top:2px !important;}' +
-    ' .d-flex{padding:1px 0 !important;line-height:1.42 !important;}' +
-    ' [style*="dashed"]{margin:6px 0 !important;}' +
-    ' table{margin:4px 0 !important;}' +
-    ' td,th{padding:3px 0 !important;line-height:1.38 !important;}' +
-    ' td:first-child,th:first-child{padding-right:4px !important;}' +
-    ' .receipt-qr-box{margin:6px 0 !important;padding-top:6px !important;}' +
-    ' .receipt-footer-msg{margin-top:8px !important;padding-top:7px !important;line-height:1.42 !important;}';
+    // ເສັ້ນຂີດປະ ແລະ ເນື້ອໃນ: ບໍ່ຍັບຊ້າຍ, ຫົດຂວາ 2px ໃຫ້ເສັ້ນຂີດປະ ແລະ ໜັງສືຝັ່ງຂວາບໍ່ຂາດ
+    ' div[style*="dashed"],.rc-divider{border-top:1px dashed #000 !important;margin:2px 0 !important;margin-left:0px !important;width:calc(100% - 2px) !important;}' +
+    ' tr.rc-strong{border-top:none !important;border-bottom:none !important;}' +
+    ' thead tr,tr:first-child th{border-bottom:1px dashed #000 !important;padding-bottom:4px !important;}' +
+    ' th [style*="dashed"],th .rc-divider,.receipt-qr-box [style*="dashed"],.receipt-qr-box .rc-divider{display:none !important;}' +
+    ' .receipt-meta,table,#rc_payment_rows,#rc_rep_payment_rows,.rc-sum-wrap,.rc-change-wrap,#rc_multicur,#rc_rep_multicur,.receipt-qr-box,.receipt-footer-msg,.rc-sum,.rc-net{margin-left:0px !important;width:calc(100% - 2px) !important;}' +
+    // ຫົວຂໍ້ ແລະ ໂລໂກ້ ຢູ່ເຄິ່ງກາງ
+    ' .receipt-header-block{margin-left:0px !important;width:100% !important;text-align:center !important;}';
+
+  // ສະເພາະບິນ Bluetooth: ເຄື່ອງ Bluetooth ພິມທັງບິນເຫຼື່ອມໄປຂວາ 1 ຂີດ (ເສັ້ນຂີດປະເກີນຂວາ 1 ຂີດ) →
+  // ຍ້າຍທັງບິນ (ເສັ້ນຂີດປະ + ໜັງສື) ໄປຊ້າຍ 1 ຂີດ: ປາຍຂວາສັ້ນລົງ 1 ຂີດ, ທາງຊ້າຍເພີ່ມ 1 ຂີດ, ໜັງສືໄປຕາມເສັ້ນ.
+  // 1 ຂີດ + ຊ່ອງ ≈ 10 ຈຸດ ທີ່ຫົວພິມ 576 ຈຸດ (ຫົວພິມ 384 ຈຸດ ຫຍໍ້ຕາມສ່ວນ). browser/LAN/USB ບໍ່ກະທົບ.
+  var BT_SHIFT_DOTS_576 = -10;
 
   var INK_THRESHOLD = 155;
-  var BT_INK_THRESHOLD = 148;
   var PAPER_LUM = 250;
+  // ຂອບຊ້າຍຂອງບິນ (padding-left ຂອງໂຄງຮ່າງ): 12px. 5px ≈ 1 ຂີດ: ເພີ່ມ 5px → ທຸກເສັ້ນຂີດປະສັ້ນລົງທາງຊ້າຍ 1 ຂີດ
+  // ແລະ ໜັງສືຝັ່ງຊ້າຍຍັບເຂົ້າໄປນຳ (ທຸກຊ່ອງທາງ: browser ເປັນຫຼັກ, LAN/USB/Bluetooth ຄືກັນ).
+  // ທົດລອງມາແລ້ວ: 7px ແລະ 2px ໜັງສືຊ້າຍມືອອກໄປໃກ້ຂອບເຈ້ຍເກີນ.
+  var RECEIPT_PAD_LEFT = 12;
+  // ບິນຖືກຈັດເຄິ່ງກາງເຈ້ຍ (centerShift) → ເນື້ອໃນກວ້າງ/ແຄບລົງ 1 ຂີດ ຈະເລື່ອນເຄິ່ງຂີດ; ຊົດເຊີຍ 5 ຈຸດ (ທີ່ 576 ຈຸດ)
+  // ຕໍ່ 1 ຂີດ ທີ່ປ່ຽນຈາກ 12px ເພື່ອໃຫ້ປາຍຂວາຢູ່ບ່ອນເດີມ (12px → 0).
   var PRINT_SHIFT_DOTS = 0;
   function paperDots(widthPx) { return widthPx <= 240 ? 384 : 576; }
   function svgHeight(h) { return Math.ceil(h * 1.65) + 140; }
   function inkCanvas(svgImg, widthPx, h, targetDots) {
     var dots = targetDots || paperDots(widthPx), scale = dots / widthPx;
-    var thr = targetDots ? BT_INK_THRESHOLD : INK_THRESHOLD;
+    var thr = INK_THRESHOLD;
     var canvas = document.createElement('canvas');
     canvas.width = dots;
     canvas.height = Math.ceil(h * scale);
@@ -310,12 +304,13 @@
     var octx = out.getContext('2d');
     octx.fillStyle = '#ffffff';
     octx.fillRect(0, 0, out.width, out.height);
-    octx.putImageData(d, centerShift(p, w, keep, !!targetDots), 0, 0, 0, w, keep);
+    var btShift = targetDots ? Math.round(BT_SHIFT_DOTS_576 * w / 576) : 0;
+    octx.putImageData(d, centerShift(p, w, keep, btShift), 0, 0, 0, w, keep);
     out.__inkCount = ink;
     return out;
   }
 
-  function centerShift(p, w, rows, isBt) {
+  function centerShift(p, w, rows, extraShift) {
     var minX = w, maxX = -1;
     for (var y = 0; y < rows; y++) {
       for (var x = 0; x < w; x++) {
@@ -327,7 +322,7 @@
     }
     if (maxX < 0) return 0;
     var inkW = maxX - minX + 1;
-    var left = isBt ? 0 : (Math.round((w - inkW) / 2) + PRINT_SHIFT_DOTS);
+    var left = Math.round((w - inkW) / 2) + Math.round(PRINT_SHIFT_DOTS * w / 576) + (extraShift || 0);
     left = Math.max(0, Math.min(w - inkW, left));
     return left - minX;
   }
@@ -391,8 +386,7 @@
 
   function renderReceipt(source, widthPx, basePath, extraCss, targetDots) {
     if (!source) return Promise.reject(new Error('no receipt element'));
-    var pad = targetDots ? '4px 8px 4px 12px' : '4px 8px 8px 12px';
-    var renderCss = 'width:' + widthPx + 'px;background:#fff;margin:0;padding:' + pad + ';box-sizing:border-box;';
+    var renderCss = 'width:' + widthPx + 'px;background:#fff;margin:0;padding:4px 8px 8px ' + RECEIPT_PAD_LEFT + 'px;box-sizing:border-box;';
     var clone = source.cloneNode(true);
     clone.removeAttribute('id');
     clone.style.cssText = 'position:fixed;left:-99999px;top:0;display:block;' + renderCss;
@@ -417,7 +411,7 @@
       var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + widthPx + '" height="' + h + '">' +
         '<foreignObject width="100%" height="100%">' +
         '<div xmlns="http://www.w3.org/1999/xhtml" class="rcpt-root">' +
-        '<style>' + fontCss + RECEIPT_CSS + (targetDots ? BT_EXTRA_CSS : '') + (extraCss || '') + '</style>' +
+        '<style>' + fontCss + RECEIPT_CSS + (extraCss || '') + '</style>' +
         html +
         '</div></foreignObject></svg>';
       var svgUri = 'data:image/svg+xml;charset=utf-8;base64,' + btoa(unescape(encodeURIComponent(svg)));
@@ -455,8 +449,10 @@
     try { coarse = !!(window.matchMedia && window.matchMedia('(any-pointer: coarse)').matches); } catch (e) {}
     return touch && coarse;
   }
+  // ບິນທຸກເຄື່ອງ (ລວມເຄື່ອງທີ່ມີເຄື່ອງພິມໃນໂຕ) ແຕ້ມດ້ວຍຄວາມກວ້າງດຽວກັບບິນ browser ໃນຄອມ —
+  // ເມື່ອກ່ອນເຄື່ອງ Android ໃຊ້ 219px (58mm) ເຮັດໃຫ້ໜັງສືຕັດແຖວຕ່າງຈາກ browser. ເຄື່ອງພິມ 58mm ຈະຫຍໍ້ຮູບລົງເອງ (width:100%).
   function dialogPaperPx(paperWidth) {
-    return isAndroid() && isBuiltInPrinterDevice() ? paperPx(58) : paperPx(paperWidth);
+    return paperPx(paperWidth);
   }
   var FIT_PRINT_SHIFT_MM = -1.5;
 
@@ -503,7 +499,7 @@
   function print(source, printer, opts) {
     opts = opts || {};
     var basePath = opts.basePath || '../../';
-    if (!printer || printer.printer_type !== 'ip') {
+    if (!printer || (printer.printer_type !== 'ip' && printer.printer_type !== 'usb')) {
       return Promise.resolve({ success: false, message: 'no receipt printer' });
     }
     if (isPagePaper(printer.paper_width)) {
@@ -515,7 +511,7 @@
         url: basePath + 'api/pos_backend.php',
         type: 'POST',
         dataType: 'json',
-        data: { action: 'print_lan_ticket', printer_id: printer.printer_id, image: dataUri }
+        data: { action: 'print_lan_ticket', printer_id: printer.printer_id, image: dataUri, bw: 1 }
       });
     }).then(function (res) {
       return { success: !!(res && res.success), message: (res && res.message) || '' };

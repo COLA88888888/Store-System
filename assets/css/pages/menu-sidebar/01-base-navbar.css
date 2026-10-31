@@ -14,10 +14,12 @@
 }
 body {
     font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif !important;
+    letter-spacing: 0.022em;
 }
 html, body, .nav-link, .brand-text, h1, h2, h3, h4, h5, h6,
 .btn, .form-control, .card-title {
     font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif !important;
+    letter-spacing: 0.022em;
 }
 /* Keep Font Awesome Icons working */
 .fas, .far, .fa {
@@ -27,6 +29,19 @@ html, body, .nav-link, .brand-text, h1, h2, h3, h4, h5, h6,
 .fab {
     font-family: "Font Awesome 5 Brands" !important;
     font-weight: 400 !important;
+}
+
+/* === Prevent the sidebar list from flex-wrapping into a second (invisible) column ===
+   ul.nav-sidebar is "display:flex; flex-direction:column" (Bootstrap .nav + AdminLTE's
+   flex-column) and inherits Bootstrap's default flex-wrap:wrap. Once a tall treeview (ລາຍງານ,
+   10 items) opens and pushes the list's content height past an implicit threshold, the flex
+   engine starts wrapping overflow into a 2nd column — clipped by overflow:hidden so nothing
+   visibly duplicates, but EVERY row (including ones with no reason to move, like ຂາຍສິນຄ້າ POS
+   above it) gets recomputed a few px wider, which shifts the absolutely-positioned .right
+   chevron sideways on every row. Smaller treeviews never cross that threshold, so only the
+   big ones (ລາຍງານ) visibly do this. A plain vertical menu should never wrap into columns. */
+.main-sidebar .nav-sidebar {
+    flex-wrap: nowrap !important;
 }
 
 /* === Sidebar Menu Font Size (Bumped up for readability) === */
@@ -41,10 +56,65 @@ html, body, .nav-link, .brand-text, h1, h2, h3, h4, h5, h6,
     font-size: 1.3rem !important;
 }
 
-/* === Sidebar Menu Animation === */
-.nav-sidebar .menu-is-opening > .nav-link p > .right.fa-angle-right,
-.nav-sidebar .menu-open > .nav-link p > .right.fa-angle-right {
-    transform: rotate(90deg) !important;
+/* === Sidebar Menu Treeview Link & Pinned Chevron Arrow (Always visible across all languages) === */
+.main-sidebar .nav-sidebar .has-treeview > .nav-link {
+    position: relative !important;
+    padding-right: 36px !important;
+}
+
+.main-sidebar .nav-sidebar .has-treeview > .nav-link > p {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-bottom: 0 !important;
+    overflow: visible !important;
+}
+
+.main-sidebar .nav-sidebar .has-treeview > .nav-link > p > span {
+    display: inline-block !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    padding-right: 6px !important;
+}
+
+.main-sidebar .nav-sidebar .has-treeview > .nav-link .right,
+.main-sidebar .nav-sidebar .has-treeview > .nav-link p > .right {
+    position: absolute !important;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    transform-origin: center center !important;
+    width: 16px !important;
+    height: 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    visibility: visible !important;
+    opacity: 0.9 !important;
+    font-size: 0.88rem !important;
+    z-index: 5 !important;
+    pointer-events: none !important;
+    transition: transform 0.25s ease !important;
+}
+
+/* 90-degree Rotation when Opened */
+.main-sidebar .nav-sidebar .has-treeview.menu-is-opening > .nav-link .right,
+.main-sidebar .nav-sidebar .has-treeview.menu-is-opening > .nav-link p > .right,
+.main-sidebar .nav-sidebar .has-treeview.menu-open > .nav-link .right,
+.main-sidebar .nav-sidebar .has-treeview.menu-open > .nav-link p > .right {
+    transform: translateY(-50%) rotate(90deg) !important;
+}
+
+/* Hide when collapsed */
+body.sidebar-collapse .main-sidebar .has-treeview > .nav-link .right,
+body.sidebar-collapse .main-sidebar .has-treeview > .nav-link p > .right {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
 }
 
 /* === Logo Animation === */
@@ -277,6 +347,32 @@ html, body { overflow: hidden !important; height: 100% !important; }
 .main-sidebar .nav-icon { color: rgba(255,255,255,0.92) !important; }
 .main-sidebar .nav-link:hover .nav-icon,
 .main-sidebar .nav-link.active .nav-icon { color: #ffffff !important; }
+
+/* === Dropdown group header label must not run under the .right arrow ===
+   AdminLTE positions the ▸ chevron as position:absolute; right:1rem (relative to .nav-link),
+   so it never reflows the text next to it. The group label <span> (ຂາຍສິນຄ້າ POS, ລາຍງານ, ...)
+   has no reserved space, so a longer translation in another language overlaps the arrow instead
+   of stopping before it. Reserve the arrow's width and ellipsis the label so it never does.
+   .nav-link itself is switched to flex (icon + p side by side, like the treeview sub-item rows
+   already do below) instead of making <p> display:block — a block element breaks onto its own
+   line after the inline .nav-icon, which would push the whole label under the icon. */
+.main-sidebar .nav-sidebar > .nav-item.has-treeview > .nav-link {
+    display: flex !important;
+    align-items: center !important;
+}
+.main-sidebar .nav-sidebar > .nav-item.has-treeview > .nav-link > p {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    margin: 0;
+}
+.main-sidebar .nav-sidebar > .nav-item.has-treeview > .nav-link > p > span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding-right: 22px;
+}
 .main-sidebar .nav-treeview {
     background: rgba(0,0,0,0.08) !important;
     border-radius: 6px !important;
@@ -334,6 +430,10 @@ html, body { overflow: hidden !important; height: 100% !important; }
     margin-left: 0 !important;
     padding-left: 0 !important;
     margin-bottom: 0 !important;
+    /* ຊື່ເມນູຍ່ອຍຍາວ (ເຊັ່ນ ລາຍງານ ພາສາຫວຽດ) ຫ້າມດັນ sidebar ໃຫ້ກວ້າງ — ບໍ່ດັ່ງນັ້ນລູກສອນ .right ທຸກອັນຖືກດັນອອກນອກຈໍ */
+    flex: 1 1 auto;
+    min-width: 0;
+    text-overflow: ellipsis !important;
 }
 .dropdown-item, .dropdown-toggle { cursor: pointer !important; }
 

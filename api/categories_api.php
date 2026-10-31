@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/db.php';
 header('Content-Type: application/json');
 
 if (empty($_SESSION['user_id']) || (!hasPermission('categories'))) {
-    echo json_encode(['success' => false, 'message' => 'ບໍ່ມີສິດເຂົ້າເຖິງ']);
+    echo json_encode(['success' => false, 'message' => tl('ບໍ່ມີສິດເຂົ້າເຖິງ')]);
     exit();
 }
 

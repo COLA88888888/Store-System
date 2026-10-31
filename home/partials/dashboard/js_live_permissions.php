@@ -75,7 +75,7 @@
 
     if (!canView(cur, mods.join(','))) {
       // ສິດເບິ່ງໜ້ານີ້ຖືກປິດ → ໄປເມນູທຳອິດທີ່ຍັງມີສິດ (ຄລິກ ເພື່ອໃຫ້ js_layout.php ຕັ້ງ active / ຈື່ໜ້າ)
-      notify('warning', 'ສິດເຂົ້າໜ້ານີ້ຖືກປິດແລ້ວ');
+      notify('warning', '<?php echo tlj('ສິດເຂົ້າໜ້ານີ້ຖືກປິດແລ້ວ'); ?>');
       var link = firstAllowedLink();
       if (link) {
         link.click();
@@ -83,12 +83,12 @@
         var f = document.querySelector('iframe[name="frame"]');
         f.removeAttribute('src');
         f.srcdoc = '<div style="font-family:\'Noto Sans Lao\',sans-serif;text-align:center;padding:80px 20px;color:#64748b;">' +
-                   'ທ່ານບໍ່ມີສິດເຂົ້າເມນູໃດໃນຕອນນີ້ — ກະລຸນາຕິດຕໍ່ຜູ້ບໍລິຫານ</div>';
+                   '<?php echo tlj('ທ່ານບໍ່ມີສິດເຂົ້າເມນູໃດໃນຕອນນີ້'); ?> — <?php echo tlj('ກະລຸນາຕິດຕໍ່ຜູ້ບໍລິຫານ'); ?></div>';
       }
       return;
     }
     // ຍັງມີສິດເບິ່ງ ແຕ່ສິດເພີ່ມ/ແກ້ໄຂ/ລຶບ ປ່ຽນ → ໂຫຼດໜ້ານີ້ໃໝ່ ໃຫ້ປຸ່ມສະແດງ/ເຊື່ອງຕາມສິດໃໝ່
-    notify('info', 'ສິດຂອງທ່ານຖືກປັບປ່ຽນ — ໂຫຼດໜ້າໃໝ່');
+    notify('info', '<?php echo tlj('ສິດຂອງທ່ານຖືກປັບປ່ຽນ'); ?> — <?php echo tlj('ໂຫຼດໜ້າໃໝ່'); ?>');
     try { document.querySelector('iframe[name="frame"]').contentWindow.location.reload(); } catch (e) {}
   }
 

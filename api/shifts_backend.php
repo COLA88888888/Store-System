@@ -22,7 +22,7 @@ function respond($data) {
 }
 
 if (empty($_SESSION['checked']) || empty($_SESSION['user_id'])) {
-    respond(['success' => false, 'unauthenticated' => true, 'message' => 'ກະລຸນາເຂົ້າສູ່ລະບົບ']);
+    respond(['success' => false, 'unauthenticated' => true, 'message' => tl('ກະລຸນາເຂົ້າສູ່ລະບົບ')]);
 }
 
 $userId = intval($_SESSION['user_id'] ?? 0);
@@ -103,6 +103,8 @@ try {
         // 1. ສະຖານະກະປະຈຸບັນຂອງຮ້ານ/ສາຂາ (Current Shift Status)
         // ====================================================================
         case 'get_current_status': {
+            // ກະທີ່ໝົດໂມງ ແລະ ພະນັກງານບໍ່ອອນລາຍແລ້ວ → ປິດ + ສົ່ງລາຍງານເອງກ່ອນ (config/helpers/shift_auto.php)
+            shiftAutoCloseStale($pdo, $activeStoreId);
             // ກວດສອບວ່າມີກະທີ່ກຳລັງເປີດຢູ່ຫຼືບໍ່
             $stmtActive = $pdo->prepare("
                 SELECT * FROM st_shift_sessions 
@@ -170,21 +172,8 @@ try {
             $shiftOptions = [];
 
             foreach ($shifts as $s) {
-                $start = $s['start_time'];
-                $end = $s['end_time'];
-                $canOpen = false;
-
-                if ($start <= $end) {
-                    // ກະປົກກະຕິ (ເຊັ່ນ: 07:00 ຫາ 15:00)
-                    if ($nowTime >= $start) {
-                        $canOpen = true;
-                    }
-                } else {
-                    // ກະຂ້າມຄືນ (ເຊັ່ນ: 22:00 ຫາ 06:00)
-                    if ($nowTime >= $start || $nowTime <= $end) {
-                        $canOpen = true;
-                    }
-                }
+                // ຢູ່ໃນເວລາກະເທົ່ານັ້ນ (ເລີ່ມ ≤ ຕອນນີ້ < ສິ້ນສຸດ; ກະຂ້າມຄືນຮອງຮັບ) — ໝົດໂມງແລ້ວເປີດບໍ່ໄດ້
+                $canOpen = shiftIsOpenNow($s['start_time'], $s['end_time'], $nowTime);
 
                 if ($canOpen) {
                     $canOpenAny = true;
@@ -248,13 +237,13 @@ try {
             if ($existing) {
                 respond([
                     'success' => false,
-                    'message' => "ມີກະ \"{$existing['shift_name']}\" ກຳລັງເປີດໃຊ້ງານຢູ່ແລ້ວ! ບໍ່ສາມາດເປີດກະຊ້ອນກັນໄດ້"
+                    'message' => ("" . tl('ມີກະ') . " \"{$existing['shift_name']}\" " . tl('ກຳລັງເປີດໃຊ້ງານຢູ່ແລ້ວ! ບໍ່ສາມາດເປີດກະຊ້ອນກັນໄດ້') . "")
                 ]);
             }
 
             $shiftId = intval($_POST['shift_id'] ?? 0);
             if ($shiftId <= 0) {
-                respond(['success' => false, 'message' => 'ກະລຸນາເລືອກກະເຮັດວຽກ']);
+                respond(['success' => false, 'message' => tl('ກະລຸນາເລືອກກະເຮັດວຽກ')]);
             }
 
             // ດຶງຂໍ້ມູນກະ
@@ -262,40 +251,33 @@ try {
             $stmtS->execute([$shiftId, $activeStoreId]);
             $shift = $stmtS->fetch(PDO::FETCH_ASSOC);
             if (!$shift) {
-                respond(['success' => false, 'message' => 'ບໍ່ພົບຂໍ້ມູນກະເຮັດວຽກ ຫຼື ກະຖືກປິດໃຊ້ງານແລ້ວ']);
+                respond(['success' => false, 'message' => tl('ບໍ່ພົບຂໍ້ມູນກະເຮັດວຽກ ຫຼື ກະຖືກປິດໃຊ້ງານແລ້ວ')]);
             }
 
             // ກວດສອບໂມງເປີດກະ: ຖ້າຍັງບໍ່ຮອດໂມງ ຫ້າມເປີດ (ຕາມເງື່ອນໄຂຜູ້ໃຊ້)
             $nowTime = date('H:i:s');
             $start = $shift['start_time'];
-            $end = $shift['end_time'];
-            $canOpen = false;
-
-            if ($start <= $end) {
-                if ($nowTime >= $start) {
-                    $canOpen = true;
-                }
-            } else {
-                if ($nowTime >= $start || $nowTime <= $end) {
-                    $canOpen = true;
-                }
-            }
+            $canOpen = shiftIsOpenNow($shift['start_time'], $shift['end_time'], $nowTime);   // ໝົດໂມງແລ້ວກໍເປີດບໍ່ໄດ້
 
             // ຖ້າເປັນພະນັກງານ ແລະ ຍັງບໍ່ຮອດໂມງເປີດກະ -> ບລັອກພ້ອມເຕືອນ
             if (!$canOpen && $isCashier) {
                 $startFormatted = substr($start, 0, 5);
+                $endFormatted = substr($shift['end_time'], 0, 5);
                 $nowFormatted = substr($nowTime, 0, 5);
+                $isOver = $start <= $shift['end_time'] && $nowTime >= $shift['end_time'];   // ກະປົກກະຕິ ທີ່ໝົດໂມງແລ້ວ
                 respond([
                     'success' => false,
                     'too_early' => true,
-                    'message' => "ຍັງບໍ່ຮອດໂມງເປີດກະ! ກະ \"{$shift['shift_name']}\" ເລີ່ມເວລາ {$startFormatted} (ເວລາປະຈຸບັນ: {$nowFormatted})"
+                    'message' => $isOver
+                        ? ("" . tl('ໝົດໂມງກະແລ້ວ! ກະ') . " \"{$shift['shift_name']}\" " . tl('ເວລາ') . " {$startFormatted}-{$endFormatted} (" . tl('ເວລາປະຈຸບັນ:') . " {$nowFormatted})")
+                        : ("" . tl('ຍັງບໍ່ຮອດໂມງເປີດກະ! ກະ') . " \"{$shift['shift_name']}\" " . tl('ເລີ່ມເວລາ') . " {$startFormatted} (" . tl('ເວລາປະຈຸບັນ:') . " {$nowFormatted})")
                 ]);
             }
 
             // ປ້ອນເງິນສົດໃນລິ້ນຊັກ: ຕ້ອງປ້ອນສະເໝີ (ບໍ່ມີເງິນໃຫ້ປ້ອນ 0) — ວ່າງ = ບໍ່ເປີດກະ
             $initialCashRaw = trim($_POST['initial_cash'] ?? '');
             if ($initialCashRaw === '' || !is_numeric(str_replace(',', '', $initialCashRaw))) {
-                respond(['success' => false, 'message' => 'ກະລຸນາປ້ອນເງິນສົດໃນລິ້ນຊັກ (ຖ້າບໍ່ມີເງິນທອນ ໃຫ້ປ້ອນ 0)']);
+                respond(['success' => false, 'message' => tl('ກະລຸນາປ້ອນເງິນສົດໃນລິ້ນຊັກ (ຖ້າບໍ່ມີເງິນທອນ ໃຫ້ປ້ອນ 0)')]);
             }
             $initialCash = floatval(str_replace(',', '', $initialCashRaw));
             if ($initialCash < 0) {
@@ -329,7 +311,7 @@ try {
 
             respond([
                 'success' => true,
-                'message' => "ເປີດກະ \"{$shift['shift_name']}\" ສຳເລັດແລ້ວ",
+                'message' => ("" . tl('ເປີດກະ') . " \"{$shift['shift_name']}\" " . tl('ສຳເລັດແລ້ວ') . ""),
                 'session_id' => $newSessionId,
                 'shift_name' => $shift['shift_name'],
                 'initial_cash' => $initialCash
@@ -350,14 +332,14 @@ try {
             }
 
             if ($sessionId <= 0) {
-                respond(['success' => false, 'message' => 'ບໍ່ພົບກະທີ່ກຳລັງເປີດຢູ່']);
+                respond(['success' => false, 'message' => tl('ບໍ່ພົບກະທີ່ກຳລັງເປີດຢູ່')]);
             }
 
             $stmtS = $pdo->prepare("SELECT * FROM st_shift_sessions WHERE id = ? AND store_id = ? LIMIT 1");
             $stmtS->execute([$sessionId, $activeStoreId]);
             $session = $stmtS->fetch(PDO::FETCH_ASSOC);
             if (!$session) {
-                respond(['success' => false, 'message' => 'ບໍ່ພົບຂໍ້ມູນກະນີ້']);
+                respond(['success' => false, 'message' => tl('ບໍ່ພົບຂໍ້ມູນກະນີ້')]);
             }
 
             $openTime = $session['open_time'];
@@ -423,14 +405,14 @@ try {
             }
 
             if ($sessionId <= 0) {
-                respond(['success' => false, 'message' => 'ບໍ່ພົບກະທີ່ກຳລັງເປີດຢູ່']);
+                respond(['success' => false, 'message' => tl('ບໍ່ພົບກະທີ່ກຳລັງເປີດຢູ່')]);
             }
 
             $stmtS = $pdo->prepare("SELECT * FROM st_shift_sessions WHERE id = ? AND store_id = ? AND status = 'open' LIMIT 1");
             $stmtS->execute([$sessionId, $activeStoreId]);
             $session = $stmtS->fetch(PDO::FETCH_ASSOC);
             if (!$session) {
-                respond(['success' => false, 'message' => 'ບໍ່ພົບກະທີ່ເປີດຢູ່ ຫຼື ກະນີ້ຖືກປິດໄປແລ້ວ']);
+                respond(['success' => false, 'message' => tl('ບໍ່ພົບກະທີ່ເປີດຢູ່ ຫຼື ກະນີ້ຖືກປິດໄປແລ້ວ')]);
             }
 
             $openTime = $session['open_time'];
@@ -446,7 +428,7 @@ try {
                         'too_early_close' => true,
                         'can_force' => !$isCashier,
                         'scheduled_end' => $scheduledEnd,
-                        'message' => "ຍັງບໍ່ທັນຮອດໂມງປິດກະ! ກະ \"{$session['shift_name']}\" ປິດເວລາ {$endClock} (ເວລາປະຈຸບັນ: " . date('H:i') . ")"
+                        'message' => ("" . tl('ຍັງບໍ່ທັນຮອດໂມງປິດກະ! ກະ') . " \"{$session['shift_name']}\" " . tl('ປິດເວລາ') . " {$endClock} (" . tl('ເວລາປະຈຸບັນ:') . " ") . date('H:i') . ")"
                     ]);
                 }
             }
@@ -457,7 +439,7 @@ try {
                 respond([
                     'success' => false,
                     'pending_held' => $heldCount,
-                    'message' => "ຍັງມີບິນພັກໄວ້ {$heldCount} ບິນ — ກະລຸນາຊຳລະບິນທີ່ພັກໃຫ້ໝົດກ່ອນ ຈຶ່ງປິດກະໄດ້"
+                    'message' => ("" . tl('ຍັງມີບິນພັກໄວ້') . ((" {$heldCount} " . tl('ບິນ') . " — ")) . tl('ກະລຸນາຊຳລະບິນທີ່ພັກໃຫ້ໝົດກ່ອນ ຈຶ່ງປິດກະໄດ້') . "")
                 ]);
             }
 
@@ -465,7 +447,7 @@ try {
             // ຕ້ອງປ້ອນເງິນທີ່ນັບໄດ້ສະເໝີ (ບໍ່ມີໃຫ້ປ້ອນ 0) — ວ່າງ = ບໍ່ປິດກະ
             $countedRaw = str_replace(',', '', trim($_POST['counted_sales_cash'] ?? ''));
             if ($countedRaw === '' || !is_numeric($countedRaw)) {
-                respond(['success' => false, 'message' => 'ກະລຸນາປ້ອນເງິນສົດທີ່ນັບໄດ້ຕົວຈິງ (ບໍ່ມີໃຫ້ປ້ອນ 0)']);
+                respond(['success' => false, 'message' => tl('ກະລຸນາປ້ອນເງິນສົດທີ່ນັບໄດ້ຕົວຈິງ (ບໍ່ມີໃຫ້ປ້ອນ 0)')]);
             }
             $countedSalesCash = floatval($countedRaw);
             if ($countedSalesCash < 0) {
@@ -476,7 +458,7 @@ try {
             // ສະຫຼຸບຍອດຂາຍ + ບັນທຶກປິດກະ (config/helpers/shift_auto.php — ໃຊ້ຮ່ວມກັບປິດອໍໂຕ້)
             $sum = shiftCloseSession($pdo, $session, $now, $userId, $userName, $countedSalesCash, $notes);
             if (!$sum['closed']) {
-                respond(['success' => false, 'message' => 'ກະນີ້ຖືກປິດໄປແລ້ວ']);
+                respond(['success' => false, 'message' => tl('ກະນີ້ຖືກປິດໄປແລ້ວ')]);
             }
             $sysBills = $sum['bills'];
             $sysCash = $sum['cash'];
@@ -489,7 +471,7 @@ try {
 
             respond([
                 'success' => true,
-                'message' => 'ປິດກະເຮັດວຽກສຳເລັດແລ້ວ',
+                'message' => tl('ປິດກະເຮັດວຽກສຳເລັດແລ້ວ'),
                 'session' => [
                     'id' => $sessionId,
                     'shift_name' => $session['shift_name'],
@@ -559,7 +541,7 @@ try {
         // ====================================================================
         case 'save_shift': {
             if (!$isAdmin && !hasPermission('setup')) {
-                respond(['success' => false, 'message' => 'ທ່ານບໍ່ມີສິດໃນການຈັດການຕັ້ງຄ່າກະ']);
+                respond(['success' => false, 'message' => tl('ທ່ານບໍ່ມີສິດໃນການຈັດການຕັ້ງຄ່າກະ')]);
             }
 
             $id = intval($_POST['id'] ?? 0);
@@ -575,14 +557,14 @@ try {
             $staffCsv = implode(',', array_column(shiftStaffList($pdo, implode(',', $staffIn), $activeStoreId), 'id'));
 
             if (empty($shiftName)) {
-                respond(['success' => false, 'message' => 'ກະລຸນາປ້ອນຊື່ກະ']);
+                respond(['success' => false, 'message' => tl('ກະລຸນາປ້ອນຊື່ກະ')]);
             }
             if (empty($startTime) || empty($endTime)) {
-                respond(['success' => false, 'message' => 'ກະລຸນາເລືອກເວລາເລີ່ມ ແລະ ເວລາສິ້ນສຸດ']);
+                respond(['success' => false, 'message' => tl('ກະລຸນາເລືອກເວລາເລີ່ມ ແລະ ເວລາສິ້ນສຸດ')]);
             }
             // ຕ້ອງມີພະນັກງານໃນກະຢ່າງໜ້ອຍ 1 ຄົນ (ພະນັກງານຂອງສາຂານີ້ທີ່ຖືກຕ້ອງ)
             if ($staffCsv === '') {
-                respond(['success' => false, 'message' => 'ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ']);
+                respond(['success' => false, 'message' => tl('ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ')]);
             }
 
             // Format HH:MM:00
@@ -597,7 +579,7 @@ try {
                 ");
                 $stmt->execute([$shiftName, $startTime, $endTime, $staffCsv !== '' ? $staffCsv : null, $status, $id, $activeStoreId]);
                 logActivity($pdo, "ແກ້ໄຂກະເຮັດວຽກ", "ລະຫັດ: {$id}, ຊື່ກະ: {$shiftName}");
-                respond(['success' => true, 'message' => 'ບັນທຶກການແກ້ໄຂກະສຳເລັດ']);
+                respond(['success' => true, 'message' => tl('ບັນທຶກການແກ້ໄຂກະສຳເລັດ')]);
             } else {
                 $stmt = $pdo->prepare("
                     INSERT INTO st_shifts (shift_name, start_time, end_time, staff_user_ids, store_id, status)
@@ -606,7 +588,7 @@ try {
                 $stmt->execute([$shiftName, $startTime, $endTime, $staffCsv !== '' ? $staffCsv : null, $activeStoreId, $status ?? 1]);
                 $newId = $pdo->lastInsertId();
                 logActivity($pdo, "ເພີ່ມກະເຮັດວຽກໃໝ່", "ຊື່ກະ: {$shiftName}, ເວລາ: {$startTime} - {$endTime}");
-                respond(['success' => true, 'message' => 'ເພີ່ມກະເຮັດວຽກໃໝ່ສຳເລັດ', 'id' => $newId]);
+                respond(['success' => true, 'message' => tl('ເພີ່ມກະເຮັດວຽກໃໝ່ສຳເລັດ'), 'id' => $newId]);
             }
             break;
         }
@@ -616,12 +598,12 @@ try {
         // ====================================================================
         case 'delete_shift': {
             if (!$isAdmin && !hasPermission('setup')) {
-                respond(['success' => false, 'message' => 'ທ່ານບໍ່ມີສິດໃນການລຶບກະ']);
+                respond(['success' => false, 'message' => tl('ທ່ານບໍ່ມີສິດໃນການລຶບກະ')]);
             }
 
             $id = intval($_POST['id'] ?? 0);
             if ($id <= 0) {
-                respond(['success' => false, 'message' => 'ລະຫັດກະບໍ່ຖືກຕ້ອງ']);
+                respond(['success' => false, 'message' => tl('ລະຫັດກະບໍ່ຖືກຕ້ອງ')]);
             }
 
             // ກວດສອບວ່າມີ session ທີ່ໃຊ້ກະນີ້ຢູ່ຫຼືບໍ່
@@ -633,11 +615,11 @@ try {
                 // ຖ້າມີປະຫວັດແລ້ວ ໃຫ້ປິດໃຊ້ງານແທນການລຶບຖິ້ມ ເພື່ອຮັກສາປະຫວັດ
                 $stmt = $pdo->prepare("UPDATE st_shifts SET status = 0 WHERE id = ? AND store_id = ?");
                 $stmt->execute([$id, $activeStoreId]);
-                respond(['success' => true, 'message' => 'ປິດການໃຊ້ງານກະນີ້ສຳເລັດ (ເນື່ອງຈາກມີປະຫວັດການເປີດ-ປິດກະແລ້ວ)']);
+                respond(['success' => true, 'message' => tl('ປິດການໃຊ້ງານກະນີ້ສຳເລັດ (ເນື່ອງຈາກມີປະຫວັດການເປີດ-ປິດກະແລ້ວ)')]);
             } else {
                 $stmt = $pdo->prepare("DELETE FROM st_shifts WHERE id = ? AND store_id = ?");
                 $stmt->execute([$id, $activeStoreId]);
-                respond(['success' => true, 'message' => 'ລຶບກະເຮັດວຽກສຳເລັດແລ້ວ']);
+                respond(['success' => true, 'message' => tl('ລຶບກະເຮັດວຽກສຳເລັດແລ້ວ')]);
             }
             break;
         }
@@ -781,7 +763,7 @@ try {
         case 'get_session_details': {
             $sessionId = intval($_GET['session_id'] ?? 0);
             if ($sessionId <= 0) {
-                respond(['success' => false, 'message' => 'ລະຫັດກະບໍ່ຖືກຕ້ອງ']);
+                respond(['success' => false, 'message' => tl('ລະຫັດກະບໍ່ຖືກຕ້ອງ')]);
             }
 
             // ຜູ້ທີ່ເບິ່ງທຸກສາຂາໄດ້ ເປີດໃບສະຫຼຸບກະຂອງສາຂາໃດກໍໄດ້ (ບັອກສາຂາ ໜ້າລາຍງານຕາມກະ); ຄົນອື່ນ = ສາຂາຕົນເອງ
@@ -794,13 +776,13 @@ try {
             }
             $session = $stmtS->fetch(PDO::FETCH_ASSOC);
             if (!$session) {
-                respond(['success' => false, 'message' => 'ບໍ່ພົບຂໍ້ມູນກະ']);
+                respond(['success' => false, 'message' => tl('ບໍ່ພົບຂໍ້ມູນກະ')]);
             }
             $session = shiftApplyLiveTotals($pdo, $session);   // ຍອດສົດຈາກບິນ (ກົດດຽວກັບລາຍງານ / ປິດກະ)
             // ພະນັກງານ: ເບິ່ງໄດ້ສະເພາະກະຂອງຕົນເອງ (ລາຍການຂາຍຂອງກະນັ້ນ) ແລະ ບໍ່ເຫັນສ່ວນຕ່າງ
             if ($isCashier) {
                 if (!shiftIsOwn($session, $userId)) {
-                    respond(['success' => false, 'message' => 'ເບິ່ງໄດ້ສະເພາະກະຂອງທ່ານເອງ']);
+                    respond(['success' => false, 'message' => tl('ເບິ່ງໄດ້ສະເພາະກະຂອງທ່ານເອງ')]);
                 }
                 $session = shiftHideDiff($session);
             }
@@ -886,8 +868,8 @@ try {
                     } elseif ($isTransfer && $cash > 0 && $qr > 0) {
                         $ch = ['key' => 'mixed', 'type' => 'mixed', 'label' => 'ເງິນສົດ + ໂອນ'];
                     } elseif ($isTransfer) {
-                        $bank = $b['bank_display_name'] !== '' ? $b['bank_display_name'] : 'ບໍ່ລະບຸທະນາຄານ';
-                        $ch = ['key' => 'transfer|' . $bank, 'type' => 'transfer', 'label' => 'ເງິນໂອນ · ' . $bank,
+                        $bank = $b['bank_display_name'] !== '' ? $b['bank_display_name'] : tl('ບໍ່ລະບຸທະນາຄານ');
+                        $ch = ['key' => 'transfer|' . $bank, 'type' => 'transfer', 'label' => (tl('ເງິນໂອນ') . ' · ') . $bank,
                                'bank_name' => $bank, 'bank_logo_url' => $b['bank_logo_url']];
                     } else {
                         $ch = ['key' => 'cash', 'type' => 'cash', 'label' => 'ເງິນສົດ'];
@@ -977,5 +959,5 @@ try {
         $pdo->rollBack();
     }
     error_log("Shift backend error: " . $e->getMessage());
-    respond(['success' => false, 'message' => 'ເກີດຂໍ້ຜິດພາດ: ' . $e->getMessage()]);
+    respond(['success' => false, 'message' => (tl('ເກີດຂໍ້ຜິດພາດ:') . ' ') . $e->getMessage()]);
 }

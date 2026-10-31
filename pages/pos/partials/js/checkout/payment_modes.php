@@ -24,10 +24,21 @@ function recalcPayment() {
 // ============================
 // NUMPAD
 // ============================
+window.lastFocusedSplitInput = 'splitCashAmount';
+function setSplitFocus(target) {
+  window.lastFocusedSplitInput = (target === 'qr') ? 'splitQrAmount' : 'splitCashAmount';
+  if (window.lastFocusedSplitInput === 'splitQrAmount') {
+    $('#splitQrAmount').css('box-shadow', '0 0 0 3px rgba(124,58,237,0.40)');
+    $('#splitCashAmount').css('box-shadow', 'none');
+  } else {
+    $('#splitCashAmount').css('box-shadow', '0 0 0 3px rgba(34,197,94,0.40)');
+    $('#splitQrAmount').css('box-shadow', 'none');
+  }
+}
+
 function getActiveAmountInput() {
   if (currentPayMode === 'split') {
-    // Focus on whichever split input was last focused
-    if (document.activeElement && document.activeElement.id === 'splitQrAmount') return $('#splitQrAmount');
+    if (window.lastFocusedSplitInput === 'splitQrAmount') return $('#splitQrAmount');
     return $('#splitCashAmount');
   }
   return $('#cashReceived');
@@ -93,6 +104,7 @@ function setPayMode(mode) {
     $('#singleQrSection').show();
     autoSelectPosBank();
     $('#splitTotal').html(posFmtTotal(window.CART_NET_KIP || 0));
+    setSplitFocus('cash');
     calcSplitRemaining();
     $('#btnSubmitPayment').prop('disabled', true);
   }
@@ -169,16 +181,16 @@ function calcSplitRemaining() {
   $('#splitQrDisplay').html(POSCUR.fmtUnits(qrUnits));
 
   if (remainUnits > 0) {
-    $('#splitStatusLabel').text('ຍັງຄ້າງ:').css('color', '#ef4444');
+    $('#splitStatusLabel').text('<?php echo tlj('ຍັງຄ້າງ:'); ?>').css('color', '#ef4444');
     $('#splitRemainingDisplay').html(POSCUR.fmtUnits(remainUnits)).css('color', '#ef4444');
     $('#btnSubmitPayment').prop('disabled', true);
   } else if (remainUnits < 0) {
     // over-paid → show change
-    $('#splitStatusLabel').text('ເງິນທອນ:').css('color', '#16a34a');
+    $('#splitStatusLabel').text('<?php echo tlj('ເງິນທອນ:'); ?>').css('color', '#16a34a');
     $('#splitRemainingDisplay').html(POSCUR.fmtUnits(Math.abs(remainUnits))).css('color', '#16a34a');
     $('#btnSubmitPayment').prop('disabled', false);
   } else {
-    $('#splitStatusLabel').text('ພໍດີ ✓').css('color', '#16a34a');
+    $('#splitStatusLabel').text('<?php echo tlj('ພໍດີ'); ?> ✓').css('color', '#16a34a');
     $('#splitRemainingDisplay').html(POSCUR.fmtUnits(0)).css('color', '#16a34a');
     $('#btnSubmitPayment').prop('disabled', false);
   }
@@ -187,12 +199,37 @@ function calcSplitRemaining() {
 function setSplitCashExact() {
   $('#splitCashAmount').val(POSCUR.num(window.CART_NET_KIP || 0));
   $('#splitQrAmount').val('0');
+  setSplitFocus('cash');
   calcSplitRemaining();
 }
 
 function addSplitCash(amountKip) {
   var curKip = POSCUR.toKip($('#splitCashAmount').val());
   $('#splitCashAmount').val(POSCUR.num(curKip + amountKip));
+  setSplitFocus('cash');
+  calcSplitRemaining();
+}
+
+function fillSplitCashRemaining() {
+  var totalKip = window.CART_NET_KIP || 0;
+  var qrKip    = POSCUR.toKip($('#splitQrAmount').val());
+  var remKip   = Math.max(0, totalKip - qrKip);
+  $('#splitCashAmount').val(POSCUR.num(remKip));
+  setSplitFocus('cash');
+  calcSplitRemaining();
+}
+
+function setSplitQrExact() {
+  $('#splitQrAmount').val(POSCUR.num(window.CART_NET_KIP || 0));
+  $('#splitCashAmount').val('0');
+  setSplitFocus('qr');
+  calcSplitRemaining();
+}
+
+function addSplitQr(amountKip) {
+  var curKip = POSCUR.toKip($('#splitQrAmount').val());
+  $('#splitQrAmount').val(POSCUR.num(curKip + amountKip));
+  setSplitFocus('qr');
   calcSplitRemaining();
 }
 
@@ -201,6 +238,7 @@ function fillSplitQrRemaining() {
   var cashKip  = POSCUR.toKip($('#splitCashAmount').val());
   var remKip   = Math.max(0, totalKip - cashKip);
   $('#splitQrAmount').val(POSCUR.num(remKip));
+  setSplitFocus('qr');
   calcSplitRemaining();
 }
 

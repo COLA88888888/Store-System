@@ -85,7 +85,7 @@ function loadBillState(billId) {
 
 function resequenceActiveBills() {
   activeBills.forEach(function(b, idx) {
-    b.name = 'ບິນທີ ' + (idx + 1);
+    b.name = '<?php echo tlj('ບິນທີ'); ?> ' + (idx + 1);
   });
   localStorage.setItem('StoreMini.active_bills', JSON.stringify(activeBills));
 }
@@ -102,7 +102,7 @@ window.createNewBillModal = function() {
       : { customer_id: null, customer_name: 'ລູກຄ້າທົ່ວໄປ', phone: '' };
     var firstBill = {
       id: newId,
-      name: 'ບິນທີ 1',
+      name: '<?php echo tlj('ບິນທີ'); ?> 1',
       time: new Date().toLocaleTimeString('lo-LA', { hour: '2-digit', minute: '2-digit' }),
       customer: carriedCustomer,
       cart: [],
@@ -154,7 +154,7 @@ window.createNewBillModal = function() {
 
   var newBill = {
     id: newId,
-    name: 'ບິນທີ ' + billNumber,
+    name: '<?php echo tlj('ບິນທີ'); ?> ' + billNumber,
     time: new Date().toLocaleTimeString('lo-LA', { hour: '2-digit', minute: '2-digit' }),
     customer: { customer_id: null, customer_name: 'ລູກຄ້າທົ່ວໄປ', phone: '' },
     cart: [],

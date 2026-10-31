@@ -43,6 +43,27 @@ session_destroy();
     <script>
         sessionStorage.removeItem('StoreMini.currentIframeSrc');
         sessionStorage.removeItem('StoreMini.sidebarScrollTop');
+
+        // ແຈ້ງເຕືອນຈໍລູກຄ້າ Real-Time ວ່າພະນັກງານອອກຈາກລະບົບ (ຍ່າງອອກຈາກຮ້ານ)
+        try {
+            var exitMsg = {
+                action: 'cashier_exit',
+                name: <?php echo json_encode($user_name ?? '', JSON_UNESCAPED_UNICODE); ?>,
+                id: <?php echo (int)($uid ?? 0); ?>,
+                time: Date.now()
+            };
+            try {
+                var bc1 = new BroadcastChannel('StoreMini.customer_display_channel');
+                bc1.postMessage(exitMsg);
+                setTimeout(function() { bc1.close(); }, 300);
+            } catch(e) {}
+            try {
+                var bc2 = new BroadcastChannel('StoreMini.cashier_channel');
+                bc2.postMessage(exitMsg);
+                setTimeout(function() { bc2.close(); }, 300);
+            } catch(e) {}
+            localStorage.setItem('StoreMini.cashier_exited', JSON.stringify(exitMsg));
+        } catch(e) {}
         
         var redirectUrl = 'login.php<?php echo isset($_GET['expired']) ? "?expired=1" : ""; ?>';
         if (window.top) {
@@ -53,6 +74,6 @@ session_destroy();
     </script>
 </head>
 <body>
-    <p>ກຳລັງອອກຈາກລະບົບ...</p>
+    <p><?php echo tlh('ກຳລັງອອກຈາກລະບົບ...'); ?></p>
 </body>
 </html>

@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     try {
         if ($act === 'add_supplier' || $act === 'edit_supplier') {
             if ($name === '') {
-                $sup_message = 'ກະລຸນາປ້ອນຊື່ຜູ້ສະໜອງ!';
+                $sup_message = tl('ກະລຸນາປ້ອນຊື່ຜູ້ສະໜອງ!');
                 $sup_message_type = 'error';
             } else {
                 // ຊື່ຊ້ຳໃນສາຂາດຽວກັນ
@@ -53,19 +53,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $dupStmt = $pdo->prepare($dupSql);
                 $dupStmt->execute($dupParams);
                 if ($dupStmt->fetchColumn()) {
-                    $sup_message = 'ມີຜູ້ສະໜອງຊື່ "' . htmlspecialchars($name) . '" ຢູ່ແລ້ວ!';
+                    $sup_message = (tl('ມີຜູ້ສະໜອງຊື່') . ' "') . htmlspecialchars($name) . ('" ' . tl('ຢູ່ແລ້ວ!'));
                     $sup_message_type = 'error';
                 } elseif ($act === 'add_supplier') {
                     // branch_no = ລຳດັບໃນສາຂານີ້ → ລະຫັດທີ່ສະແດງ "<ລະຫັດສາຂາ>-<branch_no>"
                     $ins = $pdo->prepare("INSERT INTO st_suppliers (supplier_name, phone, contact_person, address, notes, status, store_id, branch_no) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                     $ins->execute([$name, $phone, $contact, $address, $notes, $status, $activeStoreId, nextBranchNo($pdo, "st_suppliers", $activeStoreId)]);
-                    $sup_message = 'ເພີ່ມຜູ້ສະໜອງສຳເລັດ!';
+                    $sup_message = tl('ເພີ່ມຜູ້ສະໜອງສຳເລັດ!');
                     $sup_message_type = 'success';
                     logActivity($pdo, "ເພີ່ມຜູ້ສະໜອງ", "ຊື່: $name");
                 } else {
                     $upd = $pdo->prepare("UPDATE st_suppliers SET supplier_name=?, phone=?, contact_person=?, address=?, notes=?, status=? WHERE supplier_id=? AND store_id=?");
                     $upd->execute([$name, $phone, $contact, $address, $notes, $status, $sid, $activeStoreId]);
-                    $sup_message = 'ແກ້ໄຂຜູ້ສະໜອງສຳເລັດ!';
+                    $sup_message = tl('ແກ້ໄຂຜູ້ສະໜອງສຳເລັດ!');
                     $sup_message_type = 'success';
                     logActivity($pdo, "ແກ້ໄຂຜູ້ສະໜອງ", "ID: $sid, ຊື່: $name");
                 }
@@ -80,17 +80,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             } catch (Throwable $e) {}
             if ($inUse > 0) {
                 $pdo->prepare("UPDATE st_suppliers SET status='inactive' WHERE supplier_id=? AND store_id=?")->execute([$sid, $activeStoreId]);
-                $sup_message = 'ຜູ້ສະໜອງນີ້ມີສິນຄ້າຜູກຢູ່ ' . $inUse . ' ລາຍການ — ປ່ຽນເປັນ "ພັກໃຊ້ງານ" ແທນການລົບ.';
+                $sup_message = (tl('ຜູ້ສະໜອງນີ້ມີສິນຄ້າຜູກຢູ່') . ' ') . $inUse . ((' ' . tl('ລາຍການ') . ' — ' . tl('ປ່ຽນເປັນ') . ' "' . tl('ພັກໃຊ້ງານ') . '" ') . tl('ແທນການລົບ.'));
                 $sup_message_type = 'success';
             } else {
                 $pdo->prepare("DELETE FROM st_suppliers WHERE supplier_id=? AND store_id=?")->execute([$sid, $activeStoreId]);
-                $sup_message = 'ລົບຜູ້ສະໜອງສຳເລັດ!';
+                $sup_message = tl('ລົບຜູ້ສະໜອງສຳເລັດ!');
                 $sup_message_type = 'success';
                 logActivity($pdo, "ລົບຜູ້ສະໜອງ", "ID: $sid");
             }
         }
     } catch (Throwable $e) {
-        $sup_message = 'ຜິດພາດ: ' . $e->getMessage();
+        $sup_message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
         $sup_message_type = 'error';
     }
 }
@@ -112,7 +112,7 @@ try {
 } catch (Throwable $e) {
     // ຕາຕະລາງ suppliers ຍັງບໍ່ຖືກສ້າງ (auto-migration ຈະສ້າງໃຫ້ໃນ request ຖັດໄປ)
     if ($sup_message === '') {
-        $sup_message = 'ກຳລັງຕັ້ງຄ່າຕາຕະລາງຜູ້ສະໜອງ — ກະລຸນາໂຫຼດໜ້ານີ້ຄືນອີກຄັ້ງ.';
+        $sup_message = (tl('ກຳລັງຕັ້ງຄ່າຕາຕະລາງຜູ້ສະໜອງ') . ' — ' . tl('ກະລຸນາໂຫຼດໜ້ານີ້ຄືນອີກຄັ້ງ.'));
         $sup_message_type = 'error';
     }
 }

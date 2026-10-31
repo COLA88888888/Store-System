@@ -52,10 +52,33 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/flatpickr/flatpickr.min.css">
     <link rel="stylesheet" href="<?php echo $base_path; ?>plugins/flatpickr/minipos-datepicker.css?v=<?php echo @filemtime(__DIR__ . '/../plugins/flatpickr/minipos-datepicker.css'); ?>">
 
+    <!-- ຄຳແປຂໍ້ຄວາມລາວໃນໄຟລ໌ .js ລ້ວນ: window.__tl('ລາວ') (lang/translator.php lxJsMapScript) -->
+    <?php echo lxJsMapScript(); ?>
+
     <!-- Core JavaScript Libraries (Load in head so all page scripts & components can use $ and Swal) -->
     <script src="<?php echo $base_path; ?>plugins/jquery/jquery.min.js"></script>
     <script src="<?php echo $base_path; ?>plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="<?php echo $base_path; ?>plugins/sweetalert2/sweetalert2.all.min.js"></script>
+    <script>
+      // ແກ້ໄຂບັນຫາ Bootstrap Modal ຍາດ Focus ເມື່ອມີ SweetAlert2 Popup ເປີດຊ້ອນເທິງ Modal
+      // ເຮັດໃຫ້ສາມາດຄລິກພິມ ແລະ ປ້ອນຂໍ້ຄວາມໃນ Input ຂອງ SweetAlert2 ໄດ້ທຸກຟອມຢ່າງສະດວກ
+      if (window.jQuery && $.fn.modal && $.fn.modal.Constructor) {
+        $.fn.modal.Constructor.prototype._enforceFocus = function() {
+          var that = this;
+          $(document)
+            .off('focusin.bs.modal')
+            .on('focusin.bs.modal', function(e) {
+              if (
+                that._element !== e.target &&
+                !that._element.contains(e.target) &&
+                !$(e.target).closest('.swal2-container').length
+              ) {
+                that._element.focus();
+              }
+            });
+        };
+      }
+    </script>
     <!-- Every <input type="date"> becomes the same Lao calendar, converted as the page is parsed -->
     <script src="<?php echo $base_path; ?>plugins/flatpickr/flatpickr.min.js"></script>
     <script src="<?php echo $base_path; ?>plugins/flatpickr/minipos-datepicker.js?v=<?php echo @filemtime(__DIR__ . '/../plugins/flatpickr/minipos-datepicker.js'); ?>"></script>
@@ -110,7 +133,7 @@ $header_site_logo = $base_path . 'assets/img/logosystem/Wlaodev.jpg';
             <span class="preloader-text">
                 <span><?php echo htmlspecialchars(t('layout.loading', 'ກຳລັງດຶງຂໍ້ມູນ')); ?></span><span class="loader-dot d1">.</span><span class="loader-dot d2">.</span><span class="loader-dot d3">.</span>
             </span>
-            <div class="system-loader-slow-hint" id="globalPreloaderSlowHint">ກະລຸນາລໍຖ້າຈັກໜ່ອຍ... ລະບົບກຳລັງປະມວນຜົນ</div>
+            <div class="system-loader-slow-hint" id="globalPreloaderSlowHint"><?php echo tlh('ກະລຸນາລໍຖ້າຈັກໜ່ອຍ... ລະບົບກຳລັງປະມວນຜົນ'); ?></div>
         </div>
     </div>
     <script>

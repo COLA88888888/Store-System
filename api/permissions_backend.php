@@ -23,7 +23,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 require_once __DIR__ . '/../config/db.php';
 
 // 4. ກວດເຊັກສິດການເຂົ້າເຖິງ (ສະເພາະ ຜູ້ບໍລິຫານ ຫຼື ຜູ້ທີ່ມີສິດ permissions/users ເທົ່ານັ້ນ)
-if (empty($_SESSION['user_id']) || (!hasPermission('permissions') && !hasPermission('users'))) {
+if (empty($_SESSION['user_id']) || (!hasPermission('permissions'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         $targetStoreStmt = $pdo->prepare("SELECT store_id FROM st_tbuser WHERE Id = ?");
         $targetStoreStmt->execute([$targetUserId]);
         if (intval($targetStoreStmt->fetchColumn()) !== intval($_SESSION['store_id'] ?? 0)) {
-            echo json_encode(['success' => false, 'message' => 'ທ່ານບໍ່ມີສິດຈັດການຜູ້ໃຊ້ຂອງສາຂາອື່ນ!']);
+            echo json_encode(['success' => false, 'message' => tl('ທ່ານບໍ່ມີສິດຈັດການຜູ້ໃຊ້ຂອງສາຂາອື່ນ!')]);
             exit();
         }
     }
@@ -78,14 +78,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         $allowed_perms = [
             'dashboard', 'sale', 'item_sales', 'stock', 'categories', 'units', 'products', 'suppliers', 'import_stock', 'import_list',
             'stock_check', 'stock_count', 'stock_transfer', 'transfer_history',
-            'report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales', 'delete_bills', 'shift_close_report', 'shift_revenue_report',
+            'report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales', 'delete_bills', 'shift_close_report', 'shift_revenue_report', 'expiry_report',
             'accounting', 'setup', 'stores', 'print_barcode', 'expiry', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'shifts',
-            'users', 'permissions', 'branches', 'edit', 'customers', 'database'
+            'users', 'permissions', 'branches', 'edit', 'customers', 'database', 'clear_data'
         ];
 
         $switchKeyPattern = '/^perm_[a-z0-9_]+_' . preg_quote((string)$user_id, '/') . '$/i';
         if ($user_id <= 0 || !in_array($perm, $allowed_perms, true) || !preg_match($switchKeyPattern, $switchKey) || !is_array($switchStates)) {
-            echo json_encode(['success' => false, 'message' => 'ຂໍ້ມູນບໍ່ຖືກຕ້ອງ']);
+            echo json_encode(['success' => false, 'message' => tl('ຂໍ້ມູນບໍ່ຖືກຕ້ອງ')]);
             exit();
         }
 
@@ -93,11 +93,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         // the owner (Id 1) — a non-owner user must not be able to change another admin's
         // permissions even though they can see that admin in the list.
         if ($user_id === 1) {
-            echo json_encode(['success' => false, 'message' => 'ຜູ້ບໍລິຫານຄົນທຳອິດ (ID: 1) ມີສິດເຕັມ 100% ໃນລະບົບຢູ່ແລ້ວ ບໍ່ສາມາດປັບປ່ຽນສິດໄດ້!']);
+            echo json_encode(['success' => false, 'message' => tl('ຜູ້ບໍລິຫານຄົນທຳອິດ (ID: 1) ມີສິດເຕັມ 100% ໃນລະບົບຢູ່ແລ້ວ ບໍ່ສາມາດປັບປ່ຽນສິດໄດ້!')]);
             exit();
         }
         if (!isOwnerUser() && isAdminAccount($pdo, $user_id)) {
-            echo json_encode(['success' => false, 'message' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດປັບປ່ຽນສິດຂອງຜູ້ບໍລິຫານຄົນອື່ນໄດ້!']);
+            echo json_encode(['success' => false, 'message' => tl('ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດປັບປ່ຽນສິດຂອງຜູ້ບໍລິຫານຄົນອື່ນໄດ້!')]);
             exit();
         }
 
@@ -153,48 +153,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
 
             // ຊື່ສິດພາສາລາວສຳລັບບັນທຶກ Log
             $perm_names_lao = [
-                'dashboard' => 'ສິດ ດາດຊ໌ບອດ',
-                'sale' => 'ສິດ ຂາຍສິນຄ້າ POS',
-                'item_sales' => 'ສິດ ເບິ່ງລາຍການຂາຍສິນຄ້າ',
-                'customers' => 'ສິດ ຈັດການລູກຄ້າ',
-                'stock' => 'ສິດ ຂໍ້ມູນສິນຄ້າ & ຄັງສິນຄ້າ',
-                'stock_check' => 'ສິດ ເຊັກສະຕັອກ (ຜູ້ຈັດການ)',
-                'stock_count' => 'ສິດ ນັບສະຕັອກ (ພະນັກງານນັບ)',
-                'accounting' => 'ສິດ ຈັດການບັນຊີ',
-                'report' => 'ສິດ ເບິ່ງລາຍງານ',
-                'daily_report' => 'ສິດ ລາຍງານປະຈຳວັນ',
-                'all_sales' => 'ສິດ ລາຍງານການຂາຍທັງໝົດ',
-                'best_seller' => 'ສິດ ລາຍງານສິນຄ້າຂາຍດີ',
-                'profit_cost' => 'ສິດ ລາຍງານກຳໄລ-ຕົ້ນທຶນ',
-                'financial' => 'ສິດ ລາຍງານການເງິນ',
-                'category_sales' => 'ສິດ ລາຍງານຕາມປະເພດສິນຄ້າ',
-                'delete_bills' => 'ສິດ ປະຫວັດການລົບບິນຂາຍ',
-                'shift_close_report' => 'ສິດ ລາຍງານປິດກະ',
-                'shift_revenue_report' => 'ສິດ ລາຍງານລາຍຮັບຕາມກະ',
-                'shifts' => 'ສິດ ຈັດການກະເຮັດວຽກ',
-                'users' => 'ສິດ ຈັດການຜູ້ນຳໃຊ້',
-                'permissions' => 'ສິດ ກຳນົດສິດ',
-                'branches' => 'ສິດ ຈັດການສາຂາ',
-                'setup' => 'ສິດ ຕັ້ງຄ່າລະບົບ',
-                'edit' => 'ສິດ ແກ້ໄຂ & ລົບຂໍ້ມູນ',
-                'database' => 'ສິດ ຈັດການຖານຂໍ້ມູນ'
+                'dashboard' => tl('ສິດ ດາດຊ໌ບອດ'),
+                'sale' => (tl('ສິດ ຂາຍສິນຄ້າ') . ' POS'),
+                'item_sales' => tl('ສິດ ເບິ່ງລາຍການຂາຍສິນຄ້າ'),
+                'customers' => tl('ສິດ ຈັດການລູກຄ້າ'),
+                'stock' => tl('ສິດ ຂໍ້ມູນສິນຄ້າ & ຄັງສິນຄ້າ'),
+                'stock_check' => tl('ສິດ ເຊັກສະຕັອກ (ຜູ້ຈັດການ)'),
+                'stock_count' => tl('ສິດ ນັບສະຕັອກ (ພະນັກງານນັບ)'),
+                'accounting' => tl('ສິດ ຈັດການບັນຊີ'),
+                'report' => tl('ສິດ ເບິ່ງລາຍງານ'),
+                'daily_report' => tl('ສິດ ລາຍງານປະຈຳວັນ'),
+                'all_sales' => tl('ສິດ ລາຍງານການຂາຍທັງໝົດ'),
+                'best_seller' => tl('ສິດ ລາຍງານສິນຄ້າຂາຍດີ'),
+                'profit_cost' => tl('ສິດ ລາຍງານກຳໄລ-ຕົ້ນທຶນ'),
+                'financial' => tl('ສິດ ລາຍງານການເງິນ'),
+                'category_sales' => tl('ສິດ ລາຍງານຕາມປະເພດສິນຄ້າ'),
+                'delete_bills' => tl('ສິດ ປະຫວັດການລົບບິນຂາຍ'),
+                'shift_close_report' => tl('ສິດ ລາຍງານປິດກະ'),
+                'shift_revenue_report' => tl('ສິດ ລາຍງານລາຍຮັບຕາມກະ'),
+                'expiry_report' => trim(str_replace('↳', '', t('permissions.module_expiry_report_title', 'ລາຍງານສິນຄ້າໝົດອາຍຸ'))),
+                'shifts' => tl('ສິດ ຈັດການກະເຮັດວຽກ'),
+                'clear_data' => t('permissions.module_clear_data_title', 'ລຶບ/ລ້າງຂໍ້ມູນລະບົບ'),
+                'users' => tl('ສິດ ຈັດການຜູ້ນຳໃຊ້'),
+                'permissions' => tl('ສິດ ກຳນົດສິດ'),
+                'branches' => tl('ສິດ ຈັດການສາຂາ'),
+                'setup' => tl('ສິດ ຕັ້ງຄ່າລະບົບ'),
+                'edit' => tl('ສິດ ແກ້ໄຂ & ລົບຂໍ້ມູນ'),
+                'database' => tl('ສິດ ຈັດການຖານຂໍ້ມູນ')
             ];
             $perm_lao = $perm_names_lao[$perm] ?? $perm;
-            $status_text = ($val === 1) ? 'ເປີດສິດ' : 'ປິດສິດ';
+            $status_text = ($val === 1) ? tl('ເປີດສິດ') : tl('ປິດສິດ');
 
             // ບັນທຶກປະຫວັດການເຮັດວຽກ (Activity Log)
             logActivity($pdo, "ປ່ຽນສິດການໃຊ້ງານ", "ຜູ້ໃຊ້: {$targetUser} (ID: {$user_id}), {$perm_lao}: {$status_text}");
 
             echo json_encode([
                 'success' => true, 
-                'message' => "{$status_text} \"{$perm_lao}\" ໃຫ້ {$targetUser} ສຳເລັດ!",
+                'message' => ("{$status_text} \"{$perm_lao}\" " . tl('ໃຫ້') . " {$targetUser} " . tl('ສຳເລັດ!') . ""),
                 'user_id' => $user_id,
                 'perm' => $perm,
                 'val' => (int)($userData[$perm] ?? $val),
                 'perm_count' => $permCount
             ]);
         } catch (Throwable $e) {
-            echo json_encode(['success' => false, 'message' => 'ຜິດພາດ: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => (tl('ຜິດພາດ:') . ' ') . $e->getMessage()]);
         }
         exit();
     }
@@ -207,32 +209,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         $preset  = trim($_POST['preset'] ?? '');
 
         if ($user_id <= 0) {
-            echo json_encode(['success' => false, 'message' => 'ບໍ່ພົບຜູ້ໃຊ້']);
+            echo json_encode(['success' => false, 'message' => tl('ບໍ່ພົບຜູ້ໃຊ້')]);
             exit();
         }
 
         // ແຜນຜັງຮູບແບບສິດ (Preset Template Mapping)
         $presets_map = [
-            'cashier'      => ['dashboard' => 0, 'sale' => 1, 'stock' => 0, 'report' => 0, 'accounting' => 0, 'setup' => 0, 'users' => 0, 'edit' => 0, 'customers' => 1, 'database' => 0, 'role_name' => 'ພະນັກງານຂາຍ POS'],
-            'accountant'   => ['dashboard' => 1, 'sale' => 0, 'stock' => 0, 'report' => 1, 'accounting' => 1, 'setup' => 0, 'users' => 0, 'edit' => 0, 'customers' => 0, 'database' => 0, 'role_name' => 'ຄົນຈັດການບັນຊີ'],
-            'stock_keeper' => ['dashboard' => 1, 'sale' => 0, 'stock' => 1, 'report' => 0, 'accounting' => 0, 'setup' => 0, 'users' => 0, 'edit' => 1, 'customers' => 0, 'database' => 0, 'role_name' => 'ພະນັກງານຄັງສິນຄ້າ'],
-            'auditor'      => ['dashboard' => 1, 'sale' => 1, 'stock' => 1, 'report' => 1, 'accounting' => 1, 'setup' => 0, 'users' => 0, 'edit' => 0, 'customers' => 1, 'database' => 0, 'role_name' => 'ຜູ້ກວດສອບບັນຊີ'],
-            'manager'      => ['dashboard' => 1, 'sale' => 1, 'stock' => 1, 'report' => 1, 'accounting' => 1, 'setup' => 1, 'users' => 1, 'edit' => 1, 'customers' => 1, 'permissions' => 1, 'database' => 1, 'role_name' => 'ຜູ້ບໍລິຫານ / ຈັດການທັງໝົດ'],
-            'all_on'       => ['dashboard' => 1, 'sale' => 1, 'stock' => 1, 'report' => 1, 'accounting' => 1, 'setup' => 1, 'users' => 1, 'edit' => 1, 'customers' => 1, 'permissions' => 1, 'database' => 1, 'role_name' => 'ເປີດທຸກສິດ'],
-            'all_off'      => ['dashboard' => 0, 'sale' => 0, 'stock' => 0, 'report' => 0, 'accounting' => 0, 'setup' => 0, 'users' => 0, 'edit' => 0, 'customers' => 0, 'permissions' => 0, 'database' => 0, 'role_name' => 'ປິດທຸກສິດ']
+            'cashier'      => ['dashboard' => 0, 'sale' => 1, 'stock' => 0, 'report' => 0, 'accounting' => 0, 'setup' => 0, 'users' => 0, 'edit' => 0, 'customers' => 1, 'database' => 0, 'role_name' => (tl('ພະນັກງານຂາຍ') . ' POS')],
+            'accountant'   => ['dashboard' => 1, 'sale' => 0, 'stock' => 0, 'report' => 1, 'accounting' => 1, 'setup' => 0, 'users' => 0, 'edit' => 0, 'customers' => 0, 'database' => 0, 'role_name' => tl('ຄົນຈັດການບັນຊີ')],
+            'stock_keeper' => ['dashboard' => 1, 'sale' => 0, 'stock' => 1, 'report' => 0, 'accounting' => 0, 'setup' => 0, 'users' => 0, 'edit' => 1, 'customers' => 0, 'database' => 0, 'role_name' => tl('ພະນັກງານຄັງສິນຄ້າ')],
+            'auditor'      => ['dashboard' => 1, 'sale' => 1, 'stock' => 1, 'report' => 1, 'accounting' => 1, 'setup' => 0, 'users' => 0, 'edit' => 0, 'customers' => 1, 'database' => 0, 'role_name' => tl('ຜູ້ກວດສອບບັນຊີ')],
+            'manager'      => ['dashboard' => 1, 'sale' => 1, 'stock' => 1, 'report' => 1, 'accounting' => 1, 'setup' => 1, 'users' => 1, 'edit' => 1, 'customers' => 1, 'permissions' => 1, 'database' => 1, 'role_name' => tl('ຜູ້ບໍລິຫານ / ຈັດການທັງໝົດ')],
+            'all_on'       => ['dashboard' => 1, 'sale' => 1, 'stock' => 1, 'report' => 1, 'accounting' => 1, 'setup' => 1, 'users' => 1, 'edit' => 1, 'customers' => 1, 'permissions' => 1, 'database' => 1, 'role_name' => tl('ເປີດທຸກສິດ')],
+            'all_off'      => ['dashboard' => 0, 'sale' => 0, 'stock' => 0, 'report' => 0, 'accounting' => 0, 'setup' => 0, 'users' => 0, 'edit' => 0, 'customers' => 0, 'permissions' => 0, 'database' => 0, 'role_name' => tl('ປິດທຸກສິດ')]
         ];
 
         if (!isset($presets_map[$preset])) {
-            echo json_encode(['success' => false, 'message' => 'ບໍ່ພົບຮູບແບບສິດທີ່ເລືອກ']);
+            echo json_encode(['success' => false, 'message' => tl('ບໍ່ພົບຮູບແບບສິດທີ່ເລືອກ')]);
             exit();
         }
 
         if ($user_id === 1) {
-            echo json_encode(['success' => false, 'message' => 'ຜູ້ບໍລິຫານຄົນທຳອິດ (ID: 1) ບໍ່ສາມາດປັບປ່ຽນສິດໄດ້!']);
+            echo json_encode(['success' => false, 'message' => tl('ຜູ້ບໍລິຫານຄົນທຳອິດ (ID: 1) ບໍ່ສາມາດປັບປ່ຽນສິດໄດ້!')]);
             exit();
         }
         if (!isOwnerUser() && isAdminAccount($pdo, $user_id)) {
-            echo json_encode(['success' => false, 'message' => 'ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດປັບປ່ຽນສິດຂອງຜູ້ບໍລິຫານຄົນອື່ນໄດ້!']);
+            echo json_encode(['success' => false, 'message' => tl('ມີແຕ່ຜູ້ບໍລິຫານຄົນທຳອິດເທົ່ານັ້ນທີ່ສາມາດປັບປ່ຽນສິດຂອງຜູ້ບໍລິຫານຄົນອື່ນໄດ້!')]);
             exit();
         }
 
@@ -245,8 +247,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             'import_stock' => 'stock', 'import_list' => 'stock', 'stock_check' => 'stock', 'stock_count' => 'stock', 'stock_transfer' => 'stock', 'transfer_history' => 'stock',
             'daily_report' => 'report', 'all_sales' => 'report', 'best_seller' => 'report', 'profit_cost' => 'report',
             'financial' => 'report', 'category_sales' => 'report', 'delete_bills' => 'report',
+            'shift_close_report' => 'report', 'shift_revenue_report' => 'report', 'expiry_report' => 'report',
             'branches' => 'setup', 'stores' => 'setup', 'print_barcode' => 'setup', 'expiry' => 'setup', 'exchange_rate' => 'setup',
-            'promotions' => 'setup', 'price_adjustment' => 'setup', 'printers' => 'setup', 'loyalty' => 'setup',
+            'promotions' => 'setup', 'price_adjustment' => 'setup', 'printers' => 'setup', 'loyalty' => 'setup', 'shifts' => 'setup',
+            // ລຶບ/ລ້າງຂໍ້ມູນ ກະທົບທັງລະບົບ — ເປີດພ້ອມສິດຖານຂໍ້ມູນເທົ່ານັ້ນ
+            'clear_data' => 'database',
         ];
         $presetValue = function ($perm) use ($p, $parentPerm) {
             if (isset($p[$perm])) return (int)$p[$perm];
@@ -312,7 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
 
             echo json_encode([
                 'success' => true, 
-                'message' => "ນຳໃຊ້ຮູບແບບ \"{$p['role_name']}\" ໃຫ້ {$targetUser} ສຳເລັດ!",
+                'message' => ("" . tl('ນຳໃຊ້ຮູບແບບ') . " \"{$p['role_name']}\" " . tl('ໃຫ້') . " {$targetUser} " . tl('ສຳເລັດ!') . ""),
                 'user_id' => $user_id,
                 'perm_count' => $permCount,
                 'switch_values' => $switchValues,
@@ -331,7 +336,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                 ]
             ]);
         } catch (Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'ຜິດພາດ: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => (tl('ຜິດພາດ:') . ' ') . $e->getMessage()]);
         }
         exit();
     }

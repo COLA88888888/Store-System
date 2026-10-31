@@ -78,7 +78,7 @@
 
                     if (salesEl) salesEl.textContent = fmtKip(baseSales);
                     if (profitEl) profitEl.textContent = fmtKip(baseProfit);
-                    if (billsEl) billsEl.textContent = baseBills + ' ໃບບິນ';
+                    if (billsEl) billsEl.textContent = baseBills + ' <?php echo tlj('ໃບບິນ'); ?>';
                 }, 1400);
 
                 // ຕາຂອງກະຕູນເຫຼືອບເບິ່ງຕາມເມົ້າ ແລະ ເບິ່ງຟອມເວລາພິມ
@@ -212,18 +212,43 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.success) {
+                            // ກະດິ່ງປະຕູ "ຕິງ-ຕ່ອງ" ແບບຮ້ານສະດວກຊື້ ເມື່ອພະນັກງານເຂົ້າລະບົບ (assets/js/pos-sounds.js)
+                            if (window.MiniposSounds) MiniposSounds.doorChime();
                             var tabToken = 'TOKEN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                             sessionStorage.setItem('StoreMini.pos_tab_active', tabToken);
                             sessionStorage.setItem('StoreMini.isSessionActive', 'true');
+
+                            // ແຈ້ງເຕືອນຈໍລູກຄ້າ Real-Time ວ່າພະນັກງານເຂົ້າສູ່ລະບົບແລ້ວ (BroadcastChannel + localStorage)
+                            try {
+                                var enterPayload = {
+                                    action: 'cashier_enter',
+                                    user_id: response.user_id || 0,
+                                    name: response.employee_name || response.username || '',
+                                    gender: response.gender || '',
+                                    store_id: response.store_id || 1,
+                                    time: Date.now()
+                                };
+                                try {
+                                    var bc1 = new BroadcastChannel('StoreMini.customer_display_channel');
+                                    bc1.postMessage(enterPayload);
+                                    setTimeout(function() { bc1.close(); }, 800);
+                                } catch(e) {}
+                                try {
+                                    var bc2 = new BroadcastChannel('StoreMini.cashier_channel');
+                                    bc2.postMessage(enterPayload);
+                                    setTimeout(function() { bc2.close(); }, 800);
+                                } catch(e) {}
+                                localStorage.setItem('StoreMini.cashier_entered', JSON.stringify(enterPayload));
+                            } catch(e) {}
                             try {
                                 var pf = document.createElement('link');
                                 pf.rel = 'prefetch';
                                 pf.href = response.redirect;
                                 document.head.appendChild(pf);
                             } catch(e) {}
-                            // ໃຫ້ແອນິເມຊັນເປີດຜ້າຫຼິ້ນຈົບກ່ອນ (~0.8 ວິ) ແລ້ວຈຶ່ງໄປໜ້າດາສບອດ
+                            // ໃຫ້ແອນິເມຊັນເປີດຜ້າຫຼິ້ນຈົບ ແລະ ສຽງກະດິ່ງດັງຄົບ 2 ໂນດກ່ອນ (~1.1 ວິ) ແລ້ວຈຶ່ງໄປໜ້າດາສບອດ
                             var elapsed = Date.now() - curtainStartAt;
-                            var remain = Math.max(220, 780 - elapsed);
+                            var remain = Math.max(220, 1100 - elapsed);
                             setTimeout(function() {
                                 window.location.href = response.redirect;
                             }, remain);

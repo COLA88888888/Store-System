@@ -38,15 +38,18 @@ function openViewModal(user) {
 
   // Online/Offline status badge
   if (isOnline) {
-    badgeHtml += '<span class="badge badge-success px-3 py-1 mr-1 shadow-sm" style="border-radius: 6px;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + (i18n['users_manage.status_online'] || 'ໃຊ້ງານຢູ່') + '</span> ';
+    badgeHtml += '<span class="badge badge-success px-3 py-1 mr-1 shadow-sm" style="border-radius: 6px;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + (i18n['users_manage.status_online'] || '' + (window.__tl||String)("ໃຊ້ງານຢູ່") + '') + '</span> ';
   } else {
-    badgeHtml += '<span class="badge badge-danger px-3 py-1 mr-1 shadow-sm" style="border-radius: 6px;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + (i18n['users_manage.status_offline'] || 'ບໍ່ໄດ້ໃຊ້ງານ') + '</span> ';
+    badgeHtml += '<span class="badge badge-danger px-3 py-1 mr-1 shadow-sm" style="border-radius: 6px;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + (i18n['users_manage.status_offline'] || '' + (window.__tl||String)("ບໍ່ໄດ້ໃຊ້ງານ") + '') + '</span> ';
   }
 
-  // Role badge (ຜູ້ບໍລິຫານ / ພະນັກງານ)
-  if (st === 'ຜູ້ບໍລິຫານ' || st.toLowerCase() === 'admin') {
+  // Role badge (ຜູ້ບໍລິຫານ / ຜູ້ຈັດການ / ພະນັກງານ)
+  var cleanSt = st.toLowerCase();
+  var isAdm = (parseInt(user.Id, 10) === 1 || ['ຜູ້ບໍລິຫານ', 'ผู้บริหาร', 'admin', 'administrator', 'super admin', 'superadmin'].indexOf(cleanSt) !== -1);
+  var isMgr = ['ຜູ້ຈັດການ', 'ผู้จัดการ', 'manager'].indexOf(cleanSt) !== -1;
+  if (isAdm) {
     badgeHtml += '<span class="badge badge-primary px-3 py-1" style="border-radius: 6px;"><i class="fas fa-user-shield mr-1"></i> ' + (i18n['users_manage.role_admin'] || 'ຜູ້ບໍລິຫານ') + '</span>';
-  } else if (st === 'ຜູ້ຈັດການ') {
+  } else if (isMgr) {
     badgeHtml += '<span class="badge badge-info px-3 py-1" style="border-radius: 6px;"><i class="fas fa-user-tie mr-1"></i> ' + (i18n['users_manage.role_manager_short'] || 'ຜູ້ຈັດການ') + '</span>';
   } else {
     badgeHtml += '<span class="badge badge-secondary px-3 py-1" style="border-radius: 6px;"><i class="fas fa-user mr-1"></i> ' + (i18n['users_manage.role_employee'] || 'ພະນັກງານ') + '</span>';

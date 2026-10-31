@@ -12,7 +12,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_bill_details') {
     $billNo = trim($_GET['bill_no'] ?? '');
 
     if (empty($billNo)) {
-        echo json_encode(['success' => false, 'message' => 'ບໍ່ພົບເລກບິນ!']);
+        echo json_encode(['success' => false, 'message' => tl('ບໍ່ພົບເລກບິນ!')]);
         exit();
     }
 
@@ -30,8 +30,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_bill_details') {
         $billData = $stmtB->fetch(PDO::FETCH_ASSOC);
 
         if (!$billData) {
-            echo json_encode(['success' => false, 'message' => 'ບໍ່ພົບຂໍ້ມູນບິນຂາຍນີ້!']);
+            echo json_encode(['success' => false, 'message' => tl('ບໍ່ພົບຂໍ້ມູນບິນຂາຍນີ້!')]);
             exit();
+        }
+
+        $rawCust = trim((string)($billData['customer_name'] ?? ''));
+        $defaultCustAliases = ['ລູກຄ້າທົ່ວໄປ', 'Walk-in Customer', 'ลูกค้าทั่วไป', '散客', '普通顾客', 'Khách lẻ', 'Khách thông thường', 'General Customer'];
+        if (empty($rawCust) || in_array($rawCust, $defaultCustAliases, true)) {
+            $billData['customer_display_name'] = t('reports.default_customer', 'ລູກຄ້າທົ່ວໄປ');
+        } else {
+            $billData['customer_display_name'] = $rawCust;
         }
 
         // Tax settings are shared across all branches (live on the main branch's row only)

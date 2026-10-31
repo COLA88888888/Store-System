@@ -104,6 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,   // ສູງຕາມກ່ອງ .daily-sales-chart-box (ໂທລະສັບສູງກວ່າ)
       plugins: {
         legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12 } },
         tooltip: {
@@ -120,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function () {
           grid: { color: 'rgba(0,0,0,0.05)' },
           ticks: {
             font: { size: 10 },
+            crossAlign: 'far',   // ຕົວເລກເງິນເລີ່ມຊິດຊ້າຍ ກົງກັບຫົວຂໍ້ "ຍອດຂາຍສຸດທິລາຍວັນ"
             callback: function(v) {
               return Number(v).toLocaleString('en-US', {maximumFractionDigits: <?php echo $__dec; ?>}) + ' ' + CUR_SYM;
             }

@@ -2,6 +2,13 @@
 // pages/products — ປຸ່ມ/popup ເພີ່ມດ່ວນ ຫົວໜ່ວຍ, ໂຊນ, ຊັ້ນວາງ + ແຖບເພີ່ມຫຼາຍລາຍການ/Excel
 // strings - English
 return [
+    'products_q.add_category_link' => 'Add Category',
+    'products_q.add_btn_short' => 'Add',
+    'products_q.cat_title' => 'Add New Category',
+    'products_q.cat_ph' => 'Enter category name, e.g. Beverages, Snacks...',
+    'products_q.cat_required' => 'Please enter a category name!',
+    'products_q.cat_added' => 'Category added successfully',
+    'products_q.cat_failed' => 'Failed to add category',
     'products_q.add_unit_link' => 'Add unit',
     'products_q.add_zone_link' => 'Add zone',
     'products_q.add_shelf_link' => 'Add shelf',
@@ -38,6 +45,13 @@ return [
     'products_q.shelf_all_rows' => 'Shelf (applies to all rows)',
     'products_q.zone_none_opt' => '-- None / select zone --',
     'products_q.shelf_none_opt' => '-- None / select shelf --',
+    'products_q.no_zone' => '-- No Zone Data --',
+    'products_q.no_zone_short' => '-- No Zone --',
+    'products_q.no_shelf' => '-- No Shelf Data --',
+    'products_q.no_shelf_short' => '-- No Shelf --',
+    'products_q.no_shelf_in_zone' => '-- No Shelf in this Zone --',
+    'products_q.select_zone' => '-- Select Zone --',
+    'products_q.select_shelf' => '-- Select Shelf --',
     'products_q.excel_import' => 'Import from Excel',
     'products_q.excel_template' => 'Download template',
     'products_q.excel_columns' => 'Columns: category, product name, barcode, unit, cost price, sale price, supplier, zone, shelf',
@@ -51,4 +65,6 @@ return [
     'products_q.miss_category' => 'Categories not found in the system',
     'products_q.miss_unit' => 'Units not found in the system',
     'products_q.miss_supplier' => 'Suppliers not found (left empty)',
+    'products_q.add_category_btn' => 'Add Category',
+    'products_q.add_unit_btn' => 'Add Unit',
 ];

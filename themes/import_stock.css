@@ -277,3 +277,17 @@ body {
 .table-responsive > .table > thead > tr > th.text-right {
     text-align: right !important;
 }
+
+/* ໂທລະສັບ: ຕາຕະລາງລາຍການສິນຄ້າຮັບເຂົ້າ (import_list.php) — ຕົວໜັງສືນ້ອຍລົງ ເຫັນໄດ້ຫຼາຍຖັນຂຶ້ນ
+   (ຂຽນທັບ font-size ທີ່ໃສ່ໄວ້ໃນແຖວ ຈຶ່ງຕ້ອງໃຊ້ !important) */
+@media (max-width: 575.98px) {
+    .import-list-table th,
+    .import-list-table td,
+    .import-list-table td * {
+        font-size: 0.76rem !important;
+    }
+    .import-list-table th,
+    .import-list-table td {
+        padding: 8px 6px !important;
+    }
+}

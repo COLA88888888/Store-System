@@ -371,7 +371,38 @@ var channel = null;
 try {
   channel = new BroadcastChannel('StoreMini.customer_display_channel');
   channel.onmessage = function(e) {
-    if (e.data) renderDisplayData(e.data);
+    if (e.data) {
+      if (e.data.action === 'cashier_enter') {
+        if (typeof window.cdTriggerCashierWalkIn === 'function') {
+          window.cdTriggerCashierWalkIn(e.data.name, e.data);
+        }
+        return;
+      }
+      if (e.data.action === 'cashier_exit') {
+        if (typeof window.cdTriggerCashierWalkOut === 'function') {
+          window.cdTriggerCashierWalkOut(e.data.name, e.data);
+        }
+        return;
+      }
+      renderDisplayData(e.data);
+    }
+  };
+} catch(e) {}
+
+try {
+  var cashierChannel = new BroadcastChannel('StoreMini.cashier_channel');
+  cashierChannel.onmessage = function(e) {
+    if (e.data) {
+      if (e.data.action === 'cashier_enter') {
+        if (typeof window.cdTriggerCashierWalkIn === 'function') {
+          window.cdTriggerCashierWalkIn(e.data.name, e.data);
+        }
+      } else if (e.data.action === 'cashier_exit') {
+        if (typeof window.cdTriggerCashierWalkOut === 'function') {
+          window.cdTriggerCashierWalkOut(e.data.name, e.data);
+        }
+      }
+    }
   };
 } catch(e) {}
 
@@ -379,6 +410,26 @@ window.addEventListener('storage', function(e) {
   if (e.key === 'StoreMini.customer_display_data') {
     try {
       renderDisplayData(JSON.parse(e.newValue));
+    } catch(err) {}
+  }
+  if (e.key === 'StoreMini.cashier_entered' && e.newValue) {
+    try {
+      var cData = JSON.parse(e.newValue);
+      if (cData && (cData.name || cData.employee_name)) {
+        if (typeof window.cdTriggerCashierWalkIn === 'function') {
+          window.cdTriggerCashierWalkIn(cData.name || cData.employee_name, cData);
+        }
+      }
+    } catch(err) {}
+  }
+  if (e.key === 'StoreMini.cashier_exited' && e.newValue) {
+    try {
+      var exData = JSON.parse(e.newValue);
+      if (exData && (exData.name || exData.employee_name)) {
+        if (typeof window.cdTriggerCashierWalkOut === 'function') {
+          window.cdTriggerCashierWalkOut(exData.name || exData.employee_name, exData);
+        }
+      }
     } catch(err) {}
   }
   if (e.key === 'StoreMini.ui_lang' && e.newValue) {
@@ -501,6 +552,72 @@ function renderBankPopup(data) {
   } else {
     $('#bppAmountKip').hide().empty();
   }
+
+  // ຊຳລະຫຼາຍຊ່ອງທາງ (Split Payment): ສະແດງເງິນສົດທີ່ຕ້ອງຈ່າຍ ຫຼື ເງິນທອນ (ກໍລະນີປ້ອນກາຍ)
+  var isSplit = (data && data.payMode === 'split');
+  if (isSplit) {
+    var totalKip   = parseFloat(data.totalAmount || 0);
+    var cashRec    = parseFloat(data.cashReceived || 0);
+    var changeKip  = parseFloat(data.changeAmount || 0);
+    var targetCash = Math.max(0, totalKip - transferKip);
+
+    var $box  = $('#bppSplitCashBox');
+    var $icon = $('#bppSplitCashIcon');
+    var $lbl  = $('#bppSplitCashLabel');
+    var $amt  = $('#bppSplitCashAmount');
+    var $kip  = $('#bppSplitCashKip');
+    var $sub  = $('#bppSplitCashSub');
+
+    // 1. ຖ້າປ້ອນກາຍ (Change > 0): ສະແດງເງິນທອນຂຶ້ນຊັດເຈນທັນທີ!
+    if (changeKip > 0) {
+      $box.addClass('is-change');
+      $icon.html('<i class="fas fa-hand-holding-usd"></i>');
+      $lbl.text((cdT('cd.change') || '<?php echo tlj('ເງິນທອນ'); ?>') + ':');
+      $amt.html(cdMoney(changeKip));
+      if (!CD_CUR.isKip && changeKip > 0) {
+        $kip.html('≈ ' + cdFmtKip(changeKip)).show();
+      } else {
+        $kip.hide().empty();
+      }
+      if (cashRec > 0) {
+        $sub.html((cdT('cd.cash_received') || '<?php echo tlj('ຮັບເງິນສົດ:'); ?>') + ' ' + cdMoney(cashRec)).show();
+      } else {
+        $sub.hide().empty();
+      }
+      $('#bppSplitSection').show();
+    } else if (targetCash > 0 || cashRec > 0) {
+      // 2. ຍັງບໍ່ກາຍ: ສະແດງເງິນສົດທີ່ຕ້ອງຈ່າຍ
+      $box.removeClass('is-change');
+      $icon.html('<i class="fas fa-money-bill-wave"></i>');
+
+      if (cashRec >= targetCash && targetCash > 0) {
+        $lbl.text((cdT('cd.cash_to_pay') || '<?php echo tlj('ເງິນສົດທີ່ຕ້ອງຈ່າຍ'); ?>') + ':');
+        $amt.html(cdMoney(targetCash));
+        $sub.html('<span class="text-success font-weight-bold">✓ <?php echo tlj('ພໍດີ'); ?></span>').show();
+      } else if (cashRec > 0 && cashRec < targetCash) {
+        var remCash = targetCash - cashRec;
+        $lbl.text('<?php echo tlj('ຍັງຄ້າງເງິນສົດ:'); ?>');
+        $amt.html(cdMoney(remCash));
+        $sub.html((cdT('cd.cash_received') || '<?php echo tlj('ຮັບແລ້ວ:'); ?>') + ' ' + cdMoney(cashRec)).show();
+      } else {
+        $lbl.text((cdT('cd.cash_to_pay') || '<?php echo tlj('ເງິນສົດທີ່ຕ້ອງຈ່າຍ'); ?>') + ':');
+        $amt.html(cdMoney(targetCash));
+        $sub.hide().empty();
+      }
+
+      if (!CD_CUR.isKip && targetCash > 0) {
+        $kip.html('≈ ' + cdFmtKip(targetCash)).show();
+      } else {
+        $kip.hide().empty();
+      }
+      $('#bppSplitSection').show();
+    } else {
+      $('#bppSplitSection').hide();
+    }
+  } else {
+    $('#bppSplitSection').hide();
+  }
+
   $pop.css('display', 'flex');
 }
 
@@ -525,61 +642,105 @@ function getAudioContext() {
   document.addEventListener(ev, function() { getAudioContext(); }, { passive: true });
 });
 
-// Realistic Cash Register / Money Received Sound ("Cha-ching! 💰") via Web Audio API
+// Friendly welcoming chime for cashier arrival ("Ding-Dong! 👋") via Web Audio API
+function playCashierWelcomeChime() {
+  if (window.MiniposSounds) { MiniposSounds.doorChime(); return; }   // ກະດິ່ງປະຕູ "ຕິງ-ຕ່ອງ"
+  try {
+    var ctx = getAudioContext();
+    if (!ctx) return;
+    var now = ctx.currentTime;
+
+    var osc1 = ctx.createOscillator();
+    var gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(659.25, now); // E5
+    gain1.gain.setValueAtTime(0.14, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.36);
+
+    var osc2 = ctx.createOscillator();
+    var gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(880.0, now + 0.12); // A5
+    gain2.gain.setValueAtTime(0.16, now + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.12);
+    osc2.stop(now + 0.66);
+  } catch(e) {}
+}
+
+// ບໍ່ໃຫ້ຂຶ້ນເຕືອນໜ້າຈໍພະນັກງານໃດເຂົ້າ (Toast disabled per user directive)
+window.showCashierArrivalToast = function(name) {};
+window.showCashierExitToast = function(name) {};
+
+// ກົດປຸ່ມ 'w' ເພື່ອທົດສອບພະນັກງານຍ່າງເຂົ້າ / 'e' ເພື່ອທົດສອບຍ່າງອອກ
+window.addEventListener('keydown', function(e) {
+  if (!e.ctrlKey && !e.altKey && !e.metaKey) {
+    if (e.key === 'w' || e.key === 'W') {
+      var testNames = ['ສົມສັກ', 'ນາງ ມະນີ', 'ຄຳຫຼ້າ', 'ວິໄລສັກ'];
+      var randomName = testNames[Math.floor(Math.random() * testNames.length)];
+      if (typeof window.cdTriggerCashierWalkIn === 'function') {
+        window.cdTriggerCashierWalkIn(randomName);
+      }
+    } else if (e.key === 'e' || e.key === 'E') {
+      if (typeof window.cdTriggerCashierWalkOut === 'function') {
+        window.cdTriggerCashierWalkOut();
+      }
+    }
+  }
+});
+
+// ສຽງຕອນກົດຂາຍສຳເລັດແບບໃໝ່ (Modern Melodic POS Sale Confirmation Chime)
 function playMoneyReceivedSound() {
+  if (window.MiniposSounds) { MiniposSounds.saleChime(); return; }   // ສຽງໃໝ່ (assets/js/pos-sounds.js)
   try {
     var ctx = getAudioContext();
     if (!ctx) return;
     var now = ctx.currentTime;
 
     var masterGain = ctx.createGain();
-    masterGain.gain.setValueAtTime(0.72, now);
+    masterGain.gain.setValueAtTime(0.42, now);
     masterGain.connect(ctx.destination);
 
-    // 1. Mechanical cash drawer "Ka-thunk / click"
-    var clickOsc = ctx.createOscillator();
-    var clickGain = ctx.createGain();
-    clickOsc.type = 'triangle';
-    clickOsc.frequency.setValueAtTime(320, now);
-    clickOsc.frequency.exponentialRampToValueAtTime(140, now + 0.04);
-    clickGain.gain.setValueAtTime(0.45, now);
-    clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-    clickOsc.connect(clickGain);
-    clickGain.connect(masterGain);
-    clickOsc.start(now);
-    clickOsc.stop(now + 0.05);
+    // ສຽງ Chime ອ່ອນນຸ່ມ ສົດໃສ ລະດັບສຽງ C5 -> E5 -> G5 -> C6
+    var chord = [
+      { f: 523.25,  t: 0.00, d: 0.38, g: 0.28 }, // C5
+      { f: 659.25,  t: 0.08, d: 0.44, g: 0.32 }, // E5
+      { f: 783.99,  t: 0.16, d: 0.54, g: 0.36 }, // G5
+      { f: 1046.50, t: 0.24, d: 0.88, g: 0.45 }  // C6 (sparkling crystal top)
+    ];
 
-    // 2. Loud, resonant cash register bells ("Ching!")
-    var bellStart = now + 0.035;
-    var bellFreqs = [2093.0, 2793.8, 3135.9, 4186.0];
-    bellFreqs.forEach(function(freq, idx) {
-      var bellOsc = ctx.createOscillator();
-      var bellGain = ctx.createGain();
-      bellOsc.type = 'sine';
-      bellOsc.frequency.setValueAtTime(freq, bellStart);
-      var initGain = (idx === 0) ? 0.38 : (0.24 / idx);
-      bellGain.gain.setValueAtTime(initGain, bellStart);
-      bellGain.gain.exponentialRampToValueAtTime(0.0001, bellStart + 0.95);
-      bellOsc.connect(bellGain);
-      bellGain.connect(masterGain);
-      bellOsc.start(bellStart);
-      bellOsc.stop(bellStart + 1.0);
-    });
+    chord.forEach(function(n) {
+      var start = now + n.t;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(n.f, start);
+      gain.gain.setValueAtTime(0.001, start);
+      gain.gain.exponentialRampToValueAtTime(n.g, start + 0.014);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + n.d);
+      osc.connect(gain);
+      gain.connect(masterGain);
+      osc.start(start);
+      osc.stop(start + n.d + 0.02);
 
-    // 3. Coins dropping / clinking inside the drawer
-    var coinDelays = [0.08, 0.16, 0.24, 0.32];
-    var coinFreqs = [3500, 4200, 3900, 4800];
-    coinDelays.forEach(function(delay, i) {
-      var coinOsc = ctx.createOscillator();
-      var coinGain = ctx.createGain();
-      coinOsc.type = 'sine';
-      coinOsc.frequency.setValueAtTime(coinFreqs[i], now + delay);
-      coinGain.gain.setValueAtTime(0.20, now + delay);
-      coinGain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.14);
-      coinOsc.connect(coinGain);
-      coinGain.connect(masterGain);
-      coinOsc.start(now + delay);
-      coinOsc.stop(now + delay + 0.15);
+      // Warm harmonic overtone
+      var oscH = ctx.createOscillator();
+      var gainH = ctx.createGain();
+      oscH.type = 'triangle';
+      oscH.frequency.setValueAtTime(n.f * 2, start);
+      gainH.gain.setValueAtTime(0.001, start);
+      gainH.gain.exponentialRampToValueAtTime(n.g * 0.18, start + 0.014);
+      gainH.gain.exponentialRampToValueAtTime(0.0001, start + n.d * 0.55);
+      oscH.connect(gainH);
+      gainH.connect(masterGain);
+      oscH.start(start);
+      oscH.stop(start + n.d * 0.55 + 0.02);
     });
   } catch(e) {}
 }
@@ -813,7 +974,7 @@ function renderDisplayData(data) {
               ? `<del style="color:#94a3b8; font-size:0.85em; text-decoration:line-through; font-weight:normal;" class="mr-1">${cdMoney(origUnitPrice)}</del><span class="text-danger font-weight-bold">${cdMoney(curUnitPrice)}</span>`
               : cdMoney(curUnitPrice));
         var unitNameStr = item.unit_name ? item.unit_name : cdT('cd.pieces');
-        var giftBadgeHtml = isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.82rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i>ແຖມຟຣີ</span>` : '';
+        var giftBadgeHtml = isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.82rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i><?php echo tlj('ແຖມຟຣີ'); ?></span>` : '';
         var discBadgeHtml = hasLineDisc 
           ? `<span class="text-danger font-weight-bold ml-1" style="font-size:0.85rem; white-space:nowrap;">-${item.item_discount_text || cdMoney(origUnitPrice - curUnitPrice)}</span>` 
           : '';

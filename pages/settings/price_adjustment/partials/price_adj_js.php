@@ -168,8 +168,8 @@ function editPriceAdjLog(d) {
   $('#adjust_value').val(Number(d.adjust_value || 0).toLocaleString());
   $form.find('input[name="remark"]').val(d.remark || '');
 
-  $('#priceAdjModalLabel').html('<i class="fas fa-edit mr-1.5"></i> ແກ້ໄຂການປັບລາຄາ');
-  $form.find('button[type="submit"]').html('<i class="fas fa-check-circle mr-1"></i> ບັນທຶກການແກ້ໄຂ');
+  $('#priceAdjModalLabel').html('<i class="fas fa-edit mr-1.5"></i> <?php echo tlj('ແກ້ໄຂການປັບລາຄາ'); ?>');
+  $form.find('button[type="submit"]').html('<i class="fas fa-check-circle mr-1"></i> <?php echo tlj('ບັນທຶກການແກ້ໄຂ'); ?>');
 
   $('#priceAdjModal').modal('show');
 }

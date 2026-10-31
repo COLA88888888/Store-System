@@ -69,20 +69,20 @@ foreach ($chart_keys as $k) {
 
 // Chart titles/badges for the current mode
 if ($chart_mode === 'hour') {
-    $chart_title_key = 'home.chart_revenue_hourly'; $chart_title_def = 'ກາຟລາຍຮັບລາຍຊົ່ວໂມງ';
-    $chart_period_text = 'ວັນທີ ' . date('d/m/Y', strtotime($chartFrom));
-    $chart_badge_key = 'home.badge_hours'; $chart_badge_def = '24 ຊົ່ວໂມງ'; $chart_badge_n = null;
+    $chart_title_key = 'home.chart_revenue_hourly'; $chart_title_def = tl('ກາຟລາຍຮັບລາຍຊົ່ວໂມງ');
+    $chart_period_text = t('home.lbl_date', 'ວັນທີ') . ' ' . date('d/m/Y', strtotime($chartFrom));
+    $chart_badge_key = 'home.badge_hours'; $chart_badge_def = ('24 ' . tl('ຊົ່ວໂມງ')); $chart_badge_n = null;
 } elseif ($chart_mode === 'day') {
-    $chart_title_key = 'home.chart_revenue_daily'; $chart_title_def = 'ກາຟລາຍຮັບລາຍວັນ';
-    $chart_period_text = 'ວັນທີ ' . date('d/m/Y', strtotime($chartFrom)) . ' – ວັນທີ ' . date('d/m/Y', strtotime($chartTo));
-    $chart_badge_key = 'home.badge_days'; $chart_badge_def = '%s ວັນ'; $chart_badge_n = count($chart_keys);
+    $chart_title_key = 'home.chart_revenue_daily'; $chart_title_def = tl('ກາຟລາຍຮັບລາຍວັນ');
+    $chart_period_text = t('home.lbl_date', 'ວັນທີ') . ' ' . date('d/m/Y', strtotime($chartFrom)) . ' – ' . t('home.lbl_date', 'ວັນທີ') . ' ' . date('d/m/Y', strtotime($chartTo));
+    $chart_badge_key = 'home.badge_days'; $chart_badge_def = ('%s ' . tl('ວັນ')); $chart_badge_n = count($chart_keys);
 } else {
-    $chart_title_key = 'home.chart_monthly_revenue'; $chart_title_def = 'ກາຟລາຍຮັບປະຈຳເດືອນ';
+    $chart_title_key = 'home.chart_monthly_revenue'; $chart_title_def = tl('ກາຟລາຍຮັບປະຈຳເດືອນ');
     $sameYear = substr($chartFrom, 0, 4) === substr($chartTo, 0, 4);
     $chart_period_text = ($sameYear && substr($chartFrom, 5) === '01-01' && substr($chartTo, 5) === '12-31')
         ? sprintf(t('home.year_label', 'ປີ %d'), (int)substr($chartFrom, 0, 4))
-        : 'ເດືອນ ' . date('m/Y', strtotime($chartFrom)) . ' – ເດືອນ ' . date('m/Y', strtotime($chartTo));
-    $chart_badge_key = 'home.badge_months'; $chart_badge_def = '%s ເດືອນ'; $chart_badge_n = count($chart_keys);
+        : t('home.lbl_month', 'ເດືອນ') . ' ' . date('m/Y', strtotime($chartFrom)) . ' – ' . t('home.lbl_month', 'ເດືອນ') . ' ' . date('m/Y', strtotime($chartTo));
+    $chart_badge_key = 'home.badge_months'; $chart_badge_def = ('%s ' . tl('ເດືອນ')); $chart_badge_n = count($chart_keys);
 }
 $chart_badge_text = $chart_badge_n === null ? t($chart_badge_key, $chart_badge_def) : sprintf(t($chart_badge_key, $chart_badge_def), $chart_badge_n);
 

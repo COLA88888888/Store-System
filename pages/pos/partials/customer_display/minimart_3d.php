@@ -52,7 +52,8 @@ if ($__mmAddress === '') {
   var MM_BRANCH_NAME = MM_ADDRESS;
   // ຂໍ້ຄວາມທີ່ແຕ້ມເທິງຈໍ/ໃບບິນໃນສາກ 3D ຕາມພາສາທີ່ເລືອກ (lang/*/customer_display.php)
   var CD_MM_T = <?php echo tjson(array_fill_keys(['cd.col_item', 'cd.col_qty', 'cd.col_total', 'cd.receipt', 'cd.thank_you', 'cd.scanning', 'cd.scan_ok',
-                                                  'cd.demo_juice', 'cd.demo_chips', 'cd.demo_lotion', 'cd.demo_lipstick', 'cd.demo_milk'], null)); ?>;
+                                                  'cd.demo_juice', 'cd.demo_chips', 'cd.demo_lotion', 'cd.demo_lipstick', 'cd.demo_milk',
+                                                  'cd.general_customer'], null)); ?>;
 
   function initMinimart3D() {
     var container = document.getElementById('minimart3dContainer');
@@ -998,6 +999,53 @@ if ($__mmAddress === '') {
     borderRight.position.set(8.9, 0.12, 0);
     storeGroup.add(borderRight);
 
+    // --- ENTRANCE/EXIT SLIDING GLASS DOOR & WELCOME MAT (x = -8.85, z = 1.25) ---
+    var entranceDoorGroup = new THREE.Group();
+    var matDoorFrame = new THREE.MeshLambertMaterial({ color: 0x334155 });
+    var matDoorGlass = new THREE.MeshLambertMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.42 });
+
+    var doorPostGeo = new THREE.BoxGeometry(0.16, 2.55, 0.16);
+    var doorPost1 = new THREE.Mesh(doorPostGeo, matDoorFrame);
+    doorPost1.position.set(-8.85, 1.28, 0.28);
+    entranceDoorGroup.add(doorPost1);
+
+    var doorPost2 = new THREE.Mesh(doorPostGeo, matDoorFrame);
+    doorPost2.position.set(-8.85, 1.28, 2.22);
+    entranceDoorGroup.add(doorPost2);
+
+    var doorHeader = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.22, 2.10), matDoorFrame);
+    doorHeader.position.set(-8.85, 2.45, 1.25);
+    entranceDoorGroup.add(doorHeader);
+
+    var doorGlassPanel1 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 2.22, 0.76), matDoorGlass);
+    doorGlassPanel1.position.set(-8.85, 1.22, 0.70);
+    entranceDoorGroup.add(doorGlassPanel1);
+
+    var doorGlassPanel2 = new THREE.Mesh(new THREE.BoxGeometry(0.05, 2.22, 0.76), matDoorGlass);
+    doorGlassPanel2.position.set(-8.85, 1.22, 1.80);
+    entranceDoorGroup.add(doorGlassPanel2);
+
+    // ຜ້າເຊັດຕີນຕ້ອນຮັບໜ້າປະຕູ (WELCOME Mat)
+    var matGeo = new THREE.PlaneGeometry(1.65, 1.15);
+    matGeo.rotateX(-Math.PI / 2);
+    var matCanvas = document.createElement('canvas');
+    matCanvas.width = 256; matCanvas.height = 128;
+    var mctx = matCanvas.getContext('2d');
+    mctx.fillStyle = '#1e3a8a';
+    mctx.fillRect(0, 0, 256, 128);
+    mctx.lineWidth = 6; mctx.strokeStyle = '#38bdf8';
+    mctx.strokeRect(6, 6, 244, 116);
+    mctx.font = 'bold 36px sans-serif';
+    mctx.fillStyle = '#ffffff';
+    mctx.textAlign = 'center'; mctx.textBaseline = 'middle';
+    mctx.fillText('WELCOME', 128, 64);
+    var matTex = new THREE.CanvasTexture(matCanvas);
+    var welcomeMat = new THREE.Mesh(matGeo, new THREE.MeshLambertMaterial({ map: matTex }));
+    welcomeMat.position.set(-7.95, 0.015, 1.25);
+    entranceDoorGroup.add(welcomeMat);
+
+    storeGroup.add(entranceDoorGroup);
+
     // --- 2. BACK WALL, ULTRA-HD 3D STORE/BRANCH SIGN & 4 SYMMETRICAL DRINK CHILLERS ---
     var wallBackGeo = new THREE.BoxGeometry(17.6, 2.75, 0.4);
     var wallBack = new THREE.Mesh(wallBackGeo, matWall);
@@ -1299,6 +1347,7 @@ if ($__mmAddress === '') {
     var shoeMat = new THREE.MeshLambertMaterial({ color: 0x0f172a });
 
     var cHeadGroup = new THREE.Group();
+    cHeadGroup.name = 'head';
     cHeadGroup.position.set(0, 2.04, 0);
     var head = new THREE.Mesh(new THREE.SphereGeometry(0.27, 16, 14), skinMat);
     cHeadGroup.add(head);
@@ -1331,6 +1380,7 @@ if ($__mmAddress === '') {
     cashierGroup.add(apron);
 
     var cArmLGroup = new THREE.Group();
+    cArmLGroup.name = 'armL';
     cArmLGroup.position.set(-0.32, 1.72, 0.05);
     var armL = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.062, 0.48, 8), uniformMat);
     armL.position.set(0, -0.20, 0.14);
@@ -1342,6 +1392,7 @@ if ($__mmAddress === '') {
     cArmLGroup.add(handL);
 
     var scannerGunGroup = new THREE.Group();
+    scannerGunGroup.name = 'scannerGun';
     scannerGunGroup.position.set(0, -0.32, 0.40);
     var gunHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 0.16, 8), new THREE.MeshLambertMaterial({ color: 0x0f172a }));
     gunHandle.rotation.x = 0.3;
@@ -1359,6 +1410,7 @@ if ($__mmAddress === '') {
       side: THREE.DoubleSide
     });
     var laserBeamMesh = new THREE.Mesh(laserBeamGeo, laserBeamMat);
+    laserBeamMesh.name = 'laserBeam';
     laserBeamMesh.position.set(0, -0.06, 0.42);
     laserBeamMesh.rotation.x = 0.42;
     scannerGunGroup.add(laserBeamMesh);
@@ -1367,6 +1419,7 @@ if ($__mmAddress === '') {
       new THREE.BoxGeometry(0.34, 0.025, 0.025),
       new THREE.MeshBasicMaterial({ color: 0xff0000 })
     );
+    laserLineMesh.name = 'laserLine';
     laserLineMesh.position.set(0, -0.20, 0.62);
     scannerGunGroup.add(laserLineMesh);
 
@@ -1374,6 +1427,7 @@ if ($__mmAddress === '') {
     cashierGroup.add(cArmLGroup);
 
     var cArmRGroup = new THREE.Group();
+    cArmRGroup.name = 'armR';
     cArmRGroup.position.set(0.32, 1.72, 0.05);
     var armR = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.062, 0.48, 8), uniformMat);
     armR.position.set(0, -0.20, 0.14);
@@ -1383,6 +1437,35 @@ if ($__mmAddress === '') {
     handR.position.set(0, -0.34, 0.34);
     cArmRGroup.add(handR);
     cashierGroup.add(cArmRGroup);
+
+    // --- LEGS & SHOES FOR FULL BODY WALKING ANIMATION ---
+    var cPantsMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+    var cLegGeo = new THREE.CylinderGeometry(0.08, 0.07, 0.88, 8);
+    var cShoeGeo = new THREE.BoxGeometry(0.15, 0.12, 0.25);
+
+    var cLegL = new THREE.Group();
+    cLegL.name = 'legL';
+    cLegL.position.set(-0.13, 1.06, 0);
+    var cLegLMesh = new THREE.Mesh(cLegGeo, cPantsMat);
+    cLegLMesh.position.set(0, -0.44, 0);
+    cLegLMesh.castShadow = true;
+    cLegL.add(cLegLMesh);
+    var cShoeL = new THREE.Mesh(cShoeGeo, shoeMat);
+    cShoeL.position.set(0, -0.88, 0.04);
+    cLegL.add(cShoeL);
+    cashierGroup.add(cLegL);
+
+    var cLegR = new THREE.Group();
+    cLegR.name = 'legR';
+    cLegR.position.set(0.13, 1.06, 0);
+    var cLegRMesh = new THREE.Mesh(cLegGeo, cPantsMat);
+    cLegRMesh.position.set(0, -0.44, 0);
+    cLegRMesh.castShadow = true;
+    cLegR.add(cLegRMesh);
+    var cShoeR = new THREE.Mesh(cShoeGeo, shoeMat);
+    cShoeR.position.set(0, -0.88, 0.04);
+    cLegR.add(cShoeR);
+    cashierGroup.add(cLegR);
 
     cashierGroup.position.set(4.50, 0, 0.20);
     cashierGroup.rotation.y = 0;
@@ -1690,9 +1773,15 @@ if ($__mmAddress === '') {
       legR.add(shoeR);
       g.add(legR);
 
-      var initPt = WAYPOINTS.aisles[idx % WAYPOINTS.aisles.length];
-      g.position.set(initPt.x, 0, initPt.z + (Math.random() - 0.5) * 0.25);
-      pushOutOfObstacles(g.position);
+      var startsOutside = (idx >= 13);
+      var initPt = startsOutside ? { x: -9.50, z: 1.25 } : WAYPOINTS.aisles[idx % WAYPOINTS.aisles.length];
+      if (startsOutside) {
+        g.position.set(-9.50, 0, 1.25);
+        g.visible = false;
+      } else {
+        g.position.set(initPt.x, 0, initPt.z + (Math.random() - 0.5) * 0.25);
+        pushOutOfObstacles(g.position);
+      }
       storeGroup.add(g);
 
       return {
@@ -1704,23 +1793,43 @@ if ($__mmAddress === '') {
         legL: legL,
         legR: legR,
         basket: basketGroup,
-        state: 'SHOPPING',
+        sMat: sMat,
+        pMat: pMat,
+        hMat: hMat,
+        pony: (typeof pony !== 'undefined') ? pony : null,
+        state: startsOutside ? 'OUTSIDE' : 'SHOPPING',
         target: initPt,
         path: [initPt],
-        // ຄວາມໄວຍ່າງອີງຕາມເວລາຈິງ (Units ຕໍ່ວິນາທີ) — ຍ່າງຄ່ອງແຄ້ວ ພໍດີ ບໍ່ຊ້າ ແລະ ບໍ່ໄວເກີນໄປໃນຈໍສຳພັດ 2 ໜ້າຈໍ
+        // ຄວາມໄວຍ່າງອີງຕາມເວລາຈິງ (Units ຕໍ່ວິນາທີ)
         speed: 3.15 + Math.random() * 0.65,
         walkCycle: Math.random() * Math.PI * 2,
         browseTimer: 0,
         browseMax: 1.55 + Math.random() * 1.05,
         shopStepsLeft: 2 + Math.floor(Math.random() * 3),
         queueIndex: -1,
-        payTimer: 0
+        payTimer: 0,
+        outsideTimer: startsOutside ? (0.8 + (idx - 13) * 1.8) : 0
       };
+    }
+
+    function applyRandomShopperLook(s) {
+      var p = CLOTH_PALETTES[Math.floor(Math.random() * CLOTH_PALETTES.length)];
+      if (s.sMat) s.sMat.color.setHex(p.shirt);
+      if (s.pMat) s.pMat.color.setHex(p.pants);
+      if (s.hMat) s.hMat.color.setHex(p.hair);
+      if (s.pony) s.pony.visible = (Math.random() > 0.45);
+      s.shopStepsLeft = 1 + Math.floor(Math.random() * 3);
+      s.speed = 3.0 + Math.random() * 0.65;
+      s.browseMax = 1.45 + Math.random() * 1.05;
+      s.queueIndex = -1;
+      s.payTimer = 0;
     }
 
     for (var i = 0; i < shopperCount; i++) {
       shoppers.push(createShopper(i));
     }
+
+<?php require __DIR__ . '/minimart_3d/people_tags.php'; /* ພະນັກງານເຄົ້າເຕີຕາມຈຳນວນຄົນລັອກອິນ + ປ້າຍຊື່ເທິງຫົວ (ລູກຄ້າທົ່ວໄປ) */ ?>
 
     var queueShoppers = [];
 
@@ -1816,16 +1925,18 @@ if ($__mmAddress === '') {
         prodMesh.position.y = (slotOffset === 0 && isLaserFiring) ? 1.40 : 1.36;
       }
 
-      cashierGroup.position.y = Math.sin(time * 4.0) * 0.015;
-      cHeadGroup.rotation.y = Math.sin(scanPhase * Math.PI * 2) * 0.22;
-      cHeadGroup.rotation.x = isLaserFiring ? 0.25 : 0.12;
-
-      cArmLGroup.rotation.x = isLaserFiring ? -0.35 : -0.10;
-      cArmLGroup.rotation.z = Math.sin(scanPhase * Math.PI * 2) * 0.18;
-      cArmRGroup.rotation.x = -0.15 + Math.sin(scanPhase * Math.PI * 2) * 0.35;
-
-      laserBeamMesh.visible = isLaserFiring;
-      laserLineMesh.visible = isLaserFiring;
+      if (typeof cdAnimateCashiers === 'function') {
+        cdAnimateCashiers(dt, time, scanPhase, isLaserFiring, isJustScannedBeep);
+      } else {
+        cashierGroup.position.y = Math.sin(time * 4.0) * 0.015;
+        cHeadGroup.rotation.y = Math.sin(scanPhase * Math.PI * 2) * 0.22;
+        cHeadGroup.rotation.x = isLaserFiring ? 0.25 : 0.12;
+        cArmLGroup.rotation.x = isLaserFiring ? -0.35 : -0.10;
+        cArmLGroup.rotation.z = Math.sin(scanPhase * Math.PI * 2) * 0.18;
+        cArmRGroup.rotation.x = -0.15 + Math.sin(scanPhase * Math.PI * 2) * 0.35;
+        laserBeamMesh.visible = isLaserFiring;
+        laserLineMesh.visible = isLaserFiring;
+      }
       scanFlashRing.visible = isJustScannedBeep;
       if (isJustScannedBeep) {
         var pulseScale = 0.8 + (scanPhase - 0.54) * 2.5;
@@ -1953,16 +2064,35 @@ if ($__mmAddress === '') {
               if (q === 0) queueShoppers[q].target = WAYPOINTS.queue[0];
             }
             s.state = 'LEAVING';
-            s.target = WAYPOINTS.exit;
+            s.target = { x: -9.50, z: 1.25 };
             s.path = [
               { x: 1.85, z: 2.60 },
-              WAYPOINTS.exit
+              { x: -3.50, z: 1.25 },
+              { x: -7.05, z: 1.25 },
+              { x: -9.50, z: 1.25 }
             ];
           }
         } else if (s.state === 'LEAVING') {
           var eArrived = stepShopperAlongPath(s, s.speed * 1.08, dt, 14.0);
           if (eArrived) {
-            s.shopStepsLeft = 2 + Math.floor(Math.random() * 3);
+            s.group.visible = false;
+            s.state = 'OUTSIDE';
+            s.outsideTimer = 1.0 + Math.random() * 2.8;
+          }
+        } else if (s.state === 'OUTSIDE') {
+          s.outsideTimer -= dt;
+          if (s.outsideTimer <= 0) {
+            applyRandomShopperLook(s);
+            s.group.position.set(-9.50, 0, 1.25);
+            s.group.visible = true;
+            s.state = 'ENTERING';
+            s.target = { x: -7.05, z: 1.25 };
+            s.path = [{ x: -7.05, z: 1.25 }];
+          }
+        } else if (s.state === 'ENTERING') {
+          var inArrived = stepShopperAlongPath(s, s.speed, dt, 13.5);
+          if (inArrived) {
+            s.shopStepsLeft = 1 + Math.floor(Math.random() * 3);
             var newShelf = WAYPOINTS.aisles[Math.floor(Math.random() * WAYPOINTS.aisles.length)];
             s.target = {
               x: newShelf.x,
@@ -1971,7 +2101,7 @@ if ($__mmAddress === '') {
               lookX: newShelf.lookX,
               lookZ: newShelf.lookZ
             };
-            s.path = buildWalkPath( s.group.position.x, s.group.position.z, s.target );
+            s.path = buildWalkPath(s.group.position.x, s.group.position.z, s.target);
             s.state = 'SHOPPING';
           }
         }
@@ -2010,6 +2140,7 @@ if ($__mmAddress === '') {
       fromDict = fromDict || {}; toDict = toDict || {};
       Object.keys(CD_MM_T).forEach(function(k) { if (toDict[k]) CD_MM_T[k] = toDict[k]; });
       renderStoreSignCanvas();
+      cdRelabelShoppers();   // ປ້າຍ "ລູກຄ້າທົ່ວໄປ" ເປັນພາສາໃໝ່
       var oldTex = receiptMat.map;
       receiptMat.map = createReceiptTexture();
       receiptMat.needsUpdate = true;

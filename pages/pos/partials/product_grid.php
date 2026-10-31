@@ -30,9 +30,13 @@
            style="border-radius: 4px !important; border: none !important; background: <?php echo $showOut ? '#fff5f5' : '#ffffff'; ?>; transition: transform 0.15s ease, box-shadow 0.15s ease; <?php echo $showOut ? 'opacity: 0.82;' : ''; ?>;">
         
         <div class="product-img-wrap" style="position: relative; width: 100%; height: 135px; overflow: hidden; background: #ffffff; padding: 0 !important; display: flex !important; align-items: center !important; justify-content: center !important; border-radius: 4px 4px 0 0; border-bottom: 1px solid #e2e8f0;">
-          <img src="<?php echo htmlspecialchars($imgPath); ?>" 
+          <!-- ຮູບເຕັມກາດ: ພື້ນຫຼັງເປັນຮູບດຽວກັນແບບຂະຫຍາຍເຕັມ+ມົວ (ບໍ່ມີຂອບຂາວ), ຮູບແທ້ຢູ່ເທິງແບບ contain
+               ໃຫ້ເຫັນສິນຄ້າຄົບທຸກສ່ວນ — ຮູບໃຫຍ່ຫຼືນ້ອຍກໍເຕັມກາດຄືກັນ (CSS: themes/pos/03-products-checkout.css) -->
+          <img src="<?php echo htmlspecialchars($imgPath); ?>" class="product-img-backdrop" alt="" aria-hidden="true"
+               onerror="this.src='<?php echo $base_path; ?>assets/img/image.jpg';">
+          <img src="<?php echo htmlspecialchars($imgPath); ?>"
                class="product-img-full"
-               style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; padding: 6px !important; background: #ffffff !important; display: block !important; border-radius: 4px 4px 0 0;"
+               style="width: 100% !important; height: 100% !important; max-width: 100% !important; max-height: 100% !important; object-fit: contain !important; padding: 0 !important; background: transparent !important; display: block !important; border-radius: 4px 4px 0 0;"
                onerror="this.src='<?php echo $base_path; ?>assets/img/image.jpg';">
           
           <?php if ($tracksStock): ?>
@@ -50,12 +54,22 @@
                clipped. -->
           <span class="cart-qty-badge product-qty-badge-<?php echo $p['product_id']; ?>" style="position: absolute; top: 4px; left: 4px; z-index: 20; border: 2px solid #ffffff;">0</span>
 
-          <!-- Promo name — full-width band along the bottom of the product image, left-aligned -->
-          <?php if ($hasPromo): ?>
-            <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 12; pointer-events: none; font-size: 0.8rem; font-weight: 800; line-height: 1.3; text-align: left; color: #ffffff; padding: 5px 9px; background: <?php echo $badgeBg; ?>; box-shadow: 0 -2px 8px <?php echo $badgeShadow; ?>; white-space: normal; word-break: break-word; text-shadow: 0 1px 3px rgba(0,0,0,0.45);">
-              <?php echo htmlspecialchars($p['promo_badge']); ?>
+          <!-- ລຸ່ມສຸດຂອງຮູບ (ຢູ່ເທິງຊື່ສິນຄ້າ): ປ້າຍ "ໃກ້ໝົດ" (≤10, ສົ້ມ) / "ໝົດແລ້ວ" (0, ແດງ) ແລ້ວແຖບໂປຣໂມຊັນ.
+               ຄລາສ low/out ປ່ຽນສົດໆ ຕາມສະຕັອກທີ່ເຫຼືອ (updateProductGridBadges — cart/stock_and_qty.php) -->
+          <div class="product-img-bottom">
+            <?php if ($tracksStock): ?>
+            <div class="stock-status-pill stock-status-pill-<?php echo $p['product_id']; ?> <?php echo $stock <= 0 ? 'out' : ($stock <= 10 ? 'low' : ''); ?>">
+              <span class="ssp-low"><i class="fas fa-exclamation-circle mr-1"></i><span data-i18n-key="pos.stock_low"><?php echo htmlspecialchars(t('pos.stock_low', 'ໃກ້ໝົດ')); ?></span></span>
+              <span class="ssp-out"><i class="fas fa-times-circle mr-1"></i><span data-i18n-key="pos.stock_out"><?php echo htmlspecialchars(t('pos.stock_out', 'ໝົດແລ້ວ')); ?></span></span>
             </div>
-          <?php endif; ?>
+            <?php endif; ?>
+            <!-- Promo name — full-width band along the bottom of the product image, left-aligned -->
+            <?php if ($hasPromo): ?>
+              <div style="pointer-events: none; font-size: 0.8rem; font-weight: 800; line-height: 1.3; text-align: left; color: #ffffff; padding: 5px 9px; background: <?php echo $badgeBg; ?>; box-shadow: 0 -2px 8px <?php echo $badgeShadow; ?>; white-space: normal; word-break: break-word; text-shadow: 0 1px 3px rgba(0,0,0,0.45);">
+                <?php echo htmlspecialchars($p['promo_badge']); ?>
+              </div>
+            <?php endif; ?>
+          </div>
         </div>
 
         <div class="card-body d-flex flex-column justify-content-between text-left" style="padding: 6px 8px !important;">

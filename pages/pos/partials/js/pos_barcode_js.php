@@ -124,11 +124,11 @@ function hasNonEnglishChars(str) {
 function showSwitchKeyboardAlert(code) {
   Swal.fire({
     icon: 'warning',
-    title: 'ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ',
-    html: '<div style="font-size:0.95rem;">ແປ້ນພິມປັດຈຸບັນບໍ່ແມ່ນພາສາອັງກິດ ຈຶ່ງອ່ານບາໂຄ້ດຜິດເປັນ:</div>' +
+    title: '<?php echo tlj('ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ'); ?>',
+    html: '<div style="font-size:0.95rem;"><?php echo tlj('ແປ້ນພິມປັດຈຸບັນບໍ່ແມ່ນພາສາອັງກິດ ຈຶ່ງອ່ານບາໂຄ້ດຜິດເປັນ:'); ?></div>' +
           '<div style="font-size:1.1rem; font-weight:700; color:#ef4444; margin:8px 0; word-break:break-all;">' + $('<div>').text(code).html() + '</div>' +
-          '<small class="text-muted d-block">ກົດ <b>Alt + Shift</b> ຫຼື <b>Win + Space</b> ເພື່ອປ່ຽນເປັນ ENG ແລ້ວສະແກນໃໝ່</small>',
-    confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ',
+          '<small class="text-muted d-block"><?php echo tlj('ກົດ'); ?> <b>Alt + Shift</b> <?php echo tlj('ຫຼື'); ?> <b>Win + Space</b> <?php echo tlj('ເພື່ອປ່ຽນເປັນ ENG ແລ້ວສະແກນໃໝ່'); ?></small>',
+    confirmButtonText: '<i class="fas fa-check mr-1"></i> <?php echo tlj('ຕົກລົງ'); ?>',
     confirmButtonColor: '#f59e0b', allowOutsideClick: false, allowEscapeKey: false, allowEnterKey: false, focusConfirm: false,
     didClose: function() {
       $('#barcodeInput').val('');
@@ -228,11 +228,11 @@ function findAndAddByBarcode(code) {
     // ເຄື່ອງສະແກນຊ້າ (ບໍ່ຜ່ານການກວດຄວາມໄວ) ແຕ່ຊອກບໍ່ພົບ ແລະ ມີອັກສອນນອກພາສາອັງກິດ → ບອກໃຫ້ກວດແປ້ນພິມນຳ
     Swal.fire({
       icon: 'warning',
-      title: 'ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ',
-      html: 'ລະຫັດ: ' + $('<div>').text(code).html() +
-            '<small class="text-muted d-block mt-2">ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ</small>',
+      title: '<?php echo tlj('ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ'); ?>',
+      html: '<?php echo tlj('ລະຫັດ:'); ?> ' + $('<div>').text(code).html() +
+            '<small class="text-muted d-block mt-2"><?php echo tlj('ກະລຸນາປ່ຽນແປ້ນພິມເປັນພາສາອັງກິດກ່ອນ ແລ້ວຄ່ອຍສະແກນ'); ?></small>',
       // ຄ້າງໄວ້ໃຫ້ກົດຕົກລົງເອງ
-      showConfirmButton: true, confirmButtonText: '<i class="fas fa-check mr-1"></i> ຕົກລົງ', confirmButtonColor: '#f59e0b', allowOutsideClick: false, allowEscapeKey: false, allowEnterKey: false, focusConfirm: false,
+      showConfirmButton: true, confirmButtonText: '<i class="fas fa-check mr-1"></i> <?php echo tlj('ຕົກລົງ'); ?>', confirmButtonColor: '#f59e0b', allowOutsideClick: false, allowEscapeKey: false, allowEnterKey: false, focusConfirm: false,
       didClose: function() { ensureBarcodeInputFocused(); }
     });
   } else if (window.showBarcodeNotFoundAlert) {
@@ -316,7 +316,7 @@ function addProductToCart(product, specificUnit) {
   }).join('');
 
   Swal.fire({
-    title: '<span style="font-size:1.05rem; color:#1e293b;">ເລືອກຫົວໜ່ວຍ</span>',
+    title: '<span style="font-size:1.05rem; color:#1e293b;"><?php echo tlj('ເລືອກຫົວໜ່ວຍ'); ?></span>',
     html: `<div style="text-align:left; margin-bottom:6px; font-size:0.88rem; color:#64748b; font-weight:600;">${product.product_name}</div>
            <div style="margin-top:10px;">${htmlOptions}</div>`,
     showConfirmButton: false,

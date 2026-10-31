@@ -22,7 +22,7 @@ require_once __DIR__ . '/../config/db.php';
 if (empty($_SESSION['user_id'])) {
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) || $_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'ເຊດຊັນໝົດອາຍຸ! ກະລຸນາເຂົ້າສູ່ລະບົບໃໝ່']);
+        echo json_encode(['success' => false, 'message' => tl('ເຊດຊັນໝົດອາຍຸ! ກະລຸນາເຂົ້າສູ່ລະບົບໃໝ່')]);
         exit();
     }
     echo "<script>window.top.location.href = '../index.php';</script>";
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $__hasShifts = intval($__shStmt->fetchColumn()) > 0;
         } catch (Throwable $e) {}
         if ($__hasShifts) {
-            echo json_encode(['success' => false, 'message' => 'ສາຂານີ້ມີການຕັ້ງກະເຮັດວຽກແລ້ວ — ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການບໍ່ສາມາດຂາຍໄດ້']);
+            echo json_encode(['success' => false, 'message' => (tl('ສາຂານີ້ມີການຕັ້ງກະເຮັດວຽກແລ້ວ') . ' — ' . tl('ຜູ້ບໍລິຫານ ແລະ ຜູ້ຈັດການບໍ່ສາມາດຂາຍໄດ້'))]);
             exit();
         }
     }
@@ -137,13 +137,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if ($paid_currency !== 'KIP') {
         $__srvRate = (float)(getExchangeRates($pdo)[$paid_currency] ?? 0);
         if ($__srvRate <= 0 || abs($paid_rate - $__srvRate) > 0.000001 * $__srvRate) {
-            echo json_encode(['success' => false, 'message' => 'ອັດຕາແລກປ່ຽນ ' . $paid_currency . ' ຖືກປ່ຽນແລ້ວ (ປັດຈຸບັນ 1 = ' . number_format($__srvRate) . ' ' . kipSymbol() . ') — ກະລຸນາໂຫຼດໜ້າຂາຍໃໝ່ ແລ້ວຊຳລະອີກຄັ້ງ']);
+            echo json_encode(['success' => false, 'message' => (tl('ອັດຕາແລກປ່ຽນ') . ' ') . $paid_currency . (' ' . tl('ຖືກປ່ຽນແລ້ວ (ປັດຈຸບັນ') . ' 1 = ') . number_format($__srvRate) . ' ' . kipSymbol() . (') — ' . tl('ກະລຸນາໂຫຼດໜ້າຂາຍໃໝ່ ແລ້ວຊຳລະອີກຄັ້ງ'))]);
             exit();
         }
     }
 
     if (empty($cart)) {
-        echo json_encode(['success' => false, 'message' => 'ກະຕ່າສິນຄ້າຫວ່າງເປົ່າ!']);
+        echo json_encode(['success' => false, 'message' => tl('ກະຕ່າສິນຄ້າຫວ່າງເປົ່າ!')]);
         exit();
     }
 
@@ -176,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $pdo->rollBack();
         }
         if (ob_get_length()) ob_clean();
-        echo json_encode(['success' => false, 'message' => 'ເກີດຂໍ້ຜິດພາດ: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => (tl('ເກີດຂໍ້ຜິດພາດ:') . ' ') . $e->getMessage()]);
         exit();
     }
 }

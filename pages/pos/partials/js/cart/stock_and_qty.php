@@ -170,6 +170,9 @@ function updateProductGridBadges() {
 
     var cardEl = $('.product-card-' + pid);
     var infoWrap = $('.stock-info-wrap-' + pid);
+    // ປ້າຍ "ໃກ້ໝົດ / ໝົດແລ້ວ" ລຸ່ມຮູບ (product_grid.php)
+    $('.stock-status-pill-' + pid).removeClass('low out')
+      .addClass(remainingStock <= 0 ? 'out' : (remainingStock <= 10 ? 'low' : ''));
 
     if (remainingStock <= 0) {
       if (cardEl.length) {

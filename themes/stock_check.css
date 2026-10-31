@@ -63,11 +63,12 @@
 
 .sc-draft-alert { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; color: #78350f; }
 
-/* ບັດສະຫຼຸບ — ພື້ນສີເຕັມ (ສີດຽວ ບໍ່ໄລ່ສີ), ໜັງສື + ໄອຄອນສີຂາວ.
-   ສີຕັ້ງຢູ່ markup (partials/count_view.php): --k = ສີພື້ນຂອງບັດ */
+/* ບັດສະຫຼຸບ — ແບບດຽວກັບບັດໃນ Dashboard (home/partials/home/page_body.php): ພື້ນໄລ່ສີ (gradient),
+   ໄອຄອນໃນວົງມົນໂປ່ງໃສ, ວົງກົມປະດັບມຸມຂວາລຸ່ມ, ໜັງສືສີຂາວ.
+   ສີຕັ້ງຢູ່ markup (partials/count_view.php): --k = ສີເລີ່ມ (ຊ້າຍເທິງ), --k2 = ສີປາຍ (ຂວາລຸ່ມ) */
 .sc-kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));   /* 170px: 4 ບັດພໍດີແຖວດຽວຕັ້ງແຕ່ຈໍ ~768px (ເມື່ອກ່ອນ 220px → ບັດທີ 4 ຕົກແຖວຢູ່ໂຕດຽວ) */
     gap: 16px;
     margin-bottom: 20px !important;
 }
@@ -75,13 +76,29 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--k, #475569);
+    background: linear-gradient(135deg, var(--k, #475569) 0%, var(--k2, var(--k, #475569)) 100%);
     color: #fff;
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 20px 24px;
     min-height: 108px;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, .12);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, .14);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
     font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;
+}
+/* ວົງກົມປະດັບ (ຢູ່ຫຼັງໜັງສື) */
+.sc-kpi::after {
+    content: '';
+    position: absolute;
+    right: -28px;
+    bottom: -38px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    z-index: -1;
+    pointer-events: none;
 }
 .sc-kpi-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
 .sc-kpi-val { font-size: 2.1rem; font-weight: 800; line-height: 1.15; white-space: nowrap; color: #fff; }
@@ -89,7 +106,7 @@
 .sc-kpi-icon {
     width: 56px;
     height: 56px;
-    border-radius: 12px;
+    border-radius: 50%;
     background: rgba(255, 255, 255, 0.22);
     color: #fff;
     display: flex;
@@ -120,7 +137,7 @@
     width: 56px;
     height: 56px;
     font-size: 1.55rem;
-    border-radius: 12px;
+    border-radius: 50%;
     background: rgba(255, 255, 255, 0.22);
 }
 
@@ -174,9 +191,9 @@
 
 /* ປຸ່ມ Excel / PDF / ພິມ — ແບບໜ້າລາຍງານ */
 .sc-export-btns { gap: 5px; }
-/* ໜ້ານັບ: ຈໍກວ້າງ — ຊ່ອງສະແກນ, ໂຊນ, ປຸ່ມກັ່ນຕອງ ແລະ ປຸ່ມ Excel/PDF/ພິມ ຢູ່ແຖວດຽວກັນ (ຊ່ອງສະແກນຫຍໍ້ລົງໃຫ້ພໍ);
-   ຈໍແຄບກວ່ານີ້ ລົງແຖວໃໝ່ຄືເກົ່າ */
-@media (min-width: 1200px) {
+/* ໜ້ານັບ: ແທັບເລັດ ແລະ ຄອມ (≥768px) — ຊ່ອງສະແກນ, ໂຊນ, ຊັ້ນ ແລະ ປຸ່ມ Excel/PDF/ພິມ ຢູ່ແຖວດຽວກັນ
+   (ຊ່ອງສະແກນຫົດລົງໃຫ້ພໍ ແທນທີ່ຈະກວ້າງ 380px ຄົງທີ່ ແລ້ວດັນປຸ່ມລົງແຖວໃໝ່); ໂທລະສັບ ລົງແຖວໃໝ່ຄືເກົ່າ */
+@media (min-width: 768px) {
     .sc-count-head, .sc-count-left { flex-wrap: nowrap !important; }
     .sc-count-left { min-width: 0; }
     .sc-count-left .sc-scan-group { flex: 1 1 260px; width: auto; min-width: 140px; }
@@ -185,8 +202,8 @@
     .sc-count-head > .ml-auto { flex-shrink: 0; }
     .sc-count-head #scSaveStatus { white-space: nowrap; }
 }
-/* 1200–1399px: ຫຍໍ້ໂຊນ ແລະ ປຸ່ມລົງໜ້ອຍໜຶ່ງ ໃຫ້ຢູ່ແຖວດຽວພໍດີ (ເນື້ອທີ່ໃນ iframe ຫຼັງຫັກ sidebar) */
-@media (min-width: 1200px) and (max-width: 1399.98px) {
+/* 768–1399px: ຫຍໍ້ໂຊນ ແລະ ປຸ່ມລົງໜ້ອຍໜຶ່ງ ໃຫ້ຢູ່ແຖວດຽວພໍດີ (ເນື້ອທີ່ໃນ iframe ຫຼັງຫັກ sidebar) */
+@media (min-width: 768px) and (max-width: 1399.98px) {
     .sc-count-left .sc-zone-wrap { width: 125px !important; }
     .sc-count-left .sc-filter .btn { padding-left: 9px; padding-right: 9px; }
     .sc-count-head .btn.sc-exp-btn { padding-left: 10px; padding-right: 10px; }   /* ໜັກກວ່າ .btn.rpt-btn (report-table.css ໂຫຼດທີຫຼັງ) */
@@ -253,14 +270,14 @@
     .sc-kpi { padding: 14px 13px; min-height: 92px; }
     .sc-kpi-title { font-size: 0.78rem; }
     .sc-kpi-val { font-size: 1.15rem; }
-    .sc-kpi-icon { width: 38px; height: 38px; font-size: 1rem; border-radius: 8px; }
+    .sc-kpi-icon { width: 38px; height: 38px; font-size: 1rem; border-radius: 50%; }
     /* ບັດໃນໜ້ານັບເປັນ .sc-kpi-compact (selector ໜັກກວ່າ) — ຕ້ອງຂຽນຊ້ຳ ບໍ່ດັ່ງນັ້ນໂທລະສັບຍັງໃຊ້ຂະໜາດຈໍໃຫຍ່
        (ຕົວເລກ 2.1rem, ໄອຄອນ 56px) ຈົນຫົວຂໍ້ "ນັບແລ້ວ" ລົ້ນອອກນອກບັດ */
     .sc-kpi.sc-kpi-compact { padding: 12px 12px; min-height: 84px; gap: 8px; }
     .sc-kpi-compact > div:first-child { min-width: 0; flex: 1 1 auto; }
     .sc-kpi-compact .sc-kpi-title { font-size: 0.8rem; margin-bottom: 2px; white-space: normal; line-height: 1.3; overflow-wrap: anywhere; }
     .sc-kpi-compact .sc-kpi-val { font-size: 1.45rem; }
-    .sc-kpi-compact .sc-kpi-icon { width: 34px; height: 34px; min-width: 34px; font-size: 0.95rem; border-radius: 8px; margin-left: 0; }
+    .sc-kpi-compact .sc-kpi-icon { width: 34px; height: 34px; min-width: 34px; font-size: 0.95rem; border-radius: 50%; margin-left: 0; }
     .sc-filter-form > div.sf-date { flex: 1 1 calc(50% - 5px); }
     .sc-filter-form > div.sf-search, .sc-filter-form > div.sf-act { flex: 1 1 100%; }
     .sc-filter-form .sf-search-btn { flex: 1 1 auto; }

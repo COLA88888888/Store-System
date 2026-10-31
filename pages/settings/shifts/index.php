@@ -7,7 +7,7 @@ session_start();
 $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
-if (empty($_SESSION['user_id']) || (!hasPermission('shifts') && !hasPermission('setup'))) {
+if (empty($_SESSION['user_id']) || (!hasPermission('shifts'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -76,11 +76,11 @@ window.IS_ADMIN_USER = <?php echo $isAdmin ? 'true' : 'false'; ?>;
       <h5 class="font-weight-bold text-dark mb-0" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
         <i class="fas fa-calendar-alt mr-2" style="color: #2563eb;"></i> <?php echo htmlspecialchars(t('layout.shifts', 'ຈັດການກະເຮັດວຽກ')); ?>
       </h5>
-      <small class="text-muted" style="font-size: 0.82rem;">ຕັ້ງຄ່າກຳນົດເວລາເລີ່ມຕົ້ນ ແລະ ສິ້ນສຸດຂອງກະເຮັດວຽກພາຍໃນຮ້ານ</small>
+      <small class="text-muted" style="font-size: 0.82rem;"><?php echo tlh('ຕັ້ງຄ່າກຳນົດເວລາເລີ່ມຕົ້ນ ແລະ ສິ້ນສຸດຂອງກະເຮັດວຽກພາຍໃນຮ້ານ'); ?></small>
     </div>
     <div class="page-actions"><?php /* ຊິດຂວາສະເໝີ ລວມທັງໂທລະສັບ */ ?>
       <button type="button" class="btn btn-primary btn-sm font-weight-bold px-3.5 d-inline-flex align-items-center" onclick="openAddShiftModal()" style="border-radius: 4px; height: 38px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none; box-shadow: 0 4px 10px rgba(36, 72, 134, 0.2);">
-        <i class="fas fa-plus-circle mr-2"></i> ເພີ່ມກະໃໝ່
+        <i class="fas fa-plus-circle mr-2"></i> <?php echo tlh('ເພີ່ມກະໃໝ່'); ?>
       </button>
     </div>
   </div>
@@ -89,7 +89,7 @@ window.IS_ADMIN_USER = <?php echo $isAdmin ? 'true' : 'false'; ?>;
   <div class="card sys-card border-0 shadow-sm mb-3" style="border-radius: 12px; overflow: hidden; max-width: 100%;">
     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
       <h6 class="m-0 font-weight-bold text-dark" style="font-size: 0.95rem;">
-        <i class="fas fa-list text-primary mr-2"></i> ລາຍການກະເຮັດວຽກທີ່ຕັ້ງຄ່າໄວ້
+        <i class="fas fa-list text-primary mr-2"></i> <?php echo tlh('ລາຍການກະເຮັດວຽກທີ່ຕັ້ງຄ່າໄວ້'); ?>
       </h6>
     </div>
     <div class="table-responsive">
@@ -97,18 +97,18 @@ window.IS_ADMIN_USER = <?php echo $isAdmin ? 'true' : 'false'; ?>;
         <thead>
           <tr>
             <th class="text-center" style="width: 60px;">#</th>
-            <th class="text-left">ຊື່ກະເຮັດວຽກ</th>
-            <th class="text-center">ເວລາເລີ່ມເປີດກະ</th>
-            <th class="text-center">ເວລາສິ້ນສຸດກະ</th>
-            <th class="text-left">ພະນັກງານໃນກະ</th>
-            <th class="text-center">ສະຖານະ</th>
-            <th class="text-center" style="width: 120px;">ຈັດການ</th>
+            <th class="text-left"><?php echo tlh('ຊື່ກະເຮັດວຽກ'); ?></th>
+            <th class="text-center"><?php echo tlh('ເວລາເລີ່ມເປີດກະ'); ?></th>
+            <th class="text-center"><?php echo tlh('ເວລາສິ້ນສຸດກະ'); ?></th>
+            <th class="text-left"><?php echo tlh('ພະນັກງານໃນກະ'); ?></th>
+            <th class="text-center"><?php echo tlh('ສະຖານະ'); ?></th>
+            <th class="text-center" style="width: 120px;"><?php echo tlh('ຈັດການ'); ?></th>
           </tr>
         </thead>
         <tbody id="shiftsConfigTableBody">
           <tr>
             <td colspan="6" class="text-center text-muted py-5 font-weight-bold">
-              <i class="fas fa-spinner fa-spin mr-1"></i> ກຳລັງໂຫຼດລາຍການກະ...
+              <i class="fas fa-spinner fa-spin mr-1"></i> <?php echo tlh('ກຳລັງໂຫຼດລາຍການກະ...'); ?>
             </td>
           </tr>
         </tbody>

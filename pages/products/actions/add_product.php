@@ -36,7 +36,7 @@
             try {
                 // ບາໂຄ້ດ ບໍ່ບັງຄັບ — ກວດແຕ່ເມື່ອປ້ອນມາ
                 if (!empty($barcode) && !preg_match('/^[0-9]+$/', $barcode)) {
-                    $message = 'ລະຫັດບາໂຄດ "' . htmlspecialchars($barcode) . '" ບໍ່ຖືກຕ້ອງ! ກະລຸນາປ້ອນແຕ່ຕົວເລກ (0-9) ເທົ່ານັ້ນ!';
+                    $message = (tl('ລະຫັດບາໂຄດ') . ' "') . htmlspecialchars($barcode) . ('" ' . tl('ບໍ່ຖືກຕ້ອງ! ກະລຸນາປ້ອນແຕ່ຕົວເລກ (0-9) ເທົ່ານັ້ນ!'));
                     $message_type = 'warning';
                 } else {
                     $store_id = getActiveStoreId($pdo);
@@ -47,7 +47,7 @@
                     $dupName = $nameChkStmt->fetch();
 
                     if ($dupName) {
-                        $message = 'ຊື່ສິນຄ້າ "' . htmlspecialchars($name) . '" ຫົວໜ່ວຍນີ້ ມີແລ້ວໃນໝວດໝູ່ດຽວກັນ (ID: ' . $dupName['product_id'] . ')';
+                        $message = (tl('ຊື່ສິນຄ້າ') . ' "') . htmlspecialchars($name) . ('" ' . tl('ຫົວໜ່ວຍນີ້ ມີແລ້ວໃນໝວດໝູ່ດຽວກັນ (ID:') . ' ') . $dupName['product_id'] . ')';
                         $message_type = 'warning';
                     } elseif (!empty($barcode)) {
                         $chkStmt = $pdo->prepare("
@@ -59,7 +59,7 @@
                         $chkStmt->execute([$barcode, $store_id, $barcode, $store_id]);
                         $dup = $chkStmt->fetch();
                         if ($dup) {
-                            $message = 'ລະຫັດບາໂຄດ "' . htmlspecialchars($barcode) . '" ຖືກນຳໃຊ້ແລ້ວ ໃນສິນຄ້າ: "' . htmlspecialchars($dup['product_name']) . '" (ID: ' . $dup['product_id'] . ')';
+                            $message = (tl('ລະຫັດບາໂຄດ') . ' "') . htmlspecialchars($barcode) . ('" ' . tl('ຖືກນຳໃຊ້ແລ້ວ ໃນສິນຄ້າ:') . ' "') . htmlspecialchars($dup['product_name']) . '" (ID: ' . $dup['product_id'] . ')';
                             $message_type = 'warning';
                         }
                     }
@@ -118,15 +118,15 @@
                         }
                     }
 
-                    $message = 'ເພີ່ມສິນຄ້າສຳເລັດ! (ລະຫັດ: ' . $product_id . ')';
+                    $message = (tl('ເພີ່ມສິນຄ້າສຳເລັດ! (ລະຫັດ:') . ' ') . $product_id . ')';
                     $message_type = 'success';
                     logActivity($pdo, "ເພີ່ມສິນຄ້າ", "ID: $product_id, ຊື່: $name");
                 }
             } catch (Exception $e) {
-                $message = 'ຜິດພາດ: ' . $e->getMessage();
+                $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                 $message_type = 'danger';
             }
         } else {
-            $message = 'ກະລຸນາປ້ອນຊື່ ແລະ ເລືອກປະເພດສິນຄ້າ!';
+            $message = tl('ກະລຸນາປ້ອນຊື່ ແລະ ເລືອກປະເພດສິນຄ້າ!');
             $message_type = 'danger';
         }

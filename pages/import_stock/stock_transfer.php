@@ -53,10 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         try {
             $pdo->beginTransaction();
 
-            // Auto-generate transfer code (TRF-YYYYMMDD-001)
-            $todayStr = date('Ymd');
-            $countToday = (int)$pdo->query("SELECT COUNT(*) FROM st_stock_transfers WHERE DATE(transfer_date) = CURDATE()")->fetchColumn();
-            $transfer_code = 'TRF-' . $todayStr . '-' . str_pad($countToday + 1, 3, '0', STR_PAD_LEFT);
+            // Auto-generate transfer code: TRF-YYYYMMDD-[storeCode]0001 (e.g. TRF-20261030-10001, TRF-20261030-20001)
+            $transfer_code = generateTransferCode($pdo, $from_store_id, $full_transfer_date);
 
             // Insert into stock_transfers
             $insTrf = $pdo->prepare("INSERT INTO st_stock_transfers (transfer_code, from_store_id, to_store_id, transfer_date, status, notes, created_by) VALUES (?, ?, ?, ?, 'completed', ?, ?)");
@@ -107,16 +105,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 $dstProd = $stmtDst->fetch();
 
                 if (!$dstProd) {
-                    throw new Exception(sprintf('ສິນຄ້າ "%s" ຍັງບໍ່ມີໃນສາຂາປາຍທາງ! ຕ້ອງໄດ້ເພີ່ມສິນຄ້ານີ້ເຂົ້າສາຂາປາຍທາງກ່ອນ ຈຶ່ງສາມາດໂອນໄດ້.', $srcProd['product_name']));
+                    throw new Exception(sprintf((tl('ສິນຄ້າ') . ' "%s" ' . tl('ຍັງບໍ່ມີໃນສາຂາປາຍທາງ! ຕ້ອງໄດ້ເພີ່ມສິນຄ້ານີ້ເຂົ້າສາຂາປາຍທາງກ່ອນ ຈຶ່ງສາມາດໂອນໄດ້.')), $srcProd['product_name']));
                 }
 
                 // Check same category
                 $srcCatName = trim($srcProd['category_name'] ?? '');
                 $dstCatName = trim($dstProd['category_name'] ?? '');
                 if (mb_strtolower($srcCatName) !== mb_strtolower($dstCatName)) {
-                    $srcCatShow = $srcCatName ?: 'ບໍ່ມີປະເພດ';
-                    $dstCatShow = $dstCatName ?: 'ບໍ່ມີປະເພດ';
-                    throw new Exception(sprintf('ສິນຄ້າ "%s" ມີປະເພດສິນຄ້າບໍ່ຕົງກັນ (ສາຂາຕົ້ນທາງ: "%s", ສາຂາປາຍທາງ: "%s")! ຕ້ອງເປັນປະເພດສິນຄ້າດຽວກັນ ຈຶ່ງສາມາດໂອນໄດ້.', $srcProd['product_name'], $srcCatShow, $dstCatShow));
+                    $srcCatShow = $srcCatName ?: tl('ບໍ່ມີປະເພດ');
+                    $dstCatShow = $dstCatName ?: tl('ບໍ່ມີປະເພດ');
+                    throw new Exception(sprintf((tl('ສິນຄ້າ') . ' "%s" ' . tl('ມີປະເພດສິນຄ້າບໍ່ຕົງກັນ (ສາຂາຕົ້ນທາງ:') . ' "%s", ' . tl('ສາຂາປາຍທາງ:') . ' "%s")! ' . tl('ຕ້ອງເປັນປະເພດສິນຄ້າດຽວກັນ ຈຶ່ງສາມາດໂອນໄດ້.')), $srcProd['product_name'], $srcCatShow, $dstCatShow));
                 }
 
                 // Check same unit
@@ -125,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 if (mb_strtolower($srcUnit) !== mb_strtolower($dstUnit)) {
                     $srcUnitShow = $srcUnit ?: 'ອັນ';
                     $dstUnitShow = $dstUnit ?: 'ອັນ';
-                    throw new Exception(sprintf('ສິນຄ້າ "%s" ມີຫົວໜ່ວຍບໍ່ຕົງກັນ (ສາຂາຕົ້ນທາງ: "%s", ສາຂາປາຍທາງ: "%s")! ຕ້ອງເປັນຫົວໜ່ວຍດຽວກັນ ຈຶ່ງສາມາດໂອນໄດ້.', $srcProd['product_name'], $srcUnitShow, $dstUnitShow));
+                    throw new Exception(sprintf((tl('ສິນຄ້າ') . ' "%s" ' . tl('ມີຫົວໜ່ວຍບໍ່ຕົງກັນ (ສາຂາຕົ້ນທາງ:') . ' "%s", ' . tl('ສາຂາປາຍທາງ:') . ' "%s")! ' . tl('ຕ້ອງເປັນຫົວໜ່ວຍດຽວກັນ ຈຶ່ງສາມາດໂອນໄດ້.')), $srcProd['product_name'], $srcUnitShow, $dstUnitShow));
                 }
 
                 // Deduct from source branch
@@ -165,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if (!empty($importLines)) {
                 $fromStoreName = $pdo->prepare("SELECT store_name FROM st_tbstore WHERE store_id = ?");
                 $fromStoreName->execute([$from_store_id]);
-                $fromStoreNameVal = $fromStoreName->fetchColumn() ?: "ສາຂາ #{$from_store_id}";
+                $fromStoreNameVal = $fromStoreName->fetchColumn() ?: ("" . tl('ສາຂາ') . " #{$from_store_id}");
 
                 $transferTotalCost = 0;
                 foreach ($importLines as $line) {
@@ -204,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 // actual movement is already visible there in "ປະຫວັດການໂອນສິນຄ້າ".)
                 $toStoreName = $pdo->prepare("SELECT store_name FROM st_tbstore WHERE store_id = ?");
                 $toStoreName->execute([$to_store_id]);
-                $toStoreNameVal = $toStoreName->fetchColumn() ?: "ສາຂາ #{$to_store_id}";
+                $toStoreNameVal = $toStoreName->fetchColumn() ?: ("" . tl('ສາຂາ') . " #{$to_store_id}");
 
                 $insImpOut = $pdo->prepare("INSERT INTO st_imports (invoice_number, supplier_name, import_date, total_cost, created_by, notes, store_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
                 $insImpOut->execute([
@@ -242,6 +240,9 @@ $preProductId = intval($_GET['product_id'] ?? 0);
 $autoAdd = intval($_GET['auto_add'] ?? 0);
 
 $sourceStoreId = getActiveStoreId($pdo);
+if (!empty($_GET['from_store']) && !empty($canAllBranches)) {
+    $sourceStoreId = intval($_GET['from_store']);
+}
 if (!$canAllBranches) {
     $sourceStoreId = $userStoreId;
 }
@@ -267,10 +268,8 @@ foreach ($uRows as $u) {
     $product_units_map[$u['product_id']][] = $u;
 }
 
-// Auto-generate transfer invoice code
-$todayStr = date('Ymd');
-$countToday = (int)$pdo->query("SELECT COUNT(*) FROM st_stock_transfers WHERE DATE(transfer_date) = CURDATE()")->fetchColumn();
-$next_transfer_code = 'TRF-' . $todayStr . '-' . str_pad($countToday + 1, 3, '0', STR_PAD_LEFT);
+// Auto-generate transfer invoice code: TRF-YYYYMMDD-[storeCode]0001
+$next_transfer_code = generateTransferCode($pdo, $sourceStoreId);
 
 // Receiver / Transferrer Name
 $receiverName = trim(($_SESSION['fname'] ?? '') . ' ' . ($_SESSION['lname'] ?? ''));
@@ -282,7 +281,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 <link rel="stylesheet" href="../../themes/import_stock.css?v=<?php echo filemtime(__DIR__ . '/../../themes/import_stock.css'); ?>">
 <link rel="stylesheet" href="../../themes/stock_transfer.css?v=<?php echo filemtime(__DIR__ . '/../../themes/stock_transfer.css'); ?>">
 
-<div class="content-wrapper bg-light" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+<div class="content-wrapper bg-light mp-compact" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
   
   <!-- Page Header -->
   <section class="content-header py-3">

@@ -4,7 +4,7 @@ session_start();
 $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
-if (empty($_SESSION['user_id']) || (!hasPermission('price_adjustment') && !hasPermission('setup'))) {
+if (empty($_SESSION['user_id']) || (!hasPermission('price_adjustment'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -25,9 +25,9 @@ require_once __DIR__ . '/../../../layouts/header.php';
         <i class="fas fa-tags text-warning mr-2"></i> <?php echo htmlspecialchars(t('price_adjustment.header_title', 'ຈັດການປັບລາຄາສິນຄ້າ')); ?>
       </h5>
     </div>
-    <div class="d-flex align-items-center justify-content-end ml-auto" style="gap: 8px; flex-wrap: wrap;">
+    <div class="d-flex align-items-center justify-content-end ml-auto pa-head-actions" style="gap: 8px; flex-wrap: wrap;">
       <?php if ($canAllBranches): ?>
-        <form method="GET" action="" class="m-0 d-inline-block">
+        <form method="GET" action="" class="m-0 d-inline-block pa-store-form">
           <select name="store_id" class="form-control form-control-sm font-weight-bold border-warning text-warning" style="height: 38px; border-radius: 8px; background-color: #fffbeb; min-width: 130px;" onchange="this.form.submit()">
             <?php foreach ($stores as $st): ?>
               <option value="<?php echo $st['store_id']; ?>" <?php echo ($filter_store == $st['store_id']) ? 'selected' : ''; ?>>

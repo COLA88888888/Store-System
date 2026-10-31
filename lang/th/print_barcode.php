@@ -15,6 +15,7 @@ return [
     'print_barcode.barcode_size_label' => 'ขนาดบาร์โค้ด:',
     'print_barcode.barcode_width' => 'กว้าง',
     'print_barcode.barcode_height' => 'สูง',
+    'print_barcode.horizontal_offset' => 'ขยับซ้าย/ขวา',
     'print_barcode.vertical_offset' => 'ขยับขึ้น/ลง',
     'print_barcode.label_pitch' => 'ระยะต่อดวง',
     'print_barcode.label_pitch_hint' => 'วัดจากขอบบนของดวงหนึ่ง ถึง ขอบบนของดวงถัดไป (สติกเกอร์ + ช่องว่าง) — แก้อาการพิมพ์หลายดวงแล้วเลื่อนสะสม',

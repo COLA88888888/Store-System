@@ -38,11 +38,11 @@
                 } else {
                     $stmt->execute([$id, $userStoreId]);
                 }
-                $message = 'ລົບສິນຄ້າສຳເລັດ!';
+                $message = tl('ລົບສິນຄ້າສຳເລັດ!');
                 $message_type = 'success';
                 logActivity($pdo, "ລົບສິນຄ້າ", "ID: $id");
             } catch (Exception $e) {
-                $message = 'ຜິດພາດ (ອາດມີຂໍ້ມູນທີ່ກ່ຽວຂ້ອງ): ' . $e->getMessage();
+                $message = (tl('ຜິດພາດ (ອາດມີຂໍ້ມູນທີ່ກ່ຽວຂ້ອງ):') . ' ') . $e->getMessage();
                 $message_type = 'danger';
             }
         }

@@ -21,6 +21,28 @@ try {
   customerDisplayChannel = new BroadcastChannel('StoreMini.customer_display_channel');
 } catch(e) {}
 
+function broadcastCashierEnter(name) {
+  try {
+    var cName = name || (typeof window.CURRENT_USER_NAME !== 'undefined' ? window.CURRENT_USER_NAME : '');
+    if (!cName) return;
+    var enterData = {
+      action: 'cashier_enter',
+      name: cName,
+      time: Date.now()
+    };
+    if (customerDisplayChannel) {
+      customerDisplayChannel.postMessage(enterData);
+    }
+    try {
+      var bc2 = new BroadcastChannel('StoreMini.cashier_channel');
+      bc2.postMessage(enterData);
+      setTimeout(function() { bc2.close(); }, 800);
+    } catch(e) {}
+    localStorage.setItem('StoreMini.cashier_entered', JSON.stringify(enterData));
+  } catch(e) {}
+}
+setTimeout(function() { broadcastCashierEnter(); }, 350);
+
 function broadcastCustomerDisplay(checkoutState, extraData) {
   var tenderCur = (window.POSCUR && POSCUR.code) ? {
     code: POSCUR.code,
@@ -131,6 +153,7 @@ function openCustomerDisplayOnScreen(left, top, w, h) {
     localStorage.setItem('StoreMini.customer_display_trigger_fs', String(Date.now()));
   } catch(e) {}
   broadcastCustomerDisplay('shopping');
+  broadcastCashierEnter();
 }
 
 function openCustomerDisplayWindow() {

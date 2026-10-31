@@ -103,7 +103,13 @@ function lanPrinterSend($host, $port, $bytes, $timeout = 4) {
 //   ບວກ = ຂວາ, ລົບ = ຊ້າຍ (8 dots = 1 mm; 1 dot = 0.125 mm ເປັນໜ່ວຍນ້ອຍສຸດ).
 //   USB ມີຄ່າຂອງມັນເອງ: USB_PRINT_SHIFT_MM ໃນ assets/js/lan-receipt.js.
 if (!defined('LAN_PRINT_SHIFT_DOTS')) define('LAN_PRINT_SHIFT_DOTS', 7);
-function escposRasterFromPng($png, $dots) {
+// ບິນ USB (ສົ່ງ ESC/POS ກົງເຂົ້າ Windows spooler): ບິນ browser ເປັນຫຼັກ — ບິນ browser ພິມອອກເຄື່ອງ USB ດຽວກັນ
+// ຖືກຍັບຊ້າຍ USB_PRINT_SHIFT_MM = -0.15 mm (assets/js/lan-receipt.js) ≈ -1 ຈຸດ. ເມື່ອກ່ອນ USB ໃຊ້ຄ່າຂອງ LAN (+7)
+// ຈຶ່ງອອກມາເຫຼື່ອມຂວາ ~1 mm (≈ 1 ຂີດ) ທຽບກັບບິນ browser. ທົດລອງພິມແທ້ (31/10/2026): -1 ຍັງເຫຼື່ອມຂວາອີກ 1 ຂີດ
+// → ຍັບຊ້າຍເພີ່ມ 1 ຂີດ (≈ 10 ຈຸດ) = -11. ຫົວພິມ USB ຈຶ່ງເລີ່ມຫ່າງຈາກຂອບຊ້າຍຫຼາຍກວ່າໜ້າຕ່າງພິມຂອງ browser.
+// ປ່ຽນຄ່ານີ້ ຖ້າເຄື່ອງ USB ເຄື່ອງອື່ນຫົວພິມເຫຼື່ອມ (ບວກ = ຂວາ, ລົບ = ຊ້າຍ; 8 ຈຸດ = 1 mm).
+if (!defined('USB_PRINT_SHIFT_DOTS')) define('USB_PRINT_SHIFT_DOTS', -11);
+function escposRasterFromPng($png, $dots, $shiftDots = LAN_PRINT_SHIFT_DOTS) {
     $src = @imagecreatefromstring($png);
     if (!$src) {
         return null;
@@ -170,7 +176,7 @@ function escposRasterFromPng($png, $dots) {
     // (browser dialog); the LAN printer's head sits differently, so the same image came out too
     // far left. Shift it right here, which the USB path never goes through. 8 dots = 1 mm;
     // positive = right, negative = left.
-    $shift = LAN_PRINT_SHIFT_DOTS;
+    $shift = (int)$shiftDots;
     // ບໍ່ຍັບເກີນຂອບເຈ້ຍຫວ່າງ — ໜັງສືຢູ່ຂອບຈະບໍ່ຖືກຕັດຫາຍ
     if ($shift !== 0) {
         $minX = $w; $maxX = -1;
@@ -206,9 +212,35 @@ function escposRasterFromPng($png, $dots) {
         $bitmap = array_slice($bitmap, 0, $h);
     }
 
+    $packed = [];
+    for ($y = 0; $y < $h; $y++) {
+        $data = '';
+        $byte = 0;
+        $bit = 0;
+        for ($x = 0; $x < $w; $x++) {
+            if ($bitmap[$y][$x]) {
+                $byte |= (0x80 >> $bit);
+            }
+            $bit++;
+            if ($bit === 8) {
+                $data .= chr($byte);
+                $byte = 0;
+                $bit = 0;
+            }
+        }
+        if ($bit > 0) {
+            $data .= chr($byte);
+        }
+        $packed[] = $data;
+    }
+    return escposFromRows($packed, intdiv($w + 7, 8));
+}
+
+// ESC/POS bytes from packed raster rows (1 bit per dot, MSB = leftmost, 1 = black).
+function escposFromRows(array $packed, $rowBytes) {
     $ESC = chr(27);
     $GS = chr(29);
-    $rowBytes = intdiv($w + 7, 8);
+    $h = count($packed);
     $out = $ESC . '@';
 
     // Send the image in small bands (48 rows ≈ 3.5 KB at 80 mm): a printer prints a GS v 0 block
@@ -217,29 +249,10 @@ function escposRasterFromPng($png, $dots) {
     $band = 48;
     for ($y0 = 0; $y0 < $h; $y0 += $band) {
         $rows = min($band, $h - $y0);
-        $data = '';
-        for ($y = $y0; $y < $y0 + $rows; $y++) {
-            $byte = 0;
-            $bit = 0;
-            for ($x = 0; $x < $w; $x++) {
-                if ($bitmap[$y][$x]) {
-                    $byte |= (0x80 >> $bit);
-                }
-                $bit++;
-                if ($bit === 8) {
-                    $data .= chr($byte);
-                    $byte = 0;
-                    $bit = 0;
-                }
-            }
-            if ($bit > 0) {
-                $data .= chr($byte);
-            }
-        }
         $out .= $GS . 'v0' . chr(0)
             . chr($rowBytes & 0xFF) . chr(($rowBytes >> 8) & 0xFF)
             . chr($rows & 0xFF) . chr(($rows >> 8) & 0xFF)
-            . $data;
+            . implode('', array_slice($packed, $y0, $rows));
     }
 
     // GS V already feeds the paper to the cutter's own blade position before cutting — an
@@ -248,6 +261,98 @@ function escposRasterFromPng($png, $dots) {
     // where the printer's own feed-to-cut already lands.
     $out .= $GS . 'V' . chr(66) . chr(0); // feed to cutter and cut
     return $out;
+}
+
+// ທາງດ່ວນສຳລັບໃບບິນທີ່ເປັນດຳ-ຂາວລ້ວນແລ້ວ (assets/js/lan-receipt.js ຕັດເປັນດຳ-ຂາວໃນ inkCanvas ກ່ອນສົ່ງ):
+// GD ອັດຮູບເປັນ 1 bit ໃຫ້ດ້ວຍ imagewbmp() ໃນ C ແທນການວົນທີລະ pixel ໃນ PHP (~1.5 s → ~0.05 s).
+// ຜົນອອກຄືກັບ escposRasterFromPng() ທຸກ byte — dithering ຂອງຮູບດຳ-ຂາວລ້ວນ ກໍຄື threshold ທຳມະດາ.
+// ຄືນ null ຖ້າຮູບບໍ່ກວ້າງເທົ່າຫົວພິມ (ຕ້ອງຫຍໍ້ = ມີສີເທົາ) → ຜູ້ເອີ້ນໃຊ້ escposRasterFromPng() ແທນ.
+function escposRasterFromBwPng($png, $dots, $shiftDots = LAN_PRINT_SHIFT_DOTS) {
+    if (!function_exists('imagewbmp')) {
+        return null;
+    }
+    $src = @imagecreatefromstring($png);
+    if (!$src) {
+        return null;
+    }
+    $w = imagesx($src);
+    $h = imagesy($src);
+    if ($w !== $dots || $w % 8 !== 0 || $h < 1 || $h > 20000) {
+        imagedestroy($src);
+        return null;
+    }
+    if (!imageistruecolor($src)) {
+        imagepalettetotruecolor($src);
+    }
+    $rowBytes = intdiv($w + 7, 8);
+    $packed = gdPackedRows($src, $w, $h);
+    if ($packed === null) {
+        imagedestroy($src);
+        return null;
+    }
+
+    // ຂອບໝຶກຊ້າຍ-ຂວາ ແລະ ແຖວສຸດທ້າຍທີ່ມີໝຶກ
+    $blank = str_repeat("\0", $rowBytes);
+    $minX = $w; $maxX = -1; $lastInk = -1;
+    foreach ($packed as $y => $row) {
+        if ($row === $blank) continue;
+        $lastInk = $y;
+        $i = strspn($row, "\0");
+        $x = $i * 8 + 7 - (int)floor(log(ord($row[$i]), 2));
+        if ($x < $minX) $minX = $x;
+        $j = strlen(rtrim($row, "\0")) - 1;
+        $b = ord($row[$j]);
+        $x = $j * 8 + 7 - (int)log($b & -$b, 2);
+        if ($x > $maxX) $maxX = $x;
+    }
+
+    // ຍັບ $shiftDots (LAN: LAN_PRINT_SHIFT_DOTS, USB: USB_PRINT_SHIFT_DOTS) ຄືກັບ escposRasterFromPng() (ບໍ່ຍັບເກີນຂອບເຈ້ຍຫວ່າງ);
+    // ໃຫ້ GD ຍັບຮູບ (imagecopy) ແລ້ວອັດໃໝ່ — ໄວກວ່າຍັບທີລະ bit ໃນ PHP
+    $shift = (int)$shiftDots;
+    if ($shift !== 0 && $maxX >= 0) {
+        $shift = $shift > 0 ? min($shift, $w - 1 - $maxX) : -min(-$shift, $minX);
+        if ($shift !== 0) {
+            $dst = imagecreatetruecolor($w, $h);
+            imagefilledrectangle($dst, 0, 0, $w - 1, $h - 1, imagecolorallocate($dst, 255, 255, 255));
+            imagecopy($dst, $src, max(0, $shift), 0, max(0, -$shift), 0, $w - abs($shift), $h);
+            $packed = gdPackedRows($dst, $w, $h);
+            imagedestroy($dst);
+            if ($packed === null) {
+                imagedestroy($src);
+                return null;
+            }
+        }
+    }
+    imagedestroy($src);
+
+    // ຕັດເຈ້ຍເປົ່າທາງລຸ່ມ ເຫຼືອ ~2 mm ໃຕ້ແຖວສຸດທ້າຍ
+    if ($lastInk >= 0) {
+        $packed = array_slice($packed, 0, min($h, $lastInk + 1 + 16));
+    }
+    return escposFromRows($packed, $rowBytes);
+}
+
+// ແຖວ raster ທີ່ອັດແລ້ວ (1 = ດຳ, bit ຊ້າຍສຸດກ່ອນ) ຈາກຮູບ GD ຜ່ານ imagewbmp():
+// WBMP ໃຫ້ pixel ທີ່ເປັນສີດຳ (0x000000) ພໍດີ = 0, ນອກນັ້ນ = 1 → ກັບດ້ວຍ ~ ໃຫ້ເປັນແບບ ESC/POS.
+function gdPackedRows($im, $w, $h) {
+    ob_start();
+    imagewbmp($im, null, 0);
+    $wbmp = ob_get_clean();
+    $p = 2; // type 0 + fix header
+    $dims = [];
+    for ($k = 0; $k < 2; $k++) {
+        $v = 0;
+        do {
+            $b = ord($wbmp[$p++]);
+            $v = ($v << 7) | ($b & 0x7F);
+        } while ($b & 0x80);
+        $dims[] = $v;
+    }
+    $rowBytes = intdiv($w + 7, 8);
+    if ($dims[0] !== $w || $dims[1] !== $h || strlen($wbmp) - $p < $rowBytes * $h) {
+        return null;
+    }
+    return str_split(~substr($wbmp, $p, $rowBytes * $h), $rowBytes);
 }
 
 // Plain-text test page (ASCII only — printer fonts can't draw Lao, so non-ASCII becomes "?").

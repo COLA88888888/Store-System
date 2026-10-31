@@ -83,17 +83,22 @@
       <small class="font-weight-bold text-secondary"><i class="fas fa-ruler-combined mr-1"></i> <?php echo htmlspecialchars(t('print_barcode.barcode_size_label', 'ຂະໜາດບາໂຄ້ດ:')); ?></small>
       <div class="d-flex align-items-center" style="gap: 4px;">
         <label for="barcode_width_mm" class="mb-0 font-weight-bold text-dark" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('print_barcode.barcode_width', 'ກວ້າງ')); ?></label>
-        <input type="number" id="barcode_width_mm" class="form-control form-control-sm" style="width: 70px; border-radius: 6px;" value="36" min="10" max="100" step="0.5" onchange="renderPageBarcodeBlocks()">
+        <input type="number" id="barcode_width_mm" class="form-control form-control-sm" style="width: 70px; border-radius: 6px;" value="36" min="10" max="100" step="0.5" oninput="renderPageBarcodeBlocks()" onchange="renderPageBarcodeBlocks()">
         <span class="text-muted" style="font-size: 0.78rem;">mm</span>
       </div>
       <div class="d-flex align-items-center" style="gap: 4px;">
         <label for="barcode_height_mm" class="mb-0 font-weight-bold text-dark" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('print_barcode.barcode_height', 'ສູງ')); ?></label>
-        <input type="number" id="barcode_height_mm" class="form-control form-control-sm" style="width: 70px; border-radius: 6px;" value="8.5" min="3" max="40" step="0.5" onchange="renderPageBarcodeBlocks()">
+        <input type="number" id="barcode_height_mm" class="form-control form-control-sm" style="width: 70px; border-radius: 6px;" value="10" min="3" max="40" step="0.5" oninput="renderPageBarcodeBlocks()" onchange="renderPageBarcodeBlocks()">
+        <span class="text-muted" style="font-size: 0.78rem;">mm</span>
+      </div>
+      <div class="d-flex align-items-center" style="gap: 4px;">
+        <label for="label_horizontal_offset_mm" class="mb-0 font-weight-bold text-dark" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('print_barcode.horizontal_offset', 'ຍັບຊ້າຍ/ຂວາ')); ?></label>
+        <input type="number" id="label_horizontal_offset_mm" class="form-control form-control-sm" style="width: 70px; border-radius: 6px;" value="0" min="-15" max="15" step="0.5" oninput="renderPageBarcodeBlocks()" onchange="renderPageBarcodeBlocks()">
         <span class="text-muted" style="font-size: 0.78rem;">mm</span>
       </div>
       <div class="d-flex align-items-center" style="gap: 4px;">
         <label for="label_vertical_offset_mm" class="mb-0 font-weight-bold text-dark" style="font-size: 0.82rem;"><?php echo htmlspecialchars(t('print_barcode.vertical_offset', 'ຍັບຂຶ້ນ/ລົງ')); ?></label>
-        <input type="number" id="label_vertical_offset_mm" class="form-control form-control-sm" style="width: 70px; border-radius: 6px;" value="0" min="-15" max="15" step="0.5" onchange="renderPageBarcodeBlocks()">
+        <input type="number" id="label_vertical_offset_mm" class="form-control form-control-sm" style="width: 70px; border-radius: 6px;" value="0" min="-15" max="15" step="0.5" oninput="renderPageBarcodeBlocks()" onchange="renderPageBarcodeBlocks()">
         <span class="text-muted" style="font-size: 0.78rem;">mm</span>
       </div>
       <div class="d-flex align-items-center" style="gap: 4px;" title="<?php echo htmlspecialchars(t('print_barcode.label_pitch_hint', 'ວັດຈາກຂອບເທິງຂອງດວງໜຶ່ງ ຫາ ຂອບເທິງຂອງດວງຖັດໄປ (ສະຕິກເກີ + ຮ່ອງ) — ແກ້ອາການພິມຫຼາຍດວງແລ້ວເລື່ອນສະສົມ')); ?>">

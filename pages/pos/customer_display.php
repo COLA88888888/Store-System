@@ -25,6 +25,28 @@ if (isset($_GET['action']) && $_GET['action'] === 'native_f11') {
     @file_put_contents($lockFile, (string)$nowMs);
 
     $triggered = false;
+    // ທາງຫຼັກ: tools/cd-fullscreen.cs (ຄອມໄພລ໌ເປັນ .exe ຄັ້ງດຽວ) — ຍ້າຍຈໍລູກຄ້າໄປຈໍທີ 2, ກົດ F11 ສະເພາະເມື່ອດຶງຂຶ້ນໜ້າໄດ້ແທ້,
+    // ແລ້ວຄືນ focus ໃຫ້ຈໍພະນັກງານ. VBScript ລຸ່ມນີ້ (AppActivate) ມັກຖືກ Windows ບລັອກບໍ່ໃຫ້ດຶງໜ້າຕ່າງຂຶ້ນໜ້າ → ເປັນທາງສຳຮອງ.
+    if (stripos(PHP_OS, 'WIN') === 0 && function_exists('exec')) {
+        $cs = realpath(__DIR__ . '/../../tools/cd-fullscreen.cs');
+        $exe = $cs ? sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'MiniPosCdFullscreen_' . filemtime($cs) . '.exe' : '';
+        if ($cs && !is_file($exe)) {
+            $csc = (getenv('WINDIR') ?: 'C:\\Windows') . '\\Microsoft.NET\\Framework64\\v4.0.30319\\csc.exe';
+            if (!is_file($csc)) $csc = (getenv('WINDIR') ?: 'C:\\Windows') . '\\Microsoft.NET\\Framework\\v4.0.30319\\csc.exe';
+            if (is_file($csc)) {
+                $part = $exe . '.' . getmypid() . '.part';
+                @exec('"' . $csc . '" /nologo /optimize /target:winexe /out:"' . $part . '" "' . $cs . '" 2>&1', $o, $c);
+                if ($c === 0 && is_file($part) && !@rename($part, $exe)) @unlink($part);
+            }
+        }
+        if ($exe && is_file($exe)) {
+            $out = [];
+            $code = 1;
+            @exec('"' . $exe . '" "WlaoDev Customer Display"' . ($force ? ' --force' : '') . ' 2>&1', $out, $code);
+            echo json_encode(['ok' => $code === 0, 'result' => trim(implode(' ', $out))]);
+            exit;
+        }
+    }
     if (stripos(PHP_OS, 'WIN') === 0 && function_exists('exec')) {
         $vbsPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'wlaodev_cd_f11.vbs';
         $vbsCode = "Set sh = CreateObject(\"WScript.Shell\")\r\n"
@@ -46,7 +68,57 @@ if (isset($_GET['action']) && $_GET['action'] === 'native_f11') {
     exit;
 }
 
+// ?action=cashiers — ຄຳຂໍເບື້ອງຫຼັງຂອງຈໍລູກຄ້າ: ບໍ່ນັບເປັນການເຄື່ອນໄຫວຂອງຜູ້ໃຊ້ (ບໍ່ຕໍ່ເວລາ / ບໍ່ອັບເດດ last_activity)
+if (($_GET['action'] ?? '') === 'cashiers' && !defined('SESSION_PASSIVE_REQUEST')) define('SESSION_PASSIVE_REQUEST', true);
+
 require_once __DIR__ . '/../../config/db.php';
+
+// ພະນັກງານຂາຍທີ່ກຳລັງລັອກອິນຢູ່ສາຂານີ້ (ເຄື່ອນໄຫວພາຍໃນ 5 ນາທີ ຄືກັບ "ໃຊ້ງານຢູ່" ໜ້າຜູ້ນຳໃຊ້; logout ລຶບ last_activity)
+// — ສາກ 3D ສ້າງພະນັກງານຢູ່ເຄົ້າເຕີຕາມຈຳນວນນີ້ ແລະ ຂຽນຊື່ໄວ້ເທິງຫົວ (partials/customer_display/minimart_3d/people_tags.php)
+if (!function_exists('cdOnlineCashiers')) {
+    function cdOnlineCashiers(PDO $pdo, $storeId) {
+        $st = $pdo->prepare("SELECT Id, COALESCE(NULLIF(TRIM(fname), ''), username) AS name, gender, last_activity
+                               FROM st_tbuser
+                              WHERE store_id = ? AND COALESCE(account_active, 1) = 1
+                                AND last_activity IS NOT NULL AND last_activity >= ?
+                                AND (sale = 1 OR Id = 1 OR status IN ('ຜູ້ບໍລິຫານ', 'admin', 'super admin'))
+                              ORDER BY last_activity DESC
+                              LIMIT 4");
+        $st->execute([(int)$storeId, date('Y-m-d H:i:s', time() - 300)]);
+        return $st->fetchAll(PDO::FETCH_ASSOC);
+    }
+}
+if (!function_exists('cdOnlineCashierNames')) {
+    function cdOnlineCashierNames(PDO $pdo, $storeId) {
+        $rows = cdOnlineCashiers($pdo, $storeId);
+        return array_values(array_filter(array_map(function($r) { return strval($r['name'] ?? ''); }, $rows)));
+    }
+}
+if (($_GET['action'] ?? '') === 'cashiers') {
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store');
+    $names = [];
+    $cashiers = [];
+    try {
+        if (isset($pdo) && !empty($_SESSION['user_id'])) {
+            $raw = cdOnlineCashiers($pdo, getPosStoreId());
+            foreach ($raw as $r) {
+                $n = trim((string)($r['name'] ?? ''));
+                if ($n !== '') {
+                    $names[] = $n;
+                    $cashiers[] = [
+                        'id' => (int)($r['Id'] ?? 0),
+                        'name' => $n,
+                        'gender' => (string)($r['gender'] ?? ''),
+                        'last_activity' => (string)($r['last_activity'] ?? '')
+                    ];
+                }
+            }
+        }
+    } catch (Throwable $e) {}
+    echo json_encode(['names' => $names, 'cashiers' => $cashiers], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 // Store Info Retrieval directly from Database
 $company = [
@@ -148,6 +220,7 @@ $base_path = '../../';
 <?php require __DIR__ . '/partials/customer_display/page_body.php'; /* ສ່ວນສະແດງຜົນ */ ?>
 <?php require __DIR__ . '/partials/customer_display/minimart_3d.php'; /* 3D Cartoon Mini-Mart World (ແລ່ນທັນທີແບບ 0ms ກ່ອນ Paint) */ ?>
 <script src="<?php echo $base_path; ?>plugins/jquery/jquery.min.js"></script>
+<script src="<?php echo $base_path; ?>assets/js/pos-sounds.js?v=<?php echo @filemtime(__DIR__ . '/../../assets/js/pos-sounds.js'); ?>"></script>
 <?php require __DIR__ . '/partials/customer_display/display_js.php'; /* JS ຂອງຈໍລູກຄ້າ */ ?>
 
 </body>

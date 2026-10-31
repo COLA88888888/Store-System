@@ -1,0 +1,32 @@
+/* ໜ້າອັດຕາແລກປ່ຽນ (pages/settings/exchange_rate/exchange_rate_header.php):
+   ປຸ່ມເລືອກສະກຸນເງິນສະແດງຜົນ 4 ປຸ່ມ (ກີບ / ບາດ / ໂດລາ / ຢວນ) ກວ້າງເທົ່າກັນ — ບໍ່ມີປຸ່ມໃດຕົກແຖວແລ້ວຍືດຍາວ,
+   ແລະ ຂໍ້ຄວາມອັດຕາ ("1 ຢວນ = 3,100 ກີບ") ຢູ່ໃນປຸ່ມ ບໍ່ລົ້ນອອກລຸ່ມ */
+.mp-cur-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 120px);
+    gap: 6px;
+}
+/* :not(#__z) — ຊະນະກົດຄວາມສູງ 38px ຂອງທຸກປຸ່ມ (body:not(.pos-page) .btn… ໃນ assets/css/global-custom/03-controls.css) */
+body .mp-cur-grid > .btn:not(#__z) {
+    height: auto !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 5px 6px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.25 !important;
+    white-space: normal;
+    border-radius: 8px !important;
+}
+.mp-cur-grid > .btn:not(#__z) small {
+    font-size: 0.68rem !important;
+    margin-top: 1px;
+}
+@media (max-width: 575.98px) {
+    .mp-cur-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        width: 100%;
+    }
+}

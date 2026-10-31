@@ -12,7 +12,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 
 require_once dirname(__DIR__, 2) . '/config/db.php';
 
-if (!hasPermission('financial') && !hasPermission('report')) {
+if (!hasPermission('financial')) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -211,7 +211,7 @@ function viewBillDetails(billId) {
     if (typeof window.showBillDetailModal === 'function') {
         window.showBillDetailModal(billId);
     } else {
-        alert('ເລກບິນ: ' + billId);
+        alert('<?php echo tlj('ເລກບິນ:'); ?> ' + billId);
     }
 }
 </script>

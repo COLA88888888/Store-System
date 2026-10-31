@@ -126,7 +126,7 @@
         // (ເຊັ່ນ ແທັບເກົ່າທີ່ເປີດຄ້າງ) ຖືກປະຕິເສດ ບໍ່ໃຫ້ກາຍເປັນບິນທີ່ຈ່າຍບໍ່ຄົບ.
         if ($pay_mode === 'credit' || $payment_type === 'ຕິດໜີ້') {
             if ($pdo->inTransaction()) $pdo->rollBack();
-            echo json_encode(['success' => false, 'message' => 'ການຂາຍຕິດໜີ້ຖືກປິດແລ້ວ — ກະລຸນາໂຫຼດໜ້າຂາຍໃໝ່ ແລ້ວຊຳລະແບບປົກກະຕິ']);
+            echo json_encode(['success' => false, 'message' => (tl('ການຂາຍຕິດໜີ້ຖືກປິດແລ້ວ') . ' — ' . tl('ກະລຸນາໂຫຼດໜ້າຂາຍໃໝ່ ແລ້ວຊຳລະແບບປົກກະຕິ'))]);
             exit();
         }
 

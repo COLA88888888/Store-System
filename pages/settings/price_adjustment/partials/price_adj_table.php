@@ -5,8 +5,8 @@
     </h6>
     <span class="badge badge-light border font-weight-bold text-muted px-2.5 py-1"><?php echo htmlspecialchars(sprintf(t('price_adjustment.total_records', '%d ລາຍການ'), count($adjustments))); ?></span>
   </div>
-  <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0" id="priceAdjTable" style="font-size: 0.86rem;">
+  <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+    <table class="table table-hover align-middle mb-0 text-nowrap" id="priceAdjTable" style="font-size: 0.90rem; white-space: nowrap;">
       <thead style="background: #f8fafc; color: #475569; font-size: 0.80rem;" class="font-weight-bold">
         <tr style="white-space: nowrap;">
           <th class="text-center" style="width: 50px; white-space: nowrap;"><?php echo htmlspecialchars(t('price_adjustment.col_no', 'ລ/ດ')); ?></th>
@@ -44,7 +44,7 @@
               $prodIdCode = $adj['product_id'] ? ('P-' . str_pad($adj['product_id'], 4, '0', STR_PAD_LEFT)) : '-';
               $barcodeVal = !empty($adj['prod_barcode']) ? $adj['prod_barcode'] : '-';
             ?>
-            <tr class="price-adj-row">
+            <tr class="price-adj-row" style="white-space: nowrap;">
               <!-- 1. ລຳດັບ -->
               <td class="text-center font-weight-bold text-muted"><?php echo $i++; ?></td>
 
@@ -104,33 +104,30 @@
               </td>
 
               <!-- 8. ວັນທີ & ເວລາ -->
-              <td class="text-center text-muted small" style="white-space: nowrap; font-family: monospace;">
-                <?php echo date('d/m/Y', strtotime($adj['adjust_date'])); ?> <small><?php echo date('H:i', strtotime($adj['adjust_time'])); ?></small>
+              <td class="text-center text-muted" style="white-space: nowrap; font-size: 0.92rem; font-weight: 500; font-family: monospace;">
+                <?php echo date('d/m/Y', strtotime($adj['adjust_date'])); ?> <span class="text-secondary ml-1"><?php echo date('H:i', strtotime($adj['adjust_time'])); ?></span>
               </td>
 
               <!-- 9. ຜູ້ປັບ -->
-              <td class="small font-weight-bold text-dark">
+              <td class="font-weight-bold text-dark" style="white-space: nowrap; font-size: 0.90rem;">
                 <i class="fas fa-user-circle text-secondary mr-1"></i><?php echo htmlspecialchars($adj['username'] ?? 'admin'); ?>
               </td>
 
               <!-- 10. ລາຍລະອຽດ / ໝາຍເຫດ -->
-              <td>
-                <small class="text-muted">
-                  <?php
-                    $typeText = t('price_adjustment.type_price', 'ລາຄາຂາຍ');
-                    if ($adj['target_price_type'] === 'bprice') $typeText = t('price_adjustment.type_bprice', 'ລາຄາຊື້/ທຶນ');
-                    if ($adj['target_price_type'] === 'both') $typeText = t('price_adjustment.type_both', 'ທັງຂາຍ&ຊື້');
+              <td style="white-space: nowrap; font-size: 0.92rem;">
+                <?php
+                  $typeText = t('price_adjustment.type_price', 'ລາຄາຂາຍ');
+                  if ($adj['target_price_type'] === 'bprice') $typeText = t('price_adjustment.type_bprice', 'ລາຄາຊື້/ທຶນ');
+                  if ($adj['target_price_type'] === 'both') $typeText = t('price_adjustment.type_both', 'ທັງຂາຍ&ຊື້');
 
-                    $calcText = t('price_adjustment.calc_set', 'ຕັ້ງໃໝ່');
-                    if ($adj['calc_type'] === 'increase') $calcText = t('price_adjustment.calc_increase', 'ເພີ່ມ');
-                    if ($adj['calc_type'] === 'decrease') $calcText = t('price_adjustment.calc_decrease', 'ຫຼຸດ');
-
-                    echo '<strong>' . htmlspecialchars($typeText) . ' (' . htmlspecialchars($calcText) . ')</strong>';
-                    if (!empty($adj['remark'])) {
-                        echo '<span class="d-block text-truncate" style="max-width: 140px;" title="' . htmlspecialchars($adj['remark']) . '">' . htmlspecialchars($adj['remark']) . '</span>';
-                    }
-                  ?>
-                </small>
+                  $calcText = t('price_adjustment.calc_set', 'ຕັ້ງໃໝ່');
+                  if ($adj['calc_type'] === 'increase') $calcText = t('price_adjustment.calc_increase', 'ເພີ່ມ');
+                  if ($adj['calc_type'] === 'decrease') $calcText = t('price_adjustment.calc_decrease', 'ຫຼຸດ');
+                ?>
+                <span class="font-weight-bold text-dark"><?php echo htmlspecialchars($typeText); ?> (<?php echo htmlspecialchars($calcText); ?>)</span>
+                <?php if (!empty($adj['remark'])): ?>
+                  <span class="text-muted ml-1" title="<?php echo htmlspecialchars($adj['remark']); ?>">- <?php echo htmlspecialchars($adj['remark']); ?></span>
+                <?php endif; ?>
               </td>
 
               <!-- 11. ຈັດການ (ແກ້ໄຂ / ລຶບ - Real-time AJAX) -->

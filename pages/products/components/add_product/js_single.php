@@ -106,6 +106,11 @@ function quickAddUnitPrompt(mode, btn) {
     confirmButtonText: pqT('products_q.save'),
     cancelButtonText: pqT('products_q.cancel'),
     confirmButtonColor: '#2563eb',
+    didOpen: function() {
+      $(document).off('focusin.bs.modal');
+      var inp = Swal.getInput();
+      if (inp) { inp.focus(); }
+    },
     inputValidator: function(v) {
       if (!v || !v.trim()) return pqT('products_q.unit_required');
     }
@@ -119,6 +124,9 @@ function quickAddUnitPrompt(mode, btn) {
           if (!exists) {
             window.ALL_UNITS.push({ unit_id: data.unit_id, unit_name: name });
           }
+          if (typeof window.BULK_UNIT_OPTIONS !== 'undefined') {
+            window.BULK_UNIT_OPTIONS += '<option value="' + data.unit_id + '">' + $('<div>').text(name).html() + '</option>';
+          }
 
           // ອັບເດດ dropdown ຫົວໜ່ວຍຫຼັກ (#add_unit ແລະ #edit_unit)
           ['add', 'edit'].forEach(function(m) {
@@ -128,8 +136,16 @@ function quickAddUnitPrompt(mode, btn) {
             }
           });
 
-          // ອັບເດດ dropdown ຫົວໜ່ວຍເພີ່ມເຕີມທຸກແຖວ
-          $('.extra-unit-select').each(function() {
+          // ອັບເດດ dropdown ຫົວໜ່ວຍໃນແຖວເພີ່ມຫຼາຍລາຍການ
+          $('.bulk-unit').each(function() {
+            var $s = $(this);
+            if (!$s.find('option[value="' + data.unit_id + '"]').length) {
+              $s.append($('<option>', { value: data.unit_id, text: name }));
+            }
+          });
+
+          // ອັບເດດ dropdown ຫົວໜ່ວຍເພີ່ມເຕີມທຸກແຖວ (Single + Bulk)
+          $('.extra-unit-select, .bulk-sub-unit-name').each(function() {
             var $s = $(this);
             if (!$s.find('option[value="' + name + '"]').length) {
               $s.append($('<option>', { value: name, text: name }));
@@ -137,9 +153,13 @@ function quickAddUnitPrompt(mode, btn) {
           });
 
           // ຖ້າກົດເພີ່ມຈາກແຖວໃດ ໃຫ້ເລືອກຫົວໜ່ວຍໃໝ່ນັ້ນໃນແຖວນັ້ນທັນທີ
-          if (btn && $(btn).closest('.unit-row').length) {
+          if (btn && $(btn).closest('.bulk-sub-unit-row').length) {
+            $(btn).closest('.bulk-sub-unit-row').find('.bulk-sub-unit-name').val(name);
+          } else if (btn && $(btn).closest('.bulk-row').length) {
+            $(btn).closest('.bulk-row').find('.bulk-unit').val(data.unit_id);
+          } else if (btn && $(btn).closest('.unit-row').length) {
             $(btn).closest('.unit-row').find('.extra-unit-select').val(name);
-          } else if (mode) {
+          } else if (mode && mode !== 'bulk' && mode !== 'bulk_sub') {
             $('#' + mode + '_unit').val(data.unit_id);
           }
 
@@ -153,6 +173,80 @@ function quickAddUnitPrompt(mode, btn) {
     }
   });
 }
+
+// ເພີ່ມໝວດໝູ່ໃໝ່ແບບດ່ວນ
+function quickAddCategoryPrompt(mode, btn) {
+  Swal.fire({
+    title: pqT('products_q.cat_title') || 'ເພີ່ມໝວດສິນຄ້າໃໝ່',
+    input: 'text',
+    inputPlaceholder: pqT('products_q.cat_ph') || 'ປ້ອນຊື່ໝວດສິນຄ້າ ເຊັ່ນ: ເຄື່ອງດື່ມ, ຂະໜົມ...',
+    showCancelButton: true,
+    confirmButtonText: pqT('products_q.save') || 'ບັນທຶກ',
+    cancelButtonText: pqT('products_q.cancel') || 'ຍົກເລີກ',
+    confirmButtonColor: '#2563eb',
+    didOpen: function() {
+      $(document).off('focusin.bs.modal');
+      var inp = Swal.getInput();
+      if (inp) { inp.focus(); }
+    },
+    inputValidator: function(v) {
+      if (!v || !v.trim()) return pqT('products_q.cat_required') || 'ກະລຸນາປ້ອນຊື່ໝວດສິນຄ້າ!';
+    }
+  }).then(function(res) {
+    if (res.isConfirmed && res.value) {
+      var name = res.value.trim();
+      $.post('../../api/products_api.php', { action: 'add_category', category_name: name }, function(data) {
+        if (data && data.success) {
+          var catId = data.category_id;
+
+          // 1. ອັບເດດ BULK_CAT_OPTIONS ສຳລັບແຖວໃໝ່ທີ່ຈະເພີ່ມ
+          if (typeof window.BULK_CAT_OPTIONS !== 'undefined') {
+            window.BULK_CAT_OPTIONS += '<option value="' + catId + '">' + $('<div>').text(name).html() + '</option>';
+          }
+
+          // 2. ອັບເດດ dropdown ໝວດໝູ່ໃນຟອມດ່ຽວ (#add_category_id ແລະ #edit_category_id)
+          ['add', 'edit'].forEach(function(m) {
+            var $sel = $('#' + m + '_category_id');
+            if ($sel.length && !$sel.find('option[value="' + catId + '"]').length) {
+              $sel.append($('<option>', { value: catId, text: name }));
+            }
+          });
+
+          // 3. ອັບເດດ dropdown ໝວດໝູ່ໃນທຸກແຖວຂອງ Bulk Add
+          $('.bulk-cat').each(function() {
+            var $bc = $(this);
+            if (!$bc.find('option[value="' + catId + '"]').length) {
+              $bc.append($('<option>', { value: catId, text: name }));
+            }
+          });
+
+          // 3b. ອັບເດດ categoryFilter ໃນຕາຕະລາງໃຫຍ່
+          var $cFilter = $('#categoryFilter');
+          if ($cFilter.length && !$cFilter.find('option[value="' + catId + '"]').length) {
+            $cFilter.append($('<option>', { value: catId, text: name }));
+          }
+
+          // 4. ເລືອກໝວດໝູ່ໃໝ່ທັນທີຕາມຈຸດທີ່ກົດ
+          if (btn && $(btn).closest('.bulk-row').length) {
+            $(btn).closest('.bulk-row').find('.bulk-cat').val(catId);
+          } else if (mode === 'add') {
+            $('#add_category_id').val(catId);
+            if (typeof onAddCategoryChange === 'function') onAddCategoryChange();
+          } else if (mode === 'edit') {
+            $('#edit_category_id').val(catId);
+          }
+
+          Swal.fire({ icon: 'success', title: pqT('products_q.cat_added') || 'ເພີ່ມໝວດສິນຄ້າສຳເລັດ', timer: 1200, showConfirmButton: false });
+        } else {
+          Swal.fire({ icon: 'error', title: pqT('products_q.failed') || 'ບໍ່ສຳເລັດ', text: (data && data.message) || pqT('products_q.cat_failed') || 'ເພີ່ມໝວດສິນຄ້າບໍ່ສຳເລັດ' });
+        }
+      }, 'json').fail(function() {
+        Swal.fire({ icon: 'error', title: pqT('products_q.error') || 'ຂໍ້ຜິດພາດ', text: pqT('products_q.no_connection') || 'ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້' });
+      });
+    }
+  });
+}
+window.quickAddCategoryPrompt = quickAddCategoryPrompt;
 
 // ຄຳນວນລາຄາຊື້ ແລະ ລາຄາຂາຍເມື່ອປ້ອນຈຳນວນຕັດສະຕັອກ
 function onExtraUnitMultiplierChange(input, mode) {
@@ -227,14 +321,12 @@ function addUnitRow(mode, data) {
     <div class="card mb-2.5 p-3 unit-row shadow-xs" style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px;">
       <div class="row align-items-end">
         <div class="col-lg-2 col-md-6 col-12 mb-2 mb-lg-0">
-          <?php /* ແຖວດຽວ: ປ້າຍບໍ່ຕັດລົງແຖວ (nowrap), ລິ້ງເພີ່ມຫົວໜ່ວຍເປັນໄອຄອນ ⊕ ພ້ອມ title — ເມື່ອກ່ອນຂໍ້ຄວາມ
-                 "+ ເພີ່ມຫົວໜ່ວຍ" ດັນປ້າຍລົງເປັນ 3 ແຖວໃນຈໍແຄບ */ ?>
-          <div class="d-flex align-items-center mb-1" style="gap: 6px; white-space: nowrap;">
+          <div class="d-flex justify-content-between align-items-center mb-1" style="white-space: nowrap;">
             <label class="font-weight-bold text-dark mb-0 text-nowrap" style="font-size: 0.86rem;">
               ${I18N_ADD_PRODUCT['products.unit_row_name_label']} <span class="text-danger">*</span>
             </label>
-            <a href="javascript:void(0)" onclick="quickAddUnitPrompt('${mode}', this)" class="text-primary" title="${pqT('products_q.add_unit_link')}" style="font-size: 0.95rem; line-height: 1;">
-              <i class="fas fa-plus-circle"></i>
+            <a href="javascript:void(0)" onclick="quickAddUnitPrompt('${mode}', this)" class="text-primary font-weight-bold" style="font-size: 0.78rem;" title="${pqT('products_q.add_unit_link')}">
+              <i class="fas fa-plus mr-1"></i>${pqT('products_q.add_unit_btn') || 'ເພີ່ມຫົວໜ່ວຍ'}
             </a>
           </div>
           <select name="extra_unit_name[]" class="form-control extra-unit-select font-weight-bold text-dark" style="height: 40px; border-radius: 6px; font-size: 0.92rem;" required>

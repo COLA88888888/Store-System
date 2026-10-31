@@ -15,12 +15,17 @@
     <div>
       <h5 class="font-weight-bold mb-1 text-dark" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif; font-size: 1.1rem;">
         <?php echo $displayName; ?>
-        <?php if ($u['Id'] == 1): ?>
-          <span class="badge badge-danger ml-2 px-2 py-1" style="font-size: 0.75rem; border-radius: 6px;"><i class="fas fa-shield-alt"></i><?php echo htmlspecialchars(t('permissions.badge_super_admin', 'Admin')); ?></span>
-        <?php elseif ($isAdmin): ?>
-          <span class="badge badge-primary ml-2 px-2 py-1" style="font-size: 0.75rem; border-radius: 6px;"> <?php echo htmlspecialchars(t('permissions.role_admin_badge', 'ຜູ້ບໍລິຫານ')); ?></span>
+        <?php 
+          $uStatusClean = mb_strtolower(trim((string)$uStatus));
+          if ($u['Id'] == 1): 
+        ?>
+          <span class="badge badge-danger ml-2 px-2 py-1" style="font-size: 0.75rem; border-radius: 6px;"><i class="fas fa-shield-alt mr-1"></i><?php echo htmlspecialchars(t('permissions.badge_super_admin', 'Admin')); ?></span>
+        <?php elseif ($isAdmin || $uStatusClean === 'ຜູ້ບໍລິຫານ' || $uStatusClean === 'admin' || $uStatusClean === 'super admin' || $uStatusClean === 'administrator'): ?>
+          <span class="badge badge-primary ml-2 px-2 py-1" style="font-size: 0.75rem; border-radius: 6px;"><i class="fas fa-user-shield mr-1"></i><?php echo htmlspecialchars(t('permissions.role_admin_badge', t('layout.role_admin', 'ຜູ້ບໍລິຫານ'))); ?></span>
+        <?php elseif ($uStatusClean === 'ຜູ້ຈັດການ' || $uStatusClean === 'manager'): ?>
+          <span class="badge badge-dark ml-2 px-2 py-1" style="font-size: 0.75rem; border-radius: 6px;"><i class="fas fa-user-tie mr-1"></i><?php echo htmlspecialchars(t('layout.role_manager', 'ຜູ້ຈັດການ')); ?></span>
         <?php else: ?>
-          <span class="badge badge-secondary ml-2 px-2 py-1" style="font-size: 0.75rem; border-radius: 6px;"><?php echo htmlspecialchars($uStatus ?: t('permissions.role_employee_default', 'ພະນັກງານ')); ?></span>
+          <span class="badge badge-secondary ml-2 px-2 py-1" style="font-size: 0.75rem; border-radius: 6px;"><i class="fas fa-user mr-1"></i><?php echo htmlspecialchars(t('layout.role_staff', 'ພະນັກງານ')); ?></span>
         <?php endif; ?>
       </h5>
       <div class="text-muted" style="font-size: 0.85rem;">

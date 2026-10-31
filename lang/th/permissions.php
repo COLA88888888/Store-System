@@ -172,4 +172,11 @@ return [
 
     // Admin-account edit lock
     'permissions.admin_locked_badge' => 'มีเฉพาะผู้บริหารคนแรกเท่านั้นที่แก้ไขได้',
+    'permissions.module_shift_close_report_title' => '↳ รายงานปิดกะ',
+    'permissions.module_shift_revenue_report_title' => '↳ รายงานรายได้ตามกะ',
+    'permissions.module_clear_data_title' => 'ลบ/ล้างข้อมูลระบบ',
+    'permissions.module_clear_data_desc' => 'ลบข้อมูลการขาย, ประวัติกะ, สต็อก หรือล้างข้อมูลระบบทั้งหมด',
+    'permissions.module_shifts_title' => 'จัดการกะทำงาน',
+    'permissions.module_shifts_desc' => 'ตั้งค่ากะ เวลาเปิด-ปิด และพนักงานประจำกะ',
+    'permissions.module_expiry_report_title' => '↳ รายงานสินค้าหมดอายุ',
 ];

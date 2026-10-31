@@ -13,6 +13,7 @@ var __bulkT = <?php echo tjson([
     'products.bulk_col_unit'           => 'ຫົວໜ່ວຍ',
     'products.bulk_col_bprice'         => 'ລາຄາຊື້',
     'products.bulk_col_price'          => 'ລາຄາຂາຍ',
+    'products.bulk_col_expiry'         => 'ວັນໝົດອາຍຸ',
     'products.bulk_col_supplier'       => 'ຜູ້ສະໜອງ',
     'products.select_category_placeholder' => '-- ເລືອກປະເພດ --',
     'products.select_unit_placeholder' => '-- ເລືອກຫົວໜ່ວຍ --',
@@ -34,6 +35,8 @@ var __bulkT = <?php echo tjson([
     'products.bulk_img_hint'           => 'ກົດເພື່ອເລືອກຮູບ (ບໍ່ໃສ່ກໍໄດ້)',
     'products.bulk_img_fail'           => 'ອັບໂຫຼດຮູບບໍ່ສຳເລັດ',
     'products.bulk_img_busy'           => 'ກຳລັງອັບໂຫຼດຮູບ — ກະລຸນາລໍຖ້າບຶດໜຶ່ງ',
+    'products.multi_unit_bulk_label'   => 'ຫົວໜ່ວຍເພີ່ມເຕີມ (ແພັກ, ແກັດ...):',
+    'products.btn_add_unit_short'      => 'ເພີ່ມແພັກ/ແກັດ',
 ]); ?>;
 
 var I18N_BULK = {
@@ -42,6 +45,7 @@ var I18N_BULK = {
   barcode: __bulkT['products.bulk_col_barcode'], barcode_ph: __bulkT['products.barcode_placeholder'],
   unit: __bulkT['products.bulk_col_unit'], unit_ph: __bulkT['products.select_unit_placeholder'],
   bprice: __bulkT['products.bulk_col_bprice'], price: __bulkT['products.bulk_col_price'],
+  expiry: __bulkT['products.bulk_col_expiry'],
   supplier: __bulkT['products.bulk_col_supplier'], supplier_ph: __bulkT['products.select_supplier_placeholder'],
   gen: __bulkT['products.gen_barcode_title'], del: __bulkT['products.unit_row_delete_title'],
   e_name: __bulkT['products.validate_name'], e_cat: __bulkT['products.validate_category'],
@@ -50,7 +54,9 @@ var I18N_BULK = {
   e_pr: __bulkT['products.validate_price'], e_bc_dup: __bulkT['products.duplicate_in_form_text'],
   e_none: __bulkT['products.bulk_validate_none'],
   img: __bulkT['products.bulk_col_img'], img_ph: __bulkT['products.bulk_img_hint'],
-  img_fail: __bulkT['products.bulk_img_fail'], img_busy: __bulkT['products.bulk_img_busy']
+  img_fail: __bulkT['products.bulk_img_fail'], img_busy: __bulkT['products.bulk_img_busy'],
+  multi_unit: __bulkT['products.multi_unit_bulk_label'],
+  btn_add_unit: __bulkT['products.btn_add_unit_short']
 };
 
 var BULK_CAT_OPTIONS = <?php echo json_encode(implode('', array_map(function ($c) {
@@ -83,6 +89,8 @@ function bulkRenumber() {
 
 function bulkAddRow(data) {
   data = data || {};
+  var hasZones = (typeof BULK_ZONE_OPTIONS !== 'undefined' && BULK_ZONE_OPTIONS.trim().length > 0);
+  var hasShelves = (typeof BULK_SHELF_OPTIONS !== 'undefined' && BULK_SHELF_OPTIONS.trim().length > 0);
   var html = `
   <div class="card border mb-2.5 bulk-row shadow-xs" style="border-radius: 10px; background: #fff; border-color: #cbd5e1 !important;">
     <div class="card-body p-2.5">
@@ -102,10 +110,15 @@ function bulkAddRow(data) {
 
         <!-- Right: 2 Rows -->
         <div class="flex-grow-1" style="min-width: 0;">
-          <!-- Row 1: ໝວດໝູ່, ຊື່ສິນຄ້າ, ບາໂຄ້ດ, ຫົວໜ່ວຍ -->
+          <!-- Row 1: <?php echo tlj('ໝວດໝູ່, ຊື່ສິນຄ້າ, ບາໂຄ້ດ, ຫົວໜ່ວຍ'); ?> -->
           <div class="row align-items-end mb-2" style="row-gap: 8px;">
             <div class="col-lg-3 col-md-6 col-12">
-              <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.cat} <span class="text-danger">*</span></label>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="small text-muted font-weight-bold mb-0">${I18N_BULK.cat} <span class="text-danger">*</span></label>
+                <a href="javascript:void(0)" onclick="quickAddCategoryPrompt('bulk', this)" class="text-primary font-weight-bold" style="font-size: 0.78rem;" title="${pqT('products_q.add_category_link')}">
+                  <i class="fas fa-plus mr-1"></i>${pqT('products_q.add_category_btn') || 'ເພີ່ມໝວດ'}
+                </a>
+              </div>
               <select name="b_category_id[]" class="form-control form-control-sm bulk-cat" style="height: 38px; border-radius: 6px;"><option value="">${I18N_BULK.cat_ph}</option>${BULK_CAT_OPTIONS}</select>
             </div>
             <div class="col-lg-4 col-md-6 col-12">
@@ -124,32 +137,42 @@ function bulkAddRow(data) {
               </div>
             </div>
             <div class="col-lg-2 col-md-5 col-4">
-              <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.unit} <span class="text-danger">*</span></label>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="small text-muted font-weight-bold mb-0">${I18N_BULK.unit} <span class="text-danger">*</span></label>
+                <a href="javascript:void(0)" onclick="quickAddUnitPrompt('bulk', this)" class="text-primary font-weight-bold" style="font-size: 0.78rem;" title="${pqT('products_q.add_unit_link')}">
+                  <i class="fas fa-plus mr-1"></i>${pqT('products_q.add_unit_btn') || 'ເພີ່ມຫົວໜ່ວຍ'}
+                </a>
+              </div>
               <select name="b_unit_id[]" class="form-control form-control-sm bulk-unit" style="height: 38px; border-radius: 6px;"><option value="">${I18N_BULK.unit_ph}</option>${BULK_UNIT_OPTIONS}</select>
             </div>
           </div>
 
-          <!-- Row 2: ລາຄາຊື້, ລາຄາຂາຍ, ໂຊນ, ຊັ້ນວາງ, ປຸ່ມລົບ -->
+          <!-- Row 2: <?php echo tlj('ລາຄາຊື້, ລາຄາຂາຍ, ວັນໝົດອາຍຸ, ໂຊນ, ຊັ້ນວາງ, ປຸ່ມລົບ'); ?> -->
           <div class="row align-items-end" style="row-gap: 8px;">
-            <div class="col-lg-3 col-md-6 col-6">
+            <div class="col-lg-2 col-md-4 col-6">
               <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.bprice}</label>
               <input type="text" name="b_bprice[]" class="form-control form-control-sm text-right price-input bulk-bprice" placeholder="0" oninput="formatPriceInput(this)" style="height: 38px; border-radius: 6px;">
             </div>
-            <div class="col-lg-3 col-md-6 col-6">
+            <div class="col-lg-2 col-md-4 col-6">
               <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.price} <span class="text-danger">*</span></label>
               <input type="text" name="b_price[]" class="form-control form-control-sm text-right font-weight-bold text-success price-input bulk-price" placeholder="0" oninput="formatPriceInput(this)" style="height: 38px; border-radius: 6px;">
             </div>
+            <!-- <?php echo tlj('ວັນໝົດອາຍຸ (ບໍ່ບັງຄັບ)'); ?> — <?php echo tlj('ປະຕິທິນຈາກ plugins/flatpickr/minipos-datepicker.'); ?>js -->
+            <div class="col-lg-2 col-md-4 col-12">
+              <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.expiry}</label>
+              <input type="date" name="b_expiry[]" class="form-control form-control-sm font-weight-bold bulk-expiry" style="height: 38px; border-radius: 6px;">
+            </div>
             <div class="col-lg-2.5 col-md-5 col-5" style="flex: 1;">
               <label class="small text-muted font-weight-bold mb-1">${pqT('products_q.zone')}</label>
-              <select name="b_zone[]" class="form-control form-control-sm bulk-zone" style="height: 38px; border-radius: 6px;">
-                <option value="">${pqT('products_q.zone_opt')}</option>
+              <select name="b_zone[]" class="form-control form-control-sm bulk-zone" style="height: 38px; border-radius: 6px;" onchange="if(window.onBulkRowZoneChange) onBulkRowZoneChange(this)" ${!hasZones ? 'disabled' : ''}>
+                <option value="">${hasZones ? pqT('products_q.zone_opt') : (pqT('products_q.no_zone_short') || '-- ບໍ່ມີໂຊນ --')}</option>
                 ${BULK_ZONE_OPTIONS}
               </select>
             </div>
             <div class="col-lg-2.5 col-md-5 col-5" style="flex: 1;">
               <label class="small text-muted font-weight-bold mb-1">${pqT('products_q.shelf')}</label>
-              <select name="b_shelf[]" class="form-control form-control-sm bulk-shelf" style="height: 38px; border-radius: 6px;">
-                <option value="">${pqT('products_q.shelf_opt')}</option>
+              <select name="b_shelf[]" class="form-control form-control-sm bulk-shelf" style="height: 38px; border-radius: 6px;" ${!hasShelves ? 'disabled' : ''}>
+                <option value="">${hasShelves ? pqT('products_q.shelf_opt') : (pqT('products_q.no_shelf_short') || '-- ບໍ່ມີຊັ້ນວາງ --')}</option>
                 ${BULK_SHELF_OPTIONS}
               </select>
             </div>
@@ -159,6 +182,19 @@ function bulkAddRow(data) {
               </button>
             </div>
           </div>
+
+          <!-- Row 3: ຫົວໜ່ວຍເພີ່ມເຕີມ (ແພັກ, ແກັດ...) -->
+          <div class="bulk-extra-units-wrap mt-2 pt-2 border-top" style="border-color: #f1f5f9 !important;">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="text-muted font-weight-bold" style="font-size: 0.78rem;">
+                <i class="fas fa-boxes text-info mr-1"></i> ${I18N_BULK.multi_unit}
+              </span>
+              <button type="button" class="btn btn-xs btn-outline-info font-weight-bold px-2 py-0.5" style="border-radius: 5px; font-size: 0.76rem;" onclick="bulkAddUnitSubRow(this)">
+                <i class="fas fa-plus mr-1"></i> ${I18N_BULK.btn_add_unit}
+              </button>
+            </div>
+            <div class="bulk-extra-units-container"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -166,12 +202,119 @@ function bulkAddRow(data) {
   var $row = $(html);
   if (data.category_id) $row.find('.bulk-cat').val(String(data.category_id));
   if (data.unit_id) $row.find('.bulk-unit').val(String(data.unit_id));
-  if (data.zone) $row.find('.bulk-zone').val(String(data.zone));
-  if (data.shelf) $row.find('.bulk-shelf').val(String(data.shelf));
+  if (data.zone) {
+    $row.find('.bulk-zone').prop('disabled', false).removeClass('select-disabled').val(String(data.zone));
+    if (window.onBulkRowZoneChange) window.onBulkRowZoneChange($row.find('.bulk-zone')[0]);
+  } else {
+    if (window.onBulkRowZoneChange) window.onBulkRowZoneChange($row.find('.bulk-zone')[0]);
+  }
+  if (data.shelf) {
+    $row.find('.bulk-shelf').prop('disabled', false).removeClass('select-disabled').val(String(data.shelf));
+  }
+  if (data.extra_units && Array.isArray(data.extra_units)) {
+    data.extra_units.forEach(function (eu) {
+      bulkAddUnitSubRow($row.find('.bulk-extra-units-wrap button'), eu);
+    });
+  }
   // Per-row supplier only comes from an Excel import; the batch box at the top wins when set.
   $row.data('supplier', data.supplier_id ? String(data.supplier_id) : '');
   $('#bulk_rows_container').append($row);
   bulkRenumber();
+}
+
+// ====== ເພີ່ມຫົວໜ່ວຍຍ່ອຍ (ແພັກ, ແກັດ...) ພາຍໃນແຖວເພີ່ມຫຼາຍລາຍການ ======
+window.bulkAddUnitSubRow = function(btn, subData) {
+  subData = subData || {};
+  var $card = $(btn).closest('.bulk-row');
+  var $container = $card.find('.bulk-extra-units-container');
+
+  var subUnitName = subData.unit_name || '';
+  var subMult     = subData.multiplier || '';
+  var subBprice   = subData.bprice || '';
+  var subPrice    = subData.price || '';
+  var subBarcode  = subData.barcode || '';
+
+  var existingCount = $container.find('.bulk-sub-unit-row').length;
+  var defaultSuggest = '';
+  if (!subUnitName) {
+    if (existingCount === 0) defaultSuggest = 'ແພັກ';
+    else if (existingCount === 1) defaultSuggest = 'ແກັດ';
+  }
+
+  var subUnitOpts = '<option value="">' + (I18N_ADD_PRODUCT['products.unit_row_name_placeholder'] || '-- ເລືອກຫົວໜ່ວຍ --') + '</option>';
+  var matched = false;
+  (window.ALL_UNITS || []).forEach(function(u) {
+    var uName = (u.unit_name || '').trim();
+    if (!uName) return;
+    var isSel = (subUnitName && subUnitName.trim() === uName) || (!subUnitName && defaultSuggest && uName === defaultSuggest);
+    if (isSel) matched = true;
+    subUnitOpts += '<option value="' + escapeHtml(uName) + '" ' + (isSel ? 'selected' : '') + '>' + escapeHtml(uName) + '</option>';
+  });
+  if (subUnitName && !matched) {
+    subUnitOpts = '<option value="' + escapeHtml(subUnitName) + '" selected>' + escapeHtml(subUnitName) + '</option>' + subUnitOpts;
+  }
+
+  if (!subMult) {
+    if (defaultSuggest === 'ແພັກ') subMult = '6';
+    else if (defaultSuggest === 'ແກັດ') subMult = '24';
+  }
+
+  var subHtml = `
+  <div class="bulk-sub-unit-row p-2 mb-2 rounded border" style="background: #f8fafc; border-color: #cbd5e1 !important;">
+    <div class="row align-items-end" style="row-gap: 6px;">
+      <div class="col-lg-2 col-md-4 col-6">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <label class="small text-muted font-weight-bold mb-0" style="font-size: 0.75rem;">
+            ${I18N_ADD_PRODUCT['products.unit_row_name_label'] || 'ຊື່ຫົວໜ່ວຍ'} <span class="text-danger">*</span>
+          </label>
+          <a href="javascript:void(0)" onclick="quickAddUnitPrompt('bulk_sub', this)" class="text-primary font-weight-bold" style="font-size: 0.75rem;" title="${pqT('products_q.add_unit_link')}">
+            <i class="fas fa-plus mr-1"></i>${pqT('products_q.add_unit_btn') || 'ເພີ່ມຫົວໜ່ວຍ'}
+          </a>
+        </div>
+        <select class="form-control form-control-sm bulk-sub-unit-name font-weight-bold text-dark" style="height: 34px; border-radius: 5px; font-size: 0.82rem;">
+          ${subUnitOpts}
+        </select>
+      </div>
+      <div class="col-lg-2 col-md-4 col-6">
+        <label class="small text-muted font-weight-bold mb-1" style="font-size: 0.75rem;">
+          ${I18N_ADD_PRODUCT['products.unit_row_qty_label'] || 'ຈຳນວນຕັດສະຕັອກ'} <span class="text-danger">*</span>
+        </label>
+        <input type="text" inputmode="numeric" class="form-control form-control-sm text-center font-weight-bold bulk-sub-unit-mult text-primary no-spin" placeholder="1" value="${escapeHtml(subMult)}" style="height: 34px; border-radius: 5px; font-size: 0.85rem;" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+      </div>
+      <div class="col-lg-2 col-md-4 col-6">
+        <label class="small text-muted font-weight-bold mb-1" style="font-size: 0.75rem;">
+          ${I18N_ADD_PRODUCT['products.unit_row_bprice_label'] || 'ລາຄາຊື້'}
+        </label>
+        <input type="text" class="form-control form-control-sm text-right price-input bulk-sub-unit-bprice" placeholder="0" value="${escapeHtml(subBprice)}" style="height: 34px; border-radius: 5px; font-size: 0.85rem; color: #475569;" oninput="formatPriceInput(this)">
+      </div>
+      <div class="col-lg-2 col-md-4 col-6">
+        <label class="small text-muted font-weight-bold mb-1" style="font-size: 0.75rem;">
+          ${I18N_ADD_PRODUCT['products.unit_row_price_label'] || 'ລາຄາຂາຍ'} <span class="text-danger">*</span>
+        </label>
+        <input type="text" class="form-control form-control-sm text-right font-weight-bold text-success price-input bulk-sub-unit-price" placeholder="0" value="${escapeHtml(subPrice)}" style="height: 34px; border-radius: 5px; font-size: 0.85rem;" oninput="formatPriceInput(this)">
+      </div>
+      <div class="col-lg-3 col-md-6 col-10" style="flex: 1;">
+        <label class="small text-muted font-weight-bold mb-1" style="font-size: 0.75rem;">
+          ${I18N_ADD_PRODUCT['products.unit_row_barcode_label'] || 'ບາໂຄ້ດ'}
+        </label>
+        <div class="input-group input-group-sm barcode-combo barcode-combo-sm">
+          <input type="text" class="form-control form-control-sm bulk-sub-unit-barcode font-weight-bold" placeholder="${I18N_BULK.barcode_ph}" value="${escapeHtml(subBarcode)}" style="height: 34px; border-radius: 5px 0 0 5px; font-size: 0.85rem;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+          <div class="input-group-append">
+            <button type="button" class="btn btn-outline-primary font-weight-bold px-2" title="${I18N_BULK.gen}" onclick="generateEAN13(this)" style="height: 34px; border-radius: 0 5px 5px 0; display: inline-flex; align-items: center; gap: 3px;">
+              <i class="fas fa-barcode"></i> <span style="font-size: 0.75rem;">${pqT('products_q.gen_short')}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="col-auto text-right pl-1">
+        <button type="button" class="btn btn-outline-danger btn-xs" title="${I18N_BULK.del}" onclick="$(this).closest('.bulk-sub-unit-row').remove()" style="height: 34px; width: 34px; border-radius: 5px; padding: 0; display: inline-flex; align-items: center; justify-content: center;">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+  </div>`;
+
+  $container.append(subHtml);
 }
 
 // ====== ຮູບພາບລາຍແຖວ (ບໍ່ບັງຄັບ) — ອັບໂຫຼດທັນທີທີ່ເລືອກ, ເກັບໄວ້ແຕ່ຊື່ໄຟລ໌ ======

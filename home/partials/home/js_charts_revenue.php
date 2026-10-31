@@ -134,11 +134,24 @@ $(document).ready(function() {
   // Revenue / margin charts follow the selected range: 'hour' | 'day' | 'month' buckets
   var CHART_MODE    = <?php echo json_encode($chart_mode); ?>;
   var chartKeys     = <?php echo json_encode(array_values($chart_keys)); ?>;
+  var CHART_FROM = <?php echo json_encode($chartFrom); ?>, CHART_TO = <?php echo json_encode($chartTo); ?>;
+  // ຂໍ້ຄວາມຊ່ວງເວລາຂອງຫົວຂໍ້ກຣາຟ (ກົງກັບ $chart_period_text ໃນ data_charts.php) — ວາດໃໝ່ເມື່ອປ່ຽນພາສາ
+  window.chartPeriodText = function () {
+    var D = I18N_HOME['home.lbl_date'] || '<?php echo tlj('ວັນທີ'); ?>', M = I18N_HOME['home.lbl_month'] || '<?php echo tlj('ເດືອນ'); ?>';
+    var dmy = function (s) { return s.slice(8, 10) + '/' + s.slice(5, 7) + '/' + s.slice(0, 4); };
+    var my = function (s) { return s.slice(5, 7) + '/' + s.slice(0, 4); };
+    if (CHART_MODE === 'hour') return D + ' ' + dmy(CHART_FROM);
+    if (CHART_MODE === 'day') return D + ' ' + dmy(CHART_FROM) + ' – ' + D + ' ' + dmy(CHART_TO);
+    if (CHART_FROM.slice(0, 4) === CHART_TO.slice(0, 4) && CHART_FROM.slice(5) === '01-01' && CHART_TO.slice(5) === '12-31') {
+      return (I18N_HOME['home.year_label'] || '<?php echo tlj('ປີ %'); ?>d').replace('%d', CHART_FROM.slice(0, 4));
+    }
+    return M + ' ' + my(CHART_FROM) + ' – ' + M + ' ' + my(CHART_TO);
+  };
   var CHART_MULTI_YEAR = <?php echo json_encode($chart_mode === 'month' && substr($chartFrom, 0, 4) !== substr($chartTo, 0, 4)); ?>;
   function chartBucketLabel(k) {
-    var dPrefix = I18N_HOME['home.lbl_date'] || 'ວັນທີ';
-    var mPrefix = I18N_HOME['home.lbl_month'] || 'ເດືອນ';
-    var hUnit   = I18N_HOME['home.unit_hour'] || 'ໂມງ';
+    var dPrefix = I18N_HOME['home.lbl_date'] || '<?php echo tlj('ວັນທີ'); ?>';
+    var mPrefix = I18N_HOME['home.lbl_month'] || '<?php echo tlj('ເດືອນ'); ?>';
+    var hUnit   = I18N_HOME['home.unit_hour'] || '<?php echo tlj('ໂມງ'); ?>';
 
     if (CHART_MODE === 'hour') return (k < 10 ? '0' : '') + k + ':00 ' + hUnit;
     if (CHART_MODE === 'day') {
@@ -174,7 +187,7 @@ $(document).ready(function() {
   }
 
   function fmtYearLabel(year) {
-    var pattern = I18N_HOME['home.year_label'] || 'ປີ %d';
+    var pattern = I18N_HOME['home.year_label'] || '<?php echo tlj('ປີ %'); ?>d';
     return pattern.replace('%d', year);
   }
 
@@ -294,11 +307,11 @@ $(document).ready(function() {
                 if (!items.length) return '';
                 var idx = items[0].dataIndex;
                 var rawKey = chartKeys[idx];
-                var dPrefix = I18N_HOME['home.lbl_date'] || 'ວັນທີ';
-                var mPrefix = I18N_HOME['home.lbl_month'] || 'ເດືອນ';
-                var yPrefix = I18N_HOME['home.lbl_year'] || 'ປີ';
-                var tPrefix = I18N_HOME['home.lbl_time'] || 'ເວລາ';
-                var hUnit   = I18N_HOME['home.unit_hour'] || 'ໂມງ';
+                var dPrefix = I18N_HOME['home.lbl_date'] || '<?php echo tlj('ວັນທີ'); ?>';
+                var mPrefix = I18N_HOME['home.lbl_month'] || '<?php echo tlj('ເດືອນ'); ?>';
+                var yPrefix = I18N_HOME['home.lbl_year'] || '<?php echo tlj('ປີ'); ?>';
+                var tPrefix = I18N_HOME['home.lbl_time'] || '<?php echo tlj('ເວລາ'); ?>';
+                var hUnit   = I18N_HOME['home.unit_hour'] || '<?php echo tlj('ໂມງ'); ?>';
 
                 if (CHART_MODE === 'day' && rawKey) {
                   var d = parseInt(rawKey.slice(8, 10), 10);

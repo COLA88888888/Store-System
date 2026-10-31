@@ -76,7 +76,7 @@ function filterCustomersList(page) {
       <tr>
         <td colspan="7" class="text-center py-5 text-muted">
           <i class="fas fa-user-slash fa-2x mb-2 d-block text-secondary"></i>
-          <span class="font-weight-bold d-block" style="font-size: 1.05rem; color: #64748b;">ບໍ່ມີຂໍ້ມູນລູກຄ້າ / ສະມາຊິກໃນລະບົບ</span>
+          <span class="font-weight-bold d-block" style="font-size: 1.05rem; color: #64748b;"><?php echo tlj('ບໍ່ມີຂໍ້ມູນລູກຄ້າ / ສະມາຊິກໃນລະບົບ'); ?></span>
         </td>
       </tr>
     `);
@@ -105,7 +105,7 @@ function filterCustomersList(page) {
         <td class="text-center align-middle font-weight-bold" style="white-space: nowrap;">${memberCardBadge}</td>
         <td class="text-center align-middle text-secondary" style="font-size: 0.88rem; white-space: nowrap;"><i class="far fa-clock text-info mr-1"></i>${createdAt}</td>
         <td class="text-center align-middle" style="white-space: nowrap;">
-          <button type="button" class="btn btn-sm btn-success rounded-circle shadow-sm" title="ເລືອກລູກຄ້ານີ້" onclick='selectCustomer(${jsonStr})' style="width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background-color: #10b981 !important; color: #ffffff !important; border: none !important; cursor: pointer;">
+          <button type="button" class="btn btn-sm btn-success rounded-circle shadow-sm" title="<?php echo tlj('ເລືອກລູກຄ້ານີ້'); ?>" onclick='selectCustomer(${jsonStr})' style="width: 34px; height: 34px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background-color: #10b981 !important; color: #ffffff !important; border: none !important; cursor: pointer;">
             <i class="fas fa-check" style="font-size: 0.9rem; color: #ffffff;"></i>
           </button>
         </td>
@@ -208,8 +208,8 @@ $(document).on('click', '#btnSelectExistingCus', function() {
     $('#addCustomerModal').modal('hide');
     Swal.fire({
       icon: 'success',
-      title: 'ເລືອກລູກຄ້າເກົ່າສຳເລັດ!',
-      text: 'ເລືອກ: ' + matchedExistingCustomer.customer_name + ' ແລ້ວ',
+      title: '<?php echo tlj('ເລືອກລູກຄ້າເກົ່າສຳເລັດ!'); ?>',
+      text: '<?php echo tlj('ເລືອກ:'); ?> ' + matchedExistingCustomer.customer_name + ' <?php echo tlj('ແລ້ວ'); ?>',
       timer: 1500,
       showConfirmButton: false
     });
@@ -248,7 +248,7 @@ function submitQuickAddCustomer() {
   var name  = $('#newCusName').val().trim();
 
   if (!name) {
-    Swal.fire({ icon: 'warning', title: 'ແຈ້ງເຕືອນ', text: 'ກະລຸນາປ້ອນຊື່ລູກຄ້າ!' });
+    Swal.fire({ icon: 'warning', title: '<?php echo tlj('ແຈ້ງເຕືອນ'); ?>', text: '<?php echo tlj('ກະລຸນາປ້ອນຊື່ລູກຄ້າ!'); ?>' });
     return;
   }
 
@@ -270,13 +270,13 @@ function submitQuickAddCustomer() {
         allCustomers.push(res.customer);
         selectCustomer(res.customer);
         $('#addCustomerModal').modal('hide');
-        Swal.fire({ icon: 'success', title: 'ເພີ່ມລູກຄ້າໃໝ່ສຳເລັດ!', timer: 1200, showConfirmButton: false });
+        Swal.fire({ icon: 'success', title: '<?php echo tlj('ເພີ່ມລູກຄ້າໃໝ່ສຳເລັດ!'); ?>', timer: 1200, showConfirmButton: false });
       } else {
-        Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: res.message });
+        Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: res.message });
       }
     },
     error: function() {
-      Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ບໍ່ສາມາດບັນທຶກຂໍ້ມູນລູກຄ້າໄດ້!' });
+      Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: '<?php echo tlj('ບໍ່ສາມາດບັນທຶກຂໍ້ມູນລູກຄ້າໄດ້!'); ?>' });
     }
   });
 }

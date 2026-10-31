@@ -10,7 +10,7 @@ if (!isset($base_path)) {
 require_once __DIR__ . '/../config/db.php';
 
 // Check authorization (Executive, Accountant, or users with accounting/bank permission)
-if (empty($_SESSION['user_id']) || (!hasPermission('accounting') && !hasPermission('report') && ($_SESSION['status'] ?? '') !== 'ນັກບັນຊີ')) {
+if (empty($_SESSION['user_id']) || (!hasPermission('accounting'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -67,11 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             try {
                 $stmt = $pdo->prepare("INSERT INTO st_bank_accounts (bank_name, account_number, account_name, bank_code, bank_logo, qr_code_img, is_active, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$bank_name, $account_number, $account_name, $bank_code, $bank_logo, $qr_code_img, $is_active, $bank_store_id]);
-                $message = "ເພີ່ມບັນຊີທະນາຄານ \"$bank_name\" ສໍາເລັດແລ້ວ!";
+                $message = ((("" . tl('ເພີ່ມບັນຊີທະນາຄານ') . " \"$bank_name\" ")) . tl('ສໍາເລັດແລ້ວ!') . "");
                 $message_type = "success";
                 logActivity($pdo, "ເພີ່ມບັນຊີທະນາຄານ", "$bank_name ($account_number)");
             } catch (Exception $e) {
-                $message = "ຜິດພາດ: " . $e->getMessage();
+                $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                 $message_type = "danger";
             }
         }
@@ -156,11 +156,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     }
                 }
 
-                $message = "ແກ້ໄຂຂໍ້ມູນບັນຊີທະນາຄານ ສໍາເລັດແລ້ວ!";
+                $message = tl('ແກ້ໄຂຂໍ້ມູນບັນຊີທະນາຄານ ສໍາເລັດແລ້ວ!');
                 $message_type = "success";
                 logActivity($pdo, "ແກ້ໄຂບັນຊີທະນາຄານ", "$bank_name ($account_number)");
             } catch (Exception $e) {
-                $message = "ຜິດພາດ: " . $e->getMessage();
+                $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                 $message_type = "danger";
             }
         }
@@ -199,11 +199,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     }
                 }
 
-                $message = "ລົບບັນຊີທະນາຄານ ສໍາເລັດແລ້ວ!";
+                $message = tl('ລົບບັນຊີທະນາຄານ ສໍາເລັດແລ້ວ!');
                 $message_type = "success";
                 logActivity($pdo, "ລົບບັນຊີທະນາຄານ", "ID: $bank_id");
             } catch (Exception $e) {
-                $message = "ຜິດພາດ: " . $e->getMessage();
+                $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                 $message_type = "danger";
             }
         }

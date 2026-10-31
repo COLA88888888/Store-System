@@ -12,7 +12,7 @@
       <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
         <?php echo htmlspecialchars(t('stock_transfer.transfer_code_label', 'ເລກທີໃບໂອນສິນຄ້າ')); ?>
       </label>
-      <input type="text" class="form-control font-weight-bold bg-white text-primary border-primary" value="<?php echo $next_transfer_code; ?>" readonly style="height: 42px; border-radius: 8px; cursor: not-allowed; font-size: 1.05rem;">
+      <input type="text" id="transfer_code_preview" class="form-control font-weight-bold bg-white text-primary border-primary" value="<?php echo $next_transfer_code; ?>" readonly style="height: 42px; border-radius: 8px; cursor: not-allowed; font-size: 1.05rem;">
     </div>
 
     <!-- 2. Transfer Date -->
@@ -75,7 +75,7 @@
     </div>
 
     <!-- Quantity Input -->
-    <div class="col-md-3 mb-3 mb-md-0">
+    <div class="col-6 col-md-3 mb-3 mb-md-0">
       <label class="font-weight-bold text-dark mb-1">
         <?php echo htmlspecialchars(t('stock_transfer.transfer_qty_label', 'ຈຳນວນໂອນ')); ?> <span class="text-danger">*</span>
       </label>
@@ -83,7 +83,7 @@
     </div>
 
     <!-- Unit Select -->
-    <div class="col-md-2 mb-3 mb-md-0">
+    <div class="col-6 col-md-2 mb-3 mb-md-0">
       <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('stock_transfer.unit_label', 'ຫົວໜ່ວຍ')); ?></label>
       <select id="direct_unit_key" class="form-control" style="height: 42px; border-radius: 8px;">
         <option value="base"><?php echo htmlspecialchars(t('stock_transfer.unit_label', 'ຫົວໜ່ວຍ')); ?></option>

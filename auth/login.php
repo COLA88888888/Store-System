@@ -77,6 +77,7 @@ if (!is_file(__DIR__ . '/../assets/img/logosystem/wlaodev_system_logo.jpg')) {
     <script src="../plugins/jquery/jquery.min.js"></script>
     <script src="../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="../sweetalert/dist/sweetalert2.all.min.js"></script>
+    <script src="../assets/js/pos-sounds.js?v=<?php echo @filemtime(__DIR__ . '/../assets/js/pos-sounds.js'); ?>"></script>
 
 <?php require __DIR__ . '/partials/login/login_js.php'; /* JS ໜ້າເຂົ້າສູ່ລະບົບ */ ?>
 </body>

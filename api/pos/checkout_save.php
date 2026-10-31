@@ -138,7 +138,7 @@
                 $pData = $stmtCheckStock->fetch();
                 if (!$pData) {
                     if ($pdo->inTransaction()) $pdo->rollBack();
-                    echo json_encode(['success' => false, 'message' => "ບໍ່ພົບຂໍ້ມູນສິນຄ້າ ID: {$pid} ໃນລະບົບ!"]);
+                    echo json_encode(['success' => false, 'message' => ("" . tl('ບໍ່ພົບຂໍ້ມູນສິນຄ້າ ID:') . " {$pid} " . tl('ໃນລະບົບ!') . "")]);
                     exit();
                 }
 
@@ -148,13 +148,13 @@
                 if ($shouldCutQty) {
                     if ($currentDbStock <= 0) {
                         if ($pdo->inTransaction()) $pdo->rollBack();
-                        echo json_encode(['success' => false, 'message' => "ສິນຄ້າ \"{$pData['product_name']}\" ໝົດແລ້ວ! ບໍ່ສາມາດຂາຍໄດ້"]);
+                        echo json_encode(['success' => false, 'message' => ("" . tl('ສິນຄ້າ') . " \"{$pData['product_name']}\" " . tl('ໝົດແລ້ວ! ບໍ່ສາມາດຂາຍໄດ້') . "")]);
                         exit();
                     }
 
                     if ($currentDbStock < $deduct_stock_qty) {
                         if ($pdo->inTransaction()) $pdo->rollBack();
-                        echo json_encode(['success' => false, 'message' => "ສິນຄ້າ \"{$pData['product_name']}\" ເຫຼືອພຽງ {$currentDbStock} ອັນ! ບໍ່ພໍສຳລັບການຂາຍ"]);
+                        echo json_encode(['success' => false, 'message' => ("" . tl('ສິນຄ້າ') . " \"{$pData['product_name']}\" " . tl('ເຫຼືອພຽງ') . " {$currentDbStock} " . tl('ອັນ! ບໍ່ພໍສຳລັບການຂາຍ') . "")]);
                         exit();
                     }
                 }

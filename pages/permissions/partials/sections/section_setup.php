@@ -8,7 +8,7 @@
 <!-- SECTION 7: ຕັ້ງຄ່າລະບົບ (SYSTEM SETTINGS) -->
 <tr class="table-primary">
   <td colspan="5" class="font-weight-bold text-uppercase py-2" style="font-size: 0.82rem; letter-spacing: 0.5px;">
-    <i class="fas fa-cogs mr-1"></i> <?php echo htmlspecialchars(t('permissions.section_setup', '7. ຕັ້ງຄ່າລະບົບ & ຈັດການຜູ້ນຳໃຊ້')); ?>
+    <i class="fas fa-cogs mr-1"></i> <span data-i18n="permissions.section_setup"><?php echo htmlspecialchars(t('permissions.section_setup', '7. ຕັ້ງຄ່າລະບົບ & ຈັດການຜູ້ນຳໃຊ້')); ?></span>
   </td>
 </tr>
 

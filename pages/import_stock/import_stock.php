@@ -102,9 +102,8 @@ if (!$canAllBranches) {
 $importHistory = $histStmt->fetchAll();
 $total_imports = count($importHistory);
 
-// Next available auto invoice number (000001, 000002, 000003...)
-$maxImpId = (int)$pdo->query("SELECT IFNULL(MAX(import_id), 0) + 1 FROM st_imports")->fetchColumn();
-$next_invoice = str_pad($maxImpId, 6, '0', STR_PAD_LEFT);
+// ເລກບິນຖັດໄປຂອງສາຂານີ້ (IMP-10001, IMP-10002… — importInvoiceNumber() ໃນ partials/import_stock/actions.php)
+$next_invoice = importInvoiceNumber($pdo, $activeStoreId);
 
 // Current User Receiver Name
 $receiverName = trim(($_SESSION['fname'] ?? '') . ' ' . ($_SESSION['lname'] ?? ''));
@@ -115,7 +114,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 
 <link rel="stylesheet" href="../../themes/import_stock.css?v=<?php echo filemtime(__DIR__ . '/../../themes/import_stock.css'); ?>">
 
-<div class="content-wrapper bg-light">
+<div class="content-wrapper bg-light mp-compact">
   
   <!-- Page Header -->
   <section class="content-header py-3">
@@ -171,8 +170,8 @@ require_once __DIR__ . '/../../layouts/header.php';
 
             <!-- Top Header Details Row: Invoice No, Date, Receiver, Supplier -->
             <div class="row bg-light p-3 rounded mb-3 border" style="border-color: #cbd5e1 !important;">
-              <!-- 1. Auto Invoice Number -->
-              <div class="col-md-3 mb-2 mb-md-0">
+              <!-- 1. Auto Invoice Number (ໂທລະສັບ: ຢູ່ແຖວດຽວກັບ ຜູ້ຮັບເຂົ້າ) -->
+              <div class="col-6 col-md-3 mb-2 mb-md-0 order-1">
                 <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
                   <?php echo htmlspecialchars(t('import_stock.invoice_no_label', 'ເລກທີໃບບິນຮັບເຂົ້າ')); ?> <small class="text-muted"></small>
                 </label>
@@ -180,15 +179,15 @@ require_once __DIR__ . '/../../layouts/header.php';
               </div>
 
               <!-- 2. Import Date (Editable Date Picker - No Time) -->
-              <div class="col-md-3 mb-2 mb-md-0">
+              <div class="col-12 col-md-3 mb-2 mb-md-0 order-3 order-md-2">
                 <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
                   <?php echo htmlspecialchars(t('import_stock.import_date_label', 'ວັນທີຮັບເຂົ້າ')); ?> <span class="text-danger">*</span>
                 </label>
                 <input type="date" name="import_date" id="import_date_input" class="form-control font-weight-bold" value="<?php echo date('Y-m-d'); ?>" required style="height: 42px; border-radius: 8px;">
               </div>
 
-              <!-- 3. Receiver Name -->
-              <div class="col-md-3 mb-2 mb-md-0">
+              <!-- 3. Receiver Name (ໂທລະສັບ: ຖັດຈາກ ເລກທີໃບບິນ) -->
+              <div class="col-6 col-md-3 mb-2 mb-md-0 order-2 order-md-3">
                 <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
                   <?php echo htmlspecialchars(t('import_stock.receiver_label', 'ຜູ້ບັນທຶກ / ຜູ້ຮັບເຂົ້າ')); ?>
                 </label>
@@ -196,7 +195,7 @@ require_once __DIR__ . '/../../layouts/header.php';
               </div>
 
               <!-- 4. Supplier Name -->
-              <div class="col-md-3">
+              <div class="col-12 col-md-3 order-4">
                 <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
                   <?php echo htmlspecialchars(t('import_stock.supplier_label', 'ຊື່ຜູ້ສະໜອງ / ຮ້ານສົ່ງ')); ?>
                 </label>
@@ -230,7 +229,7 @@ require_once __DIR__ . '/../../layouts/header.php';
               </div>
 
               <!-- Quantity Input (Positioned directly next to Barcode Box) -->
-              <div class="col-md-2 mb-3 mb-md-0">
+              <div class="col-6 col-md-2 mb-3 mb-md-0">
                 <label class="font-weight-bold text-dark mb-1">
                   <?php echo htmlspecialchars(t('import_stock.qty_label', 'ຈຳນວນ')); ?> <span class="text-danger">*</span>
                 </label>
@@ -238,7 +237,7 @@ require_once __DIR__ . '/../../layouts/header.php';
               </div>
 
               <!-- Unit Select -->
-              <div class="col-md-2 mb-3 mb-md-0">
+              <div class="col-6 col-md-2 mb-3 mb-md-0">
                 <label class="font-weight-bold text-dark mb-1"><?php echo htmlspecialchars(t('import_stock.unit_label', 'ຫົວໜ່ວຍ')); ?></label>
                 <select id="direct_unit_key" class="form-control" style="height: 42px; border-radius: 8px;">
                   <option value="base"><?php echo htmlspecialchars(t('import_stock.unit_label', 'ຫົວໜ່ວຍ')); ?></option>
@@ -277,12 +276,13 @@ require_once __DIR__ . '/../../layouts/header.php';
             <!-- LIVE IMPORT ITEMS TABLE (ຕາຕະລາງລາຍການຮັບເຂົ້າ ໃນໜ້າຈໍ) — single-row rows, scrolls sideways on mobile -->
             <div class="border rounded mb-3 shadow-sm" style="border-radius: 12px; overflow: hidden; background-color: #ffffff;">
               <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-              <table class="table table-hover mb-0 align-middle text-nowrap" style="min-width: 720px;">
+              <table class="table table-hover mb-0 align-middle text-nowrap" style="min-width: 900px;">
                 <thead class="font-weight-bold">
                   <tr>
                     <th class="text-center" style="width: 50px;"><?php echo htmlspecialchars(t('import_stock.col_no', 'ລຳດັບ')); ?></th>
                     <th><?php echo htmlspecialchars(t('import_stock.col_product_name', 'ຊື່ສິນຄ້າ')); ?></th>
-                    <th class="text-center" style="width: 160px;"><?php echo htmlspecialchars(t('import_stock.col_import_qty', 'ຈຳນວນຮັບເຂົ້າ')); ?></th>
+                    <th class="text-center" style="width: 200px;"><?php echo htmlspecialchars(t('import_stock.col_import_qty', 'ຈຳນວນຮັບເຂົ້າ')); ?></th>
+                    <th class="text-center" style="width: 150px;"><?php echo htmlspecialchars(t('import_stock.expiry_date_label', 'ວັນໝົດອາຍຸ')); ?></th>
                     <th class="text-right" style="width: 150px;"><?php echo htmlspecialchars(t('import_stock.col_bprice', 'ລາຄາຊື້')); ?></th>
                     <th class="text-right" style="width: 150px;"><?php echo htmlspecialchars(t('import_stock.col_sell_price', 'ລາຄາຂາຍ')); ?></th>
                     <th class="text-right" style="width: 160px;"><?php echo htmlspecialchars(t('import_stock.col_total', 'ລວມ')); ?></th>
@@ -291,7 +291,7 @@ require_once __DIR__ . '/../../layouts/header.php';
                 </thead>
                 <tbody id="cart_table_body">
                   <tr id="empty_cart_row">
-                    <td colspan="7" class="text-center text-muted py-5">
+                    <td colspan="8" class="text-center text-muted py-5">
                       <i class="fas fa-box-open fa-3x d-block mb-2 text-muted" style="opacity: 0.4;"></i>
                       <span class="font-weight-bold"><?php echo htmlspecialchars(t('import_stock.empty_cart_title', 'ຍັງບໍ່ມີລາຍການສິນຄ້າໃນໃບບິນ')); ?></span><br>
                       <small><?php echo htmlspecialchars(t('import_stock.empty_cart_hint', 'ກະລຸນາກະແກນບາໂຄ້ດ ຫຼື ກົດປຸ່ມ "ເລືອກສິນຄ້າ" ເພື່ອເພີ່ມສິນຄ້າຮັບເຂົ້າ')); ?></small>

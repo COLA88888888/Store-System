@@ -10,16 +10,16 @@ function saveUploadedProductImage($fileInputKey = 'product_img', &$errorMsg = nu
     $fileError = $_FILES[$fileInputKey]['error'];
     if ($fileError !== UPLOAD_ERR_OK) {
         if ($fileError === UPLOAD_ERR_INI_SIZE || $fileError === UPLOAD_ERR_FORM_SIZE) {
-            $errorMsg = 'ຂະໜາດຮູບພາບໃຫຍ່ເກີນກຳນົດຂອງເຊີເວີ';
+            $errorMsg = tl('ຂະໜາດຮູບພາບໃຫຍ່ເກີນກຳນົດຂອງເຊີເວີ');
         } elseif ($fileError !== UPLOAD_ERR_NO_FILE) {
-            $errorMsg = 'ເກີດຂໍ້ຜິດພາດໃນການອັບໂຫຼດຮູບ (Error Code: ' . $fileError . ')';
+            $errorMsg = (tl('ເກີດຂໍ້ຜິດພາດໃນການອັບໂຫຼດຮູບ (Error Code:') . ' ') . $fileError . ')';
         }
         return null;
     }
 
     $maxFileSize = 10 * 1024 * 1024; // 10MB
     if ($_FILES[$fileInputKey]['size'] > $maxFileSize) {
-        $errorMsg = 'ຂະໜາດຮູບພາບໃຫຍ່ເກີນ 10MB';
+        $errorMsg = (tl('ຂະໜາດຮູບພາບໃຫຍ່ເກີນ') . ' 10MB');
         return null;
     }
 
@@ -28,7 +28,7 @@ function saveUploadedProductImage($fileInputKey = 'product_img', &$errorMsg = nu
     $fileExt  = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
     $allowed  = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'jfif', 'avif'];
     if (!in_array($fileExt, $allowed)) {
-        $errorMsg = 'ຮູບແບບໄຟລ໌ບໍ່ຖືກຕ້ອງ (ຮອງຮັບ JPG, PNG, WEBP, GIF, JFIF)';
+        $errorMsg = tl('ຮູບແບບໄຟລ໌ບໍ່ຖືກຕ້ອງ (ຮອງຮັບ JPG, PNG, WEBP, GIF, JFIF)');
         return null;
     }
 
@@ -49,7 +49,7 @@ function saveUploadedProductImage($fileInputKey = 'product_img', &$errorMsg = nu
 
     if (!$normalized) {
         if (!@move_uploaded_file($fileTmp, $targetPath)) {
-            $errorMsg = 'ບໍ່ສາມາດບັນທຶກໄຟລ໌ລົງເຊີເວີໄດ້ ກະລຸນາກວດສອບ Permission';
+            $errorMsg = (tl('ບໍ່ສາມາດບັນທຶກໄຟລ໌ລົງເຊີເວີໄດ້ ກະລຸນາກວດສອບ') . ' Permission');
             return null;
         }
     }

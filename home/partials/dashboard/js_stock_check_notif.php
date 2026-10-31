@@ -11,12 +11,12 @@
  */
 ?>
     var SC_NOTIF_TEXT = {
-      review:   { head: 'ສົ່ງມາກວດສອບ (ເຊັກສະຕັອກ)', icon: 'fa-user-clock', color: '#d97706', bg: '#fffbeb',
-                  line: function(n) { return 'ພະນັກງານສົ່ງໃບ ' + n.check_no + ' ມາກວດສອບ'; },
-                  sub:  function(n) { return 'ສົ່ງໂດຍ ' + (n.who || '-') + ' · ນັບ ' + n.counted + ' ລາຍການ'; } },
-      approved: { head: 'ອະນຸມັດ ແລະ ປັບສະຕັອກແລ້ວ', icon: 'fa-user-check', color: '#16a34a', bg: '#f0fdf4',
-                  line: function(n) { return 'ຫົວໜ້າອະນຸມັດໃບ ' + n.check_no + ' ແລະ ປັບສະຕັອກແລ້ວ'; },
-                  sub:  function(n) { return 'ອະນຸມັດໂດຍ ' + (n.who || '-'); } }
+      review:   { head: '<?php echo tlj('ສົ່ງມາກວດສອບ (ເຊັກສະຕັອກ)'); ?>', icon: 'fa-user-clock', color: '#d97706', bg: '#fffbeb',
+                  line: function(n) { return '<?php echo tlj('ພະນັກງານສົ່ງໃບ'); ?> ' + n.check_no + ' <?php echo tlj('ມາກວດສອບ'); ?>'; },
+                  sub:  function(n) { return '<?php echo tlj('ສົ່ງໂດຍ'); ?> ' + (n.who || '-') + ' · <?php echo tlj('ນັບ'); ?> ' + n.counted + ' <?php echo tlj('ລາຍການ'); ?>'; } },
+      approved: { head: '<?php echo tlj('ອະນຸມັດ ແລະ ປັບສະຕັອກແລ້ວ'); ?>', icon: 'fa-user-check', color: '#16a34a', bg: '#f0fdf4',
+                  line: function(n) { return '<?php echo tlj('ຫົວໜ້າອະນຸມັດໃບ'); ?> ' + n.check_no + ' <?php echo tlj('ແລະ ປັບສະຕັອກແລ້ວ'); ?>'; },
+                  sub:  function(n) { return '<?php echo tlj('ອະນຸມັດໂດຍ'); ?> ' + (n.who || '-'); } }
     };
 
     function scNotifEsc(s) { return $('<div>').text(s === null || s === undefined ? '' : String(s)).html(); }
@@ -81,7 +81,7 @@
       var T = SC_NOTIF_TEXT[fresh.type] || SC_NOTIF_TEXT.review;
       Swal.fire({
         toast: true, position: 'top-end', icon: fresh.type === 'review' ? 'warning' : 'info',
-        title: scNotifEsc(T.line(fresh)), html: '<div style="font-size: 0.85rem;">' + scNotifEsc(T.sub(fresh)) + '<br><a href="#" class="font-weight-bold" style="color: ' + T.color + ';">ກົດເພື່ອເປີດໃບ</a></div>',
+        title: scNotifEsc(T.line(fresh)), html: '<div style="font-size: 0.85rem;">' + scNotifEsc(T.sub(fresh)) + '<br><a href="#" class="font-weight-bold" style="color: ' + T.color + ';"><?php echo tlj('ກົດເພື່ອເປີດໃບ'); ?></a></div>',
         showConfirmButton: false, showCloseButton: true, timer: 10000, timerProgressBar: true,
         didOpen: function(el) {
           el.style.cursor = 'pointer';

@@ -12,7 +12,8 @@
   var showPrice  = $('#opt_show_price').is(':checked');
   var showCode   = $('#opt_show_code').is(':checked');
   var barcodeWidthMm  = parseFloat($('#barcode_width_mm').val()) || 36;
-  var barcodeHeightMm = parseFloat($('#barcode_height_mm').val()) || 8.5;
+  var barcodeHeightMm = parseFloat($('#barcode_height_mm').val()) || 10;
+  var horizontalOffsetMm = parseFloat($('#label_horizontal_offset_mm').val()) || 0;
   var verticalOffsetMm = parseFloat($('#label_vertical_offset_mm').val()) || 0;
 
   var itemsToPrint = [];
@@ -72,7 +73,8 @@
   if (typeof barcodeBluetoothPrint === 'function' && barcodeBluetoothPrint(itemsToPrint, BARCODE_SIZE_CONFIGS[size] || BARCODE_SIZE_CONFIGS['40x30_vert'], {
     showShop: showShop, showName: showName, showPrice: showPrice, showCode: showCode,
     barcodeWidthMm: barcodeWidthMm, barcodeHeightMm: barcodeHeightMm,
-    verticalOffsetMm: verticalOffsetMm, labelPitchMm: (cfg.mode === 'single_roll' && labelPitchMm > 0) ? labelPitchMm : 0
+    horizontalOffsetMm: horizontalOffsetMm, verticalOffsetMm: verticalOffsetMm,
+    labelPitchMm: (cfg.mode === 'single_roll' && labelPitchMm > 0) ? labelPitchMm : 0
   })) return;
 
   var printDoc = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Print Barcodes - MiniPos</title>';
@@ -99,8 +101,8 @@
     printDoc += '.barcode-label { ' + cfg.labelCss + ' page-break-inside: avoid; break-inside: avoid; } ';
   }
 
-  if (verticalOffsetMm) {
-    printDoc += '.barcode-label { transform: translateY(' + verticalOffsetMm + 'mm); } ';
+  if (verticalOffsetMm || horizontalOffsetMm) {
+    printDoc += '.barcode-label { transform: translate(' + horizontalOffsetMm + 'mm, ' + verticalOffsetMm + 'mm); } ';
   }
 
   printDoc += '.shop-title { ' + cfg.shopTitleCss + ' } ';
@@ -175,10 +177,8 @@
   printDoc += '      JsBarcode(el, code, { format: "CODE128", width: 1, height: 50, displayValue: false, margin: QUIET, marginTop: 0, marginBottom: 0 });';
   printDoc += '      var units = parseFloat((el.getAttribute("viewBox") || "").split(" ")[2]) || 0;';
   printDoc += '      if (!units) return;';
-  printDoc += '      var moduleMm = Math.floor(maxMm / units / DOT_MM) * DOT_MM;';
-  // ບາໂຄ້ດຍາວ ຈົນແທ່ງເຕັມເມັດບໍ່ພໍ → ໃຊ້ເຕັມຄວາມກວ້າງແທນ (ດີກວ່າລົ້ນ ແລ້ວຖືກຕັດ)
-  printDoc += '      if (moduleMm < MIN_MODULE_MM) moduleMm = maxMm / units;';
-  printDoc += '      var wMm = units * moduleMm;';
+  printDoc += '      var wMm = maxMm;';
+  printDoc += '      var moduleMm = wMm / units;';
   printDoc += '      el.setAttribute("preserveAspectRatio", "none");';
   printDoc += '      el.setAttribute("width", wMm + "mm");';
   printDoc += '      el.setAttribute("height", heightMm + "mm");';

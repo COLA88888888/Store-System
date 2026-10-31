@@ -51,7 +51,7 @@
                   style="flex:1;padding:8px 12px;border-radius:9px;border:2px solid #244886;background:#eef2fb;color:#1a3666;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.15s;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;text-align:center;">
                   <?php echo htmlspecialchars(t('pos.pay_type_cash', 'ເງິນສົດ')); ?>
                 </button>
-                <button type="button" id="payTypeQrBtn" onclick="selectPayTypeTab('ໂອນເງິນ / QR')"
+                <button type="button" id="payTypeQrBtn" onclick="selectPayTypeTab('<?php echo tlja('ໂອນເງິນ'); ?> / QR')"
                   style="flex:1;padding:8px 12px;border-radius:9px;border:2px solid #cbd5e1;background:#fff;color:#64748b;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all 0.15s;font-family:'Nuanta', 'Noto Sans Lao','Souliyo','Boon',sans-serif;text-align:center;">
                   <?php echo htmlspecialchars(t('pos.pay_type_qr', 'ໂອນ / QR')); ?>
                 </button>
@@ -194,7 +194,8 @@
                   <div class="input-group" style="border-radius:10px;box-shadow:0 1px 5px rgba(34,197,94,0.12);">
                     <input type="text" inputmode="decimal" id="splitCashAmount" class="form-control text-right font-weight-bold"
                       placeholder="0" oninput="formatMoneyInput(this);calcSplitRemaining();"
-                      style="height:40px;font-size:1.1rem;color:#16a34a;background:#f0fdf4;border:2px solid #22c55e !important;border-right:none !important;border-top-left-radius:10px !important;border-bottom-left-radius:10px !important;border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                      onfocus="setSplitFocus('cash')" onclick="setSplitFocus('cash')"
+                      style="height:40px;font-size:1.1rem;color:#16a34a;background:#f0fdf4;border:2px solid #22c55e !important;border-right:none !important;border-top-left-radius:10px !important;border-bottom-left-radius:10px !important;border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;transition:box-shadow .15s;">
                     <div class="input-group-append">
                       <span class="input-group-text font-weight-bold text-white" style="background:#22c55e;border:2px solid #22c55e !important;border-left:none !important;padding:0 12px;font-size:0.95rem;border-top-right-radius:10px !important;border-bottom-right-radius:10px !important;border-top-left-radius:0 !important;border-bottom-left-radius:0 !important;"><?php echo kipSymbol(); ?></span>
                     </div>
@@ -202,6 +203,9 @@
                   <div class="d-flex flex-wrap" style="gap:4px; margin-top: 8px;">
                     <button type="button" onclick="setSplitCashExact()" style="background:#dcfce7;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.78rem;font-weight:700;padding:4px 8px;cursor:pointer;white-space:nowrap;">
                       <?php echo htmlspecialchars(t('pos.exact_amount_all', 'ພໍດີທັງໝົດ')); ?>
+                    </button>
+                    <button type="button" onclick="fillSplitCashRemaining()" style="background:#dcfce7;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.78rem;font-weight:700;padding:4px 8px;cursor:pointer;white-space:nowrap;">
+                      <i class="fas fa-magic mr-1" style="font-size:0.72rem;"></i><?php echo htmlspecialchars(t('pos.fill_remaining_amount', 'ຕື່ມຍອດທີ່ຍັງຄ້າງ')); ?>
                     </button>
                     <button type="button" onclick="addSplitCash(20000)" style="background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.76rem;font-weight:700;padding:4px 6px;cursor:pointer;">+20K</button>
                     <button type="button" onclick="addSplitCash(50000)" style="background:#f0fdf4;color:#16a34a;border:1px solid #86efac;border-radius:6px;font-size:0.76rem;font-weight:700;padding:4px 6px;cursor:pointer;">+50K</button>
@@ -217,15 +221,23 @@
                   <div class="input-group" style="border-radius:10px;box-shadow:0 1px 5px rgba(124,58,237,0.12);">
                     <input type="text" inputmode="decimal" id="splitQrAmount" class="form-control text-right font-weight-bold"
                       placeholder="0" oninput="formatMoneyInput(this);calcSplitRemaining();"
-                      style="height:40px;font-size:1.1rem;color:#7c3aed;background:#faf5ff;border:2px solid #a78bfa !important;border-right:none !important;border-top-left-radius:10px !important;border-bottom-left-radius:10px !important;border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;">
+                      onfocus="setSplitFocus('qr')" onclick="setSplitFocus('qr')"
+                      style="height:40px;font-size:1.1rem;color:#7c3aed;background:#faf5ff;border:2px solid #a78bfa !important;border-right:none !important;border-top-left-radius:10px !important;border-bottom-left-radius:10px !important;border-top-right-radius:0 !important;border-bottom-right-radius:0 !important;transition:box-shadow .15s;">
                     <div class="input-group-append">
                       <span class="input-group-text font-weight-bold text-white" style="background:#7c3aed;border:2px solid #a78bfa !important;border-left:none !important;padding:0 12px;font-size:0.95rem;border-top-right-radius:10px !important;border-bottom-right-radius:10px !important;border-top-left-radius:0 !important;border-bottom-left-radius:0 !important;"><?php echo kipSymbol(); ?></span>
                     </div>
                   </div>
-                  <div class="d-flex" style="margin-top: 8px;">
-                    <button type="button" onclick="fillSplitQrRemaining()" style="background:#f3e8ff;color:#7c3aed;border:1.5px solid #c4b5fd;border-radius:6px;font-size:0.80rem;font-weight:700;padding:5px 12px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;">
-                      <i class="fas fa-magic mr-1.5" style="font-size:0.75rem;"></i> <?php echo htmlspecialchars(t('pos.fill_remaining_amount', 'ຕື່ມຍອດທີ່ຍັງຄ້າງ')); ?>
+                  <div class="d-flex flex-wrap" style="gap:4px; margin-top: 8px;">
+                    <button type="button" onclick="setSplitQrExact()" style="background:#f3e8ff;color:#7c3aed;border:1px solid #c4b5fd;border-radius:6px;font-size:0.78rem;font-weight:700;padding:4px 8px;cursor:pointer;white-space:nowrap;">
+                      <?php echo htmlspecialchars(t('pos.exact_amount_all', 'ພໍດີທັງໝົດ')); ?>
                     </button>
+                    <button type="button" onclick="fillSplitQrRemaining()" style="background:#f3e8ff;color:#7c3aed;border:1px solid #c4b5fd;border-radius:6px;font-size:0.78rem;font-weight:700;padding:4px 8px;cursor:pointer;white-space:nowrap;">
+                      <i class="fas fa-magic mr-1" style="font-size:0.72rem;"></i><?php echo htmlspecialchars(t('pos.fill_remaining_amount', 'ຕື່ມຍອດທີ່ຍັງຄ້າງ')); ?>
+                    </button>
+                    <button type="button" onclick="addSplitQr(20000)" style="background:#faf5ff;color:#7c3aed;border:1px solid #c4b5fd;border-radius:6px;font-size:0.76rem;font-weight:700;padding:4px 6px;cursor:pointer;">+20K</button>
+                    <button type="button" onclick="addSplitQr(50000)" style="background:#faf5ff;color:#7c3aed;border:1px solid #c4b5fd;border-radius:6px;font-size:0.76rem;font-weight:700;padding:4px 6px;cursor:pointer;">+50K</button>
+                    <button type="button" onclick="addSplitQr(100000)" style="background:#faf5ff;color:#7c3aed;border:1px solid #c4b5fd;border-radius:6px;font-size:0.76rem;font-weight:700;padding:4px 6px;cursor:pointer;">+100K</button>
+                    <button type="button" onclick="addSplitQr(500000)" style="background:#faf5ff;color:#7c3aed;border:1px solid #c4b5fd;border-radius:6px;font-size:0.76rem;font-weight:700;padding:4px 6px;cursor:pointer;">+500K</button>
                   </div>
                 </div>
               </div>
@@ -376,7 +388,7 @@ function zoomPosQrImage() {
   var bankName = $('#posActiveBankNameTitle').text() || '';
   if (src && src.indexOf('qr_placeholder') === -1) {
     $('#qrZoomImg').attr('src', src);
-    $('#qrZoomBankTitle').text('ສະແກນ QR Code ' + bankName);
+    $('#qrZoomBankTitle').text('<?php echo tlj('ສະແກນ'); ?> QR Code ' + bankName);
     $('#qrZoomModal').modal('show');
   }
 }

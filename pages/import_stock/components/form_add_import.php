@@ -10,7 +10,7 @@
 
         <div class="modal-header text-white" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important;">
           <h5 class="modal-title font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
-            <i class="fas fa-truck-loading mr-2"></i> ຟອມບັນທຶກຮັບສິນຄ້າເຂົ້າ
+            <i class="fas fa-truck-loading mr-2"></i> <?php echo tlh('ຟອມບັນທຶກຮັບສິນຄ້າເຂົ້າ'); ?>
           </h5>
           <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
@@ -20,7 +20,7 @@
         <div class="modal-body p-4">
           <div class="row">
             <div class="col-md-6 mb-3">
-              <label class="font-weight-bold text-dark mb-1">ເລກທີໃບບິນຮັບເຂົ້າ <span class="text-danger">*</span> <small class="text-muted">(ລັອກອັດໂນມັດ)</small></label>
+              <label class="font-weight-bold text-dark mb-1"><?php echo tlh('ເລກທີໃບບິນຮັບເຂົ້າ'); ?> <span class="text-danger">*</span> <small class="text-muted"><?php echo tlh('(ລັອກອັດໂນມັດ)'); ?></small></label>
               <div class="input-group">
                 <div class="input-group-prepend">
                   <span class="input-group-text bg-light"><i class="fas fa-lock text-primary"></i></span>
@@ -30,25 +30,25 @@
             </div>
 
             <div class="col-md-6 mb-3">
-              <label class="font-weight-bold text-dark mb-1">ຊື່ຜູ້ສະໜອງ / ຮ້ານສົ່ງ</label>
+              <label class="font-weight-bold text-dark mb-1"><?php echo tlh('ຊື່ຜູ້ສະໜອງ / ຮ້ານສົ່ງ'); ?></label>
               <div class="input-group">
                 <div class="input-group-prepend">
                   <span class="input-group-text bg-light"><i class="fas fa-store text-info"></i></span>
                 </div>
-                <input type="text" name="supplier_name" class="form-control" placeholder="ປ້ອນຊື່ຜູ້ສະໜອງ (ຖ້າມີ)" style="border-radius: 0 8px 8px 0; height: 42px;">
+                <input type="text" name="supplier_name" class="form-control" placeholder="<?php echo tlh('ປ້ອນຊື່ຜູ້ສະໜອງ (ຖ້າມີ)'); ?>" style="border-radius: 0 8px 8px 0; height: 42px;">
               </div>
             </div>
           </div>
 
           <div class="form-group mb-3">
             <label class="font-weight-bold text-dark mb-1">
-              <i class="fas fa-barcode text-primary mr-1"></i> ສີດບາໂຄ້ດ / ຄົ້ນຫາສິນຄ້າ <span class="text-danger">*</span>
+              <i class="fas fa-barcode text-primary mr-1"></i> <?php echo tlh('ສີດບາໂຄ້ດ / ຄົ້ນຫາສິນຄ້າ'); ?> <span class="text-danger">*</span>
             </label>
             <div class="input-group mb-1">
               <div class="input-group-prepend">
                 <span class="input-group-text bg-light"><i class="fas fa-barcode text-primary"></i></span>
               </div>
-              <input type="text" id="import_barcode_input" class="form-control" placeholder="ສີດບາໂຄ້ດ ຫຼື ປ້ອນຊື່/ລະຫັດສິນຄ້າແລ້ວ Enter..." autocomplete="off" style="border-radius: 0 8px 8px 0; height: 42px;" oninput="onBarcodeInputChange()" onkeydown="onBarcodeKeyDown(event)">
+              <input type="text" id="import_barcode_input" class="form-control" placeholder="<?php echo tlh('ສີດບາໂຄ້ດ ຫຼື ປ້ອນຊື່/ລະຫັດສິນຄ້າແລ້ວ Enter...'); ?>" autocomplete="off" style="border-radius: 0 8px 8px 0; height: 42px;" oninput="onBarcodeInputChange()" onkeydown="onBarcodeKeyDown(event)">
             </div>
             
             <!-- Dynamic Auto-Search Match Banner -->
@@ -56,17 +56,17 @@
               <div>
                 <span class="font-weight-bold text-dark d-block" id="matched_name" style="font-size: 0.98rem;">-</span>
                 <small class="text-muted">
-                  <i class="fas fa-barcode mr-1"></i> ບາໂຄ້ດ: <span id="matched_barcode" class="font-weight-bold text-primary mr-2">-</span>
-                  <i class="fas fa-tag mr-1 text-warning"></i> ລາຄາຊື້: <span id="matched_bprice" class="font-weight-bold text-danger mr-2">0 <?php echo kipSymbol(); ?></span>
-                  <i class="fas fa-boxes mr-1 text-success"></i> ສະຕັອກ: <span id="matched_stock" class="font-weight-bold text-success">0</span>
+                  <i class="fas fa-barcode mr-1"></i> <?php echo tlh('ບາໂຄ້ດ:'); ?> <span id="matched_barcode" class="font-weight-bold text-primary mr-2">-</span>
+                  <i class="fas fa-tag mr-1 text-warning"></i> <?php echo tlh('ລາຄາຊື້:'); ?> <span id="matched_bprice" class="font-weight-bold text-danger mr-2">0 <?php echo kipSymbol(); ?></span>
+                  <i class="fas fa-boxes mr-1 text-success"></i> <?php echo tlh('ສະຕັອກ:'); ?> <span id="matched_stock" class="font-weight-bold text-success">0</span>
                 </small>
               </div>
-              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetProductSelection()" title="ເລືອກ/ສີດສິນຄ້າໃໝ່"><i class="fas fa-times"></i></button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetProductSelection()" title="<?php echo tlh('ເລືອກ/ສີດສິນຄ້າໃໝ່'); ?>"><i class="fas fa-times"></i></button>
             </div>
 
             <!-- Hidden Select element for form submission -->
             <select name="product_id" id="import_product_id" class="form-control d-none" onchange="onProductSelect()" required>
-              <option value="">-- ເລືອກສິນຄ້າ --</option>
+              <option value="">-- <?php echo tlh('ເລືອກສິນຄ້າ'); ?> --</option>
               <?php foreach ($products as $p): ?>
                 <?php 
                   $extraBarcodes = [];
@@ -97,21 +97,21 @@
                 <!-- Product Name Display (Blue Badge - Locked) -->
                 <div class="col-md-6 mb-2 mb-md-0">
                   <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
-                    <i class="fas fa-box text-primary mr-1"></i> ຊື່ສິນຄ້າ <small class="text-muted">(ລັອກອັດໂນມັດ)</small>
+                    <i class="fas fa-box text-primary mr-1"></i> <?php echo tlh('ຊື່ສິນຄ້າ'); ?> <small class="text-muted"><?php echo tlh('(ລັອກອັດໂນມັດ)'); ?></small>
                   </label>
                   <div class="p-2 px-3 rounded font-weight-bold" style="background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-size: 0.95rem; min-height: 42px; display: flex; align-items: center;">
-                    <span id="import_product_name_display">-- ກະລຸນາສີດບາໂຄ້ດ ຫຼື ປ້ອນຄົ້ນຫາ --</span>
+                    <span id="import_product_name_display">-- <?php echo tlh('ກະລຸນາສີດບາໂຄ້ດ ຫຼື ປ້ອນຄົ້ນຫາ'); ?> --</span>
                   </div>
                 </div>
 
                 <!-- Buy Price Display (Yellow Badge - Locked) -->
                 <div class="col-md-6">
                   <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
-                    <i class="fas fa-tag text-warning mr-1"></i> ລາຄາຊື້ / ຫົວໜ່ວຍ <small class="text-muted">(ລັອກອັດໂນມັດ)</small>
+                    <i class="fas fa-tag text-warning mr-1"></i> <?php echo tlh('ລາຄາຊື້ / ຫົວໜ່ວຍ'); ?> <small class="text-muted"><?php echo tlh('(ລັອກອັດໂນມັດ)'); ?></small>
                   </label>
                   <div class="p-2 px-3 rounded font-weight-bold" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-size: 0.95rem; min-height: 42px; display: flex; align-items: center; justify-content: space-between;">
                     <span id="import_cost_display">0 <?php echo kipSymbol(); ?></span>
-                    <i class="fas fa-lock text-warning" style="font-size: 0.85rem;" title="ລັອກອັດໂນມັດ"></i>
+                    <i class="fas fa-lock text-warning" style="font-size: 0.85rem;" title="<?php echo tlh('ລັອກອັດໂນມັດ'); ?>"></i>
                   </div>
                   <input type="hidden" name="cost_price" id="import_cost" value="0">
                 </div>
@@ -121,39 +121,39 @@
 
           <div class="row">
             <div class="col-md-4 mb-3">
-              <label class="font-weight-bold text-dark mb-1">ຫົວໜ່ວຍທີ່ຮັບເຂົ້າ <span class="text-danger">*</span></label>
+              <label class="font-weight-bold text-dark mb-1"><?php echo tlh('ຫົວໜ່ວຍທີ່ຮັບເຂົ້າ'); ?> <span class="text-danger">*</span></label>
               <select name="unit_key" id="import_unit_key" class="form-control" style="height: 42px; border-radius: 8px;" onchange="updateCalculations()" required>
-                <option value="base">ຫົວໜ່ວຍຍ່ອຍ</option>
+                <option value="base"><?php echo tlh('ຫົວໜ່ວຍຍ່ອຍ'); ?></option>
               </select>
             </div>
 
             <div class="col-md-4 mb-3">
-              <label class="font-weight-bold text-dark mb-1">ຈຳນວນຮັບເຂົ້າ <span class="text-danger">*</span> <small class="text-primary font-weight-bold">(ປ້ອນ/ປັບຈຳນວນ)</small></label>
+              <label class="font-weight-bold text-dark mb-1"><?php echo tlh('ຈຳນວນຮັບເຂົ້າ'); ?> <span class="text-danger">*</span> <small class="text-primary font-weight-bold"><?php echo tlh('(ປ້ອນ/ປັບຈຳນວນ)'); ?></small></label>
               <input type="number" name="quantity" id="import_qty" class="form-control font-weight-bold border-primary" min="1" value="1" style="height: 42px; border-radius: 8px; font-size: 1.05rem;" oninput="updateCalculations()" required>
             </div>
 
             <div class="col-md-4 mb-3">
-              <label class="font-weight-bold text-dark mb-1"><i class="far fa-calendar-alt text-warning mr-1"></i> ວັນໝົດອາຍຸ (Expiry Date)</label>
+              <label class="font-weight-bold text-dark mb-1"><i class="far fa-calendar-alt text-warning mr-1"></i> <?php echo tlh('ວັນໝົດອາຍຸ (Expiry Date)'); ?></label>
               <input type="date" name="expiry_date" class="form-control" style="height: 42px; border-radius: 8px;">
             </div>
           </div>
 
           <div class="form-group mb-3">
-            <label class="font-weight-bold text-dark mb-1">ໝາຍເຫດ</label>
-            <textarea name="notes" class="form-control" rows="2" placeholder="ໝາຍເຫດເພີ່ມເຕີມ..." style="border-radius: 8px;"></textarea>
+            <label class="font-weight-bold text-dark mb-1"><?php echo tlh('ໝາຍເຫດ'); ?></label>
+            <textarea name="notes" class="form-control" rows="2" placeholder="<?php echo tlh('ໝາຍເຫດເພີ່ມເຕີມ...'); ?>" style="border-radius: 8px;"></textarea>
           </div>
 
           <!-- Highlighted Real-time Calculation Summary Box (Locked/Readonly) -->
           <div class="p-3 rounded mb-0 shadow-sm" style="background-color: #ecfdf5; border: 1.5px solid #a7f3d0;">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <span class="font-weight-bold text-secondary" style="font-size: 0.88rem;">
-                <i class="fas fa-layer-group text-success mr-1"></i> ຈຳນວນຍ່ອຍລວມທີ່ຈະເພີ່ມເຂົ້າສະຕັອກ:
+                <i class="fas fa-layer-group text-success mr-1"></i> <?php echo tlh('ຈຳນວນຍ່ອຍລວມທີ່ຈະເພີ່ມເຂົ້າສະຕັອກ:'); ?>
               </span>
-              <span class="h6 mb-0 font-weight-bold text-dark"><span id="calc_total_base">0</span> <span id="calc_base_unit">ອັນ</span></span>
+              <span class="h6 mb-0 font-weight-bold text-dark"><span id="calc_total_base">0</span> <span id="calc_base_unit"><?php echo tlh('ອັນ'); ?></span></span>
             </div>
             <div class="d-flex justify-content-between align-items-center pt-2 border-top" style="border-color: #a7f3d0 !important;">
               <span class="font-weight-bold text-dark" style="font-size: 0.98rem;">
-                <i class="fas fa-calculator text-success mr-1"></i> ມູນຄ່າທຶນລວມໃບບິນ (ເງິນລວມ): <small class="text-muted">(ຄິດໄລ່ອັດໂນມັດ)</small>
+                <i class="fas fa-calculator text-success mr-1"></i> <?php echo tlh('ມູນຄ່າທຶນລວມໃບບິນ (ເງິນລວມ):'); ?> <small class="text-muted"><?php echo tlh('(ຄິດໄລ່ອັດໂນມັດ)'); ?></small>
               </span>
               <span class="h4 mb-0 font-weight-bold text-success" id="calc_total_cost_display">0 <?php echo kipSymbol(); ?></span>
             </div>
@@ -161,9 +161,9 @@
         </div>
 
         <div class="modal-footer border-0 pt-0 pb-4 px-4">
-          <button type="button" class="btn btn-light font-weight-bold px-4" style="border-radius: 6px;" data-dismiss="modal">ຍົກເລີກ</button>
+          <button type="button" class="btn btn-light font-weight-bold px-4" style="border-radius: 6px;" data-dismiss="modal"><?php echo tlh('ຍົກເລີກ'); ?></button>
           <button type="button" class="btn btn-primary font-weight-bold px-4 shadow-sm" style="border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;" onclick="submitImportStock()">
-            <i class="fas fa-save mr-1"></i> ບັນທຶກຮັບເຂົ້າ
+            <i class="fas fa-save mr-1"></i> <?php echo tlh('ບັນທຶກຮັບເຂົ້າ'); ?>
           </button>
         </div>
       </form>

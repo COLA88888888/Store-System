@@ -100,8 +100,9 @@ body:not(.pos-page) .select2-container:not(.table *) .select2-selection--single 
     height: 36px !important;
 }
 
-/* .barcode-combo *: ປຸ່ມ "ສ້າງ" ທີ່ຢູ່ໃນບັອກບາໂຄ້ດ (themes/products.css) ມີຂະໜາດຂອງມັນເອງ */
-body:not(.pos-page) .btn:not(.btn-xs):not(.btn-lg):not(.btn-tool):not(.btn-link):not(.close):not(.dropdown-item):not(.table *):not(.pagination *):not(.modal-header *):not(.dropdown-menu *):not(.btn-group-vertical *):not(.swal2-container *):not(.barcode-combo *):not(#__z) {
+/* .barcode-combo *: ປຸ່ມ "ສ້າງ" ທີ່ຢູ່ໃນບັອກບາໂຄ້ດ (themes/products.css) ມີຂະໜາດຂອງມັນເອງ;
+   .mp-cur-grid *: ປຸ່ມສະກຸນເງິນ 2 ແຖວ (ຊື່ + ອັດຕາ) ໜ້າອັດຕາແລກປ່ຽນ (themes/settings-exchange-rate.css) */
+body:not(.pos-page) .btn:not(.btn-xs):not(.btn-lg):not(.btn-tool):not(.btn-link):not(.close):not(.dropdown-item):not(.table *):not(.pagination *):not(.modal-header *):not(.dropdown-menu *):not(.btn-group-vertical *):not(.swal2-container *):not(.barcode-combo *):not(.mp-cur-grid *):not(#__z) {
     height: 38px !important;
     min-height: 38px !important;
     padding-top: 0 !important;
@@ -138,8 +139,9 @@ body:not(.pos-page) .btn:not(.btn-xs):not(.btn-lg):not(.btn-tool):not(.btn-link)
 .page-actions:not(#__z) { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin-left: auto; }
 @media (max-width: 575.98px) {
     .page-actions:not(#__z) { width: 100%; }
-    /* ໂທລະສັບ: ປຸ່ມແບ່ງເທົ່າກັນ (ສູງສຸດ 2 ປຸ່ມຕໍ່ແຖວ) ບໍ່ໃຫ້ກະຈັດກະຈາຍ */
-    .page-actions.page-actions-grid:not(#__z) > .btn { flex: 1 1 calc(50% - 8px); justify-content: center; }
+    /* ໂທລະສັບ: ປຸ່ມຢູ່ແຖວດຽວກັນ ແບ່ງຄວາມກວ້າງຕາມຄວາມຍາວຂໍ້ຄວາມ (ເຊັ່ນ ບັນທຶກ | ປັບສະຕັອກໃຫ້ຕົງ | ນັບ ໜ້າເຊັກສະຕັອກ);
+       ບໍ່ພໍແທ້ໆ ຈຶ່ງລົງແຖວໃໝ່ */
+    .page-actions.page-actions-grid:not(#__z) > .btn { flex: 1 1 auto; justify-content: center; padding-left: 10px; padding-right: 10px; font-size: 0.82rem; white-space: nowrap; }
     .btn-mobile-block:not(#__z) { width: 100%; justify-content: center; }
 }
 
@@ -218,4 +220,124 @@ a:not(#__z),
 .custom-select:disabled:not(#__z) {
     background-color: #e9ecef !important;
     cursor: not-allowed;
+}
+
+/* ບັອກຄົ້ນຫາ / ກັ່ນກອງ ແບບດຽວກັນທົ່ວລະບົບ (.mp-filter-bar) — ຕາມແບບບັອກຂອງໜ້າລາຍການຮັບເຂົ້າ:
+   ຄອມ = ແຖວດຽວ; ແທັບເລັດ = ຕົກແຖວເອງ ບໍ່ບີບຫົວຂໍ້/ປຸ່ມ; ໂທລະສັບ = ຊ່ອງລະ 2 ຖັນ, ຊ່ອງກວ້າງ (.mp-f-wide) ແລະ ປຸ່ມ ເຕັມແຖວ.
+   ໂຄງ: <form class="mp-filter-bar"> <div class="mp-f"><label>…</label><input class="form-control"></div> … <div class="mp-f-actions">…</div> */
+.mp-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+.mp-filter-bar > .mp-f { flex: 1 1 150px; min-width: 0; }
+.mp-filter-bar > .mp-f-wide { flex: 1.4 1 190px; }
+.mp-filter-bar > .mp-f-sm { flex: 0 1 120px; }
+.mp-filter-bar > .mp-f > label {
+    display: block;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #343a40;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mp-filter-bar > .mp-f > label > i { margin-right: 4px; }
+.mp-filter-bar > .mp-f .form-control {
+    height: 38px;
+    border-radius: 8px;
+    width: 100%;
+}
+.mp-filter-bar > .mp-f-actions {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 6px;
+}
+.mp-filter-bar > .mp-f-actions .btn {
+    height: 38px;
+    border-radius: 8px;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+.mp-filter-bar .mp-btn-search,
+.mp-filter-bar .mp-btn-search:hover {
+    background: linear-gradient(135deg, #2c5aa0, #244886);
+    border: none;
+    color: #fff;
+}
+.mp-filter-bar .mp-btn-search > i { margin-right: 6px; }
+@media (max-width: 575.98px) {
+    .mp-filter-bar { gap: 10px; }
+    .mp-filter-bar > .mp-f,
+    .mp-filter-bar > .mp-f-sm { flex: 1 1 calc(50% - 5px); }
+    .mp-filter-bar > .mp-f-wide { flex-basis: 100%; }
+    .mp-filter-bar > .mp-f-actions { flex: 1 1 100%; }
+    .mp-filter-bar > .mp-f-actions .mp-btn-search { flex: 1 1 auto; }
+}
+
+/* ຫົວກາດທີ່ມີຊື່ກາດ + ບັອກຄົ້ນຫາ (.mp-search-head): ໂທລະສັບ → ບັອກຄົ້ນຫາລົງແຖວໃໝ່ ເຕັມຄວາມກວ້າງ */
+.mp-search-head { flex-wrap: wrap; gap: 10px; }
+@media (max-width: 575.98px) {
+    .mp-search-head > .mp-search-box { width: 100% !important; margin-left: 0 !important; }
+}
+/* ກ່ອງຫໍ່ທີ່ມີຫຼາຍບັອກ (ເຊັ່ນ ເລືອກໂຊນ + ຄົ້ນຫາ ໜ້າຊັ້ນວາງ): ໂທລະສັບ → ແຕ່ລະບັອກເຕັມແຖວ ບໍ່ລົ້ນຂອບກາດ */
+@media (max-width: 575.98px) {
+    .mp-search-head > .mp-search-box > * { width: 100% !important; }
+}
+
+/* ===== ຟອມເພີ່ມ / ແກ້ໄຂ ໃນ popup (modal) — ສະເພາະໂທລະສັບ =====
+   ບັອກສັ້ນ (ຖັນ col-md-2…8 / col-lg-2…8 ໃນຄອມ, ເຊັ່ນ ຄູ່ 6/6, 7/5, 8/4) → 2 ບັອກຮຽງກັນຕໍ່ແຖວ.
+   ບັອກຍາວຢູ່ເຕັມແຖວຄືເກົ່າ: ມີ textarea (ໝາຍເຫດ/ທີ່ຢູ່), ອັບໂຫຼດຮູບ, ບັອກທີ່ມີປຸ່ມຕິດ (ເຊັ່ນ ບາໂຄ້ດ + "ສ້າງ"),
+   ກ່ອງທີ່ມີແຖວ/ຕາຕະລາງຂ້າງໃນ, ຫຼື ໃສ່ class .mp-wide ເອງ (ເຊັ່ນ ບັອກເລືອກສາຂາທີ່ຊື່ຍາວ).
+   ຖັນທີ່ກຳນົດຂະໜາດໂທລະສັບໄວ້ແລ້ວ (col-6, col-12, col-sm-…) ບໍ່ແຕະ. */
+@media (max-width: 575.98px) {
+    .modal .row > :is([class~="col-md-2"],[class~="col-md-3"],[class~="col-md-4"],[class~="col-md-5"],[class~="col-md-6"],[class~="col-md-7"],[class~="col-md-8"],[class~="col-lg-2"],[class~="col-lg-3"],[class~="col-lg-4"],[class~="col-lg-5"],[class~="col-lg-6"],[class~="col-lg-7"],[class~="col-lg-8"]):not(:is([class~="col-md-9"],[class~="col-md-10"],[class~="col-md-11"],[class~="col-md-12"])):not(:is([class~="col-1"],[class~="col-2"],[class~="col-3"],[class~="col-4"],[class~="col-5"],[class~="col-6"],[class~="col-7"],[class~="col-8"],[class~="col-9"],[class~="col-10"],[class~="col-11"],[class~="col-12"])):not([class*="col-sm-"]):not(.mp-wide):not(:has(.row, table, textarea, input[type="file"], .input-group-append .btn, .input-group-prepend .btn)) {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+/* ===== ໜ້າທີ່ກະທັດຮັດໃນໂທລະສັບ (.mp-compact) =====
+   ຮັບສິນຄ້າເຂົ້າ (import_stock.php), ລາຍການສິນຄ້າຮັບເຂົ້າ (import_list.php), ໂອນລະຫວ່າງສາຂາ (stock_transfer.php),
+   ປະຫວັດການໂອນ (transfer_history.php):
+   ຫົວຂໍ້, ປ້າຍ, ບັອກ (34px ແທນ 38–42px) ແລະ ຕົວໜັງສືໃນຕາຕະລາງ ນ້ອຍລົງ ເຫັນໄດ້ຫຼາຍຂຶ້ນໃນຈໍດຽວ.
+   :not(#__z):not(#__y) — ຊະນະກົດຄວາມສູງ 38px ຂອງທຸກບັອກ/ປຸ່ມ ຂ້າງເທິງ (ສະເພາະໂທລະສັບ). */
+@media (max-width: 575.98px) {
+    .mp-compact h4 { font-size: 1.08rem !important; }
+    .mp-compact h5, .mp-compact .card-title { font-size: 0.95rem !important; }
+    .mp-compact .content-header { padding-top: 8px !important; padding-bottom: 4px !important; }
+    .mp-compact label { font-size: 0.76rem !important; margin-bottom: 2px !important; }
+    .mp-compact small, .mp-compact .small { font-size: 0.72rem !important; }
+    .mp-compact .card-body, .mp-compact .bg-light.p-3, .mp-compact .card-footer { padding: 10px !important; }
+    .mp-compact .mb-3 { margin-bottom: 10px !important; }
+    body .mp-compact .form-control:not(textarea):not(#__z):not(#__y),
+    body .mp-compact select:not(#__z):not(#__y),
+    body .mp-compact .custom-select:not(#__z):not(#__y),
+    body .mp-compact .input-group-text:not(#__z):not(#__y) {
+        height: 34px !important;
+        min-height: 34px !important;
+        font-size: 0.8rem !important;
+    }
+    body .mp-compact .btn:not(.btn-link):not(#__z):not(#__y) {
+        height: 34px !important;
+        min-height: 34px !important;
+        line-height: 32px !important;
+        font-size: 0.78rem !important;
+    }
+    .mp-compact .table th,
+    .mp-compact .table td,
+    .mp-compact .table td * {
+        font-size: 0.72rem !important;
+    }
+    .mp-compact .table th,
+    .mp-compact .table td {
+        padding: 6px 5px !important;
+    }
 }

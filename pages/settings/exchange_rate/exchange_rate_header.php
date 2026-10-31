@@ -37,7 +37,8 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
         <i class="fas fa-globe text-primary mr-1"></i>
         <?php echo htmlspecialchars(t('exchange_rate.display_currency_label', 'ສະກຸນເງິນສະແດງຜົນຫຼັກ:')); ?>
       </div>
-      <div class="btn-group btn-group-toggle flex-wrap" data-toggle="buttons" style="gap: 6px;">
+      <?php echo themeCssLink('settings-exchange-rate.css'); /* ປຸ່ມສະກຸນເງິນ 4 ປຸ່ມກວ້າງເທົ່າກັນ (.mp-cur-grid) */ ?>
+      <div class="btn-group-toggle mp-cur-grid" data-toggle="buttons">
         <?php foreach (['KIP', 'THB', 'USD', 'CNY'] as $cc): ?>
           <?php
             $isBase   = ($cc === 'KIP');
@@ -48,7 +49,7 @@ $bp = isset($base_path) ? rtrim($base_path, '/') . '/' : '../../../';
           <?php $ccNameKey = 'exchange_rate.col_' . strtolower($cc); ?>
           <label class="btn btn-sm <?php echo $checked ? 'btn-primary' : 'btn-outline-primary'; ?> font-weight-bold px-3 <?php echo $disabled ? 'disabled' : ''; ?>" style="border-radius: 8px;" title="<?php echo $disabled ? htmlspecialchars(t('exchange_rate.rate_not_set', 'ຍັງບໍ່ໄດ້ຕັ້ງອັດຕາ')) : ''; ?>">
             <input type="radio" name="display_currency" value="<?php echo $cc; ?>" <?php echo $checked ? 'checked' : ''; ?> <?php echo $disabled ? 'disabled' : ''; ?> onchange="this.form.submit()">
-            <?php if (!$isBase) echo htmlspecialchars($dcMeta[$cc]['symbol']); ?> <span><?php echo htmlspecialchars(t($ccNameKey, $dcMeta[$cc]['name'])); ?></span>
+            <span><?php if (!$isBase) echo htmlspecialchars($dcMeta[$cc]['symbol']) . ' '; ?><?php echo htmlspecialchars(t($ccNameKey, $dcMeta[$cc]['name'])); ?></span>
             <?php if (!$isBase): ?>
               <small class="d-block font-weight-normal" style="font-size: 0.72rem; opacity: 0.85;">
                 <?php echo $rateVal > 0 ? '1 ' . htmlspecialchars(t($ccNameKey, $dcMeta[$cc]['name'])) . ' = ' . number_format($rateVal) . ' ' . kipSymbol() : htmlspecialchars(t('exchange_rate.rate_not_set', 'ຍັງບໍ່ໄດ້ຕັ້ງ')); ?>

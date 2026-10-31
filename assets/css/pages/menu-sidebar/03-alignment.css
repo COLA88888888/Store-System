@@ -129,6 +129,7 @@
     .main-sidebar .brand-text,
     .main-sidebar .user-panel .info,
     .main-sidebar .nav-sidebar p,
+    .main-sidebar .nav-sidebar .has-treeview > .nav-link .right,
     .main-sidebar .nav-sidebar .nav-header {
         opacity: 1 !important;
         visibility: visible !important;
@@ -138,14 +139,17 @@
     .sidebar-collapse .main-sidebar .brand-text,
     .sidebar-collapse .main-sidebar .user-panel .info,
     .sidebar-collapse .main-sidebar .nav-sidebar p,
+    .sidebar-collapse .main-sidebar .nav-sidebar .has-treeview > .nav-link .right,
     .sidebar-collapse .main-sidebar .nav-sidebar .nav-header,
     html.sidebar-collapse .main-sidebar .brand-text,
     html.sidebar-collapse .main-sidebar .user-panel .info,
     html.sidebar-collapse .main-sidebar .nav-sidebar p,
+    html.sidebar-collapse .main-sidebar .nav-sidebar .has-treeview > .nav-link .right,
     html.sidebar-collapse .main-sidebar .nav-sidebar .nav-header,
     body.sidebar-collapse .main-sidebar .brand-text,
     body.sidebar-collapse .main-sidebar .user-panel .info,
     body.sidebar-collapse .main-sidebar .nav-sidebar p,
+    body.sidebar-collapse .main-sidebar .nav-sidebar .has-treeview > .nav-link .right,
     body.sidebar-collapse .main-sidebar .nav-sidebar .nav-header {
         opacity: 0 !important;
         visibility: hidden !important;
@@ -238,5 +242,37 @@
     body.sidebar-collapse .main-sidebar .brand-link .brand-logo-wrap,
     .sidebar-collapse .main-sidebar .brand-link .brand-logo-wrap {
         margin: 0 auto !important;
+    }
+}
+
+/* ===== ເມນູເຕັມ (ບໍ່ຫຍໍ້) ໃນຄອມ: ໄອຄອນ + ຊື່ເມນູ ຢູ່ກາງແຖວດຽວກັນ ແລະ ຊື່ເຕັມ =====
+   - ເມນູຫຼັກທີ່ບໍ່ມີເມນູຍ່ອຍ ເຄີຍເປັນ display:block (ໄອຄອນ ແລະ ຊື່ຈັດຕາມເສັ້ນຖານໜັງສື) → ຊື່ສູງກວ່າໄອຄອນ ~6px.
+     ໃຊ້ flex + align-items:center ຄືກັບເມນູທີ່ມີເມນູຍ່ອຍ.
+   - ໄອຄອນເມນູຫຼັກກວ້າງເທົ່າກັນທຸກແຖວ → ຊື່ທຸກເມນູຫຼັກເລີ່ມຢູ່ຖັນດຽວກັນ.
+   - ຊື່ສະແດງເຕັມ; ຈ້ຳ "…" ສະເພາະຊື່ທີ່ຍາວເກີນແຖວແທ້ໆ. ເມນູຍ່ອຍ: ຄືນບ່ອນວ່າງທາງຂວາທີ່ບໍ່ໄດ້ໃຊ້ໃຫ້ຊື່.
+   ບໍ່ໃຊ້ຕອນຫຍໍ້ (html/body .sidebar-collapse) — ໄອຄອນຕອນຫຍໍ້ຈັດກາງຢູ່ 02-collapsed-mobile.css. */
+@media (min-width: 768px) {
+    html:not(.sidebar-collapse) body:not(.sidebar-collapse) .main-sidebar .nav-sidebar > .nav-item > .nav-link {
+        display: flex !important;
+        align-items: center !important;
+    }
+    html:not(.sidebar-collapse) body:not(.sidebar-collapse) .main-sidebar .nav-sidebar > .nav-item > .nav-link > .nav-icon {
+        flex: 0 0 1.6rem !important;
+        width: 1.6rem !important;
+        text-align: center !important;
+        margin: 0 0.5rem 0 0.55rem !important;
+    }
+    html:not(.sidebar-collapse) body:not(.sidebar-collapse) .main-sidebar .nav-sidebar > .nav-item:not(.has-treeview) > .nav-link > p {
+        display: block !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    html:not(.sidebar-collapse) body:not(.sidebar-collapse) .main-sidebar .nav-treeview .nav-link {
+        padding-right: 2px !important;
+        margin-right: 4px !important;
     }
 }

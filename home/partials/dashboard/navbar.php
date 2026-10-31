@@ -120,7 +120,7 @@
           <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right notif-dropdown-box shadow-lg border-0">
             <div class="dropdown-header font-weight-bold d-flex text-white justify-content-between align-items-center py-2.5 px-3" style="background-color: #244886 !important;">
               <span class="text-truncate mr-2"><i class="fas fa-exclamation-triangle text-warning mr-1.5"></i> <span data-i18n="layout.notif_main_header"><?php echo htmlspecialchars(t('layout.notif_main_header', 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ໝົດ/ໝົດ')); ?></span> (<span id="mainNotifTitleCount"><?php echo $lowStockCount; ?></span>)</span>
-              <button type="button" id="btnMarkAllMain" class="btn btn-xs btn-outline-light font-weight-bold flex-shrink-0" onclick="markAllNotifsAsRead('mainNotifBadge')" data-i18n="layout.mark_all_read" style="border-radius: 6px; font-size: 0.73rem; <?php echo ($lowStockCount > 0) ? '' : 'display: none;'; ?>"><?php echo htmlspecialchars(t('layout.mark_all_read', 'ອ່ານທັງໝົດ')); ?></button>
+              <button type="button" id="btnMarkAllMain" class="btn btn-xs btn-outline-light font-weight-bold flex-shrink-0" onclick="markAllNotifsAsRead('mainNotifBadge')" data-i18n="layout.mark_all_read" style="border-radius: 6px; font-size: 0.73rem; display: none;"><?php echo htmlspecialchars(t('layout.mark_all_read', 'ອ່ານທັງໝົດ')); ?></button>
             </div>
             <div class="dropdown-divider m-0"></div>
             
@@ -169,18 +169,18 @@
         </li>
       <?php endif; ?>
 
-      <!-- Sub-Branch Notifications Dropdown (Incoming Transfers + Own Low Stock + New Products) -->
+      <!-- Sub-Branch Notifications Dropdown: ສະເພາະສິນຄ້າໃກ້ໝົດ/ໝົດ ຂອງສາຂາໂຕເອງ (ສິນຄ້າໃກ້ໝົດອາຍຸ ເພີ່ມໂດຍ js_notification_polling.php) -->
       <?php if (!$userCanAllBranches): ?>
         <?php
           $subStoreId = intval($_SESSION['store_id'] ?? 1);
-          $incomingTransfers = getIncomingTransfersForStore($pdo, $subStoreId);
+          $incomingTransfers = [];
           $subLowStock = getLowStockAlerts($pdo, $subStoreId);
-          $subNewProducts = getNewProductsForStore($pdo, $subStoreId);
-          
-          $totalSubNotifications = count($incomingTransfers) + count($subLowStock) + count($subNewProducts);
+          $subNewProducts = [];
+
+          $totalSubNotifications = count($subLowStock);
         ?>
         <li class="nav-item dropdown">
-          <a class="nav-link text-white position-relative px-2 d-flex align-items-center" data-toggle="dropdown" href="#" data-i18n-title="layout.notif_sub_title" title="<?php echo htmlspecialchars(t('layout.notif_sub_title', 'ແຈ້ງເຕືອນສາຂາຍ່ອຍ')); ?>" style="font-size: 1.25rem; cursor: pointer;">
+          <a class="nav-link text-white position-relative px-2 d-flex align-items-center" data-toggle="dropdown" href="#" data-i18n-title="layout.notif_main_title" title="<?php echo htmlspecialchars(t('layout.notif_main_title', 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ໝົດ / ໃກ້ໝົດອາຍຸ')); ?>" style="font-size: 1.25rem; cursor: pointer;">
             <i id="subNotifBellIcon" class="fas fa-bell text-white"></i>
             <span id="subNotifBadge" class="badge badge-danger font-weight-bold position-absolute" style="top: 2px; right: -2px; font-size: 0.68rem; border-radius: 10px; padding: 2px 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); <?php echo ($totalSubNotifications > 0) ? '' : 'display: none;'; ?>">
               <?php echo $totalSubNotifications; ?>
@@ -188,8 +188,8 @@
           </a>
           <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right notif-dropdown-box shadow-lg border-0">
             <div class="dropdown-header font-weight-bold d-flex text-white justify-content-between align-items-center py-2.5 px-3" style="background-color: #244886 !important;">
-              <span class="text-truncate mr-2"><i class="fas fa-bell text-white mr-1.5"></i> <span data-i18n="layout.notif_sub_header"><?php echo htmlspecialchars(t('layout.notif_sub_header', 'ແຈ້ງເຕືອນສາຂາ')); ?></span> (<span id="subNotifTitleCount"><?php echo $totalSubNotifications; ?></span>)</span>
-              <button type="button" id="btnMarkAllSub" class="btn btn-xs btn-outline-light font-weight-bold flex-shrink-0" onclick="markAllNotifsAsRead('subNotifBadge')" data-i18n="layout.mark_all_read" style="border-radius: 6px; font-size: 0.73rem; <?php echo ($totalSubNotifications > 0) ? '' : 'display: none;'; ?>"><?php echo htmlspecialchars(t('layout.mark_all_read', 'ອ່ານທັງໝົດ')); ?></button>
+              <span class="text-truncate mr-2"><i class="fas fa-bell text-white mr-1.5"></i> <span data-i18n="layout.notif_main_header"><?php echo htmlspecialchars(t('layout.notif_main_header', 'ສິນຄ້າໃກ້ໝົດ / ໃກ້ໝົດອາຍຸ')); ?></span> (<span id="subNotifTitleCount"><?php echo $totalSubNotifications; ?></span>)</span>
+              <button type="button" id="btnMarkAllSub" class="btn btn-xs btn-outline-light font-weight-bold flex-shrink-0" onclick="markAllNotifsAsRead('subNotifBadge')" data-i18n="layout.mark_all_read" style="border-radius: 6px; font-size: 0.73rem; display: none;"><?php echo htmlspecialchars(t('layout.mark_all_read', 'ອ່ານທັງໝົດ')); ?></button>
             </div>
             <div class="dropdown-divider m-0"></div>
             
@@ -214,7 +214,7 @@
                         <span class="text-dark font-weight-bold" style="font-size: 0.84rem;"><?php echo date('d/m/Y H:i', strtotime($trf['transfer_date'])); ?></span>
                       </div>
                       <div class="d-flex align-items-center text-nowrap flex-shrink-0">
-                        <span class="badge badge-info font-weight-bold" style="font-size: 0.72rem;"><?php echo intval($trf['total_items'] ?? 1); ?> ລາຍການ</span>
+                        <span class="badge badge-info font-weight-bold" style="font-size: 0.72rem;"><?php echo intval($trf['total_items'] ?? 1); ?> <?php echo tlh('ລາຍການ'); ?></span>
                       </div>
                     </div>
                     <div class="text-success font-weight-bold mt-1" style="font-size: 0.78rem;">
@@ -227,14 +227,14 @@
               <!-- 2. ສິນຄ້າໃນສາຂາໂຕເອງໃກ້ໝົດ / ໝົດແລ້ວ (Low Stock & Out of Stock in Sub-Branch) -->
               <?php if (!empty($subLowStock)): ?>
                 <div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #fff7ed; font-size: 0.82rem; white-space: nowrap;">
-                  <span class="text-danger text-truncate"><i class="fas fa-exclamation-triangle mr-1"></i> ສິນຄ້າໃກ້ໝົດ / ໝົດແລ້ວ</span>
-                  <span class="badge badge-danger font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px;"><?php echo count($subLowStock); ?> ລາຍການ</span>
+                  <span class="text-danger text-truncate"><i class="fas fa-exclamation-triangle mr-1"></i> <?php echo htmlspecialchars(t('layout.low_stock_own', 'ສິນຄ້າໃກ້ໝົດ / ໝົດແລ້ວ')); ?></span>
+                  <span class="badge badge-danger font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px;"><?php echo count($subLowStock); ?> <?php echo tlh('ລາຍການ'); ?></span>
                 </div>
                 <?php foreach ($subLowStock as $stk): ?>
                   <?php 
                     $isZero = (intval($stk['qty']) <= 0);
                     $bClass = $isZero ? 'badge-danger' : 'badge-warning text-dark';
-                    $lbl = $isZero ? 'ໝົດແລ້ວ (0)' : 'ເຫຼືອ ' . $stk['qty'] . ' ' . htmlspecialchars($stk['unit'] ?: 'ອັນ');
+                    $lbl = $isZero ? tl('ໝົດແລ້ວ (0)') : (tl('ເຫຼືອ') . ' ') . $stk['qty'] . ' ' . htmlspecialchars($stk['unit'] ?: 'ອັນ');
                     $icoClass = $isZero ? 'text-danger' : 'text-warning';
                   ?>
                   <div id="notif_item_stk_<?php echo $stk['product_id']; ?>" onclick="markItemAsRead('stk_<?php echo $stk['product_id']; ?>', 'subNotifBadge'); goToStockList(<?php echo (int)($stk['store_id'] ?? 0); ?>, <?php echo $isZero ? 'true' : 'false'; ?>, '<?php echo htmlspecialchars(addslashes((string)$stk['product_id'])); ?>')" class="dropdown-item py-2 px-3 border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden;">
@@ -252,8 +252,8 @@
               <!-- 3. ສິນຄ້າໃໝ່ (New Products Arrived/Added) -->
               <?php if (!empty($subNewProducts)): ?>
                 <div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #f0fdf4; font-size: 0.82rem; white-space: nowrap;">
-                  <span class="text-success text-truncate"><i class="fas fa-sparkles mr-1"></i> ສິນຄ້າໃໝ່ເພີ່ມເຂົ້າສາຂາ</span>
-                  <span class="badge badge-success font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px;"><?php echo count($subNewProducts); ?> ລາຍການ</span>
+                  <span class="text-success text-truncate"><i class="fas fa-sparkles mr-1"></i> <?php echo tlh('ສິນຄ້າໃໝ່ເພີ່ມເຂົ້າສາຂາ'); ?></span>
+                  <span class="badge badge-success font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px;"><?php echo count($subNewProducts); ?> <?php echo tlh('ລາຍການ'); ?></span>
                 </div>
                 <?php foreach ($subNewProducts as $np): ?>
                   <div id="notif_item_np_<?php echo $np['product_id']; ?>" onclick="markItemAsRead('np_<?php echo $np['product_id']; ?>', 'subNotifBadge')" class="dropdown-item py-2 px-3 border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden;">
@@ -272,7 +272,7 @@
               <?php if ($totalSubNotifications === 0): ?>
                 <div class="text-center py-4 text-muted">
                   <i class="fas fa-check-circle text-success fa-2x mb-2 d-block"></i>
-                  <span style="font-size: 0.85rem;">ບໍ່ມີການແຈ້ງເຕືອນໃໝ່ໃນສາຂາ</span>
+                  <span style="font-size: 0.85rem;"><?php echo htmlspecialchars(t('layout.no_sub_notif', 'ບໍ່ມີສິນຄ້າໃກ້ໝົດ ຫຼື ໃກ້ໝົດອາຍຸ')); ?></span>
                 </div>
               <?php endif; ?>
             </div>

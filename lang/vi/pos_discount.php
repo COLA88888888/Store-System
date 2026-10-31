@@ -1,0 +1,26 @@
+<?php
+// POS item discount - Tiếng Việt
+return [
+    'pos_disc.title' => 'Đặt giảm giá sản phẩm',
+    'pos_disc.unit' => 'Đơn vị:',
+    'pos_disc.orig_price' => 'Giá gốc:',
+    'pos_disc.mode_pct' => 'Phần trăm',
+    'pos_disc.mode_amt' => 'Số tiền',
+    'pos_disc.quick' => 'Chọn nhanh:',
+    'pos_disc.input_pct' => 'Phần trăm giảm',
+    'pos_disc.input_amt' => 'Số tiền giảm',
+    'pos_disc.per_unit' => 'Giảm mỗi đơn vị:',
+    'pos_disc.new_price' => 'Giá mới mỗi đơn vị:',
+    'pos_disc.line_total' => 'Thành tiền',
+    'pos_disc.total_saved' => 'Tổng tiết kiệm:',
+    'pos_disc.btn_save' => 'Lưu giảm giá',
+    'pos_disc.btn_clear' => 'Bỏ giảm giá',
+    'pos_disc.btn_cancel' => 'Hủy',
+    'pos_disc.unit_default' => 'cái',
+    'pos_disc.stock_short_title' => 'Không đủ hàng!',
+    'pos_disc.cannot_add_more' => 'Không thể thêm "%s"',
+    'pos_disc.remaining' => 'Còn trong kho:',
+    'pos_disc.not_enough' => 'Không đủ "%s" trong kho',
+    'pos_disc.max_sell' => 'Bán tối đa:',
+    'pos_disc.ok' => 'OK',
+];

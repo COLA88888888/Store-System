@@ -12,6 +12,7 @@
  */
 ?>
 
+<script src="<?php echo $base_path; ?>assets/js/pos-sounds.js?v=<?php echo @filemtime(__DIR__ . '/../../../../assets/js/pos-sounds.js'); ?>"></script>
 <script src="<?php echo $base_path; ?>assets/js/lan-receipt.js?v=<?php echo @filemtime(__DIR__ . '/../../../../assets/js/lan-receipt.js'); ?>"></script>
 <script src="<?php echo $base_path; ?>assets/js/bluetooth-printer-escpos.js?v=<?php echo @filemtime(__DIR__ . '/../../../../assets/js/bluetooth-printer-escpos.js'); ?>"></script>
 <script src="<?php echo $base_path; ?>assets/js/bluetooth-printer.js?v=<?php echo @filemtime(__DIR__ . '/../../../../assets/js/bluetooth-printer.js'); ?>"></script>
@@ -174,14 +175,37 @@ function broadcastPaymentLive() {
       qr: window.currentSelectedBankQrPath || ''
     };
   }
+  // ຈຳນວນເງິນໂອນ ແລະ ເງິນສົດທີ່ຕ້ອງຊຳລະ (ແຍກຈ່າຍ: ໂອນຖືກຕ້ອງຕາມຍອດ + ສະແດງເງິນສົດທີ່ຕ້ອງຈ່າຍ ຫຼື ເງິນທອນຕອນປ້ອນກາຍ)
+  var transferDue = 0;
+  var cashDue = 0;
+  if (currentPayMode === 'split') {
+    if (qrKip > 0) {
+      transferDue = qrKip;
+      cashDue = Math.max(0, totalKip - qrKip);
+    } else if (cashKip > 0) {
+      transferDue = Math.max(0, totalKip - cashKip);
+      cashDue = Math.min(cashKip, totalKip);
+    } else {
+      transferDue = totalKip;
+      cashDue = 0;
+    }
+  } else if (usesTransfer) {
+    transferDue = Math.max(qrKip, totalKip);
+    cashDue = 0;
+  } else {
+    transferDue = 0;
+    cashDue = Math.max(cashKip, totalKip);
+  }
+
   broadcastCustomerDisplay('payment_live', {
     payMode: currentPayMode,
     paymentType: selectedPayType,
+    totalAmount: totalKip,
     cashReceived: cashKip,
     qrReceived: qrKip,
     changeAmount: changeKip,
-    // ຈຳນວນທີ່ລູກຄ້າຕ້ອງໂອນ: ແຍກຈ່າຍ = ສ່ວນ QR, ໂອນທັງໝົດ = ຍອດທັງໝົດ
-    transferDue: currentPayMode === 'split' ? qrKip : (usesTransfer ? Math.max(qrKip, totalKip) : 0),
+    transferDue: transferDue,
+    cashDue: cashDue,
     payBank: bank,
     tenderCurrency: {
       code: POSCUR.code,

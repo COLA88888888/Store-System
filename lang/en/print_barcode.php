@@ -15,6 +15,7 @@ return [
     'print_barcode.barcode_size_label' => 'Barcode size:',
     'print_barcode.barcode_width' => 'Width',
     'print_barcode.barcode_height' => 'Height',
+    'print_barcode.horizontal_offset' => 'Nudge left/right',
     'print_barcode.vertical_offset' => 'Nudge up/down',
     'print_barcode.label_pitch' => 'Label pitch',
     'print_barcode.label_pitch_hint' => 'Measure from the top edge of one sticker to the top edge of the next (sticker + gap) — fixes drift that builds up over many stickers',

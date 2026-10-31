@@ -9,6 +9,10 @@
  *  - ຮອດໂມງປິດແລ້ວ ແລະ ບໍ່ມີໃຜໃຊ້ງານໜ້າຂາຍ SHIFT_IDLE_MINUTES ນາທີ (ເປີດປະໄວ້ / ອອກໄປແລ້ວ) → ປິດອໍໂຕ້
  *  - "ໃຊ້ງານ" = st_shift_sessions.last_active_at ທີ່ໜ້າ POS ສົ່ງມາ (heartbeat) ເມື່ອມີການແຕະ/ພິມ/ຄລິກ
  *    (pages/pos/partials/js/pos_shift_js.php)
+ *  - ອອກຈາກລະບົບກ່ອນໂມງປິດກະ → ບໍ່ປິດກະ (ກັບມາລັອກອິນ ຂາຍຕໍ່ກະເດີມ); ຮອດໂມງແລ້ວ → ປິດ (shiftCloseOnLogout)
+ *  - ໝົດໂມງກະ ແລະ ພະນັກງານບໍ່ອອນລາຍ (logout / ບໍ່ເຄື່ອນໄຫວ 5 ນາທີ) → ປິດອໍໂຕ້ (shiftAutoCloseStale) →
+ *    ລັອກອິນເທື່ອຕໍ່ໄປເປີດກະໃໝ່
+ *  - ພະນັກງານຂາຍລັອກອິນກ່ອນໂມງເປີດກະ → ເຂົ້າບໍ່ໄດ້ (shiftLoginBlockMessage ໃນ auth/check_user.php)
  */
 
 if (!defined('SHIFT_IDLE_MINUTES')) {
@@ -25,6 +29,16 @@ if (!function_exists('shiftScheduledEnd')) {
             $endTs = strtotime('+1 day', $endTs);
         }
         return date('Y-m-d H:i:s', $endTs);
+    }
+}
+
+if (!function_exists('shiftIsOpenNow')) {
+    // ກະນີ້ຢູ່ໃນເວລາເຮັດວຽກບໍ່ (ເປີດກະໄດ້ບໍ່): ປົກກະຕິ ເລີ່ມ ≤ ຕອນນີ້ < ສິ້ນສຸດ; ກະຂ້າມຄືນ ຕອນນີ້ ≥ ເລີ່ມ ຫຼື < ສິ້ນສຸດ.
+    // ເມື່ອກ່ອນກວດແຕ່ "ຕອນນີ້ ≥ ເລີ່ມ" → ກະທີ່ໝົດໂມງແລ້ວກໍຍັງເປີດໄດ້.
+    function shiftIsOpenNow($startTime, $endTime, $nowTime = null) {
+        $nowTime = $nowTime ?: date('H:i:s');
+        if ($startTime <= $endTime) return $nowTime >= $startTime && $nowTime < $endTime;
+        return $nowTime >= $startTime || $nowTime < $endTime;
     }
 }
 
@@ -147,7 +161,7 @@ if (!defined('SHIFT_LOGOUT_NOTE')) {
 if (!function_exists('shiftCloseOnLogout')) {
     // ກົດອອກຈາກລະບົບ (auth/logout.php) → ປິດກະທີ່ເປີດຢູ່ຂອງສາຂາຜູ້ໃຊ້ ຖ້າຜູ້ໃຊ້ເປັນຄົນເປີດກະ ຫຼື ເປັນພະນັກງານປະຈຳກະນັ້ນ
     // (ຜູ້ຈັດການ/ຜູ້ບໍລິຫານທີ່ບໍ່ກ່ຽວກັບກະ ອອກຈາກລະບົບ ບໍ່ປິດກະຂອງພະນັກງານ). ບໍ່ມີຄົນນັບເງິນ → counted/ສ່ວນຕ່າງ = null.
-    // ບໍ່ກວດໂມງປິດກະ / ບິນພັກໄວ້ ຄືການປິດເອງ: ອອກຈາກລະບົບແລ້ວ ກະກໍສິ້ນສຸດ. ສົ່ງຄືນ id ຂອງກະທີ່ປິດ ຫຼື 0.
+    // ປິດສະເພາະເມື່ອຮອດໂມງປິດກະແລ້ວ (ກ່ອນໂມງ → ກະຍັງເປີດ); ບໍ່ກວດບິນພັກໄວ້. ສົ່ງຄືນ id ຂອງກະທີ່ປິດ ຫຼື 0.
     function shiftCloseOnLogout($pdo, $userId, $userName, $storeId) {
         $userId = (int)$userId;
         if ($userId <= 0 || !$pdo) return 0;
@@ -160,6 +174,9 @@ if (!function_exists('shiftCloseOnLogout')) {
             if (!$session) return 0;
             $staffIds = array_map('intval', explode(',', (string)($session['staff_user_ids'] ?? '')));
             if ((int)$session['opened_by_user_id'] !== $userId && !in_array($userId, $staffIds, true)) return 0;
+            // ຍັງບໍ່ຮອດໂມງປິດກະ → ບໍ່ປິດ ບໍ່ສົ່ງລາຍງານ: ກະຍັງເປີດຢູ່ ລັອກອິນຄືນແລ້ວຂາຍຕໍ່ກະເດີມໄດ້
+            $end = shiftSessionEnd($pdo, $session);
+            if ($end !== null && time() < strtotime($end)) return 0;
 
             $sum = shiftCloseSession($pdo, $session, date('Y-m-d H:i:s'), $userId, $userName, null, SHIFT_LOGOUT_NOTE);
             if (!$sum['closed']) return 0;
@@ -174,10 +191,77 @@ if (!function_exists('shiftCloseOnLogout')) {
     }
 }
 
+if (!defined('SHIFT_TIMEOUT_NOTE')) {
+    define('SHIFT_TIMEOUT_NOTE', 'ປິດກະອັດຕະໂນມັດ: ໝົດໂມງກະ (ພະນັກງານບໍ່ອອນລາຍ)');
+}
+
 if (!function_exists('shiftAutoCloseStale')) {
-    // ຍົກເລີກການປິດກະອໍໂຕ້ເມື່ອກາຍໂມງ:
-    // ກາຍໂມງກະຢ່າ ປິດກາຍໂມງບໍ່ມີບັນຫາ ບໍ່ໃຫ້ເດັ້ງຟອມເປີດກະມາ ຖ້າແຕ່ພະນັກງານປິດເອງ
-    function shiftAutoCloseStale($pdo) {
-        return 0;
+    // ກະທີ່ເປີດຄ້າງ ທີ່ໝົດໂມງກະແລ້ວ ແລະ ບໍ່ມີພະນັກງານຂອງກະອອນລາຍ (ຄົນເປີດກະ ແລະ ພະນັກງານປະຈຳກະ: logout ແລ້ວ
+    // ຫຼື ບໍ່ເຄື່ອນໄຫວ 5 ນາທີ) → ປິດ ແລະ ສົ່ງລາຍງານກະເອງ (ບໍ່ມີຄົນນັບເງິນ → ສ່ວນຕ່າງ null). ພະນັກງານຍັງອອນລາຍ
+    // (ເຮັດວຽກເກີນເວລາ) → ບໍ່ປິດ ໃຫ້ປິດເອງ. ເອີ້ນຕອນລັອກອິນ (ກ່ອນອັບເດດ last_activity) ແລະ ຕອນໜ້າຂາຍກວດສະຖານະກະ.
+    function shiftAutoCloseStale($pdo, $storeId = null) {
+        $closed = 0;
+        try {
+            $sql = "SELECT ss.*, sh.staff_user_ids FROM st_shift_sessions ss
+                    LEFT JOIN st_shifts sh ON sh.id = ss.shift_id WHERE ss.status = 'open'";
+            $args = [];
+            if ($storeId !== null) { $sql .= " AND ss.store_id = ?"; $args[] = (int)$storeId; }
+            $st = $pdo->prepare($sql);
+            $st->execute($args);
+            $online = $pdo->prepare("SELECT COUNT(*) FROM st_tbuser WHERE Id = ? AND last_activity IS NOT NULL AND last_activity >= ?");
+            $cutoff = date('Y-m-d H:i:s', time() - 300);
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $session) {
+                $end = shiftSessionEnd($pdo, $session);
+                if ($end === null || time() < strtotime($end)) continue;
+                $ids = array_filter(array_map('intval', explode(',', (string)($session['staff_user_ids'] ?? ''))));
+                $ids[] = (int)$session['opened_by_user_id'];
+                $anyOnline = false;
+                foreach (array_unique($ids) as $uid) {
+                    $online->execute([$uid, $cutoff]);
+                    if ((int)$online->fetchColumn() > 0) { $anyOnline = true; break; }
+                }
+                if ($anyOnline) continue;
+                $sum = shiftCloseSession($pdo, $session, $end, 0, 'ລະບົບ (ປິດອໍໂຕ້)', null, SHIFT_TIMEOUT_NOTE);
+                if (!empty($sum['closed'])) {
+                    $closed++;
+                    if (function_exists('logActivity')) {
+                        logActivity($pdo, 'ປິດກະເຮັດວຽກ (ໝົດໂມງກະ)', "ກະ: {$session['shift_name']}, ຍອດຂາຍ: " . number_format($sum['total']) . ", {$sum['bills']} ບິນ");
+                    }
+                }
+            }
+        } catch (Throwable $e) {}
+        return $closed;
+    }
+}
+
+if (!function_exists('shiftLoginBlockMessage')) {
+    // ພະນັກງານຂາຍລັອກອິນກ່ອນໂມງເປີດກະ → ຂໍ້ຄວາມບອກເວລາເລີ່ມກະ (ຫ້າມເຂົ້າ); ເຂົ້າໄດ້ → ''.
+    // ເຂົ້າໄດ້ສະເໝີຖ້າ: ສາຂາບໍ່ໄດ້ຕັ້ງກະ, ມີກະເປີດຢູ່ແລ້ວ (ຂາຍຕໍ່ກະເດີມ), ຫຼື ມີກະຂອງຜູ້ໃຊ້ທີ່ຢູ່ໃນເວລາເຮັດວຽກ.
+    // ກະຂອງຜູ້ໃຊ້ = ກະທີ່ລະບຸຊື່ຜູ້ໃຊ້ນີ້ ຫຼື ກະທີ່ບໍ່ໄດ້ລະບຸພະນັກງານ.
+    function shiftLoginBlockMessage($pdo, $userId, $storeId) {
+        try {
+            $open = $pdo->prepare("SELECT COUNT(*) FROM st_shift_sessions WHERE store_id = ? AND status = 'open'");
+            $open->execute([(int)$storeId]);
+            if ((int)$open->fetchColumn() > 0) return '';
+            $st = $pdo->prepare("SELECT shift_name, start_time, end_time, staff_user_ids FROM st_shifts WHERE store_id = ? AND status = 1 ORDER BY start_time");
+            $st->execute([(int)$storeId]);
+            $mine = [];
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $sh) {
+                $ids = array_filter(array_map('intval', explode(',', (string)($sh['staff_user_ids'] ?? ''))));
+                if (!$ids || in_array((int)$userId, $ids, true)) $mine[] = $sh;
+            }
+            if (!$mine) return '';
+            $now = date('H:i:s');
+            $next = null;
+            foreach ($mine as $sh) {
+                if (shiftIsOpenNow($sh['start_time'], $sh['end_time'], $now)) return '';
+                if ($next === null && $sh['start_time'] > $now) $next = $sh;
+            }
+            $next = $next ?: $mine[0];   // ໝົດກະຂອງມື້ນີ້ແລ້ວ → ກະທຳອິດຂອງມື້ອື່ນ
+            return (tl('ຍັງບໍ່ຮອດໂມງເປີດກະ') . ' — ' . tl('ກະ') . ' "') . $next['shift_name'] . ('" ' . tl('ເລີ່ມເວລາ') . ' ') . substr($next['start_time'], 0, 5)
+                 . (' (' . tl('ຕອນນີ້') . ' ') . substr($now, 0, 5) . ('). ' . tl('ກະລຸນາເຂົ້າລະບົບເມື່ອຮອດເວລາເປີດກະ'));
+        } catch (Throwable $e) {
+            return '';   // ກວດບໍ່ໄດ້ ບໍ່ຄວນກັນການເຂົ້າລະບົບ
+        }
     }
 }

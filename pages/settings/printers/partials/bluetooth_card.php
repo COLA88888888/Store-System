@@ -168,8 +168,8 @@ var I18N_BT_CARD = <?php echo tjson([
       msg(OK + T('bt_added', name), 'text-success');
       Swal.fire({
         icon: 'success',
-        title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີສຳເລັດ',
-        text: name ? 'ເຊື່ອມຕໍ່ກັບ ' + name + ' ແລ້ວ' : '',
+        title: '<?php echo tlj('ເຊື່ອມຕໍ່ປິ່ນເຕີສຳເລັດ'); ?>',
+        text: name ? '<?php echo tlj('ເຊື່ອມຕໍ່ກັບ'); ?> ' + name + ' <?php echo tlj('ແລ້ວ'); ?>' : '',
         timer: 2000,
         showConfirmButton: false
       });
@@ -182,9 +182,9 @@ var I18N_BT_CARD = <?php echo tjson([
       msg(e && e.message ? esc(e.message) : T('bt_connect_fail'), 'text-danger');
       Swal.fire({
         icon: 'error',
-        title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ',
-        text: 'ກະລຸນາລອງໃໝ່ອີກຄັ້ງ',
-        confirmButtonText: 'ຕົກລົງ',
+        title: '<?php echo tlj('ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ'); ?>',
+        text: '<?php echo tlj('ກະລຸນາລອງໃໝ່ອີກຄັ້ງ'); ?>',
+        confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
         confirmButtonColor: '#2563eb'
       });
     });
@@ -197,9 +197,9 @@ var I18N_BT_CARD = <?php echo tjson([
       msg(T('bt_need_add'), 'text-danger');
       Swal.fire({
         icon: 'warning',
-        title: 'ຍັງບໍ່ໄດ້ຕັ້ງເຄື່ອງພິມ',
-        text: 'ກະລຸນາກົດ "ເພີ່ມເຄື່ອງພິມ Bluetooth" ກ່ອນ',
-        confirmButtonText: 'ຕົກລົງ',
+        title: '<?php echo tlj('ຍັງບໍ່ໄດ້ຕັ້ງເຄື່ອງພິມ'); ?>',
+        text: '<?php echo tlj('ກະລຸນາກົດ'); ?> "<?php echo tlj('ເພີ່ມເຄື່ອງພິມ'); ?> Bluetooth" <?php echo tlj('ກ່ອນ'); ?>',
+        confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
         confirmButtonColor: '#2563eb'
       });
       return;
@@ -211,8 +211,8 @@ var I18N_BT_CARD = <?php echo tjson([
         msg(OK + T('bt_connected_msg', P.info().name), 'text-success');
         Swal.fire({
           icon: 'success',
-          title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີສຳເລັດ',
-          text: P.info().name ? 'ເຊື່ອມຕໍ່ກັບ ' + P.info().name + ' ແລ້ວ' : '',
+          title: '<?php echo tlj('ເຊື່ອມຕໍ່ປິ່ນເຕີສຳເລັດ'); ?>',
+          text: P.info().name ? '<?php echo tlj('ເຊື່ອມຕໍ່ກັບ'); ?> ' + P.info().name + ' <?php echo tlj('ແລ້ວ'); ?>' : '',
           timer: 2000,
           showConfirmButton: false
         });
@@ -220,9 +220,9 @@ var I18N_BT_CARD = <?php echo tjson([
         msg(T('bt_none_on'), 'text-danger');
         Swal.fire({
           icon: 'error',
-          title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ',
-          text: 'ກະລຸນາລອງໃໝ່ອີກຄັ້ງ',
-          confirmButtonText: 'ຕົກລົງ',
+          title: '<?php echo tlj('ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ'); ?>',
+          text: '<?php echo tlj('ກະລຸນາລອງໃໝ່ອີກຄັ້ງ'); ?>',
+          confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
           confirmButtonColor: '#2563eb'
         });
       }
@@ -235,7 +235,7 @@ var I18N_BT_CARD = <?php echo tjson([
       msg(T('bt_disconnected'));
       Swal.fire({
         icon: 'info',
-        title: 'ຕັດການເຊື່ອມຕໍ່ແລ້ວ',
+        title: '<?php echo tlj('ຕັດການເຊື່ອມຕໍ່ແລ້ວ'); ?>',
         timer: 1500,
         showConfirmButton: false
       });
@@ -250,8 +250,8 @@ var I18N_BT_CARD = <?php echo tjson([
       msg(OK + T('bt_connected_msg', name), 'text-success');
       Swal.fire({
         icon: 'success',
-        title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີສຳເລັດ',
-        text: name ? 'ເຊື່ອມຕໍ່ກັບ ' + name + ' ແລ້ວ' : '',
+        title: '<?php echo tlj('ເຊື່ອມຕໍ່ປິ່ນເຕີສຳເລັດ'); ?>',
+        text: name ? '<?php echo tlj('ເຊື່ອມຕໍ່ກັບ'); ?> ' + name + ' <?php echo tlj('ແລ້ວ'); ?>' : '',
         timer: 2000,
         showConfirmButton: false
       });
@@ -260,9 +260,9 @@ var I18N_BT_CARD = <?php echo tjson([
       msg(e && e.message ? esc(e.message) : T('bt_connect_fail'), 'text-danger');
       Swal.fire({
         icon: 'error',
-        title: 'ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ',
-        text: 'ກະລຸນາລອງໃໝ່ອີກຄັ້ງ',
-        confirmButtonText: 'ຕົກລົງ',
+        title: '<?php echo tlj('ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ'); ?>',
+        text: '<?php echo tlj('ກະລຸນາລອງໃໝ່ອີກຄັ້ງ'); ?>',
+        confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
         confirmButtonColor: '#2563eb'
       });
     });

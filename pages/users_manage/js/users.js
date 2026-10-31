@@ -20,9 +20,9 @@ function pollLiveUserStatuses() {
     success: function(res) {
       if (res.status === 'success' && Array.isArray(res.users)) {
         var i18n = typeof I18N_USERS !== 'undefined' ? I18N_USERS : {};
-        var onlineText = i18n['users_manage.status_online'] || 'ໃຊ້ງານຢູ່';
-        var offlineText = i18n['users_manage.status_offline'] || 'ບໍ່ໄດ້ໃຊ້ງານ';
-        var disabledText = i18n['users_manage.status_disabled'] || 'ປິດໃຊ້ງານ (ລາອອກ)';
+        var onlineText = i18n['users_manage.status_online'] || '' + (window.__tl||String)("ໃຊ້ງານຢູ່") + '';
+        var offlineText = i18n['users_manage.status_offline'] || '' + (window.__tl||String)("ບໍ່ໄດ້ໃຊ້ງານ") + '';
+        var disabledText = i18n['users_manage.status_disabled'] || '' + (window.__tl||String)("ປິດໃຊ້ງານ (ລາອອກ)") + '';
         res.users.forEach(function(u) {
           var statusTd = $('td.user-online-status-td[data-user-id="' + u.id + '"]');
           if (statusTd.length > 0) {

@@ -74,36 +74,49 @@ if (empty($profile_img) || !file_exists(__DIR__ . '/../assets/img/users/' . $pro
 $profile_img_path = '../assets/img/users/' . $profile_img;
 
 // ດຶງໜ້າເລີ່ມຕົ້ນຕາມສິດ (Default Page Route based on permissions)
+// ໜ້າທຳອິດທີ່ຜູ້ໃຊ້ມີສິດ (ຕາມສະວິດຂອງແຕ່ລະໜ້າ) — ທຸກໜ້າກວດສິດຂອງຕົນເອງ, ຖ້າເລືອກໜ້າທີ່ບໍ່ມີສິດ
+// ໜ້ານັ້ນຈະສົ່ງກັບມາ dashboard ແລ້ວວົນຄືນບໍ່ຢຸດ.
 $default_iframe_src = 'home.php';
 if (!hasPermission('dashboard')) {
-    if (hasPermission('sale')) {
-        $default_iframe_src = '../pages/pos/pos.php';
-    } elseif (hasPermission('customers')) {
-        $default_iframe_src = '../pages/customers/customers.php';
-    } elseif (hasPermission('categories')) {
-        $default_iframe_src = '../pages/categories/categories.php';
-    } elseif (hasPermission('products')) {
-        $default_iframe_src = '../pages/products/products.php';
-    } elseif (hasPermission('stock_check') || hasPermission('stock_count')) {
-        $default_iframe_src = '../pages/stock_check/stock_check.php';
-    } elseif (hasPermission('import_stock')) {
-        $default_iframe_src = '../pages/import_stock/import_stock.php';
-    } elseif (hasPermission('import_list')) {
-        $default_iframe_src = '../pages/import_stock/import_list.php';
-    } elseif (hasPermission('stock_transfer')) {
-        $default_iframe_src = '../pages/import_stock/stock_transfer.php';
-    } elseif (hasPermission('transfer_history')) {
-        $default_iframe_src = '../pages/import_stock/transfer_history.php';
-    } elseif (hasPermission('accounting')) {
-        $default_iframe_src = '../pages/bank/bank.php';
-    } elseif (hasPermission('report') || hasPermission('daily_report') || hasPermission('all_sales') || hasPermission('best_seller') || hasPermission('profit_cost') || hasPermission('financial') || hasPermission('category_sales') || hasPermission('delete_bills')) {
-        $default_iframe_src = '../pages/reports/daily_report.php';
-    } elseif (hasPermission('users')) {
-        $default_iframe_src = '../pages/users_manage/users_manage.php';
-    } elseif (hasPermission('permissions')) {
-        $default_iframe_src = '../pages/permissions/permissions.php';
-    } elseif (hasPermission('setup') || hasPermission('branches')) {
-        $default_iframe_src = '../pages/branches/branches.php';
+    foreach ([
+        'sale'                 => '../pages/pos/pos.php',
+        'item_sales'           => '../pages/reports/item_sales.php',
+        'customers'            => '../pages/customers/customers.php',
+        'categories'           => '../pages/categories/categories.php',
+        'products'             => '../pages/products/products.php',
+        'stock_check'          => '../pages/stock_check/stock_check.php',
+        'stock_count'          => '../pages/stock_check/stock_check.php',
+        'import_stock'         => '../pages/import_stock/import_stock.php',
+        'import_list'          => '../pages/import_stock/import_list.php',
+        'stock_transfer'       => '../pages/import_stock/stock_transfer.php',
+        'transfer_history'     => '../pages/import_stock/transfer_history.php',
+        'accounting'           => '../pages/bank/bank.php',
+        'daily_report'         => '../pages/reports/daily_report.php',
+        'all_sales'            => '../pages/reports/all_sales.php',
+        'best_seller'          => '../pages/reports/best_seller.php',
+        'profit_cost'          => '../pages/reports/profit_cost.php',
+        'financial'            => '../pages/reports/financial.php',
+        'category_sales'       => '../pages/reports/category_sales.php',
+        'expiry_report'        => '../pages/reports/expiry_report.php',
+        'shift_close_report'   => '../pages/reports/shift_close_report.php',
+        'shift_revenue_report' => '../pages/reports/shift_revenue_report.php',
+        'delete_bills'         => '../pages/reports/delete_bills.php',
+        'users'                => '../pages/users_manage/users_manage.php',
+        'permissions'          => '../pages/permissions/permissions.php',
+        'branches'             => '../pages/branches/branches.php',
+        'stores'               => '../pages/settings/stores/index.php',
+        'print_barcode'        => '../pages/settings/print_barcode/index.php',
+        'exchange_rate'        => '../pages/settings/exchange_rate/index.php',
+        'promotions'           => '../pages/settings/promotions/index.php',
+        'price_adjustment'     => '../pages/settings/price_adjustment/index.php',
+        'printers'             => '../pages/settings/printers/index.php',
+        'loyalty'              => '../pages/settings/loyalty/index.php',
+        'expiry'               => '../pages/settings/expiry/index.php',
+        'shifts'               => '../pages/settings/shifts/index.php',
+        'clear_data'           => '../pages/settings/clear_data/index.php',
+        'database'             => '../pages/database/database.php',
+    ] as $__mod => $__src) {
+        if (hasPermission($__mod)) { $default_iframe_src = $__src; break; }
     }
 }
 
@@ -239,7 +252,7 @@ if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSI
       <div class="system-loader-text" data-i18n="layout.loading_data">
         <span><?php echo htmlspecialchars(t('layout.loading_data', 'ກຳລັງໂຫຼດຂໍ້ມູນ')); ?></span><span class="loader-dot d1">.</span><span class="loader-dot d2">.</span><span class="loader-dot d3">.</span>
       </div>
-      <div class="system-loader-slow-hint" id="systemLoaderSlowHint">ກະລຸນາລໍຖ້າຈັກໜ່ອຍ... ລະບົບກຳລັງປະມວນຜົນ</div>
+      <div class="system-loader-slow-hint" id="systemLoaderSlowHint"><?php echo tlh('ກະລຸນາລໍຖ້າຈັກໜ່ອຍ... ລະບົບກຳລັງປະມວນຜົນ'); ?></div>
     </div>
 
     <iframe id="mainContentFrame" width="100%" height="100%" frameborder="0" name="frame" src="<?php echo $default_iframe_src; ?>" onload="if (typeof hideFastLoader === 'function') hideFastLoader();" style="background-color: #f4f6f9;"></iframe>

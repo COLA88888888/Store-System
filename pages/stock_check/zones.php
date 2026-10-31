@@ -120,7 +120,7 @@ require_once __DIR__ . '/../../layouts/header.php';
           </h5>
           <small class="text-muted"><?php echo $zs('zs.z_subtitle'); ?></small>
         </div>
-        <button type="button" class="btn btn-primary font-weight-bold shadow-sm" data-toggle="modal" data-target="#addZoneModal" style="border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
+        <button type="button" class="btn btn-primary ml-auto font-weight-bold shadow-sm" data-toggle="modal" data-target="#addZoneModal" style="border-radius: 6px; background: linear-gradient(135deg, #2c5aa0, #244886); border: none;">
           <i class="fas fa-plus-circle mr-1"></i> <?php echo $zs('zs.z_btn_add'); ?>
         </button>
       </div>
@@ -144,11 +144,11 @@ require_once __DIR__ . '/../../layouts/header.php';
   <section class="content pb-5">
     <div class="container-fluid">
       <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; background: #ffffff;">
-        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center flex-wrap" style="gap: 10px;">
+        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center flex-wrap mp-search-head" style="gap: 10px;">
           <h6 class="card-title m-0 font-weight-bold text-dark">
             <i class="fas fa-list mr-1 text-primary"></i> <?php echo $zs('zs.z_list_title'); ?> (<?php echo count($zones); ?>)
           </h6>
-          <div class="ml-auto" style="width: 360px; max-width: 100%;">
+          <div class="ml-auto mp-search-box" style="width: 360px; max-width: 100%;">
             <input type="text" id="zoneSearchInput" class="form-control" placeholder="<?php echo $zs('zs.z_search_ph'); ?>" onkeyup="filterZoneTable()" style="border-radius: 8px; height: 42px; font-size: 0.95rem;">
           </div>
         </div>

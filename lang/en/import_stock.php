@@ -21,6 +21,7 @@ return [
     'import_stock.supplier_empty_hint' => 'No suppliers yet — add them in the "Manage Suppliers" menu',
     'import_stock.scan_barcode_label' => 'Scan Barcode / Product Code',
     'import_stock.scan_barcode_placeholder' => 'Scan a barcode or enter a code...',
+    'import_stock.scan_hint' => 'Scan or press Enter — the item goes straight into the list. Edit quantity, unit and expiry date in the table below',
     'import_stock.open_select_product_modal' => 'Open Select Product Dialog',
     'import_stock.select_product_button' => 'Select Product',
     'import_stock.qty_label' => 'Quantity',

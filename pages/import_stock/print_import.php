@@ -28,7 +28,7 @@ $impStmt->execute([$import_id]);
 $import = $impStmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$import) {
-    exit("ບໍ່ພົບຂໍ້ມູນໃບບິນນີ້ໃນລະບົບ!");
+    exit(tl('ບໍ່ພົບຂໍ້ມູນໃບບິນນີ້ໃນລະບົບ!'));
 }
 
 // Fetch store info
@@ -92,7 +92,7 @@ if (!empty($import['notes']) && preg_match('/PO[0-9\-]+/i', $import['notes'], $m
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ໃບຮັບສິນຄ້າເຂົ້າສາງ (A4) - <?php echo htmlspecialchars($import['invoice_number']); ?></title>
+  <title><?php echo tlh('ໃບຮັບສິນຄ້າເຂົ້າສາງ (A4)'); ?> - <?php echo htmlspecialchars($import['invoice_number']); ?></title>
   <link rel="stylesheet" href="../../assets/css/local-font.css">
   <link rel="stylesheet" href="../../fontawesome-free-5.15.3-web/css/all.min.css">
   <?php echo themeCssLink('print_import.css'); ?>
@@ -103,14 +103,14 @@ if (!empty($import['notes']) && preg_match('/PO[0-9\-]+/i', $import['notes'], $m
   <div class="print-actions-bar">
     <div class="doc-label">
       <i class="fas fa-file-invoice text-primary"></i>
-      <span>ໃບຮັບສິນຄ້າເຂົ້າສາງ (A4) · ເລກທີ: #<?php echo htmlspecialchars($import['invoice_number']); ?></span>
+      <span><?php echo tlh('ໃບຮັບສິນຄ້າເຂົ້າສາງ (A4) · ເລກທີ:'); ?> #<?php echo htmlspecialchars($import['invoice_number']); ?></span>
     </div>
     <div class="btn-group">
       <button type="button" class="btn-print-action primary" onclick="window.print()">
-        <i class="fas fa-print"></i> ພິມເອກະສານ A4 (Print)
+        <i class="fas fa-print"></i> <?php echo tlh('ພິມເອກະສານ A4 (Print)'); ?>
       </button>
       <button type="button" class="btn-print-action secondary" onclick="window.close()">
-        <i class="fas fa-times"></i> ປິດ (Close)
+        <i class="fas fa-times"></i> <?php echo tlh('ປິດ (Close)'); ?>
       </button>
     </div>
   </div>
@@ -131,29 +131,29 @@ if (!empty($import['notes']) && preg_match('/PO[0-9\-]+/i', $import['notes'], $m
               <div class="grn-store-meta"><i class="fas fa-map-marker-alt" style="width: 14px;"></i> <?php echo htmlspecialchars($storeAddress); ?></div>
             <?php endif; ?>
             <?php if (!empty($storeTel)): ?>
-              <div class="grn-store-meta"><i class="fas fa-phone-alt" style="width: 14px;"></i> ໂທ: <?php echo htmlspecialchars($storeTel); ?></div>
+              <div class="grn-store-meta"><i class="fas fa-phone-alt" style="width: 14px;"></i> <?php echo tlh('ໂທ:'); ?> <?php echo htmlspecialchars($storeTel); ?></div>
             <?php endif; ?>
             <?php if (!empty($storeTaxId)): ?>
-              <div class="grn-store-meta"><i class="fas fa-id-card" style="width: 14px;"></i> ເລກປະຈຳຕົວຜູ້ເສຍອາກອນ: <?php echo htmlspecialchars($storeTaxId); ?></div>
+              <div class="grn-store-meta"><i class="fas fa-id-card" style="width: 14px;"></i> <?php echo tlh('ເລກປະຈຳຕົວຜູ້ເສຍອາກອນ:'); ?> <?php echo htmlspecialchars($storeTaxId); ?></div>
             <?php endif; ?>
           </div>
         </div>
       </div>
 
       <div class="grn-doc-identity">
-        <h1 class="grn-doc-title">ໃບຮັບສິນຄ້າເຂົ້າສາງ</h1>
+        <h1 class="grn-doc-title"><?php echo tlh('ໃບຮັບສິນຄ້າເຂົ້າສາງ'); ?></h1>
         <div class="grn-doc-sub">GOODS RECEIVED NOTE (GRN)</div>
         <div class="grn-badge-box">
           <div class="badge-row">
-            <span class="lbl">ເລກທີໃບບິນ:</span>
+            <span class="lbl"><?php echo tlh('ເລກທີໃບບິນ:'); ?></span>
             <span class="val highlight">#<?php echo htmlspecialchars($import['invoice_number']); ?></span>
           </div>
           <div class="badge-row">
-            <span class="lbl">ວັນທີ-ເວລາ:</span>
+            <span class="lbl"><?php echo tlh('ວັນທີ-ເວລາ:'); ?></span>
             <span class="val"><?php echo $importDate; ?></span>
           </div>
           <div class="badge-row">
-            <span class="lbl">ສາຂາທີ່ຮັບ:</span>
+            <span class="lbl"><?php echo tlh('ສາຂາທີ່ຮັບ:'); ?></span>
             <span class="val"><?php echo htmlspecialchars($storeName); ?></span>
           </div>
         </div>
@@ -164,34 +164,34 @@ if (!empty($import['notes']) && preg_match('/PO[0-9\-]+/i', $import['notes'], $m
     <div class="grn-meta-grid">
       <!-- Supplier Card -->
       <div class="grn-meta-card">
-        <div class="grn-card-title"><i class="fas fa-truck text-primary"></i> ຂໍ້ມູນຜູ້ສະໜອງສິນຄ້າ (Supplier Details)</div>
+        <div class="grn-card-title"><i class="fas fa-truck text-primary"></i> <?php echo tlh('ຂໍ້ມູນຜູ້ສະໜອງສິນຄ້າ (Supplier Details)'); ?></div>
         <div class="grn-card-row">
-          <span class="k">ຊື່ຜູ້ສະໜອງ:</span>
+          <span class="k"><?php echo tlh('ຊື່ຜູ້ສະໜອງ:'); ?></span>
           <span class="v font-weight-bold" style="color: #1e3a8a;"><?php echo !empty($import['supplier_name']) ? htmlspecialchars($import['supplier_name']) : '-'; ?></span>
         </div>
         <div class="grn-card-row">
-          <span class="k">ເລກທີໃບສັ່ງຊື້ (PO):</span>
+          <span class="k"><?php echo tlh('ເລກທີໃບສັ່ງຊື້ (PO):'); ?></span>
           <span class="v"><?php echo htmlspecialchars($poRef); ?></span>
         </div>
         <div class="grn-card-row">
-          <span class="k">ສະຖານະ:</span>
-          <span class="v" style="color: #15803d; font-weight: 700;">ຮັບເຂົ້າສະຕັອກສຳເລັດ (Completed)</span>
+          <span class="k"><?php echo tlh('ສະຖານະ:'); ?></span>
+          <span class="v" style="color: #15803d; font-weight: 700;"><?php echo tlh('ຮັບເຂົ້າສະຕັອກສຳເລັດ (Completed)'); ?></span>
         </div>
       </div>
 
       <!-- Receipt & Warehouse Info -->
       <div class="grn-meta-card">
-        <div class="grn-card-title"><i class="fas fa-warehouse text-primary"></i> ຂໍ້ມູນການຮັບເຂົ້າ ແລະ ສາງ (Warehouse Info)</div>
+        <div class="grn-card-title"><i class="fas fa-warehouse text-primary"></i> <?php echo tlh('ຂໍ້ມູນການຮັບເຂົ້າ ແລະ ສາງ (Warehouse Info)'); ?></div>
         <div class="grn-card-row">
-          <span class="k">ຜູ້ບັນທຶກ/ຜູ້ຮັບ:</span>
+          <span class="k"><?php echo tlh('ຜູ້ບັນທຶກ/ຜູ້ຮັບ:'); ?></span>
           <span class="v"><?php echo htmlspecialchars($creatorName); ?></span>
         </div>
         <div class="grn-card-row">
-          <span class="k">ວັນທີຮັບເຄື່ອງ:</span>
+          <span class="k"><?php echo tlh('ວັນທີຮັບເຄື່ອງ:'); ?></span>
           <span class="v"><?php echo !empty($import['import_date']) ? date('d/m/Y', strtotime($import['import_date'])) : '-'; ?></span>
         </div>
         <div class="grn-card-row">
-          <span class="k">ສາງ/ສາຂາປາຍທາງ:</span>
+          <span class="k"><?php echo tlh('ສາງ/ສາຂາປາຍທາງ:'); ?></span>
           <span class="v"><?php echo htmlspecialchars($storeName); ?></span>
         </div>
       </div>
@@ -203,23 +203,23 @@ if (!empty($import['notes']) && preg_match('/PO[0-9\-]+/i', $import['notes'], $m
         <thead>
           <tr>
             <th class="c" style="width: 38px;">#</th>
-            <th class="c" style="width: 125px;">ລະຫັດ / ບາໂຄ້ດ</th>
-            <th>ລາຍການສິນຄ້າ</th>
-            <th class="c" style="width: 90px;">ໝົດອາຍຸ (EXP)</th>
-            <th class="c" style="width: 90px;">ຈຳນວນ</th>
-            <th class="r" style="width: 105px;">ຕົ້ນທຶນຕໍ່ໜ່ວຍ</th>
-            <th class="r" style="width: 115px;">ມູນຄ່າລວມ (<?php echo kipSymbol(); ?>)</th>
+            <th class="c" style="width: 125px;"><?php echo tlh('ລະຫັດ / ບາໂຄ້ດ'); ?></th>
+            <th><?php echo tlh('ລາຍການສິນຄ້າ'); ?></th>
+            <th class="c" style="width: 90px;"><?php echo tlh('ໝົດອາຍຸ (EXP)'); ?></th>
+            <th class="c" style="width: 90px;"><?php echo tlh('ຈຳນວນ'); ?></th>
+            <th class="r" style="width: 105px;"><?php echo tlh('ຕົ້ນທຶນຕໍ່ໜ່ວຍ'); ?></th>
+            <th class="r" style="width: 115px;"><?php echo tlh('ມູນຄ່າລວມ'); ?> (<?php echo kipSymbol(); ?>)</th>
           </tr>
         </thead>
         <tbody>
           <?php if (empty($details)): ?>
             <tr>
-              <td colspan="7" class="c" style="padding: 30px; color: #64748b;">ບໍ່ມີລາຍການສິນຄ້າ</td>
+              <td colspan="7" class="c" style="padding: 30px; color: #64748b;"><?php echo tlh('ບໍ່ມີລາຍການສິນຄ້າ'); ?></td>
             </tr>
           <?php else: ?>
             <?php foreach ($details as $idx => $d): ?>
               <?php
-                $pName = !empty($d['product_name']) ? $d['product_name'] : 'ສິນຄ້າ #' . $d['product_id'];
+                $pName = !empty($d['product_name']) ? $d['product_name'] : (tl('ສິນຄ້າ') . ' #') . $d['product_id'];
                 $barcode = !empty($d['barcode']) ? $d['barcode'] : '-';
                 $unit = !empty($d['unit_name']) ? $d['unit_name'] : ($d['base_unit'] ?: 'ອັນ');
                 $qty = floatval($d['quantity'] ?? 0);
@@ -233,7 +233,7 @@ if (!empty($import['notes']) && preg_match('/PO[0-9\-]+/i', $import['notes'], $m
                 <td>
                   <div class="prod-name"><?php echo htmlspecialchars($pName); ?></div>
                   <?php if (!empty($d['batch_no'])): ?>
-                    <div class="prod-meta">ເລກຊຸດ (Batch): <?php echo htmlspecialchars($d['batch_no']); ?></div>
+                    <div class="prod-meta"><?php echo tlh('ເລກຊຸດ (Batch):'); ?> <?php echo htmlspecialchars($d['batch_no']); ?></div>
                   <?php endif; ?>
                 </td>
                 <td class="c">
@@ -259,23 +259,23 @@ if (!empty($import['notes']) && preg_match('/PO[0-9\-]+/i', $import['notes'], $m
     <!-- Summary & Totals -->
     <div class="grn-summary-row">
       <div class="grn-summary-notes">
-        <div><strong>ໝາຍເຫດ (Remarks):</strong></div>
+        <div><strong><?php echo tlh('ໝາຍເຫດ (Remarks):'); ?></strong></div>
         <div style="margin-top: 3px;">
-          <?php echo !empty($import['notes']) ? nl2br(htmlspecialchars($import['notes'])) : 'ບໍ່ມີໝາຍເຫດເພີ່ມເຕີມ'; ?>
+          <?php echo !empty($import['notes']) ? nl2br(htmlspecialchars($import['notes'])) : tl('ບໍ່ມີໝາຍເຫດເພີ່ມເຕີມ'); ?>
         </div>
       </div>
 
       <table class="grn-totals-table">
         <tr>
-          <td class="lbl">ລວມຈຳນວນລາຍການ:</td>
-          <td class="val"><?php echo number_format($totalItems); ?> ລາຍການ</td>
+          <td class="lbl"><?php echo tlh('ລວມຈຳນວນລາຍການ:'); ?></td>
+          <td class="val"><?php echo number_format($totalItems); ?> <?php echo tlh('ລາຍການ'); ?></td>
         </tr>
         <tr>
-          <td class="lbl">ລວມຈຳນວນສິນຄ້າ:</td>
-          <td class="val"><?php echo number_format($totalQty); ?> ຊິ້ນ/ໜ່ວຍ</td>
+          <td class="lbl"><?php echo tlh('ລວມຈຳນວນສິນຄ້າ:'); ?></td>
+          <td class="val"><?php echo number_format($totalQty); ?> <?php echo tlh('ຊິ້ນ/ໜ່ວຍ'); ?></td>
         </tr>
         <tr class="grand-total">
-          <td class="lbl">ມູນຄ່າລວມທັງໝົດ:</td>
+          <td class="lbl"><?php echo tlh('ມູນຄ່າລວມທັງໝົດ:'); ?></td>
           <td class="val"><?php echo number_format($grandTotal); ?> <?php echo kipSymbol(); ?></td>
         </tr>
       </table>
@@ -284,38 +284,38 @@ if (!empty($import['notes']) && preg_match('/PO[0-9\-]+/i', $import['notes'], $m
     <!-- Signatures (4-Tier Standard) -->
     <div class="grn-signatures">
       <div class="grn-sig-box">
-        <div class="grn-sig-role">ຜູ້ສົ່ງສິນຄ້າ (Delivered By)</div>
+        <div class="grn-sig-role"><?php echo tlh('ຜູ້ສົ່ງສິນຄ້າ (Delivered By)'); ?></div>
         <div class="grn-sig-line"></div>
         <div class="grn-sig-name"><?php echo !empty($import['supplier_name']) ? htmlspecialchars($import['supplier_name']) : '(............................................)'; ?></div>
-        <div class="grn-sig-date">ວັນທີ: ....../....../............</div>
+        <div class="grn-sig-date"><?php echo tlh('ວັນທີ: ....../....../............'); ?></div>
       </div>
 
       <div class="grn-sig-box">
-        <div class="grn-sig-role">ຜູ້ກວດກາສິນຄ້າ (Inspected By)</div>
+        <div class="grn-sig-role"><?php echo tlh('ຜູ້ກວດກາສິນຄ້າ (Inspected By)'); ?></div>
         <div class="grn-sig-line"></div>
         <div class="grn-sig-name">(............................................)</div>
-        <div class="grn-sig-date">ວັນທີ: ....../....../............</div>
+        <div class="grn-sig-date"><?php echo tlh('ວັນທີ: ....../....../............'); ?></div>
       </div>
 
       <div class="grn-sig-box">
-        <div class="grn-sig-role">ຜູ້ຮັບສິນຄ້າເຂົ້າສາງ (Received By)</div>
+        <div class="grn-sig-role"><?php echo tlh('ຜູ້ຮັບສິນຄ້າເຂົ້າສາງ (Received By)'); ?></div>
         <div class="grn-sig-line"></div>
         <div class="grn-sig-name"><?php echo htmlspecialchars($creatorName); ?></div>
-        <div class="grn-sig-date">ວັນທີ: <?php echo !empty($import['import_date']) ? date('d/m/Y', strtotime($import['import_date'])) : '....../....../..........'; ?></div>
+        <div class="grn-sig-date"><?php echo tlh('ວັນທີ:'); ?> <?php echo !empty($import['import_date']) ? date('d/m/Y', strtotime($import['import_date'])) : '....../....../..........'; ?></div>
       </div>
 
       <div class="grn-sig-box">
-        <div class="grn-sig-role">ຜູ້ອະນຸມັດ (Authorized By)</div>
+        <div class="grn-sig-role"><?php echo tlh('ຜູ້ອະນຸມັດ (Authorized By)'); ?></div>
         <div class="grn-sig-line"></div>
         <div class="grn-sig-name">(............................................)</div>
-        <div class="grn-sig-date">ວັນທີ: ....../....../............</div>
+        <div class="grn-sig-date"><?php echo tlh('ວັນທີ: ....../....../............'); ?></div>
       </div>
     </div>
 
     <!-- Document Footer -->
     <div class="grn-doc-footer">
-      <div>ລະບົບຈັດການສາງສິນຄ້າ MiniPOS · ເອກະສານຮັບເຂົ້າສະຕັອກຖືກຕ້ອງຕາມມາດຕະຖານ</div>
-      <div>ພິມເມື່ອ: <?php echo date('d/m/Y H:i'); ?></div>
+      <div><?php echo tlh('ລະບົບຈັດການສາງສິນຄ້າ MiniPOS · ເອກະສານຮັບເຂົ້າສະຕັອກຖືກຕ້ອງຕາມມາດຕະຖານ'); ?></div>
+      <div><?php echo tlh('ພິມເມື່ອ:'); ?> <?php echo date('d/m/Y H:i'); ?></div>
     </div>
 
   </div>

@@ -42,7 +42,7 @@ function reprintReceiptAuto() {
         }
       }).catch(function (err) {
         if (typeof Swal !== 'undefined') {
-          Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: 'ພິມຜ່ານ Bluetooth ບໍ່ສຳເລັດ — ພິມແບບປົກກະຕິແທນ', text: (err && err.message) || '', showConfirmButton: false, timer: 4000 });
+          Swal.fire({ toast: true, position: 'top-end', icon: 'error', title: '<?php echo tlj('ພິມຜ່ານ Bluetooth ບໍ່ສຳເລັດ'); ?> — <?php echo tlj('ພິມແບບປົກກະຕິແທນ'); ?>', text: (err && err.message) || '', showConfirmButton: false, timer: 4000 });
         }
         reprintReceiptFallback();
       });
@@ -192,7 +192,12 @@ function viewBillDetails(billNo) {
         var b = res.bill;
         $('#modal_date').text((b.sale_date || '') + ' ' + (b.sale_time || ''));
         $('#modal_cashier').text(b.cashier_display_name || b.user_receive || 'Admin');
-        $('#modal_customer').text(b.customer_display_name || b.customer_name || repT('reports.default_customer'));
+        var custName = (b.customer_display_name || b.customer_name || '').trim();
+        var defaultCustAliases = ['ລູກຄ້າທົ່ວໄປ', 'Walk-in Customer', 'ลูกค้าทั่วไป', '散客', '普通顾客', 'Khách lẻ', 'Khách thông thường', 'General Customer'];
+        if (!custName || defaultCustAliases.indexOf(custName) !== -1) {
+          custName = repT('reports.default_customer') || 'ລູກຄ້າທົ່ວໄປ';
+        }
+        $('#modal_customer').text(custName);
 
         if (b.bank_name) {
           $('#modal_bank_wrapper').show();

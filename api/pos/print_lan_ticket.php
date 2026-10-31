@@ -50,7 +50,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'print
 
     $png = base64_decode(substr($image, strlen($pngPrefix)), true);
     try {
-        $bytes = ($png !== false) ? escposRasterFromPng($png, lanPrinterDots($printer['paper_width'] ?? 80)) : null;
+        $dots = lanPrinterDots($printer['paper_width'] ?? 80);
+        // ບິນດຽວກັນທຸກເຄື່ອງ — ຕ່າງກັນແຕ່ຄ່າຍັບຂອງຫົວພິມແຕ່ລະແບບ (USB = ຕຳແໜ່ງດຽວກັບບິນ browser)
+        $shiftDots = $isUsb ? USB_PRINT_SHIFT_DOTS : LAN_PRINT_SHIFT_DOTS;
+        $bytes = null;
+        // bw=1: ໃບບິນຈາກ assets/js/lan-receipt.js ເປັນດຳ-ຂາວລ້ວນແລ້ວ → ທາງດ່ວນ (~0.15 s ແທນ ~1.5 s)
+        if ($png !== false && ($_POST['bw'] ?? '') === '1') {
+            $bytes = escposRasterFromBwPng($png, $dots, $shiftDots);
+        }
+        if ($bytes === null && $png !== false) {
+            $bytes = escposRasterFromPng($png, $dots, $shiftDots);
+        }
     } catch (Throwable $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
         exit();

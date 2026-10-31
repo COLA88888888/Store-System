@@ -10,7 +10,7 @@ $base_path = (basename($scriptDir) === 'pages') ? '../' : '../../';
 
 require_once dirname(__DIR__, 2) . '/config/db.php';
 
-if (!hasPermission('report') && !hasPermission('expiry')) {
+if (!hasPermission('expiry_report')) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -29,8 +29,8 @@ $filterStore = $multiBranch
 
 $status = $_GET['status'] ?? 'all';
 if (!in_array($status, ['all', 'expired', 'near'], true)) $status = 'all';
-// "ຈະໝົດອາຍຸພາຍໃນ N ວັນ" — only spans shorter than the alert window still narrow the list
-$withinOptions = array_values(array_filter([1, 3, 7, 15, 30, 60, 90], function ($d) use ($alertDays) { return $d < $alertDays; }));
+// ຕົວເລືອກ "ຈະໝົດອາຍຸພາຍໃນ N ວັນ"
+$withinOptions = [1, 3, 7, 15, 30, 60, 90];
 $within = (int)($_GET['within'] ?? 0);                 // 0 = any; else expires within N days (incl. expired)
 if (!in_array($within, $withinOptions, true)) $within = 0;
 $search = trim($_GET['q'] ?? '');
@@ -38,10 +38,12 @@ $perPageRaw = $_GET['per_page'] ?? '25';
 $perPage = $perPageRaw === 'all' ? 0 : max(5, min(500, (int)$perPageRaw));
 $page = max(1, (int)($_GET['page'] ?? 1));
 
-// Base filter: only expired + expiring within the alert window, then branch + search +
-// "within N days"; the status card is applied on top.
+// ກຳນົດໄລຍະເວລາແຈ້ງເຕືອນ: ຖ້າເລືອກ within ໃຫ້ໃຊ້ຕາມ within; ຖ້າເລືອກທັງໝົດ ໃຫ້ໃຊ້ຕາມ alertDays
+$effectiveDays = ($within > 0) ? $within : $alertDays;
+
+// Base filter: only expired + expiring within the alert window, then branch + search
 $baseWhere = "p.expiry_date IS NOT NULL AND p.expiry_date <= DATE_ADD(CURDATE(), INTERVAL ? DAY)";
-$baseParams = [$alertDays];
+$baseParams = [$effectiveDays];
 if ($filterStore > 0) {
     $baseWhere .= " AND p.store_id = ?";
     $baseParams[] = $filterStore;
@@ -50,10 +52,6 @@ if ($search !== '') {
     $baseWhere .= " AND (p.product_name LIKE ? OR p.barcode LIKE ? OR CAST(p.product_id AS CHAR) LIKE ?)";
     $like = '%' . $search . '%';
     array_push($baseParams, $like, $like, $like);
-}
-if ($within > 0) {
-    $baseWhere .= " AND p.expiry_date <= DATE_ADD(CURDATE(), INTERVAL ? DAY)";
-    $baseParams[] = $within;
 }
 
 $counts = ['all' => 0, 'expired' => 0, 'near' => 0];
@@ -124,7 +122,7 @@ $statIcons  = ['all' => 'fa-clipboard-list', 'expired' => 'fa-times-circle', 'ne
 $statLabels = [
     'all'     => t('expiry.card_attention', 'ສິນຄ້າໃກ້ໝົດອາຍຸ ແລະ ໝົດອາຍຸ'),
     'expired' => t('expiry.tab_expired', 'ໝົດອາຍຸແລ້ວ'),
-    'near'    => sprintf(t('expiry.card_near', 'ໃກ້ໝົດອາຍຸ (ບໍ່ເກີນ %s ວັນ)'), $alertDays),
+    'near'    => sprintf(t('expiry.card_near', 'ໃກ້ໝົດອາຍຸ (ບໍ່ເກີນ %s ວັນ)'), $effectiveDays),
 ];
 ?>
 
@@ -133,7 +131,7 @@ $statLabels = [
   <div class="exr-header mb-3 no-print">
     <div>
       <h5 class="exr-title"><?php echo htmlspecialchars(t('expiry.report_title', 'ລາຍງານສິນຄ້າໝົດອາຍຸ')); ?></h5>
-      <div class="exr-sub"><?php echo htmlspecialchars(sprintf(t('expiry.report_subtitle', 'ສິນຄ້າທີ່ໝົດອາຍຸແລ້ວ ແລະ ໃກ້ໝົດອາຍຸ (ແຈ້ງເຕືອນກ່ອນ %s ວັນ)'), $alertDays)); ?></div>
+      <div class="exr-sub"><?php echo htmlspecialchars(sprintf(t('expiry.report_subtitle', 'ສິນຄ້າທີ່ໝົດອາຍຸແລ້ວ ແລະ ໃກ້ໝົດອາຍຸ (ແຈ້ງເຕືອນກ່ອນ %s ວັນ)'), $effectiveDays)); ?></div>
     </div>
     <div class="exr-actions">
       <?php require __DIR__ . '/../../layouts/partials/report/export_buttons.php'; /* Excel / PDF / ພິມ */ ?>
@@ -158,7 +156,7 @@ $statLabels = [
           <div class="ico"><i class="fas <?php echo $statIcons[$key]; ?>"></i></div>
         </div>
         <div class="pct"><?php echo $key === 'all'
-            ? htmlspecialchars(sprintf(t('expiry.stat_all_hint', 'ແຈ້ງເຕືອນກ່ອນ %s ວັນ'), $alertDays))
+            ? htmlspecialchars(sprintf(t('expiry.stat_all_hint', 'ແຈ້ງເຕືອນກ່ອນ %s ວັນ'), $effectiveDays))
             : htmlspecialchars(sprintf(t('expiry.stat_pct', '%s%% ຂອງທັງໝົດ'), $pct)); ?></div>
       </a>
     <?php endforeach; ?>
@@ -244,7 +242,7 @@ $statLabels = [
                 } elseif ($days === 0) {
                     $pill = ['danger', t('expiry.status_today', 'ໝົດອາຍຸມື້ນີ້')];
                     $color = '#dc2626';
-                } elseif ($days <= $alertDays) {
+                } elseif ($days <= $effectiveDays) {
                     $pill = ['warning', t('expiry.status_near', 'ໃກ້ໝົດອາຍຸ')];
                     $color = '#b45309';
                 } else {
@@ -347,7 +345,7 @@ $statLabels = [
 
 <?php
 // ພິມ / Excel / PDF — ເອົາຕາຕະລາງ .exr-table (ທຸກລາຍການ ຫຼັງໂຫຼດ per_page=all) ອອກເປັນລາຍງານ Phetsarath OT
-$rptMeta = [$tabs[$status]['label'], sprintf(t('expiry.stat_all_hint', 'ແຈ້ງເຕືອນກ່ອນ %s ວັນ'), $alertDays)];
+$rptMeta = [$tabs[$status]['label'], sprintf(t('expiry.stat_all_hint', 'ແຈ້ງເຕືອນກ່ອນ %s ວັນ'), $effectiveDays)];
 if ($within > 0)    $rptMeta[] = t('expiry.within_label', 'ຈະໝົດອາຍຸພາຍໃນ:') . ' ' . sprintf(t('expiry.dur_day', '%s ວັນ'), $within);
 if ($search !== '') $rptMeta[] = t('expiry.search_label', 'ຄົ້ນຫາ:') . ' ' . $search;
 $rptExport = [

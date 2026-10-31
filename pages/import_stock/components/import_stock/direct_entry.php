@@ -113,12 +113,8 @@
       unitKey = targetUnit.id;
       unitName = targetUnit.unit_name;
       multiplier = parseInt(targetUnit.multiplier || 1, 10);
-      if (targetUnit.bprice && parseFloat(targetUnit.bprice) > 0) {
-        costPrice = parseFloat(targetUnit.bprice);
-      }
-      if (targetUnit.price && parseFloat(targetUnit.price) > 0) {
-        sellPrice = parseFloat(targetUnit.price);
-      }
+      costPrice = (targetUnit.bprice && parseFloat(targetUnit.bprice) > 0) ? parseFloat(targetUnit.bprice) : costPrice * multiplier;
+      sellPrice = (targetUnit.price && parseFloat(targetUnit.price) > 0) ? parseFloat(targetUnit.price) : sellPrice * multiplier;
     }
 
     var expiryDate = ($('#direct_expiry_date').val() || '').trim();
@@ -305,9 +301,9 @@
       if (foundU) {
         unitName = foundU.unit_name;
         multiplier = parseInt(foundU.multiplier || 1);
-        if (foundU.bprice && parseFloat(foundU.bprice) > 0) {
-          costPrice = parseFloat(foundU.bprice);
-        }
+        // ລາຄາຊື້/ຂາຍ ຂອງຫົວໜ່ວຍນັ້ນ (ແພັກ/ແກັດ); ບໍ່ໄດ້ຕັ້ງ → ລາຄາຫົວໜ່ວຍຫຼັກ × ຈຳນວນຕໍ່ຫົວໜ່ວຍ
+        costPrice = (foundU.bprice && parseFloat(foundU.bprice) > 0) ? parseFloat(foundU.bprice) : costPrice * multiplier;
+        sellPrice = (foundU.price && parseFloat(foundU.price) > 0) ? parseFloat(foundU.price) : sellPrice * multiplier;
       }
     }
 

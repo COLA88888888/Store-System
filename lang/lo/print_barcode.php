@@ -15,6 +15,7 @@ return [
     'print_barcode.barcode_size_label' => 'ຂະໜາດບາໂຄ້ດ:',
     'print_barcode.barcode_width' => 'ກວ້າງ',
     'print_barcode.barcode_height' => 'ສູງ',
+    'print_barcode.horizontal_offset' => 'ຍັບຊ້າຍ/ຂວາ',
     'print_barcode.vertical_offset' => 'ຍັບຂຶ້ນ/ລົງ',
     'print_barcode.label_pitch' => 'ໄລຍະຕໍ່ດວງ',
     'print_barcode.label_pitch_hint' => 'ວັດຈາກຂອບເທິງຂອງດວງໜຶ່ງ ຫາ ຂອບເທິງຂອງດວງຖັດໄປ (ສະຕິກເກີ + ຮ່ອງ) — ແກ້ອາການພິມຫຼາຍດວງແລ້ວເລື່ອນສະສົມ',

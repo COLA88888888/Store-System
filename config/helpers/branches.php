@@ -146,9 +146,9 @@ if (!function_exists('formatProductIdColored')) {
         }
 
         return '<span class="product-code-badge" style="font-family:\'Courier New\',Courier,monospace; font-weight:700; letter-spacing:0.5px;">' .
-               '<span style="color:#dc2626;" title="ລະຫັດສາຂາ">' . htmlspecialchars($branch) . '</span>' .
-               '<span style="color:#2563eb;" title="ລະຫັດປະເພດສິນຄ້າ">' . htmlspecialchars($category) . '</span>' .
-               '<span style="color:#0f172a;" title="ລະຫັດສິນຄ້າ">' . htmlspecialchars($seq) . '</span>' .
+               ('<span style="color:#dc2626;" title="' . tl('ລະຫັດສາຂາ') . '">') . htmlspecialchars($branch) . '</span>' .
+               ('<span style="color:#2563eb;" title="' . tl('ລະຫັດປະເພດສິນຄ້າ') . '">') . htmlspecialchars($category) . '</span>' .
+               ('<span style="color:#0f172a;" title="' . tl('ລະຫັດສິນຄ້າ') . '">') . htmlspecialchars($seq) . '</span>' .
                '</span>';
     }
 }
@@ -299,5 +299,36 @@ if (!function_exists('branchHasShifts')) {
         } catch (Throwable $e) {
             return false;
         }
+    }
+}
+if (!function_exists('generateTransferCode')) {
+    /**
+     * ເລກທີໃບໂອນສິນຄ້າ: TRF-YYYYMMDD-[ລະຫັດສາຂາ][ລຳດັບ 4 ຫຼັກ]
+     * ຕົວຢ່າງ: ສາຂາ 1 -> TRF-20261030-10001; ສາຂາ 2 -> TRF-20261030-20001
+     */
+    function generateTransferCode(PDO $pdo, $storeId, $dateStr = null) {
+        $st = $pdo->prepare("SELECT store_code FROM st_tbstore WHERE store_id = ? LIMIT 1");
+        $st->execute([(int)$storeId]);
+        $code = preg_replace('/[^0-9A-Za-z]/', '', (string)$st->fetchColumn());
+        if ($code === '') $code = (string)(int)$storeId;
+
+        $dateObj = $dateStr ? new DateTime($dateStr) : new DateTime();
+        $todayStr = $dateObj->format('Ymd');
+        $prefix = 'TRF-' . $todayStr . '-' . $code;
+
+        $mx = $pdo->prepare("SELECT COALESCE(MAX(CAST(SUBSTRING(transfer_code, ?) AS UNSIGNED)), 0)
+                             FROM st_stock_transfers WHERE transfer_code REGEXP ?");
+        $mx->execute([strlen($prefix) + 1, '^' . preg_quote($prefix, '/') . '[0-9]{4,}$']);
+        $nextSeq = (int)$mx->fetchColumn() + 1;
+
+        $chk = $pdo->prepare("SELECT 1 FROM st_stock_transfers WHERE transfer_code = ? LIMIT 1");
+        for ($guard = 0; $guard < 10000; $guard++, $nextSeq++) {
+            $candidate = $prefix . str_pad((string)$nextSeq, 4, '0', STR_PAD_LEFT);
+            $chk->execute([$candidate]);
+            if (!$chk->fetchColumn()) {
+                return $candidate;
+            }
+        }
+        return $prefix . str_pad((string)$nextSeq, 4, '0', STR_PAD_LEFT);
     }
 }

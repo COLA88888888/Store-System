@@ -21,6 +21,7 @@ return [
     'import_stock.supplier_empty_hint' => 'ยังไม่มีผู้จำหน่าย — เพิ่มได้ที่เมนู "จัดการผู้จัดจำหน่าย"',
     'import_stock.scan_barcode_label' => 'สแกนบาร์โค้ด / รหัสสินค้า',
     'import_stock.scan_barcode_placeholder' => 'สแกนบาร์โค้ด หรือ ป้อนรหัส...',
+    'import_stock.scan_hint' => 'สแกนหรือกด Enter — สินค้าเข้ารายการทันที แก้จำนวน หน่วย และวันหมดอายุในตารางด้านล่าง',
     'import_stock.open_select_product_modal' => 'เปิดหน้าต่างเลือกสินค้า',
     'import_stock.select_product_button' => 'เลือกสินค้า',
     'import_stock.qty_label' => 'จำนวน',

@@ -154,12 +154,12 @@ $items_sql = "
         " . (!empty($from_date) ? " AND s.sale_date >= :from_date" : "") . "
         " . (!empty($to_date) ? " AND s.sale_date <= :to_date" : "") . "
         " . (($filter_store_id > 0 && $hasStoreIdCol) ? " AND s.{$storeColName} = :items_filter_store_id" : "") . "
-        " . (!empty($search) ? " AND (d.save_proname LIKE :search OR d.save_proid LIKE :search OR p.product_name LIKE :search)" : "") . "
+        " . (!empty($search) ? " AND (d.save_proname LIKE :search OR d.save_proid LIKE :search OR p.product_name LIKE :search)" : "") . ("
         {$currencyJoinSql}
         {$shiftJoinSql}
-    GROUP BY COALESCE(cat.category_name, ''), BINARY COALESCE(d.save_proname, p.product_name, 'ບໍ່ລະບຸຊື່ສິນຄ້າ')
+    GROUP BY COALESCE(cat.category_name, ''), BINARY COALESCE(d.save_proname, p.product_name, '" . tl('ບໍ່ລະບຸຊື່ສິນຄ້າ') . "')
     ORDER BY qty_sold DESC
-";
+");
 $items_stmt = $pdo->prepare($items_sql);
 $item_params = [];
 if (!empty($from_date)) $item_params[':from_date'] = $from_date;

@@ -78,10 +78,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
 
         if ($target_mode === 'product' && $product_id <= 0) {
-            $message = 'ກະລຸນາເລືອກສິນຄ້າທີ່ຕ້ອງການປັບລາຄາ!';
+            $message = tl('ກະລຸນາເລືອກສິນຄ້າທີ່ຕ້ອງການປັບລາຄາ!');
             $message_type = 'danger';
         } elseif ($target_mode === 'category' && $category_id <= 0) {
-            $message = 'ກະລຸນາເລືອກໝວດໝູ່ສິນຄ້າ!';
+            $message = tl('ກະລຸນາເລືອກໝວດໝູ່ສິນຄ້າ!');
             $message_type = 'danger';
         } else {
             try {
@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 if (empty($targetProducts)) {
                     if ($pdo->inTransaction()) $pdo->rollBack();
-                    $message = 'ບໍ່ພົບສິນຄ້າໃນເງື່ອນໄຂທີ່ເລືອກ!';
+                    $message = tl('ບໍ່ພົບສິນຄ້າໃນເງື່ອນໄຂທີ່ເລືອກ!');
                     $message_type = 'warning';
                 } else {
                     $count = 0;
@@ -168,13 +168,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     }
 
                     $pdo->commit();
-                    $message = "ປັບລາຄາສິນຄ້າສຳເລັດແລ້ວ ທັງໝົດ {$count} ລາຍການ!";
+                    $message = ("" . tl('ປັບລາຄາສິນຄ້າສຳເລັດແລ້ວ ທັງໝົດ') . " {$count} " . tl('ລາຍການ!') . "");
                     $message_type = 'success';
                     logActivity($pdo, "ປັບລາຄາສິນຄ້າ", "ໂໝດ: {$target_mode}, ປັບທັງໝົດ: {$count} ລາຍການ (ສາຂາ #$targetStoreId)");
                 }
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
-                $message = 'ຜິດພາດ: ' . $e->getMessage();
+                $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                 $message_type = 'danger';
             }
         }
@@ -192,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 if (!$row) {
                     if ($pdo->inTransaction()) $pdo->rollBack();
-                    $message = 'ບໍ່ພົບປະຫວັດການປັບລາຄານີ້!';
+                    $message = tl('ບໍ່ພົບປະຫວັດການປັບລາຄານີ້!');
                     $message_type = 'warning';
                 } else {
                     // Put the product's price(s) back to what they were before this adjustment
@@ -212,12 +212,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $pdo->prepare("DELETE FROM st_price_adjustments WHERE adjust_id = ?")->execute([$adjust_id]);
                     $pdo->commit();
                     logActivity($pdo, "ລຶບການປັບລາຄາ", "ຄືນລາຄາເດີມ ສິນຄ້າ ID: " . ($row['product_id'] ?? '-'));
-                    $message = 'ລຶບປະຫວັດ ແລະ ຄືນລາຄາເດີມສຳເລັດ!';
+                    $message = tl('ລຶບປະຫວັດ ແລະ ຄືນລາຄາເດີມສຳເລັດ!');
                     $message_type = 'success';
                 }
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
-                $message = 'ຜິດພາດ: ' . $e->getMessage();
+                $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                 $message_type = 'danger';
             }
         }
@@ -230,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $remark            = trim($_POST['remark'] ?? '');
 
         if ($adjust_id <= 0) {
-            $message = 'ຂໍ້ມູນບໍ່ຖືກຕ້ອງ!';
+            $message = tl('ຂໍ້ມູນບໍ່ຖືກຕ້ອງ!');
             $message_type = 'danger';
         } else {
             try {
@@ -243,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                 if (!$row || empty($row['product_id'])) {
                     if ($pdo->inTransaction()) $pdo->rollBack();
-                    $message = 'ບໍ່ພົບປະຫວັດ ຫຼື ບໍ່ແມ່ນລາຍການສິນຄ້າ!';
+                    $message = tl('ບໍ່ພົບປະຫວັດ ຫຼື ບໍ່ແມ່ນລາຍການສິນຄ້າ!');
                     $message_type = 'warning';
                 } else {
                     $oldB = floatval($row['old_bprice']);
@@ -268,12 +268,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                     $pdo->commit();
                     logActivity($pdo, "ແກ້ໄຂການປັບລາຄາ", "ສິນຄ້າ ID: " . $row['product_id']);
-                    $message = 'ແກ້ໄຂການປັບລາຄາສຳເລັດ!';
+                    $message = tl('ແກ້ໄຂການປັບລາຄາສຳເລັດ!');
                     $message_type = 'success';
                 }
             } catch (Exception $e) {
                 if ($pdo->inTransaction()) $pdo->rollBack();
-                $message = 'ຜິດພາດ: ' . $e->getMessage();
+                $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                 $message_type = 'danger';
             }
         }

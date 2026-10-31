@@ -172,4 +172,11 @@ return [
 
     // Admin-account edit lock
     'permissions.admin_locked_badge' => '只有第一位管理员可以编辑此账号',
+    'permissions.module_shift_close_report_title' => '↳ 交班报表',
+    'permissions.module_shift_revenue_report_title' => '↳ 班次营业额报表',
+    'permissions.module_clear_data_title' => '清除系统数据',
+    'permissions.module_clear_data_desc' => '清除销售单据、交班记录、库存明细或完全重置系统',
+    'permissions.module_shifts_title' => '班次管理',
+    'permissions.module_shifts_desc' => '设置班次、开关班时间及当班员工',
+    'permissions.module_expiry_report_title' => '↳ 过期商品报表',
 ];

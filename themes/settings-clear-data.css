@@ -1,0 +1,120 @@
+/* ໜ້າ ລຶບ/ລ້າງຂໍ້ມູນລະບົບ (pages/settings/clear_data/index.php) */
+.cd-card {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px;
+  background: #fff;
+}
+.cd-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.cd-group-title {
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: #0f172a;
+  margin: 0;
+  cursor: pointer;
+}
+.cd-group-title i {
+  width: 22px;
+  text-align: center;
+  margin-right: 6px;
+}
+.cd-group-toggle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 3px 10px;
+}
+.cd-items {
+  padding: 6px 8px 8px;
+}
+.cd-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  margin: 0;
+  width: 100%;
+}
+.cd-item:hover {
+  background: #f8fafc;
+}
+.cd-item.is-checked {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+.cd-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  flex-shrink: 0;
+  accent-color: #dc2626;
+  cursor: pointer;
+}
+.cd-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.95rem;
+}
+.cd-item-body {
+  flex: 1;
+  min-width: 0;
+}
+.cd-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cd-item-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+.cd-item-desc {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.45;
+  margin-top: 2px;
+}
+.cd-count {
+  font-size: 0.74rem;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 2px 8px;
+  background: #f1f5f9;
+  color: #475569;
+  white-space: nowrap;
+}
+.cd-count.has-data {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.cd-sticky-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.96);
+  border-top: 1px solid #e2e8f0;
+  padding: 12px 0;
+  margin-top: 8px;
+}
+.cd-selected-count {
+  font-weight: 700;
+  color: #dc2626;
+}

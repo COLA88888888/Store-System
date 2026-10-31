@@ -99,12 +99,12 @@
 
 <?php $shiftSelBoxStyle = 'flex: 1 1 150px; width: 100%;'; require dirname(__DIR__) . '/shift_filter_select.php'; /* ບັອກເລືອກກະ — ສາຂາທີ່ບໍ່ມີກະ: ເຊື່ອງ */ ?>
 
-      <!-- Currency Filter (ສະກຸນເງິນ) -->
-      <div style="flex: 1 1 150px; width: 100%;">
+      <!-- Currency Filter (ສະກຸນເງິນ) - ບັອກກະທັດຮັດ ບໍ່ຍາວໃນທຸກໜ້າຈໍ -->
+      <div style="flex: 0 0 140px; width: 140px; max-width: 140px;">
         <label class="font-weight-bold text-dark mb-1 d-block" style="font-size: 0.82rem; white-space: nowrap;">
           <i class="fas fa-coins text-warning mr-1"></i> <?php echo htmlspecialchars(t('reports.currency_label', 'ສະກຸນເງິນ:')); ?>
         </label>
-        <select name="currency_filter" class="form-control form-control-sm font-weight-bold" onchange="this.form.submit()" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #a16207; color: #854d0e; background: #fefce8; width: 100%;">
+        <select name="currency_filter" class="form-control form-control-sm font-weight-bold" onchange="this.form.submit()" style="border-radius: 8px; height: 38px; font-size: 0.85rem; border: 1.5px solid #a16207; color: #854d0e; background: #fefce8; width: 140px; max-width: 140px !important;">
           <option value=""><?php echo htmlspecialchars(t('reports.all_currencies_opt', '-- ທຸກສະກຸນເງິນ --')); ?></option>
           <?php foreach (getCurrencyMeta() as $__cc => $__ci): ?>
             <option value="<?php echo htmlspecialchars($__cc); ?>" <?php echo $currency_filter === $__cc ? 'selected' : ''; ?>>

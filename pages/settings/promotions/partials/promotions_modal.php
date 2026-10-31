@@ -12,11 +12,11 @@
         </div>
         <div class="modal-body p-4">
           <div class="row">
-            <div class="col-md-7 mb-3">
+            <div class="col-md-7 mb-3 mp-wide">
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_name', 'ຊື່ໂປຣ:')); ?> <span class="text-danger">*</span></label>
               <input type="text" name="promo_name" class="form-control" placeholder="<?php echo htmlspecialchars(t('promotions.field_name_ph', 'ເຊັ່ນ: ຫຼຸດພິເສດທ້າຍປີ, ສ່ວນຫຼຸດ 10%...')); ?>" required style="height: 42px;">
             </div>
-            <div class="col-md-5 mb-3">
+            <div class="col-md-5 mb-3 mp-wide">
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_type', 'ປະເພດ:')); ?></label>
               <select name="promo_type" id="add_promo_type" class="form-control" style="height: 42px;" onchange="togglePromoType(this.value, 'add')">
                 <option value="discount"><?php echo htmlspecialchars(t('promotions.opt_discount', 'ສ່ວນຫຼຸດທົ່ວໄປ')); ?></option>
@@ -144,11 +144,11 @@
         </div>
         <div class="modal-body p-4">
           <div class="row">
-            <div class="col-md-7 mb-3">
+            <div class="col-md-7 mb-3 mp-wide">
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_name', 'ຊື່ໂປຣ:')); ?> <span class="text-danger">*</span></label>
               <input type="text" name="promo_name" id="edit_promo_name" class="form-control" required style="height: 42px;">
             </div>
-            <div class="col-md-5 mb-3">
+            <div class="col-md-5 mb-3 mp-wide">
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_type', 'ປະເພດ:')); ?></label>
               <select name="promo_type" id="edit_promo_type" class="form-control" style="height: 42px;" onchange="togglePromoType(this.value, 'edit')">
                 <option value="discount"><?php echo htmlspecialchars(t('promotions.opt_discount', 'ສ່ວນຫຼຸດທົ່ວໄປ')); ?></option>

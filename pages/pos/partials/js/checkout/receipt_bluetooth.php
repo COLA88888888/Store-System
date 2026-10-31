@@ -29,10 +29,10 @@ function btPaintStatus() {
   var esc = function (t) { return $('<div>').text(t || '').html(); };
   var name = window.MiniposBtPrinter ? MiniposBtPrinter.info().name : '';
   $('.bt-printer-line').html(
-    !s.enabled ? '<span class="text-muted"><i class="fas fa-print mr-1"></i>ພິມອອກ: ເຄື່ອງພິມປົກກະຕິ</span>'
-    : ok ? '<span class="text-success font-weight-bold"><i class="fab fa-bluetooth-b mr-1"></i>ພິມອອກ: ' + esc(name) + ' (ເຊື່ອມຕໍ່ຢູ່)</span>'
-         : '<span class="text-warning font-weight-bold"><i class="fas fa-exclamation-triangle mr-1"></i>ເຄື່ອງພິມ Bluetooth ບໍ່ໄດ້ເຊື່ອມຕໍ່</span>' +
-           ' <span class="text-muted">— ເຊື່ອມຢູ່ ຕັ້ງຄ່າ › ເຄື່ອງພິມ</span>'
+    !s.enabled ? '<span class="text-muted"><i class="fas fa-print mr-1"></i><?php echo tlj('ພິມອອກ: ເຄື່ອງພິມປົກກະຕິ'); ?></span>'
+    : ok ? '<span class="text-success font-weight-bold"><i class="fab fa-bluetooth-b mr-1"></i><?php echo tlj('ພິມອອກ:'); ?> ' + esc(name) + ' <?php echo tlj('(ເຊື່ອມຕໍ່ຢູ່)'); ?></span>'
+         : '<span class="text-warning font-weight-bold"><i class="fas fa-exclamation-triangle mr-1"></i><?php echo tlj('ເຄື່ອງພິມ Bluetooth ບໍ່ໄດ້ເຊື່ອມຕໍ່'); ?></span>' +
+           ' <span class="text-muted">— <?php echo tlj('ເຊື່ອມຢູ່ ຕັ້ງຄ່າ'); ?> › <?php echo tlj('ເຄື່ອງພິມ'); ?></span>'
   );
 }
 
@@ -81,7 +81,7 @@ function btNotice(icon, title, text) {
         return true;
       }).catch(function (err) {
         btPaintStatus();
-        btNotice('error', 'ພິມຜ່ານ Bluetooth ບໍ່ສຳເລັດ', ((err && err.message) || '') + ' — ພິມແບບປົກກະຕິແທນ');
+        btNotice('error', '<?php echo tlj('ພິມຜ່ານ Bluetooth ບໍ່ສຳເລັດ'); ?>', ((err && err.message) || '') + ' — <?php echo tlj('ພິມແບບປົກກະຕິແທນ'); ?>');
         return normal();
       });
     });

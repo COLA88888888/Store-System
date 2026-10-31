@@ -2,6 +2,13 @@
 // pages/products — ປຸ່ມ/popup ເພີ່ມດ່ວນ ຫົວໜ່ວຍ, ໂຊນ, ຊັ້ນວາງ + ແຖບເພີ່ມຫຼາຍລາຍການ/Excel
 // strings - Chinese
 return [
+    'products_q.add_category_link' => '添加分类',
+    'products_q.add_btn_short' => '添加',
+    'products_q.cat_title' => '添加新分类',
+    'products_q.cat_ph' => '输入分类名称，例如：饮料、零食...',
+    'products_q.cat_required' => '请输入分类名称！',
+    'products_q.cat_added' => '分类添加成功',
+    'products_q.cat_failed' => '添加分类失败',
     'products_q.add_unit_link' => '添加单位',
     'products_q.add_zone_link' => '添加区域',
     'products_q.add_shelf_link' => '添加货架',
@@ -38,6 +45,13 @@ return [
     'products_q.shelf_all_rows' => '货架（应用于所有行）',
     'products_q.zone_none_opt' => '-- 不指定 / 选择区域 --',
     'products_q.shelf_none_opt' => '-- 不指定 / 选择货架 --',
+    'products_q.no_zone' => '-- 暂无分区数据 --',
+    'products_q.no_zone_short' => '-- 无分区 --',
+    'products_q.no_shelf' => '-- 暂无货架数据 --',
+    'products_q.no_shelf_short' => '-- 无货架 --',
+    'products_q.no_shelf_in_zone' => '-- 该分区暂无货架 --',
+    'products_q.select_zone' => '-- 选择分区 --',
+    'products_q.select_shelf' => '-- 选择货架 --',
     'products_q.excel_import' => '从 Excel 导入',
     'products_q.excel_template' => '下载模板',
     'products_q.excel_columns' => '列：类别、商品名称、条码、单位、进价、售价、供应商、区域、货架',
@@ -51,4 +65,6 @@ return [
     'products_q.miss_category' => '系统中未找到的类别',
     'products_q.miss_unit' => '系统中未找到的单位',
     'products_q.miss_supplier' => '未找到供应商（将留空）',
+    'products_q.add_category_btn' => '添加分类',
+    'products_q.add_unit_btn' => '添加单位',
 ];

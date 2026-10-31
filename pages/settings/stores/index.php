@@ -14,7 +14,7 @@ $base_path = '../../../';
 require_once __DIR__ . '/../../../config/db.php';
 
 // Check authorization
-if (empty($_SESSION['user_id']) || (!hasPermission('stores') && !hasPermission('setup'))) {
+if (empty($_SESSION['user_id']) || (!hasPermission('stores'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
 }
@@ -34,20 +34,20 @@ function saveStoreImageUpload($field, $prefix, $targetDir, &$error) {
     $f = $_FILES[$field];
     if ($f['error'] !== UPLOAD_ERR_OK) {
         $error = ($f['error'] === UPLOAD_ERR_INI_SIZE || $f['error'] === UPLOAD_ERR_FORM_SIZE)
-            ? 'ຮູບໃຫຍ່ເກີນກຳນົດ' : ('ອັບໂຫຼດຮູບບໍ່ສຳເລັດ (code ' . (int)$f['error'] . ')');
+            ? tl('ຮູບໃຫຍ່ເກີນກຳນົດ') : ((tl('ອັບໂຫຼດຮູບບໍ່ສຳເລັດ') . ' (code ') . (int)$f['error'] . ')');
         return null;
     }
     $info = @getimagesize($f['tmp_name']);
     $extByType = [IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_WEBP => 'webp', IMAGETYPE_GIF => 'gif'];
     if (!$info || !isset($extByType[$info[2]])) {
-        $error = 'ໄຟລ໌ບໍ່ແມ່ນຮູບ JPG / PNG / WEBP / GIF';
+        $error = (tl('ໄຟລ໌ບໍ່ແມ່ນຮູບ') . ' JPG / PNG / WEBP / GIF');
         return null;
     }
     if (!is_dir($targetDir)) @mkdir($targetDir, 0777, true);
     // time() + random suffix: two saves in the same second must not reuse (or overwrite) a name
     $name = $prefix . time() . '_' . mt_rand(100, 999) . '.' . $extByType[$info[2]];
     if (!@move_uploaded_file($f['tmp_name'], $targetDir . $name)) {
-        $error = 'ບັນທຶກຮູບລົງເຊີເວີບໍ່ໄດ້ — ກວດສອບສິດໂຟນເດີ';
+        $error = (tl('ບັນທຶກຮູບລົງເຊີເວີບໍ່ໄດ້') . ' — ' . tl('ກວດສອບສິດໂຟນເດີ'));
         return null;
     }
     return $name;
@@ -117,8 +117,8 @@ function previewStoreLogo(input) {
     if (!allowed.includes(file.type)) {
       Swal.fire({
         icon: 'error',
-        title: 'ໄຟລ໌ບໍ່ຖືກຕ້ອງ',
-        text: 'ກະລຸນາເລືອກຮູບທີ່ເປັນ JPG, PNG, WEBP ຫຼື GIF ເທົ່ານັ້ນ!',
+        title: '<?php echo tlj('ໄຟລ໌ບໍ່ຖືກຕ້ອງ'); ?>',
+        text: '<?php echo tlj('ກະລຸນາເລືອກຮູບທີ່ເປັນ JPG, PNG, WEBP ຫຼື GIF ເທົ່ານັ້ນ!'); ?>',
         confirmButtonColor: '#2563eb'
       });
       input.value = '';
@@ -145,11 +145,11 @@ function previewStoreLogo(input) {
 function removeStoreLogo() {
   Swal.fire({
     icon: 'warning',
-    title: 'ລຶບຮູບໂລໂກ້?',
-    text: 'ໂລໂກ້ຈະຖືກເອົາອອກ ເມື່ອກົດບັນທຶກ',
+    title: '<?php echo tlj('ລຶບຮູບໂລໂກ້?'); ?>',
+    text: '<?php echo tlj('ໂລໂກ້ຈະຖືກເອົາອອກ ເມື່ອກົດບັນທຶກ'); ?>',
     showCancelButton: true,
-    confirmButtonText: 'ຕົກລົງ',
-    cancelButtonText: 'ຍົກເລີກ',
+    confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
+    cancelButtonText: '<?php echo tlj('ຍົກເລີກ'); ?>',
     confirmButtonColor: '#dc3545',
     cancelButtonColor: '#64748b'
   }).then(function(r) {
@@ -172,13 +172,13 @@ function previewStoreQr(input) {
 }
 
 function updateReceiptPreview() {
-  var name = document.getElementById('input_store_name').value || 'ຊື່ຮ້ານຄ້າ';
+  var name = document.getElementById('input_store_name').value || '<?php echo tlj('ຊື່ຮ້ານຄ້າ'); ?>';
   var tel = document.getElementById('input_store_tel').value || '-';
   var address = document.getElementById('input_store_address').value || '-';
-  var footer = document.getElementById('input_store_footer').value || 'ຂອບໃຈທີ່ມາອຸດໜູນ!';
+  var footer = document.getElementById('input_store_footer').value || '<?php echo tlj('ຂອບໃຈທີ່ມາອຸດໜູນ!'); ?>';
 
   document.getElementById('receipt_name').textContent = name;
-  document.getElementById('receipt_tel').textContent = 'ໂທ: ' + tel;
+  document.getElementById('receipt_tel').textContent = '<?php echo tlj('ໂທ:'); ?> ' + tel;
   document.getElementById('receipt_address').textContent = address;
   document.getElementById('receipt_footer').textContent = footer;
 }
@@ -212,10 +212,10 @@ $(document).ready(function() {
       e.preventDefault();
       Swal.fire({
         icon: 'warning',
-        title: 'ກະລຸນາປ້ອນຂໍ້ມູນ',
-        text: 'ກະລຸນາປ້ອນ "ຊື່ຮ້ານຄ້າ / ບໍລິສັດ" ກ່ອນບັນທຶກ!',
+        title: '<?php echo tlj('ກະລຸນາປ້ອນຂໍ້ມູນ'); ?>',
+        text: '<?php echo tlj('ກະລຸນາປ້ອນ'); ?> "<?php echo tlj('ຊື່ຮ້ານຄ້າ / ບໍລິສັດ'); ?>" <?php echo tlj('ກ່ອນບັນທຶກ!'); ?>',
         confirmButtonColor: '#2563eb',
-        confirmButtonText: 'ຕົກລົງ'
+        confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>'
       }).then(function() {
         $('#input_store_name').focus();
       });
@@ -226,10 +226,10 @@ $(document).ready(function() {
       e.preventDefault();
       Swal.fire({
         icon: 'warning',
-        title: 'ກະລຸນາປ້ອນຂໍ້ມູນ',
-        text: 'ກະລຸນາປ້ອນ "ເບີໂທລະສັບຕິດຕໍ່" ກ່ອນບັນທຶກ!',
+        title: '<?php echo tlj('ກະລຸນາປ້ອນຂໍ້ມູນ'); ?>',
+        text: '<?php echo tlj('ກະລຸນາປ້ອນ'); ?> "<?php echo tlj('ເບີໂທລະສັບຕິດຕໍ່'); ?>" <?php echo tlj('ກ່ອນບັນທຶກ!'); ?>',
         confirmButtonColor: '#2563eb',
-        confirmButtonText: 'ຕົກລົງ'
+        confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>'
       }).then(function() {
         $('#input_store_tel').focus();
       });

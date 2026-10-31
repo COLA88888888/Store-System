@@ -6,17 +6,28 @@ window.SHIFTS_API = window.SHIFTS_API || '<?php echo $base_path ?? "../../../"; 
 window.SHIFT_LOADER_LOGO = '<?php echo ($base_path ?? "../../../") . 'assets/img/logosystem/Wlaodev.png?v=' . (@filemtime(dirname(__DIR__, 4) . '/assets/img/logosystem/Wlaodev.png') ?: 1); ?>';
 // ຂໍ້ຄວາມລາຍງານສະຫຼຸບກະ ຕາມພາສາທີ່ເລືອກ (lang/*/shifts.php). ເປັນ window.I18N_* ຈຶ່ງຖືກປ່ຽນຄ່າເອງ
 // ເມື່ອກົດທຸງພາສາ (home/partials/dashboard/js_language.php) ແລ້ວ pos:langchange ຂ້າງລຸ່ມວາດ modal ໃໝ່.
-var I18N_SHIFT_RPT = <?php echo tjson(require dirname(__DIR__, 4) . '/lang/lo/shifts.php'); ?>;
+<?php
+$curShiftLang = function_exists('getCurrentLang') ? getCurrentLang() : ($_SESSION['lang'] ?? 'lo');
+$shiftLangFile = dirname(__DIR__, 4) . '/lang/' . $curShiftLang . '/shifts.php';
+if (!file_exists($shiftLangFile)) {
+    $shiftLangFile = dirname(__DIR__, 4) . '/lang/lo/shifts.php';
+}
+?>
+var I18N_SHIFT_RPT = <?php echo tjson(require $shiftLangFile); ?>;
 function srT(key) {
   var v = I18N_SHIFT_RPT[key] || key;
   var args = Array.prototype.slice.call(arguments, 1);
   return args.length ? v.replace(/%s/g, function () { return args.length ? args.shift() : ''; }) : v;
 }
-window.addEventListener('pos:langchange', function () {
+window.addEventListener('pos:langchange', function (e) {
+  if (e && e.detail && e.detail.lang) {
+    window.POS_CURRENT_LANG = e.detail.lang;
+  }
   if (window.currentReportSession && $('#modalShiftReport').hasClass('show')) {
     renderShiftReportContent(window.currentReportSession, window.currentReportBills || []);
   }
-  // ຕາຕະລາງປະຫວັດ + ແຖບກະປັດຈຸບັນ ທີ່ JS ວາດ → ວາດໃໝ່ເປັນພາສາໃໝ່
+  // ຕາຕະລາງຈັດການກະ + ຕາຕະລາງປະຫວັດ + ແຖບກະປັດຈຸບັນ ທີ່ JS ວາດ → ວາດໃໝ່ເປັນພາສາໃໝ່
+  if ($('#shiftsConfigTableBody').length) loadShiftsConfigList();
   if ($('#sessionsTableBody').length && window.allSessionsData) renderSessionsPage();
   if ($('#noActiveShiftNotice').length) loadCurrentShiftStatus();
 });
@@ -25,7 +36,7 @@ function shiftLoaderHtml(text) {
   return '<div class="d-flex flex-column align-items-center justify-content-center py-5">' +
     '<div class="system-loader-wrapper"><div class="system-loader-pulse-ring"></div>' +
     '<img src="' + window.SHIFT_LOADER_LOGO + '" alt="WLaodev" class="system-loader-logo"></div>' +
-    '<span class="preloader-text"><span>' + (text || 'ກຳລັງໂຫຼດຂໍ້ມູນ') + '</span>' +
+    '<span class="preloader-text"><span>' + (text || '<?php echo tlj('ກຳລັງໂຫຼດຂໍ້ມູນ'); ?>') + '</span>' +
     '<span class="loader-dot d1">.</span><span class="loader-dot d2">.</span><span class="loader-dot d3">.</span></span>' +
     '</div>';
 }
@@ -38,10 +49,22 @@ window.currentReportItems = [];
 // 0. Language & Friendly Time Formatting (ໂມງ / ນາທີ ປ່ຽນຕາມພາສາ)
 // ============================================================================
 function getCurrentShiftLang() {
+  if (window.POS_CURRENT_LANG) return window.POS_CURRENT_LANG;
+  try {
+    if (window.parent && window.parent.CURRENT_ACTIVE_LANG) {
+      return window.parent.CURRENT_ACTIVE_LANG;
+    }
+  } catch (e) {}
+  var m = document.cookie.match(/(?:^|;\s*)minipos_lang=([^;]+)/);
+  if (m && m[1]) {
+    var c = decodeURIComponent(m[1]).toLowerCase();
+    if (['lo', 'th', 'en', 'zh', 'vi'].indexOf(c) !== -1) return c;
+  }
   var l = (document.documentElement.lang || 'lo').toLowerCase();
   if (l.indexOf('en') !== -1) return 'en';
   if (l.indexOf('th') !== -1) return 'th';
   if (l.indexOf('zh') !== -1) return 'zh';
+  if (l.indexOf('vi') !== -1) return 'vi';
   return 'lo';
 }
 
@@ -51,9 +74,51 @@ function getTimeWords() {
     lo: { hour: 'ໂມງ', minute: 'ນາທີ' },
     th: { hour: 'โมง', minute: 'นาที' },
     en: { hour: 'hr', minute: 'min' },
-    zh: { hour: '点', minute: '分' }
+    zh: { hour: '点', minute: '分' },
+    vi: { hour: 'giờ', minute: 'phút' }
   };
   return dict[lang] || dict['lo'];
+}
+
+function getShiftWord(key) {
+  var lang = getCurrentShiftLang();
+  var dict = {
+    person: { lo: 'ຄົນ', th: 'คน', en: 'person(s)', zh: '人', vi: 'người' },
+    closed: { lo: 'ປິດໄວ້', th: 'ปิดไว้', en: 'Inactive', zh: '已关闭', vi: 'Đã đóng' },
+    active: { lo: 'ກຳລັງເປີດກະ', th: 'กำลังเปิดกะ', en: 'Shift Open', zh: '正在开班', vi: 'Đang mở ca' },
+    disabled: { lo: 'ປິດໃຊ້ງານ', th: 'ปิดใช้งาน', en: 'Disabled', zh: '未开启', vi: 'Đã tắt' },
+    edit: { lo: 'ແກ້ໄຂ', th: 'แก้ไข', en: 'Edit', zh: '编辑', vi: 'Sửa' },
+    delete: { lo: 'ລຶບ/ປິດໃຊ້ງານ', th: 'ลบ/ปิดใช้งาน', en: 'Delete/Disable', zh: '删除/停用', vi: 'Xóa/Vô hiệu hóa' },
+    no_shifts: { lo: 'ຍັງບໍ່ມີຂໍ້ມູນກະເຮັດວຽກ. ກະລຸນາກົດ', th: 'ยังไม่มีข้อมูลกะทำงาน กรุณากด', en: 'No shift configurations yet. Please click', zh: '暂无班次数据。请点击', vi: 'Chưa có ca làm việc. Vui lòng bấm' },
+    add_new_shift: { lo: 'ເພີ່ມກະໃໝ່', th: 'เพิ่มกะใหม่', en: 'Add New Shift', zh: '新增班次', vi: 'Thêm ca mới' },
+    cannot_load_staff: { lo: 'ໂຫຼດລາຍຊື່ພະນັກງານບໍ່ໄດ້', th: 'ไม่สามารถโหลดรายชื่อพนักงานได้', en: 'Cannot load staff list', zh: '无法加载员工列表', vi: 'Không thể tải danh sách nhân viên' },
+    no_staff_in_branch: { lo: 'ສາຂານີ້ຍັງບໍ່ມີພະນັກງານ', th: 'สาขานี้ยังไม่มีพนักงาน', en: 'No staff in this branch', zh: '该分店暂无员工', vi: 'Chi nhánh này chưa có nhân viên' },
+    please_select_staff: { lo: 'ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ', th: 'กรุณาเลือกพนักงานในกะนี้ก่อน', en: 'Please select staff for this shift first', zh: '请先选择此班次的员工', vi: 'Vui lòng chọn nhân viên cho ca này trước' },
+    selected_count: { lo: 'ເລືອກແລ້ວ', th: 'เลือกแล้ว', en: 'Selected', zh: '已选择', vi: 'Đã chọn' }
+  };
+  return (dict[key] && dict[key][lang]) ? dict[key][lang] : ((dict[key] && dict[key]['lo']) || key);
+}
+
+function formatShiftName(name) {
+  var n = String(name || '').trim();
+  if (!n) return '';
+  var lang = getCurrentShiftLang();
+  var shiftGroups = [
+    { keys: ['ກະເຊົ້າ', 'กะเช้า', 'morning shift', 'morning', 'ca sáng', '早班'], trans: { lo: 'ກະເຊົ້າ', th: 'กะเช้า', en: 'Morning Shift', zh: '早班', vi: 'Ca sáng' } },
+    { keys: ['ກະບ່າຍ', 'กะบ่าย', 'afternoon shift', 'afternoon', 'ca chiều', '下午班'], trans: { lo: 'ກະບ່າຍ', th: 'กะบ่าย', en: 'Afternoon Shift', zh: '下午班', vi: 'Ca chiều' } },
+    { keys: ['ກະແລງ', 'กะเย็น', 'evening shift', 'evening', 'ca tối', '晚班'], trans: { lo: 'ກະແລງ', th: 'กะเย็น', en: 'Evening Shift', zh: '晚班', vi: 'Ca tối' } },
+    { keys: ['ກະກາງຄືນ', 'ກະດຶກ', 'กะดึก', 'night shift', 'night', 'ca đêm', '夜班'], trans: { lo: 'ກະດຶກ', th: 'กะดึก', en: 'Night Shift', zh: '夜班', vi: 'Ca đêm' } }
+  ];
+  var nLower = n.toLowerCase();
+  for (var i = 0; i < shiftGroups.length; i++) {
+    var g = shiftGroups[i];
+    for (var k = 0; k < g.keys.length; k++) {
+      if (nLower === g.keys[k].toLowerCase()) {
+        return g.trans[lang] || g.trans['lo'];
+      }
+    }
+  }
+  return n;
 }
 
 function formatFriendlyTime(timeStr) {
@@ -155,6 +220,52 @@ function formatNumberInput(input) {
   input.value = parts.join('.');
 }
 
+// Function to smoothly animate KPI counter numbers (CountUp Animation)
+function animateKpiCounter(selector, target, suffix, prefix, duration) {
+  var elements = $(selector);
+  if (!elements.length) return;
+  target = parseFloat(target) || 0;
+  suffix = suffix !== undefined ? suffix : '';
+  prefix = prefix !== undefined ? prefix : '';
+  duration = duration || 1600;
+
+  var decs = (Math.abs(target) % 1 !== 0) ? 2 : 0;
+  var fmt = function (v) {
+    return v.toLocaleString('en-US', { minimumFractionDigits: decs, maximumFractionDigits: decs });
+  };
+
+  elements.each(function () {
+    var el = this;
+    if (el._kpiAnimId) {
+      window.cancelAnimationFrame(el._kpiAnimId);
+      el._kpiAnimId = null;
+    }
+
+    el.setAttribute('data-target', target);
+    el.setAttribute('data-decimals', decs);
+    el.setAttribute('data-suffix', suffix);
+
+    var startTime = null;
+    function step(ts) {
+      if (!startTime) startTime = ts;
+      var prog = Math.min((ts - startTime) / duration, 1);
+      // Smooth cubic easing: 1 - (1 - prog)^3
+      var ease = 1 - Math.pow(1 - prog, 3);
+      var cur = ease * target;
+      var curPrefix = (prefix === '+' && cur > 0) ? '+' : (prefix === '+' && cur <= 0 ? '' : prefix);
+      el.textContent = curPrefix + fmt(cur) + suffix;
+      if (prog < 1) {
+        el._kpiAnimId = window.requestAnimationFrame(step);
+      } else {
+        var finalPrefix = (prefix === '+' && target > 0) ? '+' : (prefix === '+' && target <= 0 ? '' : prefix);
+        el.textContent = finalPrefix + fmt(target) + suffix;
+        el._kpiAnimId = null;
+      }
+    }
+    el._kpiAnimId = window.requestAnimationFrame(step);
+  });
+}
+
 // ============================================================================
 // 1. ໂຫຼດສະຖານະກະປະຈຸບັນ (Active Shift Banner)
 // ============================================================================
@@ -178,11 +289,12 @@ function loadCurrentShiftStatus() {
       $('#activeShiftName').text(res.session.shift_name);
       $('#activeShiftOpenTime').text(res.session.open_time);
       $('#activeShiftOpenedBy').text(res.session.opened_by_name);
-      $('#activeShiftInitialCash').text(formatNumber(res.session.initial_cash) + ' <?php echo kipSymbol(); ?>');
-      $('#activeShiftBills').text(formatNumber(res.session.system_total_bills));
-      $('#activeShiftCashSales').text(formatNumber(res.session.system_sales_cash) + ' <?php echo kipSymbol(); ?>');
-      $('#activeShiftTransferSales').text(formatNumber(res.session.system_sales_transfer) + ' <?php echo kipSymbol(); ?>');
-      $('#activeShiftTotalSales').text(formatNumber(res.session.system_total_sales) + ' <?php echo kipSymbol(); ?>');
+      var kipSym = ' <?php echo kipSymbol(); ?>';
+      animateKpiCounter('#activeShiftInitialCash', res.session.initial_cash, kipSym, '', 1200);
+      animateKpiCounter('#activeShiftBills', res.session.system_total_bills, '', '', 1200);
+      animateKpiCounter('#activeShiftCashSales', res.session.system_sales_cash, kipSym, '', 1200);
+      animateKpiCounter('#activeShiftTransferSales', res.session.system_sales_transfer, kipSym, '', 1200);
+      animateKpiCounter('#activeShiftTotalSales', res.session.system_total_sales, kipSym, '', 1200);
 
       // ປຸ່ມສະຫຼຸບ (ປຸ່ມປິດກະຢູ່ແຖບນີ້ ເອົາອອກແລ້ວ — ປິດກະທີ່ໜ້າຂາຍ)
       $('#btnBannerViewSummary').off('click').on('click', function () {
@@ -207,7 +319,7 @@ function loadShiftsConfigList() {
     tbody.empty();
 
     if (!res.shifts || res.shifts.length === 0) {
-      tbody.html('<tr><td colspan="7" class="text-center text-muted py-4">ຍັງບໍ່ມີຂໍ້ມູນກະເຮັດວຽກ. ກະລຸນາກົດ "+ ເພີ່ມກະໃໝ່"</td></tr>');
+      tbody.html('<tr><td colspan="7" class="text-center text-muted py-4">' + getShiftWord('no_shifts') + ' "+ ' + getShiftWord('add_new_shift') + '"</td></tr>');
       return;
     }
 
@@ -215,19 +327,19 @@ function loadShiftsConfigList() {
       // ອອນໄລນ໌ສະເພາະຕອນມີພະນັກງານເປີດກະນີ້ຢູ່ (open_session ຈາກ list_shifts); ກະທີ່ປິດໃຊ້ງານ = ປິດໄວ້
       var statusBadge;
       if (parseInt(s.status) !== 1) {
-        statusBadge = '<span class="badge badge-secondary px-2 py-1"><i class="fas fa-pause-circle mr-1"></i> ປິດໄວ້</span>';
+        statusBadge = '<span class="badge badge-secondary px-2 py-1"><i class="fas fa-pause-circle mr-1"></i> ' + getShiftWord('closed') + '</span>';
       } else if (s.open_session) {
-        statusBadge = '<span class="badge badge-success px-2 py-1"><i class="fas fa-circle mr-1" style="font-size: 0.6rem; vertical-align: middle;"></i> ກຳລັງເປີດກະ</span>' +
+        statusBadge = '<span class="badge badge-success px-2 py-1"><i class="fas fa-circle mr-1" style="font-size: 0.6rem; vertical-align: middle;"></i> ' + getShiftWord('active') + '</span>' +
           '<div class="small text-muted mt-1">' + $('<div>').text(s.open_session.opened_by_name || '-').html() + ' · ' + s.open_session.open_time_fmt + '</div>';
       } else {
-        statusBadge = '<span class="badge badge-danger px-2 py-1"><i class="fas fa-power-off mr-1"></i> ປິດໃຊ້ງານ</span>';   // ກະບໍ່ໄດ້ເປີດຢູ່ຕອນນີ້
+        statusBadge = '<span class="badge badge-danger px-2 py-1"><i class="fas fa-power-off mr-1"></i> ' + getShiftWord('disabled') + '</span>';   // ກະບໍ່ໄດ້ເປີດຢູ່ຕອນນີ້
       }
 
       var tr = $('<tr></tr>');
       tr.html(`
         <td class="text-center align-middle font-weight-bold">${idx + 1}</td>
         <td class="align-middle font-weight-bold text-dark" style="font-size: 0.96rem;">
-          <i class="fas fa-business-time text-primary mr-1.5"></i> ${s.shift_name}
+          <i class="fas fa-business-time text-primary mr-1.5"></i> ${formatShiftName(s.shift_name)}
         </td>
         <td class="text-center align-middle">
           <span class="badge badge-light border text-dark font-weight-bold px-2.5 py-1.5" style="font-size: 0.88rem;">
@@ -243,10 +355,10 @@ function loadShiftsConfigList() {
         <td class="text-center align-middle">${statusBadge}</td>
         <td class="text-center align-middle">
           <div class="d-inline-flex align-items-center" style="gap: 6px;">
-            <button type="button" class="shift-act-btn btn-edit" onclick='editShiftConfig(${JSON.stringify(s).replace(/'/g, "&#39;")})' title="ແກ້ໄຂ">
+            <button type="button" class="shift-act-btn btn-edit" onclick='editShiftConfig(${JSON.stringify(s).replace(/'/g, "&#39;")})' title="${getShiftWord('edit')}">
               <i class="fas fa-edit"></i>
             </button>
-            <button type="button" class="shift-act-btn btn-del btn-delete" onclick="deleteShiftConfig(${s.id}, '${s.shift_name}')" title="ລຶບ/ປິດໃຊ້ງານ">
+            <button type="button" class="shift-act-btn btn-del btn-delete" onclick="deleteShiftConfig(${s.id}, '${s.shift_name}')" title="${getShiftWord('delete')}">
               <i class="fas fa-trash-alt"></i>
             </button>
           </div>
@@ -263,9 +375,9 @@ function shiftNameMissing() {
   if ($.trim($name.val() || '') !== '') return false;
   Swal.fire({
     icon: 'warning',
-    title: 'ແຈ້ງເຕືອນ',
-    text: 'ກະລຸນາປ້ອນຊື່ກະເຮັດວຽກກ່ອນ',
-    confirmButtonText: 'ຕົກລົງ',
+    title: '<?php echo tlj('ແຈ້ງເຕືອນ'); ?>',
+    text: '<?php echo tlj('ກະລຸນາປ້ອນຊື່ກະເຮັດວຽກກ່ອນ'); ?>',
+    confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
     confirmButtonColor: '#244886'
   }).then(function () { $name.trigger('focus'); });
   return true;
@@ -280,9 +392,9 @@ function saveShiftConfig(e) {
   if (!checkedStaff) {
     Swal.fire({
       icon: 'warning',
-      title: 'ແຈ້ງເຕືອນ',
-      text: 'ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ',
-      confirmButtonText: 'ຕົກລົງ',
+      title: '<?php echo tlj('ແຈ້ງເຕືອນ'); ?>',
+      text: '<?php echo tlj('ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ'); ?>',
+      confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
       confirmButtonColor: '#244886'
     }).then(function () {
       var box = document.getElementById('shiftStaffList');
@@ -308,10 +420,10 @@ function saveShiftConfig(e) {
       loadShiftsConfigList();
       loadCurrentShiftStatus();
     } else {
-      Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: res ? res.message : 'ເກີດຂໍ້ຜິດພາດ' });
+      Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: res ? res.message : '<?php echo tlj('ເກີດຂໍ້ຜິດພາດ'); ?>' });
     }
   }, 'json').fail(function () {
-    Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້' });
+    Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: '<?php echo tlj('ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້'); ?>' });
   });
 }
 
@@ -319,23 +431,23 @@ function saveShiftConfig(e) {
 function shiftEsc(s) { return $('<div>').text(s == null ? '' : String(s)).html(); }
 function shiftStaffCell(staff) {
   if (!staff || !staff.length) return '<span class="text-muted">-</span>';
-  return '<span class="badge badge-primary mr-1">' + staff.length + ' ຄົນ</span>' + staff.map(function (u) { return shiftEsc(u.name); }).join(', ');
+  return '<span class="badge badge-primary mr-1">' + staff.length + ' ' + getShiftWord('person') + '</span>' + staff.map(function (u) { return shiftEsc(u.name); }).join(', ');
 }
 function updateShiftStaffCount() {
   var count = $('#shiftStaffList input:checked').length;
-  $('#shiftStaffCount').text(count + ' ຄົນ');
+  $('#shiftStaffCount').text(count + ' ' + getShiftWord('person'));
   if (count === 0) {
     $('#shiftStaffCount').removeClass('badge-primary badge-success').addClass('badge-danger');
     $('#shiftStaffRequiredNotice')
       .removeClass('text-success text-muted')
       .addClass('text-danger font-weight-bold')
-      .html('<i class="fas fa-exclamation-circle mr-1"></i> ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ');
+      .html('<i class="fas fa-exclamation-circle mr-1"></i> ' + getShiftWord('please_select_staff'));
   } else {
     $('#shiftStaffCount').removeClass('badge-danger badge-primary').addClass('badge-success');
     $('#shiftStaffRequiredNotice')
       .removeClass('text-danger')
       .addClass('text-success font-weight-bold')
-      .html('<i class="fas fa-check-circle mr-1"></i> ເລືອກແລ້ວ ' + count + ' ຄົນ');
+      .html('<i class="fas fa-check-circle mr-1"></i> ' + getShiftWord('selected_count') + ' ' + count + ' ' + getShiftWord('person'));
   }
 }
 // ໂຫຼດລາຍຊື່ພະນັກງານຂອງສາຂາ ເປັນ checkbox ແລ້ວຕິກຄົນທີ່ຢູ່ໃນກະນີ້ (selectedIds)
@@ -343,8 +455,8 @@ function loadShiftStaffPicker(selectedIds) {
   var sel = (selectedIds || []).map(function (x) { return parseInt(x, 10); });
   var $box = $('#shiftStaffList');
   $.get(window.SHIFTS_API, { action: 'list_staff' }, function (res) {
-    if (!res || !res.success) { $box.html('<div class="text-danger small py-2 text-center">ໂຫຼດລາຍຊື່ພະນັກງານບໍ່ໄດ້</div>'); return; }
-    if (!res.staff.length) { $box.html('<div class="text-muted small py-2 text-center">ສາຂານີ້ຍັງບໍ່ມີພະນັກງານ</div>'); updateShiftStaffCount(); return; }
+    if (!res || !res.success) { $box.html('<div class="text-danger small py-2 text-center">' + getShiftWord('cannot_load_staff') + '</div>'); return; }
+    if (!res.staff.length) { $box.html('<div class="text-muted small py-2 text-center">' + getShiftWord('no_staff_in_branch') + '</div>'); updateShiftStaffCount(); return; }
     $box.html(res.staff.map(function (u) {
       var id = 'shiftStaff_' + u.id;
       return '<div class="custom-control custom-checkbox py-1">' +
@@ -353,7 +465,7 @@ function loadShiftStaffPicker(selectedIds) {
         (u.role ? ' <small class="text-muted font-weight-normal">(' + shiftEsc(u.role) + ')</small>' : '') + '</label></div>';
     }).join(''));
     updateShiftStaffCount();
-  }, 'json').fail(function () { $box.html('<div class="text-danger small py-2 text-center">ໂຫຼດລາຍຊື່ພະນັກງານບໍ່ໄດ້</div>'); });
+  }, 'json').fail(function () { $box.html('<div class="text-danger small py-2 text-center"><?php echo tlj('ໂຫຼດລາຍຊື່ພະນັກງານບໍ່ໄດ້'); ?></div>'); });
 }
 $(document).on('change', '#shiftStaffList input', updateShiftStaffCount);
 
@@ -365,9 +477,9 @@ $(document).on('click', '#btnSaveShiftConfig', function (e) {
     e.preventDefault();
     Swal.fire({
       icon: 'warning',
-      title: 'ແຈ້ງເຕືອນ',
-      text: 'ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ',
-      confirmButtonText: 'ຕົກລົງ',
+      title: '<?php echo tlj('ແຈ້ງເຕືອນ'); ?>',
+      text: '<?php echo tlj('ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ'); ?>',
+      confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
       confirmButtonColor: '#244886'
     }).then(function () {
       var box = document.getElementById('shiftStaffList');
@@ -392,7 +504,7 @@ function openAddShiftModal() {
   $('#shiftConfigStatus').prop('checked', true);
   initShiftTimePickers();
   setShiftPickerTime('07:00', '15:00');
-  $('#modalShiftConfigTitle').html('<i class="fas fa-calendar-plus text-primary mr-2"></i> ເພີ່ມກະເຮັດວຽກໃໝ່');
+  $('#modalShiftConfigTitle').html('<i class="fas fa-calendar-plus text-primary mr-2"></i> <?php echo tlj('ເພີ່ມກະເຮັດວຽກໃໝ່'); ?>');
   $('#modalShiftConfig').modal('show');
 }
 
@@ -404,20 +516,20 @@ function editShiftConfig(shift) {
   setShiftPickerTime(shift.start_time_fmt || '07:00', shift.end_time_fmt || '15:00');
   $('#shiftConfigStatus').prop('checked', parseInt(shift.status) === 1);
   loadShiftStaffPicker((shift.staff || []).map(function (u) { return u.id; }));
-  $('#modalShiftConfigTitle').html('<i class="fas fa-edit text-warning mr-2"></i> ແກ້ໄຂກະເຮັດວຽກ');
+  $('#modalShiftConfigTitle').html('<i class="fas fa-edit text-warning mr-2"></i> <?php echo tlj('ແກ້ໄຂກະເຮັດວຽກ'); ?>');
   $('#modalShiftConfig').modal('show');
 }
 
 function deleteShiftConfig(id, name) {
   Swal.fire({
-    title: 'ຢືນຢັນການລຶບ?',
-    text: `ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບ ຫຼື ປິດໃຊ້ງານກະ "${name}"?`,
+    title: '<?php echo tlj('ຢືນຢັນການລຶບ?'); ?>',
+    text: `<?php echo tlj('ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບ ຫຼື ປິດໃຊ້ງານກະ'); ?> "${name}"?`,
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#dc2626',
     cancelButtonColor: '#64748b',
-    confirmButtonText: 'ລຶບເລີຍ',
-    cancelButtonText: 'ຍົກເລີກ'
+    confirmButtonText: '<?php echo tlj('ລຶບເລີຍ'); ?>',
+    cancelButtonText: '<?php echo tlj('ຍົກເລີກ'); ?>'
   }).then(function (result) {
     if (result.isConfirmed) {
       $.post(window.SHIFTS_API, { action: 'delete_shift', id: id }, function (res) {
@@ -426,7 +538,7 @@ function deleteShiftConfig(id, name) {
           loadShiftsConfigList();
           loadCurrentShiftStatus();
         } else {
-          Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: res ? res.message : 'ເກີດຂໍ້ຜິດພາດ' });
+          Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: res ? res.message : '<?php echo tlj('ເກີດຂໍ້ຜິດພາດ'); ?>' });
         }
       }, 'json');
     }
@@ -442,15 +554,15 @@ function openManualOpenShiftModal() {
     if (res.has_active_shift) {
       Swal.fire({
         icon: 'info',
-        title: 'ມີກະເປີດຢູ່ແລ້ວ',
-        text: `ກະ "${res.session.shift_name}" ກຳລັງເປີດໃຊ້ງານຢູ່. ກະລຸນາປິດກະເກົ່າກ່ອນຈຶ່ງເປີດກະໃໝ່ໄດ້.`
+        title: '<?php echo tlj('ມີກະເປີດຢູ່ແລ້ວ'); ?>',
+        text: `<?php echo tlj('ກະ'); ?> "${res.session.shift_name}" <?php echo tlj('ກຳລັງເປີດໃຊ້ງານຢູ່. ກະລຸນາປິດກະເກົ່າກ່ອນຈຶ່ງເປີດກະໃໝ່ໄດ້.'); ?>`
       });
       return;
     }
 
     var select = $('#openShiftSelectId');
     select.empty();
-    select.append('<option value="">-- ເລືອກກະເຮັດວຽກ --</option>');
+    select.append('<option value="">-- <?php echo tlj('ເລືອກກະເຮັດວຽກ'); ?> --</option>');
 
     $('#openShiftCurrentTimeDisplay').text(res.current_time_clock || '--:--');
 
@@ -491,7 +603,7 @@ function onShiftSelectionChange() {
   var warningText = $('#openShiftTimeWarningText');
 
   if (sel.val() && canOpen === false) {
-    warningText.html(`<strong>ຍັງບໍ່ຮອດໂມງເປີດກະ!</strong> ກະ "${shiftName}" ເປີດເວລາ <strong>${formatFriendlyTime(startTime)}</strong>`);
+    warningText.html(`<strong><?php echo tlj('ຍັງບໍ່ຮອດໂມງເປີດກະ!'); ?></strong> <?php echo tlj('ກະ'); ?> "${shiftName}" <?php echo tlj('ເປີດເວລາ'); ?> <strong>${formatFriendlyTime(startTime)}</strong>`);
     warning.slideDown(150);
     btn.prop('disabled', true);
   } else {
@@ -506,11 +618,11 @@ function submitOpenShift(e) {
   var initialCash = $('#openShiftInitialCash').val();
 
   if (!shiftId) {
-    Swal.fire({ icon: 'warning', title: 'ກະລຸນາເລືອກກະເຮັດວຽກ' });
+    Swal.fire({ icon: 'warning', title: '<?php echo tlj('ກະລຸນາເລືອກກະເຮັດວຽກ'); ?>' });
     return;
   }
   if ($.trim(initialCash) === '') {
-    Swal.fire({ icon: 'warning', title: 'ກະລຸນາປ້ອນເງິນສົດໃນລິ້ນຊັກ', text: 'ຖ້າບໍ່ມີເງິນທອນ ໃຫ້ປ້ອນ 0', confirmButtonText: 'ຕົກລົງ', confirmButtonColor: '#244886' })
+    Swal.fire({ icon: 'warning', title: '<?php echo tlj('ກະລຸນາປ້ອນເງິນສົດໃນລິ້ນຊັກ'); ?>', text: '<?php echo tlj('ຖ້າບໍ່ມີເງິນທອນ ໃຫ້ປ້ອນ'); ?> 0', confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>', confirmButtonColor: '#244886' })
       .then(function () { $('#openShiftInitialCash').trigger('focus'); });
     return;
   }
@@ -528,7 +640,7 @@ function submitOpenShift(e) {
       $('#modalOpenShift').modal('hide');
       Swal.fire({
         icon: 'success',
-        title: 'ເປີດກະສຳເລັດ!',
+        title: '<?php echo tlj('ເປີດກະສຳເລັດ!'); ?>',
         text: res.message,
         timer: 1800,
         showConfirmButton: false
@@ -538,13 +650,13 @@ function submitOpenShift(e) {
     } else {
       Swal.fire({
         icon: res && res.too_early ? 'warning' : 'error',
-        title: res && res.too_early ? 'ຍັງບໍ່ຮອດໂມງເປີດກະ' : 'ຜິດພາດ',
-        text: res ? res.message : 'ເກີດຂໍ້ຜິດພາດ'
+        title: res && res.too_early ? '<?php echo tlj('ຍັງບໍ່ຮອດໂມງເປີດກະ'); ?>' : '<?php echo tlj('ຜິດພາດ'); ?>',
+        text: res ? res.message : '<?php echo tlj('ເກີດຂໍ້ຜິດພາດ'); ?>'
       });
     }
   }, 'json').fail(function () {
     btn.prop('disabled', false);
-    Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້' });
+    Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: '<?php echo tlj('ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້'); ?>' });
   });
 }
 
@@ -553,19 +665,19 @@ function submitOpenShift(e) {
 // ============================================================================
 // ເຕືອນ "ຍັງບໍ່ທັນຮອດໂມງປິດກະ"
 function warnTooEarlyClose(message) {
-  Swal.fire({ icon: 'warning', title: 'ຍັງບໍ່ທັນຮອດໂມງປິດກະ', text: message, confirmButtonText: 'ຕົກລົງ', confirmButtonColor: '#244886' });
+  Swal.fire({ icon: 'warning', title: '<?php echo tlj('ຍັງບໍ່ທັນຮອດໂມງປິດກະ'); ?>', text: message, confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>', confirmButtonColor: '#244886' });
 }
 
 function openCloseShiftModal(sessionId) {
   // ຍັງບໍ່ຮອດໂມງປິດກະ: ພະນັກງານປິດບໍ່ໄດ້ (ຜູ້ບໍລິຫານ/ຜູ້ຈັດການ ຖືກຖາມຢືນຢັນຕອນບັນທຶກ)
   var cur = window.currentShiftData;
   if (window.IS_CASHIER_USER && cur && cur.session && String(cur.session.id) === String(sessionId) && !cur.session.can_close_now) {
-    warnTooEarlyClose('ກະ "' + cur.session.shift_name + '" ປິດໄດ້ເວລາ ' + formatFriendlyTime(String(cur.session.scheduled_end || '').substr(11, 5)));
+    warnTooEarlyClose('<?php echo tlj('ກະ'); ?> "' + cur.session.shift_name + '" <?php echo tlj('ປິດໄດ້ເວລາ'); ?> ' + formatFriendlyTime(String(cur.session.scheduled_end || '').substr(11, 5)));
     return;
   }
   $.get(window.SHIFTS_API, { action: 'get_shift_summary', session_id: sessionId }, function (res) {
     if (!res || !res.success || !res.session) {
-      Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: res ? res.message : 'ບໍ່ພົບຂໍ້ມູນກະ' });
+      Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: res ? res.message : '<?php echo tlj('ບໍ່ພົບຂໍ້ມູນກະ'); ?>' });
       return;
     }
 
@@ -605,13 +717,13 @@ function calculateShiftDifference() {
 
   if (diff === 0) {
     alertBox.addClass('alert-success');
-    display.html('<i class="fas fa-check-circle mr-1"></i> ດຸ່ນດ່ຽງພໍດີ (0 <?php echo kipSymbol(); ?>)').css('color', '#15803d');
+    display.html('<i class="fas fa-check-circle mr-1"></i> <?php echo tlj('ດຸ່ນດ່ຽງພໍດີ'); ?> (0 <?php echo kipSymbol(); ?>)').css('color', '#15803d');
   } else if (diff > 0) {
     alertBox.addClass('alert-info');
-    display.html('<i class="fas fa-arrow-up mr-1"></i> ເງິນເກີນ: +' + formatNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#0284c7');
+    display.html('<i class="fas fa-arrow-up mr-1"></i> <?php echo tlj('ເງິນເກີນ:'); ?> +' + formatNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#0284c7');
   } else {
     alertBox.addClass('alert-danger');
-    display.html('<i class="fas fa-arrow-down mr-1"></i> ເງິນຂາດ: ' + formatNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#dc2626');
+    display.html('<i class="fas fa-arrow-down mr-1"></i> <?php echo tlj('ເງິນຂາດ:'); ?> ' + formatNumber(diff) + ' <?php echo kipSymbol(); ?>').css('color', '#dc2626');
   }
 }
 
@@ -623,14 +735,14 @@ function submitCloseShift(e) {
   var forceEarly = 0;
 
   Swal.fire({
-    title: 'ຢືນຢັນການປິດກະ?',
-    text: 'ເມື່ອປິດກະແລ້ວ ຍອດຂາຍຈະຖືກສະຫຼຸບ ແລະ ບັນທຶກເຂົ້າຖານຂໍ້ມູນ',
+    title: '<?php echo tlj('ຢືນຢັນການປິດກະ?'); ?>',
+    text: '<?php echo tlj('ເມື່ອປິດກະແລ້ວ ຍອດຂາຍຈະຖືກສະຫຼຸບ ແລະ ບັນທຶກເຂົ້າຖານຂໍ້ມູນ'); ?>',
     icon: 'question',
     showCancelButton: true,
     confirmButtonColor: '#dc2626',
     cancelButtonColor: '#64748b',
-    confirmButtonText: 'ຢືນຢັນປິດກະ',
-    cancelButtonText: 'ຍົກເລີກ'
+    confirmButtonText: '<?php echo tlj('ຢືນຢັນປິດກະ'); ?>',
+    cancelButtonText: '<?php echo tlj('ຍົກເລີກ'); ?>'
   }).then(function (result) {
     if (result.isConfirmed) send();
   });
@@ -658,22 +770,22 @@ function submitCloseShift(e) {
       } else if (res && res.too_early_close && res.can_force) {
         Swal.fire({
           icon: 'warning',
-          title: 'ຍັງບໍ່ທັນຮອດໂມງປິດກະ',
-          text: res.message + ' — ຕ້ອງການປິດກ່ອນເວລາບໍ່?',
+          title: '<?php echo tlj('ຍັງບໍ່ທັນຮອດໂມງປິດກະ'); ?>',
+          text: res.message + ' — <?php echo tlj('ຕ້ອງການປິດກ່ອນເວລາບໍ່?'); ?>',
           showCancelButton: true,
           confirmButtonColor: '#dc2626',
           cancelButtonColor: '#64748b',
-          confirmButtonText: 'ປິດກ່ອນເວລາ',
-          cancelButtonText: 'ຍົກເລີກ'
+          confirmButtonText: '<?php echo tlj('ປິດກ່ອນເວລາ'); ?>',
+          cancelButtonText: '<?php echo tlj('ຍົກເລີກ'); ?>'
         }).then(function (r) { if (r.isConfirmed) { forceEarly = 1; send(); } });
       } else if (res && res.too_early_close) {
         warnTooEarlyClose(res.message);
       } else {
-        Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: res ? res.message : 'ເກີດຂໍ້ຜິດພາດ' });
+        Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: res ? res.message : '<?php echo tlj('ເກີດຂໍ້ຜິດພາດ'); ?>' });
       }
     }, 'json').fail(function () {
       btn.prop('disabled', false);
-      Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້' });
+      Swal.fire({ icon: 'error', title: '<?php echo tlj('ຜິດພາດ'); ?>', text: '<?php echo tlj('ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບໄດ້'); ?>' });
     });
   }
 }
@@ -710,23 +822,18 @@ function loadSessionsHistory() {
     });
 
     // ບັດສະຫຼຸບປິດກະ (Shift Close KPI)
-    $('#kpiTotalShifts, #kpiCloseTotalShifts').text(formatNumber((res.sessions || []).length));
-    $('#kpiCloseTotalDrawer').text(formatNumber(sumInit) + ' <?php echo kipSymbol(); ?>');
-    $('#kpiCloseTotalCounted').text(formatNumber(sumCounted) + ' <?php echo kipSymbol(); ?>');
-    var diffEl = $('#kpiTotalDiff, #kpiCloseTotalDiff');
-    if (totalDiff > 0) {
-      diffEl.text('+' + formatNumber(totalDiff) + ' <?php echo kipSymbol(); ?>');
-    } else if (totalDiff < 0) {
-      diffEl.text(formatNumber(totalDiff) + ' <?php echo kipSymbol(); ?>');
-    } else {
-      diffEl.text('0 <?php echo kipSymbol(); ?>');
-    }
+    var kipSym = ' <?php echo kipSymbol(); ?>';
+    animateKpiCounter('#kpiTotalShifts, #kpiCloseTotalShifts', (res.sessions || []).length, '');
+    animateKpiCounter('#kpiCloseTotalDrawer', sumInit, kipSym);
+    animateKpiCounter('#kpiCloseTotalCounted', sumCounted, kipSym);
+    animateKpiCounter('#kpiTotalDiff, #kpiCloseTotalDiff', totalDiff, kipSym, totalDiff > 0 ? '+' : '');
 
     // ບັດສະຫຼຸບລາຍຮັບ (Shift Revenue KPI)
-    $('#kpiRevTotalSales, #kpiTotalSales').text(formatNumber(totalSales) + ' <?php echo kipSymbol(); ?>');
-    $('#kpiRevCashSales').text(formatNumber(sumCash) + ' <?php echo kipSymbol(); ?>');
-    $('#kpiRevTransferSales').text(formatNumber(sumTrf) + ' <?php echo kipSymbol(); ?>');
-    $('#kpiRevTotalBills, #kpiTotalBills').text(formatNumber(totalBills));
+    var billUnit = ' ' + srT('shifts.pg_bills_unit', '<?php echo tlj('ບິນ'); ?>');
+    animateKpiCounter('#kpiRevTotalSales, #kpiTotalSales', totalSales, kipSym);
+    animateKpiCounter('#kpiRevCashSales', sumCash, kipSym);
+    animateKpiCounter('#kpiRevTransferSales', sumTrf, kipSym);
+    animateKpiCounter('#kpiRevTotalBills, #kpiTotalBills', totalBills, billUnit);
 
     window.allSessionsRaw = res.sessions || [];
     applySessionsSearch();
@@ -738,10 +845,35 @@ function showSessionsLoadError() {
   $('#sessionsTableBody').html('<tr><td colspan="13" class="text-center text-danger py-5 font-weight-bold"><i class="fas fa-exclamation-circle mr-1"></i> ' + srT('shifts.pg_load_error') + '</td></tr>');
 }
 
+function getCashWord() {
+  var lang = getCurrentShiftLang();
+  var dict = { lo: 'ເງິນສົດ', th: 'เงินสด', en: 'Cash', zh: '现金', vi: 'Tiền mặt' };
+  return dict[lang] || dict['lo'];
+}
+
 // ຊື່ຜູ້ປິດກະ: ຄ່າ "ລະບົບ (ປິດອໍໂຕ້)" ຖືກບັນທຶກເປັນພາສາລາວໃນ DB (config/helpers/shift_auto.php) → ສະແດງຕາມພາສາທີ່ເລືອກ
 function shiftCloserName(name) {
   if (!name) return '-';
-  return name === 'ລະບົບ (ປິດອໍໂຕ້)' ? srT('shifts.pg_auto_closed') : name;
+  var trimmed = String(name).trim();
+  var autoPatterns = [
+    'ລະບົບ (ປິດອໍໂຕ້)', 'ລະບົບ (ປິດອັດຕະໂນມັດ)', 'ລະບົບ',
+    'ระบบ (ปิดอัตโนมัติ)', 'ระบบ (ปิดออโต้)', 'ระบบ',
+    'System (auto-closed)', 'System (auto closed)', 'System (Auto-closed)', 'System',
+    'Hệ thống (tự đóng)', 'Hệ thống',
+    '系统（自动交班）', '系统(自动交班)', '系统（自动关闭）', '系统(自动关闭)', '系统'
+  ];
+  if (autoPatterns.indexOf(trimmed) !== -1 || trimmed.toLowerCase().indexOf('auto-close') !== -1 || trimmed.indexOf('ປິດອໍໂຕ້') !== -1 || trimmed.indexOf('ปิดอัตโนมัติ') !== -1 || trimmed.indexOf('tự đóng') !== -1 || trimmed.indexOf('自动交班') !== -1) {
+    var lang = getCurrentShiftLang();
+    var dict = {
+      lo: 'ລະບົບ (ປິດອໍໂຕ້)',
+      th: 'ระบบ (ปิดอัตโนมัติ)',
+      en: 'System (auto-closed)',
+      zh: '系统（自动交班）',
+      vi: 'Hệ thống (tự đóng)'
+    };
+    return (dict[lang] || srT('shifts.pg_auto_closed')) || dict['lo'];
+  }
+  return name;
 }
 
 // ບັອກຄົ້ນຫາ (#filterSessionSearch ໃນ pages/reports/shift_report.php): ກັ່ນແຖວທີ່ໂຫຼດມາແລ້ວ
@@ -811,10 +943,10 @@ function renderSessionsPage() {
       tr.html(`
         <td class="text-center align-middle font-weight-bold">${startIdx + i + 1}</td>
         <td class="align-middle" style="font-size: 0.85rem;"><i class="fas fa-store text-info mr-1"></i>${$('<div>').text(s.store_name || '-').html()}</td>
-        <td class="align-middle font-weight-bold text-dark">${s.shift_name}</td>
+        <td class="align-middle font-weight-bold text-dark">${formatShiftName(s.shift_name)}</td>
         <td class="align-middle" style="font-size: 0.85rem;">
           <div><i class="fas fa-clock text-muted mr-1"></i>${s.open_time}</div>
-          <div class="text-muted">${s.close_time || 'ກຳລັງຂາຍ'}</div>
+          <div class="text-muted">${s.close_time || '<?php echo tlj('ກຳລັງຂາຍ'); ?>'}</div>
         </td>
         <td class="align-middle" style="font-size: 0.85rem;">
           <div><i class="fas fa-user text-primary mr-1"></i>${$('<div>').text(s.staff_names || s.opened_by_name || '-').html()}</div>
@@ -825,7 +957,7 @@ function renderSessionsPage() {
         <td class="text-right align-middle font-weight-bold text-warning">${formatNumber(s.system_sales_debt)} <?php echo kipSymbol(); ?></td>
         <td class="text-right align-middle font-weight-bold text-primary" style="font-size: 1rem;">${formatNumber(s.system_total_sales)} <?php echo kipSymbol(); ?></td>
         <td class="text-center align-middle">
-          <button type="button" class="btn btn-sm btn-outline-success shift-detail-btn d-inline-flex align-items-center justify-content-center" onclick="openShiftReportModal(${s.id})" title="ເບິ່ງລາຍການສິນຄ້າ ແລະ ບິນຂາຍ" style="width: 32px; height: 32px; padding: 0; border-radius: 6px; font-size: 0.95rem;">
+          <button type="button" class="btn btn-sm btn-outline-success shift-detail-btn d-inline-flex align-items-center justify-content-center" onclick="openShiftReportModal(${s.id})" title="<?php echo tlj('ເບິ່ງລາຍການສິນຄ້າ ແລະ ບິນຂາຍ'); ?>" style="width: 32px; height: 32px; padding: 0; border-radius: 6px; font-size: 0.95rem;">
             <i class="fas fa-list-alt"></i>
           </button>
         </td>
@@ -856,7 +988,7 @@ function renderSessionsPage() {
       tr.html(`
         <td class="text-center align-middle font-weight-bold">${startIdx + i + 1}</td>
         <td class="align-middle" style="font-size: 0.85rem;"><i class="fas fa-store text-info mr-1"></i>${$('<div>').text(s.store_name || '-').html()}</td>
-        <td class="align-middle font-weight-bold text-dark">${s.shift_name}</td>
+        <td class="align-middle font-weight-bold text-dark">${formatShiftName(s.shift_name)}</td>
         <td class="align-middle" style="font-size: 0.85rem;">
           <div>${s.open_time}</div>
           <div>${s.close_time || '<span class="text-muted">' + srT('shifts.pg_selling') + '</span>'}</div>
@@ -871,7 +1003,7 @@ function renderSessionsPage() {
         <td class="text-center align-middle">${diffBadge}</td>
         <td class="text-center align-middle">${statusBadge}</td>
         <td class="text-center align-middle">
-          <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center" onclick="openShiftReportModal(${s.id})" title="ໃບສະຫຼຸບປິດກະ" style="width: 32px; height: 32px; padding: 0; border-radius: 6px; font-size: 0.95rem;">
+          <button type="button" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-center" onclick="openShiftReportModal(${s.id})" title="<?php echo tlj('ໃບສະຫຼຸບປິດກະ'); ?>" style="width: 32px; height: 32px; padding: 0; border-radius: 6px; font-size: 0.95rem;">
             <i class="fas fa-file-invoice-dollar"></i>
           </button>
         </td>
@@ -894,7 +1026,7 @@ function renderSessionsPaginationControls(totalPages) {
   // Previous Button
   var prevDisabled = (cur <= 1);
   var prevLi = $('<li class="page-item' + (prevDisabled ? ' disabled' : '') + '"></li>');
-  prevLi.html('<a class="page-link" href="javascript:void(0)" ' + (prevDisabled ? '' : 'onclick="goToSessionsPage(' + (cur - 1) + ')"') + ' title="ໜ້າກ່ອນໜ້າ"><i class="fas fa-chevron-left"></i></a>');
+  prevLi.html('<a class="page-link" href="javascript:void(0)" ' + (prevDisabled ? '' : 'onclick="goToSessionsPage(' + (cur - 1) + ')"') + ' title="<?php echo tlj('ໜ້າກ່ອນໜ້າ'); ?>"><i class="fas fa-chevron-left"></i></a>');
   ul.append(prevLi);
 
   // Numbered Buttons with Smart Ellipsis
@@ -930,7 +1062,7 @@ function renderSessionsPaginationControls(totalPages) {
   // Next Button
   var nextDisabled = (cur >= totalPages);
   var nextLi = $('<li class="page-item' + (nextDisabled ? ' disabled' : '') + '"></li>');
-  nextLi.html('<a class="page-link" href="javascript:void(0)" ' + (nextDisabled ? '' : 'onclick="goToSessionsPage(' + (cur + 1) + ')"') + ' title="ໜ້າຖັດໄປ"><i class="fas fa-chevron-right"></i></a>');
+  nextLi.html('<a class="page-link" href="javascript:void(0)" ' + (nextDisabled ? '' : 'onclick="goToSessionsPage(' + (cur + 1) + ')"') + ' title="<?php echo tlj('ໜ້າຖັດໄປ'); ?>"><i class="fas fa-chevron-right"></i></a>');
   ul.append(nextLi);
 }
 
@@ -961,7 +1093,8 @@ function loadShiftFilterOptions(done) {
     sel.find('option:not([value="0"])').remove();
     if (res && res.success && res.shifts) {
       res.shifts.forEach(function (s) {
-        var label = (params.branch === '0' && s.store_name) ? s.shift_name + ' (' + s.store_name + ')' : s.shift_name;
+        var sName = formatShiftName(s.shift_name);
+        var label = (params.branch === '0' && s.store_name) ? sName + ' (' + s.store_name + ')' : sName;
         sel.append($('<option>').val(s.id).text(label));
       });
     }
@@ -986,9 +1119,9 @@ function openShiftReportModal(sessionId, wasJustClosed) {
   $('#modalShiftReport .modal-dialog').toggleClass('modal-xl', isRevenue).toggleClass('modal-lg', !isRevenue);
   $('#modalShiftReport .modal-content').css('height', isRevenue ? 'calc(100vh - 40px)' : '');
   if (isRevenue) {
-    $('#modalShiftReportTitle').html('<i class="fas fa-chart-line text-success mr-2"></i> ລາຍລະອຽດລາຍຮັບປະຈຳກະ');
+    $('#modalShiftReportTitle').html('<i class="fas fa-chart-line text-success mr-2"></i> <?php echo tlj('ລາຍລະອຽດລາຍຮັບປະຈຳກະ'); ?>');
   } else {
-    $('#modalShiftReportTitle').html('<i class="fas fa-cash-register text-warning mr-2"></i> ໃບສະຫຼຸບປິດກະເຮັດວຽກ');
+    $('#modalShiftReportTitle').html('<i class="fas fa-cash-register text-warning mr-2"></i> <?php echo tlj('ໃບສະຫຼຸບປິດກະເຮັດວຽກ'); ?>');
   }
   $('#modalShiftReport').modal('show');
   $('#shiftReportContent').html(shiftLoaderHtml(srT('shifts.rpt_loading')));
@@ -1010,8 +1143,8 @@ function openShiftReportModal(sessionId, wasJustClosed) {
     if (wasJustClosed && window.IS_CASHIER_USER) {
       $('#modalShiftReport').on('hidden.bs.modal', function () {
         Swal.fire({
-          title: 'ປິດກະສຳເລັດແລ້ວ',
-          text: 'ລະບົບຈະອອກຈາກລະບົບອັດຕະໂນມັດຕາມກຳນົດເວລາ',
+          title: '<?php echo tlj('ປິດກະສຳເລັດແລ້ວ'); ?>',
+          text: '<?php echo tlj('ລະບົບຈະອອກຈາກລະບົບອັດຕະໂນມັດຕາມກຳນົດເວລາ'); ?>',
           icon: 'info',
           timer: 2000,
           showConfirmButton: false
@@ -1026,7 +1159,7 @@ function openShiftReportModal(sessionId, wasJustClosed) {
 // ປ້າຍ "ເງິນສົດ" ກ່ອງຂອບສີຂຽວ — ຖັນຊ່ອງທາງຂອງບິນ ແລະ ຕາຕະລາງສິນຄ້າແຍກຕາມການຊຳລະ
 function cashBadge() {
   return '<span class="badge d-inline-flex align-items-center" style="gap: 5px; padding: 3px 9px; font-size: 0.8rem; font-weight: 700; ' +
-         'background: #dcfce7; color: #15803d; border: 1.5px solid #22c55e;"><span>ເງິນສົດ</span></span>';
+         'background: #dcfce7; color: #15803d; border: 1.5px solid #22c55e;"><span>' + getCashWord() + '</span></span>';
 }
 
 function renderShiftReportContent(s, bills) {
@@ -1102,7 +1235,7 @@ function renderShiftReportContent(s, bills) {
   }).join('') || '<tr><td colspan="6" class="text-center text-muted py-3">' + srT('shifts.rpt_no_items') + '</td></tr>';
 
   var isRevenueMode = (window.SHIFT_REPORT_MODE === 'revenue');
-  var headerTitle = isRevenueMode ? 'ລາຍລະອຽດລາຍຮັບຍອດຂາຍປະຈຳກະ' : srT('shifts.rpt_title');
+  var headerTitle = isRevenueMode ? '<?php echo tlj('ລາຍລະອຽດລາຍຮັບຍອດຂາຍປະຈຳກະ'); ?>' : srT('shifts.rpt_title');
   // ລາຍຮັບຕາມກະ: ຕາຕະລາງໃນຟອມບໍ່ມີສະກໍບາຂອງຕົນເອງ — ເລື່ອນລົງທັງຟອມ
   var innerScroll = function (h) { return isRevenueMode ? '' : 'max-height: ' + h + 'px; overflow-y: auto;'; };
 
@@ -1120,7 +1253,7 @@ function renderShiftReportContent(s, bills) {
     debt:     { icon: 'fa-file-invoice',    color: '#b45309', bg: '#fffbeb' }
   };
   var transferBanksHtml = channels.filter(function (c) { return c.type === 'transfer'; }).map(function (c) {
-    return `<tr><td class="pl-5 text-muted" style="font-size: 0.86rem;"><span class="d-inline-flex align-items-center" style="gap: 6px;">${bankLogo(c.bank_logo_url, c.bank_name)} ${esc(c.bank_name)} <span class="small">(${c.bill_count} ບິນ)</span></span></td>
+    return `<tr><td class="pl-5 text-muted" style="font-size: 0.86rem;"><span class="d-inline-flex align-items-center" style="gap: 6px;">${bankLogo(c.bank_logo_url, c.bank_name)} ${esc(c.bank_name)} <span class="small">(${c.bill_count} <?php echo tlj('ບິນ)'); ?></span></span></td>
             <td class="text-right pr-3 text-info" style="font-size: 0.9rem;">${formatNumber(c.total)} <?php echo kipSymbol(); ?></td></tr>`;
   }).join('');
   // ຕາຕະລາງດຽວ ຈັດຕາມບິນ: ສິນຄ້າຂອງແຕ່ລະບິນ (bills[].lines) + ຖັນ "ການຊຳລະ" ຮວມແຖວຂອງບິນ ບອກຮັບແຕ່ລະທາງເທົ່າໃດ
@@ -1166,13 +1299,13 @@ function renderShiftReportContent(s, bills) {
   var channelsHtml = !isRevenueMode ? '' : `
       <div class="mt-3">
         <h6 class="font-weight-bold text-dark mb-2" style="font-size: 0.95rem;">
-          <i class="fas fa-wallet text-primary mr-1"></i> ສິນຄ້າແຍກຕາມການຊຳລະ (ເງິນສົດ / ເງິນໂອນ)
+          <i class="fas fa-wallet text-primary mr-1"></i> <?php echo tlj('ສິນຄ້າແຍກຕາມການຊຳລະ (ເງິນສົດ / ເງິນໂອນ)'); ?>
         </h6>
         <div class="table-responsive">
           <table class="table table-sm table-striped table-bordered mb-0 text-nowrap" style="font-size: 0.85rem;">
             <thead class="bg-light text-center"><tr><th style="width: 40px;">#</th><th>${srT('shifts.rpt_col_bill')}</th><th>${srT('shifts.rpt_col_product')}</th>
               <th style="width: 80px;">${srT('shifts.rpt_col_qty')}</th><th class="text-right">${srT('shifts.rpt_col_price')}</th>
-              <th class="text-right">${srT('shifts.rpt_col_discount')}</th><th class="text-right">${srT('shifts.rpt_col_total')}</th><th>ການຊຳລະ (ຮັບເງິນ)</th></tr></thead>
+              <th class="text-right">${srT('shifts.rpt_col_discount')}</th><th class="text-right">${srT('shifts.rpt_col_total')}</th><th><?php echo tlj('ການຊຳລະ (ຮັບເງິນ)'); ?></th></tr></thead>
             <tbody>${chRows || '<tr><td colspan="8" class="text-center text-muted py-3">' + srT('shifts.rpt_no_items') + '</td></tr>'}</tbody>
             ${chRowNo ? `<tfoot><tr class="font-weight-bold" style="background: #f1f5f9;">
               <td colspan="3" class="text-right">${srT('shifts.rpt_items_total')}</td>
@@ -1180,8 +1313,8 @@ function renderShiftReportContent(s, bills) {
               <td class="text-right">${chTotal.discount ? formatNumber(chTotal.discount) + ' <?php echo kipSymbol(); ?>' : '-'}</td>
               <td class="text-right text-primary">${formatNumber(chTotal.net)} <?php echo kipSymbol(); ?></td>
               <td>
-                <div class="d-flex justify-content-between"><span class="text-success">ຮັບເງິນສົດ</span><span class="text-success">${formatNumber(chTotal.cash)} <?php echo kipSymbol(); ?></span></div>
-                <div class="d-flex justify-content-between"><span class="text-info">ຮັບເງິນໂອນ</span><span class="text-info">${formatNumber(chTotal.transfer)} <?php echo kipSymbol(); ?></span></div>
+                <div class="d-flex justify-content-between"><span class="text-success"><?php echo tlj('ຮັບເງິນສົດ'); ?></span><span class="text-success">${formatNumber(chTotal.cash)} <?php echo kipSymbol(); ?></span></div>
+                <div class="d-flex justify-content-between"><span class="text-info"><?php echo tlj('ຮັບເງິນໂອນ'); ?></span><span class="text-info">${formatNumber(chTotal.transfer)} <?php echo kipSymbol(); ?></span></div>
                 ${chTotal.debt ? `<div class="d-flex justify-content-between"><span class="text-warning">ຕິດໜີ້</span><span class="text-warning">${formatNumber(chTotal.debt)} <?php echo kipSymbol(); ?></span></div>` : ''}
               </td>
             </tr></tfoot>` : ''}
@@ -1194,26 +1327,26 @@ function renderShiftReportContent(s, bills) {
     summaryBoxHtml = `
       <div class="card border mb-3" style="border-radius: 8px; overflow: hidden;">
         <div class="card-header bg-light font-weight-bold py-2" style="font-size: 0.92rem;">
-          <i class="fas fa-coins text-success mr-1"></i> ສະຫຼຸບລາຍຮັບຍອດຂາຍຕາມຊ່ອງທາງ
+          <i class="fas fa-coins text-success mr-1"></i> <?php echo tlj('ສະຫຼຸບລາຍຮັບຍອດຂາຍຕາມຊ່ອງທາງ'); ?>
         </div>
         <div class="card-body p-0">
           <table class="table table-sm table-bordered m-0" style="font-size: 0.92rem;">
             <tbody>
               <tr>
-                <td style="width: 55%;" class="pl-3 font-weight-bold">1. ຍອດຂາຍເງິນສົດ</td>
+                <td style="width: 55%;" class="pl-3 font-weight-bold">1. <?php echo tlj('ຍອດຂາຍເງິນສົດ'); ?></td>
                 <td class="text-right pr-3 font-weight-bold text-success" style="font-size: 1rem;">${formatNumber(s.system_sales_cash)} <?php echo kipSymbol(); ?></td>
               </tr>
               <tr>
-                <td class="pl-3 font-weight-bold">2. ຍອດຂາຍໂອນ / QR</td>
+                <td class="pl-3 font-weight-bold">2. <?php echo tlj('ຍອດຂາຍໂອນ'); ?> / QR</td>
                 <td class="text-right pr-3 font-weight-bold text-info" style="font-size: 1rem;">${formatNumber(s.system_sales_transfer)} <?php echo kipSymbol(); ?></td>
               </tr>
               ${transferBanksHtml}
               <tr>
-                <td class="pl-3 font-weight-bold">3. ຍອດຂາຍຕິດໜີ້</td>
+                <td class="pl-3 font-weight-bold">3. <?php echo tlj('ຍອດຂາຍຕິດໜີ້'); ?></td>
                 <td class="text-right pr-3 font-weight-bold text-warning" style="font-size: 1rem;">${formatNumber(s.system_sales_debt)} <?php echo kipSymbol(); ?></td>
               </tr>
               <tr class="bg-light font-weight-bold" style="background: #f1f5f9;">
-                <td class="pl-3" style="font-size: 0.98rem;">ລວມລາຍຮັບຍອດຂາຍທັງໝົດ (${formatNumber(s.system_total_bills)} ບິນ)</td>
+                <td class="pl-3" style="font-size: 0.98rem;"><?php echo tlj('ລວມລາຍຮັບຍອດຂາຍທັງໝົດ'); ?> (${formatNumber(s.system_total_bills)} <?php echo tlj('ບິນ'); ?>)</td>
                 <td class="text-right pr-3 font-weight-bold text-primary" style="font-size: 1.15rem;">${formatNumber(s.system_total_sales)} <?php echo kipSymbol(); ?></td>
               </tr>
             </tbody>
@@ -1276,7 +1409,7 @@ function renderShiftReportContent(s, bills) {
       <div class="text-center border-bottom pb-3 mb-3">
         <h4 class="font-weight-bold mb-1" style="color: #1e293b;">${headerTitle}</h4>
         <div class="text-muted" style="font-size: 0.95rem;">
-          ${s.store_name ? `<strong>${srT('shifts.rpt_branch')}</strong> ${$('<div>').text(s.store_name).html()} | ` : ''}<strong>${srT('shifts.rpt_shift')}</strong> ${s.shift_name} | <strong>${srT('shifts.rpt_status')}</strong> ${s.status === 'open' ? srT('shifts.rpt_status_open') : srT('shifts.rpt_status_closed')}
+          ${s.store_name ? `<strong>${srT('shifts.rpt_branch')}</strong> ${$('<div>').text(s.store_name).html()} | ` : ''}<strong>${srT('shifts.rpt_shift')}</strong> ${formatShiftName(s.shift_name)} | <strong>${srT('shifts.rpt_status')}</strong> ${s.status === 'open' ? srT('shifts.rpt_status_open') : srT('shifts.rpt_status_closed')}
         </div>
       </div>
 
@@ -1285,7 +1418,7 @@ function renderShiftReportContent(s, bills) {
         <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_open_time')}</strong><br><span class="text-muted">${s.open_time}</span></div>
         <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_close_time')}</strong><br><span class="text-muted">${s.close_time || srT('shifts.rpt_not_closed')}</span></div>
         <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_opened_by')}</strong><br><span class="text-muted">${s.opened_by_name}</span></div>
-        <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_closed_by')}</strong><br><span class="text-muted">${s.closed_by_name || '-'}</span></div>
+        <div class="col-6 col-md-3"><strong>${srT('shifts.rpt_closed_by')}</strong><br><span class="text-muted">${shiftCloserName(s.closed_by_name)}</span></div>
       </div>
 
       ${summaryBoxHtml}
@@ -1334,7 +1467,7 @@ ${channelsHtml}
                 <th style="white-space: nowrap;">${srT('shifts.rpt_col_bill')}</th>
                 <th style="white-space: nowrap;">${srT('shifts.rpt_col_datetime')}</th>
                 <th style="white-space: nowrap;">${srT('shifts.rpt_col_cashier')}</th>
-                ${isRevenueMode ? '<th class="text-center" style="white-space: nowrap;">ເງິນສົດ</th><th class="text-center" style="white-space: nowrap;">ເງິນໂອນ</th>'
+                ${isRevenueMode ? '<th class="text-center" style="white-space: nowrap;">' + getCashWord() + '</th><th class="text-center" style="white-space: nowrap;"><?php echo tlj('ເງິນໂອນ'); ?></th>'
                                 : `<th style="white-space: nowrap;">${srT('shifts.rpt_col_channel')}</th>`}
                 <th class="text-right" style="white-space: nowrap;">${srT('shifts.rpt_col_amount')}</th>
               </tr>
@@ -1362,7 +1495,7 @@ function printShiftThermalSlip() {
     <html>
     <head>
       <meta charset="utf-8">
-      <title>${srT('shifts.rpt_slip_title')} - ${s.shift_name}</title>
+      <title>${srT('shifts.rpt_slip_title')} - ${formatShiftName(s.shift_name)}</title>
       <style>
         @page { size: 80mm auto; margin: 2mm 3mm; }
         * { box-sizing: border-box; }
@@ -1377,11 +1510,11 @@ function printShiftThermalSlip() {
     </head>
     <body>
       <div class="text-center font-bold" style="font-size: 15px;">${srT('shifts.rpt_slip_title')}</div>
-      <div class="text-center font-bold" style="font-size: 13px;">${s.shift_name}</div>
+      <div class="text-center font-bold" style="font-size: 13px;">${formatShiftName(s.shift_name)}</div>
       <div class="text-center border-bottom" style="font-size: 12px;">${s.open_time} - ${s.close_time || srT('shifts.rpt_until_now')}</div>
 
       <div class="row"><span>${srT('shifts.rpt_opened_by')}</span><span>${s.opened_by_name}</span></div>
-      <div class="row"><span>${srT('shifts.rpt_closed_by')}</span><span>${s.closed_by_name || '-'}</span></div>
+      <div class="row"><span>${srT('shifts.rpt_closed_by')}</span><span>${shiftCloserName(s.closed_by_name)}</span></div>
 
       <div class="border-top"></div>
       <div class="row"><span>${srT('shifts.rpt_initial_cash')}</span><span class="font-bold">${formatNumber(s.initial_cash)} <?php echo kipSymbol(); ?></span></div>

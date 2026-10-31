@@ -165,10 +165,10 @@
                 if (!items.length) return '';
                 var idx = items[0].dataIndex;
                 var rawKey = chartKeys[idx];
-                var dPrefix = I18N_HOME['home.lbl_date'] || 'ວັນທີ';
-                var mPrefix = I18N_HOME['home.lbl_month'] || 'ເດືອນ';
-                var yPrefix = I18N_HOME['home.lbl_year'] || 'ປີ';
-                var tPrefix = I18N_HOME['home.lbl_time'] || 'ເວລາ';
+                var dPrefix = I18N_HOME['home.lbl_date'] || '<?php echo tlj('ວັນທີ'); ?>';
+                var mPrefix = I18N_HOME['home.lbl_month'] || '<?php echo tlj('ເດືອນ'); ?>';
+                var yPrefix = I18N_HOME['home.lbl_year'] || '<?php echo tlj('ປີ'); ?>';
+                var tPrefix = I18N_HOME['home.lbl_time'] || '<?php echo tlj('ເວລາ'); ?>';
 
                 if (CHART_MODE === 'day' && rawKey) {
                   var d = parseInt(rawKey.slice(8, 10), 10);
@@ -402,6 +402,7 @@
   // rebuild the affected charts' month-axis and legend labels from the refreshed dictionary.
   function refreshChartLangs() {
     monthLabels = chartKeys.map(chartBucketLabel);
+    if (window.chartPeriodText) $('.chart-period-text').text(window.chartPeriodText());   // "(ວັນທີ … – ວັນທີ …)" ໃນຫົວຂໍ້ກຣາຟ
 
     if (monthlyRevenueChartObj) {
       monthlyRevenueChartObj.data.labels = monthLabels;

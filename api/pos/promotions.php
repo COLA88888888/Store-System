@@ -108,29 +108,29 @@ function getProductPromotion($product, $activePromos, $dispCur = null) {
 
     $tunit = trim($promoToUse['target_unit_name'] ?? 'all');
     if ($tunit === '') $tunit = 'all';
-    $unitSuffix = ($tunit !== 'all') ? ' (ສະເພາະ ' . $tunit . ')' : '';
+    $unitSuffix = ($tunit !== 'all') ? (' (' . tl('ສະເພາະ') . ' ') . $tunit . ')' : '';
 
     // Discount descriptor (unit-agnostic — the actual amount is computed per selected unit).
     // A fixed ₭ amount is shown converted into the POS's active display currency.
     $discountText = '';
     if ($discType === 'percentage' && $discVal > 0) {
-        $discountText = 'ຫຼຸດ ' . (floor($discVal) == $discVal ? intval($discVal) : number_format($discVal, 1)) . '%';
+        $discountText = (tl('ຫຼຸດ') . ' ') . (floor($discVal) == $discVal ? intval($discVal) : number_format($discVal, 1)) . '%';
     } elseif ($discVal > 0) {
         $curCode = strtoupper((string)($dispCur['code'] ?? 'KIP'));
         if ($curCode !== 'KIP' && function_exists('convertFromKip')) {
             $amt = convertFromKip($discVal, $curCode, $dispCur['rates'] ?? null);
             $dec = (int)($dispCur['decimals'] ?? 2);
             $sym = (string)($dispCur['symbol'] ?? $curCode);
-            $discountText = 'ຫຼຸດ ' . number_format((float)$amt, $dec, '.', ',') . ' ' . $sym;
+            $discountText = (tl('ຫຼຸດ') . ' ') . number_format((float)$amt, $dec, '.', ',') . ' ' . $sym;
         } else {
-            $discountText = 'ຫຼຸດ ' . number_format($discVal) . ' ' . kipSymbol();
+            $discountText = (tl('ຫຼຸດ') . ' ') . number_format($discVal) . ' ' . kipSymbol();
         }
     }
-    $giftText = ($giftName !== '') ? ('ແຖມ ' . $giftName . ($giftQty > 1 ? ' x' . $giftQty : '')) : '';
+    $giftText = ($giftName !== '') ? ((tl('ແຖມ') . ' ') . $giftName . ($giftQty > 1 ? ' x' . $giftQty : '')) : '';
 
     // Badge always leads with the promo name so the cashier can see which promo is in effect
     $parts = array_values(array_filter([$discountText, $giftText]));
-    $badge = trim($promoToUse['promo_name'] ?? '') !== '' ? trim($promoToUse['promo_name']) : 'ໂປຣ';
+    $badge = trim($promoToUse['promo_name'] ?? '') !== '' ? trim($promoToUse['promo_name']) : tl('ໂປຣ');
     if ($parts) $badge .= ' · ' . implode(' + ', $parts);
     $badge .= $unitSuffix;
 

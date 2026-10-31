@@ -207,13 +207,13 @@
 
       // Reset modal contents and show loading spinner inside modal table
       $('#trf_modal_code').text('TRF-' + transferId);
-      $('#trf_modal_date').text('ກຳລັງໂຫຼດ...');
+      $('#trf_modal_date').text('<?php echo tlj('ກຳລັງໂຫຼດ...'); ?>');
       $('#trf_modal_from').text('-');
       $('#trf_modal_to').text('-');
       $('#trf_modal_creator').text('-');
       $('#trf_modal_item_count').text('0');
       $('#trf_modal_total_value').text('0');
-      $('#trf_modal_table_body').html('<tr><td colspan="5" class="text-center py-4 text-primary font-weight-bold"><i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i>ກຳລັງດຶງຂໍ້ມູນລາຍລະອຽດ...</td></tr>');
+      $('#trf_modal_table_body').html('<tr><td colspan="5" class="text-center py-4 text-primary font-weight-bold"><i class="fas fa-spinner fa-spin fa-2x mb-2 d-block"></i><?php echo tlj('ກຳລັງດຶງຂໍ້ມູນລາຍລະອຽດ...'); ?></td></tr>');
 
       // Move modal to body container to bypass any parent z-index / overflow restrictions
       var modalEl = $('#notifTransferDetailModal');
@@ -232,7 +232,7 @@
 
             $('#trf_modal_code').text(trf.transfer_code || ('TRF-' + trf.transfer_id));
             $('#trf_modal_date').text(trf.transfer_date || '-');
-            $('#trf_modal_from').text(trf.from_store_name || 'ສາຂາໃຫຍ່');
+            $('#trf_modal_from').text(trf.from_store_name || '<?php echo tlj('ສາຂາໃຫຍ່'); ?>');
             $('#trf_modal_to').text(trf.to_store_name || '-');
             $('#trf_modal_creator').text(trf.creator_name || 'Admin');
             $('#trf_modal_item_count').text(details.length);
@@ -257,17 +257,17 @@
                 tbodyHtml += '</tr>';
               });
             } else {
-              tbodyHtml = '<tr><td colspan="5" class="text-center py-4 text-muted">ບໍ່ພົບລາຍການສິນຄ້າ</td></tr>';
+              tbodyHtml = '<tr><td colspan="5" class="text-center py-4 text-muted"><?php echo tlj('ບໍ່ພົບລາຍການສິນຄ້າ'); ?></td></tr>';
             }
 
             $('#trf_modal_table_body').html(tbodyHtml);
             $('#trf_modal_total_value').text(Math.round(modalTotalValue).toLocaleString());
           } else {
-            $('#trf_modal_table_body').html('<tr><td colspan="5" class="text-center py-4 text-danger font-weight-bold"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>' + (res ? res.message : 'ບໍ່ສາມາດໂຫຼດຂໍ້ມູນໄດ້') + '</td></tr>');
+            $('#trf_modal_table_body').html('<tr><td colspan="5" class="text-center py-4 text-danger font-weight-bold"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>' + (res ? res.message : '<?php echo tlj('ບໍ່ສາມາດໂຫຼດຂໍ້ມູນໄດ້'); ?>') + '</td></tr>');
           }
         },
         error: function() {
-          $('#trf_modal_table_body').html('<tr><td colspan="5" class="text-center py-4 text-danger font-weight-bold"><i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>ເກີດຂໍ້ຜິດພາດໃນການເຊື່ອມຕໍ່ລະບົບ</td></tr>');
+          $('#trf_modal_table_body').html('<tr><td colspan="5" class="text-center py-4 text-danger font-weight-bold"><i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i><?php echo tlj('ເກີດຂໍ້ຜິດພາດໃນການເຊື່ອມຕໍ່ລະບົບ'); ?></td></tr>');
         }
       });
     }
@@ -285,19 +285,19 @@
       var htmlContent = `
         <div class="text-left" style="font-size: 0.9rem; line-height: 1.6; color: #334155;">
           <div class="p-2.5 mb-3 rounded" style="background-color: #f8fafc; border: 1px solid #cbd5e1;">
-            <div class="mb-1.5"><strong class="text-dark"><i class="fas fa-store text-primary mr-1.5"></i> ສາຂາຍ່ອຍ:</strong> <span class="text-dark font-weight-bold">${itemData.store_name || '-'}</span></div>
-            <div class="mb-1.5"><strong class="text-dark"><i class="fas fa-user-tag text-info mr-1.5"></i> ຜູ້ດຳເນີນການນຳເຂົ້າ:</strong> <span class="badge badge-info px-2 py-1" style="font-size: 0.82rem;">${itemData.creator_name || 'Admin'}</span></div>
-            <div><strong class="text-dark"><i class="fas fa-file-invoice text-secondary mr-1.5"></i> ເລກທີໃບບິນ:</strong> <span class="font-weight-bold text-dark">${itemData.invoice_number || '-'}</span></div>
+            <div class="mb-1.5"><strong class="text-dark"><i class="fas fa-store text-primary mr-1.5"></i> <?php echo tlj('ສາຂາຍ່ອຍ:'); ?></strong> <span class="text-dark font-weight-bold">${itemData.store_name || '-'}</span></div>
+            <div class="mb-1.5"><strong class="text-dark"><i class="fas fa-user-tag text-info mr-1.5"></i> <?php echo tlj('ຜູ້ດຳເນີນການນຳເຂົ້າ:'); ?></strong> <span class="badge badge-info px-2 py-1" style="font-size: 0.82rem;">${itemData.creator_name || 'Admin'}</span></div>
+            <div><strong class="text-dark"><i class="fas fa-file-invoice text-secondary mr-1.5"></i> <?php echo tlj('ເລກທີໃບບິນ:'); ?></strong> <span class="font-weight-bold text-dark">${itemData.invoice_number || '-'}</span></div>
           </div>
           
           <div class="table-responsive border rounded mb-3">
             <table class="table table-bordered table-sm mb-0">
               <thead class="bg-light">
                 <tr>
-                  <th>ຊື່ສິນຄ້າ</th>
-                  <th class="text-center">ຈຳນວນ</th>
-                  <th class="text-right">ຕົ້ນທຶນ/ໜ່ວຍ</th>
-                  <th class="text-right">ມູນຄ່າລວມ</th>
+                  <th><?php echo tlj('ຊື່ສິນຄ້າ'); ?></th>
+                  <th class="text-center"><?php echo tlj('ຈຳນວນ'); ?></th>
+                  <th class="text-right"><?php echo tlj('ຕົ້ນທຶນ/ໜ່ວຍ'); ?></th>
+                  <th class="text-right"><?php echo tlj('ມູນຄ່າລວມ'); ?></th>
                 </tr>
               </thead>
               <tbody>
@@ -312,16 +312,16 @@
           </div>
 
           <div class="d-flex justify-content-between text-muted pt-1" style="font-size: 0.8rem;">
-            <span><i class="fas fa-truck mr-1"></i> ຜູ້ສະໜອງ: <strong>${itemData.supplier_name || 'ທົ່ວໄປ'}</strong></span>
-            <span><i class="fas fa-clock mr-1"></i> ວັນທີ/ເວລາ: <strong>${itemData.import_date || '-'}</strong></span>
+            <span><i class="fas fa-truck mr-1"></i> <?php echo tlj('ຜູ້ສະໜອງ:'); ?> <strong>${itemData.supplier_name || '<?php echo tlj('ທົ່ວໄປ'); ?>'}</strong></span>
+            <span><i class="fas fa-clock mr-1"></i> <?php echo tlj('ວັນທີ/ເວລາ:'); ?> <strong>${itemData.import_date || '-'}</strong></span>
           </div>
         </div>
       `;
 
       Swal.fire({
-        title: '<i class="fas fa-boxes text-success mr-2"></i>ລາຍລະອຽດການນຳເຂົ້າສິນຄ້າ',
+        title: '<i class="fas fa-boxes text-success mr-2"></i><?php echo tlj('ລາຍລະອຽດການນຳເຂົ້າສິນຄ້າ'); ?>',
         html: htmlContent,
-        confirmButtonText: 'ອ່ານແລ້ວ / ປິດ',
+        confirmButtonText: '<?php echo tlj('ອ່ານແລ້ວ / ປິດ'); ?>',
         confirmButtonColor: '#0284c7',
         width: '520px'
       });

@@ -1,10 +1,12 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once __DIR__ . '/../config/db.php';
 
 header('Content-Type: application/json');
 
-if (empty($_SESSION['user_id']) || (!hasPermission('products'))) {
+if (empty($_SESSION['user_id']) || (!hasPermission('products') && !hasPermission('categories') && !hasPermission('stock'))) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit();
 }
@@ -21,7 +23,7 @@ if ($action === 'upload_image' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $img = saveUploadedProductImage('image', $uploadError);
     echo json_encode($img
         ? ['success' => true, 'file' => $img, 'url' => getProductImagePath($img)]
-        : ['success' => false, 'message' => $uploadError ?: 'ບໍ່ພົບໄຟລ໌ຮູບພາບ']);
+        : ['success' => false, 'message' => $uploadError ?: tl('ບໍ່ພົບໄຟລ໌ຮູບພາບ')]);
     exit();
 }
 
@@ -130,7 +132,7 @@ if ($action === 'check_barcode' && isset($_GET['barcode'])) {
     if ($p) {
         echo json_encode([
             'exists' => true,
-            'message' => 'ລະຫັດບາໂຄ້ດ "' . $barcode . '" ນີ້ຖືກໃຊ້ແລ້ວນຳສິນຄ້າ: "' . $p['product_name'] . '" (ID: ' . $p['product_id'] . ')'
+            'message' => (tl('ລະຫັດບາໂຄ້ດ') . ' "') . $barcode . ('" ' . tl('ນີ້ຖືກໃຊ້ແລ້ວນຳສິນຄ້າ:') . ' "') . $p['product_name'] . '" (ID: ' . $p['product_id'] . ')'
         ]);
         exit();
     }
@@ -143,7 +145,7 @@ if ($action === 'check_barcode' && isset($_GET['barcode'])) {
     if ($u) {
         echo json_encode([
             'exists' => true,
-            'message' => 'ລະຫັດບາໂຄ້ດ "' . $barcode . '" ນີ້ຖືກໃຊ້ແລ້ວນຳຫົວໜ່ວຍຍ່ອຍຂອງສິນຄ້າ: "' . $u['product_name'] . '" (ID: ' . $u['product_id'] . ')'
+            'message' => (tl('ລະຫັດບາໂຄ້ດ') . ' "') . $barcode . ('" ' . tl('ນີ້ຖືກໃຊ້ແລ້ວນຳຫົວໜ່ວຍຍ່ອຍຂອງສິນຄ້າ:') . ' "') . $u['product_name'] . '" (ID: ' . $u['product_id'] . ')'
         ]);
         exit();
     }
@@ -156,7 +158,7 @@ if ($action === 'check_barcode' && isset($_GET['barcode'])) {
 if ($action === 'add_zone' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $zoneName = trim($_POST['zone_name'] ?? '');
     if ($zoneName === '') {
-        echo json_encode(['success' => false, 'message' => 'ກະລຸນາປ້ອນຊື່ໂຊນ']);
+        echo json_encode(['success' => false, 'message' => tl('ກະລຸນາປ້ອນຊື່ໂຊນ')]);
         exit();
     }
     $chk = $pdo->prepare("SELECT zone_id, zone_name FROM st_zones WHERE zone_name = ? AND store_id = ? LIMIT 1");
@@ -178,7 +180,7 @@ if ($action === 'add_shelf' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $shelfName = trim($_POST['shelf_name'] ?? '');
     $zoneId = intval($_POST['zone_id'] ?? 0) ?: null;
     if ($shelfName === '') {
-        echo json_encode(['success' => false, 'message' => 'ກະລຸນາປ້ອນຊື່ຊັ້ນວາງ']);
+        echo json_encode(['success' => false, 'message' => tl('ກະລຸນາປ້ອນຊື່ຊັ້ນວາງ')]);
         exit();
     }
     $chk = $pdo->prepare("SELECT shelf_id, shelf_name FROM st_shelves WHERE shelf_name = ? AND zone_id <=> ? AND store_id = ? LIMIT 1");
@@ -199,7 +201,7 @@ if ($action === 'add_shelf' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 if ($action === 'add_unit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $unitName = trim($_POST['unit_name'] ?? '');
     if ($unitName === '') {
-        echo json_encode(['success' => false, 'message' => 'ກະລຸນາປ້ອນຊື່ຫົວໜ່ວຍ']);
+        echo json_encode(['success' => false, 'message' => tl('ກະລຸນາປ້ອນຊື່ຫົວໜ່ວຍ')]);
         exit();
     }
     $chk = $pdo->prepare("SELECT unit_id, unit_name FROM st_units WHERE unit_name = ? AND store_id = ? LIMIT 1");
@@ -214,6 +216,41 @@ if ($action === 'add_unit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $newId = (int)$pdo->lastInsertId();
     echo json_encode(['success' => true, 'unit_id' => $newId, 'unit_name' => $unitName]);
     exit();
+}
+
+// --- Quick Add Category ---
+if ($action === 'add_category' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $catName = trim($_POST['category_name'] ?? '');
+    if ($catName === '') {
+        echo json_encode(['success' => false, 'message' => tl('ກະລຸນາປ້ອນຊື່ໝວດໝູ່')]);
+        exit();
+    }
+    try {
+        $chk = $pdo->prepare("SELECT category_id, category_name FROM st_categories WHERE category_name = ? AND store_id = ? LIMIT 1");
+        $chk->execute([$catName, $activeStoreId]);
+        $existing = $chk->fetch(PDO::FETCH_ASSOC);
+        if ($existing) {
+            echo json_encode(['success' => true, 'category_id' => (int)$existing['category_id'], 'category_name' => $existing['category_name']]);
+            exit();
+        }
+
+        $maxStmt = $pdo->query("SELECT COALESCE(MAX(category_id), 0) + 1 FROM st_categories");
+        $nextCatId = (int)$maxStmt->fetchColumn();
+        if ($nextCatId <= 0) $nextCatId = 1;
+
+        $branchNo = function_exists('nextBranchNo') ? nextBranchNo($pdo, 'st_categories', $activeStoreId) : 1;
+        $ins = $pdo->prepare("INSERT INTO st_categories (category_id, category_name, description, store_id, branch_no) VALUES (?, ?, '', ?, ?)");
+        $ins->execute([$nextCatId, $catName, $activeStoreId, $branchNo]);
+
+        if (function_exists('logActivity')) {
+            logActivity($pdo, "ເພີ່ມປະເພດສິນຄ້າ", "ລະຫັດ: $nextCatId, ຊື່: $catName");
+        }
+        echo json_encode(['success' => true, 'category_id' => $nextCatId, 'category_name' => $catName]);
+        exit();
+    } catch (Throwable $e) {
+        echo json_encode(['success' => false, 'message' => tl('ຜິດພາດ: ') . $e->getMessage()]);
+        exit();
+    }
 }
 
 echo json_encode(['success' => false, 'message' => 'Invalid Action']);

@@ -2,6 +2,13 @@
 // pages/products — ປຸ່ມ/popup ເພີ່ມດ່ວນ ຫົວໜ່ວຍ, ໂຊນ, ຊັ້ນວາງ + ແຖບເພີ່ມຫຼາຍລາຍການ/Excel
 // strings - Thai
 return [
+    'products_q.add_category_link' => 'เพิ่มหมวดหมู่',
+    'products_q.add_btn_short' => 'เพิ่ม',
+    'products_q.cat_title' => 'เพิ่มหมวดหมู่สินค้าใหม่',
+    'products_q.cat_ph' => 'กรอกชื่อหมวดหมู่สินค้า เช่น: เครื่องดื่ม, ขนม...',
+    'products_q.cat_required' => 'กรุณากรอกชื่อหมวดหมู่สินค้า!',
+    'products_q.cat_added' => 'เพิ่มหมวดหมู่สินค้าสำเร็จ',
+    'products_q.cat_failed' => 'เพิ่มหมวดหมู่สินค้าไม่สำเร็จ',
     'products_q.add_unit_link' => 'เพิ่มหน่วย',
     'products_q.add_zone_link' => 'เพิ่มโซน',
     'products_q.add_shelf_link' => 'เพิ่มชั้นวาง',
@@ -38,6 +45,13 @@ return [
     'products_q.shelf_all_rows' => 'ชั้นวาง (ใช้กับทุกรายการ)',
     'products_q.zone_none_opt' => '-- ไม่ระบุ / เลือกโซน --',
     'products_q.shelf_none_opt' => '-- ไม่ระบุ / เลือกชั้นวาง --',
+    'products_q.no_zone' => '-- ไม่มีข้อมูลโซน --',
+    'products_q.no_zone_short' => '-- ไม่มีโซน --',
+    'products_q.no_shelf' => '-- ไม่มีข้อมูลชั้นวาง --',
+    'products_q.no_shelf_short' => '-- ไม่มีชั้นวาง --',
+    'products_q.no_shelf_in_zone' => '-- ไม่มีชั้นวางในโซนนี้ --',
+    'products_q.select_zone' => '-- เลือกโซน --',
+    'products_q.select_shelf' => '-- เลือกชั้นวาง --',
     'products_q.excel_import' => 'นำเข้าจาก Excel',
     'products_q.excel_template' => 'ดาวน์โหลดแบบฟอร์ม',
     'products_q.excel_columns' => 'คอลัมน์: ประเภท, ชื่อสินค้า, บาร์โค้ด, หน่วย, ราคาซื้อ, ราคาขาย, ผู้จำหน่าย, โซน, ชั้นวาง',
@@ -51,4 +65,6 @@ return [
     'products_q.miss_category' => 'ไม่พบประเภทในระบบ',
     'products_q.miss_unit' => 'ไม่พบหน่วยในระบบ',
     'products_q.miss_supplier' => 'ไม่พบผู้จำหน่าย (จะเว้นว่างไว้)',
+    'products_q.add_category_btn' => 'เพิ่มหมวด',
+    'products_q.add_unit_btn' => 'เพิ่มหน่วย',
 ];

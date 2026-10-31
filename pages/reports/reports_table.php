@@ -6,34 +6,34 @@
           <!-- ITEM MODE HEADERS (11 COLUMNS - WHITE) -->
           <tr style="background: #ffffff; color: #1e293b;">
             <th class="text-center" style="width: 50px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">#</th>
-            <th class="text-left" style="width: 140px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ບິນ</th>
-            <th class="text-left" style="width: 100px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ວັນທີ</th>
-            <th class="text-left" style="width: 120px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ສາຂາ</th>
-            <th class="text-left" style="width: 110px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ລະຫັດ</th>
-            <th class="text-left" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ຊື່ສິນຄ້າ</th>
-            <th class="text-center" style="width: 90px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ຈຳນວນ</th>
-            <th class="text-right" style="width: 110px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ລາຄາ</th>
-            <th class="text-right" style="width: 100px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ສ່ວນຫຼຸດ</th>
-            <th class="text-right" style="width: 130px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ສຸດທິ</th>
-            <th class="text-left" style="width: 120px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ພະນັກງານ</th>
+            <th class="text-left" style="width: 140px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ບິນ'); ?></th>
+            <th class="text-left" style="width: 100px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ວັນທີ'); ?></th>
+            <th class="text-left" style="width: 120px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ສາຂາ'); ?></th>
+            <th class="text-left" style="width: 110px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ລະຫັດ'); ?></th>
+            <th class="text-left" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ຊື່ສິນຄ້າ'); ?></th>
+            <th class="text-center" style="width: 90px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ຈຳນວນ'); ?></th>
+            <th class="text-right" style="width: 110px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ລາຄາ'); ?></th>
+            <th class="text-right" style="width: 100px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ສ່ວນຫຼຸດ'); ?></th>
+            <th class="text-right" style="width: 130px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ສຸດທິ'); ?></th>
+            <th class="text-left" style="width: 120px; background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ພະນັກງານ'); ?></th>
           </tr>
         <?php else: ?>
           <!-- INVOICE MODE HEADERS (14 COLUMNS - WHITE) -->
           <tr style="background: #ffffff; color: #1e293b;">
-            <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ລຳດັບ</th>
-            <th class="text-left" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ເລກບິນ</th>
-            <th class="text-left" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ວັນທີ</th>
-            <th class="text-left" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ສາຂາ</th>
-            <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ຈຳນວນ</th>
-            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ລາຄາລວມ</th>
-            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ສ່ວນຫຼຸດ</th>
-            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ສຸດທິ</th>
-            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ເງິນສົດ</th>
-            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ໂອນ</th>
-            <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ທະນາຄານ</th>
-            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ເງິນທອນ</th>
-            <th class="text-left" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ຜູ້ຂາຍ</th>
-            <th class="text-center no-print" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;">ຈັດການ</th>
+            <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ລຳດັບ'); ?></th>
+            <th class="text-left" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ເລກບິນ'); ?></th>
+            <th class="text-left" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ວັນທີ'); ?></th>
+            <th class="text-left" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ສາຂາ'); ?></th>
+            <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ຈຳນວນ'); ?></th>
+            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ລາຄາລວມ'); ?></th>
+            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ສ່ວນຫຼຸດ'); ?></th>
+            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ສຸດທິ'); ?></th>
+            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ເງິນສົດ'); ?></th>
+            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ໂອນ'); ?></th>
+            <th class="text-center" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ທະນາຄານ'); ?></th>
+            <th class="text-right" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ເງິນທອນ'); ?></th>
+            <th class="text-left" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ຜູ້ຂາຍ'); ?></th>
+            <th class="text-center no-print" style="background: #ffffff; color: #1e293b; border-bottom: 2px solid #e2e8f0;"><?php echo tlh('ຈັດການ'); ?></th>
           </tr>
         <?php endif; ?>
       </thead>
@@ -41,8 +41,8 @@
         <?php if (empty($display_data)): ?>
           <tr>
             <td colspan="<?php echo $view_mode === 'item' ? '10' : '13'; ?>" class="text-center py-5">
-              <div class="text-muted font-weight-bold" style="font-size: 0.95rem;">ບໍ່ພົບຂໍ້ມູນລາຍງານການຂາຍ</div>
-              <small class="text-muted">ກະລຸນາປ່ຽນເງື່ອນໄຂການຄົ້ນຫາ ຫຼື ເລືອກຊ່ວງວັນທີໃໝ່</small>
+              <div class="text-muted font-weight-bold" style="font-size: 0.95rem;"><?php echo tlh('ບໍ່ພົບຂໍ້ມູນລາຍງານການຂາຍ'); ?></div>
+              <small class="text-muted"><?php echo tlh('ກະລຸນາປ່ຽນເງື່ອນໄຂການຄົ້ນຫາ ຫຼື ເລືອກຊ່ວງວັນທີໃໝ່'); ?></small>
             </td>
           </tr>
         <?php else: ?>
@@ -84,7 +84,7 @@
 
                   <!-- ສາຂາ -->
                   <td class="text-left font-weight-bold text-dark" style="font-size: 0.82rem;">
-                    <span class="badge badge-light border text-primary px-2 py-1"><i class="fas fa-store mr-1"></i><?php echo htmlspecialchars($itemRow['store_name'] ?? 'ສາຂາ'); ?></span>
+                    <span class="badge badge-light border text-primary px-2 py-1"><i class="fas fa-store mr-1"></i><?php echo htmlspecialchars($itemRow['store_name'] ?? tl('ສາຂາ')); ?></span>
                   </td>
 
                   <!-- ລະຫັດ -->
@@ -112,7 +112,7 @@
 
               <!-- 3. Bill Summary Row (#fef9c3) -->
               <tr style="background-color: #fef9c3; border-bottom: 2px solid #fde047;">
-                <td colspan="9" class="text-right font-weight-bold text-dark pr-3">ລວມບິນ:</td>
+                <td colspan="9" class="text-right font-weight-bold text-dark pr-3"><?php echo tlh('ລວມບິນ:'); ?></td>
                 <td class="text-right font-weight-bold text-dark" style="font-size: 0.95rem;"><?php echo number_format($bGroup['bill_net'], 0); ?></td>
                 <td></td>
               </tr>
@@ -124,13 +124,13 @@
               <tr>
                 <td class="text-center font-weight-bold text-muted"><?php echo $i++; ?></td>
                 <td class="text-left font-weight-bold text-primary">
-                  <a href="javascript:void(0)" onclick="viewBillDetails('<?php echo htmlspecialchars($row['bill_no']); ?>')" class="text-primary" title="ເບິ່ງລາຍລະອຽດບິນ">
+                  <a href="javascript:void(0)" onclick="viewBillDetails('<?php echo htmlspecialchars($row['bill_no']); ?>')" class="text-primary" title="<?php echo tlh('ເບິ່ງລາຍລະອຽດບິນ'); ?>">
                     <?php echo htmlspecialchars($row['bill_no']); ?>
                   </a>
                 </td>
                 <td class="text-left" style="font-size: 0.84rem; color: #475569;"><?php echo htmlspecialchars($row['date_time']); ?></td>
                 <td class="text-left font-weight-bold text-dark" style="font-size: 0.82rem;">
-                  <span class="badge badge-light border text-primary px-2 py-1"><i class="fas fa-store mr-1"></i><?php echo htmlspecialchars($row['store_name'] ?? 'ສາຂາ'); ?></span>
+                  <span class="badge badge-light border text-primary px-2 py-1"><i class="fas fa-store mr-1"></i><?php echo htmlspecialchars($row['store_name'] ?? tl('ສາຂາ')); ?></span>
                 </td>
                 <td class="text-center font-weight-bold text-dark"><?php echo number_format($row['qty']); ?></td>
                 <td class="text-right font-weight-bold text-secondary"><?php echo number_format($row['gross'], 0); ?> <?php echo kipSymbol(); ?></td>
@@ -165,17 +165,17 @@
                 <td class="text-left font-weight-bold text-dark" style="font-size: 0.84rem;"><?php echo htmlspecialchars($row['cashier']); ?></td>
                 <td class="text-center no-print" style="white-space: nowrap !important;">
                   <div class="d-inline-flex align-items-center" style="gap: 6px;">
-                    <button type="button" class="btn btn-sm btn-light border shadow-sm text-primary" onclick="viewBillDetails('<?php echo htmlspecialchars($row['bill_no']); ?>')" title="ລາຍລະອຽດ" style="width: 34px; height: 34px; padding: 0; font-size: 1.05rem;">
+                    <button type="button" class="btn btn-sm btn-light border shadow-sm text-primary" onclick="viewBillDetails('<?php echo htmlspecialchars($row['bill_no']); ?>')" title="<?php echo tlh('ລາຍລະອຽດ'); ?>" style="width: 34px; height: 34px; padding: 0; font-size: 1.05rem;">
                       <i class="fas fa-eye"></i>
                     </button>
-                    <button type="button" class="btn btn-sm btn-light border shadow-sm text-info" onclick="printBill('<?php echo htmlspecialchars($row['bill_no']); ?>')" title="ພິມໃບບິນ" style="width: 34px; height: 34px; padding: 0; font-size: 1.05rem;">
+                    <button type="button" class="btn btn-sm btn-light border shadow-sm text-info" onclick="printBill('<?php echo htmlspecialchars($row['bill_no']); ?>')" title="<?php echo tlh('ພິມໃບບິນ'); ?>" style="width: 34px; height: 34px; padding: 0; font-size: 1.05rem;">
                       <i class="fas fa-print"></i>
                     </button>
                     <?php
                       $canDeleteBill = hasPermission('delete_bills') || ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ';
                       if (($row['status'] ?? 'SUCCESS') !== 'CANCEL' && $canDeleteBill):
                     ?>
-                      <button type="button" class="btn btn-sm btn-light border shadow-sm text-danger" onclick="deleteBill('<?php echo htmlspecialchars($row['bill_no']); ?>')" title="ລຶບບິນຂາຍ" style="width: 34px; height: 34px; padding: 0; font-size: 1.05rem;">
+                      <button type="button" class="btn btn-sm btn-light border shadow-sm text-danger" onclick="deleteBill('<?php echo htmlspecialchars($row['bill_no']); ?>')" title="<?php echo tlh('ລຶບບິນຂາຍ'); ?>" style="width: 34px; height: 34px; padding: 0; font-size: 1.05rem;">
                         <i class="fas fa-trash-alt"></i>
                       </button>
                     <?php endif; ?>
@@ -193,14 +193,14 @@
         <tfoot style="background: #f8fafc; font-weight: 800; border-top: 2px solid #cbd5e1;">
           <tr>
             <?php if ($view_mode === 'item'): ?>
-              <td colspan="6" class="text-right text-dark">ລວມທັງໝົດ:</td>
+              <td colspan="6" class="text-right text-dark"><?php echo tlh('ລວມທັງໝົດ:'); ?></td>
               <td class="text-center text-dark"><?php echo number_format($total_qty); ?></td>
               <td class="text-right text-secondary"><?php echo number_format($total_gross, 0); ?> <?php echo kipSymbol(); ?></td>
               <td class="text-right text-danger"><?php echo number_format($total_disc, 0); ?> <?php echo kipSymbol(); ?></td>
               <td class="text-right text-success" style="font-size: 1.0rem;"><?php echo number_format($total_net, 0); ?> <?php echo kipSymbol(); ?></td>
               <td></td>
             <?php else: ?>
-              <td colspan="4" class="text-right text-dark">ລວມທັງໝົດ:</td>
+              <td colspan="4" class="text-right text-dark"><?php echo tlh('ລວມທັງໝົດ:'); ?></td>
               <td class="text-center text-dark"><?php echo number_format($total_qty); ?></td>
               <td class="text-right text-secondary"><?php echo number_format($total_gross, 0); ?> <?php echo kipSymbol(); ?></td>
               <td class="text-right text-danger"><?php echo number_format($total_disc, 0); ?> <?php echo kipSymbol(); ?></td>

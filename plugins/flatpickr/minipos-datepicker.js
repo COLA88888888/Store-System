@@ -32,11 +32,15 @@
       weekdays: { shorthand: ['日', '一', '二', '三', '四', '五', '六'], longhand: ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'] },
       months: { shorthand: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
                 longhand: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'] } },
+    vi: { firstDayOfWeek: 1,
+      weekdays: { shorthand: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'], longhand: ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'] },
+      months: { shorthand: ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'],
+                longhand: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'] } },
     en: 'default'
   };
 
   // Placeholder shown in an empty box, in the app's language
-  var PLACEHOLDERS = { lo: 'ວັນ/ເດືອນ/ປີ', th: 'วัน/เดือน/ปี', zh: '日/月/年', en: 'dd/mm/yyyy' };
+  var PLACEHOLDERS = { lo: 'ວັນ/ເດືອນ/ປີ', th: 'วัน/เดือน/ปี', zh: '日/月/年', en: 'dd/mm/yyyy', vi: 'ngày/tháng/năm' };
 
   // Phone / tablet: tapping a typeable box pops the keyboard and (iOS, font < 16px) zooms the
   // page in. On touch screens the box is tap-to-open-calendar only — no keyboard, no zoom.
@@ -171,11 +175,20 @@
   }
   function dayNum(d) { return d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : null; }
   // onDayCreate: ໃສ່ class ຊ່ວງວັນທີໃຫ້ແຕ່ລະມື້ (minipos-datepicker.css: .mp-range-start/.mp-range-end/.mp-in-range)
+  // ບັອກວັນທີດຽວ (ບໍ່ມີຄູ່ ເຊັ່ນ ວັນທີຮັບເຂົ້າ, ວັນໝົດອາຍຸ, ວັນເກີດ): ແຕ້ມແບບດຽວກັນ — ແຖບຈາກວັນທີ 1 ຂອງເດືອນ
+  // ຫາມື້ທີ່ເລືອກ; ບັອກຍັງວ່າງ → ຫາມື້ນີ້ (ແຕ້ມເທົ່ານັ້ນ, ບັອກຍັງວ່າງຢູ່)
   function markRange(el, inst, dayElem) {
-    var partner = rangePartner(el);
-    if (!partner || !partner._flatpickr || !dayElem.dateObj) return;
-    var mine = dayNum(inst.selectedDates[0]), other = dayNum(partner._flatpickr.selectedDates[0]);
-    var from = rangeRole(el) === 'from' ? mine : other, to = rangeRole(el) === 'from' ? other : mine;
+    if (!dayElem.dateObj) return;
+    var partner = rangePartner(el), from, to;
+    if (!partner || !partner._flatpickr) {
+      var sel = inst.selectedDates[0] || new Date();
+      from = dayNum(new Date(sel.getFullYear(), sel.getMonth(), 1));
+      to = dayNum(sel);
+    } else {
+      var mine = dayNum(inst.selectedDates[0]), other = dayNum(partner._flatpickr.selectedDates[0]);
+      from = rangeRole(el) === 'from' ? mine : other;
+      to = rangeRole(el) === 'from' ? other : mine;
+    }
     if (from === null || to === null || from > to) return;
     var t = dayNum(dayElem.dateObj);
     if (t === from) dayElem.classList.add('mp-range-start');
@@ -325,7 +338,7 @@
       onChange: [function (dates, d, inst) { if (rangeRole(el)) onRangeChange(el, inst, dates); }],
       onOpen: [function (s, d, inst) {
         inst._mpStep = 0;
-        if (rangePartner(el)) inst.redraw();   // ບັອກຄູ່ອາດປ່ຽນວັນທີແລ້ວ → ແຕ້ມຊ່ວງໃໝ່
+        inst.redraw();   // ວັນທີອາດປ່ຽນແລ້ວ (ບັອກຄູ່ / ຕັ້ງຈາກໂຄດ) → ແຕ້ມແຖບໃໝ່
         lockZoom(inst);
         if (openPickers.indexOf(inst) < 0) openPickers.push(inst);
         pinCalendar(inst);

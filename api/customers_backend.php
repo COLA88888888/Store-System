@@ -72,15 +72,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 try {
                     $stmt = $pdo->prepare("INSERT INTO st_customers (customer_code, customer_name, phone, member_card, email, address, notes, store_id, branch_no) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt->execute([$code, $name, $phone, $member_card, $email, $address, $notes, $targetStoreId, $custBranchNo]);
-                    $message = 'ເພີ່ມຂໍ້ມູນລູກຄ້າສຳເລັດ!';
+                    $message = tl('ເພີ່ມຂໍ້ມູນລູກຄ້າສຳເລັດ!');
                     $message_type = 'success';
                     logActivity($pdo, "ເພີ່ມຂໍ້ມູນລູກຄ້າ", "ລະຫັດ: $code, ຊື່: $name (ສາຂາ #$targetStoreId)");
                 } catch (Exception $e) {
-                    $message = 'ຜິດພາດ: ລະຫັດລູກຄ້ານີ້ອາດມີໃນລະບົບແລ້ວ ຫຼື ' . $e->getMessage();
+                    $message = (tl('ຜິດພາດ: ລະຫັດລູກຄ້ານີ້ອາດມີໃນລະບົບແລ້ວ ຫຼື') . ' ') . $e->getMessage();
                     $message_type = 'danger';
                 }
             } else {
-                $message = 'ກະລຸນາປ້ອນລະຫັດ ແລະ ຊື່ລູກຄ້າໃຫ້ຄົບຖ້ວນ!';
+                $message = tl('ກະລຸນາປ້ອນລະຫັດ ແລະ ຊື່ລູກຄ້າໃຫ້ຄົບຖ້ວນ!');
                 $message_type = 'danger';
             }
         }
@@ -102,15 +102,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $stmt = $pdo->prepare("UPDATE st_customers SET customer_name = ?, phone = ?, member_card = ?, email = ?, address = ?, notes = ? WHERE customer_id = ? AND store_id = ?");
                         $stmt->execute([$name, $phone, $member_card, $email, $address, $notes, $id, $userStoreId]);
                     }
-                    $message = 'ແກ້ໄຂຂໍ້ມູນລູກຄ້າສຳເລັດ!';
+                    $message = tl('ແກ້ໄຂຂໍ້ມູນລູກຄ້າສຳເລັດ!');
                     $message_type = 'success';
                     logActivity($pdo, "ແກ້ໄຂຂໍ້ມູນລູກຄ້າ", "ID: $id, ຊື່: $name");
                 } catch (Exception $e) {
-                    $message = 'ຜິດພາດ: ' . $e->getMessage();
+                    $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                     $message_type = 'danger';
                 }
             } else {
-                $message = 'ກະລຸນາປ້ອນຊື່ລູກຄ້າໃຫ້ຄົບຖ້ວນ!';
+                $message = tl('ກະລຸນາປ້ອນຊື່ລູກຄ້າໃຫ້ຄົບຖ້ວນ!');
                 $message_type = 'danger';
             }
         }
@@ -125,11 +125,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $stmt = $pdo->prepare("DELETE FROM st_customers WHERE customer_id = ? AND store_id = ?");
                         $stmt->execute([$id, $userStoreId]);
                     }
-                    $message = 'ລົບຂໍ້ມູນລູກຄ້າສຳເລັດ!';
+                    $message = tl('ລົບຂໍ້ມູນລູກຄ້າສຳເລັດ!');
                     $message_type = 'success';
                     logActivity($pdo, "ລົບຂໍ້ມູນລູກຄ້າ", "ID: $id");
                 } catch (Exception $e) {
-                    $message = 'ຜິດພາດ: ' . $e->getMessage();
+                    $message = (tl('ຜິດພາດ:') . ' ') . $e->getMessage();
                     $message_type = 'danger';
                 }
             }

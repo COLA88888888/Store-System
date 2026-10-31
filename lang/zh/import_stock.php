@@ -21,6 +21,7 @@ return [
     'import_stock.supplier_empty_hint' => '暂无供应商 — 可在"供应商管理"菜单中添加',
     'import_stock.scan_barcode_label' => '扫描条码 / 商品编号',
     'import_stock.scan_barcode_placeholder' => '扫描条码或输入编号...',
+    'import_stock.scan_hint' => '扫描或按 Enter — 商品立即加入列表。在下方表格中修改数量、单位和到期日',
     'import_stock.open_select_product_modal' => '打开选择商品窗口',
     'import_stock.select_product_button' => '选择商品',
     'import_stock.qty_label' => '数量',

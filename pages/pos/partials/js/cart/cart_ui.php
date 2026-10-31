@@ -66,7 +66,7 @@ function updateCartUI() {
     var isGift = !!item.is_free_gift;
     var giftBadge = item.reward_uid
       ? `<span class="badge font-weight-bold ml-1" style="font-size:0.78rem; padding:2px 6px; border-radius:4px; background:#f59e0b; color:#fff;"><i class="fas fa-star mr-1"></i>${posT('pos.redeem_badge')}</span>`
-      : (isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.78rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i>ແຖມຟຣີ</span>` : '');
+      : (isGift ? `<span class="badge badge-success font-weight-bold ml-1" style="font-size:0.78rem; padding:2px 6px; border-radius:4px;"><i class="fas fa-gift mr-1"></i><?php echo tlj('ແຖມຟຣີ'); ?></span>` : '');
     var origPrice = (typeof item.original_price !== 'undefined' && item.original_price !== null) ? parseFloat(item.original_price) : parseFloat(item.unit_price);
     if (typeof item.original_price === 'undefined' || item.original_price === null) {
       item.original_price = origPrice;
@@ -86,15 +86,15 @@ function updateCartUI() {
     // ແລ້ວ 'ກີບ)">' ໂຜ່ອອກມາໃນແຖວກະຕ່າ
     var discLabelAttr = String(discLabel).replace(/<[^>]*>/g, '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     var discBadgeHtml = (hasItemDiscount && !isGift)
-      ? `<span class="badge badge-danger font-weight-bold ml-1" style="font-size:0.75rem; padding:2px 6px; border-radius:4px; cursor:pointer;" onclick="openItemDiscountModal('${item.cartKey}')" title="ແກ້ໄຂສ່ວນຫຼຸດ">-${discLabel}</span>`
+      ? `<span class="badge badge-danger font-weight-bold ml-1" style="font-size:0.75rem; padding:2px 6px; border-radius:4px; cursor:pointer;" onclick="openItemDiscountModal('${item.cartKey}')" title="<?php echo tlj('ແກ້ໄຂສ່ວນຫຼຸດ'); ?>">-${discLabel}</span>`
       : '';
 
     var discActionBtn = '';
     if (!isGift && !item.reward_uid) {
       if (hasItemDiscount) {
-        discActionBtn = `<button type="button" class="cart-item-disc-icon-btn active" onclick="openItemDiscountModal('${item.cartKey}')" title="ແກ້ໄຂສ່ວນຫຼຸດ (-${discLabelAttr})"><i class="fas fa-tags"></i></button>`;
+        discActionBtn = `<button type="button" class="cart-item-disc-icon-btn active" onclick="openItemDiscountModal('${item.cartKey}')" title="<?php echo tlj('ແກ້ໄຂສ່ວນຫຼຸດ'); ?> (-${discLabelAttr})"><i class="fas fa-tags"></i></button>`;
       } else {
-        discActionBtn = `<button type="button" class="cart-item-disc-icon-btn" onclick="openItemDiscountModal('${item.cartKey}')" title="ໃສ່ສ່ວນຫຼຸດ"><i class="fas fa-tag"></i></button>`;
+        discActionBtn = `<button type="button" class="cart-item-disc-icon-btn" onclick="openItemDiscountModal('${item.cartKey}')" title="<?php echo tlj('ໃສ່ສ່ວນຫຼຸດ'); ?>"><i class="fas fa-tag"></i></button>`;
       }
     }
 
@@ -112,12 +112,12 @@ function updateCartUI() {
     var rowHtml = `
       <div class="cart-item-row" data-cart-key="${item.cartKey}" style="background:${isGift ? '#f0fdf4' : '#ffffff'};${isGift ? ' border-color:#86efac;' : ''}">
 
-        <!-- 1. ຮູບພາບ -->
+        <!-- 1. <?php echo tlj('ຮູບພາບ'); ?> -->
         <div class="cart-item-img-box">
           <img src="${imgPath}" class="cart-item-img" onerror="this.src='<?php echo $base_path; ?>assets/img/image.jpg';">
         </div>
 
-        <!-- 2. ລາຍລະອຽດ & ປຸ່ມຄວບຄຸມ -->
+        <!-- 2. <?php echo tlj('ລາຍລະອຽດ & ປຸ່ມຄວບຄຸມ'); ?> -->
         <div class="cart-item-content">
           <div class="cart-item-name-wrap">
             <div class="cart-item-title font-weight-bold" title="${item.product_name}">${item.product_name} ${unitText} ${giftBadge}</div>
@@ -130,12 +130,12 @@ function updateCartUI() {
 
           <div class="cart-item-actions-wrap">
             <div class="cart-item-qty-pill">
-              <button onclick="if (window.innerWidth < 768) { ${minusActionMobile}; } else { incCartQty('${item.cartKey}', -1); }" title="${isQtyOne ? 'ລຶບ' : 'ຫຼຸດ'}" class="btn-qty-minus">
+              <button onclick="if (window.innerWidth < 768) { ${minusActionMobile}; } else { incCartQty('${item.cartKey}', -1); }" title="${isQtyOne ? '<?php echo tlj('ລຶບ'); ?>' : '<?php echo tlj('ຫຼຸດ'); ?>'}" class="btn-qty-minus">
                 <span class="d-md-none">${isQtyOne ? trashSvg : minusSvg}</span>
                 <i class="fas fa-minus d-none d-md-inline"></i>
               </button>
               <input type="number" min="1" value="${item.quantity}" onchange="changeCartQty('${item.cartKey}', this.value)" class="cart-qty-val" ${isGift ? 'readonly' : ''}>
-              <button onclick="incCartQty('${item.cartKey}', 1)" title="ເພີ່ມ" class="btn-qty-plus" ${isGift ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}>
+              <button onclick="incCartQty('${item.cartKey}', 1)" title="<?php echo tlj('ເພີ່ມ'); ?>" class="btn-qty-plus" ${isGift ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}>
                 <span class="d-md-none">${plusSvg}</span>
                 <i class="fas fa-plus d-none d-md-inline"></i>
               </button>
@@ -145,9 +145,9 @@ function updateCartUI() {
               <span class="cart-item-currency-prefix">${POSCUR.symbol}</span><span class="cart-item-total-val">${totalNum}</span><span class="cart-item-currency-suffix"> <span class="cur-sym">${POSCUR.symbol}</span></span>
             </div>
 
-            <!-- ປຸ່ມລົບ (ເທິງ) & ໄອຄອນສ່ວນຫຼຸດ (ລຸ່ມ) -->
+            <!-- <?php echo tlj('ປຸ່ມລົບ (ເທິງ) & ໄອຄອນສ່ວນຫຼຸດ (ລຸ່ມ)'); ?> -->
             <div class="cart-item-tools-col">
-              <button class="cart-item-del-btn" onclick="removeFromCart('${item.cartKey}')" title="ລຶບ">
+              <button class="cart-item-del-btn" onclick="removeFromCart('${item.cartKey}')" title="<?php echo tlj('ລຶບ'); ?>">
                 <i class="fas fa-trash-alt"></i>
               </button>
               ${discActionBtn}
@@ -189,13 +189,13 @@ function updateCartUI() {
       vatVal = (vatPercent < 100) ? Math.round(amtAfterDisc * (vatPercent / (100 - vatPercent)) * 100) / 100 : 0;
       netTotal = amtAfterDisc + vatVal;
       $('#cartVatRow').attr('style', 'display: flex !important;');
-      $('#cartVatLabel').text('ອມພ (' + vatPercent + '%):');
+      $('#cartVatLabel').text('<?php echo tlj('ອມພ'); ?> (' + vatPercent + '%):');
       $('#cartVat').html(posFmtTotal(vatVal));
     } else {
       vatVal = Math.round((amtAfterDisc - (amtAfterDisc / (1 + (vatPercent / 100)))) * 100) / 100;
       netTotal = amtAfterDisc;
       $('#cartVatRow').attr('style', 'display: flex !important;');
-      $('#cartVatLabel').text('ລວມ ອມພ (' + vatPercent + '%):');
+      $('#cartVatLabel').text('<?php echo tlj('ລວມ ອມພ'); ?> (' + vatPercent + '%):');
       $('#cartVat').html(posFmtTotal(vatVal));
     }
   } else {

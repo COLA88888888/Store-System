@@ -88,11 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             if ($totalCost > 0) {
                 $fromStoreNameStmt = $pdo->prepare("SELECT store_name FROM st_tbstore WHERE store_id = ?");
                 $fromStoreNameStmt->execute([$from_store_id]);
-                $fromStoreNameVal = $fromStoreNameStmt->fetchColumn() ?: "ສາຂາ #{$from_store_id}";
+                $fromStoreNameVal = $fromStoreNameStmt->fetchColumn() ?: ("" . tl('ສາຂາ') . " #{$from_store_id}");
 
                 $toStoreNameStmt = $pdo->prepare("SELECT store_name FROM st_tbstore WHERE store_id = ?");
                 $toStoreNameStmt->execute([$to_store_id]);
-                $toStoreNameVal = $toStoreNameStmt->fetchColumn() ?: "ສາຂາ #{$to_store_id}";
+                $toStoreNameVal = $toStoreNameStmt->fetchColumn() ?: ("" . tl('ສາຂາ') . " #{$to_store_id}");
 
                 $insImpRevert = $pdo->prepare("INSERT INTO st_imports (invoice_number, supplier_name, import_date, total_cost, created_by, notes, store_id) VALUES (?, ?, NOW(), ?, ?, ?, ?)");
 
@@ -214,7 +214,7 @@ require_once __DIR__ . '/../../layouts/header.php';
 <link rel="stylesheet" href="../../themes/reports.css?v=<?php echo filemtime(__DIR__ . '/../../themes/reports.css'); ?>">
 <link rel="stylesheet" href="../../themes/transfer_history.css?v=<?php echo filemtime(__DIR__ . '/../../themes/transfer_history.css'); ?>">
 
-<div class="container-fluid p-3 p-md-4" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+<div class="container-fluid p-3 p-md-4 mp-compact" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
   
   <!-- Page Header -->
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap" style="gap: 10px;">
@@ -224,7 +224,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       </h4>
       <span class="text-muted" style="font-size: 0.85rem;"><?php echo htmlspecialchars(t('transfer_history.page_subtitle', 'ຕິດຕາມ ແລະ ກວດສອບລາຍການໂອນສິນຄ້າລະຫວ່າງສາຂາ')); ?></span>
     </div>
-    <div>
+    <div class="ml-auto">
       <a href="stock_transfer.php" class="btn btn-primary btn-sm font-weight-bold px-3 py-2" style="border-radius: 8px; background: linear-gradient(135deg, #2c5aa0, #244886);">
         <i class="fas fa-exchange-alt mr-1"></i> <?php echo htmlspecialchars(t('transfer_history.new_transfer_btn', 'ໂອນສິນຄ້າໃໝ່')); ?>
       </a>

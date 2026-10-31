@@ -10,9 +10,9 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once __DIR__ . '/../config/db.php';
 
 // 2. Check Permissions
-if (empty($_SESSION['user_id']) || (!hasPermission('database') && !hasPermission('setup') && !hasPermission('permissions'))) {
+if (empty($_SESSION['user_id']) || (!hasPermission('database'))) {
     header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງການຈັດການຖານຂໍ້ມູນ!']);
+    echo json_encode(['success' => false, 'message' => tl('ທ່ານບໍ່ມີສິດເຂົ້າເຖິງການຈັດການຖານຂໍ້ມູນ!')]);
     exit();
 }
 
@@ -138,7 +138,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'download_backup') {
         readfile($filePath);
         exit();
     } else {
-        die('ໄຟລ໌ບໍ່ມີຢູ່ ຫຼື Path ບໍ່ຖືກຕ້ອງ');
+        die(tl('ໄຟລ໌ບໍ່ມີຢູ່ ຫຼື Path ບໍ່ຖືກຕ້ອງ'));
     }
 }
 
@@ -155,9 +155,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (exportDatabaseSQL($pdo, $dbName, $outputPath)) {
             logActivity($pdo, "ສ້າງສຳຮອງຖານຂໍ້ມູນ", "ສ້າງໄຟລ໌: {$filename}");
-            echo json_encode(['success' => true, 'message' => "ສ້າງໄຟລ໌ສຳຮອງ ({$filename}) ສຳເລັດ!", 'filename' => $filename]);
+            echo json_encode(['success' => true, 'message' => ("" . tl('ສ້າງໄຟລ໌ສຳຮອງ') . " ({$filename}) " . tl('ສຳເລັດ!') . ""), 'filename' => $filename]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'ບໍ່ສາມາດສ້າງໄຟລ໌ສຳຮອງໄດ້!']);
+            echo json_encode(['success' => false, 'message' => tl('ບໍ່ສາມາດສ້າງໄຟລ໌ສຳຮອງໄດ້!')]);
         }
         exit();
     }
@@ -169,9 +169,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($filename) && file_exists($filePath) && pathinfo($filePath, PATHINFO_EXTENSION) === 'sql') {
             unlink($filePath);
             logActivity($pdo, "ລົບໄຟລ໌ສຳຮອງຖານຂໍ້ມູນ", "ລົບໄຟລ໌: {$filename}");
-            echo json_encode(['success' => true, 'message' => "ລົບໄຟລ໌ສຳຮອງ ({$filename}) ສຳເລັດ!"]);
+            echo json_encode(['success' => true, 'message' => ("" . tl('ລົບໄຟລ໌ສຳຮອງ') . " ({$filename}) " . tl('ສຳເລັດ!') . "")]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'ບໍ່ພົບໄຟລ໌ສຳຮອງທີ່ຕ້ອງການລົບ!']);
+            echo json_encode(['success' => false, 'message' => tl('ບໍ່ພົບໄຟລ໌ສຳຮອງທີ່ຕ້ອງການລົບ!')]);
         }
         exit();
     }
@@ -183,12 +183,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($filename) && file_exists($filePath) && pathinfo($filePath, PATHINFO_EXTENSION) === 'sql') {
             if (restoreDatabaseSQL($pdo, $filePath)) {
                 logActivity($pdo, "ຟື້ນຟູຖານຂໍ້ມູນ", "ຟື້ນຟູຈາກໄຟລ໌: {$filename}");
-                echo json_encode(['success' => true, 'message' => "ຟື້ນຟູຖານຂໍ້ມູນຈາກ ({$filename}) ສຳເລັດ!"]);
+                echo json_encode(['success' => true, 'message' => ("" . tl('ຟື້ນຟູຖານຂໍ້ມູນຈາກ') . " ({$filename}) " . tl('ສຳເລັດ!') . "")]);
             } else {
-                echo json_encode(['success' => false, 'message' => 'ເກີດຂໍ້ຜິດພາດໃນການຟື້ນຟູຖານຂໍ້ມູນ!']);
+                echo json_encode(['success' => false, 'message' => tl('ເກີດຂໍ້ຜິດພາດໃນການຟື້ນຟູຖານຂໍ້ມູນ!')]);
             }
         } else {
-            echo json_encode(['success' => false, 'message' => 'ບໍ່ພົບໄຟລ໌ສຳຮອງ!']);
+            echo json_encode(['success' => false, 'message' => tl('ບໍ່ພົບໄຟລ໌ສຳຮອງ!')]);
         }
         exit();
     }
@@ -198,19 +198,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($_FILES['backup_file']['tmp_name'])) {
             $ext = strtolower(pathinfo($_FILES['backup_file']['name'], PATHINFO_EXTENSION));
             if ($ext !== 'sql') {
-                echo json_encode(['success' => false, 'message' => 'ກະລຸນາເລືອກໄຟລ໌ .sql ເທົ່ານັ້ນ!']);
+                echo json_encode(['success' => false, 'message' => tl('ກະລຸນາເລືອກໄຟລ໌ .sql ເທົ່ານັ້ນ!')]);
                 exit();
             }
             $tmpPath = $_FILES['backup_file']['tmp_name'];
             if (restoreDatabaseSQL($pdo, $tmpPath)) {
                 $origName = basename($_FILES['backup_file']['name']);
                 logActivity($pdo, "ຟື້ນຟູຖານຂໍ້ມູນອັບໂຫຼດ", "ຟື້ນຟູຈາກໄຟລ໌: {$origName}");
-                echo json_encode(['success' => true, 'message' => "ອັບໂຫຼດ ແລະ ຟື້ນຟູຖານຂໍ້ມູນ ({$origName}) ສຳເລັດ!"]);
+                echo json_encode(['success' => true, 'message' => ((("" . tl('ອັບໂຫຼດ ແລະ ຟື້ນຟູຖານຂໍ້ມູນ') . " ({$origName}) ")) . tl('ສຳເລັດ!') . "")]);
             } else {
-                echo json_encode(['success' => false, 'message' => 'ເກີດຂໍ້ຜິດພາດໃນການອັບໂຫຼດ/ຟື້ນຟູຖານຂໍ້ມູນ!']);
+                echo json_encode(['success' => false, 'message' => tl('ເກີດຂໍ້ຜິດພາດໃນການອັບໂຫຼດ/ຟື້ນຟູຖານຂໍ້ມູນ!')]);
             }
         } else {
-            echo json_encode(['success' => false, 'message' => 'ກະລຸນາເລືອກໄຟລ໌ SQL ທີ່ຈະອັບໂຫຼດ!']);
+            echo json_encode(['success' => false, 'message' => tl('ກະລຸນາເລືອກໄຟລ໌ SQL ທີ່ຈະອັບໂຫຼດ!')]);
         }
         exit();
     }

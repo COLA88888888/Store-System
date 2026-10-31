@@ -5,15 +5,15 @@ require_once __DIR__ . '/../../layouts/header.php';
 
 // Define Meta titles per report type
 $report_metas = [
-    'daily'        => ['title' => 'ລາຍງານປະຈຳວັນ', 'icon' => 'fas fa-calendar-day text-info'],
-    'all_sales'    => ['title' => 'ລາຍງານການຂາຍທັງໝົດ', 'icon' => 'fas fa-file-invoice-dollar text-success'],
-    'best_seller'  => ['title' => 'ລາຍງານສິນຄ້າຂາຍດີ', 'icon' => 'fas fa-fire text-danger'],
-    'profit_cost'  => ['title' => 'ລາຍງານກຳໄລ-ຕົ້ນທຶນ', 'icon' => 'fas fa-chart-line text-warning'],
-    'financial'    => ['title' => 'ລາຍງານການເງິນ', 'icon' => 'fas fa-wallet text-info'],
-    'category'     => ['title' => 'ລາຍງານຕາມ/ປະເພດສິນຄ້າ', 'icon' => 'fas fa-layer-group text-primary'],
-    'delete_bills' => ['title' => 'ລາຍງານປະຫວັດລຶບບິນຂາຍ', 'icon' => 'fas fa-trash-alt text-danger']
+    'daily'        => ['title' => tl('ລາຍງານປະຈຳວັນ'), 'icon' => 'fas fa-calendar-day text-info'],
+    'all_sales'    => ['title' => tl('ລາຍງານການຂາຍທັງໝົດ'), 'icon' => 'fas fa-file-invoice-dollar text-success'],
+    'best_seller'  => ['title' => tl('ລາຍງານສິນຄ້າຂາຍດີ'), 'icon' => 'fas fa-fire text-danger'],
+    'profit_cost'  => ['title' => tl('ລາຍງານກຳໄລ-ຕົ້ນທຶນ'), 'icon' => 'fas fa-chart-line text-warning'],
+    'financial'    => ['title' => tl('ລາຍງານການເງິນ'), 'icon' => 'fas fa-wallet text-info'],
+    'category'     => ['title' => tl('ລາຍງານຕາມ/ປະເພດສິນຄ້າ'), 'icon' => 'fas fa-layer-group text-primary'],
+    'delete_bills' => ['title' => tl('ລາຍງານປະຫວັດລຶບບິນຂາຍ'), 'icon' => 'fas fa-trash-alt text-danger']
 ];
-$current_meta = $report_metas[$type] ?? ['title' => 'ລາຍງານການຂາຍ', 'icon' => 'fas fa-chart-bar text-primary'];
+$current_meta = $report_metas[$type] ?? ['title' => tl('ລາຍງານການຂາຍ'), 'icon' => 'fas fa-chart-bar text-primary'];
 ?>
 
 <link rel="stylesheet" href="../../themes/reports.css?v=<?php echo filemtime(__DIR__ . '/../../themes/reports.css'); ?>">
@@ -26,7 +26,7 @@ $current_meta = $report_metas[$type] ?? ['title' => 'ລາຍງານການ
       <h3 class="font-weight-bold text-dark mb-1 report-header-title" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
         <i class="<?php echo $current_meta['icon']; ?> mr-2"></i> <?php echo htmlspecialchars($current_meta['title']); ?>
       </h3>
-      <small class="text-muted report-header-subtitle">ລາຍງານສຳຫຼວດຍອດຂາຍ ແລະ ປະຫວັດທຸລະກຳຂາຍສິນຄ້າ</small>
+      <small class="text-muted report-header-subtitle"><?php echo tlh('ລາຍງານສຳຫຼວດຍອດຂາຍ ແລະ ປະຫວັດທຸລະກຳຂາຍສິນຄ້າ'); ?></small>
     </div>
   </div>
 

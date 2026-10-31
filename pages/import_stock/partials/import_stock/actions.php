@@ -5,6 +5,47 @@
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ pages/import_stock/import_stock.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 
+// ເລກບິນຮັບເຂົ້າ: IMP-{ລະຫັດສາຂາ}{ລຳດັບ 4 ຫຼັກ ຂອງສາຂານັ້ນ} — ສາຂາ 1: IMP-10001, IMP-10002…; ສາຂາ 2: IMP-20001…
+// ລະຫັດສາຂາມາຈາກ st_tbstore.store_code. ເລກບິນເກົ່າ (000001…) ຄົງໄວ້ຄືເກົ່າ ບໍ່ນັບລວມ.
+if (!function_exists('importInvoiceNumber')) {
+    function importInvoiceNumber(PDO $pdo, $storeId) {
+        $st = $pdo->prepare("SELECT store_code FROM st_tbstore WHERE store_id = ?");
+        $st->execute([(int)$storeId]);
+        $code = preg_replace('/[^0-9A-Za-z]/', '', (string)$st->fetchColumn());
+        if ($code === '') $code = (string)(int)$storeId;
+        $prefix = 'IMP-' . $code;
+        $mx = $pdo->prepare("SELECT COALESCE(MAX(CAST(SUBSTRING(invoice_number, ?) AS UNSIGNED)), 0)
+                             FROM st_imports WHERE store_id = ? AND invoice_number REGEXP ?");
+        $mx->execute([strlen($prefix) + 1, (int)$storeId, '^' . $prefix . '[0-9]{4,}$']);
+        return $prefix . str_pad((string)((int)$mx->fetchColumn() + 1), 4, '0', STR_PAD_LEFT);
+    }
+}
+
+// ອັບເດດສະຕັອກ + ລາຄາສິນຄ້າຫຼັງຮັບເຂົ້າ/ແກ້ໄຂ. ລາຄາໃນແຖວບິນເປັນລາຄາຂອງ "ຫົວໜ່ວຍທີ່ຮັບເຂົ້າ":
+//  - ຫົວໜ່ວຍຫຼັກ (ປ໋ອງ): ຄືເກົ່າ — st_products.bprice = ລາຄາຊື້, price = ລາຄາຂາຍ (ຖ້າໃສ່)
+//  - ຫົວໜ່ວຍໃຫຍ່ (ແພັກ/ແກັດ ×N): ອັບເດດລາຄາຂອງຫົວໜ່ວຍນັ້ນ (st_product_units); ຫົວໜ່ວຍຫຼັກໄດ້ຕົ້ນທຶນ = ລາຄາ ÷ N,
+//    ລາຄາຂາຍຂອງຫົວໜ່ວຍຫຼັກບໍ່ແຕະ. ເມື່ອກ່ອນລາຄາແພັກ (72,000) ຂຽນທັບລາຄາປ໋ອງ (12,000) ໂດຍກົງ.
+if (!function_exists('importApplyStockAndPrices')) {
+    function importApplyStockAndPrices(PDO $pdo, $productId, $storeId, $unitRowId, $multiplier, $baseQtyDelta, $cost, $sell) {
+        $whereStore = $storeId !== null ? ' AND store_id = ?' : '';
+        $tail = $storeId !== null ? [$productId, $storeId] : [$productId];
+        if ($unitRowId > 0 && $multiplier > 1) {
+            $pdo->prepare("UPDATE st_product_units SET bprice = ?" . ($sell > 0 ? ", price = ?" : "") . " WHERE id = ? AND product_id = ?")
+                ->execute(array_merge([$cost], $sell > 0 ? [$sell] : [], [$unitRowId, $productId]));
+            $pdo->prepare("UPDATE st_products SET qty = GREATEST(0, qty + ?), bprice = ? WHERE product_id = ?" . $whereStore)
+                ->execute(array_merge([$baseQtyDelta, round($cost / $multiplier, 2)], $tail));
+            return;
+        }
+        if ($sell > 0) {
+            $pdo->prepare("UPDATE st_products SET qty = GREATEST(0, qty + ?), bprice = ?, price = ? WHERE product_id = ?" . $whereStore)
+                ->execute(array_merge([$baseQtyDelta, $cost, $sell], $tail));
+        } else {
+            $pdo->prepare("UPDATE st_products SET qty = GREATEST(0, qty + ?), bprice = ? WHERE product_id = ?" . $whereStore)
+                ->execute(array_merge([$baseQtyDelta, $cost], $tail));
+        }
+    }
+}
+
 // ====== HANDLE POST ACTIONS ======
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
@@ -22,10 +63,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $cart_json      = $_POST['cart_json'] ?? '[]';
         $items          = json_decode($cart_json, true);
 
-        if ($invoice_number === '') {
-            $maxImpId = (int)$pdo->query("SELECT IFNULL(MAX(import_id), 0) + 1 FROM st_imports")->fetchColumn();
-            $invoice_number = str_pad($maxImpId, 6, '0', STR_PAD_LEFT);
-        }
 
         if (!empty($items) && is_array($items)) {
             try {
@@ -40,6 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
 
                 $activeStoreId = getActiveStoreId($pdo);
+
+                // ອອກເລກບິນໃໝ່ຕອນບັນທຶກສະເໝີ (ເລກໃນໜ້າເປັນພຽງຕົວຢ່າງ): ລັອກແຖວສາຂາໄວ້ ສອງຄົນບັນທຶກພ້ອມກັນຈະບໍ່ໄດ້ເລກຊ້ຳ
+                $pdo->prepare("SELECT store_id FROM st_tbstore WHERE store_id = ? FOR UPDATE")->execute([$activeStoreId]);
+                $invoice_number = importInvoiceNumber($pdo, $activeStoreId);
 
                 // Insert master `imports` record with selected import_date and store_id
                 $insImp = $pdo->prepare("INSERT INTO st_imports (invoice_number, supplier_name, import_date, total_cost, created_by, notes, store_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -67,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                     $unit_name = !empty($product['unit']) ? $product['unit'] : t('import_stock.default_unit', 'ອັນ');
                     $multiplier = 1;
+                    $unitRowId  = 0;
 
                     if ($unit_key !== 'base') {
                         $uStmt = $pdo->prepare("SELECT unit_name, multiplier FROM st_product_units WHERE id = ? AND product_id = ?");
@@ -75,6 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         if ($puRow) {
                             $unit_name  = $puRow['unit_name'];
                             $multiplier = max(1, intval($puRow['multiplier']));
+                            $unitRowId  = intval($unit_key);
                         }
                     }
 
@@ -93,14 +136,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $insBatch = $pdo->prepare("INSERT INTO st_product_batches (product_id, import_detail_id, expiry_date, initial_qty, quantity) VALUES (?, ?, ?, ?, ?)");
                     $insBatch->execute([$product_id, $import_detail_id, $expiry_date, $total_base_qty, $total_base_qty]);
 
-                    // Update product stock + buy price, and the sell price too when one was entered
-                    if ($sell_price > 0) {
-                        $updProd = $pdo->prepare("UPDATE st_products SET qty = qty + ?, bprice = ?, price = ? WHERE product_id = ? AND store_id = ?");
-                        $updProd->execute([$total_base_qty, $cost_price, $sell_price, $product_id, $activeStoreId]);
-                    } else {
-                        $updProd = $pdo->prepare("UPDATE st_products SET qty = qty + ?, bprice = ? WHERE product_id = ? AND store_id = ?");
-                        $updProd->execute([$total_base_qty, $cost_price, $product_id, $activeStoreId]);
-                    }
+                    // Update product stock + buy price, and the sell price too when one was entered (ຕາມຫົວໜ່ວຍ — importApplyStockAndPrices)
+                    importApplyStockAndPrices($pdo, $product_id, $activeStoreId, $unitRowId, $multiplier, $total_base_qty, $cost_price, $sell_price);
 
                     $insertedCount++;
                 }
@@ -207,6 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
                     $unit_name = !empty($product['unit']) ? $product['unit'] : t('import_stock.default_unit', 'ອັນ');
                     $multiplier = 1;
+                    $unitRowId  = 0;
 
                     if ($unit_key !== 'base') {
                         $uStmt = $pdo->prepare("SELECT unit_name, multiplier FROM st_product_units WHERE id = ? AND product_id = ?");
@@ -215,6 +253,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         if ($puRow) {
                             $unit_name  = $puRow['unit_name'];
                             $multiplier = max(1, intval($puRow['multiplier']));
+                            $unitRowId  = intval($unit_key);
                         }
                     }
 
@@ -224,14 +263,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $diff_base_qty = $new_total_base_qty - $oldDet['total_base_qty'];
                     $diff_cost     = $new_total_cost - $oldDet['total_cost'];
 
-                    // Update products stock + buy price, and the sell price when one was entered
-                    if ($sell_price > 0) {
-                        $updStock = $pdo->prepare("UPDATE st_products SET qty = GREATEST(0, qty + ?), bprice = ?, price = ? WHERE product_id = ?");
-                        $updStock->execute([$diff_base_qty, $cost_price, $sell_price, $product_id]);
-                    } else {
-                        $updStock = $pdo->prepare("UPDATE st_products SET qty = GREATEST(0, qty + ?), bprice = ? WHERE product_id = ?");
-                        $updStock->execute([$diff_base_qty, $cost_price, $product_id]);
-                    }
+                    // Update products stock + buy price, and the sell price when one was entered (ຕາມຫົວໜ່ວຍ — importApplyStockAndPrices)
+                    importApplyStockAndPrices($pdo, $product_id, null, $unitRowId, $multiplier, $diff_base_qty, $cost_price, $sell_price);
 
                     // Update master import
                     $updImp = $pdo->prepare("UPDATE st_imports SET supplier_name = ?, total_cost = GREATEST(0, total_cost + ?), notes = IF(? != '', ?, notes) WHERE import_id = ?");

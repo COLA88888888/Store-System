@@ -143,7 +143,7 @@
 
               <!-- Row 3c: ໂຊນ & ຊັ້ນວາງ (ເລືອກຈາກຕາຕະລາງ, ຖ້າບໍ່ເລືອກໂຊນ ບັອກຊັ້ນວາງແມ່ນເຊື່ອງໄວ້) -->
               <div class="row">
-                <div class="col-md-6 mb-3" id="edit_zone_box">
+                <div class="col-md-6 mb-3 zs-zone-field" id="edit_zone_box">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="font-weight-bold text-dark mb-0">
                       <?php echo htmlspecialchars(t('products.field_zone', 'ໂຊນ:')); ?>
@@ -153,6 +153,9 @@
                     </a>
                   </div>
                   <?php $hasZones = !empty($zones); $hasShelves = !empty($shelves); ?>
+                  <?php /* ບັອກທີ່ສະແດງເທົ່ານັ້ນຖືກບັນທຶກ (actions/edit_product.php) — ບັອກທີ່ເຊື່ອງບໍ່ລ້າງຄ່າເກົ່າຂອງສິນຄ້າ */ ?>
+                  <?php if ($hasZones): ?><input type="hidden" name="zs_zone_on" value="1"><?php endif; ?>
+                  <?php if ($hasShelves): ?><input type="hidden" name="zs_shelf_on" value="1"><?php endif; ?>
                   <select id="edit_zone" name="zone" class="form-control" style="border-radius: 6px; height: 40px;" onchange="onZoneSelectChange('edit')" <?php echo !$hasZones ? 'disabled' : ''; ?>>
                     <option value=""><?php echo htmlspecialchars($hasZones ? t('products.select_zone_placeholder', '-- ບໍ່ລະບຸ / ເລືອກໂຊນ --') : t('products_q.no_zone', '-- ບໍ່ມີຂໍ້ມູນໂຊນ --')); ?></option>
                     <?php foreach (($zones ?? []) as $z): ?>
@@ -160,7 +163,7 @@
                     <?php endforeach; ?>
                   </select>
                 </div>
-                <div class="col-md-6 mb-3" id="edit_shelf_box">
+                <div class="col-md-6 mb-3 zs-shelf-field" id="edit_shelf_box">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="font-weight-bold text-dark mb-0">
                       <?php echo htmlspecialchars(t('products.field_shelf', 'ຊັ້ນວາງ:')); ?>

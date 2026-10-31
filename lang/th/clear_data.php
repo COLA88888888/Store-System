@@ -16,7 +16,7 @@ return [
     'clear_data.unselect_group' => 'ยกเลิกกลุ่ม',
 
     'clear_data.group_sales' => 'การขาย',
-    'clear_data.group_shifts' => 'กะและบันทึกระบบ',
+    'clear_data.group_shifts' => 'กะทำงาน',
     'clear_data.group_stock' => 'สต็อก',
     'clear_data.group_catalog' => 'สินค้าและโครงสร้างสินค้า',
     'clear_data.group_customers' => 'ลูกค้าและคะแนนสะสม',
@@ -99,4 +99,15 @@ return [
     'clear_data.error_server' => 'ไม่สามารถเชื่อมต่อกับ Server ได้',
     'clear_data.error_password_incorrect' => 'รหัสผ่านไม่ถูกต้อง!',
     'clear_data.error_no_permission' => 'คุณไม่มีสิทธิ์เข้าถึงส่วนนี้',
+
+    // ເລືອກສາຂາທີ່ຈະລຶບ
+    'clear_data.branch_label' => 'ลบข้อมูลของสาขา:',
+    'clear_data.branch_all' => '-- ทุกสาขา --',
+    'clear_data.branch_inactive' => '(ปิดใช้งาน)',
+    'clear_data.branch_hint' => 'เลือกสาขา → ลบเฉพาะข้อมูลของสาขานั้น สาขาอื่นไม่ได้รับผลกระทบ',
+    'clear_data.branch_locked' => 'คุณลบได้เฉพาะข้อมูลของสาขา:',
+    'clear_data.all_branches_only' => 'ใช้ร่วมทุกสาขา — ลบได้เมื่อเลือก "ทุกสาขา"',
+    'clear_data.modal_branch' => 'สาขา:',
+    'clear_data.error_branch_invalid' => 'ไม่พบสาขาที่เลือก',
+    'clear_data.error_all_branches_only' => 'ข้อมูลนี้ใช้ร่วมทุกสาขา — ลบได้เฉพาะเมื่อเลือก "ทุกสาขา"',
 ];

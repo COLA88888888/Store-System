@@ -11,6 +11,31 @@ $cdPresets = [
     'none'          => ['icon' => 'fa-times-circle', 'class' => 'btn-outline-secondary'],
 ];
 ?>
+<!-- ເລືອກສາຂາທີ່ຈະລຶບ ($cdCanAllBranches, $cdStores, $cdOwnStoreId ຈາກ index.php) -->
+<?php if ($cdCanAllBranches && count($cdStores) > 1): ?>
+<div class="card cd-card shadow-sm mb-3">
+  <div class="card-body p-3 d-flex flex-wrap align-items-center" style="gap: 10px;">
+    <label for="cdStoreId" class="font-weight-bold text-dark mb-0" style="font-size: 0.9rem;">
+      <i class="fas fa-store text-primary mr-1"></i> <?php echo htmlspecialchars(t('clear_data.branch_label')); ?>
+    </label>
+    <select id="cdStoreId" class="form-control form-control-sm font-weight-bold" style="height: 38px; border-radius: 8px; max-width: 320px;" onchange="cdOnBranchChange()">
+      <option value="0"><?php echo htmlspecialchars(t('clear_data.branch_all')); ?></option>
+      <?php foreach ($cdStores as $st): ?>
+        <option value="<?php echo (int)$st['store_id']; ?>">
+          <?php echo htmlspecialchars($st['store_name']); ?><?php echo $st['status'] !== 'active' ? ' ' . htmlspecialchars(t('clear_data.branch_inactive')) : ''; ?>
+        </option>
+      <?php endforeach; ?>
+    </select>
+    <small class="text-muted" id="cdBranchHint"><?php echo htmlspecialchars(t('clear_data.branch_hint')); ?></small>
+  </div>
+</div>
+<?php elseif (!$cdCanAllBranches): ?>
+<input type="hidden" id="cdStoreId" value="<?php echo $cdOwnStoreId; ?>">
+<div class="alert border-0 shadow-sm mb-3 d-flex align-items-center" style="border-radius: 12px; background: #eff6ff; padding: 12px 16px;">
+  <i class="fas fa-store text-primary mr-2"></i>
+  <span class="small text-dark"><?php echo htmlspecialchars(t('clear_data.branch_locked')); ?> <b><?php echo htmlspecialchars($cdOwnStoreName); ?></b></span>
+</div>
+<?php endif; ?>
 <div class="card cd-card shadow-sm mb-3">
   <div class="card-body p-3 d-flex flex-wrap justify-content-between align-items-center" style="gap: 10px;">
     <span class="font-weight-bold text-dark" style="font-size: 0.9rem;">
@@ -42,7 +67,7 @@ $cdPresets = [
           <div class="cd-items">
             <?php foreach ($group['items'] as $iKey => $item): ?>
               <label class="cd-item" for="cd_<?php echo $iKey; ?>">
-                <input type="checkbox" class="cd-chk" id="cd_<?php echo $iKey; ?>" name="scope[]" value="<?php echo $iKey; ?>" data-group="<?php echo $gKey; ?>" onchange="cdRefresh()">
+                <input type="checkbox" class="cd-chk" id="cd_<?php echo $iKey; ?>" name="scope[]" value="<?php echo $iKey; ?>" data-group="<?php echo $gKey; ?>" data-branch="<?php echo isset($item['branch']) ? 1 : 0; ?>" onchange="cdRefresh()">
                 <span class="cd-item-icon" style="background: <?php echo $group['color']; ?>1a; color: <?php echo $group['color']; ?>;"><i class="fas <?php echo $item['icon']; ?>"></i></span>
                 <span class="cd-item-body">
                   <span class="cd-item-top">
@@ -50,6 +75,9 @@ $cdPresets = [
                     <span class="cd-count" id="cd_count_<?php echo $iKey; ?>"><span class="cd-count-num">…</span> <span><?php echo htmlspecialchars(t('clear_data.unit_' . $item['unit'])); ?></span></span>
                   </span>
                   <span class="cd-item-desc d-block"><?php echo htmlspecialchars(t('clear_data.item_' . $iKey . '_desc')); ?></span>
+                  <?php if (!isset($item['branch'])): ?>
+                    <span class="cd-item-allonly small text-warning font-weight-bold" style="display: none;"><i class="fas fa-info-circle mr-1"></i><?php echo htmlspecialchars(t('clear_data.all_branches_only')); ?></span>
+                  <?php endif; ?>
                 </span>
               </label>
             <?php endforeach; ?>

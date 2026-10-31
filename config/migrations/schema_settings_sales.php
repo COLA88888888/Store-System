@@ -116,22 +116,7 @@
             $pdo->exec("ALTER TABLE st_sales ADD COLUMN `total_profit` DECIMAL(12,2) DEFAULT 0.00");
         }
 
-        $pdo->exec("INSERT IGNORE INTO st_sales (sale_id, invoice_number, sold_by, customer_id, customer_name, subtotal, discount_amount, total_amount, cash_received, change_amount, payment_type, status, created_at)
-            SELECT 
-                sale_save_id,
-                sale_save_bill,
-                user_receive,
-                customer_id,
-                customer_name,
-                sale_amount,
-                sale_discount_bill,
-                sale_barlance,
-                sale_pay,
-                sale_return,
-                type_pay,
-                sale_status,
-                COALESCE(created_at, CONCAT(sale_date, ' ', COALESCE(sale_time, '00:00:00')), NOW())
-            FROM st_tbsale_save");
+        // ບໍ່ຄັດລອກບິນຈາກ st_tbsale_save ໄປ st_sales ເອງ (ຂໍ້ມູນເກີດຂຶ້ນເອງ) — ການຂາຍໃໝ່ບັນທຶກທັງສອງຕາຕະລາງຢູ່ແລ້ວ
     } catch (Throwable $ex) {}
 
     // Ensure user_permission_switch_states exists

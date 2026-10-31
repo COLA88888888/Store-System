@@ -107,4 +107,10 @@ return [
     'layout.role_manager' => '经理',
     'layout.role_staff' => '员工',
     'layout.clear_data' => '清除系统数据',
+    'layout.ok' => '确定',
+    'layout.logout_blocked_title' => '暂时无法退出',
+    'layout.logout_blocked_after' => '请先交班才能退出登录。请交班并清点钱箱，班次报表才会准确。',
+    'layout.logout_blocked_before' => '您的班次还未到交班时间（%s）。到时间并交班后才能退出登录。',
+    'layout.close_shift_now' => '立即交班',
+    'layout.tts' => '语音设置 (TTS)',
 ];

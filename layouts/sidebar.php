@@ -187,7 +187,7 @@
           </li>
 
           <!-- Header: Administration & Settings -->
-          <li class="nav-header text-uppercase"<?php echo permMenuAttr('users', 'permissions', 'branches', 'stores', 'print_barcode', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'expiry', 'shifts', 'clear_data', 'database'); ?> style="color: rgba(255,255,255,0.85); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;" data-i18n="layout.admin_header"><?php echo htmlspecialchars(t('layout.admin_header', 'ການຈັດການລະບົບ')); ?></li>
+          <li class="nav-header text-uppercase"<?php echo permMenuAttr('users', 'permissions', 'branches', 'stores', 'print_barcode', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'expiry', 'shifts', 'clear_data', 'tts', 'database'); ?> style="color: rgba(255,255,255,0.85); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;" data-i18n="layout.admin_header"><?php echo htmlspecialchars(t('layout.admin_header', 'ການຈັດການລະບົບ')); ?></li>
 
             <!-- Menu: Users Management -->
             <li class="nav-item"<?php echo permMenuAttr('users'); ?>>
@@ -214,7 +214,7 @@
             </li>
 
             <!-- Dropdown Treeview: ຕັ້ງຄ່າລະບົບ -->
-            <li class="nav-item has-treeview"<?php echo permMenuAttr('stores', 'print_barcode', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'expiry', 'shifts', 'clear_data'); ?>>
+            <li class="nav-item has-treeview"<?php echo permMenuAttr('stores', 'print_barcode', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'expiry', 'shifts', 'clear_data', 'tts'); ?>>
               <a class="nav-link" role="button" style="cursor: pointer;">
                 <i class="nav-icon fas fa-cogs text-secondary"></i>
                 <p>
@@ -300,6 +300,14 @@
                   <a href="<?php echo $bp; ?>pages/settings/clear_data/index.php" target="frame" class="nav-link">
                     <i class="nav-icon fas fa-trash-alt text-danger"></i>
                     <p data-i18n="layout.clear_data"><?php echo htmlspecialchars(t('layout.clear_data', 'ລຶບ/ລ້າງຂໍ້ມູນລະບົບ')); ?></p>
+                  </a>
+                </li>
+
+                <!-- 11. ຕັ້ງຄ່າລະບົບສຽງ (TTS) — ສະວິດຂອງຕົນເອງໃນໜ້າກຳນົດສິດ -->
+                <li class="nav-item"<?php echo permMenuAttr('tts'); ?>>
+                  <a href="<?php echo $bp; ?>pages/settings/tts/index.php" target="frame" class="nav-link">
+                    <i class="nav-icon fas fa-volume-up text-primary"></i>
+                    <p data-i18n="layout.tts"><?php echo htmlspecialchars(t('layout.tts', 'ຕັ້ງຄ່າລະບົບສຽງ (TTS)')); ?></p>
                   </a>
                 </li>
               </ul>

@@ -49,4 +49,22 @@ return [
     'database.msg_upload_restore_fail' => 'Đã xảy ra lỗi khi tải lên/khôi phục cơ sở dữ liệu!',
     'database.msg_no_file' => 'Vui lòng chọn tệp SQL để tải lên!',
     'database.msg_file_not_found' => 'Không tìm thấy tệp hoặc đường dẫn không đúng',
+
+    // ເລືອກສາຂາທີ່ຈະສຳຮອງ
+    'database.scope_all' => 'Tất cả',
+    'database.pick_scope_title' => 'Sao lưu chi nhánh nào?',
+    'database.pick_scope_all' => 'Tất cả (mọi chi nhánh + cài đặt hệ thống)',
+    'database.pick_scope_hint' => 'Tệp chi nhánh: khi khôi phục chỉ thay thế dữ liệu của chi nhánh đó, chi nhánh khác không bị ảnh hưởng',
+    'database.btn_continue' => 'Tạo bản sao lưu',
+    'database.branch_inactive' => '(ngừng hoạt động)',
+    'database.confirm_restore_branch_text' => 'Khôi phục dữ liệu chi nhánh "%b" từ tệp "%s"? Dữ liệu hiện tại của chi nhánh này sẽ bị thay thế — chi nhánh khác không bị ảnh hưởng.',
+    'database.err_branch_invalid' => 'Không tìm thấy chi nhánh đã chọn',
+    'database.err_other_branch_file' => 'Bạn chỉ có thể khôi phục tệp sao lưu của chi nhánh mình',
+
+    // ກວດຜົນການຟື້ນຟູ
+    'database.restore_verified' => 'Đã kiểm tra: dữ liệu đã trở lại đầy đủ như lúc sao lưu (%s bảng)',
+    'database.restore_incomplete' => 'Đã khôi phục nhưng dữ liệu không khớp hoàn toàn với bản sao lưu:',
+    'database.restore_mismatch_line' => '%s: sao lưu %s dòng, sau khôi phục %s dòng',
+    'database.restore_failed_line' => '%s câu lệnh lỗi: %s',
+    'database.err_upload_too_big' => 'Tệp vượt quá giới hạn tải lên của máy chủ (%s)',
 ];

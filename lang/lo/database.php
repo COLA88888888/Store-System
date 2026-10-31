@@ -49,4 +49,22 @@ return [
     'database.msg_upload_restore_fail' => 'ເກີດຂໍ້ຜິດພາດໃນການອັບໂຫຼດ/ຟື້ນຟູຖານຂໍ້ມູນ!',
     'database.msg_no_file' => 'ກະລຸນາເລືອກໄຟລ໌ SQL ທີ່ຈະອັບໂຫຼດ!',
     'database.msg_file_not_found' => 'ໄຟລ໌ບໍ່ມີຢູ່ ຫຼື Path ບໍ່ຖືກຕ້ອງ',
+
+    // ເລືອກສາຂາທີ່ຈະສຳຮອງ
+    'database.scope_all' => 'ທັງໝົດ',
+    'database.pick_scope_title' => 'ສຳຮອງຂໍ້ມູນສາຂາໃດ?',
+    'database.pick_scope_all' => 'ທັງໝົດ (ທຸກສາຂາ + ການຕັ້ງຄ່າລະບົບ)',
+    'database.pick_scope_hint' => 'ໄຟລ໌ສາຂາ: ຟື້ນຟູແລ້ວແທນທີ່ສະເພາະຂໍ້ມູນຂອງສາຂານັ້ນ, ສາຂາອື່ນບໍ່ຖືກກະທົບ',
+    'database.btn_continue' => 'ສ້າງໄຟລ໌ສຳຮອງ',
+    'database.branch_inactive' => '(ປິດໃຊ້ງານ)',
+    'database.confirm_restore_branch_text' => 'ຟື້ນຟູຂໍ້ມູນຂອງສາຂາ "%b" ຈາກໄຟລ໌ "%s"? ຂໍ້ມູນປັດຈຸບັນຂອງສາຂານີ້ຈະຖືກແທນທີ່ — ສາຂາອື່ນບໍ່ຖືກກະທົບ.',
+    'database.err_branch_invalid' => 'ບໍ່ພົບສາຂາທີ່ເລືອກ',
+    'database.err_other_branch_file' => 'ທ່ານຟື້ນຟູໄດ້ສະເພາະໄຟລ໌ສຳຮອງຂອງສາຂາຕົນເອງ',
+
+    // ກວດຜົນການຟື້ນຟູ
+    'database.restore_verified' => 'ກວດແລ້ວ: ຂໍ້ມູນກັບມາຄົບຄືຕອນສຳຮອງ (%s ຕາຕະລາງ)',
+    'database.restore_incomplete' => 'ຟື້ນຟູແລ້ວ ແຕ່ຂໍ້ມູນບໍ່ຄົບຄືຕອນສຳຮອງ:',
+    'database.restore_mismatch_line' => '%s: ສຳຮອງ %s ແຖວ, ຫຼັງຟື້ນຟູ %s ແຖວ',
+    'database.restore_failed_line' => 'ຄຳສັ່ງຜິດພາດ %s ຄຳສັ່ງ: %s',
+    'database.err_upload_too_big' => 'ໄຟລ໌ໃຫຍ່ເກີນກຳນົດຂອງເຊີເວີ (%s)',
 ];

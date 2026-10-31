@@ -203,9 +203,9 @@ function setCartDiscountModeAndReset(mode) {
   setCartDiscountMode(mode);
 
   if (mode === 'amount') {
-    // ສະຫຼັບຈາກ % ໄປເປັນ ຈຳນວນເງິນ (ກີບ): ຄິດໄລ່ຈຳນວນເງິນຈາກເປີເຊັນ ແລະ ໃສ່ເຄື່ອງໝາຍຈຸດ ,
+    // ສະຫຼັບຈາກ % ໄປເປັນ ຈຳນວນເງິນ (ກີບ): ຄິດໄລ່ຈຳນວນເງິນຈາກເປີເຊັນ (ປັດເຕັມພັນ) ແລະ ໃສ່ເຄື່ອງໝາຍຈຸດ ,
     var pct = parseFloat(String(oldVal).replace(/[^0-9.]/g, '')) || 0;
-    var amt = (pct > 0 && subtotal > 0) ? Math.round(subtotal * (pct / 100)) : 0;
+    var amt = (pct > 0 && subtotal > 0) ? cartDiscountKip(subtotal, pct + '%', 'percent') : 0;
     $('#cartDiscount').val(amt > 0 ? (Number(amt).toLocaleString('en-US')) : '0');
   } else {
     // ສະຫຼັບຈາກ ຈຳນວນເງິນ ໄປເປັນ %: ຄິດໄລ່ເປີເຊັນ
@@ -239,7 +239,17 @@ function cartDiscountKip(subtotalKip, valStr, mode) {
   if (mode === undefined) mode = getCartDiscountMode();
   if (mode === 'percent') {
     var pct = Math.min(100, Math.max(0, parseFloat(String(valStr).replace(/[^0-9.]/g, '')) || 0));
-    return Math.round((parseFloat(subtotalKip) || 0) * pct / 100);
+    var sub = parseFloat(subtotalKip) || 0;
+    if (pct <= 0 || sub <= 0) return 0;
+    if (pct >= 100) return sub;
+
+    var rawDisc = sub * (pct / 100);
+    var rawNet = sub - rawDisc;
+
+    // ຖ້າເປັນ %: ກາຍ ,50 (500) ປັດຂຶ້ນເປັນຈຳນວນເຕັມພັນ, ຫຼຸດ ,50 (500) ປັດລົງເປັນຈຳນວນເຕັມພັນ
+    // ຕົວຢ່າງ: 42,983 -> 43,000 (ສ່ວນຫຼຸດ 10,000), 15,409 -> 15,000 (ສ່ວນຫຼຸດ 5,000)
+    var roundedNet = Math.round(rawNet / 1000) * 1000;
+    return Math.max(0, sub - roundedNet);
   }
   return window.POSCUR ? POSCUR.toKip(valStr || '0') : (parseFloat(String(valStr).replace(/\D/g, '')) || 0);
 }

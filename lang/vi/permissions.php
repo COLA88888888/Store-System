@@ -145,4 +145,6 @@ return [
     'permissions.module_shifts_title' => 'Quản lý ca làm việc',
     'permissions.module_shifts_desc' => 'Thiết lập ca, giờ mở/đóng ca và nhân viên trong ca',
     'permissions.module_expiry_report_title' => '↳ Báo cáo hàng hết hạn',
+    'permissions.module_tts_title' => 'Cài đặt giọng nói (TTS)',
+    'permissions.module_tts_desc' => 'Bật/tắt giọng đọc, chọn giọng và từ điển phát âm',
 ];

@@ -34,7 +34,10 @@
         if (!$hasMain) {
             $pdo->exec("ALTER TABLE `st_tbstore` ADD COLUMN `is_main` TINYINT(1) DEFAULT 0 AFTER `store_name`");
         }
-        $pdo->exec("UPDATE `st_tbstore` SET is_main = 1 WHERE store_id = 1");
+        // ສາຂາ 1 ເປັນສາຂາຫຼັກ ສະເພາະເມື່ອຍັງບໍ່ມີສາຂາຫຼັກເລີຍ — ບໍ່ດັ່ງນັ້ນ ຫຼັງຕັ້ງສາຂາອື່ນເປັນຫຼັກ ຈະມີສາຂາຫຼັກ 2 ອັນ
+        if ((int)$pdo->query("SELECT COUNT(*) FROM st_tbstore WHERE is_main = 1")->fetchColumn() === 0) {
+            $pdo->exec("UPDATE `st_tbstore` SET is_main = 1 WHERE store_id = 1");
+        }
     } catch (Throwable $ex) {}
 
     // Ensure store_id column exists in all core data tables for multi-branch isolation

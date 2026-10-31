@@ -74,7 +74,20 @@ require_once __DIR__ . '/../../layouts/header.php';
       <div class="card sys-card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; background: #ffffff;">
 
         <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap py-3 border-0" style="gap: 12px;">
-          <span class="badge badge-secondary" style="font-size: 0.85rem; padding: 7px 12px;"><span id="catCountNum"><?php echo count($allCategories); ?></span> <?php echo htmlspecialchars(t('categories.count_label', 'ລາຍການ')); ?></span>
+          <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+            <span class="badge badge-secondary" style="font-size: 0.85rem; padding: 7px 12px;"><span id="catCountNum"><?php echo count($allCategories); ?></span> <?php echo htmlspecialchars(t('categories.count_label', 'ລາຍການ')); ?></span>
+            <?php if (($canAllBranches) && count($stores) > 1): ?>
+            <div class="prod-filter-wrap">
+              <select id="storeFilter" class="form-control font-weight-bold" onchange="window.location.href='categories.php?store_id=' + this.value">
+                <?php foreach ($stores as $st): ?>
+                  <option value="<?php echo $st['store_id']; ?>" <?php echo ($selectedStoreId == $st['store_id']) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('products.store_main_suffix', '(ສາງຫຼັກ)')) : htmlspecialchars(t('products.store_branch_suffix', '(ສາຂາຍ່ອຍ)')); ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <?php endif; ?>
+          </div>
           <div class="d-flex align-items-center ml-auto flex-grow-1 justify-content-end" style="gap: 8px; max-width: 420px;">
             <div class="input-group" style="flex: 1 1 auto;">
               <div class="input-group-prepend">

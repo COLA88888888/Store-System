@@ -189,4 +189,6 @@ return [
     'products.bulk_img_hint' => 'Click to choose an image (optional)',
     'products.bulk_img_fail' => 'Image upload failed',
     'products.bulk_img_busy' => 'Images are still uploading — please wait a moment',
+    'products.zone_filter_all' => '-- All zones --',
+    'products.shelf_filter_all' => '-- All shelves --',
 ];

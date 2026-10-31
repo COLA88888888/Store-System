@@ -172,7 +172,18 @@ if (!function_exists('getActiveStoreId')) {
 
         // May see every branch: honour a branch picked via the switcher, if any
         if (isset($_SESSION['active_store_id']) && $_SESSION['active_store_id'] !== '') {
-            return intval($_SESSION['active_store_id']);
+            // ສາຂາທີ່ເລືອກໄວ້ໃນ session ຕ້ອງຍັງມີຢູ່ (ຖືກລຶບ ຫຼື ປ່ຽນເລກ ເຊັ່ນ 7 → 1) — ບໍ່ດັ່ງນັ້ນທຸກໜ້າວ່າງເປົ່າ
+            static $checkedActive = [];
+            $active = intval($_SESSION['active_store_id']);
+            if (!isset($checkedActive[$active])) {
+                $st = $pdo->prepare("SELECT 1 FROM st_tbstore WHERE store_id = ? LIMIT 1");
+                $st->execute([$active]);
+                $checkedActive[$active] = (bool)$st->fetchColumn();
+            }
+            if ($checkedActive[$active]) {
+                return $active;
+            }
+            unset($_SESSION['active_store_id']);
         }
         return $userStoreId;
     }
@@ -330,5 +341,37 @@ if (!function_exists('generateTransferCode')) {
             }
         }
         return $prefix . str_pad((string)$nextSeq, 4, '0', STR_PAD_LEFT);
+    }
+}
+
+if (!function_exists('syncSingleBranchWithShop')) {
+    /**
+     * ຮ້ານມີສາຂາດຽວ → ສາຂານັ້ນຄືຮ້ານ: ຊື່ສາຂາ / ເບີໂທ / ທີ່ຢູ່ (st_tbstore) ເອົາຈາກຂໍ້ມູນຮ້ານ
+     * (ຕັ້ງຄ່າ › ຂໍ້ມູນຮ້ານ = st_tbcompanyinfo ຂອງສາຂານັ້ນ) ອັດຕະໂນມັດ. ມີ 2 ສາຂາຂຶ້ນໄປ → ບໍ່ແຕະ (ແຕ່ລະສາຂາປ້ອນເອງ).
+     * ເອີ້ນຫຼັງບັນທຶກຂໍ້ມູນຮ້ານ, ຕອນເປີດໜ້າສາຂາ ແລະ dashboard. ການແກ້ໄຂສາຂາດຽວໃນໜ້າສາຂາ ຂຽນກັບໄປຂໍ້ມູນຮ້ານ
+     * (api/branches_backend.php edit_branch) ສອງບ່ອນຈຶ່ງບໍ່ຂັດກັນ.
+     */
+    function syncSingleBranchWithShop($pdo) {
+        try {
+            $stores = $pdo->query("SELECT store_id, store_name, tel, address FROM st_tbstore LIMIT 2")->fetchAll(PDO::FETCH_ASSOC);
+            if (count($stores) !== 1) return false;
+            $st = $stores[0];
+            $cs = $pdo->prepare("SELECT com_name_la, com_tel, com_address FROM st_tbcompanyinfo
+                                 WHERE branch_id = ? AND TRIM(IFNULL(com_name_la, '')) <> '' ORDER BY Id ASC LIMIT 1");
+            $cs->execute([(int)$st['store_id']]);
+            $shop = $cs->fetch(PDO::FETCH_ASSOC);
+            if (!$shop) return false;
+            $name = trim((string)$shop['com_name_la']);
+            $tel  = trim((string)($shop['com_tel'] ?? ''));
+            $addr = trim((string)($shop['com_address'] ?? ''));
+            if ($name === (string)$st['store_name'] && $tel === (string)($st['tel'] ?? '') && $addr === (string)($st['address'] ?? '')) {
+                return false;
+            }
+            $pdo->prepare("UPDATE st_tbstore SET store_name = ?, tel = ?, address = ? WHERE store_id = ?")
+                ->execute([$name, $tel, $addr, (int)$st['store_id']]);
+            return true;
+        } catch (Throwable $e) {
+            return false;
+        }
     }
 }

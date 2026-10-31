@@ -15,9 +15,11 @@ if ($postAction === 'save_loyalty') {
     if ($points < 1) $points = 1;
     try {
         $up = $pdo->prepare("INSERT INTO st_system_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
-        $up->execute(['loyalty_enabled', $enabled]);
-        $up->execute(['loyalty_spend_amount', (string)$spend]);
-        $up->execute(['loyalty_points_earned', (string)$points]);
+        // ບັນທຶກເປັນຂອງສາຂານີ້ເທົ່ານັ້ນ — ສາຂາອື່ນບໍ່ປ່ຽນ (ຄະແນນແຍກແຕ່ລະສາຂາ)
+        $sfx = '_store_' . (int)$activeStoreId;
+        $up->execute(['loyalty_enabled' . $sfx, $enabled]);
+        $up->execute(['loyalty_spend_amount' . $sfx, (string)$spend]);
+        $up->execute(['loyalty_points_earned' . $sfx, (string)$points]);
         $message = t('loyalty.msg_saved', 'ບັນທຶກການຕັ້ງຄ່າຄະແນນສະສົມສຳເລັດ!');
         $message_type = 'success';
         logActivity($pdo, 'ຕັ້ງຄ່າຄະແນນສະສົມ', "enabled=$enabled, spend=$spend, points=$points");
@@ -67,24 +69,24 @@ if (in_array($postAction, ['add_reward', 'edit_reward', 'toggle_reward', 'delete
                 }
                 $vals = [$rwName, $rwPoints, $rwType, $rwType === 'discount' ? $rwAmount : 0, $rwType === 'discount' ? $rwMinSpend : 0, $rwType === 'product' ? $rwProdId : null, $rwType === 'product' ? $rwQty : 1];
                 if ($postAction === 'edit_reward' && $rewardId > 0) {
-                    $pdo->prepare("UPDATE st_loyalty_rewards SET reward_name = ?, points_cost = ?, reward_type = ?, discount_amount = ?, min_spend = ?, product_id = ?, product_qty = ? WHERE id = ?")
-                        ->execute(array_merge($vals, [$rewardId]));
+                    $pdo->prepare("UPDATE st_loyalty_rewards SET reward_name = ?, points_cost = ?, reward_type = ?, discount_amount = ?, min_spend = ?, product_id = ?, product_qty = ? WHERE id = ? AND store_id = ?")
+                        ->execute(array_merge($vals, [$rewardId, $activeStoreId]));
                     $message = t('loyalty.reward_msg_saved', 'ແກ້ໄຂລາຍການແລກຄະແນນສຳເລັດ!');
                     logActivity($pdo, 'ແກ້ໄຂລາຍການແລກຄະແນນ', "#$rewardId $rwName = $rwPoints points");
                 } else {
-                    $pdo->prepare("INSERT INTO st_loyalty_rewards (reward_name, points_cost, reward_type, discount_amount, min_spend, product_id, product_qty) VALUES (?, ?, ?, ?, ?, ?, ?)")
-                        ->execute($vals);
+                    $pdo->prepare("INSERT INTO st_loyalty_rewards (reward_name, points_cost, reward_type, discount_amount, min_spend, product_id, product_qty, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+                        ->execute(array_merge($vals, [$activeStoreId]));   // ລາງວັນເປັນຂອງສາຂານີ້ເທົ່ານັ້ນ
                     $message = t('loyalty.reward_msg_added', 'ເພີ່ມລາຍການແລກຄະແນນສຳເລັດ!');
                     logActivity($pdo, 'ເພີ່ມລາຍການແລກຄະແນນ', "$rwName = $rwPoints points");
                 }
                 $message_type = 'success';
             }
         } elseif ($postAction === 'toggle_reward') {
-            $pdo->prepare("UPDATE st_loyalty_rewards SET is_active = 1 - is_active WHERE id = ?")->execute([$rewardId]);
+            $pdo->prepare("UPDATE st_loyalty_rewards SET is_active = 1 - is_active WHERE id = ? AND store_id = ?")->execute([$rewardId, $activeStoreId]);
             $message = t('loyalty.reward_msg_updated', 'ອັບເດດສະຖານະສຳເລັດ!');
             $message_type = 'success';
         } elseif ($postAction === 'delete_reward') {
-            $pdo->prepare("DELETE FROM st_loyalty_rewards WHERE id = ?")->execute([$rewardId]);
+            $pdo->prepare("DELETE FROM st_loyalty_rewards WHERE id = ? AND store_id = ?")->execute([$rewardId, $activeStoreId]);
             $message = t('loyalty.reward_msg_deleted', 'ລຶບລາຍການແລກຄະແນນສຳເລັດ!');
             $message_type = 'success';
         }

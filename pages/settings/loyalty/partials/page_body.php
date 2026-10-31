@@ -45,6 +45,9 @@
       <div class="card border-0 shadow-sm mb-0 lp-card">
         <div class="card-header bg-white py-3 px-4 border-bottom">
           <h6 class="m-0 font-weight-bold text-dark"><i class="fas fa-coins mr-2 text-primary"></i><?php echo htmlspecialchars(t('loyalty.rule_title', 'ກົດການໄດ້ຄະແນນ')); ?></h6>
+          <?php // ກົດ, ລາງວັນ, ລູກຄ້າ ແລະ ປະຫວັດ ໃນໜ້ານີ້ ເປັນຂອງສາຂານີ້ເທົ່ານັ້ນ (ຄະແນນແຍກແຕ່ລະສາຂາ)
+          $lpStoreName = (string)$pdo->query('SELECT store_name FROM st_tbstore WHERE store_id = ' . (int)$activeStoreId)->fetchColumn(); ?>
+          <small class="text-muted d-block mt-1"><i class="fas fa-store mr-1"></i><?php echo htmlspecialchars(t('loyalty.branch_scope', 'ສະເພາະສາຂາ:')); ?> <b><?php echo htmlspecialchars($lpStoreName); ?></b></small>
         </div>
         <div class="card-body px-4">
           <form method="POST" action="index.php">

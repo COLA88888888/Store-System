@@ -86,6 +86,19 @@ function showLowStockToast(productName, remainingQty, unitName) {
 
   var isZero = (remainingQty <= 0);
   var uName = unitName || posT('pos.unit_generic');
+
+  // Lao TTS: ເວົ້າແຈ້ງເຕືອນສິນຄ້າໝົດ ຫຼື ໃກ້ໝົດ ຖັດຈາກສຽງເຕືອນທັນທີ
+  try {
+    if (window.LaoTTS) {
+      setTimeout(function() {
+        if (isZero) {
+          LaoTTS.speakOutOfStock(productName);
+        } else {
+          LaoTTS.speakLowStock(productName, remainingQty, uName);
+        }
+      }, 300);
+    }
+  } catch(e) {}
   Swal.fire({
     icon: isZero ? 'error' : 'warning',
     title: isZero ? posT('pos.toast_out_title') : posT('pos.toast_low_title'),
@@ -314,6 +327,9 @@ function clearCart() {
   if (typeof setCurrentHeldId === 'function') setCurrentHeldId(null);
   if (typeof posDropAllRedemptions === 'function') posDropAllRedemptions();
   updateCartUI();
+  if (typeof broadcastCustomerDisplay === 'function') {
+    broadcastCustomerDisplay('shopping', { action: 'clear_cart' });
+  }
 }
 
 // --- LINE ITEM DISCOUNT MODAL & MANAGEMENT ---
@@ -652,3 +668,27 @@ function clearItemDiscount(cartKey) {
   updateCartUI();
 }
 
+
+
+// Preload ສຽງສິນຄ້າໝົດ ຫຼື ໃກ້ໝົດ ເມື່ອເອົາເມົາສ໌ໄປຊີ້ ຫຼື ແຕະເທິງກາດສິນຄ້າ ເພື່ອໃຫ້ຕອນກົດ ສຽງອ່ານໄດ້ທັນທີ 0s
+if (window.jQuery) {
+  jQuery(function($) {
+    $(document).on('mouseenter touchstart', '.product-card', function() {
+      if (!window.LaoTTS) return;
+      var pid = $(this).data('id');
+      if (!pid) return;
+      var card = $(this).closest('.pos-product-col');
+      var pName = card.find('.product-title, .product-name').text().trim() || card.data('name');
+      if (!pName) return;
+      var rem = (typeof getProductRemainingStock === 'function') ? getProductRemainingStock(pid) : null;
+      var cut = (typeof getProductCutQty === 'function') ? getProductCutQty(pid) : 1;
+      if (cut !== 0 && rem !== null) {
+        if (rem <= 0) {
+          LaoTTS.preloadOutOfStock(pName);
+        } else if (rem <= 10) {
+          LaoTTS.preloadLowStock(pName, rem, 'ອັນ');
+        }
+      }
+    });
+  });
+}

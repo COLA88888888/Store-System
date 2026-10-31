@@ -30,7 +30,7 @@ $modules = [
     'accounting', 'bank', 'report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial',
     'category_sales', 'expiry', 'shift_report', 'shift_close_report', 'shift_revenue_report', 'expiry_report', 'delete_bills',
     'users', 'permissions', 'branches', 'stores', 'print_barcode', 'exchange_rate', 'promotions',
-    'price_adjustment', 'printers', 'loyalty', 'shifts', 'database', 'setup', 'clear_data',
+    'price_adjustment', 'printers', 'loyalty', 'shifts', 'tts', 'database', 'setup', 'clear_data',
 ];
 
 $perms = [];

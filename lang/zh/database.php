@@ -49,4 +49,22 @@ return [
     'database.msg_upload_restore_fail' => '上传/恢复数据库时发生错误！',
     'database.msg_no_file' => '请选择要上传的 SQL 文件！',
     'database.msg_file_not_found' => '文件不存在或路径不正确',
+
+    // ເລືອກສາຂາທີ່ຈະສຳຮອງ
+    'database.scope_all' => '全部',
+    'database.pick_scope_title' => '备份哪个分店？',
+    'database.pick_scope_all' => '全部（所有分店 + 系统设置）',
+    'database.pick_scope_hint' => '分店文件：恢复时只替换该分店的数据，其他分店不受影响',
+    'database.btn_continue' => '创建备份',
+    'database.branch_inactive' => '（已停用）',
+    'database.confirm_restore_branch_text' => '从文件 "%s" 恢复分店 "%b" 的数据？该分店当前数据将被替换 — 其他分店不受影响。',
+    'database.err_branch_invalid' => '未找到所选分店',
+    'database.err_other_branch_file' => '您只能恢复本分店的备份文件',
+
+    // ກວດຜົນການຟື້ນຟູ
+    'database.restore_verified' => '已核对：数据已完整恢复为备份时的状态（%s 个表）',
+    'database.restore_incomplete' => '已恢复，但数据与备份不完全一致：',
+    'database.restore_mismatch_line' => '%s：备份 %s 行，恢复后 %s 行',
+    'database.restore_failed_line' => '%s 条语句出错：%s',
+    'database.err_upload_too_big' => '文件超过服务器上传限制（%s）',
 ];

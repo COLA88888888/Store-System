@@ -151,7 +151,7 @@ $statLabels = [
         <div class="top">
           <div>
             <div class="lbl"><?php echo htmlspecialchars($statLabels[$key]); ?></div>
-            <div class="num"><?php echo number_format($counts[$key]); ?><small><?php echo htmlspecialchars(t('expiry.unit_items', 'ລາຍການ')); ?></small></div>
+            <div class="num"><span class="counter-num" data-target="<?php echo (int)$counts[$key]; ?>" data-decimals="0">0</span><small data-i18n="expiry.unit_items"><?php echo htmlspecialchars(t('expiry.unit_items', 'ລາຍການ')); ?></small></div>
           </div>
           <div class="ico"><i class="fas <?php echo $statIcons[$key]; ?>"></i></div>
         </div>
@@ -357,4 +357,36 @@ $rptExport = [
 ];
 require __DIR__ . '/../../layouts/partials/report/export_js.php';
 ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var counters = document.querySelectorAll('.counter-num');
+  counters.forEach(function(el) {
+    var target = parseFloat(el.getAttribute('data-target') || '0');
+    var decs = parseInt(el.getAttribute('data-decimals') || '0', 10);
+    var suffix = el.getAttribute('data-suffix') || '';
+    if (isNaN(target)) target = 0;
+
+    var startTime = null;
+    var duration = 1600; // 1.6s smooth elegant count-up
+
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      var progress = Math.min((timestamp - startTime) / duration, 1);
+      // Smooth ease out cubic
+      var easeProgress = 1 - Math.pow(1 - progress, 3);
+      var currentVal = easeProgress * target;
+      
+      el.textContent = Math.round(currentVal).toLocaleString('en-US') + suffix;
+      
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        el.textContent = Math.round(target).toLocaleString('en-US') + suffix;
+      }
+    }
+    
+    window.requestAnimationFrame(step);
+  });
+});
+</script>
 <?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

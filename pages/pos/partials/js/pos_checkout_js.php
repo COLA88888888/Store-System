@@ -19,6 +19,7 @@
 <script>
 <?php require __DIR__ . '/checkout/currency_helpers.php'; /* ຂໍ້ຄວາມແປ, ສະກຸນເງິນ ແລະ ອັບເດດສະຕັອກ */ ?>
 <?php require __DIR__ . '/checkout/payment_modes.php'; /* ວິທີຊຳລະ: ດຽວ / ຫຼາຍຊ່ອງ / ຕິດໜີ້ */ ?>
+<?php require __DIR__ . '/checkout/pay_speech.php'; /* ຂໍ້ຄວາມສຽງຮັບເງິນ (preload = ເວົ້າແທ້) */ ?>
 <?php require __DIR__ . '/checkout/open_and_submit.php'; /* ເປີດຟອມຊຳລະ ແລະ ສົ່ງການຂາຍ */ ?>
 <?php require __DIR__ . '/checkout/receipt_ui.php'; /* ສະແດງໃບບິນຫຼັງຂາຍສຳເລັດ */ ?>
 <?php require __DIR__ . '/checkout/kitchen_tickets.php'; /* ບິນຍ່ອຍຄົວ / ເຄື່ອງພິມຕາມໝວດ */ ?>
@@ -135,7 +136,6 @@ if (window.jQuery) {
 
       // ຖ້າຫາກ modal ປິດຍ້ອນຊຳລະເງິນສຳເລັດ: ຫ້າມສົ່ງ 'shopping' ໄປທັບໜ້າຈໍລູກຄ້າ (ໃຫ້ຈໍລູກຄ້າສະແດງຍອດຊຳລະສຳເລັດຄ້າງໄວ້)
       if (window.__isCheckoutSuccessFinishing) {
-        window.__isCheckoutSuccessFinishing = false;
         return;
       }
 
@@ -155,6 +155,8 @@ if (window.jQuery) {
 // ============================
 function broadcastPaymentLive() {
   if (typeof broadcastCustomerDisplay !== 'function' || !window.POSCUR) return;
+  // ຖ້າຫາກຊຳລະເງິນສຳເລັດແລ້ວ ຫ້າມສົ່ງ broadcast payment_live ໄປທັບ payment_success ຂອງຈໍລູກຄ້າ
+  if (window.__isCheckoutSuccessFinishing) return;
   if (!$('#checkoutModal').hasClass('show')) return;   // ສົ່ງສະເພາະຕອນໜ້າຕ່າງຊຳລະເປີດຢູ່
   var totalKip = window.CART_NET_KIP || 0;
   var cashKip = 0, qrKip = 0;
@@ -215,6 +217,16 @@ function broadcastPaymentLive() {
       isKip: POSCUR.code === 'KIP'
     }
   });
+
+  // Lao TTS Preload: ເມື່ອພະນັກງານປ້ອນເງິນຮັບຄົບ/ກາຍ ໃຫ້ preload ສຽງຮັບເງິນ ແລະ ເງິນທອນໄວ້ລ່ວງໜ້າ (ຮອງຮັບ ກີບ, ບາດ, ໂດລາ, ຢວນ)
+  // ຂໍ້ຄວາມດຽວກັບທີ່ຈະເວົ້າແທ້ຕອນຂາຍສຳເລັດ (checkout/pay_speech.php) — ລວມຊື່ທະນາຄານ ແລະ ຍອດແຍກຈ່າຍ
+  if (window.LaoTTS && typeof posPaySpeechAmountsLive === 'function' && totalKip > 0) {
+    if (window._ttsPreloadPayTimer) clearTimeout(window._ttsPreloadPayTimer);
+    window._ttsPreloadPayTimer = setTimeout(function() {
+      var amounts = posPaySpeechAmountsLive();
+      if (amounts) posPreloadPaySpeech(amounts);
+    }, 200);
+  }
 }
 
 if (window.jQuery) {

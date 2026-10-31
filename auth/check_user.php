@@ -173,6 +173,7 @@ try {
                 'shift_revenue_report' => $isAdmin ? 1 : (int)($user['shift_revenue_report'] ?? $user['report'] ?? 0),
                 'expiry_report' => $isAdmin ? 1 : (int)($user['expiry_report'] ?? $user['report'] ?? 0),
                 'shifts' => $isAdmin ? 1 : (int)($user['shifts'] ?? $user['setup'] ?? 0),
+                'tts' => $isAdmin ? 1 : 0,   // ສະເພາະຜູ້ເບິ່ງແຍງລະບົບ
                 'accounting' => $isAdmin ? 1 : (int)($user['accounting'] ?? 0),
                 'setup' => $isAdmin ? 1 : (int)($user['setup'] ?? 0),
                 'users' => $isAdmin ? 1 : (int)($user['users'] ?? 0),

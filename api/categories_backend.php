@@ -13,13 +13,31 @@ if (empty($_SESSION['user_id']) || (!hasPermission('categories'))) {
     exit();
 }
 
+// User store and permissions
+$userStoreId = intval($_SESSION['store_id'] ?? 1);
+$currentStoreId = intval($_SESSION['active_store_id'] ?? $userStoreId);
+$canAllBranches = (
+    ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' ||
+    strtolower($_SESSION['status'] ?? '') === 'admin' ||
+    ($_SESSION['user_id'] ?? 0) == 1 ||
+    !empty($_SESSION['can_all_branches'])
+);
+$stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+if (!$canAllBranches) {
+    $selectedStoreId = $userStoreId;
+} else {
+    $selectedStoreId = isset($_REQUEST['store_id']) ? intval($_REQUEST['store_id']) : $currentStoreId;
+}
+$activeStoreIdForCat = $selectedStoreId;
+
 $message = '';
 $message_type = '';
 
 // Handle Category Form Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
-        $catActiveStoreId = getActiveStoreId($pdo);
+        $catActiveStoreId = !empty($_POST['store_id']) ? intval($_POST['store_id']) : $selectedStoreId;
 
         if ($_POST['action'] === 'add_category') {
             $name = trim($_POST['category_name'] ?? '');
@@ -139,9 +157,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch Categories of the active branch only (ສາຂາໃດສາຂານັ້ນ — ບໍ່ລວມກັບສາຂາອື່ນ),
+// Fetch Categories of the selected branch only (ສາຂາໃດສາຂານັ້ນ — ບໍ່ລວມກັບສາຂາອື່ນ),
 // ordered by its per-branch number (1-1, 1-2 …)
-$activeStoreIdForCat = getActiveStoreId($pdo);
+$activeStoreIdForCat = $selectedStoreId;
 ensureBranchNos($pdo, 'st_categories');
 try {
     $stmtCat = $pdo->prepare("SELECT c.*, (SELECT COUNT(*) FROM st_products p WHERE p.category_id = c.category_id) AS product_count,

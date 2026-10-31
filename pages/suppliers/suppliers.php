@@ -23,13 +23,24 @@ $isAdmin = (
     ($_SESSION['user_id'] ?? 0) == 1
 );
 
-$activeStoreId = getActiveStoreId($pdo);
+$userStoreId = intval($_SESSION['store_id'] ?? 1);
+$currentStoreId = intval($_SESSION['active_store_id'] ?? $userStoreId);
+$canAllBranches = $isAdmin || !empty($_SESSION['can_all_branches']);
+$stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+if (!$canAllBranches) {
+    $selectedStoreId = $userStoreId;
+} else {
+    $selectedStoreId = isset($_REQUEST['store_id']) ? intval($_REQUEST['store_id']) : $currentStoreId;
+}
+$activeStoreId = $selectedStoreId;
 
 $sup_message = '';
 $sup_message_type = '';
 
 // ---------- POST handling ----------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $activeStoreId = !empty($_POST['store_id']) ? intval($_POST['store_id']) : $selectedStoreId;
     $act  = $_POST['action'];
     $name = trim($_POST['supplier_name'] ?? '');
     $phone   = trim($_POST['phone'] ?? '');
@@ -156,7 +167,20 @@ require_once __DIR__ . '/../../layouts/header.php';
     <div class="container-fluid">
       <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
         <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap" style="gap: 12px;">
-          <span class="badge badge-secondary" style="font-size: 0.85rem; padding: 7px 12px;"><span id="supplierCountNum"><?php echo count($suppliers); ?></span> <?php echo htmlspecialchars(t('suppliers.count_label', 'ລາຍການ')); ?></span>
+          <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+            <span class="badge badge-secondary" style="font-size: 0.85rem; padding: 7px 12px;"><span id="supplierCountNum"><?php echo count($suppliers); ?></span> <?php echo htmlspecialchars(t('suppliers.count_label', 'ລາຍການ')); ?></span>
+            <?php if (($canAllBranches) && count($stores) > 1): ?>
+            <div class="prod-filter-wrap">
+              <select id="storeFilter" class="form-control font-weight-bold" onchange="window.location.href='suppliers.php?store_id=' + this.value">
+                <?php foreach ($stores as $st): ?>
+                  <option value="<?php echo $st['store_id']; ?>" <?php echo ($selectedStoreId == $st['store_id']) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('products.store_main_suffix', '(ສາງຫຼັກ)')) : htmlspecialchars(t('products.store_branch_suffix', '(ສາຂາຍ່ອຍ)')); ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <?php endif; ?>
+          </div>
           <div class="d-flex align-items-center ml-auto flex-grow-1 justify-content-end" style="gap: 8px; max-width: 560px;">
             <div class="input-group" style="flex: 1 1 auto;">
               <div class="input-group-prepend">
@@ -263,6 +287,7 @@ require_once __DIR__ . '/../../layouts/header.php';
       <form method="POST" action="" id="supplierForm">
         <input type="hidden" name="action" id="supplier_action" value="add_supplier">
         <input type="hidden" name="supplier_id" id="supplier_id">
+        <input type="hidden" name="store_id" value="<?php echo $selectedStoreId; ?>">
         <div class="modal-header text-white py-3 px-4" style="background: linear-gradient(135deg, #2c5aa0, #244886);">
           <h6 class="modal-title font-weight-bold" id="supplierModalTitle" style="font-size: 1.05rem;">
             <i class="fas fa-truck mr-2"></i> <?php echo htmlspecialchars(t('suppliers.modal_add_title', 'ເພີ່ມຜູ້ສະໜອງ')); ?>

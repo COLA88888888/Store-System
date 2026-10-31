@@ -411,6 +411,11 @@
     var catId    = document.getElementById('categoryFilter').value;
     var stockSel = document.getElementById('stockFilter');
     var stockF   = stockSel ? stockSel.value : '';   // '' | 'low' | 'out'
+    // ໂຊນ / ຊັ້ນວາງ (ບັອກມີສະເພາະເມື່ອມີຂໍ້ມູນ — page_table.php)
+    var zoneSel  = document.getElementById('zoneFilter');
+    var shelfSel = document.getElementById('shelfFilter');
+    var zoneF    = zoneSel ? zoneSel.value : '';
+    var shelfF   = shelfSel ? shelfSel.value : '';
     try {
       localStorage.setItem('StoreMini.minipos_product_category_filter', catId);
     } catch(e) {}
@@ -431,8 +436,10 @@
 
       var matchStock  = (stockF === '' || row.getAttribute('data-stock') === stockF);
       var matchFocus  = (focusPid === null || row.getAttribute('data-pid') === focusPid);
+      var matchZone   = (zoneF === '' || row.getAttribute('data-zone') === zoneF);
+      var matchShelf  = (shelfF === '' || row.getAttribute('data-shelf') === shelfF);
 
-      if (matchCat && matchSearch && matchStock && matchFocus) {
+      if (matchCat && matchSearch && matchStock && matchFocus && matchZone && matchShelf) {
         filteredRows.push(row);
       }
     });

@@ -6,9 +6,10 @@
  */
 
 // ===== Data for the page =====
-$lpEnabled = getSetting($pdo, 'loyalty_enabled', '0') === '1';
-$lpSpend   = (int)getSetting($pdo, 'loyalty_spend_amount', '100000');
-$lpPoints  = (int)getSetting($pdo, 'loyalty_points_earned', '1');
+// ກົດການໄດ້ຄະແນນຂອງສາຂາທີ່ເລືອກ (loyaltySetting: ສາຂາທີ່ຍັງບໍ່ເຄີຍບັນທຶກ ໃຊ້ຄ່າລວມເດີມ)
+$lpEnabled = loyaltySetting($pdo, 'loyalty_enabled', $activeStoreId, '0') === '1';
+$lpSpend   = (int)loyaltySetting($pdo, 'loyalty_spend_amount', $activeStoreId, '100000');
+$lpPoints  = (int)loyaltySetting($pdo, 'loyalty_points_earned', $activeStoreId, '1');
 if ($lpSpend < 1)  $lpSpend  = 100000;
 if ($lpPoints < 1) $lpPoints = 1;
 
@@ -18,9 +19,10 @@ try {
         SELECT r.*, p.product_name, p.unit, p.price AS product_price
         FROM st_loyalty_rewards r
         LEFT JOIN st_products p ON (r.reward_type = 'product' AND p.product_id = r.product_id AND p.store_id = ?)
+        WHERE r.store_id = ?
         ORDER BY r.points_cost ASC, r.id ASC
     ");
-    $rStmt->execute([$activeStoreId]);
+    $rStmt->execute([$activeStoreId, $activeStoreId]);
     $loyaltyRewards = $rStmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
@@ -31,11 +33,9 @@ try {
     $rewardProducts = $rpStmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {}
 
-// Customers / history follow the same branch scope as the rest of the app: main-branch users
-// see everyone, a sub-branch sees its own customers (+ the shared store_id = 0 ones).
-$scopeAll = canViewAllBranches($pdo);
-$custScopeSql = $scopeAll ? '1=1' : '(c.store_id = :sid OR c.store_id = 0)';
-$custScopeParams = $scopeAll ? [] : [':sid' => $activeStoreId];
+// ຄະແນນແຍກແຕ່ລະສາຂາ ບໍ່ລວມກັນ: ລູກຄ້າ ແລະ ປະຫວັດ ສະແດງສະເພາະສາຂາທີ່ເລືອກ (ສາຂາຫຼັກປ່ຽນສາຂາດ້ວຍຕົວເລືອກສາຂາ)
+$custScopeSql = 'c.store_id = :sid';
+$custScopeParams = [':sid' => $activeStoreId];
 
 // Both lists page independently: ?cpage= for customers, ?hpage= for the history.
 $lpPerPage = 10;
@@ -53,7 +53,7 @@ try {
     $s->execute($custScopeParams);
     $topCustomers = $s->fetchAll(PDO::FETCH_ASSOC);
 
-    $s = $pdo->prepare("SELECT COUNT(*) FROM st_loyalty_points_log l JOIN st_customers c ON c.customer_id = l.customer_id WHERE $custScopeSql");
+    $s = $pdo->prepare("SELECT COUNT(*) FROM st_loyalty_points_log l JOIN st_customers c ON c.customer_id = l.customer_id WHERE $custScopeSql AND l.store_id = :sid");
     $s->execute($custScopeParams);
     $recentLogTotal = (int)$s->fetchColumn();
     $hPage = min($hPage, max(1, (int)ceil($recentLogTotal / $lpPerPage)));
@@ -61,7 +61,7 @@ try {
     $s = $pdo->prepare("
         SELECT l.*, c.customer_name FROM st_loyalty_points_log l
         JOIN st_customers c ON c.customer_id = l.customer_id
-        WHERE $custScopeSql
+        WHERE $custScopeSql AND l.store_id = :sid
         ORDER BY l.id DESC LIMIT $lpPerPage OFFSET " . (($hPage - 1) * $lpPerPage));
     $s->execute($custScopeParams);
     $recentLog = $s->fetchAll(PDO::FETCH_ASSOC);

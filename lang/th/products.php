@@ -189,4 +189,6 @@ return [
     'products.bulk_img_hint' => 'คลิกเพื่อเลือกรูป (ไม่ใส่ก็ได้)',
     'products.bulk_img_fail' => 'อัปโหลดรูปไม่สำเร็จ',
     'products.bulk_img_busy' => 'กำลังอัปโหลดรูป — กรุณารอสักครู่',
+    'products.zone_filter_all' => '-- ทุกโซน --',
+    'products.shelf_filter_all' => '-- ทุกชั้น --',
 ];

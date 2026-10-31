@@ -4,6 +4,7 @@
     <div class="modal-content shadow-lg border-0" style="border-radius: 16px; overflow: hidden;">
       <form id="addCategoryForm" action="" method="POST" novalidate>
         <input type="hidden" name="action" value="add_category">
+        <input type="hidden" name="store_id" value="<?php echo $selectedStoreId; ?>">
         <div class="modal-header" style="background: linear-gradient(135deg, #2c5aa0, #244886) !important;">
           <h5 class="modal-title font-weight-bold text-white" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
             <i class="fas fa-folder-plus mr-2"></i> <?php echo htmlspecialchars(t('categories.modal_add_title', 'ເພີ່ມປະເພດສິນຄ້າ')); ?>

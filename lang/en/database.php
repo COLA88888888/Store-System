@@ -49,4 +49,22 @@ return [
     'database.msg_upload_restore_fail' => 'An error occurred while uploading/restoring the database!',
     'database.msg_no_file' => 'Please select an SQL file to upload!',
     'database.msg_file_not_found' => 'File not found or path is incorrect',
+
+    // ເລືອກສາຂາທີ່ຈະສຳຮອງ
+    'database.scope_all' => 'All',
+    'database.pick_scope_title' => 'Back up which branch?',
+    'database.pick_scope_all' => 'Everything (all branches + system settings)',
+    'database.pick_scope_hint' => 'Branch file: restoring it replaces only that branch data; other branches are untouched',
+    'database.btn_continue' => 'Create backup',
+    'database.branch_inactive' => '(inactive)',
+    'database.confirm_restore_branch_text' => 'Restore branch "%b" from file "%s"? The current data of this branch will be replaced — other branches are untouched.',
+    'database.err_branch_invalid' => 'Selected branch not found',
+    'database.err_other_branch_file' => 'You can only restore backup files of your own branch',
+
+    // ກວດຜົນການຟື້ນຟູ
+    'database.restore_verified' => 'Verified: all data is back exactly as backed up (%s tables)',
+    'database.restore_incomplete' => 'Restored, but the data does not fully match the backup:',
+    'database.restore_mismatch_line' => '%s: %s rows in backup, %s rows after restore',
+    'database.restore_failed_line' => '%s statements failed: %s',
+    'database.err_upload_too_big' => 'File exceeds the server upload limit (%s)',
 ];

@@ -16,6 +16,9 @@
   if (res.invoice_number && window.__posLastReceiptInvoice === res.invoice_number) return;
   window.__posLastReceiptInvoice = res.invoice_number;
 
+  // ສ່ວນຫຼຸດຂອງບິນທີ່ຂາຍສຳເລັດ (ຈໍລູກຄ້າສະແດງໃນຍອດລວມ)
+  var soldDiscount = String(Math.round(window.CART_DISCOUNT_KIP || 0) + (window.CART_POINTS_DISCOUNT_KIP || 0));
+
   // A recalled held bill leaves the held list only now that it has actually been paid.
   if (typeof removePaidHeldOrder === 'function') removePaidHeldOrder();
 
@@ -228,8 +231,15 @@
     });
   }
 
+  // ສຽງຮັບເງິນ: ເວົ້າທັນທີ ກ່ອນພິມບິນ — ຂໍ້ຄວາມດຽວກັບທີ່ preload ໄວ້ (checkout/pay_speech.php) ຈຶ່ງຢູ່ໃນ cache ແລ້ວ.
+  // ໝາຍໃບບິນນີ້ວ່າເວົ້າແລ້ວ ກ່ອນສົ່ງໄປຈໍລູກຄ້າ → ຈໍລູກຄ້າໃນເຄື່ອງດຽວກັນບໍ່ເວົ້າຊ້ຳ.
+  posSpeakPaymentResult(res, cashAmt, qrAmt, creditAmt, isTransferPayment, bName);
+
   if (typeof broadcastCustomerDisplay === 'function') {
     broadcastCustomerDisplay('payment_success', {
+      // ຂາຍສຳເລັດ → ລ້າງລາຍການສິນຄ້າໃນຈໍລູກຄ້າ (ຍອດທີ່ຈ່າຍ ແລະ ເງິນທອນ ຍັງສະແດງຈາກ totalAmount / changeAmount)
+      cart: [],
+      discount: soldDiscount,
       totalAmount: res.total_amount,
       paidAmount: res.total_amount,
       cashReceived: res.cash_received,
@@ -259,7 +269,7 @@
   window.__suppressCustomerBroadcast = false;
   setTimeout(function() {
     window.__isCheckoutSuccessFinishing = false;
-  }, 1000);
+  }, 4000);
 }
 
 // ສຽງຕອນກົດຂາຍສຳເລັດແບບໃໝ່ (Modern Melodic POS Sale Confirmation Chime)
@@ -313,5 +323,40 @@ function playPosCashRegisterSound() {
       oscH.stop(start + n.d * 0.55 + 0.02);
     });
   } catch(e) {}
+}
+
+// ເວົ້າສຽງຮັບເງິນ ຫຼັງຂາຍສຳເລັດ (ເມື່ອກ່ອນໂຄດນີ້ຢູ່ໃນ playPosCashRegisterSound ຫຼັງ return ຈຶ່ງບໍ່ເຄີຍແລ່ນ — ມີແຕ່ຈໍລູກຄ້າເວົ້າ).
+// ໃຊ້ຂໍ້ຄວາມທີ່ preload ໄວ້ຕອນກົດຊຳລະ (window.__posPaySpeech) ຖ້າຍອດກົງກັນ → ສຽງອອກທັນທີຈາກ cache.
+function posSpeakPaymentResult(res, cashAmt, qrAmt, creditAmt, isTransferPayment, bName) {
+  try {
+    var total = parseFloat(res.total_amount) || 0;
+    if (!window.LaoTTS || total <= 0) return;
+    var text = '';
+    var stash = window.__posPaySpeech;
+    window.__posPaySpeech = null;
+    if (stash && stash.text && Math.abs((parseFloat(stash.totalKip) || 0) - total) < 1) {
+      text = stash.text;
+    } else if (creditAmt > 0 && cashAmt === 0 && qrAmt === 0) {
+      var code = res.paid_currency || ((window.POSCUR && POSCUR.code) || 'KIP');
+      var rate = parseFloat(res.paid_rate) || ((window.POSCUR && POSCUR.rate) || 1);
+      var isKip = (code === 'KIP' || rate <= 1);
+      text = LaoTTS.buildPaymentSpeechMessage(isKip ? creditAmt : Math.round(creditAmt / rate), 0, 'credit', code);
+    } else if (typeof posPaySpeechText === 'function') {
+      var isSplit = (cashAmt > 0 && qrAmt > 0) || (typeof currentPayMode !== 'undefined' && currentPayMode === 'split');
+      text = posPaySpeechText({
+        mode: isSplit ? 'split' : (isTransferPayment ? 'qr' : 'cash'),
+        totalKip: total, cashKip: cashAmt, qrKip: qrAmt, changeKip: parseFloat(res.change) || 0,
+        bank: isTransferPayment ? (bName || '') : ''
+      });
+    }
+    if (!text) return;
+    if (res.invoice_number) {
+      try { localStorage.setItem('StoreMini.tts_last_spoken_invoice', res.invoice_number); } catch (e) {}
+    }
+    // ສຽງ "ຍອດລວມທີ່ຕ້ອງຊຳລະ" ທີ່ອາດຍັງເວົ້າຄ້າງຢູ່ → ຢຸດ ແລ້ວເວົ້າຮັບເງິນທັນທີ
+    if (typeof LaoTTS.isEnabled === 'function' && !LaoTTS.isEnabled('pos_sale')) return;   // ປິດສຽງ → ບໍ່ຢຸດ ບໍ່ເວົ້າ
+    if (typeof LaoTTS.stop === 'function') LaoTTS.stop();
+    LaoTTS.speak(text, null, null, undefined, 'pos_sale');
+  } catch (e) {}
 }
 

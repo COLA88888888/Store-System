@@ -49,4 +49,22 @@ return [
     'database.msg_upload_restore_fail' => 'เกิดข้อผิดพลาดในการอัปโหลด/กู้คืนฐานข้อมูล!',
     'database.msg_no_file' => 'กรุณาเลือกไฟล์ SQL ที่จะอัปโหลด!',
     'database.msg_file_not_found' => 'ไม่พบไฟล์ หรือ Path ไม่ถูกต้อง',
+
+    // ເລືອກສາຂາທີ່ຈະສຳຮອງ
+    'database.scope_all' => 'ทั้งหมด',
+    'database.pick_scope_title' => 'สำรองข้อมูลสาขาใด?',
+    'database.pick_scope_all' => 'ทั้งหมด (ทุกสาขา + การตั้งค่าระบบ)',
+    'database.pick_scope_hint' => 'ไฟล์สาขา: เมื่อกู้คืนจะแทนที่เฉพาะข้อมูลของสาขานั้น สาขาอื่นไม่ได้รับผลกระทบ',
+    'database.btn_continue' => 'สร้างไฟล์สำรอง',
+    'database.branch_inactive' => '(ปิดใช้งาน)',
+    'database.confirm_restore_branch_text' => 'กู้คืนข้อมูลของสาขา "%b" จากไฟล์ "%s"? ข้อมูลปัจจุบันของสาขานี้จะถูกแทนที่ — สาขาอื่นไม่ได้รับผลกระทบ',
+    'database.err_branch_invalid' => 'ไม่พบสาขาที่เลือก',
+    'database.err_other_branch_file' => 'คุณกู้คืนได้เฉพาะไฟล์สำรองของสาขาตนเอง',
+
+    // ກວດຜົນການຟື້ນຟູ
+    'database.restore_verified' => 'ตรวจแล้ว: ข้อมูลกลับมาครบเหมือนตอนสำรอง (%s ตาราง)',
+    'database.restore_incomplete' => 'กู้คืนแล้ว แต่ข้อมูลไม่ครบเหมือนตอนสำรอง:',
+    'database.restore_mismatch_line' => '%s: สำรอง %s แถว, หลังกู้คืน %s แถว',
+    'database.restore_failed_line' => 'คำสั่งผิดพลาด %s คำสั่ง: %s',
+    'database.err_upload_too_big' => 'ไฟล์ใหญ่เกินขีดจำกัดของเซิร์ฟเวอร์ (%s)',
 ];

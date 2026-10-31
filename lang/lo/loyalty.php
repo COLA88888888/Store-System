@@ -101,4 +101,5 @@ return [
     'loyalty.min_spend_hint' => 'ບໍ່ໃສ່ກໍໄດ້ — ແຕ່ຍອດຊື້ຕ້ອງຫຼາຍກວ່າມູນຄ່າສ່ວນຫຼຸດສະເໝີ',
     'loyalty.min_spend_short' => 'ຊື້ຂັ້ນຕ່ຳ %s ກີບ',
     'loyalty.min_spend_over_short' => 'ຊື້ເກີນ %s ກີບ',
+    'loyalty.branch_scope' => 'ສະເພາະສາຂາ:',
 ];

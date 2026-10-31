@@ -22,13 +22,7 @@ if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['shift_schema_v2'])) {
             INDEX `idx_shift_store` (`store_id`, `status`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-        // Seed default shifts if table is empty
-        $cntShifts = (int)$pdo->query("SELECT COUNT(*) FROM st_shifts")->fetchColumn();
-        if ($cntShifts === 0) {
-            $pdo->exec("INSERT INTO st_shifts (shift_name, start_time, end_time, store_id, status) VALUES
-                ('ກະເຊົ້າ', '07:00:00', '15:00:00', 1, 1),
-                ('ກະບ່າຍ', '15:00:00', '23:00:00', 1, 1)");
-        }
+        // ບໍ່ໃສ່ກະຕົວຢ່າງ (ກະເຊົ້າ/ກະບ່າຍ) ເອງ — ຮ້ານຕັ້ງກະເອງໃນ ຕັ້ງຄ່າ › ຈັດການກະເຮັດວຽກ
 
         // 2. ຕາຕະລາງ session ການເປີດ-ປິດກະ
         $pdo->exec("CREATE TABLE IF NOT EXISTS `st_shift_sessions` (

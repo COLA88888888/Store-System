@@ -128,12 +128,16 @@
                         }
                     } catch (Throwable $e) {}
 
-                    // ໂຊນ ແລະ ຊັ້ນວາງ
-                    try {
+                    // ໂຊນ ແລະ ຊັ້ນວາງ — ບັນທຶກສະເພາະບັອກທີ່ສະແດງໃນຟອມ (zs_zone_on / zs_shelf_on ຈາກ form_edit_product.php).
+                    // ສາຂາບໍ່ມີລາຍຊື່ໂຊນ/ຊັ້ນວາງ → ບັອກຖືກເຊື່ອງ → ບໍ່ລ້າງຄ່າເກົ່າຂອງສິນຄ້າ
+                    $zsSets = []; $zsVals = [];
+                    if (!empty($_POST['zs_zone_on']))  { $zsSets[] = 'zone=?';  $zsVals[] = $zone; }
+                    if (!empty($_POST['zs_shelf_on'])) { $zsSets[] = 'shelf=?'; $zsVals[] = $shelf; }
+                    if ($zsSets) try {
                         if ($canAllBranches) {
-                            $pdo->prepare("UPDATE st_products SET zone=?, shelf=? WHERE product_id=?")->execute([$zone, $shelf, $product_id]);
+                            $pdo->prepare("UPDATE st_products SET " . implode(', ', $zsSets) . " WHERE product_id=?")->execute(array_merge($zsVals, [$product_id]));
                         } else {
-                            $pdo->prepare("UPDATE st_products SET zone=?, shelf=? WHERE product_id=? AND store_id=?")->execute([$zone, $shelf, $product_id, $userStoreId]);
+                            $pdo->prepare("UPDATE st_products SET " . implode(', ', $zsSets) . " WHERE product_id=? AND store_id=?")->execute(array_merge($zsVals, [$product_id, $userStoreId]));
                         }
                     } catch (Throwable $e) {}
 

@@ -10,12 +10,20 @@ $base_path = '../../';
 
 // Load Database Connection
 require_once __DIR__ . '/../../config/db.php';
-require_once __DIR__ . '/../../layouts/header.php';
 
-// Check permissions
+// Check permissions (ກ່ອນ header — ບໍ່ສົ່ງ HTML ຂອງໜ້າອອກໄປຫາຜູ້ທີ່ບໍ່ມີສິດ)
 if (empty($_SESSION['user_id']) || (!hasPermission('database'))) {
     echo "<script>window.top.location.href = '" . $base_path . "index.php';</script>";
     exit();
+}
+require_once __DIR__ . '/../../layouts/header.php';
+
+// ສາຂາ: ຜູ້ທີ່ເຫັນທຸກສາຂາ ເລືອກສຳຮອງ "ທັງໝົດ" ຫຼື ສາຂາໃດໜຶ່ງ; ຜູ້ໃຊ້ສາຂາຍ່ອຍ ສຳຮອງ/ເຫັນ ສະເພາະສາຂາຕົນເອງ
+$dbCanAllBranches = canViewAllBranches($pdo);
+$dbOwnStoreId = (int)getActiveStoreId($pdo);
+$dbStores = [];
+foreach ($pdo->query('SELECT store_id, store_name, status FROM st_tbstore ORDER BY store_id ASC')->fetchAll(PDO::FETCH_ASSOC) as $st) {
+    $dbStores[(int)$st['store_id']] = $st;
 }
 
 // Scan Backup Files in backups/ directory
@@ -26,10 +34,18 @@ if (file_exists($backupDir)) {
     if (!empty($files)) {
         rsort($files); // Latest first
         foreach ($files as $f) {
+            // ແຖວທຳອິດ "-- StoreMini branch backup: store_id=N" = ໄຟລ໌ສາຂາ (api/database_backend.php)
+            $fh = @fopen($f, 'rb');
+            $first = $fh ? (string)fgets($fh, 256) : '';
+            if ($fh) fclose($fh);
+            $fileStore = preg_match('/^-- StoreMini branch backup: store_id=(\d+)/', $first, $m) ? (int)$m[1] : 0;
+            if (!$dbCanAllBranches && $fileStore !== $dbOwnStoreId) continue;
             $backupFiles[] = [
                 'name' => basename($f),
                 'size' => number_format(filesize($f) / 1024, 2) . ' KB',
-                'time' => date('d/m/Y H:i:s', filemtime($f))
+                'time' => date('d/m/Y H:i:s', filemtime($f)),
+                'store_id' => $fileStore,
+                'store_name' => $fileStore > 0 ? ($dbStores[$fileStore]['store_name'] ?? ('#' . $fileStore)) : '',
             ];
         }
     }
@@ -77,6 +93,11 @@ if (file_exists($backupDir)) {
                                         <span><i class="far fa-clock mr-1"></i><?php echo $bf['time']; ?></span>
                                         <span><i class="fas fa-hdd mr-1"></i><?php echo $bf['size']; ?></span>
                                         <span class="badge badge-success px-2 py-1" style="font-size: 0.7rem; border-radius: 6px;"><i class="fas fa-check-circle mr-1"></i>SQL</span>
+                                        <?php if ($bf['store_id'] > 0): ?>
+                                            <span class="badge badge-info px-2 py-1" style="font-size: 0.7rem; border-radius: 6px;"><i class="fas fa-store mr-1"></i><?php echo htmlspecialchars($bf['store_name']); ?></span>
+                                        <?php else: ?>
+                                            <span class="badge badge-primary px-2 py-1" style="font-size: 0.7rem; border-radius: 6px;"><i class="fas fa-globe mr-1"></i><?php echo htmlspecialchars(t('database.scope_all', 'ທັງໝົດ')); ?></span>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                                 <div class="backup-row-actions">
@@ -87,7 +108,7 @@ if (file_exists($backupDir)) {
                                     </a>
                                     <!-- Restore Button -->
                                     <button type="button" class="btn-backup-action restore flex-fill"
-                                            onclick="restoreBackup('<?php echo htmlspecialchars($bf['name']); ?>')" title="<?php echo htmlspecialchars(t('database.restore_title', 'ຟື້ນຟູຖານຂໍ້ມູນ')); ?>">
+                                            onclick="restoreBackup('<?php echo htmlspecialchars($bf['name']); ?>', <?php echo htmlspecialchars(json_encode($bf['store_name'], JSON_UNESCAPED_UNICODE)); ?>)" title="<?php echo htmlspecialchars(t('database.restore_title', 'ຟື້ນຟູຖານຂໍ້ມູນ')); ?>">
                                         <i class="fas fa-undo mr-1"></i> <?php echo htmlspecialchars(t('database.restore', 'ຟື້ນຟູ')); ?>
                                     </button>
                                     <!-- Delete Button -->
@@ -164,10 +185,59 @@ var I18N_DATABASE = <?php echo tjson([
     'database.delete_success_title' => 'ລົບສຳເລັດ!',
     'database.uploading_title' => 'ກຳລັງອັບໂຫຼດ ແລະ ຟື້ນຟູ...',
     'database.err_upload' => 'ເກີດຂໍ້ຜິດພາດໃນການອັບໂຫຼດໄຟລ໌',
+    'database.pick_scope_title' => 'ສຳຮອງຂໍ້ມູນສາຂາໃດ?',
+    'database.pick_scope_all' => 'ທັງໝົດ (ທຸກສາຂາ + ການຕັ້ງຄ່າລະບົບ)',
+    'database.pick_scope_hint' => 'ໄຟລ໌ສາຂາ: ຟື້ນຟູແລ້ວແທນທີ່ສະເພາະຂໍ້ມູນຂອງສາຂານັ້ນ, ສາຂາອື່ນບໍ່ຖືກກະທົບ',
+    'database.btn_continue' => 'ສ້າງໄຟລ໌ສຳຮອງ',
+    'database.branch_inactive' => '(ປິດໃຊ້ງານ)',
+    'database.confirm_restore_branch_text' => 'ຟື້ນຟູຂໍ້ມູນຂອງສາຂາ "%b" ຈາກໄຟລ໌ "%s"? ຂໍ້ມູນປັດຈຸບັນຂອງສາຂານີ້ຈະຖືກແທນທີ່ — ສາຂາອື່ນບໍ່ຖືກກະທົບ.',
 ]); ?>;
 
-// 1. Create Backup Action
+// ສາຂາທີ່ເລືອກສຳຮອງໄດ້ (ຫວ່າງ = ບໍ່ຕ້ອງເລືອກ: ມີສາຂາດຽວ ຫຼື ຜູ້ໃຊ້ສາຂາຍ່ອຍ ທີ່ຖືກລັອກໄວ້ທີ່ສາຂາຕົນເອງ)
+var DB_BACKUP_STORES = <?php
+    $dbPick = [];
+    if ($dbCanAllBranches && count($dbStores) > 1) {
+        foreach ($dbStores as $sid => $st) {
+            $dbPick[] = ['id' => $sid, 'name' => $st['store_name'] . ($st['status'] !== 'active' ? ' ' . t('database.branch_inactive', '(ປິດໃຊ້ງານ)') : '')];
+        }
+    }
+    echo json_encode($dbPick, JSON_UNESCAPED_UNICODE);
+?>;
+
+// ຜິດພາດ / ຟື້ນຟູບໍ່ຄົບ: ສະແດງລາຍການຕາຕະລາງທີ່ຂາດ ແຖວລະອັນ (res.partial = ຟື້ນຟູແລ້ວແຕ່ບໍ່ຄົບຄືຕອນສຳຮອງ)
+function dbShowFail(res) {
+    var $box = $('<div style="white-space: pre-line; text-align: left; font-size: 0.88rem;"></div>').text(res.message || '');
+    Swal.fire({
+        icon: res.partial ? 'warning' : 'error',
+        title: I18N_DATABASE['database.error_title'],
+        html: $box[0].outerHTML,
+        confirmButtonColor: '#2563eb'
+    });
+}
+
+// 1. Create Backup Action — ມີຫຼາຍສາຂາ: ຖາມກ່ອນວ່າຈະສຳຮອງທັງໝົດ ຫຼື ສາຂາໃດ
 function createBackup() {
+    if (!DB_BACKUP_STORES.length) { runCreateBackup(0); return; }
+    var opts = { '0': I18N_DATABASE['database.pick_scope_all'] };
+    DB_BACKUP_STORES.forEach(function (s) { opts[String(s.id)] = s.name; });
+    Swal.fire({
+        title: I18N_DATABASE['database.pick_scope_title'],
+        text: I18N_DATABASE['database.pick_scope_hint'],
+        icon: 'question',
+        input: 'select',
+        inputOptions: opts,
+        inputValue: '0',
+        showCancelButton: true,
+        confirmButtonColor: '#2563eb',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: I18N_DATABASE['database.btn_continue'],
+        cancelButtonText: I18N_DATABASE['database.cancel']
+    }).then(function (r) {
+        if (r.isConfirmed) runCreateBackup(parseInt(r.value, 10) || 0);
+    });
+}
+
+function runCreateBackup(storeId) {
     Swal.fire({
         title: I18N_DATABASE['database.creating_backup_title'],
         text: I18N_DATABASE['database.please_wait'],
@@ -175,7 +245,7 @@ function createBackup() {
         didOpen: () => { Swal.showLoading(); }
     });
 
-    $.post('<?php echo $base_path; ?>api/database_backend.php', { action: 'create_backup' }, function(res) {
+    $.post('<?php echo $base_path; ?>api/database_backend.php', { action: 'create_backup', store_id: storeId }, function(res) {
         if (res.success) {
             Swal.fire({
                 icon: 'success',
@@ -187,7 +257,7 @@ function createBackup() {
                 location.reload();
             });
         } else {
-            Swal.fire(I18N_DATABASE['database.error_title'], res.message, 'error');
+            dbShowFail(res);
         }
     }, 'json').fail(function() {
         Swal.fire(I18N_DATABASE['database.error_title'], I18N_DATABASE['database.err_connect'], 'error');
@@ -195,10 +265,13 @@ function createBackup() {
 }
 
 // 2. Restore Backup Action
-function restoreBackup(filename) {
+function restoreBackup(filename, branchName) {
+    var text = branchName
+        ? I18N_DATABASE['database.confirm_restore_branch_text'].replace('%b', branchName).replace('%s', filename)
+        : I18N_DATABASE['database.confirm_restore_text'].replace('%s', filename);
     Swal.fire({
         title: I18N_DATABASE['database.confirm_restore_title'],
-        text: I18N_DATABASE['database.confirm_restore_text'].replace('%s', filename),
+        text: text,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#2563eb',
@@ -226,7 +299,7 @@ function restoreBackup(filename) {
                         location.reload();
                     });
                 } else {
-                    Swal.fire(I18N_DATABASE['database.error_title'], res.message, 'error');
+                    dbShowFail(res);
                 }
             }, 'json').fail(function() {
                 Swal.fire(I18N_DATABASE['database.error_title'], I18N_DATABASE['database.err_restore'], 'error');
@@ -260,7 +333,7 @@ function deleteBackup(filename) {
                         location.reload();
                     });
                 } else {
-                    Swal.fire(I18N_DATABASE['database.error_title'], res.message, 'error');
+                    dbShowFail(res);
                 }
             }, 'json');
         }
@@ -301,7 +374,7 @@ $('#uploadRestoreForm').on('submit', function(e) {
                     location.reload();
                 });
             } else {
-                Swal.fire(I18N_DATABASE['database.error_title'], res.message, 'error');
+                dbShowFail(res);
             }
         },
         error: function() {

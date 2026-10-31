@@ -41,4 +41,5 @@ return [
     'home.lbl_date' => 'ວັນທີ', 'home.lbl_month' => 'ເດືອນ', 'home.lbl_year' => 'ປີ', 'home.lbl_time' => 'ເວລາ',
     'home.unit_hour' => 'ໂມງ', 'home.unit_qty' => 'ອັນ',
     'home.million_suffix' => 'ລ້ານກີບ', 'home.thousand_suffix' => 'ພັນກີບ',
+    'home.no_permission_title' => 'ທ່ານບໍ່ມີສິດເບິ່ງໜ້ານີ້', 'home.no_permission_text' => 'ກະລຸນາເລືອກເມນູທີ່ທ່ານມີສິດຢູ່ດ້ານຂ້າງ ຫຼື ຕິດຕໍ່ຜູ້ບໍລິຫານ',
 ];

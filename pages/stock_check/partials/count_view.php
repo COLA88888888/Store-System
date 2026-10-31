@@ -92,23 +92,23 @@ foreach ($scItems as $it) {
       <div class="sc-kpi-grid mb-3">
         <!-- 1. ສິນຄ້າທັງໝົດ -->
         <div class="sc-kpi sc-kpi-compact" style="--k: #3b82f6; --k2: #1d4ed8;">
-          <div><div class="sc-kpi-title"><?php echo $sc('sc.s037'); ?></div><div class="sc-kpi-val" id="scStatTotal">0</div></div>
+          <div><div class="sc-kpi-title"><?php echo $sc('sc.s037'); ?></div><div class="sc-kpi-val"><span class="counter-num" id="scStatTotal" data-target="0">0</span></div></div>
           <div class="sc-kpi-icon"><i class="fas fa-boxes"></i></div>
         </div>
         <!-- 2. ນັບແລ້ວ -->
         <div class="sc-kpi sc-kpi-compact" style="--k: #10b981; --k2: #047857;">
-          <div><div class="sc-kpi-title"><?php echo $sc('sc.s039'); ?></div><div class="sc-kpi-val" id="scStatCountedOnly">0</div></div>
+          <div><div class="sc-kpi-title"><?php echo $sc('sc.s039'); ?></div><div class="sc-kpi-val"><span class="counter-num" id="scStatCountedOnly" data-target="0">0</span></div></div>
           <div class="sc-kpi-icon"><i class="fas fa-check-circle"></i></div>
         </div>
         <!-- 3. ຍັງບໍ່ນັບ -->
         <div class="sc-kpi sc-kpi-compact" style="--k: #64748b; --k2: #334155;">
-          <div><div class="sc-kpi-title"><?php echo $sc('sc.s040'); ?></div><div class="sc-kpi-val" id="scStatUncountedBig">0</div></div>
+          <div><div class="sc-kpi-title"><?php echo $sc('sc.s040'); ?></div><div class="sc-kpi-val"><span class="counter-num" id="scStatUncountedBig" data-target="0">0</span></div></div>
           <div class="sc-kpi-icon"><i class="far fa-clock"></i></div>
         </div>
         <!-- 4. ບໍ່ຕົງກັບລະບົບ (ສະແດງສະເພາະຫົວໜ້າ/ຜູ້ບໍລິຫານ) -->
         <?php if ($scShowSystem): ?>
         <div class="sc-kpi sc-kpi-compact" style="--k: #f87171; --k2: #b91c1c;">
-          <div><div class="sc-kpi-title"><?php echo $sc('sc.s041'); ?></div><div class="sc-kpi-val" id="scStatMismatchTotal">0</div></div>
+          <div><div class="sc-kpi-title"><?php echo $sc('sc.s041'); ?></div><div class="sc-kpi-val"><span class="counter-num" id="scStatMismatchTotal" data-target="0">0</span></div></div>
           <div class="sc-kpi-icon"><i class="fas fa-exclamation-triangle"></i></div>
         </div>
         <?php endif; ?>

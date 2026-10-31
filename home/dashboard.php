@@ -26,6 +26,8 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] !== 1 || !isset($_SESSI
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../lang/translator.php';
+// ສາຂາດຽວ → ຊື່ສາຂາໃນແຖບເທິງ = ຊື່ຮ້ານ (ຕັ້ງຄ່າ › ຂໍ້ມູນຮ້ານ)
+if (function_exists('syncSingleBranchWithShop')) syncSingleBranchWithShop($pdo);
 
 $base_path = '../';
 $site_name = 'Minimart Wlaodev POS';
@@ -114,6 +116,7 @@ if (!hasPermission('dashboard')) {
         'expiry'               => '../pages/settings/expiry/index.php',
         'shifts'               => '../pages/settings/shifts/index.php',
         'clear_data'           => '../pages/settings/clear_data/index.php',
+        'tts'                  => '../pages/settings/tts/index.php',
         'database'             => '../pages/database/database.php',
     ] as $__mod => $__src) {
         if (hasPermission($__mod)) { $default_iframe_src = $__src; break; }

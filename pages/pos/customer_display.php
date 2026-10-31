@@ -221,6 +221,12 @@ $base_path = '../../';
 <?php require __DIR__ . '/partials/customer_display/minimart_3d.php'; /* 3D Cartoon Mini-Mart World (ແລ່ນທັນທີແບບ 0ms ກ່ອນ Paint) */ ?>
 <script src="<?php echo $base_path; ?>plugins/jquery/jquery.min.js"></script>
 <script src="<?php echo $base_path; ?>assets/js/pos-sounds.js?v=<?php echo @filemtime(__DIR__ . '/../../assets/js/pos-sounds.js'); ?>"></script>
+<?php /* ສະວິດລະບົບສຽງ (ຕັ້ງຄ່າ › ລະບົບສຽງ) — assets/js/tts-speak.js ກວດກ່ອນເວົ້າ ແລະ ອ່ານຄືນທຸກ 10 ວິນາທີ */
+$__ttsCfg = @include __DIR__ . '/../../config/tts_config.php'; $__ttsCfg = is_array($__ttsCfg) ? $__ttsCfg : [];
+$__ttsSw = ['enabled' => !array_key_exists('enabled', $__ttsCfg) || !empty($__ttsCfg['enabled'])];
+foreach (['pos_total', 'pos_sale', 'pos_stock', 'pos_queue', 'pos_welcome'] as $__k) $__ttsSw[$__k] = !array_key_exists($__k, $__ttsCfg) || !empty($__ttsCfg[$__k]); ?>
+<script>window.TTS_CONFIG = <?php echo json_encode($__ttsSw); ?>;</script>
+<script src="<?php echo $base_path; ?>assets/js/tts-speak.js?v=<?php echo @filemtime(__DIR__ . '/../../assets/js/tts-speak.js'); ?>"></script>
 <?php require __DIR__ . '/partials/customer_display/display_js.php'; /* JS ຂອງຈໍລູກຄ້າ */ ?>
 
 </body>

@@ -102,13 +102,17 @@ function lanPrinterSend($host, $port, $bytes, $timeout = 4) {
 //   6 = ຊິດຊ້າຍ ~0.35 mm (ວັດຈາກຮູບ: ຊ້າຍ ~5.4 mm, ຂວາ ~6.1 mm); 8, 9 = ຊິດຂວາເລັກນ້ອຍ.
 //   ບວກ = ຂວາ, ລົບ = ຊ້າຍ (8 dots = 1 mm; 1 dot = 0.125 mm ເປັນໜ່ວຍນ້ອຍສຸດ).
 //   USB ມີຄ່າຂອງມັນເອງ: USB_PRINT_SHIFT_MM ໃນ assets/js/lan-receipt.js.
-if (!defined('LAN_PRINT_SHIFT_DOTS')) define('LAN_PRINT_SHIFT_DOTS', 7);
+// ທົດລອງພິມແທ້ 31/10/2026 (ຫຼັງລວມເປັນຮູບບິນດຽວ): +7 ອອກມາເກີນຂວາ 2 mm → ຍັບຊ້າຍ 16 ຈຸດ = -9.
+if (!defined('LAN_PRINT_SHIFT_DOTS')) define('LAN_PRINT_SHIFT_DOTS', -9);
 // ບິນ USB (ສົ່ງ ESC/POS ກົງເຂົ້າ Windows spooler): ບິນ browser ເປັນຫຼັກ — ບິນ browser ພິມອອກເຄື່ອງ USB ດຽວກັນ
 // ຖືກຍັບຊ້າຍ USB_PRINT_SHIFT_MM = -0.15 mm (assets/js/lan-receipt.js) ≈ -1 ຈຸດ. ເມື່ອກ່ອນ USB ໃຊ້ຄ່າຂອງ LAN (+7)
 // ຈຶ່ງອອກມາເຫຼື່ອມຂວາ ~1 mm (≈ 1 ຂີດ) ທຽບກັບບິນ browser. ທົດລອງພິມແທ້ (31/10/2026): -1 ຍັງເຫຼື່ອມຂວາອີກ 1 ຂີດ
-// → ຍັບຊ້າຍເພີ່ມ 1 ຂີດ (≈ 10 ຈຸດ) = -11. ຫົວພິມ USB ຈຶ່ງເລີ່ມຫ່າງຈາກຂອບຊ້າຍຫຼາຍກວ່າໜ້າຕ່າງພິມຂອງ browser.
+// → ຍັບຊ້າຍເພີ່ມ 1 ຂີດ (≈ 10 ຈຸດ) = -11. ຕໍ່ມາບິນ browser ເອງເຫຼື່ອມຊ້າຍ 1 mm ຈຶ່ງຍັບຂວາ 8 ຈຸດ (BROWSER_DIALOG_SHIFT_DOTS
+// ໃນ assets/js/lan-receipt.js) → USB ຍັບຕາມ 8 ຈຸດ = -3, ໃຫ້ອອກມາຢູ່ບ່ອນດຽວກັບບິນ browser. ຕໍ່ມາ +8 ນັ້ນຖືກລວມເຂົ້າຮູບບິນ
+// ທີ່ທຸກຊ່ອງທາງໃຊ້ຮ່ວມກັນ (PRINT_SHIFT_DOTS) — ຮູບທີ່ສົ່ງມາ USB ຈຶ່ງມີ +8 ຢູ່ແລ້ວ → ຫັກອອກ: -3 - 8 = -11 (ເຈ້ຍອອກມາບ່ອນເດີມ).
 // ປ່ຽນຄ່ານີ້ ຖ້າເຄື່ອງ USB ເຄື່ອງອື່ນຫົວພິມເຫຼື່ອມ (ບວກ = ຂວາ, ລົບ = ຊ້າຍ; 8 ຈຸດ = 1 mm).
-if (!defined('USB_PRINT_SHIFT_DOTS')) define('USB_PRINT_SHIFT_DOTS', -11);
+// ທົດລອງພິມແທ້ 31/10/2026: -11 ອອກມາຂາດທາງຂວາ 1 mm → ຍັບຂວາ 8 ຈຸດ = -3.
+if (!defined('USB_PRINT_SHIFT_DOTS')) define('USB_PRINT_SHIFT_DOTS', -3);
 function escposRasterFromPng($png, $dots, $shiftDots = LAN_PRINT_SHIFT_DOTS) {
     $src = @imagecreatefromstring($png);
     if (!$src) {

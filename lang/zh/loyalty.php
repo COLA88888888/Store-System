@@ -101,4 +101,5 @@ return [
     'loyalty.min_spend_hint' => '可不填 — 但消费金额必须始终大于折扣金额',
     'loyalty.min_spend_short' => '最低消费 %s 基普',
     'loyalty.min_spend_over_short' => '消费超过 %s 基普',
+    'loyalty.branch_scope' => '仅限本分店：',
 ];

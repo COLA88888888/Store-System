@@ -77,8 +77,6 @@
         <div class="d-flex align-items-center" style="gap: 5px;">
           <div style="position: relative; width: 100px;">
             <input type="text" inputmode="decimal" id="cartDiscount" data-mode="amount" class="form-control text-right text-danger font-weight-bold" value="0" style="height: 34px; padding: 4px 8px; font-size: 1rem; border-radius: 6px !important; width: 100%; border: 1px solid #ced4da;" oninput="formatCartDiscountInput(this); updateCartUI();">
-            <!-- ໂໝດ %: ຈຳນວນເງິນທີ່ຫຼຸດແທ້ ສະແດງຢູ່ຊ້າຍໃນບັອກດຽວກັນ ເຊັ່ນ "= -390 ₭" (ຕື່ມໂດຍ cart_ui.php) -->
-            <span id="cartDiscountPctHint" class="text-danger" style="display: none; position: absolute; left: 6px; top: 50%; transform: translateY(-50%); z-index: 4; pointer-events: none; font-size: 0.72rem; font-weight: 700; opacity: 0.85; white-space: nowrap;"></span>
           </div>
           <!-- ເລືອກແບບສ່ວນຫຼຸດ: ກີບ (ຈຳນວນເງິນ) ຫຼື % ຂອງຍອດລວມ (pos_js.php: setCartDiscountModeAndReset) -->
           <button type="button" class="btn btn-primary font-weight-bold cart-disc-mode-btn d-inline-flex align-items-center justify-content-center shadow-none" data-mode="amount" id="cartDiscountModeBtn" onclick="setCartDiscountModeAndReset('amount')" title="<?php echo tlh('ສ່ວນຫຼຸດເປັນຈຳນວນເງິນ'); ?>" style="height: 34px !important; width: 42px !important; min-width: 42px !important; padding: 0 !important; font-size: 1.05rem !important; border-radius: 6px !important;">

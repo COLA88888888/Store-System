@@ -189,4 +189,6 @@ return [
     'products.bulk_img_hint' => 'ກົດເພື່ອເລືອກຮູບ (ບໍ່ໃສ່ກໍໄດ້)',
     'products.bulk_img_fail' => 'ອັບໂຫຼດຮູບບໍ່ສຳເລັດ',
     'products.bulk_img_busy' => 'ກຳລັງອັບໂຫຼດຮູບ — ກະລຸນາລໍຖ້າບຶດໜຶ່ງ',
+    'products.zone_filter_all' => '-- ທຸກໂຊນ --',
+    'products.shelf_filter_all' => '-- ທຸກຊັ້ນ --',
 ];

@@ -17,7 +17,7 @@
 
           <!-- Grid Row 1: Branch & Target Mode -->
           <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3<?php echo count($stores) <= 1 ? ' d-none' : ''; /* ສາຂາດຽວ → ເຊື່ອງ */ ?>">
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('price_adjustment.label_branch', 'ສາຂາ:')); ?></label>
               <select name="store_id" id="modal_store_id" class="form-control" style="height: 42px;" <?php echo (!$canAllBranches) ? 'disabled' : ''; ?>>
                 <?php foreach ($stores as $st): ?>

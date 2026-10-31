@@ -22,7 +22,6 @@ function updateCartUI() {
     `);
     window.CART_SUBTOTAL_KIP = 0;
     window.CART_DISCOUNT_KIP = cartDiscountKip(0);
-    $('#cartDiscountPctHint').hide();
     // An empty cart can't meet any discount reward's minimum purchase — drops those redemptions.
     window.CART_POINTS_DISCOUNT_KIP = (typeof posPointsDiscountKip === 'function') ? posPointsDiscountKip(0, 0) : 0;
     window.CART_VAT_KIP = 0;
@@ -168,18 +167,24 @@ function updateCartUI() {
   window.STORE_VAT_PERCENT = <?php echo $storeVatPercent; ?>;
   window.STORE_TAX_ID = '<?php echo htmlspecialchars($company['tax_id'] ?? ''); ?>';
   // Discount is typed in the display currency or as a % of the subtotal; convert it to KIP for all math below.
+  var isPercentDiscount = (getCartDiscountMode() === 'percent');
   var discountVal  = Math.min(subtotal, cartDiscountKip(subtotal));
   var discountPct  = parseFloat(($('#cartDiscount').val() || '').replace(/[^0-9.]/g, '')) || 0;
-  if (getCartDiscountMode() === 'percent' && discountPct > 0) {
-    $('#cartDiscountPctHint').html('= -' + POSCUR.fmt(discountVal)).show();
-  } else {
-    $('#cartDiscountPctHint').hide();
-  }
+
   // Discount rewards bought with loyalty points come off after the cashier's own discount.
   var pointsDiscountVal = (typeof posPointsDiscountKip === 'function') ? posPointsDiscountKip(subtotal, discountVal) : 0;
   var taxType      = window.STORE_TAX_TYPE;
   var vatPercent   = window.STORE_VAT_PERCENT;
   var amtAfterDisc = Math.max(0, subtotal - discountVal - pointsDiscountVal);
+
+  if (isPercentDiscount && discountPct > 0) {
+    // ຖ້າເປັນ %: ກາຍ ,50 (500) ປັດຂຶ້ນເປັນຈຳນວນເຕັມພັນ, ຫຼຸດ ,50 (500) ປັດລົງເປັນຈຳນວນເຕັມພັນ
+    // ຕົວຢ່າງ: 42,983 ປັດເປັນ 43,000 ເລີຍ, 15,409 ປັດລົງເປັນ 15,000
+    var roundedNet = Math.round(amtAfterDisc / 1000) * 1000;
+    discountVal = Math.max(0, subtotal - pointsDiscountVal - roundedNet);
+    amtAfterDisc = roundedNet;
+  }
+
   var vatVal       = 0;
   var netTotal     = amtAfterDisc;
 
@@ -237,6 +242,16 @@ function updateCartUI() {
 
   updateProductGridBadges();
   saveCurrentBillState();
-  broadcastCustomerDisplay('shopping');
+  if (!window.__suppressCustomerBroadcast) {
+    broadcastCustomerDisplay('shopping');
+  }
+
+  // Lao TTS Preload: ໂຫຼດສຽງຍອດລວມໄວ້ລ່ວງໜ້າໃນ Background ເພື່ອໃຫ້ຕອນກົດ "ຊຳລະ" ສຽງເວົ້າອອກມາທັນທີ 0s
+  if (window.LaoTTS && typeof LaoTTS.preloadTotalToPay === 'function' && netTotal > 0) {
+    if (window._ttsPreloadTotalTimer) clearTimeout(window._ttsPreloadTotalTimer);
+    window._ttsPreloadTotalTimer = setTimeout(function() {
+      LaoTTS.preloadTotalToPay(netTotal);
+    }, 250);
+  }
 }
 

@@ -69,4 +69,8 @@ return [
     'zs.s_msg_deleted' => 'Shelf deleted!',
     'zs.s_delete_text' => 'Do you really want to delete shelf %s?',
     'zs.s_delete_warn' => 'This shelf has %s products (their shelf will be cleared)',
+    'zs.delete_blocked_title' => 'Cannot delete',
+    'zs.ok' => 'OK',
+    'zs.z_delete_blocked' => 'Zone %s cannot be deleted: it still has %s products. Move the products out first.',
+    'zs.s_delete_blocked' => 'Shelf %s cannot be deleted: it still has %s products. Move the products out first.',
 ];

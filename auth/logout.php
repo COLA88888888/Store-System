@@ -2,6 +2,18 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 
+// ພະນັກງານຂາຍທີ່ກະຍັງເປີດຢູ່ ອອກບໍ່ໄດ້ ຈົນກວ່າຈະກົດປິດກະເອງ (config/helpers/shift_auto.php shiftLogoutBlock).
+// browser ເຕືອນກ່ອນແລ້ວ (confirmLogout); ບ່ອນນີ້ກັນແທ້ — ບໍ່ລຶບ session, ກັບໄປໜ້າຫຼັກ. ໃສ່ token ແຖບຄືນ ເພາະ
+// confirmLogout ລ້າງ sessionStorage ໄປແລ້ວ (ບໍ່ດັ່ງນັ້ນ dashboard ຈະອອກຈາກລະບົບແບບ ?expired ແທນ).
+// ອອກອັດຕະໂນມັດເພາະບໍ່ໃຊ້ງານ (?expired) ບໍ່ກັນ ແລະ ບໍ່ປິດກະ — ກັບມາລັອກອິນ ຂາຍຕໍ່ກະເດີມ.
+if (!empty($_SESSION['user_id']) && !isset($_GET['expired']) && isset($pdo)
+    && shiftLogoutBlock($pdo, intval($_SESSION['user_id']), intval($_SESSION['store_id'] ?? 0), $_SESSION['status'] ?? '') !== null) {
+    echo "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><script>"
+       . "try{sessionStorage.setItem('StoreMini.pos_tab_active','TOKEN_'+Date.now());sessionStorage.setItem('StoreMini.logout_blocked','1');}catch(e){}"
+       . "window.location.replace('../home/dashboard.php');</script></head><body></body></html>";
+    exit();
+}
+
 // ເກັບປະຫວັດການອອກຈາກລະບົບກ່ອນການທຳລາຍ session
 if (isset($_SESSION['user_id'])) {
     $uid = intval($_SESSION['user_id']);

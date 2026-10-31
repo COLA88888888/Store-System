@@ -142,7 +142,7 @@
 
               <!-- Row 3c: ໂຊນ & ຊັ້ນວາງ (ເລືອກຈາກຕາຕະລາງ, ຖ້າບໍ່ເລືອກໂຊນ ບັອກຊັ້ນວາງແມ່ນເຊື່ອງໄວ້) -->
               <div class="row">
-                <div class="col-md-6 mb-3" id="add_zone_box">
+                <div class="col-md-6 mb-3 zs-zone-field" id="add_zone_box">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="font-weight-bold text-dark mb-0">
                       <?php echo htmlspecialchars(t('products.field_zone', 'ໂຊນ:')); ?>
@@ -159,7 +159,7 @@
                     <?php endforeach; ?>
                   </select>
                 </div>
-                <div class="col-md-6 mb-3" id="add_shelf_box">
+                <div class="col-md-6 mb-3 zs-shelf-field" id="add_shelf_box">
                   <div class="d-flex justify-content-between align-items-center mb-1">
                     <label class="font-weight-bold text-dark mb-0">
                       <?php echo htmlspecialchars(t('products.field_shelf', 'ຊັ້ນວາງ:')); ?>

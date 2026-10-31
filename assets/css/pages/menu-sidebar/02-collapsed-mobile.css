@@ -191,11 +191,18 @@
 
 /* ===== MOBILE SIDEBAR DRAWER OVERRIDE (SHOW FULL TEXT & NORMAL LAYOUT WHEN OPEN) ===== */
 @media (max-width: 767.98px) {
+    /* ກວ້າງ 300px (ບໍ່ເກີນ 86% ຂອງຈໍ) ແທນ 250px: ຊື່ເມນູພາສາລາວ (ເຊັ່ນ ລາຍງານຕາມປະເພດສິນຄ້າ) ສະແດງເຕັມ,
+       ຈ້ຳ "…" ສະເພາະຊື່ທີ່ຍາວເກີນແຖວແທ້ໆ. ຕອນປິດ AdminLTE ຍັງເລື່ອນເມນູອອກທາງຊ້າຍຄືເກົ່າ. */
     .sidebar-open .main-sidebar,
     .sidebar-is-opening .main-sidebar,
     .sidebar-open.sidebar-collapse .main-sidebar {
-        width: 250px !important;
-        max-width: 250px !important;
+        width: min(300px, 86vw) !important;
+        max-width: min(300px, 86vw) !important;
+    }
+    /* ແຖບໂລໂກ້ (AdminLTE .layout-fixed .brand-link = 250px ຕາຍຕົວ) ກວ້າງເທົ່າເມນູ */
+    .sidebar-open .main-sidebar .brand-link,
+    .sidebar-is-opening .main-sidebar .brand-link {
+        width: 100% !important;
     }
 
     .sidebar-open .main-sidebar .brand-text,

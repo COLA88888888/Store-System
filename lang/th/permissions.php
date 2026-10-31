@@ -179,4 +179,6 @@ return [
     'permissions.module_shifts_title' => 'จัดการกะทำงาน',
     'permissions.module_shifts_desc' => 'ตั้งค่ากะ เวลาเปิด-ปิด และพนักงานประจำกะ',
     'permissions.module_expiry_report_title' => '↳ รายงานสินค้าหมดอายุ',
+    'permissions.module_tts_title' => 'ตั้งค่าระบบเสียง',
+    'permissions.module_tts_desc' => 'เปิด/ปิดเสียงพูด เลือกเสียง และพจนานุกรมการออกเสียง',
 ];

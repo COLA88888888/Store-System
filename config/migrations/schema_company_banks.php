@@ -36,11 +36,7 @@
             }
         }
 
-        $compCount = (int)$pdo->query("SELECT COUNT(*) FROM st_tbcompanyinfo")->fetchColumn();
-        if ($compCount === 0) {
-            $pdo->exec("INSERT INTO st_tbcompanyinfo (com_name_la, com_address, com_tel, barcode, img_url, license_start_date, license_expire_date, branch_id) VALUES 
-                ('', '', '', 'ຂອບໃຈທີ່ມາອຸດໜູນ, ໂອກາດໜ້າເຊີນໃໝ່!', 'logo.png', '2026-01-01', '2026-12-31', 1)");
-        }
+        // ບໍ່ໃສ່ຂໍ້ມູນຮ້ານຕົວຢ່າງເອງ — ຮ້ານປ້ອນເອງໃນ ຕັ້ງຄ່າ › ຂໍ້ມູນຮ້ານ (getCompanyInfoForBranch ມີຄ່າເລີ່ມຕົ້ນຢູ່ແລ້ວ)
     } catch (Throwable $ex) {}
 
     // Ensure tbstore exists and has DB record
@@ -56,11 +52,7 @@
             `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-        $storeCount = (int)$pdo->query("SELECT COUNT(*) FROM st_tbstore")->fetchColumn();
-        if ($storeCount === 0) {
-            $pdo->exec("INSERT INTO st_tbstore (store_code, store_name, address, tel, logo_path, status) VALUES 
-                ('STORE01', 'Mini POS Store', 'ນະຄອນຫຼວງວຽງຈັນ', '020-55555555', 'assets/img/logo/logo.png', 'active')");
-        }
+        // ສາຂາທຳອິດ (ຖານຂໍ້ມູນວ່າງເປົ່າ) ສ້າງຢູ່ schema_core.php ບ່ອນດຽວ — ບ່ອນນີ້ເຄີຍສ້າງຊ້ຳ "Mini POS Store"
     } catch (Throwable $ex) {}
 
     // Ensure bank_accounts table exists and has seed bank records

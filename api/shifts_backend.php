@@ -100,6 +100,22 @@ try {
         }
 
         // ====================================================================
+        // 0b. ອອກຈາກລະບົບໄດ້ບໍ່ (ກ່ອນກົດອອກ — home/partials/dashboard/js_layout.php confirmLogout):
+        //     ພະນັກງານທີ່ກະຍັງເປີດ ຕ້ອງກົດປິດກະກ່ອນ (config/helpers/shift_auto.php shiftLogoutBlock)
+        // ====================================================================
+        case 'can_logout': {
+            $block = shiftLogoutBlock($pdo, $userId, $activeStoreId, $userStatus);
+            respond([
+                'success'    => true,
+                'allowed'    => $block === null,
+                'before_end' => $block ? $block['before_end'] : false,
+                'end_time'   => ($block && $block['end']) ? date('H:i', strtotime($block['end'])) : '',
+                'shift_name' => $block ? $block['shift_name'] : '',
+            ]);
+            break;
+        }
+
+        // ====================================================================
         // 1. ສະຖານະກະປະຈຸບັນຂອງຮ້ານ/ສາຂາ (Current Shift Status)
         // ====================================================================
         case 'get_current_status': {

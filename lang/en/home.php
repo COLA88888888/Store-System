@@ -41,4 +41,5 @@ return [
     'home.lbl_date' => 'Date', 'home.lbl_month' => 'Month', 'home.lbl_year' => 'Year', 'home.lbl_time' => 'Time',
     'home.unit_hour' => 'h', 'home.unit_qty' => 'pcs',
     'home.million_suffix' => 'M', 'home.thousand_suffix' => 'k',
+    'home.no_permission_title' => 'You do not have permission to view this page', 'home.no_permission_text' => 'Please choose a menu you have access to on the side, or contact an administrator',
 ];

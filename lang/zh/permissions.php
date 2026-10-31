@@ -179,4 +179,6 @@ return [
     'permissions.module_shifts_title' => '班次管理',
     'permissions.module_shifts_desc' => '设置班次、开关班时间及当班员工',
     'permissions.module_expiry_report_title' => '↳ 过期商品报表',
+    'permissions.module_tts_title' => '语音设置',
+    'permissions.module_tts_desc' => '开关语音播报、选择声音及编辑发音词典',
 ];

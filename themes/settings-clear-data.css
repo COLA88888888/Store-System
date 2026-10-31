@@ -118,3 +118,9 @@
   font-weight: 700;
   color: #dc2626;
 }
+
+/* ເລືອກສາຂາດຽວ: ສ່ວນທີ່ໃຊ້ຮ່ວມທຸກສາຂາ ເລືອກບໍ່ໄດ້ */
+.cd-item.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

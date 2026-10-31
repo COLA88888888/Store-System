@@ -107,4 +107,10 @@ return [
     'layout.role_manager' => 'ຜູ້ຈັດການ',
     'layout.role_staff' => 'ພະນັກງານ',
     'layout.clear_data' => 'ລຶບ/ລ້າງຂໍ້ມູນລະບົບ',
+    'layout.tts' => 'ຕັ້ງຄ່າລະບົບສຽງ (TTS)',
+    'layout.ok' => 'ຕົກລົງ',
+    'layout.logout_blocked_title' => 'ຍັງອອກຈາກລະບົບບໍ່ໄດ້',
+    'layout.logout_blocked_after' => 'ກະລຸນາປິດກະກ່ອນ ຈຶ່ງສາມາດອອກຈາກລະບົບໄດ້. ກົດປິດກະ ແລະ ນັບເງິນໃນລິ້ນຊັກ ເພື່ອໃຫ້ລາຍງານຕາມກະຖືກຕ້ອງ.',
+    'layout.logout_blocked_before' => 'ກະຂອງທ່ານຍັງບໍ່ຮອດໂມງປິດ (%s). ອອກຈາກລະບົບໄດ້ ເມື່ອຮອດເວລາ ແລະ ກົດປິດກະແລ້ວເທົ່ານັ້ນ.',
+    'layout.close_shift_now' => 'ໄປປິດກະດຽວນີ້',
 ];

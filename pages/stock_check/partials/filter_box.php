@@ -9,6 +9,18 @@
         <form method="get" class="sc-filter-form mb-0" style="flex: 1 1 auto;">
           <?php /* ຕ້ອງສົ່ງ view=checks ໄປນຳ — ບໍ່ດັ່ງນັ້ນ backend ເປີດໜ້ານັບສະຕັອກແທນປະຫວັດ */ ?>
           <input type="hidden" name="view" value="checks">
+          <?php if (($canAllBranches) && count($stores) > 1): ?>
+          <div class="sf-store">
+            <label><i class="fas fa-store text-primary mr-1"></i> <?php echo htmlspecialchars(t('reports.col_store', 'ສາຂາ')); ?></label>
+            <select name="store_id" class="form-control form-control-sm font-weight-bold" style="border-radius: 8px; border-color: #cbd5e1; height: 38px; width: auto; min-width: 170px;" onchange="this.form.submit()">
+              <?php foreach ($stores as $st): ?>
+                <option value="<?php echo $st['store_id']; ?>" <?php echo ($selectedStoreId == $st['store_id']) ? 'selected' : ''; ?>>
+                  <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('products.store_main_suffix', '(ສາງຫຼັກ)')) : htmlspecialchars(t('products.store_branch_suffix', '(ສາຂາຍ່ອຍ)')); ?>
+                </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+          <?php endif; ?>
           <div class="sf-search">
             <div class="input-group" style="flex-wrap: nowrap;">
               <div class="input-group-prepend">
@@ -35,7 +47,7 @@
             <button type="submit" class="btn btn-primary btn-sm font-weight-bold sf-search-btn">
               <i class="fas fa-search mr-1"></i> <?php echo $sc('sc.s198'); ?>
             </button>
-            <a href="stock_check.php?view=checks" class="btn btn-light btn-sm border font-weight-bold sf-reset" title="<?php echo $sc('sc.s199'); ?>">
+            <a href="stock_check.php?view=checks<?php echo (($canAllBranches) && count($stores) > 1) ? '&store_id=' . $selectedStoreId : ''; ?>" class="btn btn-light btn-sm border font-weight-bold sf-reset" title="<?php echo $sc('sc.s199'); ?>">
               <i class="fas fa-redo"></i>
             </a>
           </div>

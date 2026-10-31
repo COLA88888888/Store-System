@@ -179,4 +179,6 @@ return [
     'permissions.module_shifts_title' => 'Work Shifts',
     'permissions.module_shifts_desc' => 'Set up shifts, opening/closing times and shift staff',
     'permissions.module_expiry_report_title' => '↳ Expiry Report',
+    'permissions.module_tts_title' => 'Voice (TTS) Settings',
+    'permissions.module_tts_desc' => 'Turn spoken announcements on/off, choose the voice and edit the pronunciation dictionary',
 ];

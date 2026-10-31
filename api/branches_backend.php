@@ -58,8 +58,24 @@ if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[
             if ($is_main === 1) {
                 $pdo->exec("UPDATE st_tbstore SET is_main = 0");
             }
-            $stmt = $pdo->prepare("INSERT INTO st_tbstore (store_code, store_name, is_main, address, tel, status) VALUES (?, ?, ?, ?, ?, 'active')");
-            $stmt->execute([$store_code, $store_name, $is_main, $address, $tel]);
+            // ເລກສາຂາ (store_id) ຕໍ່ກັນ 1, 2, 3 … ບໍ່ຂ້າມ: ສູງສຸດ + 1 (ບໍ່ໃຊ້ AUTO_INCREMENT ທີ່ຂ້າມເລກຫຼັງລຶບ/ຜິດພາດ).
+            // ຂ້າມສະເພາະເລກທີ່ຍັງມີຂໍ້ມູນເກົ່າຂອງສາຂາທີ່ຖືກລຶບຄ້າງຢູ່ — ບໍ່ໃຫ້ຂໍ້ມູນນັ້ນໄປຕິດກັບສາຂາໃໝ່.
+            $newStoreId = (int)$pdo->query("SELECT COALESCE(MAX(store_id), 0) + 1 FROM st_tbstore")->fetchColumn();
+            $branchCols = $pdo->query("SELECT table_name, column_name FROM information_schema.columns
+                WHERE table_schema = DATABASE() AND table_name <> 'st_tbstore'
+                  AND column_name IN ('store_id', 'branch_id', 'from_store_id', 'to_store_id')")->fetchAll(PDO::FETCH_NUM);
+            for ($guard = 0; $guard < 1000; $guard++) {
+                $used = false;
+                foreach ($branchCols as [$bt, $bc]) {
+                    $u = $pdo->prepare("SELECT 1 FROM `$bt` WHERE `$bc` = ? LIMIT 1");
+                    $u->execute([$newStoreId]);
+                    if ($u->fetchColumn()) { $used = true; break; }
+                }
+                if (!$used) break;
+                $newStoreId++;
+            }
+            $stmt = $pdo->prepare("INSERT INTO st_tbstore (store_id, store_code, store_name, is_main, address, tel, status) VALUES (?, ?, ?, ?, ?, ?, 'active')");
+            $stmt->execute([$newStoreId, $store_code, $store_name, $is_main, $address, $tel]);
             $message = tl('ເພີ່ມສາຂາໃໝ່ ສຳເລັດແລ້ວ!');
             $message_type = 'success';
             logActivity($pdo, "ເພີ່ມສາຂາໃໝ່", $store_name);
@@ -90,6 +106,11 @@ if ($canManageBranches && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST[
             }
             $stmt = $pdo->prepare("UPDATE st_tbstore SET store_code = ?, store_name = ?, is_main = ?, address = ?, tel = ?, status = ? WHERE store_id = ?");
             $stmt->execute([$store_code, $store_name, $is_main, $address, $tel, $status, $store_id]);
+            // ສາຂາດຽວ = ຮ້ານ: ແກ້ຊື່/ເບີໂທ/ທີ່ຢູ່ ທີ່ນີ້ → ຂໍ້ມູນຮ້ານປ່ຽນນຳ (ບໍ່ດັ່ງນັ້ນ syncSingleBranchWithShop() ຈະດຶງຄ່າເກົ່າກັບມາ)
+            if ((int)$pdo->query("SELECT COUNT(*) FROM st_tbstore")->fetchColumn() === 1) {
+                $pdo->prepare("UPDATE st_tbcompanyinfo SET com_name_la = ?, com_tel = ?, com_address = ? WHERE branch_id = ?")
+                    ->execute([$store_name, $tel, $address, $store_id]);
+            }
             $message = tl('ແກ້ໄຂຂໍ້ມູນສາຂາ ສຳເລັດແລ້ວ!');
             $message_type = 'success';
             logActivity($pdo, "ແກ້ໄຂຂໍ້ມູນສາຂາ", $store_name);
@@ -206,6 +227,9 @@ try {
         }
     }
 } catch (Throwable $e) {}
+
+// ສາຂາດຽວ → ຊື່/ເບີໂທ/ທີ່ຢູ່ ຕາມຂໍ້ມູນຮ້ານສະເໝີ (config/helpers/branches.php)
+syncSingleBranchWithShop($pdo);
 
 // ຟອມເພີ່ມສາຂາ (branches_modals.php): ຍັງບໍ່ມີສາຂາຈັກແຫ່ງ → ເຕີມຂໍ້ມູນຮ້ານ ແລະ ຕັ້ງເປັນສາຂາໃຫຍ່ໃຫ້;
 // ມີສາຂາແລ້ວ → ຟອມວ່າງ ໃຫ້ປ້ອນເອງ

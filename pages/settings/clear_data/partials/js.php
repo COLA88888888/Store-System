@@ -19,12 +19,42 @@ var CD_PRESETS = {
   none: { groups: [], except: [] }
 };
 
+// ສາຂາທີ່ເລືອກ: 0 = ທຸກສາຂາ (ບໍ່ມີບັອກເລືອກ = ມີສາຂາດຽວ → ທຸກສາຂາ)
+function cdStoreId() {
+  return parseInt($('#cdStoreId').val() || '0', 10) || 0;
+}
+
+function cdBranchName() {
+  var $sel = $('select#cdStoreId');
+  if ($sel.length) return $.trim($sel.find('option:selected').text());
+  return cdStoreId() > 0 ? <?php echo json_encode($cdOwnStoreName, JSON_UNESCAPED_UNICODE); ?> : cdT('clear_data.branch_all');
+}
+
+// ເລືອກສາຂາດຽວ → ສ່ວນທີ່ໃຊ້ຮ່ວມທຸກສາຂາ (data-branch="0") ເລືອກບໍ່ໄດ້
+function cdApplyBranchMode() {
+  var single = cdStoreId() > 0;
+  $('.cd-chk[data-branch="0"]').each(function () {
+    if (single) this.checked = false;
+    this.disabled = single;
+    var $item = $(this).closest('.cd-item');
+    $item.toggleClass('is-disabled', single);
+    $item.find('.cd-item-allonly').toggle(single);
+  });
+}
+
+function cdOnBranchChange() {
+  cdApplyBranchMode();
+  $('.cd-count-num').text('…');
+  cdRefresh();
+  cdLoadCounts();
+}
+
 function cdLoadCounts() {
-  $.get(window.CLEAR_DATA_API, { action: 'get_counts' }, function (res) {
+  $.get(window.CLEAR_DATA_API, { action: 'get_counts', store_id: cdStoreId() }, function (res) {
     if (!res || !res.success || !res.counts) return;
     $.each(res.counts, function (key, n) {
       var $badge = $('#cd_count_' + key);
-      $badge.find('.cd-count-num').text(Number(n || 0).toLocaleString());
+      $badge.find('.cd-count-num').text(n === null ? '—' : Number(n || 0).toLocaleString());
       $badge.toggleClass('has-data', n > 0);
     });
   }, 'json');
@@ -33,6 +63,7 @@ function cdLoadCounts() {
 function cdSetPreset(name) {
   var p = CD_PRESETS[name] || CD_PRESETS.none;
   $('.cd-chk').each(function () {
+    if (this.disabled) { this.checked = false; return; }
     var on = (p.groups === null || p.groups.indexOf($(this).data('group')) !== -1) && p.except.indexOf(this.value) === -1;
     this.checked = on;
   });
@@ -41,7 +72,7 @@ function cdSetPreset(name) {
 
 // ກົດຫົວກຸ່ມ: ເລືອກທັງກຸ່ມ / ຍົກເລີກທັງກຸ່ມ (ຖ້າເລືອກຄົບແລ້ວ)
 function cdToggleGroup(group) {
-  var $chk = $('.cd-chk[data-group="' + group + '"]');
+  var $chk = $('.cd-chk[data-group="' + group + '"]:not(:disabled)');
   var allOn = $chk.length === $chk.filter(':checked').length;
   $chk.prop('checked', !allOn);
   cdRefresh();
@@ -52,7 +83,7 @@ function cdRefresh() {
     $(this).closest('.cd-item').toggleClass('is-checked', this.checked);
   });
   $('.card[data-group]').each(function () {
-    var $chk = $(this).find('.cd-chk');
+    var $chk = $(this).find('.cd-chk:not(:disabled)');
     var allOn = $chk.length > 0 && $chk.length === $chk.filter(':checked').length;
     $(this).find('.cd-group-toggle').text(cdT(allOn ? 'clear_data.unselect_group' : 'clear_data.select_group'));
   });
@@ -74,6 +105,7 @@ function cdOpenConfirm() {
     $('<li></li>').text(label + ' (' + count + ')').appendTo($ul);
   });
   $('#confirmScopesList').empty().append($ul);
+  $('#confirmBranchName').text(cdBranchName());
   $('#adminPasswordInput').val('').attr('type', 'password');
   $('#togglePasswordIcon').removeClass('fa-eye-slash').addClass('fa-eye');
   $('#confirmDeleteModal').modal('show');
@@ -94,7 +126,7 @@ function cdSubmit() {
       .then(function () { $('#adminPasswordInput').focus(); });
     return;
   }
-  var data = $('#clearDataForm').serialize() + '&action=execute_clean&password=' + encodeURIComponent(pw);
+  var data = $('#clearDataForm').serialize() + '&action=execute_clean&store_id=' + cdStoreId() + '&password=' + encodeURIComponent(pw);
 
   Swal.fire({
     title: cdT('clear_data.deleting_progress'),
@@ -130,6 +162,7 @@ function cdSubmit() {
 }
 
 $(function () {
+  cdApplyBranchMode();
   cdRefresh();
   cdLoadCounts();
 });

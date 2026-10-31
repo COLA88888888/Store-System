@@ -212,6 +212,14 @@ window.POS_LOYALTY = <?php echo json_encode($posLoyalty, JSON_UNESCAPED_UNICODE)
 <!-- Hidden Iframe for Thermal Receipt Printing -->
 <iframe id="posPrintIframe" style="position: fixed; right: -9999px; bottom: -9999px; width: 300px; height: 300px; border: none; opacity: 0; pointer-events: none;"></iframe>
 
+<!-- Lao TTS Voice Support -->
+<?php /* ສະວິດລະບົບສຽງ (ຕັ້ງຄ່າ › ລະບົບສຽງ) — assets/js/tts-speak.js ກວດກ່ອນເວົ້າ ແລະ ອ່ານຄືນທຸກ 10 ວິນາທີ */
+$__ttsCfg = @include __DIR__ . '/../../config/tts_config.php'; $__ttsCfg = is_array($__ttsCfg) ? $__ttsCfg : [];
+$__ttsSw = ['enabled' => !array_key_exists('enabled', $__ttsCfg) || !empty($__ttsCfg['enabled'])];
+foreach (['pos_total', 'pos_sale', 'pos_stock', 'pos_queue', 'pos_welcome'] as $__k) $__ttsSw[$__k] = !array_key_exists($__k, $__ttsCfg) || !empty($__ttsCfg[$__k]); ?>
+<script>window.TTS_CONFIG = <?php echo json_encode($__ttsSw); ?>;</script>
+<script src="<?php echo $base_path; ?>assets/js/tts-speak.js?v=<?php echo @filemtime(__DIR__ . '/../../assets/js/tts-speak.js'); ?>"></script>
+
 <!-- POS JavaScript Functionality -->
 <?php require_once __DIR__ . '/partials/pos_js.php'; ?>
 

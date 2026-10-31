@@ -16,7 +16,7 @@ return [
     'clear_data.unselect_group' => 'Unselect group',
 
     'clear_data.group_sales' => 'Sales',
-    'clear_data.group_shifts' => 'Shifts & system logs',
+    'clear_data.group_shifts' => 'Work shifts',
     'clear_data.group_stock' => 'Stock',
     'clear_data.group_catalog' => 'Products & catalog setup',
     'clear_data.group_customers' => 'Customers & loyalty',
@@ -99,4 +99,15 @@ return [
     'clear_data.error_server' => 'Cannot connect to the server',
     'clear_data.error_password_incorrect' => 'Incorrect password!',
     'clear_data.error_no_permission' => 'You do not have access to this section',
+
+    // ເລືອກສາຂາທີ່ຈະລຶບ
+    'clear_data.branch_label' => 'Delete data of branch:',
+    'clear_data.branch_all' => '-- All branches --',
+    'clear_data.branch_inactive' => '(inactive)',
+    'clear_data.branch_hint' => 'Pick a branch → only that branch data is deleted; other branches are untouched',
+    'clear_data.branch_locked' => 'You can only delete data of branch:',
+    'clear_data.all_branches_only' => 'Shared by all branches — available only with "All branches"',
+    'clear_data.modal_branch' => 'Branch:',
+    'clear_data.error_branch_invalid' => 'Selected branch not found',
+    'clear_data.error_all_branches_only' => 'This data is shared by all branches — it can only be deleted with "All branches"',
 ];

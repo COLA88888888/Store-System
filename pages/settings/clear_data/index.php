@@ -28,6 +28,16 @@ if ($userId <= 0 || !hasPermission('clear_data')) {
 
 $clearSections = require __DIR__ . '/../../../api/clear_data/sections.php';
 
+// ເລືອກສາຂາທີ່ຈະລຶບ: ຜູ້ທີ່ເຫັນທຸກສາຂາ ເລືອກໄດ້ (ລວມສາຂາທີ່ປິດໃຊ້ງານ ເພາະອາດຍັງມີຂໍ້ມູນຄ້າງ);
+// ຜູ້ໃຊ້ສາຂາຍ່ອຍ ຖືກລັອກໄວ້ທີ່ສາຂາຂອງຕົນ (backend ກວດຊ້ຳ)
+$cdCanAllBranches = canViewAllBranches($pdo);
+$cdStores = $pdo->query('SELECT store_id, store_name, status, is_main FROM st_tbstore ORDER BY store_id ASC')->fetchAll(PDO::FETCH_ASSOC);
+$cdOwnStoreId = (int)getActiveStoreId($pdo);
+$cdOwnStoreName = '';
+foreach ($cdStores as $st) {
+    if ((int)$st['store_id'] === $cdOwnStoreId) $cdOwnStoreName = $st['store_name'];
+}
+
 require_once __DIR__ . '/../../../layouts/header.php';
 ?>
 

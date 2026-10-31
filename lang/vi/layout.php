@@ -104,4 +104,10 @@ return [
     'layout.role_manager' => 'Quản lý',
     'layout.role_staff' => 'Nhân viên',
     'layout.clear_data' => 'Xóa dữ liệu hệ thống',
+    'layout.ok' => 'OK',
+    'layout.logout_blocked_title' => 'Chưa thể đăng xuất',
+    'layout.logout_blocked_after' => 'Vui lòng đóng ca trước khi đăng xuất. Đóng ca và đếm tiền trong ngăn kéo để báo cáo ca chính xác.',
+    'layout.logout_blocked_before' => 'Ca của bạn chưa đến giờ đóng (%s). Chỉ có thể đăng xuất sau giờ đó và khi đã đóng ca.',
+    'layout.close_shift_now' => 'Đóng ca ngay',
+    'layout.tts' => 'Cài đặt giọng nói (TTS)',
 ];

@@ -44,6 +44,11 @@
         'layout.logout_confirm_title' => 'ຢືນຢັນການອອກຈາກລະບົບ',
         'layout.logout_confirm_text' => 'ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ຫຼືບໍ່?',
         'layout.cancel' => 'ຍົກເລີກ',
+        'layout.ok' => 'ຕົກລົງ',
+        'layout.logout_blocked_title' => 'ຍັງອອກຈາກລະບົບບໍ່ໄດ້',
+        'layout.logout_blocked_after' => 'ກະລຸນາປິດກະກ່ອນ ຈຶ່ງສາມາດອອກຈາກລະບົບໄດ້. ກົດປິດກະ ແລະ ນັບເງິນໃນລິ້ນຊັກ ເພື່ອໃຫ້ລາຍງານຕາມກະຖືກຕ້ອງ.',
+        'layout.logout_blocked_before' => 'ກະຂອງທ່ານຍັງບໍ່ຮອດໂມງປິດ (%s). ອອກຈາກລະບົບໄດ້ ເມື່ອຮອດເວລາ ແລະ ກົດປິດກະແລ້ວເທົ່ານັ້ນ.',
+        'layout.close_shift_now' => 'ໄປປິດກະດຽວນີ້',
     ]); ?>;
 
     // Own account's remaining access days (owner-only field, Users Management) — null when

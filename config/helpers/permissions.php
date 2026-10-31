@@ -105,6 +105,7 @@ if (!function_exists('hasPermission')) {
             'printers'         => 'setup',
             'loyalty'          => 'setup',
             'shifts'           => 'setup',
+            'tts'              => 'setup',
             'branches'         => 'branches',
             'database'         => 'database',
             'permissions'      => 'permissions',
@@ -121,6 +122,11 @@ if (!function_exists('hasPermission')) {
         ];
 
         $targetModule = $aliasMap[$module] ?? $module;
+
+        // ເມນູຕັ້ງຄ່າລະບົບສຽງ: ເຫັນສະເພາະຜູ້ເບິ່ງແຍງລະບົບ — ສະວິດ ຫຼື ຄໍລຳສິດໃດກໍເປີດໃຫ້ຄົນອື່ນບໍ່ໄດ້
+        if ($module === 'tts') {
+            return $isAdminUser;
+        }
 
         // Check explicit switch key for exact module or target module alias (e.g., perm_bank_edit_6 or perm_accounting_edit_6)
         $switchKey1 = 'perm_' . $module . '_' . $actCode . '_' . $userId;

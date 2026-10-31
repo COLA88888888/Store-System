@@ -128,19 +128,61 @@ function scStats() {
   return s;
 }
 
+// Function to smoothly animate Stock Check KPI counter numbers (CountUp Animation)
+function animateScCounter(selector, target, duration) {
+  var elements = $(selector);
+  if (!elements.length) return;
+  target = parseFloat(target) || 0;
+  duration = duration || 1600;
+
+  elements.each(function () {
+    var el = this;
+    if (el._scAnimId) {
+      window.cancelAnimationFrame(el._scAnimId);
+      el._scAnimId = null;
+    }
+
+    var startVal = parseFloat(el.getAttribute('data-target') || '0');
+    if (isNaN(startVal)) startVal = 0;
+    el.setAttribute('data-target', target);
+
+    var startTime = null;
+    function step(ts) {
+      if (!startTime) startTime = ts;
+      var prog = Math.min((ts - startTime) / duration, 1);
+      // Smooth cubic easing: 1 - (1 - prog)^3
+      var ease = 1 - Math.pow(1 - prog, 3);
+      var cur = startVal + ease * (target - startVal);
+      el.textContent = Math.round(cur).toLocaleString('en-US');
+      if (prog < 1) {
+        el._scAnimId = window.requestAnimationFrame(step);
+      } else {
+        el.textContent = Math.round(target).toLocaleString('en-US');
+        el._scAnimId = null;
+      }
+    }
+    el._scAnimId = window.requestAnimationFrame(step);
+  });
+}
+
 // ອັບເດດບັດສະຫຼຸບ
+var scStatsInitialDone = false;
 function scUpdateStats() {
   var s = scStats();
-  $('#scStatTotal').text(scFmt(s.total));
+  var dur = scStatsInitialDone ? 400 : 1600;
+  scStatsInitialDone = true;
+
+  animateScCounter('#scStatTotal', s.total, dur);
+  animateScCounter('#scStatCountedOnly', s.counted, dur);
+  animateScCounter('#scStatUncountedBig', s.uncounted, dur);
+  animateScCounter('#scStatMismatchTotal', (s.shortN + s.overN), dur);
+
   $('#scStatCountedSummary').text(scT('sc.s039') + ' ' + scFmt(s.counted));
-  $('#scStatCountedOnly').text(scFmt(s.counted));
   $('#scStatMatch').text(scFmt(s.match));
   $('#scStatShort').text(scFmt(s.shortN));
   $('#scStatShortQty').text(s.shortQ ? scT('sc.s086') + ' -' + scFmt(s.shortQ) : '0 ' + scT('sc.s075'));
   $('#scStatOver').text(scFmt(s.overN));
   $('#scStatOverQty').text(s.overQ ? scT('sc.s087') + scFmt(s.overQ) : '0 ' + scT('sc.s075'));
-  $('#scStatUncountedBig').text(scFmt(s.uncounted));
-  $('#scStatMismatchTotal').text(scFmt(s.shortN + s.overN));
   $('#scStatValue').text((s.net > 0 ? '+' : '') + scFmt(s.net));
 }
 

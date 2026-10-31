@@ -162,14 +162,14 @@ function bulkAddRow(data) {
               <label class="small text-muted font-weight-bold mb-1">${I18N_BULK.expiry}</label>
               <input type="date" name="b_expiry[]" class="form-control form-control-sm font-weight-bold bulk-expiry" style="height: 38px; border-radius: 6px;">
             </div>
-            <div class="col-lg-2.5 col-md-5 col-5" style="flex: 1;">
+            <div class="col-lg-2.5 col-md-5 col-5 zs-zone-field" style="flex: 1;">
               <label class="small text-muted font-weight-bold mb-1">${pqT('products_q.zone')}</label>
               <select name="b_zone[]" class="form-control form-control-sm bulk-zone" style="height: 38px; border-radius: 6px;" onchange="if(window.onBulkRowZoneChange) onBulkRowZoneChange(this)" ${!hasZones ? 'disabled' : ''}>
                 <option value="">${hasZones ? pqT('products_q.zone_opt') : (pqT('products_q.no_zone_short') || '-- ບໍ່ມີໂຊນ --')}</option>
                 ${BULK_ZONE_OPTIONS}
               </select>
             </div>
-            <div class="col-lg-2.5 col-md-5 col-5" style="flex: 1;">
+            <div class="col-lg-2.5 col-md-5 col-5 zs-shelf-field" style="flex: 1;">
               <label class="small text-muted font-weight-bold mb-1">${pqT('products_q.shelf')}</label>
               <select name="b_shelf[]" class="form-control form-control-sm bulk-shelf" style="height: 38px; border-radius: 6px;" ${!hasShelves ? 'disabled' : ''}>
                 <option value="">${hasShelves ? pqT('products_q.shelf_opt') : (pqT('products_q.no_shelf_short') || '-- ບໍ່ມີຊັ້ນວາງ --')}</option>

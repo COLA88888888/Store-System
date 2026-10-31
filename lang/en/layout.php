@@ -107,4 +107,10 @@ return [
     'layout.role_manager' => 'Manager',
     'layout.role_staff' => 'Staff',
     'layout.clear_data' => 'Clear System Data',
+    'layout.ok' => 'OK',
+    'layout.logout_blocked_title' => 'You cannot log out yet',
+    'layout.logout_blocked_after' => 'Please close your shift before logging out. Close the shift and count the cash drawer so the shift report is correct.',
+    'layout.logout_blocked_before' => 'Your shift has not reached its closing time (%s). You can log out only after that time, once you have closed the shift.',
+    'layout.close_shift_now' => 'Close shift now',
+    'layout.tts' => 'Voice Settings (TTS)',
 ];

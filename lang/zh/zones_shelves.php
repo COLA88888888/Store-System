@@ -69,4 +69,8 @@ return [
     'zs.s_msg_deleted' => '货架已删除！',
     'zs.s_delete_text' => '确定要删除货架 %s 吗？',
     'zs.s_delete_warn' => '该货架有 %s 件商品（商品的货架将被清空）',
+    'zs.delete_blocked_title' => '无法删除',
+    'zs.ok' => '确定',
+    'zs.z_delete_blocked' => '无法删除区域 %s：该区域还有 %s 件商品。请先把商品移出。',
+    'zs.s_delete_blocked' => '无法删除货架 %s：该货架还有 %s 件商品。请先把商品移出。',
 ];

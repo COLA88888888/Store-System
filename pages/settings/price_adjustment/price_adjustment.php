@@ -26,7 +26,7 @@ require_once __DIR__ . '/../../../layouts/header.php';
       </h5>
     </div>
     <div class="d-flex align-items-center justify-content-end ml-auto pa-head-actions" style="gap: 8px; flex-wrap: wrap;">
-      <?php if ($canAllBranches): ?>
+      <?php if ($canAllBranches && count($stores) > 1): /* ສາຂາດຽວ → ເຊື່ອງບັອກເລືອກສາຂາ */ ?>
         <form method="GET" action="" class="m-0 d-inline-block pa-store-form">
           <select name="store_id" class="form-control form-control-sm font-weight-bold border-warning text-warning" style="height: 38px; border-radius: 8px; background-color: #fffbeb; min-width: 130px;" onchange="this.form.submit()">
             <?php foreach ($stores as $st): ?>

@@ -44,7 +44,7 @@
               </select>
             </div>
             <?php $hasZones = !empty($zones); $hasShelves = !empty($shelves); ?>
-            <div class="col-md-4">
+            <div class="col-md-4 zs-zone-field">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="font-weight-bold text-dark mb-0"><i class="fas fa-map-marker-alt text-info mr-1"></i><?php echo htmlspecialchars(t('products_q.zone_all_rows')); ?></label>
                 <a href="javascript:void(0)" onclick="quickAddZonePrompt('bulk')" class="text-primary font-weight-bold" style="font-size: 0.78rem;">
@@ -58,7 +58,7 @@
                 <?php endforeach; ?>
               </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 zs-shelf-field">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <label class="font-weight-bold text-dark mb-0"><i class="fas fa-layer-group text-warning mr-1"></i><?php echo htmlspecialchars(t('products_q.shelf_all_rows')); ?></label>
                 <a href="javascript:void(0)" onclick="quickAddShelfPrompt('bulk')" class="text-info font-weight-bold" style="font-size: 0.78rem;">

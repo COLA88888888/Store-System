@@ -53,7 +53,39 @@ if (empty($_SESSION['user_id']) || (!$scIsManager && !$scIsCounter)) {
     exit();
 }
 
-$scStoreId = getActiveStoreId($pdo);
+$userStoreId = intval($_SESSION['store_id'] ?? 1);
+$currentStoreId = intval($_SESSION['active_store_id'] ?? $userStoreId);
+$canAllBranches = function_exists('canViewAllBranches') ? canViewAllBranches($pdo) : (
+    ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' ||
+    strtolower($_SESSION['status'] ?? '') === 'admin' ||
+    ($_SESSION['user_id'] ?? 0) == 1 ||
+    !empty($_SESSION['can_all_branches'])
+);
+$stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+$reqCheckId = intval($_REQUEST['id'] ?? ($_POST['check_id'] ?? 0));
+if ($reqCheckId > 0 && $canAllBranches) {
+    $chkStore = $pdo->prepare("SELECT store_id FROM st_stock_checks WHERE id = ?");
+    $chkStore->execute([$reqCheckId]);
+    $chkStoreId = $chkStore->fetchColumn();
+    if ($chkStoreId) {
+        $selectedStoreId = intval($chkStoreId);
+        $_SESSION['active_store_id'] = $selectedStoreId;
+    } elseif (isset($_REQUEST['store_id'])) {
+        $selectedStoreId = intval($_REQUEST['store_id']);
+        $_SESSION['active_store_id'] = $selectedStoreId;
+    } else {
+        $selectedStoreId = $currentStoreId;
+    }
+} elseif (isset($_REQUEST['store_id']) && $canAllBranches) {
+    $selectedStoreId = intval($_REQUEST['store_id']);
+    $_SESSION['active_store_id'] = $selectedStoreId;
+} elseif (!$canAllBranches) {
+    $selectedStoreId = $userStoreId;
+} else {
+    $selectedStoreId = $currentStoreId;
+}
+$scStoreId = $selectedStoreId;
 $scUserId  = intval($_SESSION['user_id']);
 
 // ສ້າງໃບເຊັກສະຕັອກໃໝ່ ແລະ ດຶງສິນຄ້າທັງໝົດທີ່ຕັດສະຕັອກເຂົ້າມາພ້ອມ

@@ -66,10 +66,24 @@ require_once __DIR__ . '/../../layouts/header.php';
       <!-- MAIN UNIT TABLE CARD -->
       <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden; background: #ffffff;">
 
-        <div class="card-header bg-white py-3 border-0">
-          <h6 class="card-title m-0 font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon'; color: #0f172a; font-size: 1rem;">
-            <?php echo htmlspecialchars(t('units.table_card_title', 'ລາຍງານຫົວໜ່ວຍທັງໝົດ')); ?>
-          </h6>
+        <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap py-3 border-0" style="gap: 12px;">
+          <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+            <h6 class="card-title m-0 font-weight-bold" style="font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon'; color: #0f172a; font-size: 1rem;">
+              <?php echo htmlspecialchars(t('units.table_card_title', 'ລາຍງານຫົວໜ່ວຍທັງໝົດ')); ?>
+            </h6>
+            <span class="badge badge-secondary" style="font-size: 0.85rem; padding: 7px 12px;"><span id="unitCountNum"><?php echo count($allUnits); ?></span> <?php echo htmlspecialchars(t('units.count_label', 'ລາຍການ')); ?></span>
+            <?php if (($canAllBranches) && count($stores) > 1): ?>
+            <div class="prod-filter-wrap">
+              <select id="storeFilter" class="form-control font-weight-bold" onchange="window.location.href='units.php?store_id=' + this.value">
+                <?php foreach ($stores as $st): ?>
+                  <option value="<?php echo $st['store_id']; ?>" <?php echo ($selectedStoreId == $st['store_id']) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('products.store_main_suffix', '(ສາງຫຼັກ)')) : htmlspecialchars(t('products.store_branch_suffix', '(ສາຂາຍ່ອຍ)')); ?>
+                  </option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <?php endif; ?>
+          </div>
         </div>
 
         <div class="card-body p-0">

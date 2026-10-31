@@ -46,12 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
         }
     }
 
-    $pdo->exec("CREATE TABLE IF NOT EXISTS st_user_permission_switch_states (
-        user_id INT NOT NULL,
-        switch_key VARCHAR(120) NOT NULL,
-        is_enabled TINYINT(1) NOT NULL DEFAULT 0,
-        PRIMARY KEY (user_id, switch_key)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    // ບໍ່ສ້າງຕາຕະລາງເອງ (ມີຢູ່ config/migrations/schema_settings_sales.php)
 
     if ($action === 'get_switch_states') {
         $stateStmt = $pdo->query('SELECT switch_key, is_enabled FROM st_user_permission_switch_states');
@@ -79,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             'dashboard', 'sale', 'item_sales', 'stock', 'categories', 'units', 'products', 'suppliers', 'import_stock', 'import_list',
             'stock_check', 'stock_count', 'stock_transfer', 'transfer_history',
             'report', 'daily_report', 'all_sales', 'best_seller', 'profit_cost', 'financial', 'category_sales', 'delete_bills', 'shift_close_report', 'shift_revenue_report', 'expiry_report',
-            'accounting', 'setup', 'stores', 'print_barcode', 'expiry', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'shifts',
+            'accounting', 'setup', 'stores', 'print_barcode', 'expiry', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'shifts', 'tts',
             'users', 'permissions', 'branches', 'edit', 'customers', 'database', 'clear_data'
         ];
 
@@ -174,6 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
                 'expiry_report' => trim(str_replace('↳', '', t('permissions.module_expiry_report_title', 'ລາຍງານສິນຄ້າໝົດອາຍຸ'))),
                 'shifts' => tl('ສິດ ຈັດການກະເຮັດວຽກ'),
                 'clear_data' => t('permissions.module_clear_data_title', 'ລຶບ/ລ້າງຂໍ້ມູນລະບົບ'),
+                'tts' => t('permissions.module_tts_title', 'ຕັ້ງຄ່າລະບົບສຽງ'),
                 'users' => tl('ສິດ ຈັດການຜູ້ນຳໃຊ້'),
                 'permissions' => tl('ສິດ ກຳນົດສິດ'),
                 'branches' => tl('ສິດ ຈັດການສາຂາ'),
@@ -249,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax_action'])) {
             'financial' => 'report', 'category_sales' => 'report', 'delete_bills' => 'report',
             'shift_close_report' => 'report', 'shift_revenue_report' => 'report', 'expiry_report' => 'report',
             'branches' => 'setup', 'stores' => 'setup', 'print_barcode' => 'setup', 'expiry' => 'setup', 'exchange_rate' => 'setup',
-            'promotions' => 'setup', 'price_adjustment' => 'setup', 'printers' => 'setup', 'loyalty' => 'setup', 'shifts' => 'setup',
+            'promotions' => 'setup', 'price_adjustment' => 'setup', 'printers' => 'setup', 'loyalty' => 'setup', 'shifts' => 'setup', 'tts' => 'setup',
             // ລຶບ/ລ້າງຂໍ້ມູນ ກະທົບທັງລະບົບ — ເປີດພ້ອມສິດຖານຂໍ້ມູນເທົ່ານັ້ນ
             'clear_data' => 'database',
         ];

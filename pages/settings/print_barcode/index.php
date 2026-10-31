@@ -37,6 +37,8 @@ $products = $prodStmt->fetchAll();
 function getProductImg($imgFile) {
     if (empty($imgFile)) return '../../../assets/img/image.jpg';
     $filename = basename(trim($imgFile));
+    // ໄຟລ໌ຮູບຫາຍໄປແລ້ວ → ຮູບແທນ (ບໍ່ໃຫ້ browser ຂໍໄຟລ໌ທີ່ບໍ່ມີ)
+    if (!is_file(__DIR__ . '/../../../assets/product_img/' . $filename)) return '../../../assets/img/image.jpg';
     return '../../../assets/product_img/' . $filename;
 }
 

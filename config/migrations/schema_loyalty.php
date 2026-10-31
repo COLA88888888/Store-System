@@ -10,13 +10,14 @@
 // trusting the .db_schema_vNN flag file: a deploy that copies config/ from another install
 // carries that flag along, the block above is then skipped, and every points save would fail
 // on a missing table. Everything here is idempotent (IF NOT EXISTS / SHOW COLUMNS guards).
-if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['loyalty_schema_v3'])) {
+if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['loyalty_schema_v4'])) {
     try {
         // Redemption catalogue: what a customer can exchange points for. 'discount' takes
         // discount_amount (KIP) off the bill (only when the bill reaches min_spend); 'product'
         // adds product_qty of product_id (resolved in the selling branch) at price 0.
         $pdo->exec("CREATE TABLE IF NOT EXISTS `st_loyalty_rewards` (
             `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `store_id` INT NOT NULL DEFAULT 0,
             `reward_name` VARCHAR(255) NOT NULL,
             `points_cost` INT NOT NULL,
             `reward_type` VARCHAR(20) NOT NULL DEFAULT 'discount',
@@ -30,6 +31,14 @@ if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['loyalty_schema_v3']))
         $lrCols = $pdo->query("SHOW COLUMNS FROM st_loyalty_rewards")->fetchAll(PDO::FETCH_COLUMN);
         if (!in_array('min_spend', $lrCols)) {
             $pdo->exec("ALTER TABLE st_loyalty_rewards ADD COLUMN `min_spend` DECIMAL(15,2) NOT NULL DEFAULT 0 AFTER `discount_amount`");
+        }
+        // v21: ລາງວັນແລກຄະແນນແຍກແຕ່ລະສາຂາ — ລາງວັນເກົ່າທີ່ບໍ່ມີສາຂາ ຖືກມອບໃຫ້ສາຂາຫຼັກ
+        if (!in_array('store_id', $lrCols)) {
+            $pdo->exec("ALTER TABLE st_loyalty_rewards ADD COLUMN `store_id` INT NOT NULL DEFAULT 0 AFTER `id`, ADD INDEX `idx_lr_store` (`store_id`)");
+            $mainStore = (int)$pdo->query("SELECT store_id FROM st_tbstore ORDER BY is_main DESC, store_id ASC LIMIT 1")->fetchColumn();
+            if ($mainStore > 0) {
+                $pdo->prepare("UPDATE st_loyalty_rewards SET store_id = ? WHERE store_id = 0")->execute([$mainStore]);
+            }
         }
 
         // Every change to customers.points: earn (+), redeem (-), and their reversals when a
@@ -84,7 +93,7 @@ if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['loyalty_schema_v3']))
         $pdo->exec("INSERT IGNORE INTO st_system_settings (setting_key, setting_value) VALUES
             ('loyalty_enabled', '0'), ('loyalty_spend_amount', '100000'), ('loyalty_points_earned', '1')");
 
-        $_SESSION['loyalty_schema_v3'] = 1;
+        $_SESSION['loyalty_schema_v4'] = 1;
     } catch (Throwable $ex) {
         // Leave the session flag unset so the next request tries again.
         error_log('MiniPos loyalty schema: ' . $ex->getMessage());

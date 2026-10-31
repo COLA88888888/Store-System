@@ -104,6 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // tbstore's own name/address/tel stays in sync with this branch's profile.
                 $stmtStore = $pdo->prepare("UPDATE st_tbstore SET store_name = ?, address = ?, tel = ? WHERE store_id = ?");
                 $stmtStore->execute([$com_name_la, $com_address, $com_tel, $branch_id_save]);
+                // ຮ້ານມີສາຂາດຽວ → ສາຂານັ້ນໄດ້ຊື່/ເບີໂທ/ທີ່ຢູ່ ຂອງຮ້ານສະເໝີ (ເຖິງເລືອກສາຂາຄ້າງໄວ້ຜິດ)
+                syncSingleBranchWithShop($pdo);
 
                 // Text fields are saved either way; a rejected image must say so instead of
                 // reporting plain success while the old logo keeps showing.

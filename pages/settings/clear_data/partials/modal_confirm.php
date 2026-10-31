@@ -24,6 +24,11 @@
           <div class="small"><?php echo htmlspecialchars(t('clear_data.modal_irreversible')); ?></div>
         </div>
 
+        <div class="mb-2 font-weight-bold text-dark" style="font-size: 0.9rem;">
+          <i class="fas fa-store text-primary mr-1"></i> <?php echo htmlspecialchars(t('clear_data.modal_branch')); ?>
+          <span id="confirmBranchName" class="text-danger"></span>
+        </div>
+
         <div class="mb-3">
           <label class="font-weight-bold text-dark small mb-1">
             <i class="fas fa-list text-primary mr-1"></i> <?php echo htmlspecialchars(t('clear_data.modal_selected_list')); ?>

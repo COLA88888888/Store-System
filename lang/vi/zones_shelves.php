@@ -68,4 +68,8 @@ return [
     'zs.s_msg_deleted' => 'Đã xóa kệ!',
     'zs.s_delete_text' => 'Bạn có chắc muốn xóa kệ %s?',
     'zs.s_delete_warn' => 'Kệ này có %s sản phẩm (kệ của chúng sẽ bị xóa trống)',
+    'zs.delete_blocked_title' => 'Không thể xóa',
+    'zs.ok' => 'OK',
+    'zs.z_delete_blocked' => 'Không thể xóa khu vực %s: vẫn còn %s sản phẩm trong khu vực này. Hãy chuyển sản phẩm ra trước.',
+    'zs.s_delete_blocked' => 'Không thể xóa kệ %s: vẫn còn %s sản phẩm trên kệ này. Hãy chuyển sản phẩm ra trước.',
 ];

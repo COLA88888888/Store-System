@@ -38,23 +38,25 @@
                 echo json_encode(['success' => false, 'message' => $msg]);
                 exit();
             };
-            if (getSetting($pdo, 'loyalty_enabled', '0') !== '1') {
+            if (loyaltySetting($pdo, 'loyalty_enabled', getPosStoreId(), '0') !== '1') {
                 $redeemFail(t('pos.redeem_err_disabled', 'ລະບົບຄະແນນສະສົມຖືກປິດຢູ່ — ແລກຄະແນນບໍ່ໄດ້'));
             }
             if (intval($customer_id) <= 0) {
                 $redeemFail(t('pos.redeem_err_no_customer', 'ກະລຸນາເລືອກລູກຄ້າກ່ອນແລກຄະແນນ'));
             }
             // Lock the customer's row so two tills can't spend the same points at once.
-            $lockStmt = $pdo->prepare("SELECT points FROM st_customers WHERE customer_id = ? FOR UPDATE");
-            $lockStmt->execute([intval($customer_id)]);
+            // ຄະແນນແຍກແຕ່ລະສາຂາ: ລູກຄ້າສາຂາອື່ນ ແລກຄະແນນຢູ່ສາຂານີ້ບໍ່ໄດ້
+            $lockStmt = $pdo->prepare("SELECT points FROM st_customers WHERE customer_id = ? AND (store_id = ? OR store_id = 0) FOR UPDATE");
+            $lockStmt->execute([intval($customer_id), (int)getPosStoreId()]);
             $pointsAvailable = $lockStmt->fetchColumn();
             if ($pointsAvailable === false) {
                 $redeemFail(t('pos.redeem_err_no_customer', 'ກະລຸນາເລືອກລູກຄ້າກ່ອນແລກຄະແນນ'));
             }
 
             $uniqIds = array_values(array_unique($redeem_ids));
-            $rwStmt = $pdo->prepare("SELECT * FROM st_loyalty_rewards WHERE is_active = 1 AND id IN (" . implode(',', array_fill(0, count($uniqIds), '?')) . ")");
-            $rwStmt->execute($uniqIds);
+            // ລາງວັນຂອງສາຂາອື່ນ ແລກຢູ່ສາຂານີ້ບໍ່ໄດ້ (ຄະແນນແຍກແຕ່ລະສາຂາ)
+            $rwStmt = $pdo->prepare("SELECT * FROM st_loyalty_rewards WHERE is_active = 1 AND store_id = ? AND id IN (" . implode(',', array_fill(0, count($uniqIds), '?')) . ")");
+            $rwStmt->execute(array_merge([(int)getPosStoreId()], $uniqIds));
             $rewardsById = [];
             foreach ($rwStmt->fetchAll(PDO::FETCH_ASSOC) as $rw) $rewardsById[(int)$rw['id']] = $rw;
 

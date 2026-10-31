@@ -25,39 +25,52 @@ h5.font-weight-bold {
 .category-card-header {
     background-color: #ffffff;
     border-bottom: 1px solid #f1f5f9;
-    padding: 16px 20px;
+    padding: 10px 16px;
 }
 
-/* === Category Filter Dropdown === */
+/* === Category / Filter Dropdown === */
 .prod-filter-wrap {
     position: relative;
-    min-width: 200px;
+    width: auto;
+    flex: 0 0 auto;
 }
 .prod-filter-wrap i {
     position: absolute;
-    left: 12px;
+    left: 10px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
-    font-size: 0.88rem;
+    color: #475569;
+    font-size: 0.82rem;
     pointer-events: none;
     z-index: 1;
 }
 .prod-filter-wrap select {
-    padding-left: 34px;
+    width: auto;
+    min-width: max-content;
+    padding-left: 10px;
+    padding-right: 28px;
     height: 38px;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f172a;
     border-radius: 6px;
-    border: 1.5px solid #e2e8f0;
-    background-color: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    background-color: #ffffff;
     appearance: none;
     -webkit-appearance: none;
     cursor: pointer;
     transition: all 0.2s ease;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2394a3b8' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24'%3E%3Cpath fill='%230f172a' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 10px center;
-    padding-right: 30px;
+    background-position: right 8px center;
+    white-space: nowrap;
+}
+.prod-filter-wrap select option {
+    color: #0f172a;
+    font-weight: 500;
+}
+.prod-filter-wrap i + select {
+    padding-left: 28px;
 }
 .prod-filter-wrap select:focus {
     background-color: #ffffff;
@@ -69,23 +82,32 @@ h5.font-weight-bold {
 /* === Search Box === */
 .search-box-wrap {
     position: relative;
+    flex: 0 0 auto;
 }
 .search-box-wrap i {
     position: absolute;
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
-    font-size: 0.9rem;
+    color: #334155;
+    font-size: 0.85rem;
 }
 .search-box-wrap input {
-    padding-left: 36px;
+    width: 100%;
+    padding-left: 34px;
+    padding-right: 12px;
     height: 38px;
-    font-size: 0.88rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f172a;
     border-radius: 6px;
-    border: 1.5px solid #e2e8f0;
-    background-color: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    background-color: #ffffff;
     transition: all 0.2s ease;
+}
+.search-box-wrap input::placeholder {
+    color: #64748b;
+    font-weight: 500;
 }
 .search-box-wrap input:focus {
     background-color: #ffffff;
@@ -101,14 +123,14 @@ h5.font-weight-bold {
     border-collapse: collapse;
 }
 .table-custom th {
-    background-color: #f8fafc;
-    color: #475569;
-    font-weight: 700;
-    font-size: 0.84rem;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    font-weight: 800;
+    font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.4px;
-    padding: 14px 18px;
-    border-bottom: 1px solid #e2e8f0;
+    padding: 13px 18px;
+    border-bottom: 2px solid #cbd5e1;
     white-space: nowrap;
 }
 .table-custom td {
@@ -300,29 +322,16 @@ label.font-weight-bold {
 }
 
 /* === Responsive === */
-/* ແທັບເລັດ: ບັອກກັ່ນກອງແຖວລະ 2, ບັອກຄົ້ນຫາເຕັມແຖວ; ໂທລະສັບ (≤575px): ແຖວລະ 1 */
 @media (max-width: 991.98px) {
-    .category-card-header > div:last-child {
-        width: 100%;
-    }
-    .prod-filter-wrap {
-        flex: 1 1 calc(50% - 5px);
-        width: auto !important;
-        min-width: 0;
-    }
-    .search-box-wrap {
-        flex: 1 1 100%;
-        width: 100% !important;
-    }
-}
-@media (max-width: 575.98px) {
-    .prod-filter-wrap {
-        flex-basis: 100%;
+    .category-card-header {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 }
 @media (max-width: 768px) {
     .category-card-header {
-        gap: 12px;
+        gap: 8px;
+        padding: 8px 12px;
     }
     .table-custom th,
     .table-custom td {
@@ -484,4 +493,11 @@ select.select-disabled {
     cursor: not-allowed !important;
     border-color: #e2e8f0 !important;
     opacity: 0.85;
+}
+
+/* ໂຊນ / ຊັ້ນວາງ: ສາຂາບໍ່ມີລາຍຊື່ → ເຊື່ອງບັອກເລືອກໃນຟອມເພີ່ມ/ເພີ່ມຫຼາຍລາຍການ/ແກ້ໄຂ (class ຢູ່ <html>, ຕັ້ງໃນ
+   pages/products/products.php). !important ເພາະ JS ເອີ້ນ .show() ໃສ່ບັອກຊັ້ນວາງ (products_zone_shelf_js.php) */
+html.zs-no-zone .zs-zone-field,
+html.zs-no-shelf .zs-shelf-field {
+  display: none !important;
 }

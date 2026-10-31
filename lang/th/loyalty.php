@@ -101,4 +101,5 @@ return [
     'loyalty.min_spend_hint' => 'ไม่ใส่ก็ได้ — แต่ยอดซื้อต้องมากกว่ามูลค่าส่วนลดเสมอ',
     'loyalty.min_spend_short' => 'ซื้อขั้นต่ำ %s กีบ',
     'loyalty.min_spend_over_short' => 'ซื้อเกิน %s กีบ',
+    'loyalty.branch_scope' => 'เฉพาะสาขา:',
 ];

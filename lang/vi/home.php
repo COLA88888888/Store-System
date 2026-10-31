@@ -59,4 +59,5 @@ return [
     'home.unit_qty' => 'cái',
     'home.million_suffix' => 'tr',
     'home.thousand_suffix' => 'k',
+    'home.no_permission_title' => 'Bạn không có quyền xem trang này', 'home.no_permission_text' => 'Vui lòng chọn menu bạn có quyền ở thanh bên hoặc liên hệ quản trị viên',
 ];

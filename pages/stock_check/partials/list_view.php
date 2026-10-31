@@ -26,7 +26,7 @@ $scCountSpan = function ($c) {
           <small class="text-muted"><?php echo $sc('sc.s150'); ?></small>
         </div>
         <div class="col-sm-6 text-right mt-2 mt-sm-0">
-          <a href="stock_check.php" class="btn btn-primary sc-add-btn font-weight-bold shadow-sm">
+          <a href="stock_check.php<?php echo (($canAllBranches) && count($stores) > 1) ? '?store_id=' . $selectedStoreId : ''; ?>" class="btn btn-primary sc-add-btn font-weight-bold shadow-sm">
             <i class="fas fa-barcode mr-1"></i> <?php echo $sc('sc.s151'); ?>
           </a>
         </div>

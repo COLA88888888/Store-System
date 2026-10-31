@@ -254,7 +254,11 @@
     ' th [style*="dashed"],th .rc-divider,.receipt-qr-box [style*="dashed"],.receipt-qr-box .rc-divider{display:none !important;}' +
     ' .receipt-meta,table,#rc_payment_rows,#rc_rep_payment_rows,.rc-sum-wrap,.rc-change-wrap,#rc_multicur,#rc_rep_multicur,.receipt-qr-box,.receipt-footer-msg,.rc-sum,.rc-net{margin-left:0px !important;width:calc(100% - 2px) !important;}' +
     // ຫົວຂໍ້ ແລະ ໂລໂກ້ ຢູ່ເຄິ່ງກາງ
-    ' .receipt-header-block{margin-left:0px !important;width:100% !important;text-align:center !important;}';
+    ' .receipt-header-block{margin-left:0px !important;width:100% !important;text-align:center !important;}' +
+    // ເມື່ອກ່ອນແຕ່ລະໜ້າສົ່ງ CSS ເພີ່ມຂອງຕົນເອງ (POS_RCPT_EXTRA_CSS / REPORT_RCPT_EXTRA_CSS) — ລວມເຂົ້າບ່ອນດຽວ
+    ' #rc_total,#rc_rep_total{font-size:17px !important;}' +
+    ' #rc_multicur,#rc_rep_multicur{font-size:14.5px !important;}' +
+    ' #rc_bank_name_lbl,#rc_rep_bank_name_lbl{font-size:15px !important;}';
 
   // ສະເພາະບິນ Bluetooth: ເຄື່ອງ Bluetooth ພິມທັງບິນເຫຼື່ອມໄປຂວາ 1 ຂີດ (ເສັ້ນຂີດປະເກີນຂວາ 1 ຂີດ) →
   // ຍ້າຍທັງບິນ (ເສັ້ນຂີດປະ + ໜັງສື) ໄປຊ້າຍ 1 ຂີດ: ປາຍຂວາສັ້ນລົງ 1 ຂີດ, ທາງຊ້າຍເພີ່ມ 1 ຂີດ, ໜັງສືໄປຕາມເສັ້ນ.
@@ -265,11 +269,14 @@
   var PAPER_LUM = 250;
   // ຂອບຊ້າຍຂອງບິນ (padding-left ຂອງໂຄງຮ່າງ): 12px. 5px ≈ 1 ຂີດ: ເພີ່ມ 5px → ທຸກເສັ້ນຂີດປະສັ້ນລົງທາງຊ້າຍ 1 ຂີດ
   // ແລະ ໜັງສືຝັ່ງຊ້າຍຍັບເຂົ້າໄປນຳ (ທຸກຊ່ອງທາງ: browser ເປັນຫຼັກ, LAN/USB/Bluetooth ຄືກັນ).
-  // ທົດລອງມາແລ້ວ: 7px ແລະ 2px ໜັງສືຊ້າຍມືອອກໄປໃກ້ຂອບເຈ້ຍເກີນ.
-  var RECEIPT_PAD_LEFT = 12;
+  // ທົດລອງມາແລ້ວ: 7px ແລະ 2px ໜັງສືຊ້າຍມືອອກໄປໃກ້ຂອບເຈ້ຍເກີນ — ແຕ່ຫຼັງຍັບບິນ browser ໄປຂວາ 1 mm
+  // (BROWSER_DIALOG_SHIFT_DOTS) ຂອບຊ້າຍກວ້າງຂຶ້ນ → ຜູ້ໃຊ້ຂໍໃຫ້ເສັ້ນຂີດປະຍາວອອກທາງຊ້າຍ 1 ຂີດ ແລະ ໜັງສືໄປນຳ (31/10/2026): 7px.
+  var RECEIPT_PAD_LEFT = 7;
   // ບິນຖືກຈັດເຄິ່ງກາງເຈ້ຍ (centerShift) → ເນື້ອໃນກວ້າງ/ແຄບລົງ 1 ຂີດ ຈະເລື່ອນເຄິ່ງຂີດ; ຊົດເຊີຍ 5 ຈຸດ (ທີ່ 576 ຈຸດ)
-  // ຕໍ່ 1 ຂີດ ທີ່ປ່ຽນຈາກ 12px ເພື່ອໃຫ້ປາຍຂວາຢູ່ບ່ອນເດີມ (12px → 0).
-  var PRINT_SHIFT_DOTS = 0;
+  // ຕໍ່ 1 ຂີດ ທີ່ປ່ຽນຈາກ 12px ເພື່ອໃຫ້ປາຍຂວາຢູ່ບ່ອນເດີມ (12px → 0, 7px → -5).
+  // +8 ຈຸດ (1 mm ໄປຂວາ) ທີ່ເຄີຍໃຊ້ສະເພາະບິນ browser (BROWSER_DIALOG_SHIFT_DOTS) ລວມເຂົ້າມານີ້ → ຮູບບິນດຽວກັນທຸກ pixel
+  // ທຸກຊ່ອງທາງ (browser, USB, LAN, Bluetooth, ເຄື່ອງມີເຄື່ອງພິມໃນໂຕ): -5 + 8 = 3.
+  var PRINT_SHIFT_DOTS = 3;
   function paperDots(widthPx) { return widthPx <= 240 ? 384 : 576; }
   function svgHeight(h) { return Math.ceil(h * 1.65) + 140; }
   function inkCanvas(svgImg, widthPx, h, targetDots) {
@@ -427,7 +434,10 @@
     return (parseInt(paperWidth, 10) === 58) ? 219 : 302;
   }
 
-  var USB_PRINT_SHIFT_MM = -0.15;
+  // ບິນໜ້າຕ່າງພິມ browser ໃນຄອມ: ວາງຮູບບິນ (ຮູບດຽວກັບທຸກຊ່ອງທາງ) ເລື່ອນຊ້າຍຈາກກາງເຈ້ຍ.
+  // ທົດລອງພິມແທ້ 31/10/2026: -0.15 mm ອອກມາເກີນຂວາ 1 mm → ຍັບຊ້າຍອີກ 1 mm ເຕັມ (8 ຈຸດ × 0.1251 mm = 1.001 mm)
+  // ໃຫ້ສ່ວນເສດ (0.15 mm) ຄືເກົ່າ — ຍັບເປັນເສດ mm ອື່ນ (ເຊັ່ນ 1.1 mm) ເຮັດໃຫ້ໜັງສືແຕກເປັນເມັດຊາຍ.
+  var USB_PRINT_SHIFT_MM = -1.151;
   function imageHtml(dataUri, paperWidth) {
     if (isBuiltInPrinterDevice()) {
       return '<img class="receipt-print-img" src="' + dataUri + '" alt="" style="display:block;width:100%;max-width:100%;height:auto;margin:0 auto;">';
@@ -496,6 +506,45 @@
       'table { table-layout: fixed; } td, th { word-break: break-word; }';
   }
 
+  // ບິນທີ່ເປັນຮູບແລ້ວ (imageHtml) → ໜ້າພິມແບບເບົາ: ມີແຕ່ຂະໜາດເຈ້ຍ + ຮູບ. ເມື່ອກ່ອນໜ້າພິມໂຫຼດ local-font.css (1.2 MB)
+  // ແລະ @font-face ອີກ 4 ໄຟລ໌ ທີ່ຮູບບໍ່ໄດ້ໃຊ້ — Chrome ຕ້ອງໂຫຼດ/ຖອດ font ທັງໝົດກ່ອນສ້າງ preview — ບວກລໍຖ້າຕາຍຕົວ 200–600 ms.
+  // ຕຳແໜ່ງບິນຄືເກົ່າທຸກຢ່າງ: ໜ້າເກົ່າກໍ margin/padding 0 ແລະ ກວ້າງເຕັມໜ້າ ຕອນມີ .receipt-print-img ຢູ່ແລ້ວ.
+  // CSS ຂອງໜ້າພິມບິນແບບ HTML (ກໍລະນີແປງເປັນຮູບບໍ່ໄດ້ ຫຼື ເຈ້ຍ A4/A5): ໃຊ້ RECEIPT_CSS ຕົວດຽວກັບຮູບບິນ
+  // ໂຄງຮ່າງ 302px ຂອບດຽວກັບຮູບ (renderReceipt) ແລ້ວຫຍໍ້ໃຫ້ກວ້າງ 72 mm ຄືຮູບບິນ. font ໂຫຼດຈາກໄຟລ໌ໃນ assets/fonts/.
+  function htmlReceiptCss(basePath, paperWidth) {
+    var px = paperPx(paperWidth), mm = px === 219 ? 48 : 72;
+    var faces = FONT_FILES[0].map(function (file, i) {
+      return '@font-face{font-family:"Receipt Lao";src:url("' + basePath + 'assets/fonts/' + file + '") format("truetype");font-weight:' + (i ? 700 : 400) + ';font-style:normal;}';
+    }).join('') + LATIN_FONT_FILES.map(function (lf) {
+      var src = 'src:url("' + basePath + 'assets/fonts/' + lf[0] + '") format("woff2");font-weight:' + lf[1] + ';font-style:normal;';
+      return '@font-face{font-family:"Receipt Latin";' + src + '}@font-face{font-family:"Receipt Latin";' + src + 'size-adjust:90%;unicode-range:' + LATIN_LETTERS + ';}';
+    }).join('');
+    return '@page { size: 80mm auto; margin: 0mm; } ' + faces +
+      ' html { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
+      (isPagePaper(paperWidth) ? '' : ' body { width: ' + px + 'px; margin: 0 auto; padding: 4px 8px 8px ' + RECEIPT_PAD_LEFT + 'px; box-sizing: border-box; zoom: ' + (mm * 96 / 25.4 / px).toFixed(4) + '; }') +
+      RECEIPT_CSS + ' ' + dialogPageCss(paperWidth);
+  }
+
+  function printImageReceipt(iframe, html, title, paperWidth) {
+    var win = iframe.contentWindow, doc = win.document, fired = false;
+    var esc = String(title || '').replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; });
+    doc.open();
+    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc + '</title><style>' +
+      '@page { size: 80mm auto; margin: 0mm; } ' +
+      'html, body { margin: 0; padding: 0; width: 100%; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; } ' +
+      dialogPageCss(paperWidth) + '</style></head><body>' + html + '</body></html>');
+    doc.close();
+    function fire() {
+      if (fired) return;
+      fired = true;
+      try { win.focus(); win.print(); } catch (e) { window.print(); }
+    }
+    var img = doc.querySelector('img.receipt-print-img');
+    // ຮູບເປັນ data URI ທີ່ຖອດແລ້ວ (preDecode) → ພ້ອມເກືອບທັນທີ; ລໍ 1 frame ໃຫ້ຈັດໜ້າກ່ອນ
+    if (!img || (img.complete && img.naturalWidth)) setTimeout(fire, 30);
+    else { img.onload = img.onerror = function () { setTimeout(fire, 30); }; setTimeout(fire, 1500); }
+  }
+
   function print(source, printer, opts) {
     opts = opts || {};
     var basePath = opts.basePath || '../../';
@@ -520,5 +569,5 @@
     });
   }
 
-  window.MiniposLanReceipt = { toImage: toImage, toCanvas: toCanvas, warmUp: warmUp, print: print, imageToDataUri: imageToDataUri, imageMode: imageMode, printHtml: printHtml, latinFontFaces: latinFontFaces, svgHeight: svgHeight, inkCanvas: inkCanvas, loadSvgImage: loadSvgImage, paperPx: paperPx, imageHtml: imageHtml, isBuiltInPrinterDevice: isBuiltInPrinterDevice, dialogPaperPx: dialogPaperPx, dialogPageCss: dialogPageCss, isPagePaper: isPagePaper, receiptPaper: receiptPaper };
+  window.MiniposLanReceipt = { toImage: toImage, toCanvas: toCanvas, warmUp: warmUp, print: print, imageToDataUri: imageToDataUri, imageMode: imageMode, printHtml: printHtml, latinFontFaces: latinFontFaces, svgHeight: svgHeight, inkCanvas: inkCanvas, loadSvgImage: loadSvgImage, paperPx: paperPx, imageHtml: imageHtml, isBuiltInPrinterDevice: isBuiltInPrinterDevice, dialogPaperPx: dialogPaperPx, printImageReceipt: printImageReceipt, htmlReceiptCss: htmlReceiptCss, dialogPageCss: dialogPageCss, isPagePaper: isPagePaper, receiptPaper: receiptPaper };
 })(window, document);

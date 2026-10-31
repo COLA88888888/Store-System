@@ -149,6 +149,11 @@ function checkShiftStatusOnPosLoad() {
       // ມີກະທີ່ກຳລັງເປີດຢູ່ → ປຸ່ມ "ກຳລັງໃຊ້ງານ" (ກົດ = ປິດກະ; ສະເພາະພະນັກງານຂາຍ — ຜູ້ບໍລິຫານ/ຜູ້ຈັດການບໍ່ມີປຸ່ມກະ)
       posSyncCartWithShift(res.session.id);
       posPaintShiftActive(res.session);
+      // ມາຈາກແຈ້ງເຕືອນ "ກະລຸນາປິດກະກ່ອນອອກຈາກລະບົບ" (?close_shift=1) → ເປີດຟອມປິດກະໃຫ້ເລີຍ (ເທື່ອດຽວ)
+      if (/[?&]close_shift=1\b/.test(window.location.search) && !window.__closeShiftAutoOpened && typeof openPosCloseShiftModal === 'function') {
+        window.__closeShiftAutoOpened = true;
+        openPosCloseShiftModal();
+      }
     } else if (res.has_shifts) {
       posSyncCartWithShift(null);   // ກະປິດແລ້ວ → ກະຕ່າຂອງກະນັ້ນບໍ່ໃຊ້ຕໍ່
     }

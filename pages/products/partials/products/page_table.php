@@ -39,63 +39,79 @@
   <!-- Main Card -->
   <div class="category-card">
 
-    <!-- Card Header: Title + Per Page Selector (left) + Category Filter & Search (right) -->
-    <div class="category-card-header d-flex justify-content-between align-items-center" style="gap: 12px; flex-wrap: wrap;">
+    <!-- Card Header: Per Page + Store + Category + Zone + Shelf + Stock + Search (Single row) -->
+    <div class="category-card-header d-flex align-items-center flex-nowrap" style="gap: 8px; overflow-x: auto; padding: 10px 16px;">
 
-      <!-- Left: Title & Per Page selector (ບັອກໂຊລາຍການສິນຄ້າ) -->
-      <div class="d-flex align-items-center" style="gap: 14px; flex-wrap: wrap;">
-        <div class="d-flex align-items-center" style="gap: 6px;">
-          <select id="perPageHeaderSelect" class="form-control form-control-sm bg-light font-weight-bold text-primary" style="width: 88px; height: 34px; border-radius: 8px; font-size: 0.88rem;" onchange="changePerPage(this.value)">
-            <option value="10" selected>10</option>
-            <option value="20">20</option>
-            <option value="30">30</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-            <option value="all"><?php echo htmlspecialchars(t('products.per_page_all', 'ທັງໝົດ')); ?></option>
-          </select>
-        </div>
+      <!-- Per Page selector -->
+      <div style="flex: 0 0 auto;">
+        <select id="perPageHeaderSelect" class="form-control form-control-sm bg-white font-weight-bold" style="width: auto; min-width: 68px; height: 38px; border-radius: 6px; font-size: 0.85rem; color: #0f172a; border: 1.5px solid #cbd5e1;" onchange="changePerPage(this.value)">
+          <option value="10" selected>10</option>
+          <option value="20">20</option>
+          <option value="30">30</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="all"><?php echo htmlspecialchars(t('products.per_page_all', 'ທັງໝົດ')); ?></option>
+        </select>
       </div>
 
-      <!-- Right Controls: Store Filter + Category Filter + Search (ຂວາ) -->
-      <div class="d-flex align-items-center" style="gap: 10px; flex-wrap: wrap;">
-        <!-- Dropdown: ເລືອກສາຂາ — main branch / admin only; a sub-branch user is locked to
-             their own branch. Only worth showing once there's more than one branch. -->
-        <?php if (($canAllBranches) && count($stores) > 1): ?>
-        <div class="prod-filter-wrap" style="width: 200px;">
-          <select id="storeFilter" class="form-control font-weight-bold" onchange="switchStoreFilter(this.value)">
-            <?php foreach ($stores as $st): ?>
-              <option value="<?php echo $st['store_id']; ?>" <?php echo ($selectedStoreId == $st['store_id']) ? 'selected' : ''; ?>>
-                <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('products.store_main_suffix', '(ສາງຫຼັກ)')) : htmlspecialchars(t('products.store_branch_suffix', '(ສາຂາຍ່ອຍ)')); ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-        <?php endif; ?>
+      <!-- Dropdown: ເລືອກສາຂາ (main branch / admin only) -->
+      <?php if (($canAllBranches) && count($stores) > 1): ?>
+      <div class="prod-filter-wrap">
+        <select id="storeFilter" class="form-control font-weight-bold" onchange="switchStoreFilter(this.value)">
+          <?php foreach ($stores as $st): ?>
+            <option value="<?php echo $st['store_id']; ?>" <?php echo ($selectedStoreId == $st['store_id']) ? 'selected' : ''; ?>>
+              <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('products.store_main_suffix', '(ສາງຫຼັກ)')) : htmlspecialchars(t('products.store_branch_suffix', '(ສາຂາຍ່ອຍ)')); ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <?php endif; ?>
 
-        <!-- Dropdown: ເລືອກປະເພດ (ທາງໜ້າບັອກຄົ້ນຫາ) -->
-        <div class="prod-filter-wrap" style="width: 200px;">
-          <select id="categoryFilter" class="form-control" onchange="filterProducts()">
-            <option value=""><?php echo htmlspecialchars(t('products.category_filter_placeholder', '--ເລືອກປະເພດ--')); ?></option>
-            <?php foreach ($categories as $cat): ?>
-              <option value="<?php echo $cat['category_id']; ?>"><?php echo htmlspecialchars($cat['category_name']); ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
+      <!-- Dropdown: ເລືອກປະເພດ -->
+      <div class="prod-filter-wrap">
+        <select id="categoryFilter" class="form-control" onchange="filterProducts()">
+          <option value=""><?php echo htmlspecialchars(t('products.category_filter_placeholder', '--ເລືອກປະເພດ--')); ?></option>
+          <?php foreach ($categories as $cat): ?>
+            <option value="<?php echo $cat['category_id']; ?>"><?php echo htmlspecialchars($cat['category_name']); ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
 
-        <!-- Dropdown: ສະຖານະສະຕັອກ (ກົດແຈ້ງເຕືອນສິນຄ້າໃກ້ໝົດ/ໝົດ ເປີດມາດ້ວຍ ?stock=low|out) -->
-        <div class="prod-filter-wrap" style="width: 160px;">
-          <select id="stockFilter" class="form-control" onchange="filterProducts()">
-            <option value=""><?php echo htmlspecialchars(t('products.stock_filter_all', '-- ທຸກສະຕັອກ --')); ?></option>
-            <option value="low"><?php echo htmlspecialchars(t('products.stock_filter_low', 'ໃກ້ໝົດ')); ?></option>
-            <option value="out"><?php echo htmlspecialchars(t('products.stock_filter_out', 'ໝົດແລ້ວ')); ?></option>
-          </select>
-        </div>
+      <?php /* ກັ່ນຕອງຕາມໂຊນ / ຊັ້ນວາງ — ຍືດຕາມຂໍ້ມູນ */ ?>
+      <?php if ($zsZoneCol): ?>
+      <div class="prod-filter-wrap">
+        <select id="zoneFilter" class="form-control" onchange="filterProducts()" title="<?php echo htmlspecialchars(t('products.field_zone', 'ໂຊນ')); ?>">
+          <option value=""><?php echo htmlspecialchars(t('products.zone_filter_all', '-- ທຸກໂຊນ --')); ?></option>
+          <?php foreach ($zoneFilterOptions as $zOpt): ?>
+            <option value="<?php echo htmlspecialchars($zOpt); ?>"><?php echo htmlspecialchars($zOpt); ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <?php endif; ?>
+      <?php if ($zsShelfCol): ?>
+      <div class="prod-filter-wrap">
+        <select id="shelfFilter" class="form-control" onchange="filterProducts()" title="<?php echo htmlspecialchars(t('products.field_shelf', 'ຊັ້ນວາງ')); ?>">
+          <option value=""><?php echo htmlspecialchars(t('products.shelf_filter_all', '-- ທຸກຊັ້ນ --')); ?></option>
+          <?php foreach ($shelfFilterOptions as $sOpt): ?>
+            <option value="<?php echo htmlspecialchars($sOpt); ?>"><?php echo htmlspecialchars($sOpt); ?></option>
+          <?php endforeach; ?>
+        </select>
+      </div>
+      <?php endif; ?>
 
-        <!-- Search: ບັອກຄົ້ນຫາ -->
-        <div class="search-box-wrap" style="width: 250px;">
-          <i class="fas fa-search"></i>
-          <input type="text" id="productSearch" class="form-control" placeholder="<?php echo htmlspecialchars(t('products.search_placeholder', 'ຄົ້ນຫາ ຊື່, ບາໂຄ້ດ...')); ?>" onkeyup="filterProducts()">
-        </div>
+      <!-- Dropdown: ສະຖານະສະຕັອກ -->
+      <div class="prod-filter-wrap">
+        <select id="stockFilter" class="form-control" onchange="filterProducts()">
+          <option value=""><?php echo htmlspecialchars(t('products.stock_filter_all', '-- ທຸກສະຕັອກ --')); ?></option>
+          <option value="low"><?php echo htmlspecialchars(t('products.stock_filter_low', 'ໃກ້ໝົດ')); ?></option>
+          <option value="out"><?php echo htmlspecialchars(t('products.stock_filter_out', 'ໝົດແລ້ວ')); ?></option>
+        </select>
+      </div>
+
+      <!-- Search: ບັອກຄົ້ນຫາ (ຊິດຂວາ ຄວາມກວ້າງພໍດີບໍ່ສັ້ນເກີນ) -->
+      <div class="search-box-wrap ml-auto" style="width: 280px; min-width: 240px; margin-left: auto;">
+        <i class="fas fa-search"></i>
+        <input type="text" id="productSearch" class="form-control" placeholder="<?php echo htmlspecialchars(t('products.search_placeholder', 'ຄົ້ນຫາ ຊື່, ບາໂຄ້ດ...')); ?>" onkeyup="filterProducts()">
       </div>
 
     </div>
@@ -116,8 +132,8 @@
             <th class="text-center" style="width: 105px;"><?php echo htmlspecialchars(t('products.col_code', 'ລະຫັດ')); ?></th>
             <th style="width: 175px;"><?php echo htmlspecialchars(t('products.col_barcode', 'ບາໂຄ້ດ')); ?></th>
             <th style="min-width: 200px;"><?php echo htmlspecialchars(t('products.col_name', 'ຊື່ສິນຄ້າ')); ?></th>
-            <th class="text-center" style="width: 100px;"><?php echo htmlspecialchars(t('products.field_zone', 'ໂຊນ')); ?></th>
-            <th class="text-center" style="width: 100px;"><?php echo htmlspecialchars(t('products.field_shelf', 'ຊັ້ນວາງ')); ?></th>
+            <?php if ($zsZoneCol): ?><th class="text-center" style="width: 100px;"><?php echo htmlspecialchars(t('products.field_zone', 'ໂຊນ')); ?></th><?php endif; ?>
+            <?php if ($zsShelfCol): ?><th class="text-center" style="width: 100px;"><?php echo htmlspecialchars(t('products.field_shelf', 'ຊັ້ນວາງ')); ?></th><?php endif; ?>
             <th class="text-right" style="width: 125px;"><?php echo htmlspecialchars(t('products.col_bprice', 'ລາຄາຊື້')); ?></th>
             <th class="text-right" style="width: 125px;"><?php echo htmlspecialchars(t('products.col_price', 'ລາຄາຂາຍ')); ?></th>
             <?php if ($isAdmin): ?>
@@ -129,7 +145,7 @@
         <tbody>
           <!-- ບັອກສະແດງເມື່ອບໍ່ມີຂໍ້ມູນສິນຄ້າ ຫຼື ຄົ້ນຫາ/ເລືອກປະເພດແລ້ວບໍ່ພົບ -->
           <tr id="noProductDataRow" style="<?php echo empty($products) ? '' : 'display: none;'; ?>">
-            <td colspan="<?php echo $isAdmin ? 11 : 10; ?>" class="text-center py-5 text-muted">
+            <td colspan="<?php echo ($isAdmin ? 9 : 8) + ($zsZoneCol ? 1 : 0) + ($zsShelfCol ? 1 : 0); ?>" class="text-center py-5 text-muted">
               <i class="fas fa-box-open fa-2x mb-2 d-block text-secondary"></i>
               <span class="font-weight-bold d-block" style="font-size: 1.05rem; color: #64748b;"><?php echo htmlspecialchars(t('products.empty_state', 'ບໍ່ມີຂໍ້ມູນສິນຄ້າ')); ?></span>
             </td>
@@ -156,7 +172,7 @@
                     elseif ($rowQty <= 10) $rowStock = 'low';
                 }
               ?>
-              <tr class="product-row" data-stock="<?php echo $rowStock; ?>" data-pid="<?php echo htmlspecialchars((string)$p['product_id']); ?>" data-category="<?php echo $p['category_id']; ?>" data-barcodes="<?php echo htmlspecialchars(strtolower(implode(',', $allBarcodes))); ?>" data-bval="<?php echo convertFromKip((float)($p['bprice'] ?? 0) * $rowQty, $__pdc['code'], $__pdc['rates']); ?>" data-pval="<?php echo convertFromKip((float)($p['price'] ?? 0) * $rowQty, $__pdc['code'], $__pdc['rates']); ?>">
+              <tr class="product-row" data-zone="<?php echo htmlspecialchars(trim((string)($p['zone'] ?? ''))); ?>" data-shelf="<?php echo htmlspecialchars(trim((string)($p['shelf'] ?? ''))); ?>" data-stock="<?php echo $rowStock; ?>" data-pid="<?php echo htmlspecialchars((string)$p['product_id']); ?>" data-category="<?php echo $p['category_id']; ?>" data-barcodes="<?php echo htmlspecialchars(strtolower(implode(',', $allBarcodes))); ?>" data-bval="<?php echo convertFromKip((float)($p['bprice'] ?? 0) * $rowQty, $__pdc['code'], $__pdc['rates']); ?>" data-pval="<?php echo convertFromKip((float)($p['price'] ?? 0) * $rowQty, $__pdc['code'], $__pdc['rates']); ?>">
 
                 <!-- ລຳດັບ -->
                 <td class="text-center">
@@ -227,6 +243,7 @@
                   $pShelf = trim((string)($p['shelf'] ?? ''));
                 ?>
                 <!-- ໂຊນ -->
+                <?php if ($zsZoneCol): ?>
                 <td class="text-center product-zone-cell" style="white-space: nowrap;">
                   <?php if ($pZone !== ''): ?>
                     <span class="badge badge-light border px-2 py-1 font-weight-bold" style="font-size: 0.8rem; color: #0284c7; background: #f0f9ff; border-color: #bae6fd !important;">
@@ -236,8 +253,10 @@
                     <span class="text-muted font-weight-bold">-</span>
                   <?php endif; ?>
                 </td>
+                <?php endif; ?>
 
                 <!-- ຊັ້ນວາງ -->
+                <?php if ($zsShelfCol): ?>
                 <td class="text-center product-shelf-cell" style="white-space: nowrap;">
                   <?php if ($pShelf !== ''): ?>
                     <span class="badge badge-light border px-2 py-1 font-weight-bold" style="font-size: 0.8rem; color: #d97706; background: #fffbeb; border-color: #fde68a !important;">
@@ -247,6 +266,7 @@
                     <span class="text-muted font-weight-bold">-</span>
                   <?php endif; ?>
                 </td>
+                <?php endif; ?>
 
                 <!-- ລາຄາຊື້ — ເຊື່ອງໄວ້ສຳລັບສິນຄ້າ/ບໍລິການທີ່ "ບໍ່ຕັດສະຕັອກ" (cut_qty = 0) ຖ້າຍັງບໍ່ໄດ້ຕັ້ງຕົ້ນທຶນ
                      (ບໍ່ຢາກໃຫ້ສະແດງ "0" ຄືກັບວ່າຕົ້ນທຶນແມ່ນ 0 ແທ້ໆ) — ແຕ່ຖ້າມີການຕັ້ງຕົ້ນທຶນໄວ້ ກໍ່ໃຫ້ສະແດງປົກກະຕິ -->
@@ -318,7 +338,7 @@
           ?>
           <tfoot>
             <tr style="background:#f8fafc; font-weight:800; border-top:2px solid #cbd5e1;">
-              <td colspan="7" class="text-right" style="color:#0f172a; white-space: nowrap;"><?php echo htmlspecialchars(t('products.grand_total', 'ລວມທັງໝົດ:')); ?></td>
+              <td colspan="<?php echo 5 + ($zsZoneCol ? 1 : 0) + ($zsShelfCol ? 1 : 0); ?>" class="text-right" style="color:#0f172a; white-space: nowrap;"><?php echo htmlspecialchars(t('products.grand_total', 'ລວມທັງໝົດ:')); ?></td>
               <td class="text-right" id="totalBprice" style="color:#64748b; white-space: nowrap;"><?php echo displayMoney($pdo, $sumBprice); ?></td>
               <td class="text-right" id="totalPrice" style="color:#16a34a; white-space: nowrap;"><?php echo displayMoney($pdo, $sumPrice); ?></td>
               <?php if ($isAdmin): ?><td></td><?php endif; ?>

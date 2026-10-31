@@ -179,4 +179,6 @@ return [
     'permissions.module_shifts_title' => 'ຈັດການກະເຮັດວຽກ',
     'permissions.module_shifts_desc' => 'ຕັ້ງຄ່າກະ, ເວລາເປີດ-ປິດ ແລະ ພະນັກງານປະຈຳກະ',
     'permissions.module_expiry_report_title' => '↳ ລາຍງານສິນຄ້າໝົດອາຍຸ',
+    'permissions.module_tts_title' => 'ຕັ້ງຄ່າລະບົບສຽງ',
+    'permissions.module_tts_desc' => 'ເປີດ/ປິດສຽງເວົ້າ, ເລືອກສຽງ ແລະ ວັດຈະນານຸກົມການອອກສຽງ',
 ];

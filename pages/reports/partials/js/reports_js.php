@@ -43,7 +43,8 @@ window.REPORT_LAN_MSG = <?php echo json_encode([
 ], JSON_UNESCAPED_UNICODE); ?>;
 
 // Same per-id sizes the POS adds to its receipt image (#rc_total etc.)
-var REPORT_RCPT_EXTRA_CSS = ' #rc_rep_total{font-size:17px !important;} #rc_rep_multicur{font-size:14.5px !important;} #rc_rep_bank_name_lbl{font-size:15px !important;}';
+// CSS ບິນມີບ່ອນດຽວ: RECEIPT_CSS ໃນ assets/js/lan-receipt.js (ທຸກຊ່ອງທາງ). ຕົວແປນີ້ຄົງໄວ້ໃຫ້ໂຄດເກົ່າທີ່ອ້າງເຖິງ — ວ່າງສະເໝີ.
+var REPORT_RCPT_EXTRA_CSS = '';
 
 // Reprint: LAN receipt printer → print straight away (no preview); otherwise the browser dialog.
 <?php require __DIR__ . '/reports/bill_view.php'; /* ເບິ່ງລາຍລະອຽດບິນ */ ?>

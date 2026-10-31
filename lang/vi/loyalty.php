@@ -101,4 +101,5 @@ return [
     'loyalty.min_spend_hint' => 'Không bắt buộc — đơn hàng luôn phải lớn hơn số tiền giảm',
     'loyalty.min_spend_short' => 'Mua tối thiểu %s Kíp',
     'loyalty.min_spend_over_short' => 'Mua trên %s Kíp',
+    'loyalty.branch_scope' => 'Chỉ chi nhánh:',
 ];

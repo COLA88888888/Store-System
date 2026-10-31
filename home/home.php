@@ -39,6 +39,20 @@ if (empty($_SESSION['user_id']) || empty($_SESSION['checked'])) {
     exit();
 }
 
+// ສິດ "ໜ້າຫຼັກ" (ຍອດຂາຍ, ຕົ້ນທຶນ, ກຳໄລ): ປິດສະວິດ → ເປີດຜ່ານ URL ກໍບໍ່ເຫັນ. ບໍ່ສົ່ງກັບ dashboard.php ເພາະຜູ້ໃຊ້ທີ່
+// ບໍ່ມີສິດໜ້າໃດເລີຍ ຈະຖືກສົ່ງມາໜ້ານີ້ (home/dashboard.php) → ວົນບໍ່ຢຸດ; ສະແດງຂໍ້ຄວາມແທນ
+if (!hasPermission('dashboard')) {
+    $base_path = '../';
+    require_once __DIR__ . '/../layouts/header.php';
+    echo '<div class="container-fluid p-4"><div class="card border-0 shadow-sm mx-auto text-center p-5" style="max-width: 520px; border-radius: 14px;">'
+       . '<i class="fas fa-lock fa-3x text-secondary mb-3" style="opacity: 0.6;"></i>'
+       . '<h5 class="font-weight-bold text-dark mb-2">' . htmlspecialchars(t('home.no_permission_title', 'ທ່ານບໍ່ມີສິດເບິ່ງໜ້ານີ້')) . '</h5>'
+       . '<p class="text-muted mb-0">' . htmlspecialchars(t('home.no_permission_text', 'ກະລຸນາເລືອກເມນູທີ່ທ່ານມີສິດຢູ່ດ້ານຂ້າງ ຫຼື ຕິດຕໍ່ຜູ້ບໍລິຫານ')) . '</p>'
+       . '</div></div>';
+    require_once __DIR__ . '/../layouts/footer.php';
+    exit();
+}
+
 // ຂໍ້ມູນ: ຕົວກັ່ນຕອງ ແລະ ຕົວເລກຫຼັກ
 require __DIR__ . '/partials/home/data_metrics.php';
 // ຂໍ້ມູນ: ກຣາຟ

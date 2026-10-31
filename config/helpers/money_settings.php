@@ -21,6 +21,26 @@ if (!function_exists('getSetting')) {
     }
 }
 
+if (!function_exists('loyaltySetting')) {
+    /**
+     * ກົດຄະແນນສະສົມຂອງສາຂາ (loyalty_enabled / loyalty_spend_amount / loyalty_points_earned): ແຕ່ລະສາຂາມີ
+     * "<key>_store_<id>" ຂອງຕົນ (ບັນທຶກຈາກໜ້າ ຕັ້ງຄ່າຄະແນນສະສົມ); ສາຂາທີ່ຍັງບໍ່ເຄີຍບັນທຶກ ໃຊ້ຄ່າລວມເດີມ "<key>".
+     */
+    function loyaltySetting($pdo, $key, $storeId, $default = '') {
+        $own = getSetting($pdo, $key . '_store_' . (int)$storeId, null);
+        return $own !== null ? $own : getSetting($pdo, $key, $default);
+    }
+}
+
+if (!function_exists('customerInBranch')) {
+    // ລູກຄ້າເປັນຂອງສາຂານີ້ບໍ (ຫຼື ລູກຄ້າໃຊ້ຮ່ວມ store_id = 0) — ຄະແນນແລກ/ສະສົມໄດ້ສະເພາະສາຂາຂອງລູກຄ້າ
+    function customerInBranch($pdo, $customerId, $storeId) {
+        $st = $pdo->prepare("SELECT 1 FROM st_customers WHERE customer_id = ? AND (store_id = ? OR store_id = 0) LIMIT 1");
+        $st->execute([intval($customerId), intval($storeId)]);
+        return (bool)$st->fetchColumn();
+    }
+}
+
 if (!function_exists('changeCustomerPoints')) {
     /**
      * Apply a points change to a customer and record it in loyalty_points_log. Runs inside
@@ -211,29 +231,11 @@ if (!function_exists('logDebug')) {
 }
 
 if (!function_exists('logActivity')) {
+    // ບັນທຶກການເຄື່ອນໄຫວ ຖືກປິດ (31/10/2026): ເຈົ້າຂອງຮ້ານບໍ່ໄດ້ສັ່ງສ້າງ ຕາຕະລາງ st_activity_logs ຈຶ່ງຖືກລຶບ ແລະ ຟັງຊັນນີ້
+    // ບໍ່ສ້າງ ບໍ່ບັນທຶກຫຍັງອີກ (ເມື່ອກ່ອນສ້າງຕາຕະລາງຄືນເອງທຸກຄັ້ງທີ່ບໍ່ພົບ). ຄົງຊື່ຟັງຊັນໄວ້ ເພາະຫຼາຍບ່ອນເອີ້ນໃຊ້.
     function logActivity($pdo, $action, $detail = '')
     {
-        if (!$pdo) {
-            return;
-        }
-        try {
-            $stmt = $pdo->prepare('INSERT INTO st_activity_logs (action, detail, created_at) VALUES (?, ?, NOW())');
-            $stmt->execute([$action, $detail]);
-        } catch (Throwable $e) {
-            // If table does not exist and no transaction is active, create it safely (never run DDL inside transaction)
-            if (isset($pdo) && method_exists($pdo, 'inTransaction') && !$pdo->inTransaction()) {
-                try {
-                    $pdo->exec("CREATE TABLE IF NOT EXISTS `st_activity_logs` (
-                        `id` INT AUTO_INCREMENT PRIMARY KEY,
-                        `action` VARCHAR(255) NOT NULL,
-                        `detail` TEXT NULL,
-                        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-                    $stmt = $pdo->prepare('INSERT INTO st_activity_logs (action, detail, created_at) VALUES (?, ?, NOW())');
-                    $stmt->execute([$action, $detail]);
-                } catch (Throwable $e2) {}
-            }
-        }
+        return;
     }
 }
 

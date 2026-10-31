@@ -86,6 +86,15 @@ if (isset($_GET['action']) && $_GET['action'] === 'get_receipt_printer') {
 // AJAX: ພິມບິນຍ່ອຍ LAN
 require __DIR__ . '/pos/print_lan_ticket.php';
 
+// ຂາຍ / ພັກບິນ / ເພີ່ມລູກຄ້າ ຕ້ອງມີສິດ "ຂາຍ" — ໜ້າ pos.php ກວດແລ້ວ ແຕ່ໄຟລ໌ນີ້ຍິງກົງໄດ້ (ພິມໃບບິນ / ສະຕັອກສົດ ຂ້າງເທິງ ບໍ່ຕ້ອງ)
+$__posAction = (string)($_POST['action'] ?? $_GET['action'] ?? '');
+if (in_array($__posAction, ['checkout', 'add_customer_ajax', 'list_held_orders', 'save_held_order', 'delete_held_order', 'clear_all_held_orders', 'mark_paid_held_order'], true)
+    && !hasPermission('sale')) {
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'message' => tl('ທ່ານບໍ່ມີສິດຂາຍສິນຄ້າ')]);
+    exit();
+}
+
 // AJAX: ຈັດການບິນທີ່ພັກໄວ້ (Held Orders API)
 require __DIR__ . '/pos/held_orders_api.php';
 // 1. AJAX handler for Checkout

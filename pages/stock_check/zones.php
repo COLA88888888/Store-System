@@ -79,7 +79,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $znStmt = $pdo->prepare("SELECT zone_name FROM st_zones WHERE zone_id = ? AND store_id = ?");
         $znStmt->execute([$id, $activeStoreId]);
         $znName = $znStmt->fetchColumn();
+        // ໂຊນທີ່ຍັງມີສິນຄ້າ ລົບບໍ່ໄດ້ — ຕ້ອງຍ້າຍສິນຄ້າອອກກ່ອນ (ກວດຢູ່ເຊີເວີ ເຖິງ JS ຈະກັນໄວ້ແລ້ວ)
+        $zoneProducts = 0;
         if ($id > 0 && $znName) {
+            $cnt = $pdo->prepare("SELECT COUNT(*) FROM st_products WHERE zone = ? AND store_id = ?");
+            $cnt->execute([$znName, $activeStoreId]);
+            $zoneProducts = (int)$cnt->fetchColumn();
+        }
+        if ($zoneProducts > 0) {
+            $message = sprintf(t('zs.z_delete_blocked', 'ລົບໂຊນ %s ບໍ່ໄດ້: ຍັງມີສິນຄ້າ %s ລາຍການຢູ່ໃນໂຊນນີ້. ກະລຸນາຍ້າຍສິນຄ້າອອກກ່ອນ.'), $znName, number_format($zoneProducts));
+            $message_type = 'warning';
+        } elseif ($id > 0 && $znName) {
             $pdo->beginTransaction();
             $pdo->prepare("UPDATE st_shelves SET zone_id = NULL WHERE zone_id = ? AND store_id = ?")->execute([$id, $activeStoreId]);
             $pdo->prepare("UPDATE st_products SET zone = NULL WHERE zone = ? AND store_id = ?")->execute([$znName, $activeStoreId]);
@@ -330,10 +340,21 @@ function openEditZoneModal(z) {
 }
 
 function confirmDeleteZone(id, name, prodCount) {
-  var warn = prodCount > 0 ? ('<br><span class="text-danger small">' + zsT('zs.z_delete_warn', prodCount) + '</span>') : '';
+  var safeName = '<b>"' + $('<div>').text(name).html() + '"</b>';
+  // ຍັງມີສິນຄ້າໃນໂຊນນີ້ → ລົບບໍ່ໄດ້, ແຈ້ງເຕືອນຢ່າງດຽວ (ເຊີເວີກໍກວດຊ້ຳ)
+  if (prodCount > 0) {
+    Swal.fire({
+      icon: 'error',
+      title: zsT('zs.delete_blocked_title'),
+      html: zsT('zs.z_delete_blocked', safeName, Number(prodCount).toLocaleString()),
+      confirmButtonColor: '#2563eb',
+      confirmButtonText: zsT('zs.ok')
+    });
+    return;
+  }
   Swal.fire({
     title: zsT('zs.confirm_delete'),
-    html: zsT('zs.z_delete_text', '<b>"' + $('<div>').text(name).html() + '"</b>') + warn,
+    html: zsT('zs.z_delete_text', safeName),
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#ef4444',

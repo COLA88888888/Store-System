@@ -41,4 +41,5 @@ return [
     'home.lbl_date' => '日期', 'home.lbl_month' => '月份', 'home.lbl_year' => '年', 'home.lbl_time' => '时间',
     'home.unit_hour' => '点', 'home.unit_qty' => '件',
     'home.million_suffix' => '百万基普', 'home.thousand_suffix' => '千基普',
+    'home.no_permission_title' => '您无权查看此页面', 'home.no_permission_text' => '请在侧边栏选择您有权限的菜单，或联系管理员',
 ];

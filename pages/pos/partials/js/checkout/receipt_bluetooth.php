@@ -40,7 +40,8 @@ function btPaintStatus() {
 function renderReceiptBluetoothCanvas() {
   var s = btSettings(), dots = s.paper === 58 ? 384 : 576;
   var source = document.getElementById('receiptPrintArea');
-  var layoutPx = MiniposLanReceipt.paperPx(80); // ກັອບປີ້ໂຄງຮ່າງບິນເຄື່ອງພິມທົ່ວໄປມາເລີຍ (302px)
+  // ໂຄງຮ່າງກວ້າງເທົ່າບິນ browser (ເຈ້ຍຂອງເຄື່ອງພິມບິນ) — ຮູບດຽວກັນ ແລ້ວຫຍໍ້/ຂະຫຍາຍຕາມຫົວພິມ Bluetooth
+  var layoutPx = MiniposLanReceipt.paperPx(MiniposLanReceipt.receiptPaper ? MiniposLanReceipt.receiptPaper((window.POS_RECEIPT_PRINTER || {}).paper_width) : (window.POS_RECEIPT_PRINTER || {}).paper_width);
   var render = MiniposLanReceipt.toCanvas
     ? MiniposLanReceipt.toCanvas(source, layoutPx, '<?php echo $base_path; ?>', POS_RCPT_EXTRA_CSS, dots)
     : receiptAreaToImage(layoutPx);

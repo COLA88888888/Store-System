@@ -72,6 +72,13 @@ function openCheckoutModal() {
   $('#cashReceived').val(POSCUR.num(netKip));
   calculateChange();
   $('#checkoutModal').modal('show');
+
+  // Lao TTS: ເວົ້າແຈ້ງຍອດລວມທີ່ຕ້ອງຊຳລະທັນທີ (ຫຼິ້ນຈາກ Preload / Cache 0ms)
+  try {
+    if (window.LaoTTS && netKip > 0) {
+      LaoTTS.speakTotalToPay(netKip);
+    }
+  } catch(e) {}
   try {
     if (window.parent && typeof window.parent.setPosModalOpen === 'function') {
       window.parent.setPosModalOpen(true);
@@ -203,6 +210,12 @@ function processCheckout() {
 
   // Snapshot the per-printer kitchen tickets now — the cart is cleared on checkout success.
   window.__lastKitchenTickets = buildKitchenTickets(cart);
+  // Snapshot current cart for customer display preservation after checkout
+  try {
+    window.__lastSoldCartSnapshot = (Array.isArray(cart) && cart.length > 0) ? JSON.parse(JSON.stringify(cart)) : [];
+  } catch(e) {
+    window.__lastSoldCartSnapshot = [];
+  }
 
   var payload = {
     cart:            cleanCart,
@@ -220,6 +233,17 @@ function processCheckout() {
     paid_currency:   (window.POSCUR && POSCUR.code) ? POSCUR.code : 'KIP',
     paid_rate:       (window.POSCUR && POSCUR.rate) ? POSCUR.rate : 1
   };
+
+  // ສຽງຮັບເງິນ: ສ້າງຂໍ້ຄວາມຈາກຍອດທີ່ກຳລັງສົ່ງນີ້ ແລ້ວ preload ໄວ້ລະຫວ່າງລໍເຊີເວີ — handleOnlineCheckoutReceiptUI ເວົ້າຂໍ້ຄວາມນີ້
+  window.__posPaySpeech = null;
+  if (typeof posPreloadPaySpeech === 'function') {
+    var paySpeechText = posPreloadPaySpeech({
+      mode: currentPayMode === 'split' ? 'split' : (isTransferTxn ? 'qr' : 'cash'),
+      totalKip: total, cashKip: cashReceived, qrKip: qrReceived, changeKip: change,
+      bank: isTransferTxn ? (activeBankName || '') : ''
+    });
+    if (paySpeechText) window.__posPaySpeech = { text: paySpeechText, totalKip: total };
+  }
 
   window.__posCheckoutInFlight = true;
   $('#btnSubmitPayment').prop('disabled', true);
@@ -241,9 +265,8 @@ function processCheckout() {
     dataType: 'json',
     complete: function() {
       window.__posCheckoutInFlight = false;
-      // On success the modal is already closing (handleOnlineCheckoutReceiptUI); on failure
-      // re-derive the button's disabled state from the still-visible amounts instead of just
-      // force-enabling it, so a genuinely short payment still blocks the retry.
+      // ຖ້າຫາກຊຳລະສຳເລັດ (handleOnlineCheckoutReceiptUI ກຳລັງເຮັດວຽກ): ຫ້າມຄິດໄລ່ເງິນທອນ ຫຼື ສົ່ງ broadcastPaymentLive ທັບຈໍລູກຄ້າ
+      if (window.__isCheckoutSuccessFinishing) return;
       if (currentPayMode === 'split') calcSplitRemaining(); else calculateChange();
     },
     success: function(res) {

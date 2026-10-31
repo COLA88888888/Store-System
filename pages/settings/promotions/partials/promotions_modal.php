@@ -95,7 +95,7 @@
           </div>
 
           <div class="row">
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3<?php echo count($stores) <= 1 ? ' d-none' : ''; /* ສາຂາດຽວ → ເຊື່ອງ */ ?>">
               <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_branch', 'ສາຂາ:')); ?></label>
               <select name="branch_id" id="add_branch_id" class="form-control" style="height: 42px;" <?php echo (!$canAllBranches) ? 'disabled' : ''; ?>>
                 <?php if ($canAllBranches): ?>
@@ -226,7 +226,7 @@
             </div>
           </div>
 
-          <div class="form-group mb-0">
+          <div class="form-group mb-0<?php echo count($stores) <= 1 ? ' d-none' : ''; /* ສາຂາດຽວ → ເຊື່ອງ */ ?>">
             <label class="font-weight-bold text-dark small mb-1"><?php echo htmlspecialchars(t('promotions.field_branch', 'ສາຂາ:')); ?></label>
             <select name="branch_id" id="edit_branch_id" class="form-control" style="height: 42px;" <?php echo (!$canAllBranches) ? 'disabled' : ''; ?>>
               <?php if ($canAllBranches): ?>

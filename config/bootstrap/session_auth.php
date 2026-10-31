@@ -150,6 +150,7 @@ if ($conn && !empty($_SESSION['user_id'])) {
             'shift_revenue_report' => $isAdmin ? 1 : (int)($refresh_row['shift_revenue_report'] ?? $refresh_row['report'] ?? 0),
             'expiry_report' => $isAdmin ? 1 : (int)($refresh_row['expiry_report'] ?? $refresh_row['report'] ?? 0),
             'shifts' => $isAdmin ? 1 : (int)($refresh_row['shifts'] ?? $refresh_row['setup'] ?? 0),
+            'tts' => $isAdmin ? 1 : 0,   // ສະເພາະຜູ້ເບິ່ງແຍງລະບົບ
             'accounting' => $isAdmin ? 1 : (int)($refresh_row['accounting'] ?? 0),
             'setup' => $isAdmin ? 1 : (int)($refresh_row['setup'] ?? 0),
             'stores' => $isAdmin ? 1 : (int)($refresh_row['stores'] ?? $refresh_row['setup'] ?? 0),

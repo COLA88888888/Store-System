@@ -162,23 +162,7 @@
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     } catch (Throwable $ex) {}
 
-    // Backfill: every main-branch category must also exist in each sub-branch (its own
-    // row/category_id there, matched by name). Covers categories created before the
-    // add/edit propagation existed, or inserted directly in the DB. No-op once caught up.
-    try {
-        $pdo->exec("
-            INSERT INTO st_categories (category_name, description, store_id)
-            SELECT mc.category_name, mc.description, s.store_id
-            FROM st_categories mc
-            CROSS JOIN st_tbstore s
-            WHERE mc.store_id = (SELECT store_id FROM st_tbstore WHERE is_main = 1 LIMIT 1)
-              AND s.store_id != mc.store_id
-              AND NOT EXISTS (
-                  SELECT 1 FROM st_categories sc
-                  WHERE sc.store_id = s.store_id AND sc.category_name = mc.category_name
-              )
-        ");
-    } catch (Throwable $ex) {}
+    // ບໍ່ຄັດລອກປະເພດສິນຄ້າຈາກສາຂາຫຼັກ ໄປໃສ່ສາຂາອື່ນເອງ (ຂໍ້ມູນເກີດຂຶ້ນເອງ) — ເພີ່ມໃນໜ້າຈັດການເອງ
 
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `st_units` (
@@ -189,20 +173,5 @@
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     } catch (Throwable $ex) {}
 
-    // Backfill: every main-branch unit must also exist in each sub-branch (its own
-    // row/unit_id there, matched by name) — same sync rule as categories above.
-    try {
-        $pdo->exec("
-            INSERT INTO st_units (unit_name, description, store_id)
-            SELECT mu.unit_name, mu.description, s.store_id
-            FROM st_units mu
-            CROSS JOIN st_tbstore s
-            WHERE mu.store_id = (SELECT store_id FROM st_tbstore WHERE is_main = 1 LIMIT 1)
-              AND s.store_id != mu.store_id
-              AND NOT EXISTS (
-                  SELECT 1 FROM st_units su
-                  WHERE su.store_id = s.store_id AND su.unit_name = mu.unit_name
-              )
-        ");
-    } catch (Throwable $ex) {}
+    // ບໍ່ຄັດລອກຫົວໜ່ວຍຈາກສາຂາຫຼັກ ໄປໃສ່ສາຂາອື່ນເອງ (ຂໍ້ມູນເກີດຂຶ້ນເອງ) — ເພີ່ມໃນໜ້າຈັດການເອງ
 

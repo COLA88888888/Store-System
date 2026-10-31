@@ -218,7 +218,8 @@ function getProductImagePath($imgFile) {
         return $imgPathCache[$key];
     }
     $filename = basename($key);
-    $res = '../../assets/product_img/' . $filename;
+    // ໄຟລ໌ຮູບຫາຍໄປແລ້ວ → null (ໜ້າສະແດງຮູບແທນ) ແທນທີ່ຈະໃຫ້ browser ຂໍໄຟລ໌ທີ່ບໍ່ມີ (404) — ຄືກັບໜ້າຂາຍ
+    $res = is_file(dirname(__DIR__, 3) . '/assets/product_img/' . $filename) ? '../../assets/product_img/' . $filename : null;
     $imgPathCache[$key] = $res;
     return $res;
 }

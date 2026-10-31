@@ -232,11 +232,12 @@
         // 2. Earn Y points for every X kip actually paid — $net_total is already after the
         //    points discount, so a redeemed discount doesn't earn points back on itself.
         $points_base = $net_total;
-        if (!empty($customer_id) && intval($customer_id) > 0) {
-            if (getSetting($pdo, 'loyalty_enabled', '0') === '1') {
+        // ກົດຄະແນນຂອງສາຂານີ້ ແລະ ສະສົມໄດ້ສະເພາະລູກຄ້າຂອງສາຂານີ້ (ຄະແນນແຍກແຕ່ລະສາຂາ)
+        if (!empty($customer_id) && intval($customer_id) > 0 && customerInBranch($pdo, $customer_id, $activeStoreId)) {
+            if (loyaltySetting($pdo, 'loyalty_enabled', $activeStoreId, '0') === '1') {
                 $loyalty_active = 1;
-                $lpSpend = (int)getSetting($pdo, 'loyalty_spend_amount', '100000');
-                $lpPer   = (int)getSetting($pdo, 'loyalty_points_earned', '1');
+                $lpSpend = (int)loyaltySetting($pdo, 'loyalty_spend_amount', $activeStoreId, '100000');
+                $lpPer   = (int)loyaltySetting($pdo, 'loyalty_points_earned', $activeStoreId, '1');
                 if ($lpSpend > 0 && $lpPer > 0) {
                     $points_earned = intdiv((int)round($points_base), $lpSpend) * $lpPer;
                     if ($points_earned > 0) {

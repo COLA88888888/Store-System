@@ -126,6 +126,33 @@ $products_stmt = $pdo->prepare("
 ");
 $products_stmt->execute([$selectedStoreId]);
 $products = $products_stmt->fetchAll();
+
+// ໂຊນ ແລະ ຊັ້ນວາງ: ດຶງຂໍ້ມູນຈາກຕາຕະລາງ st_zones (ໂຊນສິນຄ້າ) ແລະ st_shelves (ຊັ້ນວາງສິນຄ້າ) ໂດຍກົງ
+$zsZoneCol   = !empty($zones);
+$zsShelfCol  = !empty($shelves);
+$zsZoneForm  = $zsZoneCol;
+$zsShelfForm = $zsShelfCol;
+
+// ລາຍການໃນບັອກກັ່ນຕອງ: ດຶງມາຈາກຕາຕະລາງ st_zones ແລະ st_shelves ຂອງສາຂານີ້
+$zoneFilterOptions = [];
+foreach ($zones as $__zr) {
+    $__zn = trim((string)($__zr['zone_name'] ?? ''));
+    if ($__zn !== '') {
+        $zoneFilterOptions[] = $__zn;
+    }
+}
+$zoneFilterOptions = array_values(array_unique($zoneFilterOptions));
+sort($zoneFilterOptions, SORT_NATURAL | SORT_FLAG_CASE);
+
+$shelfFilterOptions = [];
+foreach ($shelves as $__sr) {
+    $__sn = trim((string)($__sr['shelf_name'] ?? ''));
+    if ($__sn !== '') {
+        $shelfFilterOptions[] = $__sn;
+    }
+}
+$shelfFilterOptions = array_values(array_unique($shelfFilterOptions));
+sort($shelfFilterOptions, SORT_NATURAL | SORT_FLAG_CASE);
 $expiryAlertDays = getExpiryAlertDays($pdo);
 
 // ດຶງຂໍ້ມູນ product_units ທັງໝົດມາ map
@@ -144,6 +171,11 @@ require_once __DIR__ . '/../../layouts/header.php';
 ?>
 
 <link rel="stylesheet" href="../../themes/products.css?v=<?php echo filemtime(__DIR__ . '/../../themes/products.css'); ?>">
+<?php /* ບໍ່ມີລາຍຊື່ໂຊນ/ຊັ້ນວາງ → ເຊື່ອງບັອກ .zs-zone-field / .zs-shelf-field ໃນທຸກຟອມ (themes/products.css) */ ?>
+<script>
+  document.documentElement.classList.toggle('zs-no-zone', <?php echo $zsZoneForm ? 'false' : 'true'; ?>);
+  document.documentElement.classList.toggle('zs-no-shelf', <?php echo $zsShelfForm ? 'false' : 'true'; ?>);
+</script>
 
 <div class="container-fluid p-4">
 

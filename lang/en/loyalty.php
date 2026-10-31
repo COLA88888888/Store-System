@@ -101,4 +101,5 @@ return [
     'loyalty.min_spend_hint' => 'Optional — the purchase must always be more than the discount',
     'loyalty.min_spend_short' => 'Min. purchase %s Kip',
     'loyalty.min_spend_over_short' => 'Purchase over %s Kip',
+    'loyalty.branch_scope' => 'This branch only:',
 ];

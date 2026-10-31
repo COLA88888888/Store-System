@@ -61,26 +61,24 @@ if ($pdo) {
     // tbuser.customer_debt dropped (backup: backups/debts_before_removal_*.sql).
     // v19: tbuser.account_active — ປິດໃຊ້ງານບັນຊີພະນັກງານທີ່ລາອອກ (ເຂົ້າລະບົບບໍ່ໄດ້).
     // v20: tbcompanyinfo.receipt_footer_{en,th,zh} — ຂໍ້ຄວາມທ້າຍໃບບິນຕາມພາສາ.
-    $schemaFlagFile = __DIR__ . '/.db_schema_v20';
+    // v21: loyalty_rewards.store_id — ລາງວັນແລກຄະແນນແຍກແຕ່ລະສາຂາ.
+    $schemaFlagFile = __DIR__ . '/.db_schema_v21';
     if (!file_exists($schemaFlagFile)) {
         // ແລ່ນຄັ້ງດຽວຕໍ່ເວີຊັນ: ອັບເດດໂຄງສ້າງ DB ທັງ 4 ສ່ວນ ຕາມລຳດັບ ແລ້ວຂຽນໄຟລ໌ flag ໄວ້
         require __DIR__ . '/migrations/schema_core.php';             // (1) ພື້ນຖານ
         require __DIR__ . '/migrations/schema_users_customers.php';   // (2) ຜູ້ໃຊ້ ແລະ ລູກຄ້າ
         require __DIR__ . '/migrations/schema_company_banks.php';     // (3) ຮ້ານ, ທະນາຄານ, ໂປຣໂມຊັ່ນ
         require __DIR__ . '/migrations/schema_settings_sales.php';    // (4) ການຕັ້ງຄ່າ, ການຂາຍ, ໜີ້
+        // ເມື່ອກ່ອນ 4 ໄຟລ໌ລຸ່ມນີ້ແລ່ນທຸກ session ໃໝ່ (ນອກ flag) → ຕາຕະລາງທີ່ຖືກລຶບກັບມາເອງ. ດຽວນີ້ແລ່ນສະເພາະເມື່ອ
+        // ປ່ຽນເລກເວີຊັນ (ສັ່ງປ່ຽນໂຄງສ້າງເອງ) — ບໍ່ມີຕາຕະລາງ ຫຼື ຂໍ້ມູນໃດເກີດຂຶ້ນເອງ (31/10/2026)
+        require __DIR__ . '/migrations/schema_loyalty.php';           // ຄະແນນສະສົມ
+        require __DIR__ . '/migrations/schema_stock_check.php';       // ເຊັກສະຕັອກ
+        require __DIR__ . '/migrations/schema_shifts.php';            // ຈັດການກະເຮັດວຽກ
+        require __DIR__ . '/migrations/schema_held_orders.php';       // ບິນທີ່ພັກໄວ້
 
         @file_put_contents($schemaFlagFile, date('Y-m-d H:i:s'));
     }
 }
-
-// ອັບເດດໂຄງສ້າງ DB: ຄະແນນສະສົມ
-require __DIR__ . '/migrations/schema_loyalty.php';
-// ອັບເດດໂຄງສ້າງ DB: ເຊັກສະຕັອກ
-require __DIR__ . '/migrations/schema_stock_check.php';
-// ອັບເດດໂຄງສ້າງ DB: ຈັດການກະເຮັດວຽກ
-require __DIR__ . '/migrations/schema_shifts.php';
-// ອັບເດດໂຄງສ້າງ DB: ບິນທີ່ພັກໄວ້ (ຄ້າງໄວ້ບໍ່ໃຫ້ຫາຍ)
-require __DIR__ . '/migrations/schema_held_orders.php';
 // ຟັງຊັນຊ່ວຍ: ລິ້ງໄຟລ໌ CSS ໃນ themes/ (themeCssLink)
 require __DIR__ . '/helpers/theme_css.php';
 // ຟັງຊັນຊ່ວຍ: ການຕັ້ງຄ່າ, ເງິນ, ບັນທຶກ

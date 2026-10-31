@@ -168,4 +168,6 @@ return [
     'products.bulk_img_hint' => 'Nhấn để chọn ảnh (không bắt buộc)',
     'products.bulk_img_fail' => 'Tải ảnh lên thất bại',
     'products.bulk_img_busy' => 'Ảnh vẫn đang tải lên — vui lòng chờ một chút',
+    'products.zone_filter_all' => '-- Tất cả khu vực --',
+    'products.shelf_filter_all' => '-- Tất cả kệ --',
 ];

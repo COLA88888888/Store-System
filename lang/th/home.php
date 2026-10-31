@@ -41,4 +41,5 @@ return [
     'home.lbl_date' => 'วันที่', 'home.lbl_month' => 'เดือน', 'home.lbl_year' => 'ปี', 'home.lbl_time' => 'เวลา',
     'home.unit_hour' => 'น.', 'home.unit_qty' => 'ชิ้น',
     'home.million_suffix' => 'ล้านกีบ', 'home.thousand_suffix' => 'พันกีบ',
+    'home.no_permission_title' => 'คุณไม่มีสิทธิ์ดูหน้านี้', 'home.no_permission_text' => 'กรุณาเลือกเมนูที่คุณมีสิทธิ์ทางด้านข้าง หรือติดต่อผู้บริหาร',
 ];

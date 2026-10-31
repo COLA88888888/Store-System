@@ -27,7 +27,8 @@ function reprintReceiptAuto() {
   if (btOn && window.MiniposLanReceipt) {
     var area = document.getElementById('reportReceiptPrintArea');
     var dots = (parseInt(btCfg.paper, 10) === 58 || (!btCfg.paper && isHandheld)) ? 384 : 576;
-    var layoutPx = MiniposLanReceipt.paperPx(80);
+    // ໂຄງຮ່າງກວ້າງເທົ່າບິນ browser (ເຈ້ຍຂອງເຄື່ອງພິມບິນ) — ຮູບດຽວກັນທຸກຊ່ອງທາງ
+    var layoutPx = MiniposLanReceipt.paperPx(MiniposLanReceipt.receiptPaper ? MiniposLanReceipt.receiptPaper((window.REPORT_RECEIPT_PRINTER || {}).paper_width) : (window.REPORT_RECEIPT_PRINTER || {}).paper_width);
     var rendered = MiniposLanReceipt.toCanvas
       ? MiniposLanReceipt.toCanvas(area, layoutPx, '../../', REPORT_RCPT_EXTRA_CSS, dots)
       : MiniposLanReceipt.toImage(area, layoutPx, '../../', REPORT_RCPT_EXTRA_CSS);

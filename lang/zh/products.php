@@ -189,4 +189,6 @@ return [
     'products.bulk_img_hint' => '点击选择图片（可选）',
     'products.bulk_img_fail' => '图片上传失败',
     'products.bulk_img_busy' => '图片正在上传 — 请稍候',
+    'products.zone_filter_all' => '-- 全部区域 --',
+    'products.shelf_filter_all' => '-- 全部货架 --',
 ];

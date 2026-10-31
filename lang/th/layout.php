@@ -107,4 +107,10 @@ return [
     'layout.role_manager' => 'ผู้จัดการ',
     'layout.role_staff' => 'พนักงาน',
     'layout.clear_data' => 'ลบ/ล้างข้อมูลระบบ',
+    'layout.ok' => 'ตกลง',
+    'layout.logout_blocked_title' => 'ยังออกจากระบบไม่ได้',
+    'layout.logout_blocked_after' => 'กรุณาปิดกะก่อน จึงจะออกจากระบบได้ กดปิดกะและนับเงินในลิ้นชัก เพื่อให้รายงานตามกะถูกต้อง',
+    'layout.logout_blocked_before' => 'กะของคุณยังไม่ถึงเวลาปิด (%s) ออกจากระบบได้เมื่อถึงเวลาและกดปิดกะแล้วเท่านั้น',
+    'layout.close_shift_now' => 'ไปปิดกะตอนนี้',
+    'layout.tts' => 'ตั้งค่าระบบเสียง (TTS)',
 ];

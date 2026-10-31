@@ -265,3 +265,36 @@ if (!function_exists('shiftLoginBlockMessage')) {
         }
     }
 }
+
+if (!function_exists('shiftLogoutBlock')) {
+    /**
+     * ພະນັກງານຂາຍ (ຕຳແໜ່ງ "ພະນັກງານ") ທີ່ມີກະເປີດຢູ່ ອອກຈາກລະບົບບໍ່ໄດ້ ຈົນກວ່າຈະກົດປຸ່ມປິດກະເອງ — ລາຍງານຕາມກະ
+     * ຈຶ່ງຖືກຕ້ອງ (ນັບເງິນໃນລິ້ນຊັກ). ກ່ອນໂມງປິດກະ: ຍັງປິດກະບໍ່ໄດ້ ແລະ ອອກບໍ່ໄດ້; ຮອດ/ເກີນໂມງ: ປິດກະກ່ອນຈຶ່ງອອກໄດ້.
+     * ຜູ້ບໍລິຫານ / ຜູ້ຈັດການ ບໍ່ຖືກກັນ. ອອກອັດຕະໂນມັດເພາະບໍ່ໃຊ້ງານ (?expired) ບໍ່ຜ່ານບ່ອນນີ້ ແລະ ບໍ່ປິດກະ.
+     * ຄືນ null = ອອກໄດ້; ຫຼື ['before_end' => bool, 'end' => 'Y-m-d H:i:s'|null, 'shift_name' => string].
+     * ໃຊ້ທີ່ auth/logout.php (ກັນແທ້) ແລະ api/shifts_backend.php?action=can_logout (ເຕືອນກ່ອນໃນ browser).
+     */
+    function shiftLogoutBlock($pdo, $userId, $storeId, $status) {
+        $userId = (int)$userId;
+        $status = trim((string)$status);
+        if ($userId <= 1 || !$pdo || $status !== 'ພະນັກງານ') return null;
+        try {
+            $st = $pdo->prepare("SELECT ss.*, sh.staff_user_ids FROM st_shift_sessions ss
+                                 LEFT JOIN st_shifts sh ON sh.id = ss.shift_id
+                                 WHERE ss.store_id = ? AND ss.status = 'open' ORDER BY ss.id DESC LIMIT 1");
+            $st->execute([(int)$storeId]);
+            $session = $st->fetch(PDO::FETCH_ASSOC);
+            if (!$session) return null;
+            $staffIds = array_map('intval', explode(',', (string)($session['staff_user_ids'] ?? '')));
+            if ((int)$session['opened_by_user_id'] !== $userId && !in_array($userId, $staffIds, true)) return null;
+            $end = shiftSessionEnd($pdo, $session);
+            return [
+                'before_end' => $end !== null && time() < strtotime($end),
+                'end'        => $end,
+                'shift_name' => (string)($session['shift_name'] ?? ''),
+            ];
+        } catch (Throwable $e) {
+            return null;   // ກວດບໍ່ໄດ້ → ບໍ່ກັກຜູ້ໃຊ້ໄວ້
+        }
+    }
+}

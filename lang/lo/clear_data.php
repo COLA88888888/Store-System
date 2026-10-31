@@ -16,7 +16,7 @@ return [
     'clear_data.unselect_group' => 'ຍົກເລີກກຸ່ມ',
 
     'clear_data.group_sales' => 'ການຂາຍ',
-    'clear_data.group_shifts' => 'ກະ ແລະ ບັນທຶກລະບົບ',
+    'clear_data.group_shifts' => 'ກະເຮັດວຽກ',
     'clear_data.group_stock' => 'ສະຕັອກ',
     'clear_data.group_catalog' => 'ສິນຄ້າ ແລະ ໂຄງສ້າງສິນຄ້າ',
     'clear_data.group_customers' => 'ລູກຄ້າ ແລະ ຄະແນນສະສົມ',
@@ -99,4 +99,15 @@ return [
     'clear_data.error_server' => 'ບໍ່ສາມາດເຊື່ອມຕໍ່ກັບ Server ໄດ້',
     'clear_data.error_password_incorrect' => 'ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ!',
     'clear_data.error_no_permission' => 'ທ່ານບໍ່ມີສິດເຂົ້າເຖິງສ່ວນນີ້',
+
+    // ເລືອກສາຂາທີ່ຈະລຶບ
+    'clear_data.branch_label' => 'ລຶບຂໍ້ມູນຂອງສາຂາ:',
+    'clear_data.branch_all' => '-- ທຸກສາຂາ --',
+    'clear_data.branch_inactive' => '(ປິດໃຊ້ງານ)',
+    'clear_data.branch_hint' => 'ເລືອກສາຂາ → ລຶບສະເພາະຂໍ້ມູນຂອງສາຂານັ້ນ, ສາຂາອື່ນບໍ່ຖືກກະທົບ',
+    'clear_data.branch_locked' => 'ທ່ານລຶບໄດ້ສະເພາະຂໍ້ມູນຂອງສາຂາ:',
+    'clear_data.all_branches_only' => 'ໃຊ້ຮ່ວມທຸກສາຂາ — ລຶບໄດ້ເມື່ອເລືອກ "ທຸກສາຂາ"',
+    'clear_data.modal_branch' => 'ສາຂາ:',
+    'clear_data.error_branch_invalid' => 'ບໍ່ພົບສາຂາທີ່ເລືອກ',
+    'clear_data.error_all_branches_only' => 'ຂໍ້ມູນນີ້ໃຊ້ຮ່ວມທຸກສາຂາ — ລຶບໄດ້ສະເພາະເມື່ອເລືອກ "ທຸກສາຂາ"',
 ];

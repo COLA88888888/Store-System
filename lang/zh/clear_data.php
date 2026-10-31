@@ -16,7 +16,7 @@ return [
     'clear_data.unselect_group' => '取消本组',
 
     'clear_data.group_sales' => '销售',
-    'clear_data.group_shifts' => '班次与系统日志',
+    'clear_data.group_shifts' => '班次',
     'clear_data.group_stock' => '库存',
     'clear_data.group_catalog' => '商品与商品结构',
     'clear_data.group_customers' => '顾客与积分',
@@ -99,4 +99,15 @@ return [
     'clear_data.error_server' => '无法连接服务器',
     'clear_data.error_password_incorrect' => '密码错误！',
     'clear_data.error_no_permission' => '您无权访问此部分',
+
+    // ເລືອກສາຂາທີ່ຈະລຶບ
+    'clear_data.branch_label' => '删除分店数据：',
+    'clear_data.branch_all' => '-- 全部分店 --',
+    'clear_data.branch_inactive' => '（已停用）',
+    'clear_data.branch_hint' => '选择分店 → 只删除该分店的数据，其他分店不受影响',
+    'clear_data.branch_locked' => '您只能删除本分店的数据：',
+    'clear_data.all_branches_only' => '所有分店共用 — 仅在选择"全部分店"时可删除',
+    'clear_data.modal_branch' => '分店：',
+    'clear_data.error_branch_invalid' => '未找到所选分店',
+    'clear_data.error_all_branches_only' => '此数据为所有分店共用 — 仅在选择"全部分店"时可删除',
 ];

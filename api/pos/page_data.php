@@ -79,7 +79,7 @@ $customersList = $stmtPosCust->fetchAll();
 
 // Loyalty redemption catalogue for the "ແລກຄະແນນ" button. Product rewards are resolved in
 // THIS branch (product_id repeats per store); one whose product doesn't exist here is dropped.
-$posLoyalty = ['enabled' => getSetting($pdo, 'loyalty_enabled', '0') === '1', 'rewards' => []];
+$posLoyalty = ['enabled' => loyaltySetting($pdo, 'loyalty_enabled', $activeStoreId, '0') === '1', 'rewards' => []];
 if ($posLoyalty['enabled']) {
     try {
         $lrStmt = $pdo->prepare("
@@ -87,10 +87,10 @@ if ($posLoyalty['enabled']) {
                    p.product_name, p.unit, p.price, p.bprice, p.img_url, p.category_id
             FROM st_loyalty_rewards r
             LEFT JOIN st_products p ON (r.reward_type = 'product' AND p.product_id = r.product_id AND p.store_id = ?)
-            WHERE r.is_active = 1
+            WHERE r.is_active = 1 AND r.store_id = ?   -- ລາງວັນຂອງສາຂານີ້ເທົ່ານັ້ນ
             ORDER BY r.points_cost ASC, r.id ASC
         ");
-        $lrStmt->execute([$activeStoreId]);
+        $lrStmt->execute([$activeStoreId, $activeStoreId]);
         foreach ($lrStmt->fetchAll(PDO::FETCH_ASSOC) as $lr) {
             if ($lr['reward_type'] === 'product' && $lr['product_name'] === null) continue;
             $posLoyalty['rewards'][] = [

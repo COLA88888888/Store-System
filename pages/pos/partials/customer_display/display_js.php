@@ -864,12 +864,58 @@ function showPaymentSuccessModal(data) {
   $overlay.stop(true, true).css('display', 'flex').hide().fadeIn(250);
   playMoneyReceivedSound();
 
+  // Lao TTS Voice: ເວົ້າແຈ້ງຍອດເງິນ, ຮັບເງິນ, ເງິນທອນ ຫຼື ເລກຄິວລູກຄ້າ
+  try {
+    if (window.LaoTTS) {
+      var lastSpokenInvoice = null;
+      try { lastSpokenInvoice = localStorage.getItem('StoreMini.tts_last_spoken_invoice'); } catch (e) {}
+      // ຖ້າ POS ຝັ່ງແຄັດເຊຍເວົ້າໄປແລ້ວໃນເຄື່ອງດຽວກັນ, ບໍ່ຕ້ອງເວົ້າຊ້ຳ
+      if (!lastSpokenInvoice || !data.invoiceNumber || lastSpokenInvoice !== data.invoiceNumber) {
+        if (data.queueNumber) {
+          setTimeout(function() { LaoTTS.speakQueue(data.queueNumber); }, 80);
+        } else if (data.cashReceived || data.qrReceived || data.paidAmount || data.totalAmount) {
+          setTimeout(function() {
+            var tenderCode = (data.tenderCurrency && data.tenderCurrency.code) || 'KIP';
+            var tenderRate = parseFloat(data.tenderCurrency && data.tenderCurrency.rate) || 1;
+            var isKipCur = (tenderCode === 'KIP' || tenderRate <= 1);
+            var totalVal = parseFloat(data.totalAmount || data.paidAmount || data.total || 0);
+            var cashVal = parseFloat(data.cashReceived || 0);
+            var qrVal = parseFloat(data.qrReceived || 0);
+            var changeVal = parseFloat(data.changeAmount || data.change || 0);
+            var isSplit = (data.payMode === 'split') || (cashVal > 0 && qrVal > 0);
+            var isQr = isSplit ? 'split' : (qrVal > 0 || (data.paymentType && (data.paymentType.includes('QR') || data.paymentType.includes('ໂອນ'))));
+
+            var spTotal = isKipCur ? totalVal : Math.round(totalVal / tenderRate);
+            var spCash = isKipCur ? cashVal : Math.round(cashVal / tenderRate);
+            var spQr = isKipCur ? qrVal : Math.round(qrVal / tenderRate);
+            var spChange = isKipCur ? changeVal : Math.max(0, Math.round(changeVal / tenderRate));
+
+            var bankId = data.bankId ? parseInt(data.bankId, 10) : null;
+            var bankObj = (bankId && CD_BANKS && CD_BANKS[bankId]) ? CD_BANKS[bankId] : null;
+            var bName = bankObj ? bankObj.name : (data.bankName || '');
+
+            if (data.payMode === 'credit' || data.paymentType === 'ຕິດໜີ້') {
+              LaoTTS.speakPaymentAndChange(spTotal, spTotal, 0, 'credit', tenderCode);
+            } else if (isSplit) {
+              LaoTTS.speakPaymentAndChange(spTotal, spCash + spQr, spChange, 'split', tenderCode, { cash: spCash, qr: spQr, bank: bName }, bName);
+            } else if (isQr) {
+              LaoTTS.speakPaymentAndChange(spTotal, spQr || spTotal, 0, true, tenderCode, null, bName);
+            } else {
+              LaoTTS.speakPaymentAndChange(spTotal, spCash || spTotal, spChange, false, tenderCode);
+            }
+          }, 80);
+        } else if (data.total || data.totalAmount) {
+          setTimeout(function() { LaoTTS.speakSale(data.total || data.totalAmount); }, 80);
+        }
+      }
+    }
+  } catch(e) {}
+
   if (_paySuccessTimer) clearTimeout(_paySuccessTimer);
   _paySuccessTimer = setTimeout(function() {
-    $overlay.fadeOut(600, function() {
-      resetDisplayTotals();
-    });
-  }, 6000);
+    $overlay.fadeOut(600);
+    // ໝາຍເຫດ: ບໍ່ລ້າງ resetDisplayTotals() ທີ່ນີ້, ໃຫ້ຂໍ້ມູນບິນ ແລະ ເງິນທອນຄ້າງໄວ້ເທິງຈໍລູກຄ້າ ຈົນກວ່າແຄັດເຊຍຈະເລີ່ມບິນໃໝ່
+  }, 10000);
 }
 
 function resetDisplayTotals() {
@@ -919,12 +965,38 @@ function renderDisplayData(data) {
     window.CD_CUR = Object.assign({}, window.CD_DEFAULT_CUR);
   }
 
+  // ຖ້າມີການສັ່ງລ້າງຈໍລູກຄ້າໂດຍກົງ (ຕົວຢ່າງ: ແຄັດເຊຍກົດປຸ່ມ ລ້າງກະຕ່າ)
+  if (data.action === 'clear_cart' || data.action === 'reset_customer_display') {
+    window.__currentCdState = 'shopping';
+    if (_paySuccessTimer) clearTimeout(_paySuccessTimer);
+    $('#paymentSuccessOverlay').hide();
+    resetDisplayTotals();
+    return;
+  }
+
+  // ປ້ອງກັນບໍ່ໃຫ້ broadcast 'payment_live' ຫຼື 'shopping' (ທີ່ກະຕ່າວ່າງ) ມາລ້າງຍອດບິນ ແລະ ເງິນທອນຕອນຊຳລະເງິນສຳເລັດ
+  if (window.__currentCdState === 'payment_success') {
+    if (data.checkoutState === 'payment_live') {
+      return;
+    }
+    if (data.checkoutState === 'shopping' && (!data.cart || data.cart.length === 0)) {
+      return; // ຮັກສາລາຍການທີ່ຂາຍ ແລະ ເງິນທອນໄວ້ເທິງຈໍລູກຄ້າ ຈົນກວ່າຈະມີການຍິງສິນຄ້າບິນໃໝ່
+    }
+  }
+
   renderBankPopup(data);
 
   // Trigger payment success overlay with amount paid
   if (data.checkoutState === 'payment_success') {
+    window.__currentCdState = 'payment_success';
     showPaymentSuccessModal(data);
-  } else if (data.checkoutState === 'checkout_modal_open' || data.checkoutState === 'shopping') {
+  } else if (data.checkoutState === 'checkout_modal_open' || (data.checkoutState === 'shopping' && data.cart && data.cart.length > 0)) {
+    window.__currentCdState = data.checkoutState;
+    if (_paySuccessTimer) clearTimeout(_paySuccessTimer);
+    $('#paymentSuccessOverlay').hide();
+    $('#bankPayPopup').hide();
+  } else if (data.checkoutState === 'shopping') {
+    window.__currentCdState = 'shopping';
     if (_paySuccessTimer) clearTimeout(_paySuccessTimer);
     $('#paymentSuccessOverlay').hide();
     $('#bankPayPopup').hide();
@@ -1021,6 +1093,15 @@ function renderDisplayData(data) {
 
   var discountVal = parseFloat((data.discount || '0').toString().replace(/[^\d]/g, '')) || 0;
   var netGrandTotal = Math.max(0, subtotal - discountVal);
+  // ຊຳລະສຳເລັດ → ລ້າງຕົວເລກແຖບລຸ່ມທັງໝົດເປັນ 0 (ຍອດລວມ, ສ່ວນຫຼຸດ, ຮັບເງິນ, ເງິນທອນ, ຍອດທີ່ຕ້ອງຊຳລະ).
+  // ຍອດທີ່ຈ່າຍ ແລະ ເງິນທອນ ລູກຄ້າຍັງເຫັນໃນໜ້າຕ່າງ "ຊຳລະສຳເລັດ" (showPaymentSuccessModal ອ່ານຈາກ data ເອງ)
+  if (data.checkoutState === 'payment_success') {
+    lineCount = 0;
+    totalQty = 0;
+    subtotal = 0;
+    discountVal = 0;
+    netGrandTotal = 0;
+  }
 
   // Animated number counter helper. targetKip is in KIP; displayed in CD_CUR.
   function animateNumber(elementId, targetKip) {
@@ -1057,12 +1138,11 @@ function renderDisplayData(data) {
   }
 
   // 3. Cash, QR, and Change Breakdown
-  // ຄ່າເຫຼົ່ານີ້ສະແດງສະເພາະຕອນພະນັກງານກຳລັງປ້ອນເງິນໃນໜ້າຕ່າງຊຳລະ (payment_live).
-  // ເມື່ອຊຳລະສຳເລັດ (payment_success) ຫຼື ຢູ່ໜ້າຂາຍປົກກະຕິ (shopping) ຕ້ອງລ້າງເປັນ 0 ບໍ່ໃຫ້ຄ້າງ.
-  var isPayLive = (data.checkoutState === 'payment_live');
-  var cashRec   = isPayLive ? parseFloat(data.cashReceived || 0) : 0;
-  var qrRec     = isPayLive ? parseFloat(data.qrReceived || 0) : 0;
-  var changeAmt = isPayLive ? parseFloat(data.changeAmount || 0) : 0;
+  // ສະແດງຕອນປ້ອນເງິນ (payment_live) ເທົ່ານັ້ນ — ຂາຍສຳເລັດແລ້ວ ລ້າງເປັນ 0 (ເງິນທອນຢູ່ໃນໜ້າຕ່າງ "ຊຳລະສຳເລັດ")
+  var isPayActive = (data.checkoutState === 'payment_live');
+  var cashRec   = isPayActive ? parseFloat(data.cashReceived || 0) : 0;
+  var qrRec     = isPayActive ? parseFloat(data.qrReceived || 0) : 0;
+  var changeAmt = isPayActive ? parseFloat(data.changeAmount || 0) : 0;
 
   animateNumber('displayCashReceived', cashRec);
   animateNumber('displayQrReceived', qrRec);

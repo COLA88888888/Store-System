@@ -14,13 +14,31 @@ if (empty($_SESSION['user_id']) || (!hasPermission('units'))) {
     exit();
 }
 
+// User store and permissions
+$userStoreId = intval($_SESSION['store_id'] ?? 1);
+$currentStoreId = intval($_SESSION['active_store_id'] ?? $userStoreId);
+$canAllBranches = (
+    ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' ||
+    strtolower($_SESSION['status'] ?? '') === 'admin' ||
+    ($_SESSION['user_id'] ?? 0) == 1 ||
+    !empty($_SESSION['can_all_branches'])
+);
+$stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+if (!$canAllBranches) {
+    $selectedStoreId = $userStoreId;
+} else {
+    $selectedStoreId = isset($_REQUEST['store_id']) ? intval($_REQUEST['store_id']) : $currentStoreId;
+}
+$activeStoreIdForUnit = $selectedStoreId;
+
 $unit_message = '';
 $unit_message_type = '';
 
 // Handle Unit Form Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
-        $unitActiveStoreId = getActiveStoreId($pdo);
+        $unitActiveStoreId = !empty($_POST['store_id']) ? intval($_POST['store_id']) : $selectedStoreId;
 
         if ($_POST['action'] === 'add_unit') {
             $name = trim($_POST['unit_name'] ?? '');
@@ -120,9 +138,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch Units of the active branch only (ສາຂາໃດສາຂານັ້ນ — ບໍ່ລວມກັບສາຂາອື່ນ),
+// Fetch Units of the selected branch only (ສາຂາໃດສາຂານັ້ນ — ບໍ່ລວມກັບສາຂາອື່ນ),
 // ordered by its per-branch number (1-1, 1-2 …)
-$activeStoreIdForUnit = getActiveStoreId($pdo);
+$activeStoreIdForUnit = $selectedStoreId;
 ensureBranchNos($pdo, 'st_units');
 $stmtUnit = $pdo->prepare("SELECT u.*, (SELECT COUNT(*) FROM st_products p WHERE p.unit_id = u.unit_id) AS product_count FROM st_units u WHERE u.store_id = ? ORDER BY u.branch_no ASC, u.unit_id ASC");
 $stmtUnit->execute([$activeStoreIdForUnit]);

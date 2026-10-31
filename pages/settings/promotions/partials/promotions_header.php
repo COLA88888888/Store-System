@@ -8,7 +8,7 @@
     </h5>
   </div>
   <div class="col-sm-6 col-md-7 text-right d-flex align-items-center justify-content-end gap-2" style="gap: 10px;">
-    <?php if ($canAllBranches): ?>
+    <?php if ($canAllBranches && count($stores) > 1): /* ສາຂາດຽວ → ເຊື່ອງບັອກເລືອກສາຂາ */ ?>
       <form method="GET" action="" class="m-0 d-inline-block">
         <select name="branch_id" class="form-control form-control-sm font-weight-bold border-primary text-primary" style="height: 38px; border-radius: 8px; background-color: #eff6ff; min-width: 170px;" onchange="this.form.submit()">
           <?php foreach ($stores as $st): ?>

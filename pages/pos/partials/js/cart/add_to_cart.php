@@ -53,8 +53,16 @@ function _doAddToCart(product, unitObj) {
   var currentRemaining = getProductRemainingStock(product.product_id);
   var cutQty = getProductCutQty(product.product_id);
 
-  // 1. ຖ້າສິນຄ້າເປັນ 0 (ຫຼື ໝົດແລ້ວ) -> ບໍ່ສາມາດຂາຍໄດ້, ສະແດງ ປັອບອັບ ເເຈ້ງເຕືອນ
+  // 1. ຖ້າສິນຄ້າເປັນ 0 (ຫຼື ໝົດແລ້ວ) -> ບໍ່ສາມາດຂາຍໄດ້, ສະແດງສຽງແຈ້ງເຕືອນ + ສຽງເວົ້າອ່ານທັນທີ
   if (cutQty !== 0 && (currentRemaining <= 0 || parseFloat(product.qty || 0) <= 0)) {
+    if (typeof triggerAudioSoundAlert === 'function') {
+      triggerAudioSoundAlert();
+    }
+    if (window.LaoTTS && typeof LaoTTS.speakOutOfStock === 'function') {
+      setTimeout(function() {
+        LaoTTS.speakOutOfStock(product.product_name);
+      }, 300);
+    }
     Swal.fire({
       icon: 'error',
       title: posT('pos.alert_out_of_stock_title'),
@@ -70,8 +78,16 @@ function _doAddToCart(product, unitObj) {
     return false;
   }
 
-  // 2. ຖ້າຈຳນວນເຫຼືອໜ້ອຍກວ່າຫົວໜ່ວຍທີ່ເລືອກ
+  // 2. ຖ້າຈຳນວນເຫຼືອໜ້ອຍກວ່າຫົວໜ່ວຍທີ່ເລືອກ -> ສຽງແຈ້ງເຕືອນ + ສຽງເວົ້າອ່ານທັນທີ
   if (currentRemaining < multiplier) {
+    if (typeof triggerAudioSoundAlert === 'function') {
+      triggerAudioSoundAlert();
+    }
+    if (window.LaoTTS && typeof LaoTTS.speakLowStock === 'function') {
+      setTimeout(function() {
+        LaoTTS.speakLowStock(product.product_name, currentRemaining, product.unit || posT('pos.unit_generic'));
+      }, 300);
+    }
     Swal.fire({
       icon: 'warning',
       title: posT('pos.alert_qty_not_enough_title'),

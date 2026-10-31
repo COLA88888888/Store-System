@@ -16,7 +16,7 @@ return [
     'clear_data.unselect_group' => 'Bỏ chọn nhóm',
 
     'clear_data.group_sales' => 'Bán hàng',
-    'clear_data.group_shifts' => 'Ca và nhật ký hệ thống',
+    'clear_data.group_shifts' => 'Ca làm việc',
     'clear_data.group_stock' => 'Kho',
     'clear_data.group_catalog' => 'Sản phẩm và cấu trúc sản phẩm',
     'clear_data.group_customers' => 'Khách hàng và điểm tích lũy',
@@ -99,4 +99,15 @@ return [
     'clear_data.error_server' => 'Không thể kết nối máy chủ',
     'clear_data.error_password_incorrect' => 'Mật khẩu không đúng!',
     'clear_data.error_no_permission' => 'Bạn không có quyền truy cập phần này',
+
+    // ເລືອກສາຂາທີ່ຈະລຶບ
+    'clear_data.branch_label' => 'Xóa dữ liệu của chi nhánh:',
+    'clear_data.branch_all' => '-- Tất cả chi nhánh --',
+    'clear_data.branch_inactive' => '(ngừng hoạt động)',
+    'clear_data.branch_hint' => 'Chọn chi nhánh → chỉ xóa dữ liệu của chi nhánh đó, chi nhánh khác không bị ảnh hưởng',
+    'clear_data.branch_locked' => 'Bạn chỉ có thể xóa dữ liệu của chi nhánh:',
+    'clear_data.all_branches_only' => 'Dùng chung cho mọi chi nhánh — chỉ xóa được khi chọn "Tất cả chi nhánh"',
+    'clear_data.modal_branch' => 'Chi nhánh:',
+    'clear_data.error_branch_invalid' => 'Không tìm thấy chi nhánh đã chọn',
+    'clear_data.error_all_branches_only' => 'Dữ liệu này dùng chung cho mọi chi nhánh — chỉ xóa được khi chọn "Tất cả chi nhánh"',
 ];

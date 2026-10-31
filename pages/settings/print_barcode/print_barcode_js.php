@@ -93,7 +93,7 @@ function renderPageBarcodeBlocks() {
             <div class="col-4 text-center pr-2">
               <img src="${p.img_path}" class="img-fluid rounded border shadow-sm mb-1" 
                    style="max-height: 55px; object-fit: cover;" 
-                   onerror="this.onerror=null; this.src='../../assets/img/image.jpg';">
+                   onerror="this.onerror=null; this.src='<?php echo $base_path; ?>assets/img/image.jpg';">
               ${showPrice ? `<div class="font-weight-bold text-success" style="font-size: 0.82rem;">${pPrice}</div>` : ''}
             </div>
 

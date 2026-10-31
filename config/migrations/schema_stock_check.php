@@ -124,24 +124,8 @@ if (isset($pdo) && $pdo instanceof PDO && empty($_SESSION['stock_check_schema_v8
         $pdo->exec("ALTER TABLE st_zones CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
         $pdo->exec("ALTER TABLE st_shelves CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci");
 
-        // Seed ໂຊນ/ຊັ້ນວາງເລີ່ມຕົ້ນ ຖ້າຍັງບໍ່ມີຂໍ້ມູນ
-        $zCnt = (int)$pdo->query("SELECT COUNT(*) FROM st_zones")->fetchColumn();
-        if ($zCnt === 0) {
-            $firstStoreId = (int)$pdo->query("SELECT store_id FROM st_tbstore ORDER BY is_main DESC, store_id ASC LIMIT 1")->fetchColumn() ?: 1;
-            $pdo->exec("INSERT INTO `st_zones` (`zone_name`, `store_id`) VALUES
-                ('ໂຊນ A', $firstStoreId),
-                ('ໂຊນ B', $firstStoreId),
-                ('ໜ້າຮ້ານ', $firstStoreId),
-                ('ສາງສິນຄ້າ', $firstStoreId)");
-            $zAId = (int)$pdo->query("SELECT zone_id FROM st_zones WHERE zone_name = 'ໂຊນ A' AND store_id = $firstStoreId LIMIT 1")->fetchColumn();
-            $zBId = (int)$pdo->query("SELECT zone_id FROM st_zones WHERE zone_name = 'ໂຊນ B' AND store_id = $firstStoreId LIMIT 1")->fetchColumn();
-            $pdo->exec("INSERT INTO `st_shelves` (`zone_id`, `shelf_name`, `store_id`) VALUES
-                ($zAId, 'ຊັ້ນ 1', $firstStoreId),
-                ($zAId, 'ຊັ້ນ 2', $firstStoreId),
-                ($zAId, 'ຊັ້ນ 3', $firstStoreId),
-                ($zBId, 'ຊັ້ນ 1', $firstStoreId),
-                ($zBId, 'ຊັ້ນ 2', $firstStoreId)");
-        }
+        // ບໍ່ໃສ່ໂຊນ/ຊັ້ນວາງຕົວຢ່າງເອງ (ໂຊນ A, ໂຊນ B, ໜ້າຮ້ານ, ສາງສິນຄ້າ, ຊັ້ນ 1–3): ເມື່ອກ່ອນໃສ່ທຸກຄັ້ງທີ່ຕາຕະລາງວ່າງ
+        // ໃນ session ໃໝ່ — ຜູ້ໃຊ້ລຶບໝົດແລ້ວ ມັນກັບຂຶ້ນມາອີກ. ຮ້ານສ້າງໂຊນ/ຊັ້ນວາງເອງໃນໜ້າ ໂຊນສິນຄ້າ / ຊັ້ນວາງສິນຄ້າ.
 
         // ປະຫວັດການແກ້ຈຳນວນນັບ (ກັນໂກງ): ທຸກເທື່ອທີ່ counted_qty ປ່ຽນ — ໃຜ, ເວລາໃດ, ຈາກເທົ່າໃດ → ເປັນເທົ່າໃດ.
         // ຫົວໜ້າເຫັນ "ແກ້ໄຂ N ເທື່ອ" ຢູ່ແຕ່ລະລາຍການ (api/stock_check_backend.php scSaveItems / scLoadItems)

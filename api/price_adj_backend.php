@@ -1,28 +1,7 @@
 <?php
 // ຮັບປະກັນໂຄງສ້າງຕາຕະລາງ price_adjustments ມີຟີວຄົບຖ້ວນ
 try {
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `st_price_adjustments` (
-        `adjust_id` INT AUTO_INCREMENT PRIMARY KEY,
-        `adjust_date` DATE DEFAULT NULL,
-        `adjust_time` TIME DEFAULT NULL,
-        `target_mode` VARCHAR(20) DEFAULT 'product',
-        `category_id` INT DEFAULT NULL,
-        `product_id` INT DEFAULT NULL,
-        `product_name` VARCHAR(255) DEFAULT NULL,
-        `target_price_type` VARCHAR(20) DEFAULT 'price',
-        `calc_type` VARCHAR(20) DEFAULT 'set',
-        `adjust_value` DECIMAL(12,2) DEFAULT 0.00,
-        `old_bprice` DECIMAL(12,2) DEFAULT 0.00,
-        `old_price` DECIMAL(12,2) DEFAULT 0.00,
-        `new_bprice` DECIMAL(12,2) DEFAULT 0.00,
-        `new_price` DECIMAL(12,2) DEFAULT 0.00,
-        `diff_amount` DECIMAL(12,2) DEFAULT 0.00,
-        `remark` TEXT DEFAULT NULL,
-        `username` VARCHAR(100) DEFAULT NULL,
-        `user_id` INT DEFAULT NULL,
-        `branch_id` INT DEFAULT 1,
-        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    // ບໍ່ສ້າງຕາຕະລາງເອງ (ມີຢູ່ config/migrations/schema_core.php) — ກວດຖັນລຸ່ມນີ້ຂ້າມເອງຖ້າບໍ່ມີຕາຕະລາງ
 
     // Add missing columns if table existed previously with old columns
     $cols = $pdo->query("SHOW COLUMNS FROM `st_price_adjustments`")->fetchAll(PDO::FETCH_COLUMN);
@@ -56,6 +35,15 @@ if (!$canAllBranches) {
 
 $message = '';
 $message_type = '';
+
+// ສິດແຍກຕາມການກະທຳ: ໜ້າກວດແຕ່ສິດເບິ່ງ — ປັບລາຄາ = ເພີ່ມ, ແກ້ບັນທຶກ = ແກ້ໄຂ, ລຶບບັນທຶກ = ລຶບ
+$__padjNeed = ['adjust_price' => 'add', 'update_log' => 'edit', 'delete_log' => 'del'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $__padjNeed[$_POST['action']])
+    && !hasPermission('price_adjustment', $__padjNeed[$_POST['action']])) {
+    $message = tl('ທ່ານບໍ່ມີສິດດຳເນີນການນີ້');
+    $message_type = 'warning';
+    unset($_POST['action']);
+}
 
 // Handle POST Actions (Add Adjustment & Delete Log)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {

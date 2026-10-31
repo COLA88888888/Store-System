@@ -467,7 +467,63 @@
 
   });
 
+  // ກົດອອກຈາກລະບົບ: ກວດກ່ອນວ່າກະຍັງເປີດຢູ່ບໍ່ (api/shifts_backend.php can_logout). ພະນັກງານຂາຍຕ້ອງກົດປິດກະເອງ
+  // ກ່ອນຈຶ່ງອອກໄດ້ — ລາຍງານຕາມກະຈຶ່ງຖືກຕ້ອງ. ເຊີເວີກໍກັນຊ້ຳ (auth/logout.php). ກວດບໍ່ໄດ້ (ເນັດຂັດ) → ຖາມອອກຕາມປົກກະຕິ.
   function confirmLogout() {
+    $.ajax({ url: '../api/shifts_backend.php', data: { action: 'can_logout' }, dataType: 'json', cache: false, timeout: 6000 })
+      .done(function (r) {
+        if (r && r.success && r.allowed === false) showLogoutBlocked(r);
+        else askLogoutConfirm();
+      })
+      .fail(askLogoutConfirm);
+  }
+
+  function showLogoutBlocked(r) {
+    var L = I18N_LAYOUT;
+    var esc = function (s) { return $('<div>').text(s || '').html(); };
+    var shiftLine = r.shift_name ? '<div class="mt-2" style="font-size:0.85rem; color:#64748b;"><i class="fas fa-user-clock mr-1"></i>' + esc(r.shift_name) + (r.end_time ? ' · ' + esc(r.end_time) : '') + '</div>' : '';
+    if (r.before_end) {
+      Swal.fire({
+        icon: 'warning',
+        title: L['layout.logout_blocked_title'],
+        html: '<div style="font-size:0.92rem; color:#475569;">' + L['layout.logout_blocked_before'].replace('%s', '<b>' + esc(r.end_time) + '</b>') + '</div>' + shiftLine,
+        confirmButtonColor: '#2563eb',
+        confirmButtonText: L['layout.ok'],
+        heightAuto: false
+      });
+      return;
+    }
+    Swal.fire({
+      icon: 'warning',
+      title: L['layout.logout_blocked_title'],
+      html: '<div style="font-size:0.92rem; color:#475569;">' + L['layout.logout_blocked_after'] + '</div>' + shiftLine,
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: '<i class="fas fa-cash-register mr-1"></i> ' + L['layout.close_shift_now'],
+      cancelButtonText: L['layout.cancel'],
+      heightAuto: false
+    }).then(function (res) {
+      if (!res.isConfirmed) return;
+      // ໜ້າຂາຍເປີດຟອມປິດກະເອງເມື່ອມີ ?close_shift=1 (pages/pos/partials/js/pos_shift_js.php)
+      var src = '../pages/pos/pos.php?close_shift=1';
+      try { sessionStorage.setItem('StoreMini.currentIframeSrc', '../pages/pos/pos.php'); } catch (e) {}
+      var f = document.querySelector('iframe[name="frame"]');
+      if (f) f.src = src; else window.location.href = src;
+    });
+  }
+
+  // ເຊີເວີກັນການອອກໄວ້ (auth/logout.php ສົ່ງກັບມາບ່ອນນີ້) → ສະແດງແຈ້ງເຕືອນ
+  $(function () {
+    try {
+      if (sessionStorage.getItem('StoreMini.logout_blocked')) {
+        sessionStorage.removeItem('StoreMini.logout_blocked');
+        setTimeout(confirmLogout, 600);
+      }
+    } catch (e) {}
+  });
+
+  function askLogoutConfirm() {
     Swal.fire({
       title: '<span style="font-size:1.15rem; font-weight:700; color:#1e293b;">' + I18N_LAYOUT['layout.logout_confirm_title'] + '</span>',
       html: '<div style="font-size:0.90rem; color:#475569; font-weight:600; margin-top:4px;">' + I18N_LAYOUT['layout.logout_confirm_text'] + '</div>',

@@ -1,0 +1,26 @@
+/*
+ * fonts.css — ຟ້ອນ Nuanta ຊຸດດຽວກັບລະບົບຫຼັງບ້ານ (backend/assets/css/local-font.css).
+ * ໄຟລ໌ຟ້ອນຢູ່ assets/fonts/ (copy ມາຈາກ backend/assets/fonts/) — ໂຫຼດຈາກເຄື່ອງເອງ ບໍ່ຕ້ອງໃຊ້ອິນເຕີເນັດ.
+ * ໂຫຼດກ່ອນ base.css; ໃຊ້ຜ່ານຕົວແປ --font ໃນ base.css.
+ */
+@font-face {
+  font-family: 'Nuanta';
+  src: url('../fonts/Nuanta-Regular.ttf') format('truetype');
+  font-weight: 100 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nuanta';
+  src: url('../fonts/Nuanta-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Nuanta';
+  src: url('../fonts/Nuanta-Bold.ttf') format('truetype');
+  font-weight: 600 900;
+  font-style: normal;
+  font-display: swap;
+}

@@ -1,0 +1,1339 @@
+/*
+ * member.css — ສະມາຊິກ: ຟອມລົງທະບຽນລະອຽດ (.mf-*), ບັນຊີ (.ac-*), ອໍເດີ / ຕິດຕາມສະຖານະ (.mo-*), ປຸ່ມ Google (.gsi-*).
+ * ໂຫຼດຫຼັງ pages.css (layouts/header.php). ໃຊ້ສີຂອງເວັບ: ຟ້າ (--primary) + ເຫຼືອງ (--accent).
+ */
+
+/* ---------- ຟອມ (register / account / ສັ່ງຊື້) ---------- */
+.mf-wrap { max-width: 820px; }
+.mf-perks { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-bottom: 1rem; }
+.mf-perks div { display: flex; align-items: center; gap: .6rem; padding: .75rem .9rem; border-radius: var(--radius); background: #fffbeb; border: 1px solid #fde68a; font-size: .88rem; font-weight: 600; color: #78350f; line-height: 1.4; }
+.mf-perks b { font-size: 1.4rem; }
+.mf-card { padding: 1.5rem; }
+.mf-h { display: flex; align-items: center; gap: .55rem; margin: 1.6rem 0 .8rem; padding-top: 1.1rem; border-top: 1px dashed var(--border); font-size: 1.05rem; color: var(--primary-dark); }
+.mf-card > .mf-h:first-of-type, .mf-h:first-child { border-top: 0; padding-top: 0; }
+.mf-h > span { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: #fff; font-size: .82rem; flex: none; }
+.mf-h em, .mf-field em { font-style: normal; font-weight: 400; }
+.mf-h4 { margin: 1.2rem 0 .6rem; font-size: .98rem; color: var(--primary-dark); }
+.mf-grid-2, .mf-grid-3 { display: grid; gap: 0 1rem; }
+.mf-grid-2 { grid-template-columns: 1fr 1fr; }
+.mf-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.mf-field { display: flex; flex-direction: column; gap: .3rem; margin-bottom: .9rem; font-weight: 600; font-size: .9rem; min-width: 0; }
+.mf-field .input { font-weight: 400; width: 100%; }
+.mf-field .input[readonly] { background: var(--bg-alt); color: var(--muted); }
+.mf-field .field-error { margin: 0; font-weight: 500; font-size: .82rem; }
+.mf-hint { color: var(--muted); font-weight: 400; font-size: .78rem; }
+.mf-note { margin: -.4rem 0 .9rem; color: var(--muted); font-size: .85rem; }
+.mf-lbl { display: block; margin-bottom: .45rem; font-weight: 600; font-size: .9rem; }
+.mf-courier { margin-bottom: .9rem; }
+.mf-check { display: flex; align-items: flex-start; gap: .55rem; margin: 1.2rem 0 .4rem; font-size: .9rem; cursor: pointer; }
+.mf-check input { width: 18px; height: 18px; margin-top: .25rem; accent-color: var(--primary); flex: none; }
+.mf-card .field-error { margin: 0 0 .6rem; font-size: .82rem; }
+
+/* ທະນາຄານ + ສະລິບ */
+.mf-pay { margin-bottom: 1rem; }
+.mf-pay-amount { margin-bottom: .8rem; padding: .7rem 1rem; border-radius: var(--radius); background: var(--primary-soft); color: var(--primary-dark); font-weight: 600; }
+.mf-pay-amount b { font-size: 1.2rem; color: #dc2626; }
+.mf-pay-amount small { display: block; font-weight: 400; color: var(--muted); }
+.mf-banks { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .75rem; margin-bottom: .9rem; }
+.po-bank-card { position: relative; display: flex; flex-direction: column; gap: .6rem; padding: .8rem; border: 2px solid var(--border); border-radius: var(--radius); background: #fff; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.po-bank-card input { position: absolute; opacity: 0; pointer-events: none; }
+.po-bank-card:hover { border-color: #93c5fd; }
+.po-bank-card.is-selected, .po-bank-card:has(input:checked) { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.mf-bank-head { display: flex; align-items: center; gap: .6rem; line-height: 1.35; }
+.mf-bank-head img { border-radius: 8px; object-fit: contain; flex: none; }
+.mf-bank-head > span:not(.po-tick) { display: flex; flex-direction: column; min-width: 0; }
+.mf-bank-head small { color: var(--muted); }
+.mf-bank-no { font-weight: 700; font-size: 1.02rem; letter-spacing: .02em; color: var(--primary-dark); font-variant-numeric: tabular-nums; }
+.po-bank-card .po-tick { position: absolute; top: .45rem; right: .45rem; display: none; width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: #fff; font-size: .75rem; place-items: center; }
+.po-bank-card.is-selected .po-tick, .po-bank-card:has(input:checked) .po-tick { display: grid; }
+.mf-bank-qr { display: block; align-self: center; }
+.mf-bank-qr img { display: block; width: 150px; max-width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 6px; border: 1px solid var(--border); }
+.mf-slip { position: relative; display: block; border: 2px dashed #93c5fd; border-radius: var(--radius); background: #f8fbff; cursor: pointer; overflow: hidden; }
+.mf-slip:hover { border-color: var(--primary); }
+.mf-slip input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.mf-slip-ph { display: flex; flex-direction: column; align-items: center; gap: .2rem; padding: 1.3rem 1rem; text-align: center; }
+.mf-slip-ph b { color: var(--primary-dark); }
+.mf-slip-ph small { color: var(--muted); }
+.mf-slip-preview { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: .8rem; }
+.mf-slip-preview[hidden] { display: none; }
+.mf-slip-preview img { max-height: 260px; max-width: 100%; border-radius: 6px; }
+.mf-slip-preview small { color: var(--muted); }
+
+/* ---------- ປຸ່ມ Google ---------- */
+.gsi-wrap { display: flex; flex-direction: column; align-items: center; gap: .55rem; margin: .4rem 0 1rem; }
+.gsi-or { display: flex; align-items: center; gap: .7rem; width: 100%; color: var(--muted); font-size: .82rem; }
+.gsi-or::before, .gsi-or::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.gsi-btn-wrap { position: relative; width: 100%; max-width: 360px; height: 44px; }
+.gsi-face {   /* ໜ້າປຸ່ມທີ່ເຫັນ (ແບບປຸ່ມ Google ມາດຕະຖານ) — ຂໍ້ຄວາມແປຕາມພາສາເວັບ */
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .65rem;
+  border: 1px solid #dadce0; border-radius: 999px; background: #fff; color: #3c4043; font-size: .92rem; font-weight: 600;
+  pointer-events: none; transition: background .15s ease, border-color .15s ease;
+}
+.gsi-face svg { flex-shrink: 0; }
+.gsi-btn-wrap:hover .gsi-face { background: #f8faff; border-color: #c6dafc; }
+.gsi-btn { position: absolute; inset: 0; opacity: .01; overflow: hidden; display: flex; justify-content: center; align-items: center; }   /* ປຸ່ມແທ້ຂອງ Google (ໂປ່ງໃສ ຮັບການກົດ) */
+.gsi-msg { color: var(--danger); text-align: center; }
+.mf-card .gsi-wrap { flex-direction: column-reverse; margin: 0 0 .4rem; }   /* ໜ້າລົງທະບຽນ: ປຸ່ມ Google ຢູ່ເທິງ, "ຫຼື" ຢູ່ລຸ່ມ */
+/* ຟອມລົງທະບຽນໃນ popup (components/member_modal.php) */
+.mm-row-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.mm-field .input.mm-noico { padding-left: .8rem; }
+.mm-field select.input { padding-right: .4rem; }
+.mm-check { display: flex; align-items: flex-start; gap: .5rem; margin: .1rem 0 .2rem; font-size: .88rem; color: #334155; cursor: pointer; }
+.mm-check input { width: 17px; height: 17px; margin-top: .2rem; accent-color: #0b65e6; flex: none; }
+.mm-check a { color: #0052cc; font-weight: 700; }
+.mm-err-line { display: block; color: var(--danger); font-size: .8rem; }
+.mm-err-line:empty { display: none; }
+.mm-view .gsi-wrap { margin: .8rem 0 0; }
+@media (max-width: 767px) { .mm-row-3 { grid-template-columns: 1fr; gap: 0; } }
+
+/* ---------- ລາຄາ (ສະມາຊິກ) ---------- */
+.mk-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: .35rem; margin-top: auto; }
+.mk-price b { color: #dc2626; font-size: 1rem; }
+.mk-price s { color: #94a3b8; font-size: .78rem; }
+.mo-price { display: flex; flex-direction: column; align-items: flex-end; color: #dc2626; }
+.mo-price s { font-size: .8rem; font-weight: 500; color: #94a3b8; }
+.mo-buy-btn {
+  margin: 0;
+  font-family: inherit;
+  white-space: nowrap;
+  font-size: .84rem;
+  font-weight: 700;
+  height: 38px;
+  padding: 0 .95rem;
+  border-radius: 4px;
+}
+.mo-lock { display: inline-flex; align-items: center; gap: .35rem; padding: .55rem .9rem; border-radius: var(--radius); background: #fef3c7; color: #92400e; font-weight: 700; font-size: .9rem; text-decoration: none; }
+.mo-lock:hover { background: #fde68a; color: #78350f; }
+.mo-unit { font-size: .9rem; color: var(--muted); }
+.mo-unit b { color: #dc2626; font-size: 1.05rem; }
+.mo-unit s { color: #94a3b8; }
+.mo-off { padding: 0 .35rem; border-radius: 3px; background: #fee2e2; color: #dc2626; font-weight: 700; font-size: .75rem; }
+/* ຟອມສັ່ງຊື້ສະມາຊິກ: ຍັບເຂົ້າໃຫ້ສັ້ນລົງ ບໍ່ກວ້າງເກີນໄປ (max-width: 680px) ຫຼຸດຊ່ອງວ່າງໃຫ້ກະທັດຮັດ */
+.mo-card, .mo-checkout {
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.15rem 1.35rem;
+  border-radius: 6px;
+}
+.mo-card .po-head {
+  margin-bottom: .65rem;
+  padding-bottom: .55rem;
+}
+.mo-card .po-kicker {
+  font-size: .74rem;
+  padding: .14rem .5rem;
+}
+.mo-card .po-title {
+  margin: .15rem 0 .1rem;
+  font-size: 1.15rem;
+}
+.mo-card .po-sub {
+  margin: 0;
+  font-size: .8rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+.mo-card .po-item-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .65rem;
+  padding: .5rem .75rem;
+  margin-bottom: .65rem;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+.mo-card .po-item-thumb-wrap {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 3px;
+  transition: all .2s ease;
+  cursor: zoom-in;
+}
+.mo-card .po-item-thumb-wrap:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.22);
+  transform: scale(1.03);
+}
+.mo-card .po-item-thumb {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  display: block;
+  border-radius: 4px;
+}
+.po-thumb-zoom {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  transition: opacity .18s ease, background .18s ease;
+  pointer-events: none;
+}
+.mo-card .po-item-thumb-wrap:hover .po-thumb-zoom {
+  opacity: 1;
+  background: #1d4ed8;
+}
+
+/* Lightbox Modal ເບິ່ງຮູບສິນຄ້າໃຫຍ່ */
+.po-img-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+.po-img-modal[hidden] {
+  display: none !important;
+}
+.po-img-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 1;
+  cursor: pointer;
+}
+.po-img-box {
+  position: relative;
+  z-index: 2;
+  max-width: min(640px, 94vw);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .75rem;
+  padding: .85rem;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.5);
+  animation: poModalSlideSlow .28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.po-img-box img {
+  max-width: 100%;
+  max-height: calc(85vh - 70px);
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+}
+.po-img-caption {
+  font-size: .88rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  line-height: 1.4;
+}
+.po-img-close {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  background: #0f172a;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  transition: all .18s ease;
+  z-index: 3;
+}
+.po-img-close:hover {
+  background: #dc2626;
+  transform: scale(1.08);
+}
+
+.mo-card .po-item-name {
+  font-size: .92rem;
+}
+.mo-card .po-item-controls {
+  gap: .75rem;
+}
+.mo-card .po-qty-btn {
+  width: 28px;
+  height: 30px;
+  font-size: .95rem;
+}
+.mo-card .po-qty-input {
+  width: 44px;
+  height: 30px;
+  font-size: .88rem;
+}
+.mo-card .po-total-val {
+  font-size: 1.05rem;
+}
+
+.mo-card .mf-h, .mo-checkout .mf-h {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin: .85rem 0 .45rem;
+  padding-top: .65rem;
+  border-top: 1px dashed var(--border);
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+.mo-card .mf-h:first-of-type, .mo-checkout .mf-h:first-of-type {
+  border-top: 1px dashed var(--border);
+  padding-top: .65rem;
+}
+.mo-card .mf-h > span, .mo-checkout .mf-h > span {
+  width: 22px;
+  height: 22px;
+  font-size: .74rem;
+}
+
+.mo-card .mf-grid-2, .mo-checkout .mf-grid-2 {
+  gap: 0 .65rem;
+}
+.mo-card .mf-grid-3, .mo-checkout .mf-grid-3 {
+  gap: 0 .65rem;
+}
+
+.mo-card .mf-field, .mo-checkout .mf-field {
+  gap: .2rem;
+  margin-bottom: .45rem;
+  font-size: .83rem;
+}
+.mo-card .mf-field > span, .mo-checkout .mf-field > span {
+  color: #334155;
+  font-weight: 600;
+  font-size: .83rem;
+}
+.mo-card .mf-field .input, .mo-checkout .mf-field .input {
+  padding: .42rem .65rem;
+  font-size: .88rem;
+  min-height: 36px;
+  border-radius: 4px;
+}
+.mo-card .mf-field textarea.input, .mo-checkout .mf-field textarea.input {
+  min-height: 54px;
+  resize: vertical;
+  line-height: 1.45;
+  font-family: inherit;
+}
+.mo-card .mf-hint, .mo-checkout .mf-hint {
+  font-size: .76rem;
+  margin-top: .15rem;
+}
+
+.mo-card .mf-courier, .mo-checkout .mf-courier {
+  margin-bottom: .5rem;
+}
+.mo-card .mf-lbl, .mo-checkout .mf-lbl {
+  margin-bottom: .3rem;
+  font-size: .83rem;
+}
+.mo-card .po-couriers, .mo-checkout .po-couriers {
+  gap: .55rem;
+  margin-bottom: .15rem;
+}
+.mo-card .po-courier-card, .mo-checkout .po-courier-card {
+  width: 68px;
+  gap: .2rem;
+  padding: .15rem;
+}
+.mo-card .po-courier-avatar, .mo-checkout .po-courier-avatar {
+  width: 38px;
+  height: 38px;
+}
+.mo-card .po-courier-name, .mo-checkout .po-courier-name {
+  font-size: .72rem;
+}
+
+.mo-card .mf-pay, .mo-checkout .mf-pay {
+  margin-bottom: .55rem;
+}
+.mo-card .mf-pay-amount, .mo-checkout .mf-pay-amount {
+  margin-bottom: .5rem;
+  padding: .45rem .75rem;
+  font-size: .85rem;
+  border-radius: 4px;
+}
+.mo-card .mf-pay-amount b, .mo-checkout .mf-pay-amount b {
+  font-size: 1.05rem;
+}
+/* ປຸ່ມເລືອກທະນາຄານແບບນ້ອຍກະທັດຮັດ: ສະແດງແຕ່ໂລໂກ້ + ຊື່ຕາມຫຼັງບ້ານ */
+.mf-banks,
+.mo-card .mf-banks,
+.mo-checkout .mf-banks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin-bottom: .45rem;
+}
+.po-bank-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .32rem .68rem .32rem .5rem;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  user-select: none;
+  font-size: .83rem;
+  font-weight: 700;
+  color: #334155;
+  transition: all .15s ease;
+}
+.po-bank-pill input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.po-bank-pill-logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.po-bank-pill-name {
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.po-bank-pill .po-tick {
+  display: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: .55rem;
+  place-items: center;
+  margin-left: .15rem;
+  flex-shrink: 0;
+}
+.po-bank-pill:hover {
+  border-color: #93c5fd;
+  background: #f8fafc;
+}
+.po-bank-pill.is-selected,
+.po-bank-pill:has(input:checked) {
+  border-color: var(--primary);
+  background: #eff6ff;
+  color: var(--primary-dark);
+}
+.po-bank-pill.is-selected .po-tick,
+.po-bank-pill:has(input:checked) .po-tick {
+  display: grid;
+}
+
+/* ບັອກສະແດງ QR ແລະ ເລກບັນຊີ ແບບນ້ອຍກະທັດຮັດ */
+.mf-active-qr-box {
+  margin: .45rem 0 .65rem;
+  padding: .65rem .85rem;
+  border-radius: 6px;
+  background: #f8fbff;
+  border: 1px solid #bfdbfe;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.mf-active-qr-box[data-no-qr="1"] {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+.mf-active-qr-head {
+  padding-bottom: .4rem;
+  border-bottom: 1px dashed #dbeafe;
+}
+.mf-active-qr-box[data-no-qr="1"] .mf-active-qr-head {
+  border-bottom-color: #fde68a;
+}
+.mf-active-acc-row {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  flex-wrap: wrap;
+  font-size: .83rem;
+}
+.mf-active-acc-lbl {
+  color: var(--muted);
+  font-size: .78rem;
+}
+.mf-active-acc-num {
+  font-size: .92rem;
+  letter-spacing: .02em;
+  color: var(--primary-dark);
+}
+.mf-active-acc-name {
+  font-size: .76rem;
+  color: #64748b;
+}
+.mf-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  padding: .2rem .48rem;
+  font-size: .74rem;
+  font-weight: 700;
+  border-radius: 4px;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  cursor: pointer;
+  margin-left: auto;
+}
+.mf-copy-btn:hover {
+  background: #eff6ff;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.mf-copy-btn.copied {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+}
+
+.mf-active-qr-content {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  flex-wrap: wrap;
+}
+.mf-active-qr-img-wrap {
+  width: 110px;
+  height: 110px;
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px;
+  display: grid;
+  place-items: center;
+}
+.mf-active-qr-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 4px;
+}
+.mf-active-qr-details {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  flex: 1;
+  min-width: 180px;
+}
+.mf-active-qr-guide {
+  margin: 0;
+  font-size: .78rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+.mf-active-qr-btns {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+.mf-dl-qr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .38rem .75rem;
+  font-size: .8rem;
+  font-weight: 700;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+@media (max-width: 480px) {
+  .mf-active-qr-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .mf-active-qr-details {
+    align-items: center;
+  }
+}
+
+/* 2 ຟາກ: ຂົນສົ່ງ (ຊ້າຍ: ເລືອກຂົນສົ່ງ, ຂວາ: ສາຂາຂົນສົ່ງປາຍທາງ ບໍ່ໃຫ້ເຫຼືອຫວ່າງ) */
+.mf-courier-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin-bottom: .6rem;
+}
+.mf-courier-col-pick {
+  flex: none;
+}
+.mf-courier-col-branch {
+  flex: 1;
+  min-width: 0;
+}
+.mf-courier-col-branch .mf-field {
+  margin-bottom: 0;
+}
+
+/* 2 ຟາກ: ຊຳລະເງິນ (ຊ້າຍ: ທະນາຄານ + QR, ຂວາ: ແນບສະລິບ ແລະ ເຫັນຮູບສະລິບເລີຍບໍ່ໃຫຍ່) */
+.mf-pay-split {
+  display: grid;
+  grid-template-columns: 1.16fr 0.84fr;
+  gap: 1.15rem;
+  align-items: stretch;
+}
+.mf-pay-col-bank {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mf-pay-col-slip {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mf-pay-col-slip .mf-lbl {
+  margin-bottom: .35rem;
+  font-size: .83rem;
+  font-weight: 600;
+  color: #334155;
+}
+.mf-pay-col-slip .mf-slip,
+.mo-card .mf-pay-col-slip .mf-slip,
+.mo-checkout .mf-pay-col-slip .mf-slip {
+  flex: 1;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 2px dashed #93c5fd;
+  border-radius: 6px;
+  background: #f8fbff;
+  cursor: pointer;
+  padding: .85rem;
+  text-align: center;
+  transition: all .15s ease;
+}
+.mf-pay-col-slip .mf-slip:hover,
+.mo-card .mf-pay-col-slip .mf-slip:hover,
+.mo-checkout .mf-pay-col-slip .mf-slip:hover {
+  border-color: var(--primary);
+  background: #f0f7ff;
+}
+.mf-pay-col-slip .mf-slip input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+}
+.mf-slip-ph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+  color: var(--primary-dark);
+}
+.mf-slip-ph svg {
+  color: #3b82f6;
+  opacity: .85;
+}
+.mf-slip-ph b {
+  font-size: .9rem;
+  color: #1e3a8a;
+}
+.mf-slip-ph small {
+  color: #64748b;
+  font-size: .78rem;
+}
+.mf-slip-subhint {
+  font-size: .74rem;
+  color: #94a3b8;
+  margin-top: .15rem;
+}
+
+/* ສະແດງຮູບສະລິບທັນທີ ແບບກະທັດຮັດ ບໍ່ໃຫຍ່ເກີນໄປ */
+.mf-slip-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+  padding: .3rem;
+}
+.mf-slip-preview[hidden] {
+  display: none !important;
+}
+.mf-slip-preview img {
+  max-height: 145px;
+  max-width: 100%;
+  width: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+.mf-slip-change-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .22rem .65rem;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: .75rem;
+  font-weight: 700;
+  border: 1px solid #86efac;
+}
+
+@media (max-width: 768px) {
+  .mf-courier-row {
+    grid-template-columns: 1fr;
+    gap: .75rem;
+  }
+  .mf-pay-split {
+    grid-template-columns: 1fr;
+    gap: .9rem;
+  }
+  .mf-pay-col-slip .mf-slip {
+    min-height: 140px;
+  }
+}
+
+.mo-card .po-submit-bar, .mo-checkout .po-submit-bar {
+  padding-top: .4rem;
+  gap: .6rem;
+}
+.mo-card .po-submit-note, .mo-checkout .po-submit-note {
+  font-size: .78rem;
+}
+.mo-card .po-submit-btn, .mo-checkout .po-submit-btn {
+  padding: .55rem 1.25rem;
+  font-size: .9rem;
+  border-radius: 4px;
+}
+
+@media (max-width: 640px) {
+  .mo-card, .mo-checkout {
+    padding: .85rem .95rem;
+  }
+}
+.alert-info { background: #e0f2fe; color: #075985; }
+
+/* ==========================================================================
+   Modal ປ໊ອບອັບສັ່ງຊື້ສິນຄ້າສຳລັບສະມາຊິກ (.po-modal)
+   ========================================================================== */
+html.po-modal-open,
+body.po-modal-open {
+  overflow: hidden !important;
+}
+
+.po-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  font-family: inherit;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .35s ease, visibility .35s ease;
+}
+.po-modal:not([hidden]) {
+  opacity: 1;
+  visibility: visible;
+}
+.po-modal[hidden]:not(.is-closing) {
+  display: none !important;
+}
+.po-modal.is-closing {
+  opacity: 0 !important;
+  visibility: visible !important;
+  transition: opacity .22s ease;
+}
+.po-modal.is-closing .po-modal-dialog {
+  transform: translateY(18px);
+  transition: transform .22s ease;
+}
+
+.po-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1;
+}
+
+.po-modal-dialog {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 960px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 24px 60px -12px rgba(15, 23, 42, 0.32), 0 0 0 1px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  animation: poModalSlideSlow .38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ສະໂລ ນຸ່ມນວນ ບໍ່ເດັ້ງ (Smooth Slow Slide Without Aggressive Bounce) */
+@keyframes poModalSlideSlow {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ສ່ວນຫົວ Modal ຢູ່ຄົງທີ່ດ້ານເທິງ ບໍ່ບັງໜັງສື ແລະ ບໍ່ເລື່ອນໄປທັບເນື້ອຫາ */
+.po-modal-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.15rem 1.45rem .85rem;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  position: relative;
+  z-index: 5;
+}
+.po-head-info {
+  flex: 1;
+  min-width: 0;
+}
+.po-modal-header .po-kicker {
+  display: inline-block;
+  padding: .14rem .55rem;
+  font-size: .74rem;
+  font-weight: 700;
+  border-radius: 4px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  margin-bottom: .2rem;
+}
+.po-modal-header .po-title {
+  margin: .15rem 0 .15rem;
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.35;
+}
+.po-modal-header .po-sub {
+  margin: 0;
+  font-size: .8rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.po-modal-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all .18s ease;
+}
+.po-modal-close:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+  transform: scale(1.05);
+}
+
+/* ສ່ວນເນື້ອຫາຟອມເລື່ອນໄດ້ ພ້ອມສະກໍບານ້ອຍບາງສະອາດຕາ (5px) */
+.po-modal-body.mo-card {
+  flex: 1;
+  min-height: 0;
+  max-width: 100%;
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 1.15rem 1.45rem 1.4rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.po-modal-body.mo-card::-webkit-scrollbar {
+  width: 5px;
+}
+.po-modal-body.mo-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+.po-modal-body.mo-card::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+.po-modal-body.mo-card::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ກາດແຖບກົດສັ່ງຊື້ໃນໜ້າສິນຄ້າ (pages/product.php) */
+.po-trigger-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  padding: 1.15rem 1.35rem;
+  margin: 1.75rem 0;
+  background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%);
+  border: 1.5px solid #bbf7d0;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px -3px rgba(16, 185, 129, 0.1);
+}
+.po-trigger-info,
+.po-trigger-main {
+  flex: 1;
+  min-width: 240px;
+}
+.po-trigger-badge {
+  display: inline-block;
+  padding: .18rem .55rem;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: .75rem;
+  font-weight: 700;
+  border-radius: 4px;
+  margin-bottom: .35rem;
+}
+.po-trigger-info strong,
+.po-trigger-title {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.4;
+  margin: 0;
+}
+.po-trigger-info p,
+.po-trigger-desc {
+  margin: .25rem 0 0;
+  font-size: .85rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+.po-trigger-side {
+  flex-shrink: 0;
+}
+.po-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .75rem 1.35rem;
+  font-weight: 700;
+  font-size: .95rem;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .po-trigger-card {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    gap: .9rem;
+    padding: 1rem 1.1rem;
+  }
+  .po-trigger-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .po-modal {
+    padding: .5rem;
+  }
+  .po-modal-dialog {
+    max-width: 100%;
+    max-height: 96vh;
+    border-radius: 8px;
+  }
+  .po-modal-header {
+    padding: .95rem 1.05rem .75rem;
+    gap: .8rem;
+  }
+  .po-modal-header .po-title {
+    font-size: 1.05rem;
+  }
+  .po-modal-body.mo-card {
+    padding: .95rem .95rem 1.25rem;
+    max-height: calc(96vh - 80px);
+  }
+}
+
+/* ---------- ບັນຊີ ---------- */
+.ac-wrap { max-width: 980px; }
+/* ລາຍການຂໍ້ມູນ dt/dd (ໃຊ້ໃນ pages/my_order.php) */
+.ac-info { display: grid; grid-template-columns: auto 1fr; gap: .3rem 1rem; margin: 0; font-size: .92rem; }
+.ac-info dt { color: var(--muted); }
+.ac-info dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+
+/* ---------- ລາຍການອໍເດີ ---------- */
+.mo-row { display: flex; align-items: center; gap: .85rem; padding: .8rem .2rem; border-bottom: 1px solid var(--border); color: var(--text); text-decoration: none; }
+.mo-row:last-child { border-bottom: 0; }
+.mo-row:hover { background: var(--bg-alt); color: var(--text); }
+.mo-row-img { flex: none; object-fit: contain; }
+.mo-row-main { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.4; }
+.mo-row-main b { color: var(--primary-dark); }
+.mo-row-items { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mo-row-main small { color: var(--muted); }
+.mo-row-side { display: flex; flex-direction: column; align-items: flex-end; gap: .2rem; text-align: right; flex: none; }
+.mo-row-side b { color: #dc2626; }
+.mo-need-slip { color: #b45309; font-weight: 600; }
+.mo-badge { padding: .12rem .55rem; border-radius: 3px; font-size: .76rem; font-weight: 700; white-space: nowrap; }
+.mo-badge.is-warn { background: #fef3c7; color: #92400e; }
+.mo-badge.is-info { background: #e0f2fe; color: #075985; }
+.mo-badge.is-primary { background: var(--primary-soft); color: var(--primary-dark); }
+.mo-badge.is-ok { background: #dcfce7; color: #15803d; }
+.mo-badge.is-err { background: #f1f5f9; color: #64748b; }
+.mo-tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .8rem; }
+.mo-tabs a { padding: .4rem .85rem; border-radius: 999px; border: 1px solid var(--border); background: #fff; color: var(--text); font-size: .9rem; text-decoration: none; }
+.mo-tabs a span { margin-left: .2rem; padding: 0 .4rem; border-radius: 999px; background: var(--bg-alt); font-size: .78rem; }
+.mo-tabs a.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.mo-tabs a.active span { background: rgba(255, 255, 255, .25); }
+
+/* ---------- ໜ້າຕິດຕາມອໍເດີ ---------- */
+.mo-status { display: flex; align-items: center; gap: 1.1rem; padding: 1.3rem; border-left: 5px solid var(--accent); }
+.mo-status.is-info, .mo-status.is-primary { border-left-color: var(--primary); }
+.mo-status.is-ok { border-left-color: var(--success); }
+.mo-status.is-err { border-left-color: #94a3b8; }
+.mo-status img { flex: none; object-fit: contain; }
+.mo-status small { color: var(--muted); }
+.mo-status h1 { margin: .15rem 0 .25rem; font-size: 1.3rem; line-height: 1.35; }
+.mo-status p { margin: 0; color: var(--muted); }
+.mo-steps { display: grid; grid-template-columns: repeat(6, 1fr); margin: 1.2rem 0; padding: 0; list-style: none; counter-reset: s; }
+.mo-steps li { position: relative; display: flex; flex-direction: column; align-items: center; gap: .25rem; text-align: center; font-size: .8rem; color: var(--muted); }
+.mo-steps li::before { content: ''; position: absolute; top: 15px; left: -50%; width: 100%; height: 3px; background: var(--border); z-index: 0; }
+.mo-steps li:first-child::before { display: none; }
+.mo-steps li.is-done::before, .mo-steps li.is-current::before { background: var(--primary); }
+.mo-dot { position: relative; z-index: 1; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #fff; border: 3px solid var(--border); font-weight: 700; color: var(--muted); }
+.mo-steps li.is-done .mo-dot { background: var(--primary); border-color: var(--primary); color: #fff; }
+.mo-steps li.is-current .mo-dot { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 0 0 5px #fef3c7; }
+.mo-steps li.is-done b, .mo-steps li.is-current b { color: var(--text); }
+.mo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.mo-box { padding: 1.1rem 1.2rem; margin-bottom: 1rem; }
+.mo-box h3 { margin: 0 0 .8rem; font-size: 1.02rem; }
+.mo-courier { display: flex; align-items: center; gap: .7rem; margin-bottom: .8rem; }
+.mo-courier img { border-radius: 6px; object-fit: contain; border: 1px solid var(--border); }
+.mo-courier div { display: flex; flex-direction: column; line-height: 1.4; }
+.mo-courier span { color: var(--muted); font-size: .88rem; }
+.mo-track { display: flex; justify-content: space-between; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .8rem; padding: .6rem .8rem; border-radius: var(--radius); background: #fffbeb; border: 1px solid #fde68a; }
+.mo-track span { color: #92400e; font-size: .85rem; font-weight: 600; }
+.mo-track b { font-size: 1.1rem; letter-spacing: .04em; color: var(--primary-dark); }
+.mo-track em { font-style: normal; color: var(--muted); font-size: .85rem; }
+.mo-slip-done { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: .8rem; }
+.mo-slip-done img { width: 120px; max-height: 180px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+.mo-slip-done div { display: flex; flex-direction: column; gap: .15rem; }
+.mo-slip-done b { color: var(--success); }
+.mo-slip-form > summary { cursor: pointer; font-weight: 700; color: var(--primary); margin-bottom: .8rem; }
+.mo-log { margin: 0; padding: 0; list-style: none; }
+.mo-log li { display: grid; grid-template-columns: 130px 1fr; gap: .1rem .8rem; padding: .45rem 0; border-bottom: 1px dashed var(--border); font-size: .9rem; }
+.mo-log li:last-child { border-bottom: 0; }
+.mo-log span { color: var(--muted); }
+.mo-log em { grid-column: 2; font-style: normal; color: var(--muted); font-size: .85rem; }
+
+@media (max-width: 767px) {
+  .mf-perks, .mf-grid-2, .mf-grid-3, .mo-grid { grid-template-columns: 1fr; }
+  .mf-card { padding: 1.1rem; }
+  .mo-steps { grid-template-columns: repeat(3, 1fr); row-gap: 1rem; }
+  .mo-steps li:nth-child(4)::before { display: none; }
+  .mo-status { flex-direction: column; text-align: center; }
+  .mo-log li { grid-template-columns: 1fr; }
+  .mo-log em { grid-column: 1; }
+  .mo-buy-btn { margin: 0; }
+}
+.mo-box .table .right, .mo-row-side b, .mk-price b { white-space: nowrap; }
+
+/* ກາດລົງທະບຽນ/ເຂົ້າສູ່ລະບົບ ແທນຟອມສັ່ງຊື້ ສຳລັບລູກຄ້າທົ່ວໄປ (components/member_cta.php) */
+.mcta { display: flex; align-items: center; gap: 1.1rem; margin: 1.5rem 0; padding: 1.25rem 1.4rem; border-radius: 10px;
+  background: linear-gradient(135deg, #eff6ff 0%, #fffbeb 100%); border: 1px solid #bfdbfe; }
+.mcta-img { flex: none; width: 84px; height: 84px; object-fit: contain; border-radius: 8px; background: #fff; border: 1px solid var(--border); }
+.mcta-text { display: flex; flex-direction: column; gap: .25rem; flex: 1; min-width: 0; line-height: 1.5; }
+.mcta-text strong { font-size: 1.05rem; color: var(--primary-dark); }
+.mcta-text span { color: #475569; font-size: .92rem; }
+.mcta-btns { display: flex; gap: .6rem; flex: none; }
+.mcta-btns .btn { white-space: nowrap; }
+@media (max-width: 767px) {
+  .mcta { flex-direction: column; text-align: center; }
+  .mcta-btns { width: 100%; }
+  .mcta-btns .btn { flex: 1; }
+}
+
+/* ປຸ່ມກະຕ່າໃນເມນູ (layouts/navbar.php) + ຈຳນວນ */
+.btn-cart { position: relative; display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; color: var(--primary-dark); text-decoration: none; transition: background .15s ease; }
+.btn-cart:hover { background: #eef2ff; color: var(--primary); }
+.btn-cart-count { position: absolute; top: 1px; right: 0; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: #fff;
+  font-size: .7rem; font-weight: 700; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px #fff; }
+.btn-cart-count[hidden] { display: none; }
+/* ຂໍ້ຄວາມແຈ້ງເຕືອນໃນ popup (ກົດກະຕ່າຕອນຍັງບໍ່ລົງທະບຽນ) — ສີເຫຼືອງ ບໍ່ແມ່ນສີແດງຂອງຂໍ້ຜິດພາດ */
+.mm-alert.is-note { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; font-weight: 600; }
+.mo-submit-btns { display: flex; gap: .6rem; flex-wrap: wrap; }
+.mo-submit-btns .btn { display: inline-flex; align-items: center; gap: .4rem; }
+@media (max-width: 767px) { .btn-cart { width: 36px; height: 36px; } .mo-submit-btns { width: 100%; } .mo-submit-btns .btn { flex: 1; justify-content: center; } }
+
+/* popup ສະມາຊິກແບບກະທັດຮັດ — ຟອມລົງທະບຽນ (ຫຼາຍຊ່ອງ) ບໍ່ໃຫ້ລົ້ນຈໍລຸ່ມ. ຈໍເຕ້ຍ (<780px) ຫຍໍ້ລົງອີກ; ຍັງລົ້ນ → ເລື່ອນໄດ້ໃນຝັ່ງຟອມ */
+.mm-form-side { padding: 1.35rem 2.1rem 1.1rem; justify-content: flex-start; }
+.mm-brand-top { margin-bottom: .7rem; }
+.mm-brand-logo { width: 78px; margin-bottom: .15rem; }
+.mm-gradient-title { font-size: clamp(1.05rem, 1.7vw, 1.25rem); }
+.mm-field { margin-bottom: .55rem; }
+.mm-field > span:first-child { margin-bottom: .22rem; font-size: .85rem; }
+.mm-field .input { padding: .56rem .85rem .56rem 2.45rem; font-size: .9rem; border-radius: 9px; }
+.mm-field .input.mm-noico { padding-left: .75rem; }
+.mm-input-ico { left: .8rem; }
+.mm-row { gap: .6rem; }
+.mm-alert { margin-bottom: .6rem; padding: .45rem .7rem; font-size: .82rem; line-height: 1.45; }
+.mm-check { margin: 0 0 .15rem; font-size: .84rem; }
+.mm-submit { margin-top: .4rem; padding: .7rem 1rem; font-size: .98rem; }
+.mm-switch { margin-top: .55rem; font-size: .86rem; }
+.mm-lang-corner { top: .85rem; right: 1rem; }
+.mm-lang-btn { width: 34px; height: 34px; }
+@media (max-height: 780px) {
+  .mm-dialog { max-height: calc(100vh - 1rem); }
+  .mm-form-side { padding-top: 1rem; }
+  .mm-brand-top { display: flex; align-items: center; justify-content: center; gap: .6rem; margin-bottom: .5rem; }
+  .mm-brand-logo { width: 54px; margin: 0; }
+  .mm-gradient-title { font-size: 1.02rem; }
+  .mm-field { margin-bottom: .42rem; }
+  .mm-field .input { padding-top: .48rem; padding-bottom: .48rem; }
+}
+/* ປຸ່ມສົ່ງຟອມໃນ popup ກົດບໍ່ໄດ້ ຈົນກວ່າປ້ອນຄົບ + ຕິກເງື່ອນໄຂ (assets/js/member.js updateSubmit) */
+.mm-submit:disabled { opacity: 1; cursor: not-allowed; background: #cbd5e1; box-shadow: none; color: #f8fafc; filter: none; }
+.mm-form-side { transition: opacity .2s ease; }
+.mm.is-switching .mm-form-side { opacity: .45; pointer-events: none; }   /* ກຳລັງປ່ຽນພາສາ */
+
+/* popup: ໂລໂກ້ + ຟອມ ຢູ່ກາງແນວຕັ້ງ (ຟອມສັ້ນບໍ່ເຫຼືອບ່ອນວ່າງລຸ່ມ); ຟອມຍາວ/ຈໍເຕ້ຍ → margin auto = 0 ເລື່ອນໄດ້ຄືເກົ່າ */
+.mm-form-side > .mm-brand-top { margin-top: auto; }
+.mm-form-side > .mm-view { margin-bottom: auto; }
+/* ແທັບເຂົ້າສູ່ລະບົບ (ມີແຕ່ 2 ຊ່ອງ): ໂລໂກ້ໃຫຍ່ຢູ່ເທິງຫົວຂໍ້, ຊ່ອງ ແລະ ປຸ່ມຫ່າງກັນພໍດີ */
+.mm-form-side:has(> [data-mm-view="login"]:not([hidden])) .mm-brand-top { display: block; margin-bottom: 1.6rem; }
+.mm-form-side:has(> [data-mm-view="login"]:not([hidden])) .mm-brand-logo { width: 104px; margin: 0 0 .4rem; }
+.mm-form-side:has(> [data-mm-view="login"]:not([hidden])) .mm-gradient-title { font-size: clamp(1.2rem, 1.9vw, 1.42rem); }
+[data-mm-view="login"] .mm-field { margin-bottom: 1.05rem; }
+[data-mm-view="login"] .mm-field > span:first-child { margin-bottom: .38rem; font-size: .92rem; }
+[data-mm-view="login"] .mm-field .input { padding-top: .8rem; padding-bottom: .8rem; font-size: .95rem; }
+[data-mm-view="login"] .mm-submit { margin-top: 1.4rem; padding: .88rem 1rem; font-size: 1.02rem; }
+[data-mm-view="login"] .mm-switch { margin-top: 1.1rem; font-size: .9rem; }
+/* popup ສະມາຊິກ (ເຂົ້າສູ່ລະບົບ + ລົງທະບຽນ) ຈໍຄອມ >820px: ກວ້າງ ສູງເກືອບເຕັມຈໍ, ຟອມແຄບຢູ່ກາງຝັ່ງຊ້າຍ, ມຸມມົນໃຫຍ່.
+   ໄລຍະຫ່າງຂອງຟອມລົງທະບຽນຍືດຕາມຄວາມສູງຈໍ (vh) ຈຶ່ງບໍ່ລົ້ນຈໍເຕ້ຍ; ≤820px ເປັນຖັນດຽວ (components.css) / ມືຖືເຕັມຈໍ (mobile.css) */
+@media (min-width: 821px) {
+  .mm-dialog {
+    width: min(1200px, calc(100vw - 2.5rem)); height: calc(100vh - 2.5rem); max-height: 830px;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); border-radius: 28px;
+  }
+  .mm-form-side { padding: clamp(1rem, 3vh, 2rem) 2.5rem clamp(.9rem, 3vh, 1.8rem); }
+  .mm-form-side > .mm-brand-top, .mm-form-side > .mm-view { width: 100%; max-width: 520px; margin-left: auto; margin-right: auto; }
+  .mm-x { top: 1.4rem; right: 1.4rem; width: 52px; height: 52px; font-size: 1.8rem; }
+  .mm-lang-corner { top: 1.4rem; right: 1.6rem; }
+  .mm-field .input, .mm-submit { border-radius: 12px; }
+  .mm-form-side:has(> [data-mm-view="register"]:not([hidden])) .mm-brand-top { margin-bottom: clamp(.6rem, 3.4vh, 1.6rem); }
+  .mm-form-side:has(> [data-mm-view="register"]:not([hidden])) .mm-brand-logo { width: clamp(54px, 9vh, 92px); }
+  [data-mm-view="register"] .mm-alert { margin-bottom: clamp(.6rem, 2.4vh, 1.2rem); padding: clamp(.45rem, 1.3vh, .75rem) .85rem; }
+  [data-mm-view="register"] .mm-field { margin-bottom: clamp(.5rem, 2.8vh, 1.3rem); }
+  [data-mm-view="register"] .mm-field > span:first-child { margin-bottom: clamp(.22rem, 1vh, .5rem); }
+  [data-mm-view="register"] .mm-field .input { padding-top: clamp(.55rem, 2vh, 1rem); padding-bottom: clamp(.55rem, 2vh, 1rem); }
+  [data-mm-view="register"] .mm-check { margin: clamp(.15rem, 1vh, .5rem) 0 clamp(.2rem, 1.2vh, .6rem); }
+  [data-mm-view="register"] .mm-submit { margin-top: clamp(.5rem, 2.8vh, 1.4rem); padding-top: clamp(.7rem, 2vh, 1.05rem); padding-bottom: clamp(.7rem, 2vh, 1.05rem); }
+  [data-mm-view="register"] .mm-switch { margin-top: clamp(.55rem, 2.4vh, 1.2rem); }
+}
+
+/* ແຊັດສະເພາະສະມາຊິກ: ຄົນທົ່ວໄປ (.chat-guest) ເຊື່ອງບ່ອນພິມ, ປຸ່ມຖາມດ່ວນ, ຟອມຝາກເບີ, ແຖບອັດສຽງ → ແຖບລົງທະບຽນ (components/chat_guest_bar.php) */
+.chat-guest .fc-input-bar, .chat-guest .fc-quick-bar, .chat-guest .fc-contact-form, .chat-guest .fc-rec-bar,
+.chat-guest [data-chat-form], .chat-guest .chat-quick-wrap, .chat-guest [data-chat-contact], .chat-guest [data-chat-rec] { display: none !important; }
+.chat-guest-bar { display: flex; flex-direction: column; align-items: center; gap: .55rem; padding: .85rem 1rem; border-top: 1px solid var(--border);
+  background: linear-gradient(135deg, #eff6ff 0%, #fffbeb 100%); text-align: center; }
+.chat-guest-bar > span { font-size: .88rem; font-weight: 600; color: #1e3a8a; line-height: 1.45; }
+.chat-guest-btns { display: flex; gap: .5rem; width: 100%; }
+.chat-guest-btn { flex: 1; padding: .55rem .8rem; border-radius: 8px; border: 1px solid var(--primary); color: var(--primary); background: #fff;
+  font-weight: 700; font-size: .9rem; text-align: center; text-decoration: none; }
+.chat-guest-btn:hover { background: var(--primary-soft); color: var(--primary-dark); }
+.chat-guest-btn.is-primary { background: var(--primary); color: #fff; }
+.chat-guest-btn.is-primary:hover { background: var(--primary-dark); color: #fff; }
+
+/* ເປີດ/ປິດ ອີເມວແຈ້ງເຕືອນ (pages/account.php) */
+.ac-notify-row { display: flex; align-items: flex-start; gap: .75rem; cursor: pointer; }
+.ac-notify-row input { width: 20px; height: 20px; margin-top: .15rem; accent-color: var(--primary); flex: none; }
+.ac-notify-row span { display: flex; flex-direction: column; gap: .15rem; }
+.ac-notify-row b { font-size: 1rem; color: var(--primary-dark); }
+.ac-notify-row small { color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
+
+/* ລືມລະຫັດຜ່ານ? (popup ເຂົ້າສູ່ລະບົບ) → WhatsApp */
+.mm-forgot { display: block; margin: -.35rem 0 0; text-align: right; font-size: .84rem; font-weight: 600; color: #0052cc; text-decoration: none; }
+.mm-forgot:hover { text-decoration: underline; }
+
+/* ຊ່ອງດັກ bot ໃນຟອມລົງທະບຽນ (components/member_modal.php) — ຄົນບໍ່ເຫັນ */
+.mm-hp { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; overflow: hidden; }
+
+/* ---------- ເມນູສະມາຊິກທີ່ແຖບເທິງ (components/member_menu.php) ---------- */
+.nm { position: relative; }
+.nm-btn { display: inline-grid; place-items: center; padding: 2px; border: 2px solid #e2e8f0; border-radius: 50%; background: #fff; cursor: pointer; transition: border-color .15s, box-shadow .15s; }   /* ຮູບໂປຣໄຟລ໌ວົງມົນຢ່າງດຽວ */
+.nm-btn:hover, .nm.open .nm-btn { border-color: #93c5fd; box-shadow: 0 0 0 3px #dbeafe; }
+.nm-ava { flex: none; display: grid; place-items: center; width: 38px; height: 38px; overflow: hidden; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; font-weight: 700; font-size: .95rem; }
+.nm-ava img { width: 100%; height: 100%; object-fit: cover; }
+.nm-ava.is-lg { width: 58px; height: 58px; font-size: 1.5rem; box-shadow: 0 0 0 3px #eff6ff; }
+.nm-panel { position: absolute; top: calc(100% + 10px); right: 0; z-index: 1200; width: 330px; max-width: calc(100vw - 24px); padding: 1rem 1.1rem 1.1rem; border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; box-shadow: 0 16px 40px rgba(15, 23, 42, .16); opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity .15s, transform .15s, visibility .15s; }
+.nm.open .nm-panel { opacity: 1; visibility: visible; transform: none; }
+.nm-head { display: flex; align-items: center; gap: .85rem; padding: .2rem .2rem 1rem; margin-bottom: .5rem; border-bottom: 1px solid #e2e8f0; }
+.nm-who { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+.nm-who b { color: #0f172a; font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nm-who small { color: #64748b; font-size: .84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nm-item { display: flex; align-items: center; gap: 1rem; width: 100%; padding: .75rem .6rem; border: 0; border-radius: 10px; background: none; color: #0f172a; font: inherit; font-size: 1rem; text-align: left; text-decoration: none; cursor: pointer; }
+.nm-item:hover { background: #f1f5f9; color: #1d4ed8; }
+.nm-item svg { flex: none; color: #334155; }
+.nm-item:hover svg { color: #1d4ed8; }
+.nm-out { margin: .5rem 0 0; padding-top: .5rem; border-top: 1px solid #e2e8f0; }
+@media (max-width: 600px) {
+  .nm-ava { width: 32px; height: 32px; }
+  .nm-panel { position: fixed; top: 64px; right: 12px; }
+}
+
+
+/* ລະຫັດຢືນຢັນທາງອີເມວ (OTP) + ແທັບລືມລະຫັດຜ່ານ (components/member_modal.php) */
+.mm-otp { margin: .4rem 0 .2rem; padding: .8rem .9rem .6rem; border: 1px dashed #93c5fd; border-radius: 12px; background: #f8fbff; }
+.mm-otp[hidden] { display: none; }
+.mm-otp .mm-otp-input { letter-spacing: .5em; font-weight: 800; font-size: 1.15rem !important; }
+.mm-otp-resend { border: 0; background: none; padding: 0; font: inherit; font-size: .84rem; font-weight: 700; color: #0052cc; cursor: pointer; }
+.mm-otp-resend:hover { text-decoration: underline; }
+.mm-forgot-intro { margin: 0 0 1rem; font-size: .9rem; line-height: 1.6; color: #475569; }
+[data-mm-view="forgot"] .mm-submit { margin-top: 1rem; }
+
+/* ກະດິ່ງແຈ້ງເຕືອນສະມາຊິກ (components/member_bell.php, assets/js/member_bell.js) */
+.nb { position: relative; }
+.nb-btn { position: relative; display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer; }
+.nb-btn:hover { background: rgba(37, 99, 235, .08); }
+.nb-count { position: absolute; top: 1px; right: 0; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #ef4444; color: #fff; font-size: .68rem; font-weight: 700; line-height: 18px; text-align: center; box-shadow: 0 0 0 2px #fff; }
+.nb-count[hidden] { display: none; }
+.nb-panel { position: absolute; right: 0; top: calc(100% + 8px); z-index: 1200; width: 360px; max-width: calc(100vw - 24px); border-radius: 14px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 18px 40px rgba(15, 23, 42, .18); overflow: hidden; }
+.nb-panel[hidden] { display: none; }
+.nb-head { display: flex; align-items: center; justify-content: space-between; padding: .8rem 1rem; border-bottom: 1px solid #f1f5f9; }
+.nb-head strong { font-size: 1rem; color: #0f172a; }
+.nb-readall { border: 0; background: none; padding: 0; font: inherit; font-size: .8rem; font-weight: 700; color: #2563eb; cursor: pointer; }
+.nb-readall:hover { text-decoration: underline; }
+.nb-list { max-height: 420px; overflow-y: auto; }
+.nb-empty { margin: 0; padding: 2rem 1rem; text-align: center; color: #94a3b8; font-size: .9rem; line-height: 2; }
+.nb-item { position: relative; display: flex; align-items: flex-start; gap: .7rem; padding: .75rem 1rem; color: inherit; text-decoration: none; border-bottom: 1px solid #f8fafc; }
+.nb-item:hover { background: #f8fafc; }
+.nb-item.is-unread { background: #eff6ff; }
+.nb-item.is-unread:hover { background: #e0ecff; }
+.nb-ico { flex: 0 0 38px; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: #e0e7ff; color: #1d4ed8; }   /* ໄອຄອນເສັ້ນ SVG (memberNotifIcon) */
+.nb-ico.is-green { background: #dcfce7; color: #15803d; }
+.nb-ico.is-red { background: #fee2e2; color: #dc2626; }
+.nb-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .1rem; }
+.nb-text b { font-size: .88rem; color: #0f172a; line-height: 1.45; }
+.nb-text small { font-size: .8rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nb-text time { font-size: .72rem; color: #94a3b8; }
+.nb-dot { flex: 0 0 9px; width: 9px; height: 9px; margin-top: .4rem; border-radius: 50%; background: #2563eb; }
+@media (max-width: 640px) {
+  .nb { position: static; }
+  .nb-panel { position: fixed; left: 12px; right: 12px; top: 64px; width: auto; max-width: none; }
+}
+
+/* popup ຢືນຢັນອອກຈາກລະບົບ (assets/js/member_logout.js) */
+.lo-modal { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; padding: 16px; }
+.lo-modal[hidden] { display: none; }
+.lo-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, .55); opacity: 0; transition: opacity .15s ease; }
+.lo-box { position: relative; width: min(380px, 100%); padding: 1.6rem 1.4rem 1.3rem; border-radius: 14px; background: #fff; text-align: center; box-shadow: 0 30px 70px rgba(15, 23, 42, .35); transform: translateY(10px) scale(.96); opacity: 0; transition: transform .18s ease, opacity .18s ease; }
+.lo-modal.is-open .lo-backdrop { opacity: 1; }
+.lo-modal.is-open .lo-box { transform: none; opacity: 1; }
+.lo-ico { display: inline-grid; place-items: center; width: 62px; height: 62px; margin-bottom: .7rem; border-radius: 50%; background: #fee2e2; color: #dc2626; }
+.lo-title { margin: 0 0 .35rem; font-size: 1.1rem; font-weight: 800; color: #0f172a; }
+.lo-text { margin: 0 0 1.2rem; font-size: .88rem; line-height: 1.6; color: #64748b; }
+.lo-text:empty { display: none; }
+.lo-btns { display: flex; gap: .6rem; }
+.lo-btns button { flex: 1; height: 46px; border: 0; border-radius: 10px; font: inherit; font-size: .95rem; font-weight: 700; cursor: pointer; }
+.lo-no { background: #f1f5f9; color: #334155; }
+.lo-no:hover { background: #e2e8f0; }
+.lo-yes { background: #dc2626; color: #fff; }
+.lo-yes:hover { background: #b91c1c; }
+.lo-yes:disabled { opacity: .6; cursor: wait; }
+.lo-btns button:focus { outline: none; }
+.lo-btns button:focus-visible { box-shadow: 0 0 0 3px rgba(37, 99, 235, .3); }
+
+/* ວັນເດືອນປີເກີດ 3 ກ່ອງເລືອກ (memberBirthSelects — popup ລົງທະບຽນ + pages/account.php) */
+.bd-sel { display: grid; grid-template-columns: 1fr 1.35fr 1.1fr; gap: .5rem; }
+.bd-sel select.input { width: 100%; min-width: 0; padding-right: 2rem; appearance: none; -webkit-appearance: none; cursor: pointer;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right .7rem center; }
+.bd-sel select.input:invalid { color: #64748b; }
+.bd-sel select.input option { color: #0f172a; }
+.mm-field .bd-sel select.input { background-color: #e8eef7; }   /* ສີດຽວກັບຊ່ອງອື່ນໃນ popup ລົງທະບຽນ */
+.mm-field .bd-sel select.input:focus { background-color: #f4f7fc; }
+
+/* 11/2026 popup ລົງທະບຽນ / ເຂົ້າສູ່ລະບົບ: ຊ່ອງປ້ອນແບບທຳມະດາ (ພື້ນຂາວ ຂອບບາງ ສູງ ~44px ບໍ່ມີໄອຄອນຊ້າຍ — ຄືຟອມລະຫັດຜ່ານໃນໜ້າບັນຊີ)
+   ແລະ popup ຂະໜາດກາງ (ບໍ່ສູງເຕັມຈໍ) ຢູ່ກາງຈໍ — ແທນກົດ clamp()/vh ຂ້າງເທິງ */
+.mm-input-ico { display: none; }
+.mm-field { margin-bottom: .8rem; }
+.mm-field > span:first-child { margin-bottom: .35rem; color: #1f2937; font-size: .88rem; font-weight: 700; }
+.mm-field .input, .mm-field .input.mm-noico,
+[data-mm-view] .mm-field .input {
+  height: 44px; padding: 0 .9rem; border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; color: #0f172a; font-size: .92rem; box-shadow: none;
+}
+.mm-field textarea.input { height: auto; padding: .6rem .9rem; }
+.mm-field .input::placeholder { color: #94a3b8; }
+.mm-field .input:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29, 78, 216, .12); }
+.mm-pass .input, [data-mm-view] .mm-pass .input { padding-right: 2.8rem; }
+.mm-field .bd-sel select.input, .mm-field .bd-sel select.input:focus { background-color: #fff; padding-right: 2rem; }
+.mm-alert { margin-bottom: .8rem; }
+.mm-submit, [data-mm-view] .mm-submit { height: 46px; margin-top: .6rem; padding: 0 1rem; border-radius: 8px; font-size: .98rem; }
+.mm-check { margin: .1rem 0 .3rem; }
+.mm-switch, [data-mm-view] .mm-switch { margin-top: .8rem; }
+[data-mm-view="login"] .mm-field { margin-bottom: .9rem; }
+[data-mm-view="login"] .mm-submit { margin-top: 1rem; }
+@media (min-width: 821px) {
+  .mm-dialog { width: min(920px, calc(100vw - 2.5rem)); height: auto; max-height: calc(100vh - 2rem); grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); border-radius: 16px; }
+  .mm-form-side { padding: 1.6rem 2.2rem 1.4rem; }
+  .mm-form-side > .mm-brand-top, .mm-form-side > .mm-view { max-width: 420px; }
+  .mm-x { top: 1rem; right: 1rem; width: 42px; height: 42px; font-size: 1.4rem; }
+  .mm-lang-corner { top: 1rem; right: 1.1rem; }
+  .mm-field .input, .mm-submit { border-radius: 8px; }
+  .mm-form-side:has(> [data-mm-view]:not([hidden])) .mm-brand-top { margin-bottom: 1rem; }
+  .mm-form-side:has(> [data-mm-view]:not([hidden])) .mm-brand-logo { width: 72px; }
+  .mm-form-side:has(> [data-mm-view="login"]:not([hidden])) .mm-gradient-title { font-size: 1.2rem; }
+  [data-mm-view="register"] .mm-field { margin-bottom: .75rem; }
+  [data-mm-view="register"] .mm-field > span:first-child { margin-bottom: .35rem; }
+  [data-mm-view="register"] .mm-field .input { padding-top: 0; padding-bottom: 0; }
+  [data-mm-view="register"] .mm-alert { margin-bottom: .8rem; padding: .5rem .8rem; }
+  [data-mm-view="register"] .mm-check { margin: .1rem 0 .3rem; }
+  [data-mm-view="register"] .mm-submit { margin-top: .6rem; padding-top: 0; padding-bottom: 0; }
+  [data-mm-view="register"] .mm-switch { margin-top: .8rem; }
+}
+/* ກ່ອງເລືອກວັນເກີດໃນ popup: ໃສ່ລູກສອນຄືນ (ກົດພື້ນຂາວຂ້າງເທິງທັບ background-image) */
+[data-mm-view] .mm-field .bd-sel select.input {
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right .7rem center;
+}

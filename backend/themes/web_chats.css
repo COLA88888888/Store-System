@@ -1,0 +1,188 @@
+/* ແຊັດຈາກເວັບໄຊ (pages/web_chats/index.php) */
+.wc-title { font-size: 1.35rem; font-weight: 700; margin: 0 0 .75rem; }
+.wc { display: grid; grid-template-columns: 300px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); height: calc(100vh - 110px); min-height: 420px; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; background: #fff; }
+.wc-list { overflow-y: auto; border-right: 1px solid #e5e7eb; background: #f8fafc; }
+.wc-empty { padding: 1.5rem; color: #94a3b8; text-align: center; }
+.wc-item { position: relative; display: flex; flex-direction: column; gap: .1rem; width: 100%; padding: .7rem .9rem; border: 0; border-bottom: 1px solid #eef0f3; background: none; text-align: left; cursor: pointer; }
+.wc-item:hover { background: #eef2ff; }
+.wc-item.is-on { background: #e0e7ff; }
+.wc-item.is-closed { opacity: .6; }
+.wc-item-top { display: flex; justify-content: space-between; gap: .5rem; }
+.wc-item-top small, .wc-item-sub { color: #64748b; font-size: .8rem; }
+.wc-item-last { color: #334155; font-size: .85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 1.6rem; }
+.wc-badge { position: absolute; right: .8rem; bottom: .75rem; }
+/* min-height: 0 ໃຫ້ຂໍ້ຄວາມເລື່ອນຢູ່ໃນກ່ອງ ແລະ ຊ່ອງຕອບ (.wc-reply) ຕິດລຸ່ມສະເໝີ — ບໍ່ດັ່ງນັ້ນຂໍ້ຄວາມຍາວຈະດັນຊ່ອງຕອບຫຼົບອອກ */
+.wc-room { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+.wc-pick { margin: auto; }
+.wc-head { flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .7rem 1rem; border-bottom: 1px solid #e5e7eb; }
+.wc-head[hidden], .wc-log[hidden], .wc-reply[hidden] { display: none !important; }
+.wc-head b { margin-right: .6rem; }
+.wc-head small { display: block; color: #94a3b8; }
+.wc-tools { display: flex; align-items: center; gap: .75rem; }
+.wc-switch { display: inline-flex; align-items: center; gap: .35rem; margin: 0; font-weight: 500; cursor: pointer; }
+.wc-log { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: .55rem; padding: 1rem; background: #f8fafc; }
+.wc-msg { display: flex; flex-direction: column; align-items: flex-start; max-width: 75%; }
+.wc-msg.is-staff, .wc-msg.is-bot { align-self: flex-end; align-items: flex-end; }
+.wc-who { font-size: .72rem; color: #94a3b8; margin: 0 .2rem .15rem; }
+.wc-bubble { padding: .55rem .8rem; border-radius: 12px; background: #fff; border: 1px solid #e5e7eb; white-space: pre-wrap; overflow-wrap: anywhere; }
+.wc-msg.is-staff .wc-bubble { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.wc-msg.is-bot .wc-bubble { background: #eef2ff; border-color: #c7d2fe; }
+.wc-bubble audio { display: block; width: 260px; max-width: 100%; height: 36px; }
+.wc-reply { flex: 0 0 auto; display: flex; align-items: flex-end; gap: .5rem; padding: .7rem 1rem; border-top: 1px solid #e5e7eb; background: #fff; }
+.wc-reply textarea { flex: 1; resize: none; padding: .5rem .7rem; border: 1px solid #d1d5db; border-radius: 6px; }
+@media (max-width: 768px) {
+  .wc { grid-template-columns: 1fr; height: auto; }
+  .wc-list { max-height: 240px; border-right: 0; border-bottom: 1px solid #e5e7eb; }
+  .wc-log { min-height: 360px; }
+}
+/* ຫຼາຍພາສາ: ຄຳແປໃຕ້ຂໍ້ຄວາມ + ຕິກແປຄຳຕອບ */
+.wc-tr { margin-top: .35rem; padding-top: .3rem; border-top: 1px dashed rgba(100, 116, 139, .4); font-size: .85rem; opacity: .85; }
+.wc-reply-box { flex: 1; display: flex; flex-direction: column; gap: .3rem; }
+.wc-reply-box textarea { width: 100%; }
+.wc-tr-toggle { margin: 0; font-size: .85rem; font-weight: 500; color: #475569; }
+.wc-tr-toggle[hidden] { display: none; }
+#wcLang { margin-right: .5rem; }
+/* ສະມາຊິກເວັບໄຊ (pages/web_members/index.php) */
+.wm-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: .75rem; }
+.wm-head .wc-title { margin: 0; }
+.wm-search { display: flex; gap: .4rem; min-width: 280px; }
+.wm-no { color: #1d4ed8; font-variant-numeric: tabular-nums; }
+/* ປ້າຍປະເພດລູກຄ້າ: ສະມາຊິກ #N (ຂຽວ) / ລູກຄ້າທົ່ວໄປ (ເທົາ) */
+.wc-item-kind { margin: .1rem 0; }
+.wc-kind { font-size: .72rem; font-weight: 600; vertical-align: middle; }
+.wc-kind.badge-light { background: #eef0f3; color: #475569; }
+/* ພະນັກງານອັດສຽງ: ປຸ່ມໄມ + ແຖບກຳລັງອັດ (ເວລາ, ລະດັບສຽງ, ຍົກເລີກ/ສົ່ງ) */
+.wc-mic { flex: 0 0 auto; }
+.wc-rec { flex: 0 0 auto; display: flex; align-items: center; gap: .6rem; padding: .7rem 1rem; border-top: 1px solid #e5e7eb; background: #fff; }
+.wc-rec[hidden] { display: none !important; }
+.wc-rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; animation: wc-blink 1s infinite; }
+@keyframes wc-blink { 50% { opacity: .25; } }
+.wc-rec-hint { flex: 1; display: flex; align-items: center; gap: .6rem; color: #64748b; }
+.wc-rec-level { flex: 1; max-width: 200px; height: 6px; border-radius: 99px; background: #e2e8f0; overflow: hidden; }
+.wc-rec-level i { display: block; width: 0; height: 100%; border-radius: inherit; background: #22c55e; transition: width .1s linear; }
+.wc-msg.is-staff .wc-bubble audio { filter: invert(1) hue-rotate(180deg); }
+/* ອ່ານແລ້ວ / ຍັງບໍ່ອ່ານ ໃຕ້ຄຳຕອບທີ່ສົ່ງຫາລູກຄ້າ */
+.wc-read { margin: .15rem .2rem 0; font-size: .7rem; color: #94a3b8; }
+.wc-read.is-seen { color: #2563eb; font-weight: 600; }
+/* ຄຳສັ່ງຊື້ຈາກເວັບໄຊ (pages/web_orders/index.php): ແຖບຂັ້ນ 6 ຂີດ + ຊ່ອງປ່ຽນສະຖານະອື່ນ */
+.wo-steps { display: flex; gap: 3px; margin-top: .35rem; max-width: 150px; }
+.wo-steps span { flex: 1; height: 5px; border-radius: 3px; background: #e2e8f0; }
+.wo-steps span.on { background: #2563eb; }
+.wo-more summary { font-size: .8rem; color: #2563eb; cursor: pointer; }
+/* ປັກໝຸດຕຳແໜ່ງຮ້ານ (pages/web_location/index.php) */
+.wl { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 1rem; }
+.wl-map { height: calc(100vh - 170px); min-height: 420px; border-radius: 8px; border: 1px solid #e5e7eb; }
+@media (max-width: 768px) { .wl { grid-template-columns: 1fr; } .wl-map { height: 380px; } }
+
+/* ຜົນງານ & ໂລໂກ້ລູກຄ້າ ແບບ Facebook (pages/web_works/index.php) */
+.ww-layout { display: grid; grid-template-columns: 420px minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+.ww-composer { position: sticky; top: 12px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(15,23,42,.05); }
+.ww-client-row { display: flex; align-items: center; gap: .85rem; margin-bottom: .85rem; }
+.ww-logo-pick { position: relative; width: 74px; height: 74px; flex: 0 0 74px; border-radius: 10px; border: 2px dashed #cbd5e1; background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; transition: border-color .15s, background .15s; text-align: center; }
+.ww-logo-pick:hover { border-color: #2563eb; background: #eff6ff; }
+.ww-logo-pick img { width: 100%; height: 100%; object-fit: contain; padding: 4px; background: #fff; }
+.ww-logo-pick .ww-logo-placeholder { font-size: .72rem; color: #64748b; line-height: 1.2; padding: 4px; }
+.ww-logo-pick .ww-logo-placeholder i { font-size: 1.25rem; color: #2563eb; display: block; margin-bottom: 2px; }
+.ww-logo-clear { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; border: 0; background: rgba(15,23,42,.75); color: #fff; font-size: 12px; line-height: 1; display: grid; place-items: center; cursor: pointer; z-index: 2; }
+.ww-dropzone { border: 2px dashed #93c5fd; border-radius: 10px; background: #f0f7ff; padding: 1.1rem .85rem; text-align: center; cursor: pointer; transition: background .15s, border-color .15s; }
+.ww-dropzone:hover, .ww-dropzone.is-dragover { background: #dbeafe; border-color: #2563eb; }
+.ww-dropzone i { font-size: 1.75rem; color: #2563eb; margin-bottom: .3rem; }
+.ww-preview-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin-top: .75rem; }
+.ww-prev-item { position: relative; aspect-ratio: 4 / 3; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; background: #f1f5f9; }
+.ww-prev-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ww-prev-item.is-cover { border: 2px solid #2563eb; }
+.ww-prev-badge { position: absolute; left: 5px; top: 5px; background: rgba(37,99,235,.92); color: #fff; font-size: .68rem; font-weight: 700; padding: 2px 6px; border-radius: 4px; pointer-events: none; }
+.ww-prev-cover-btn { position: absolute; left: 5px; bottom: 5px; background: rgba(15,23,42,.72); color: #fff; border: 0; font-size: .68rem; padding: 2px 6px; border-radius: 4px; cursor: pointer; opacity: 0; transition: opacity .15s; }
+.ww-prev-item:hover .ww-prev-cover-btn { opacity: 1; }
+.ww-prev-del { position: absolute; right: 5px; top: 5px; width: 22px; height: 22px; border-radius: 50%; border: 0; background: rgba(15,23,42,.78); color: #fff; font-size: 13px; line-height: 1; display: grid; place-items: center; cursor: pointer; }
+.ww-prev-del:hover { background: #dc2626; }
+.ww-prev-add { aspect-ratio: 4 / 3; border-radius: 8px; border: 2px dashed #cbd5e1; background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #2563eb; font-size: .8rem; font-weight: 600; cursor: pointer; }
+.ww-prev-add:hover { background: #eff6ff; border-color: #2563eb; }
+.ww-feed { display: flex; flex-direction: column; gap: 1rem; }
+@media (max-width: 992px) { .ww-layout { grid-template-columns: 1fr; } .ww-composer { position: static; } }
+
+/* ໄຟລ໌ແນບໃນແຊັດ (ຮູບ / ວິດີໂອ) */
+.wc-att-img { display: block; max-width: 240px; max-height: 240px; border-radius: 8px; object-fit: cover; }
+
+/* ແຊັດຈາກເວັບໄຊ ແບບໃໝ່ (pages/web_chats/index.php): ຊ້າຍຂາວ (ຄົ້ນຫາ + ກອງ + ລາຍການມີຮູບ), ຂວາເທົາ (ຍັງບໍ່ເລືອກ = ຮູບ + ຂໍ້ຄວາມ) */
+.wc { grid-template-columns: 360px minmax(0, 1fr); height: calc(100vh - 40px); border-radius: 10px; }
+.wc-side { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid #e5e7eb; background: #fff; }
+.wc-side-head { display: flex; align-items: center; gap: .6rem; padding: 1rem 1rem .75rem; }
+.wc-search { flex: 1; display: flex; align-items: center; gap: .55rem; margin: 0; padding: 0 .9rem; height: 44px; border-radius: 12px; background: #f3f4f6; color: #6b7280; font-weight: 400; cursor: text; }
+.wc-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; font-size: .95rem; color: #111827; }
+.wc-filter { position: relative; }
+.wc-filter-btn { position: relative; width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; color: #1f2937; font-size: 1.05rem; cursor: pointer; }
+.wc-filter-btn:hover, .wc-filter-btn.is-active { background: #eef2ff; color: #1d4ed8; }
+.wc-filter-dot { position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #ef4444; color: #fff; font-size: .68rem; font-weight: 700; line-height: 18px; }
+.wc-filter-dot[hidden] { display: none; }
+.wc-filter-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 170px; padding: .35rem; border-radius: 10px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 12px 28px rgba(15, 23, 42, .14); }
+.wc-filter-menu[hidden] { display: none; }
+.wc-filter-menu button { display: block; width: 100%; padding: .5rem .75rem; border: 0; border-radius: 7px; background: none; text-align: left; font-size: .9rem; color: #334155; cursor: pointer; }
+.wc-filter-menu button:hover { background: #f1f5f9; }
+.wc-filter-menu button.is-on { background: #eff6ff; color: #1d4ed8; font-weight: 700; }
+.wc-list { flex: 1; min-height: 0; overflow-y: auto; border-right: 0; background: #fff; padding: 0 .5rem .5rem; }
+.wc-item { flex-direction: row; align-items: center; gap: .8rem; padding: .75rem .6rem; border-bottom: 0; border-radius: 10px; }
+.wc-item:hover { background: #f8fafc; }
+.wc-item.is-on { background: #eff6ff; }
+.wc-av { flex: 0 0 50px; width: 50px; height: 50px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; color: #fff; font-size: 1.2rem; font-weight: 700; background: #94a3b8; }
+.wc-av img { width: 100%; height: 100%; object-fit: cover; }
+.wc-item-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .2rem; }
+.wc-item-top { align-items: center; }
+.wc-item-top b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .98rem; color: #111827; }
+.wc-item-top small { flex-shrink: 0; color: #9ca3af; font-size: .8rem; }
+.wc-item-top .wc-kind { flex-shrink: 0; }
+.wc-item-bottom { display: flex; align-items: center; gap: .5rem; }
+.wc-item-last { flex: 1; min-width: 0; padding-right: 0; color: #6b7280; font-size: .88rem; }
+.wc-item-last .fa-user-tie { color: #94a3b8; font-size: .78rem; }
+.wc-badge { position: static; flex-shrink: 0; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #ef4444; color: #fff; font-size: .72rem; font-weight: 700; line-height: 20px; text-align: center; }
+.wc-room { background: #f1f2f5; }
+.wc-room .wc-head, .wc-room .wc-reply { background: #fff; }
+.wc-pick { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 1rem; text-align: center; color: #9ca3af; }
+.wc-pick[hidden] { display: none; }
+.wc-pick p { margin: 0; font-size: 1.05rem; font-weight: 600; line-height: 1.7; }
+@media (max-width: 768px) {
+  .wc { grid-template-columns: 1fr; height: auto; }
+  .wc-side { border-right: 0; border-bottom: 1px solid #e5e7eb; }
+  .wc-list { max-height: 300px; }
+  .wc-pick { padding: 2rem 1rem; }
+}
+
+/* ແຖບລຸ່ມຂອງຫ້ອງແຊັດ: ປຸ່ມວົງມົນ + ຊ່ອງພິມມົນ + ອີໂມຈິ (pages/web_chats/index.php #wcReply) */
+.wc-reply { flex-direction: column; align-items: stretch; gap: .4rem; padding: .85rem 1rem; }
+.wc-reply[hidden] { display: none !important; }
+.wc-bar { display: flex; align-items: center; gap: .6rem; }
+.wc-round { flex: 0 0 auto; width: 48px; height: 48px; border: 0; border-radius: 50% !important; background: #f3f4f6; color: #1f2937; font-size: 1.05rem; display: grid; place-items: center; cursor: pointer; transition: background .15s ease; }
+.wc-round:hover { background: #e5e7eb; }
+.wc-round[hidden] { display: none; }
+.wc-round.wc-send { background: #2563eb; color: #fff; }
+.wc-round.wc-send:hover { background: #1d4ed8; }
+.wc-round:disabled { opacity: .6; }
+.wc-input { flex: 1; min-width: 0; display: flex; align-items: center; gap: .4rem; padding: 0 .5rem 0 1.1rem; min-height: 52px; border-radius: 26px; background: #f3f4f6; }
+.wc-input textarea { flex: 1; min-width: 0; height: 24px; max-height: 120px; padding: 0; border: 0; outline: 0; border-radius: 0; background: none; resize: none; font-size: 1rem; line-height: 1.5; color: #111827; }
+.wc-input textarea::placeholder { color: #6b7280; }
+.wc-emoji-btn { width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: #1f2937; font-size: 1.3rem; cursor: pointer; }
+.wc-emoji-btn:hover { background: #e5e7eb; }
+.wc-pop-wrap { position: relative; display: flex; }
+.wc-pop { position: absolute; bottom: calc(100% + 8px); z-index: 30; padding: .4rem; border-radius: 12px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 14px 30px rgba(15, 23, 42, .16); }
+.wc-pop[hidden] { display: none; }
+.wc-quick { left: 0; width: 320px; display: flex; flex-direction: column; }
+.wc-quick button { padding: .55rem .7rem; border: 0; border-radius: 8px; background: none; text-align: left; font-size: .88rem; color: #334155; cursor: pointer; }
+.wc-quick button:hover { background: #eff6ff; color: #1d4ed8; }
+.wc-emoji { right: 0; width: 264px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; }
+.wc-emoji button { height: 38px; border: 0; border-radius: 8px; background: none; font-size: 1.3rem; cursor: pointer; }
+.wc-emoji button:hover { background: #f1f5f9; }
+.wc-tr-toggle { padding-left: .3rem; }
+@media (max-width: 576px) {
+  .wc-bar { gap: .35rem; }
+  .wc-round { width: 40px; height: 40px; font-size: .95rem; }
+  .wc-input { min-height: 44px; padding-left: .8rem; }
+  .wc-quick { width: 260px; }
+}
+
+/* ປຸ່ມວົງມົນ: ໃສ່ class rounded-circle ໃນ HTML — style ລວມ (assets/css/global-custom/03-controls.css) ບັງຄັບທຸກປຸ່ມເປັນມຸມ 6px ຍົກເວັ້ນ .rounded-circle */
+
+/* ບໍ່ມີແຖບເລື່ອນໃນຊ່ອງພິມ (ຍັງເລື່ອນໄດ້ດ້ວຍເມົາ/ນິ້ວ ຕອນຂໍ້ຄວາມຍາວ) + ບໍ່ມີວົງດຳຕອນກົດປຸ່ມ */
+.wc-input textarea { overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.wc-input textarea::-webkit-scrollbar { display: none; }
+#wcReply .wc-round:focus, #wcReply .wc-emoji-btn:focus { outline: none !important; box-shadow: none !important; }
+#wcReply .wc-round:focus-visible, #wcReply .wc-emoji-btn:focus-visible { box-shadow: 0 0 0 3px rgba(37, 99, 235, .35) !important; }

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 72" fill="none">
+  <rect width="120" height="72" rx="10" fill="#0F766E"/>
+  <rect x="8" y="10" width="104" height="34" rx="6" fill="#FFF"/>
+  <text x="60" y="33" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="19" fill="#0F766E" letter-spacing=".8">MIXAY</text>
+  <rect x="20" y="49" width="80" height="14" rx="4" fill="#F59E0B"/>
+  <text x="60" y="59" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="9" fill="#FFF" letter-spacing="1.2">EXPRESS LAOS</text>
+</svg>

@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project layout: backend/ + frontend/
+
+```
+websizewlaodev/
+├── backend/    the POS / admin system (everything this file describes below)
+├── frontend/   the public website: company pages + online shop — read frontend/README.md
+└── .htaccess   rewrites every URL except backend/ into frontend/ (no root index.php)
+```
+
+- **Every path in the sections below is relative to `backend/`** (`config/db.php` = `backend/config/db.php`).
+- `frontend/` is plain PHP + vanilla JS (no jQuery, no AdminLTE, no build). Each page requires `frontend/includes/bootstrap.php` only — it never includes `backend/config/db.php` (that runs staff auth, the idle timeout and migrations). Both sides share the `webwlaodev` DB.
+- Separate sessions: backend cookie `WLAODEVSSID` (path `/`), frontend cookie `WLAOWEBSSID` (set in `frontend/config/session.php`). Don't make one side read the other's session.
+- Website tables (`w_web_orders`, `w_web_order_items`, `w_web_contacts`) are created by `backend/config/migrations/schema_website.php` (v22). New frontend tables go there too; frontend never creates tables. Web orders do **not** decrement stock — they stay `pending` until staff handle them. There is no backend page for them yet.
+- The contact page is a chat room (`w_web_chats`, `w_web_chat_messages`, v25): visitor text/voice → `frontend/api/chat.php`; the bot is Claude (raw curl, key in gitignored `frontend/config/ai.php`) or keyword rules when there is no key; staff reply at `backend/pages/web_chats/` (gated on the `customers` permission). Voice files go to `backend/assets/web_chat_audio/` (gitignored). Multilingual (v26): `frontend/includes/translate.php` (dependency-free, also required by the backend) detects the visitor's language → `w_web_chats.lang`, bot replies via `tl()`/AI in that language; staff see visitor messages translated to Lao and can send replies translated out (`body_tr` keeps the other side). Translator = Claude when a key is set, else the free MyMemory API.
+- Members (`w_web_members`, v28/v38): sign-up **only in the popup** `frontend/components/member_modal.php` (there is no register page; old `pages/register` URLs 302 to `/#register`, which opens the popup) (real Lao mobile only — `laoPhoneNormalize()` stores `020XXXXXXXX`/`030XXXXXXX`), login by phone **or** email, or Google (`models/member_google.php`, Client ID in gitignored `frontend/config/google.php`; empty = no Google button; Google members have `tel` NULL and must add one before ordering). **Only members see prices** (`canSeePrices()`); guests get the quote form. Members order with address + courier branch + bank + slip (`models/member_orders.php`, `components/member_order_form.php`, `pages/checkout.php`), see history/tracking at `pages/my_orders.php` / `my_order.php`, edit their profile at `pages/account.php`. Orders carry `w_web_orders.member_id`; staff move them through all 6 statuses + `tracking_no` in `backend/pages/web_orders/`. Slips go to `backend/assets/web_slips/` (gitignored). Member emails (welcome, new order, order status/tracking, price drop) are queued in `w_web_email_queue` (v41) and sent in the background by `frontend/api/mail_queue.php` via SMTP from gitignored `frontend/config/mail.php` (missing = Laragon Mailpit 127.0.0.1:1025, UI :8025); backend queues through `config/helpers/web_mail.php`. Members opt out with `w_web_members.email_notify`.
+- Product images live in `backend/assets/product_img/`; the frontend links to them via `productImage()`.
+- Uploaded files: one folder per kind, never mixed, and replacing or deleting an image also deletes its old file. Website: `backend/assets/web_slips/` (transfer slips), `web_receipts/` (courier receipts staff upload in `pages/web_orders/`), `img/members/` (member avatars: `m<id>_*.jpg` + `_full.jpg`), `web_chat_files/<Ym>/`, `web_chat_audio/`. Slips and receipts are `Require all denied` and served only through `pages/web_orders/slip.php` (staff) and `frontend/api/slip.php` (order owner), each with `?type=receipt` for receipts. Back office: `product_img/`, `img/users/`, `img/banks/`, `img/qr/` (shop QR + bank QR), `img/logo/`, `img/clients/`, `img/works/<slug>/`.
+
 ## What this is
 
 MiniPos — a point-of-sale system for a Lao retail shop. Plain PHP 8.2 + MySQL on XAMPP, jQuery + AdminLTE 3 (Bootstrap 4) on the front end. No Composer, no npm, no build step, no test suite. Files are edited and served directly.
@@ -12,8 +30,8 @@ UI text, DB seed data, and most code comments are in Lao (some Thai). Keep new u
 
 Served by XAMPP Apache from the working directory:
 
-- App: `http://localhost/Project/StoreMini/` (Laragon; redirects to `auth/login.php`)
-- DB: MySQL `storepos`, user `root`, empty password — hardcoded in `config/bootstrap/connection.php`. **Every table carries the `st_` prefix** (`st_products`, `st_tbuser`, `st_tbsale_save`, …); write new SQL with it. The `minipos` DB belongs to `Project/MiniPosStoreandShwe` — do not touch it
+- App: `http://localhost/websizewlaodev/backend/` (Laragon; redirects to `auth/login.php`). Website: `http://localhost/websizewlaodev/` — clean URLs without `.php` (`/websizewlaodev/pages/shop`) are rewritten to `frontend/pages/shop.php` by the root `.htaccess`; a GET to `pages/x.php` 301s to `pages/x`, and old `/frontend/...` URLs 302 to them. `url('pages/x.php?…')` strips the `.php` itself (`api/*.php` keep it). Always build frontend links with `url()` / `asset()` so they stay clean
+- DB: MySQL `webwlaodev`, user `root`, empty password — hardcoded in `config/bootstrap/connection.php`. **Every table carries the `w_` prefix** (`w_products`, `w_tbuser`, `w_tbsale_save`, …); write new SQL with it. This folder is a separate copy of `Project/StoreMini`: never read or write that folder, its `storepos` DB (`st_` tables), or `minipos` (`Project/MiniPosStoreandShwe`). Session cookie is `WLAODEVSSID`, browser storage keys start with `WlaoDev.`
 - Timezone is forced to `Asia/Vientiane`; invoice numbers and reports depend on it
 
 There is nothing to build. Edit a file, reload the page.
@@ -32,10 +50,10 @@ To exercise an endpoint without a browser, forge a session file and POST to it. 
 
 ```bash
 php -r 'file_put_contents("D:/laragon/tmp/sess_testsession0000000000abc","user_id|i:1;checked|i:1;last_activity|i:".time().";");'
-curl -s -b "STOREMINISSID=testsession0000000000abc" -X POST "http://localhost/Project/StoreMini/api/pos_backend.php" --data-urlencode 'action=checkout' --data-urlencode 'cart=[...]'
+curl -s -b "WLAODEVSSID=testsession0000000000abc" -X POST "http://localhost/websizewlaodev/backend/api/pos_backend.php" --data-urlencode 'action=checkout' --data-urlencode 'cart=[...]'
 ```
 
-Checkout writes real rows to `st_tbsale_save`, `st_tbsale_save_detail`, `st_sales` and decrements `st_products.qty`. A nonexistent `product_id` does **not** roll back — the bill and a detail line are still saved — so delete the rows of any test invoice afterwards.
+Checkout writes real rows to `w_tbsale_save`, `w_tbsale_save_detail`, `w_sales` and decrements `w_products.qty`. A nonexistent `product_id` does **not** roll back — the bill and a detail line are still saved — so delete the rows of any test invoice afterwards.
 
 ## Architecture
 
@@ -63,7 +81,7 @@ Every request includes it. The file itself is now a short ordered list of `requi
 - Opens **both** `$conn` (mysqli) and `$pdo` (PDO). New code should use `$pdo` with prepared statements; `$conn` survives in older paths
 - Starts the session, enforces a 15-minute idle timeout, and re-reads `tbuser` to rebuild `$_SESSION['permissions']`, `status`, `store_id` on **every** request — so a permission change takes effect on the user's next page load, and stale session data is not a thing to work around
 - Logs a non-admin out if their branch's `tbstore.status` is not `active`
-- Holds the **idempotent migrations**: `CREATE TABLE IF NOT EXISTS`, `SHOW COLUMNS` + `ALTER TABLE ADD`, column renames, index creation, and `DROP TABLE IF EXISTS` for a deprecated-table list. This is how the schema evolves — the steps live in `config/migrations/schema_*.php` and **all eight files** run only while `config/.db_schema_vN` is missing (since 2026-10-31 loyalty/stock_check/shifts/held_orders no longer run per session). The shop owner does not want tables or data appearing on their own: migrations insert no sample rows (only the admin account and first branch on a completely empty DB), and no page creates tables at runtime. `logActivity()` is a no-op and `st_activity_logs` was dropped — don't reintroduce either. To add a column, append a guarded block to the matching migration file (and bump `vN` in `config/db.php`) rather than altering the DB by hand, or it will be missing on other installs. Note the flip side: adding a table name to the `$unusedTables` array (in `schema_core.php`) silently drops it on the next request.
+- Holds the **idempotent migrations**: `CREATE TABLE IF NOT EXISTS`, `SHOW COLUMNS` + `ALTER TABLE ADD`, column renames, index creation, and `DROP TABLE IF EXISTS` for a deprecated-table list. This is how the schema evolves — the steps live in `config/migrations/schema_*.php` and **all eight files** run only while `config/.db_schema_vN` is missing (since 2026-10-31 loyalty/stock_check/shifts/held_orders no longer run per session). The shop owner does not want tables or data appearing on their own: migrations insert no sample rows (only the admin account and first branch on a completely empty DB), and no page creates tables at runtime. `logActivity()` is a no-op and `w_activity_logs` was dropped — don't reintroduce either. To add a column, append a guarded block to the matching migration file (and bump `vN` in `config/db.php`) rather than altering the DB by hand, or it will be missing on other installs. Note the flip side: adding a table name to the `$unusedTables` array (in `schema_core.php`) silently drops it on the next request.
 - Defines the global helpers every page relies on (`config/helpers/`): `hasPermission()`, `getActiveStoreId()`, `getPosStoreId()`, `isMainBranch()`, `generateProductId()`, `getSetting()`, `formatCurrency()`, `logActivity()`, `resolveBankLogo()`, `resolveBankQr()`, `getLowStockAlerts()`
 
 ### Permissions
@@ -125,7 +143,9 @@ The whole sale runs in one PDO transaction: insert bill → per item `SELECT ...
 
 ### Assets and cache busting
 
-Third-party libs live in `plugins/` (jQuery, Bootstrap, SweetAlert2, Select2, FontAwesome, overlayScrollbars, tempusdominus, iCheck), AdminLTE in `dist/`, plus a top-level `ionicons-2.0.1/`. Per-page stylesheets are in `themes/<page>.css`, shared ones in `assets/css/`. Stylesheets over 500 lines are split into numbered files linked in order (cascade order = file order): `themes/pos/0{1,2,3}-*.css`, `assets/css/global-custom/0{1,2}-*.css`, `assets/css/pages/menu-sidebar/0{1,2,3}-*.css`. `css/main.css` / `assets/css/main.css` are vendor theme sources and are left as is.
+Third-party libs live in `plugins/` (jQuery, Bootstrap, SweetAlert2, Select2, FontAwesome, overlayScrollbars, tempusdominus, iCheck), AdminLTE in `dist/`, plus a top-level `ionicons-2.0.1/`. Per-page stylesheets are in `themes/<page>.css`, shared ones in `assets/css/`. Stylesheets over 500 lines are split into numbered files linked in order (cascade order = file order): `themes/pos/0{1,2,3}-*.css`, `assets/css/global-custom/0{1,2}-*.css`, `assets/css/pages/menu-sidebar/0{1,2,3}-*.css`. `assets/css/main.css` is a vendor theme source and is left as is (the unused `css/` and `js/` copies were deleted on 2026-11-09).
+
+Speed (2026-11-09): the root `.htaccess` turns on `zlib.output_compression` for all PHP output and sets browser cache headers — any URL with `?v=` is cached for a year, so always version local CSS/JS with `filemtime()`, never `time()` (that re-downloads on every page). An endpoint that sends its own `Content-Length` (file download, early-close response) must call `ini_set('zlib.output_compression', '0')` first. All-language translations for the dashboard come from the cacheable `home/i18n_all.php` (`window.I18N_ALL_MERGED`), not inline. Background polls skip hidden tabs: notifications 15s, permissions 10s, POS stock 8s.
 
 Stylesheets are cache-busted with `?v=<?php echo filemtime(__DIR__ . '/../../themes/x.css'); ?>`. A wrong relative depth here doesn't just 404 the stylesheet — `filemtime()` warns into the Apache log and prints into the page.
 

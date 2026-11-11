@@ -1,0 +1,11 @@
+ຮູບປະກອບກ່ອງ "ລະບົບ POS" ໃນໜ້າຫຼັກ — ຈາກ Unsplash (Unsplash License: ໃຊ້ຟຣີ ລວມທັງການຄ້າ, ບໍ່ຕ້ອງອ້າງອີງ)
+restaurant.jpg  https://unsplash.com/photos/0BxhN2iA13I
+minimart.jpg    https://unsplash.com/photos/gFJRgtzPNVc
+drinks.jpg      https://unsplash.com/photos/QN66qNwc1n8
+retail.jpg      https://unsplash.com/photos/rWMIbqmOxrY
+clothing.jpg    https://unsplash.com/photos/qnKhZJPKFD8
+massage.jpg     https://unsplash.com/photos/a9pFSC8dTlo
+pharmacy.jpg    https://unsplash.com/photos/mLaIFEtUZFs
+beauty.jpg      https://unsplash.com/photos/FkAZqQJTbXM
+hw-*.jpg        ຕັດມາຈາກແບນເນີຂອງຮ້ານ (backend/assets/img/baner/wlaodev.png)
+ປ່ຽນຮູບ: ໃສ່ໄຟລ໌ຊື່ດຽວກັນທັບ (jpg / png / webp)

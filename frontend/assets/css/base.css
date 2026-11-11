@@ -1,0 +1,157 @@
+/* ທຸງ emoji (🇱🇦 🇹🇭 …): Windows ບໍ່ມີຮູບທຸງ → ສະແດງເປັນຕົວອັກສອນ (LA, TH). ຟອນ Twemoji Country Flags (MIT/CC-BY, ເກັບໃນເວັບເອງ)
+   ໃຊ້ສະເພາະຕົວອັກສອນທຸງ (unicode-range) — ຕົວໜັງສື ແລະ emoji ອື່ນບໍ່ປ່ຽນ. ໃຊ້ໃນສະຕິກເກີ, ແຊັດ ແລະ ທຸກບ່ອນ */
+@font-face {
+  font-family: 'Twemoji Country Flags';
+  src: url('../fonts/TwemojiCountryFlags.woff2') format('woff2');
+  unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F;
+  font-display: swap;
+}
+/*
+ * base.css — ຕົວແປສີ, reset, ຕົວອັກສອນ, ປຸ່ມ, ຟອມ.
+ * ລຳດັບໄຟລ໌ CSS (ໃນ layouts/header.php): fonts → base → layout → components → pages
+ * ປ່ຽນສີທັງເວັບ: ແກ້ຕົວແປໃນ :root ຂ້າງລຸ່ມ.
+ */
+:root {
+  --primary: #1d4ed8;
+  --primary-dark: #1e3a8a;
+  --primary-soft: #e0e7ff;
+  --accent: #f59e0b;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --bg: #ffffff;
+  --bg-alt: #f8fafc;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --radius: 6px; /* ມຸມກາດມາດຕະຖານທັງເວັບ (09/11/2026: 10px → 6px) */
+  --shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
+  --container: 1180px;
+  --font: 'Twemoji Country Flags', 'Nuanta', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* ຄືກັບ backend; ຟອນທຸງໃຊ້ສະເພາະຕົວອັກສອນທຸງ (unicode-range) */
+  --z: 1; /* ອັດຕາ zoom ຂອງທັງໜ້າ (ຕອນນີ້ບໍ່ຂະຫຍາຍ = 1) — ຄວາມສູງທີ່ອີງ vh ຫານດ້ວຍ var(--z) ໄວ້ແລ້ວ ຖ້າຈະໃສ່ zoom ໃນອະນາຄົດ */
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh / var(--z));
+}
+button, input, select, textarea {
+  font-family: inherit;
+}
+img { max-width: 100%; display: block; }
+a { color: var(--primary); text-decoration: none; }
+a:hover { color: var(--primary-dark); }
+h1, h2, h3, h4 { line-height: 1.35; margin: 0 0 .6em; }
+h1 { font-size: 2.1rem; }
+h2 { font-size: 1.6rem; }
+h3 { font-size: 1.15rem; }
+p { margin: 0 0 1em; }
+[hidden] { display: none !important; }
+
+.muted { color: var(--muted); }
+.small { font-size: .875rem; }
+.center { text-align: center; }
+.right { text-align: right; }
+.mt-4 { margin-top: 2rem; }
+
+/* ---------- ປຸ່ມ ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4em;
+  padding: .6em 1.2em;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s, transform .1s;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-dark); color: #fff; }
+.btn-outline { background: transparent; color: var(--primary); border-color: var(--primary); }
+.btn-outline:hover { background: var(--primary-soft); }
+.btn-light { background: #fff; color: var(--primary-dark); }
+.btn-light:hover { background: var(--primary-soft); color: var(--primary-dark); }
+.btn-sm { padding: .35em .8em; font-size: .875rem; }
+.btn-lg { padding: .75em 1.6em; font-size: 1.05rem; }
+.btn-block { width: 100%; margin-top: .6rem; }
+.btn-icon {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: .3em .5em;
+  border-radius: 6px;
+}
+.btn-icon:hover { color: var(--danger); background: #fee2e2; }
+
+/* ---------- ຟອມ ---------- */
+.input {
+  width: 100%;
+  padding: .6em .8em;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+  color: inherit;
+  background: #fff;
+}
+.input:focus { outline: 2px solid var(--primary-soft); border-color: var(--primary); }
+.form label { display: block; font-weight: 500; margin-bottom: .8rem; }
+.form label .input { margin-top: .3rem; font-weight: 400; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.field-error { display: block; color: var(--danger); margin: -.5rem 0 .8rem; }
+
+.alert { padding: .8em 1em; border-radius: var(--radius); margin: 1rem 0; }
+.alert-success { background: #dcfce7; color: #14532d; }
+.alert-error { background: #fee2e2; color: #7f1d1d; }
+
+/* ປ່ຽນໜ້າແບບຈາງ ບໍ່ກະພິບຂາວ (View Transitions ລະຫວ່າງໜ້າ — Chrome/Edge 126+, Safari 18.2+; browser ອື່ນ = ປ່ຽນໜ້າປົກກະຕິ).
+   ຫົວເວັບ (.site-header) ຢູ່ກັບທີ່ ບໍ່ຈາງ; ເນື້ອຫາຈາງ 0.22 ວິນາທີ. ໂຫຼດໜ້າລ່ວງໜ້າ: <script type="speculationrules"> ໃນ layouts/header.php */
+@view-transition { navigation: auto; }
+.site-header { view-transition-name: site-header; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+}
+
+/* ---------- Responsive ທຸກຂະໜາດຈໍ (11/2026) ----------
+   - ບໍ່ໃຫ້ຫຍັງລົ້ນອອກນອກຈໍທາງຂວາງ (clip ບໍ່ສ້າງ scroll container → position: sticky ຍັງໃຊ້ໄດ້)
+   - ຮູບ / ວິດີໂອ / iframe / ຕາຕະລາງ ບໍ່ກວ້າງເກີນກ່ອງ, ຄຳຍາວໆ (ອີເມວ, ລິ້ງ) ຕັດແຖວໄດ້
+   - ໂທລະສັບ: ຟອນນ້ອຍລົງຕາມຂະໜາດຈໍ (ທຸກຢ່າງທີ່ໃຊ້ rem ຫຍໍ້ຕາມ) */
+html, body { overflow-x: clip; max-width: 100%; }
+body { font-size: 1rem; overflow-wrap: break-word; }
+img, video, iframe, canvas, embed, object { max-width: 100%; }
+video, canvas { height: auto; }
+table { max-width: 100%; }
+pre, code { white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 767px) {
+  html { font-size: 15px; }
+  h1 { font-size: 1.7rem; }
+  h2 { font-size: 1.38rem; }
+  h3 { font-size: 1.08rem; }
+}
+@media (max-width: 360px) {   /* ໂທລະສັບຈໍນ້ອຍ */
+  html { font-size: 14px; }
+  h1 { font-size: 1.55rem; }
+  h2 { font-size: 1.28rem; }
+}
+/* ໂທລະສັບ: ຊ່ອງພິມ ≥ 16px — iPhone ຈະບໍ່ຊູມໜ້າເວລາກົດຊ່ອງ (ຊູມແລ້ວໜ້າລົ້ນອອກນອກຈໍ) */
+@media (max-width: 767px) and (hover: none) {
+  input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), select, textarea { font-size: 16px !important; }
+}

@@ -1,0 +1,452 @@
+/**
+ * product_gallery.css — ແກເລີຣີແບບ Fastwork ໃນໜ້າສິນຄ້າ (pages/product.php) ແລະ ໜ້າລະບົບ/ຊອບແວ (pages/solution.php)
+ * ໂຫຼດຫຼັງ pages.css ($pageStyles) ແລ້ວຂຽນທັບ .sol-*: ຮູບໃຫຍ່ 16:9 ມຸມມົນ + ພື້ນມົວ, ປ້າຍລຳດັບ "1/10",
+ * ລູກສອນເປັນແຖບໂປ່ງໃສຕິດຂອບຮູບ, ແຖບຮູບນ້ອຍເຫັນ 5 ຮູບ + ປຸ່ມ › ເລື່ອນ ([data-thumbs-next] — assets/js/main.js)
+ */
+.sol-container { max-width: 1320px; }   /* ໜ້າສິນຄ້າ / ລະບົບ: ກວ້າງຂຶ້ນ ໃຫ້ຮູບໃຫຍ່ຄື Fastwork */
+.sol-main-card { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 2rem; }
+
+/* ຮູບໃຫຍ່ */
+.sol-gallery .sol-stage, .sol-gallery:not(.is-product) .sol-stage, .sol-gallery.is-product .sol-stage {
+  aspect-ratio: 16 / 9; max-height: none; border: 0; border-radius: 10px; background: #0f172a;
+}
+.sol-gallery .sol-viewport { position: relative; padding: 0; }
+.sol-gallery .sol-viewport::before {
+  content: ''; position: absolute; inset: -24px;
+  background: var(--bg) center / cover no-repeat;
+  filter: blur(18px) brightness(.8); transform: scale(1.05);
+}
+.sol-gallery .sol-viewport img, .sol-gallery.is-product .sol-viewport img {
+  position: relative; z-index: 1; object-fit: contain; filter: drop-shadow(0 8px 20px rgba(0, 0, 0, .25));
+}
+.sol-gallery .sol-counter {
+  top: .9rem; left: .9rem; padding: .25rem .75rem; border-radius: 999px;
+  background: rgba(15, 23, 42, .55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); font-size: .8rem;
+}
+.sol-gallery .sol-zoom {
+  top: .9rem; right: .9rem; width: 34px; height: 34px; border: 0; border-radius: 8px;
+  background: rgba(255, 255, 255, .9); box-shadow: 0 2px 8px rgba(15, 23, 42, .18);
+}
+
+/* ລູກສອນ: ແຖບສູງໂປ່ງໃສ ຕິດຂອບຊ້າຍ/ຂວາ */
+.sol-gallery .sol-nav {
+  width: 48px; height: 110px; padding: 0 0 4px; border: 1px solid rgba(255, 255, 255, .6); border-radius: 10px 0 0 10px;
+  background: rgba(15, 23, 42, .3); color: #fff; box-shadow: none; font-size: 2rem; font-weight: 300;
+  backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); transition: background .15s;
+}
+.sol-gallery .sol-nav.next { right: 0; border-right: 0; }
+.sol-gallery .sol-nav.prev { left: 0; border-left: 0; border-radius: 0 10px 10px 0; }
+.sol-gallery .sol-nav:hover { background: rgba(15, 23, 42, .6); border-color: rgba(255, 255, 255, .8); color: #fff; }
+/* ຮອດຮູບທຳອິດ/ສຸດທ້າຍ: ລູກສອນຈາງ ກົດບໍ່ໄດ້ (main.js syncNavArrows) */
+.sol-gallery .sol-nav:disabled { opacity: .3; cursor: default; pointer-events: none; }
+
+/* ແຖບຮູບນ້ອຍ: ເຫັນ 5 ຮູບ ເຕັມຄວາມກວ້າງ */
+.sol-thumbs-wrap { position: relative; margin-top: .9rem; }
+.sol-gallery .sol-thumbs {
+  display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 4 * .7rem) / 5); gap: .7rem;
+  margin-top: 0; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none;
+}
+.sol-gallery .sol-thumbs .thumb-btn {
+  width: 100%; height: auto; aspect-ratio: 16 / 9; padding: 0; border: 2px solid transparent; border-radius: 8px;
+  background: #0f172a; opacity: 1; overflow: hidden; transition: border-color .15s, transform .15s;
+}
+.sol-gallery .sol-thumbs .thumb-btn img, .sol-gallery.is-product .sol-thumbs .thumb-btn img { object-fit: cover; border-radius: 6px; }
+.sol-gallery .sol-thumbs .thumb-btn:hover { transform: translateY(-2px); }
+.sol-gallery .sol-thumbs .thumb-btn.active { border-color: var(--primary); }
+.sol-thumbs-next {
+  position: absolute; top: 50%; right: -2px; z-index: 2; transform: translateY(-50%);
+  display: grid; place-items: center; width: 34px; height: 62px; padding: 0;
+  border: 1px solid rgba(255, 255, 255, .7); border-right: 0; border-radius: 8px 0 0 8px;
+  background: rgba(15, 23, 42, .45); color: #fff; cursor: pointer;
+}
+.sol-thumbs-next:hover { background: rgba(15, 23, 42, .7); }
+.sol-thumbs-prev {
+  position: absolute; top: 50%; left: -2px; z-index: 2; transform: translateY(-50%);
+  display: grid; place-items: center; width: 34px; height: 62px; padding: 0;
+  border: 1px solid rgba(255, 255, 255, .7); border-left: 0; border-radius: 0 8px 8px 0;
+  background: rgba(15, 23, 42, .45); color: #fff; cursor: pointer;
+}
+.sol-thumbs-prev:hover { background: rgba(15, 23, 42, .7); }
+.sol-thumbs-prev[hidden], .sol-thumbs-next[hidden] { display: none; }
+
+@media (max-width: 1100px) {
+  .sol-main-card { grid-template-columns: 1fr; }
+}
+@media (max-width: 767px) {
+  .sol-gallery .sol-stage {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    aspect-ratio: 4 / 3 !important;
+    border-radius: 12px !important;
+  }
+  .sol-gallery .sol-viewport {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  .sol-gallery .sol-viewport img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  .sol-gallery .sol-nav {
+    width: 36px !important;
+    height: 56px !important;
+    font-size: 1.6rem !important;
+    border-radius: 8px 0 0 8px !important;
+    background: rgba(15, 23, 42, .45) !important;
+  }
+  .sol-gallery .sol-nav.prev {
+    border-radius: 0 8px 8px 0 !important;
+  }
+  .sol-thumbs-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-top: .65rem !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  .sol-gallery .sol-thumbs {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    grid-auto-flow: unset !important;
+    grid-auto-columns: unset !important;
+    gap: .55rem !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding: 2px 1px 6px !important;
+    scroll-snap-type: x mandatory !important;
+    scrollbar-width: none !important;
+    box-sizing: border-box !important;
+  }
+  .sol-gallery .sol-thumbs::-webkit-scrollbar {
+    display: none !important;
+  }
+  .sol-gallery .sol-thumbs .thumb-btn {
+    flex: 0 0 84px !important;
+    width: 84px !important;
+    height: 56px !important;
+    aspect-ratio: unset !important;
+    border-radius: 8px !important;
+    scroll-snap-align: start !important;
+    box-sizing: border-box !important;
+  }
+  .sol-gallery .sol-thumbs .thumb-btn img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 6px !important;
+  }
+  .sol-thumbs-next, .sol-thumbs-prev {
+    display: none !important;
+  }
+}
+
+/* ໜ້າຜົນງານ (pages/work.php): ແກເລີຣີແບບ Fastwork + ຂໍ້ມູນຮູບແບບທີ 1 */
+.wk-work-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(320px, 1fr);
+  gap: 1.75rem;
+  align-items: start;
+  margin-top: .5rem;
+}
+.wk-work-card .sol-gallery .sol-stage {
+  aspect-ratio: 16 / 10;
+  min-height: 380px;
+  max-height: 520px;
+  border-radius: 12px;
+  background: #0f172a;
+}
+/* ຮູບເຕັມກອບ (ບໍ່ມີແຖບມົວຂ້າງ) — ກົດຮູບເພື່ອເບິ່ງຮູບເຕັມບໍ່ຖືກຕັດ (gallery_viewer) */
+.wk-work-card .sol-gallery .sol-viewport::before { display: none; }
+.wk-work-card .sol-gallery .sol-viewport img {
+  width: 100%; height: 100%; object-fit: cover; filter: none;
+}
+.wk-side-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.wk-side-info-col .wk-detail-main,
+.wk-side-info-col .wk-detail-side {
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, .04);
+}
+.wk-side-actions {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  margin-top: .25rem;
+}
+.wk-btn-action-wa {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  height: 48px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff !important;
+  font-weight: 700;
+  font-size: .95rem;
+  text-decoration: none !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, .25);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.wk-btn-action-wa:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, .35);
+  color: #fff !important;
+}
+.wk-btn-action-chat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  height: 44px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1.5px solid #2563eb;
+  color: #2563eb !important;
+  font-weight: 700;
+  font-size: .92rem;
+  text-decoration: none !important;
+  transition: background .18s ease;
+}
+.wk-btn-action-chat:hover {
+  background: #eff6ff;
+  color: #1d4ed8 !important;
+}
+.wk-btn-action-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .35rem 0;
+  color: #64748b;
+  font-size: .88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color .15s ease;
+}
+.wk-btn-action-back:hover {
+  color: #0f172a;
+}
+@media (max-width: 991px) {
+  .wk-work-card {
+    grid-template-columns: 100% !important;
+    gap: 1.25rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+@media (max-width: 767px) {
+  html, body {
+    overflow-x: hidden !important;
+  }
+  .sol-page.wk-detail-page {
+    padding: .85rem 0 2.5rem !important;
+    overflow-x: clip !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+  .sol-page.wk-detail-page .sol-container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: clip !important;
+  }
+  .solution-breadcrumb {
+    flex-wrap: wrap !important;
+    gap: .3rem .45rem !important;
+    font-size: .84rem !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .solution-breadcrumb .current {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .wk-work-card {
+    gap: 1.15rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .wk-work-card > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .wk-work-card .sol-gallery {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  .wk-work-card .sol-gallery .sol-stage {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    aspect-ratio: 4 / 3 !important;
+    border-radius: 12px !important;
+    box-sizing: border-box !important;
+  }
+  .wk-side-info-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    gap: 1rem !important;
+    box-sizing: border-box !important;
+  }
+  .wk-detail-main {
+    padding: 1.15rem 1rem !important;
+    border-radius: 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .wk-detail-head {
+    gap: .75rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  .wk-detail-head-body {
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+  .wk-detail-logo {
+    width: 52px !important;
+    height: 52px !important;
+    flex-shrink: 0 !important;
+  }
+  .wk-detail-title {
+    font-size: 1.18rem !important;
+    font-weight: 800 !important;
+    line-height: 1.35 !important;
+    margin: .25rem 0 .2rem !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .wk-detail-shop {
+    font-size: .95rem !important;
+    word-break: break-word !important;
+  }
+  .wk-detail-text {
+    font-size: .92rem !important;
+    line-height: 1.65 !important;
+    margin-top: .75rem !important;
+    padding-top: .75rem !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .wk-detail-side {
+    padding: 1.15rem 1rem !important;
+    border-radius: 14px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .wk-perk-item {
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  .wk-perk-item > div {
+    min-width: 0 !important;
+    flex: 1 !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .wk-perk-item strong,
+  .wk-perk-item span {
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .wk-side-actions {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .wk-btn-action-wa {
+    height: 48px !important;
+    font-size: .95rem !important;
+    border-radius: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .wk-btn-action-chat {
+    height: 46px !important;
+    font-size: .92rem !important;
+    border-radius: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .wk-btn-action-back {
+    width: 100% !important;
+    text-align: center !important;
+  }
+  /* Bottom CTA Card in Mobile */
+  .wk-cta-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 1.25rem 1rem !important;
+    gap: 1.15rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    border-radius: 14px !important;
+  }
+  .wk-cta-info {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .wk-cta-title {
+    font-size: 1.12rem !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .wk-cta-desc {
+    font-size: .86rem !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  .wk-cta-actions {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: .55rem !important;
+    box-sizing: border-box !important;
+  }
+  .wk-btn-wa,
+  .wk-btn-chat {
+    width: 100% !important;
+    height: 46px !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    border-radius: 10px !important;
+    font-size: .9rem !important;
+  }
+}

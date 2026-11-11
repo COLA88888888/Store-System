@@ -1,0 +1,287 @@
+/* ໜ້າຜົນງານ & ໂລໂກ້ລູກຄ້າ (pages/web_works/index.php + partials/list.php) — ລາຍການກະທັດຮັດ 1 ແຖວ / ຮ້ານ.
+   ຟອມໂພສ (ຊ້າຍ) ຍັງໃຊ້ .ww-* ໃນ themes/web_chats.css */
+.ww-list-card { border: 1px solid #e2e8f0; border-radius: 4px; box-shadow: none; overflow: hidden; }
+.ww-list-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; padding: .75rem 1rem; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+.ww-list-title { font-weight: 700; color: #0f172a; }
+.ww-list-title small { font-weight: 400; margin-left: .3rem; }
+.ww-list-tools { display: flex; gap: .5rem; flex: 0 1 420px; min-width: 0; }
+.ww-list-tools .form-control { height: 34px; border-radius: 2px; border-color: #cbd5e1; }
+.ww-search { position: relative; flex: 1 1 auto; min-width: 0; }
+.ww-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
+.ww-search .form-control { padding-left: 32px; }
+.ww-list-tools select.form-control { flex: 0 0 140px; width: 140px; }
+#wwRows { transition: opacity .15s; }
+.ww-empty { padding: 2.5rem 1rem; text-align: center; color: #64748b; }
+
+/* ແຖວຜົນງານ: ໂລໂກ້ | ຊື່ + ຂໍ້ມູນ | ຮູບນ້ອຍ | ປຸ່ມໄອຄອນ */
+.ww-row { border-bottom: 1px solid #eef2f7; }
+.ww-row:last-child { border-bottom: 0; }
+.ww-row-main { display: flex; align-items: center; gap: .75rem; padding: .6rem 1rem; }
+.ww-row:hover .ww-row-main { background: #fafcff; }
+.ww-row-logo { flex: 0 0 42px; width: 42px; height: 42px; border: 1px solid #e2e8f0; border-radius: 2px; background: #fff; display: grid; place-items: center; overflow: hidden; }
+.ww-row-logo img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+.ww-row-logo span { font-weight: 700; color: #1d4ed8; }
+.ww-row-info { flex: 1 1 auto; min-width: 0; line-height: 1.3; }
+.ww-row-info b { display: block; color: #0f172a; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ww-row-info small { color: #64748b; font-size: .78rem; }
+.ww-cat { display: inline-block; padding: 0 .35rem; border-radius: 2px; background: #fef3c7; color: #92400e; font-weight: 600; }
+
+.ww-thumbs { flex: 0 0 auto; display: flex; gap: 3px; padding: 2px; border: 1px solid transparent; border-radius: 2px !important; background: none; cursor: pointer; }
+.ww-thumbs:hover, .ww-thumbs.is-open { border-color: #93c5fd; background: #eff6ff; }
+.ww-thumbs:disabled { cursor: default; }
+.ww-thumb { position: relative; width: 38px; height: 38px; border-radius: 2px; overflow: hidden; background: #f1f5f9; }
+.ww-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ww-thumb em { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(15, 23, 42, .6); color: #fff; font-style: normal; font-size: .75rem; font-weight: 700; }
+
+/* ປຸ່ມໄອຄອນ ເພີ່ມຮູບ / ແກ້ໄຂ / ລຶບ — ສີ່ຫຼ່ຽມ 30px ມຸມ 2px */
+.ww-acts { flex: 0 0 auto; display: flex; gap: .3rem; }
+.ww-acts form { margin: 0; }
+.ww-ico { width: 30px; height: 30px; margin: 0; padding: 0; display: inline-grid; place-items: center; border: 1px solid; border-radius: 2px !important; background: #fff; cursor: pointer; text-decoration: none; }
+.ww-ico.is-add  { border-color: #2563eb; color: #2563eb; }
+.ww-ico.is-edit { border-color: #64748b; color: #475569; }
+.ww-ico.is-del  { border-color: #dc2626; color: #dc2626; }
+.ww-ico.is-add:hover  { background: #2563eb; color: #fff; }
+.ww-ico.is-edit:hover { background: #475569; color: #fff; }
+.ww-ico.is-del:hover  { background: #dc2626; color: #fff; }
+
+/* ແຖບຮູບທັງໝົດຂອງແຖວ (ກົດຮູບນ້ອຍເພື່ອເປີດ) */
+.ww-row-photos { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; padding: .25rem 1rem .75rem 4.4rem; }
+.ww-row-photo { position: relative; width: 72px; height: 72px; border-radius: 4px; overflow: hidden; border: 1px solid #e2e8f0; background: #0f172a; transition: transform .15s ease, box-shadow .15s ease; }
+.ww-row-photo:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12); }
+.ww-photo-link { display: block; width: 100%; height: 100%; cursor: zoom-in; }
+.ww-row-photo img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s ease; }
+.ww-photo-link:hover img { transform: scale(1.06); }
+.ww-row-photo form { margin: 0; }
+.ww-row-photo button { position: absolute; top: 2px; right: 2px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50% !important; background: rgba(15, 23, 42, .75); color: #fff; line-height: 1; font-size: 15px; cursor: pointer; display: grid; place-items: center; transition: all .15s ease; z-index: 2; }
+.ww-row-photo button:hover { background: #dc2626; transform: scale(1.12); }
+.ww-row-site { margin-left: .4rem; font-size: .8rem; color: #64748b; }
+
+/* ==========================================================================
+   LIGHTBOX GALLERY MODAL (ຄລິກເບິ່ງຮູບ + ປຸ່ມປິດ + ປຸ່ມເລື່ອນຖ້າ 2 ຮູບຂຶ້ນໄປ)
+   ========================================================================== */
+body.ww-gallery-open { overflow: hidden !important; }
+.ww-gallery-modal {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999999;
+  display: flex;
+  flex-direction: column;
+}
+.ww-gallery-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 15, 30, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.ww-gallery-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px 24px 14px;
+  box-sizing: border-box;
+  user-select: none;
+}
+.ww-gallery-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  z-index: 10;
+}
+.ww-gallery-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.ww-gallery-shop {
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60vw;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+.ww-gallery-counter {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #e2e8f0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.ww-gallery-close {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+.ww-gallery-close:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  transform: scale(1.1);
+  color: #fff;
+}
+
+.ww-gallery-stage {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 10px 0;
+}
+.ww-gallery-main {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 90vw;
+  max-height: calc(100vh - 160px);
+}
+.ww-gallery-img {
+  max-width: 86vw;
+  max-height: calc(100vh - 170px);
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: default;
+}
+.ww-gallery-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.ww-gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+  padding: 0;
+}
+.ww-gallery-nav.is-prev { left: 16px; }
+.ww-gallery-nav.is-next { right: 16px; }
+.ww-gallery-nav:hover {
+  background: #2563eb;
+  border-color: #3b82f6;
+  transform: translateY(-50%) scale(1.12);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.45);
+}
+
+.ww-gallery-thumbs-wrap {
+  height: 58px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding-top: 6px;
+}
+.ww-gallery-thumbs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  max-width: 90vw;
+  padding: 4px;
+  scrollbar-width: none;
+}
+.ww-gallery-thumbs::-webkit-scrollbar { display: none; }
+.ww-gallery-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0.5;
+  border: 2px solid transparent;
+  flex: 0 0 auto;
+  transition: all 0.2s ease;
+  background: #1e293b;
+}
+.ww-gallery-thumb:hover { opacity: 0.85; transform: scale(1.06); }
+.ww-gallery-thumb.active {
+  opacity: 1;
+  border-color: #3b82f6;
+  transform: scale(1.12);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
+}
+.ww-gallery-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+@media (max-width: 768px) {
+  .ww-row-main { flex-wrap: wrap; }
+  .ww-row-info { flex-basis: calc(100% - 60px); }
+  .ww-thumbs { order: 3; }
+  .ww-acts { order: 4; margin-left: auto; }
+  .ww-row-photos { padding-left: 1rem; }
+  .ww-list-tools { flex: 1 1 100%; }
+}
+
+/* ຟອມໂພສຜົນງານແບບ modal (pages/web_works/index.php #wwModal) — ສີ = ສີທີມຂອງລະບົບ (--ww-theme ຕັ້ງໂດຍ JS ໃນໜ້າ ຈາກ
+   localStorage 'WlaoDev.theme_color', ຄ່າເລີ່ມຕົ້ນ #244886 ຄືກັບ home/partials/dashboard/js_theme_color.php). ມຸມທັງໝົດ 6px */
+.ww-layout.is-full { grid-template-columns: minmax(0, 1fr) !important; }
+.ww-new-btn { font-weight: 700; }
+:root { --ww-theme: #244886; --ww-theme-dark: #1b3664; }
+body .ww-new-btn.btn-primary { background: var(--ww-theme) !important; border-color: var(--ww-theme) !important; border-radius: 6px; }
+body .ww-new-btn.btn-primary:hover { background: var(--ww-theme-dark) !important; }
+.ww-modal .modal-content { border: 0; border-radius: 6px; overflow: hidden; box-shadow: 0 30px 70px rgba(15, 23, 42, .35); }
+.ww-modal .modal-header, body .ww-modal .modal-header.bg-primary { align-items: center; padding: 1rem 1.3rem; border: 0; border-radius: 0; color: #fff; background: var(--ww-theme) !important; background-image: none !important; }
+.ww-modal .modal-title { display: flex; align-items: center; gap: .8rem; margin: 0; font-size: 1.1rem; font-weight: 800; color: #fff; }
+.ww-modal .modal-title small { display: block; margin-top: .1rem; font-size: .78rem; font-weight: 500; opacity: .85; }
+.ww-modal-ico { width: 42px; height: 42px; border-radius: 6px; display: grid; place-items: center; background: rgba(255, 255, 255, .18); font-size: 1.15rem; }
+.ww-modal .ww-modal-x { width: 36px; height: 36px; margin-left: auto; border: 0; border-radius: 6px !important; display: grid; place-items: center; background: rgba(255, 255, 255, .18); color: #fff !important; font-size: 1.5rem; line-height: 1; text-decoration: none !important; cursor: pointer; }
+.ww-modal .ww-modal-x:hover { background: rgba(255, 255, 255, .3); }
+.ww-modal .modal-body { padding: 1.3rem 1.4rem 1.4rem; background: #f8fafc; }
+.ww-modal #wwForm > label.small, .ww-modal #wwForm .d-flex > label.small { font-size: .82rem !important; font-weight: 700; color: #334155 !important; }
+.ww-modal #wwForm .ww-client-row { padding: .9rem; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 1rem; background: #fff; }
+.ww-modal #wwForm .form-control { border-radius: 6px !important; background-color: #fff; }
+.ww-modal #wwForm .form-control:focus { border-color: var(--ww-theme); box-shadow: 0 0 0 3px rgba(36, 72, 134, .12); }
+.ww-modal #wwForm .ww-logo-pick, .ww-modal #wwForm .ww-dropzone, .ww-modal #wwForm .ww-preview-grid > * { border-radius: 6px !important; }
+.ww-modal #wwForm .ww-dropzone { background: #fff; border-color: var(--ww-theme); }
+.ww-modal #wwForm .ww-dropzone, .ww-modal #wwForm .ww-dropzone .text-primary, .ww-modal #wwForm .ww-logo-placeholder { color: var(--ww-theme) !important; }
+.ww-modal #wwForm .badge { border-radius: 6px; }
+.ww-modal #wwForm #wwSubmitBtn, body .ww-modal #wwForm #wwSubmitBtn.btn-primary { height: 48px; border-radius: 6px !important; font-size: 1rem; background: var(--ww-theme) !important; border-color: var(--ww-theme) !important; }
+.ww-modal #wwForm #wwSubmitBtn:hover { background: var(--ww-theme-dark) !important; }
+.ww-modal #wwForm .progress-bar { background: var(--ww-theme) !important; }
+
+.ww-modal #wwForm .ww-dropzone i, .ww-modal #wwForm .ww-logo-placeholder i, .ww-modal #wwForm .ww-logo-placeholder span { color: var(--ww-theme) !important; }

@@ -1,0 +1,305 @@
+/**
+ * ໜ້າບັນຊີສະມາຊິກ (pages/account.php)
+ * ແຖບຟ້າຫົວໜ້າ (.ap-banner) → ຊ້າຍ: ກາດໂປຣໄຟລ໌ທັບແຖບຟ້າ (.ap-profile) + ເມນູຂ້າງ (.ap-menu)
+ * ຂວາ: ກາດເນື້ອຫາ (.ap-panel = ຫົວຂໍ້ + ຄຳອະທິບາຍ + ປຸ່ມ | ເນື້ອຫາ); ຕັ້ງຄ່າ = ແຖວກອບ (.as-item)
+ */
+.ap { position: relative; padding-bottom: 4rem; background: #f6f7f9; }
+
+/* ---------- ແຖບຟ້າ ---------- */
+.ap-banner {
+  position: relative;
+  height: clamp(210px, 22vw, 290px);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 25%, rgba(255, 255, 255, .28) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 100%, rgba(255, 255, 255, .65) 0%, rgba(255, 255, 255, .2) 48%, transparent 75%),
+    radial-gradient(75% 100% at 85% 20%, rgba(59, 130, 246, .45), transparent 70%),
+    radial-gradient(60% 90% at 15% 80%, rgba(37, 99, 235, .35), transparent 60%),
+    linear-gradient(180deg, #0b224d 0%, #17357a 28%, #1d4ed8 60%, #3b82f6 78%, #93c5fd 90%, #e0f2fe 96%, #ffffff 100%);
+  border-radius: 0 0 50% 50% / 0 0 clamp(45px, 6vw, 85px);
+  box-shadow: 0 16px 36px -10px rgba(15, 23, 42, .14);
+}
+.ap-banner-title-3d {
+  position: absolute;
+  top: clamp(20px, 2.8vw, 36px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: inherit;
+  font-size: clamp(1.4rem, 3.2vw, 2.3rem);
+  font-weight: 900;
+  letter-spacing: .05em;
+  color: #ffffff;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+  text-shadow:
+    0 1px 0 #bfdbfe,
+    0 2px 0 #93c5fd,
+    0 3px 0 #60a5fa,
+    0 4px 0 #3b82f6,
+    0 5px 0 #2563eb,
+    0 6px 0 #1d4ed8,
+    0 7px 1px rgba(0, 0, 0, .32),
+    0 10px 22px rgba(15, 23, 42, .65);
+}
+@media (max-width: 960px) {
+  .ap-banner-title-3d {
+    top: 16px;
+    font-size: 1.25rem;
+    letter-spacing: .03em;
+    text-shadow:
+      0 1px 0 #93c5fa,
+      0 2px 0 #3b82f6,
+      0 3px 0 #1d4ed8,
+      0 4px 10px rgba(0, 0, 0, .55);
+  }
+}
+.ap-banner::after { display: none; }
+.ap-banner-art { position: absolute; right: 4%; top: -10px; width: 360px; height: 260px; color: rgba(255, 255, 255, .13); }
+
+/* ---------- ໂຄງ 2 ຖັນ ---------- */
+.ap-layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 2rem; align-items: start; }
+.ap-side { margin-top: -130px; position: relative; z-index: 1; display: flex; flex-direction: column; gap: 1.2rem; }
+.ap-main { padding-top: 2rem; min-width: 0; }
+.ap-pane[hidden] { display: none; }
+
+/* ---------- ກາດໂປຣໄຟລ໌ ---------- */
+.ap-profile { position: relative; padding: 2.2rem 1.6rem 1.3rem; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; box-shadow: 0 4px 18px rgba(15, 23, 42, .06); text-align: center; }
+.ap-prof-edit { position: absolute; top: 14px; right: 14px; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid #e5e7eb; border-radius: 50%; background: #fff; color: #475569; cursor: pointer; transition: color .15s, border-color .15s; }
+.ap-prof-edit:hover { color: var(--primary); border-color: var(--primary); }
+.ap-avatar { display: block; width: 150px; height: 150px; margin: 0 auto 1rem; padding: 0; overflow: hidden; border: 0; border-radius: 50%; background: #e8edf5; cursor: zoom-in; }
+.ap-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.ap-profile h1 { margin: 0; color: #1f2937; font-size: 1.45rem; font-weight: 700; overflow-wrap: anywhere; }
+.ap-code { margin: .2rem 0 .6rem; color: var(--primary); font-size: 1.05rem; font-weight: 800; letter-spacing: .03em; }
+.ap-perk { display: inline-block; padding: .25rem .75rem; border-radius: 999px; background: #fef9c3; color: #854d0e; font-size: .8rem; font-weight: 700; }
+.ap-prof-meta { margin: 1.3rem 0 0; padding-top: .9rem; border-top: 1px solid #f1f5f9; text-align: left; }
+.ap-prof-meta div { display: flex; justify-content: space-between; gap: 1rem; padding: .35rem 0; font-size: .9rem; }
+.ap-prof-meta dt { color: #374151; }
+.ap-prof-meta dd { margin: 0; color: var(--primary); font-weight: 600; text-align: right; }
+
+/* ---------- ເມນູຂ້າງ ---------- */
+.ap-menu { display: flex; flex-direction: column; }
+.ap-menu h2 { margin: 0 0 .5rem; color: #1f2937; font-size: 1.1rem; font-weight: 700; }
+.ap-menu a { display: flex; align-items: center; gap: .8rem; padding: .85rem 1.5rem; border-left: 3px solid transparent; color: #4b5563; text-decoration: none; transition: background .15s, color .15s; }
+.ap-menu a svg { flex: none; color: #6b7280; }
+.ap-menu a:hover { color: var(--primary); }
+.ap-menu a.is-active { border-left-color: var(--primary); background: #e0ebfd; color: var(--primary); }
+.ap-menu a.is-active svg, .ap-menu a:hover svg { color: var(--primary); }
+
+/* ---------- ກາດເນື້ອຫາ ---------- */
+.ap-panel { border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; box-shadow: 0 2px 10px rgba(15, 23, 42, .04); }
+.ap-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.4rem 1.8rem 1.2rem; border-bottom: 1px solid #eef0f3; }
+.ap-panel-head h2 { margin: 0; color: #1f2937; font-size: 1.15rem; font-weight: 700; }
+.ap-panel-head p { margin: .2rem 0 0; color: #6b7280; font-size: .9rem; }
+.ap-panel-body { padding: 1.6rem 1.8rem; }
+.ap-none { color: #dc2626; font-weight: 600; }
+.ap-hint { margin: 0 0 1rem; color: #64748b; font-size: .85rem; }
+
+/* ປຸ່ມຂອບ (ຂວາຂອງຫົວຂໍ້ / ແຖວຕັ້ງຄ່າ) */
+.as-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; padding: .6rem 1.3rem; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: var(--primary); font: inherit; font-size: .92rem; font-weight: 700; text-decoration: none; white-space: nowrap; cursor: pointer; transition: border-color .15s, background .15s; }
+.as-btn:hover { border-color: var(--primary); background: #f5f8ff; }
+.as-btn.is-red { color: #dc2626; }
+.as-btn.is-red:hover { border-color: #dc2626; background: #fef2f2; }
+
+/* ---------- ຂໍ້ມູນບັນຊີ: ຕາຕະລາງ 2 ຄູ່ຕໍ່ແຖວ ---------- */
+.ap-info-table { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; font-size: .92rem; }
+.ap-info-table th, .ap-info-table td { padding: .75rem 1rem; text-align: left; border-bottom: 1px solid #eef0f3; }
+.ap-info-table tr:last-child > * { border-bottom: 0; }
+.ap-info-table th { width: 18%; background: #f8fafc; color: #6b7280; font-weight: 600; }
+.ap-info-table td { width: 32%; color: #111827; font-weight: 600; overflow-wrap: anywhere; }
+.ap-info-table td + th { border-left: 1px solid #eef0f3; }
+
+/* ---------- ຄຳສັ່ງຊື້: ແທັບຍ່ອຍແບບຂີດກ້ອງ + ຕາຕະລາງ ---------- */
+.ap-hist-tabs { display: flex; gap: .5rem; margin-bottom: 1.2rem; border-bottom: 2px solid #e5e7eb; }
+.ap-hist-tabs button { margin-bottom: -2px; padding: .65rem 1.4rem; border: 0; border-bottom: 2px solid transparent; background: none; color: #4b5563; font: inherit; font-weight: 600; cursor: pointer; }
+.ap-hist-tabs button.is-active { border-bottom-color: var(--primary); color: var(--primary); }
+.ap-hist-body[hidden] { display: none; }
+.ap-table { width: 100%; overflow: hidden; border: 1px solid #e5e7eb; border-collapse: separate; border-spacing: 0; border-radius: 6px; font-size: .9rem; }
+.ap-table th { padding: .8rem 1rem; background: #f8fafc; color: #111827; font-weight: 600; text-align: left; }
+.ap-table td { padding: .8rem 1rem; border-top: 1px solid #eef0f3; color: #111827; vertical-align: middle; }
+.ap-table .is-num { text-align: right; white-space: nowrap; }
+.ap-table td small { display: block; color: #64748b; font-size: .8rem; }
+.ap-table b { color: #dc2626; }
+.ap-hist-no { font-weight: 700; color: #1e3a8a; text-decoration: none; }
+.ap-hist-no:hover { text-decoration: underline; }
+.ap-table-empty { padding: 1.4rem; text-align: center !important; color: #6b7280; }
+
+/* ---------- ຈັດການບັນຊີ: ແຖວກອບ ---------- */
+.as-list { display: flex; flex-direction: column; gap: 1.2rem; }
+.as-list form { margin: 0; }
+.as-item { border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; }
+.as-row { display: flex; align-items: center; gap: 1.1rem; width: 100%; padding: 1.1rem 1.3rem; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.as-row.is-off { cursor: default; opacity: .75; }
+.as-logout { cursor: default; }
+.as-ico { flex: none; display: grid; place-items: center; width: 30px; color: var(--primary); }
+.as-ico.is-red { color: #dc2626; }
+.as-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .15rem; line-height: 1.45; }
+.as-text b { color: #111827; font-size: .98rem; }
+.as-text small { color: #6b7280; font-size: .82rem; overflow-wrap: anywhere; }
+.as-switch { appearance: none; -webkit-appearance: none; flex: none; position: relative; width: 46px; height: 26px; margin: 0; border-radius: 999px; background: #cbd5e1; cursor: pointer; transition: background .2s; }
+.as-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, .3); transition: transform .2s; }
+.as-switch:checked { background: var(--primary); }
+.as-switch:checked::after { transform: translateX(20px); }
+.as-switch:disabled { cursor: not-allowed; opacity: .5; }
+.as-pw > summary { list-style: none; }
+.as-pw > summary::-webkit-details-marker { display: none; }
+.as-pw[open] > summary { border-bottom: 1px solid #eef0f3; }
+.as-pw[open] > summary .as-btn { border-color: var(--primary); background: #f5f8ff; }
+.as-pw-form { margin: 0; padding: 1.1rem 1.3rem 1.2rem; background: #fafbfc; border-radius: 0 0 6px 6px; }
+.as-pw-step { margin: 0 0 .8rem; font-size: .88rem; color: #475569; line-height: 1.6; }
+.as-pw-step.is-sent { padding: .55rem .8rem; border-radius: 6px; background: #eff6ff; color: #1e3a8a; }
+.as-pw-btns { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .3rem; }
+.ap-otp input, .ap-otp-input { letter-spacing: .45em; font-weight: 800; }
+
+/* ---------- modal ແກ້ໄຂ (ເລື່ອນຂຶ້ນຊ້າໆ) ---------- */
+.ap-modal { width: min(640px, calc(100vw - 24px)); max-height: calc(100vh - 32px); padding: 0; border: 0; border-radius: 6px; box-shadow: 0 30px 70px rgba(15, 23, 42, .35); }
+.ap-modal::backdrop { background: rgba(15, 23, 42, .55); }
+.ap-modal[open] { display: flex; flex-direction: column; }
+.ap-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; }
+.ap-modal-head h3 { margin: 0; font-size: 1.08rem; color: #fff; }
+.ap-modal-x { width: 36px; height: 36px; border: 0; border-radius: 6px; background: rgba(255, 255, 255, .18); color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.ap-modal-x:hover { background: rgba(255, 255, 255, .3); }
+.ap-modal-x:focus { outline: none; }
+.ap-modal-body { overflow-y: auto; padding: 1.2rem 1.25rem 1.3rem; }
+.ap-av-pick { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.1rem; padding: .8rem; border: 1px dashed #bfdbfe; border-radius: 6px; background: #f8fbff; }
+.ap-av-pick > div { display: flex; flex-direction: column; gap: .15rem; }
+.ap-av-pick small { color: #64748b; font-size: .8rem; }
+.ap-av-img { position: relative; flex: 0 0 108px; width: 108px; height: 108px; margin: 0; cursor: pointer; }
+.ap-av-img img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 4px 14px rgba(29, 78, 216, .2); background: #e2e8f0; }
+.ap-av-img:hover img { filter: brightness(.92); }
+.ap-av-cam { position: absolute; right: -2px; bottom: -2px; display: grid; place-items: center; width: 34px; height: 34px; border: 2px solid #fff; border-radius: 50%; background: var(--primary); color: #fff; }
+@keyframes apModalIn { from { opacity: 0; transform: translateY(40px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes apModalOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(40px) scale(.97); } }
+@keyframes apFade { from { opacity: 0; } to { opacity: 1; } }
+.ap-modal[open] { animation: apModalIn .5s cubic-bezier(.22, 1, .36, 1); }
+.ap-modal[open]::backdrop { animation: apFade .5s ease; }
+.ap-modal.is-closing { animation: apModalOut .3s ease forwards; }
+@media (prefers-reduced-motion: reduce) { .ap-modal[open], .ap-modal.is-closing, .ap-modal[open]::backdrop { animation: none; } }
+
+/* ເບິ່ງຮູບເຕັມຈໍ — ຕາມສັດສ່ວນຮູບທີ່ອັບໂຫຼດ */
+.ap-viewer { position: fixed; inset: 0; z-index: 4000; display: grid; place-items: center; padding: 20px; background: rgba(15, 23, 42, .88); cursor: zoom-out; opacity: 0; transition: opacity .25s ease; }
+.ap-viewer[hidden] { display: none; }
+.ap-viewer.is-open { opacity: 1; }
+.ap-viewer img { width: auto; height: auto; max-width: min(960px, 100%); max-height: calc(100vh - 40px); border-radius: 6px; box-shadow: 0 20px 60px rgba(0, 0, 0, .5); transform: scale(.92); transition: transform .3s ease; }
+.ap-viewer.is-open img { transform: none; }
+
+/* modal ເປີດ → ໜ້າຫຼັງເລື່ອນບໍ່ໄດ້ */
+html:has(.ap-modal[open]), html:has(.ap-modal[open]) body, html:has(.ap-viewer.is-open), html:has(.ap-viewer.is-open) body { overflow: hidden; }
+
+/* ---------- ຈໍນ້ອຍ ---------- */
+@media (max-width: 960px) {
+  .ap-layout { grid-template-columns: 1fr; gap: 1rem; }
+  .ap-banner { height: 150px; }
+  .ap-banner-art { width: 240px; height: 170px; }
+  .ap-side { margin-top: -95px; }
+  .ap-main { padding-top: 0; }
+  .ap-avatar { width: 116px; height: 116px; }
+  .ap-menu { flex-direction: row; gap: .3rem; overflow-x: auto; scrollbar-width: none; border-bottom: 2px solid #e5e7eb; }
+  .ap-menu h2 { display: none; }
+  .ap-menu a { flex: none; margin-bottom: -2px; padding: .7rem 1rem; border-left: 0; border-bottom: 2px solid transparent; }
+  .ap-menu a.is-active { border-bottom-color: var(--primary); background: none; }
+}
+@media (max-width: 760px) {
+  .ap-info-table, .ap-info-table tbody { display: block; }
+  .ap-info-table tr { display: grid; grid-template-columns: 40% 60%; }
+  .ap-info-table th, .ap-info-table td { width: auto; }
+  .ap-info-table td + th { border-left: 0; }
+  .ap-info-table tr:last-child > *:not(:nth-last-child(-n+2)) { border-bottom: 1px solid #eef0f3; }
+}
+@media (max-width: 640px) {
+  .ap-panel-head { flex-wrap: wrap; padding: 1.1rem 1.1rem 1rem; }
+  .ap-panel-body { padding: 1.1rem; }
+  .as-row { flex-wrap: wrap; padding: 1rem; }
+  .as-row .as-text { flex-basis: calc(100% - 50px); }
+  .as-row .as-btn { margin-left: 46px; }
+  .as-row .as-switch { margin-left: auto; }
+  .ap-hist-tabs button { padding: .6rem .7rem; font-size: .9rem; }
+  .ap-table thead { display: none; }
+  .ap-table, .ap-table tbody, .ap-table tr, .ap-table td { display: block; width: 100%; }
+  .ap-table tr + tr { border-top: 1px solid #e5e7eb; }
+  .ap-table td { display: flex; justify-content: space-between; gap: 1rem; padding: .45rem .8rem; border-top: 0; text-align: right; }
+  .ap-table td::before { content: attr(data-label); color: #64748b; font-size: .8rem; text-align: left; }
+  .ap-table td.ap-table-empty::before { display: none; }
+  .ap-table td.ap-table-empty { justify-content: center; }
+}
+
+/* ແກ້: ມືຖືບໍ່ລົ້ນຈໍ (ຖັນ grid ບໍ່ຖືກດັນໂດຍເມນູເລື່ອນ), ສະວິດຢູ່ແຖວດຽວກັບຂໍ້ຄວາມ, ຫົວຂໍ້ຕາຕະລາງກວ້າງພໍບໍ່ຕັດແຖວ */
+.ap-side { min-width: 0; }
+.ap-info-table th { width: 22%; }
+.ap-info-table td { width: 28%; }
+@media (max-width: 960px) { .ap-layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) {
+  .as-row:has(.as-switch) { flex-wrap: nowrap; }
+  .as-row:has(.as-switch) .as-text { flex-basis: auto; }
+}
+@media (max-width: 960px) { .ap-menu a { flex: 1 0 auto; justify-content: center; gap: .45rem; padding: .7rem .5rem; font-size: .92rem; } }
+
+/* ຂໍ້ມູນຕິດຕໍ່: ຫົວຂໍ້ຍ່ອຍ (ຊ່ອງທາງຕິດຕໍ່ / ທີ່ຢູ່ປັດຈຸບັນ) */
+.ap-sub-h { margin: 0 0 .7rem; color: #1f2937; font-size: .98rem; font-weight: 700; }
+.ap-sub-h ~ .ap-sub-h { margin-top: 1.5rem; }
+.ap-form-h { margin: .3rem 0 .7rem; padding-bottom: .4rem; border-bottom: 1px solid #eef0f3; color: var(--primary); font-size: .95rem; font-weight: 700; }
+.ap-form-h ~ .ap-form-h { margin-top: 1rem; }
+.ap-modal .mf-field { display: block; margin-bottom: .9rem; }
+.ap-modal .mf-field > span:first-child { display: block; margin-bottom: .35rem; color: #1f2937; font-size: .9rem; font-weight: 700; }
+.as-static { cursor: default; }
+
+/* modal ລະຫັດຜ່ານ: ນ້ອຍ, ຫົວຂໍ້ຂາວກາງ + × ຂວາ, ຊ່ອງລະຫັດມີປຸ່ມຕາ */
+.ap-modal-sm { width: min(600px, calc(100vw - 24px)); }
+.ap-modal-head.is-plain { position: relative; justify-content: center; padding: 1.2rem 3.5rem .4rem; background: #fff; color: #1f2937; }
+.ap-modal-head.is-plain h3 { color: #1f2937; font-size: 1.25rem; font-weight: 700; }
+.ap-modal-head.is-plain .ap-modal-x { position: absolute; right: 14px; top: 14px; background: none; color: #94a3b8; }
+.ap-modal-head.is-plain .ap-modal-x:hover { background: #f1f5f9; color: #475569; }
+.ap-modal-x { display: grid; place-items: center; }
+.ap-pass { position: relative; display: block; }
+.ap-pass .input { width: 100%; padding-right: 2.8rem; }
+.ap-eye { position: absolute; top: 50%; right: .5rem; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; background: none; color: #64748b; cursor: pointer; transform: translateY(-50%); }
+.ap-eye .ap-eye-on, .ap-eye.is-on .ap-eye-off { display: none; }
+.ap-eye.is-on .ap-eye-on { display: block; }
+.ap-forgot { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .6rem; margin: -.4rem 0 .9rem; }
+.ap-forgot small { color: #64748b; font-size: .8rem; }
+.ap-link { padding: 0; border: 0; background: none; color: var(--primary); font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; }
+.ap-link:hover { text-decoration: underline; }
+.ap-modal .btn-block { margin-top: .4rem; padding: .75rem; border-radius: 6px; }
+@media (max-width: 960px) { .ap-menu a { flex: 0 0 auto; padding: .7rem .75rem; } }
+
+/* 11/2026: ແຖບຟ້າ = ໂລໂກ້ WD ຈາງໆ (ບໍ່ມີເສັ້ນເຫຼືອງ); ເມນູ = ແທັບແນວນອນເທິງກາດເນື້ອຫາ (ຖັນຊ້າຍມີແຕ່ກາດໂປຣໄຟລ໌) */
+.ap-banner::after { display: none; }
+.ap-banner-art { display: none; }
+.ap-banner-logo { position: absolute; right: 6%; top: 50%; width: 420px; height: auto; transform: translateY(-50%); opacity: .22; pointer-events: none; user-select: none; }
+.ap-side { gap: 0; }
+.ap-main { padding-top: 2.2rem; }
+.ap-heading { margin: 0 0 1.1rem; color: #1f2937; font-size: 1.7rem; font-weight: 700; }
+.ap-menu { flex-direction: row; gap: .25rem; margin: 0 0 1.4rem; overflow-x: auto; scrollbar-width: none; border-bottom: 2px solid #e5e7eb; }
+.ap-menu::-webkit-scrollbar { display: none; }
+.ap-menu a { flex: 0 0 auto; margin-bottom: -2px; padding: .75rem 1.2rem; border-left: 0; border-bottom: 2px solid transparent; font-weight: 600; }
+.ap-menu a.is-active { border-bottom-color: var(--primary); background: none; }
+@media (max-width: 960px) {
+  .ap-banner-logo { right: 50%; width: 260px; transform: translate(50%, -50%); opacity: .18; }
+  .ap-main { padding-top: .4rem; }
+  .ap-heading { display: none; }
+  .ap-menu a { padding: .7rem .75rem; gap: .45rem; font-size: .92rem; }
+}
+@media (max-width: 760px) { .ap-info-table th, .ap-info-table td { width: auto; } }   /* ມືຖື: ກັນກົດ width 22%/28% ຂ້າງເທິງທັບ */
+
+/* modal ລືມລະຫັດຜ່ານ */
+.ap-fg-intro { margin: .2rem 0 1rem; color: #475569; font-size: .9rem; line-height: 1.6; text-align: center; }
+.ap-fg-back { margin: .9rem 0 0; text-align: center; }
+[data-fg-err] { display: block; margin-top: .35rem; color: #dc2626; font-size: .85rem; font-weight: 600; }
+[data-fg-err]:empty { display: none; }
+/* ໂລໂກ້ໃນແຖບຟ້າ: ບໍ່ມີສີ — ເທົາໆ ເງົາໆ */
+.ap-banner-logo { filter: grayscale(1) brightness(2.1); opacity: .16; mix-blend-mode: luminosity; }
+@media (max-width: 960px) { .ap-banner-logo { opacity: .12; } }
+
+/* ທຸກ modal ໜ້າບັນຊີ: ສ່ວນຫົວສີຂາວ (ຫົວຂໍ້ກາງ + × ສີເທົາຂວາ) ຄືກັບ modal ລະຫັດຜ່ານ */
+.ap-modal-head { position: relative; justify-content: center; padding: 1.2rem 3.5rem .5rem; background: #fff; color: #1f2937; }
+.ap-modal-head h3 { color: #1f2937; font-size: 1.25rem; font-weight: 700; text-align: center; }
+.ap-modal-x { position: absolute; right: 14px; top: 14px; background: none; color: #94a3b8; }
+.ap-modal-x:hover { background: #f1f5f9; color: #475569; }
+
+/* ມືຖື: ປຸ່ມຂວາຂອງຫົວກາດ (ຈັດການທັງໝົດ / ແກ້ໄຂ) ຢູ່ຂວາມືສະເໝີ — ບໍ່ຕົກລົງແຖວລຸ່ມຊ້າຍ */
+@media (max-width: 640px) {
+  .ap-panel-head { flex-wrap: nowrap; align-items: center; }
+  .ap-panel-head > div { flex: 1; min-width: 0; }
+  .ap-panel-head > .as-btn { flex: none; margin-left: auto; padding: .5rem .85rem; font-size: .85rem; }
+}

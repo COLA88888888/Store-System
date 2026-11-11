@@ -1,0 +1,53 @@
+/* ລາຍງານລາຍຮັບ ເວັບໄຊ vs ໜ້າຮ້ານ (pages/reports/channel_report.php) — ໜ້າຮ້ານ = ຟ້າ, ເວັບໄຊ = ເຫຼືອງ */
+.ch-wrap { max-width: 1280px; }
+.ch-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.ch-title { margin: 0; font-size: 1.3rem; font-weight: 700; color: #0f172a; }
+.ch-sub { color: #64748b; font-size: .88rem; }
+.ch-filter { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.ch-filter .form-control { width: auto; height: 38px; border-radius: 4px; border-color: #cbd5e1; font-size: .88rem; }
+.ch-dash { color: #94a3b8; }
+.ch-btn { height: 38px; border-radius: 4px !important; background: #1d4ed8; border: 1px solid #1d4ed8; color: #fff; font-size: .88rem; }
+.ch-btn:hover { background: #1e40af; color: #fff; }
+.ch-btn.is-light { background: #fff; color: #1d4ed8; }
+
+.ch-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.ch-card { padding: 1.1rem 1.25rem; border: 1px solid #e2e8f0; border-top: 4px solid; border-radius: 4px; background: #fff; }
+.ch-card.is-shop { border-top-color: #1d4ed8; }
+.ch-card.is-web  { border-top-color: #eab308; }
+.ch-card.is-win  { box-shadow: 0 0 0 2px rgba(22, 163, 74, .35); }
+.ch-card-label { display: flex; align-items: center; justify-content: space-between; gap: .5rem; font-weight: 700; color: #334155; }
+.ch-win { padding: .1rem .5rem; border-radius: 4px; background: #dcfce7; color: #15803d; font-size: .75rem; }
+.ch-card-value { margin: .35rem 0 .45rem; font-size: 1.9rem; font-weight: 800; color: #0f172a; font-variant-numeric: tabular-nums; }
+.ch-card-meta { display: flex; flex-wrap: wrap; gap: .3rem 1rem; color: #64748b; font-size: .85rem; }
+.ch-card-note { margin-top: .6rem; padding-top: .55rem; border-top: 1px dashed #e2e8f0; color: #64748b; font-size: .8rem; }
+
+.ch-panel { margin-bottom: 1rem; padding: 1rem 1.25rem; border: 1px solid #e2e8f0; border-radius: 4px; background: #fff; }
+.ch-panel h2 { margin: 0 0 .65rem; font-size: 1rem; font-weight: 700; color: #0f172a; }
+.ch-panel h2.is-shop { color: #1d4ed8; }
+.ch-panel h2.is-web  { color: #a16207; }
+.ch-share-head { display: flex; justify-content: space-between; gap: .5rem; margin-bottom: .45rem; font-size: .88rem; color: #475569; }
+.ch-share-head b { color: #0f172a; }
+.ch-share { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: #e2e8f0; gap: 2px; }
+.ch-share .is-shop { background: #1d4ed8; }
+.ch-share .is-web  { background: #eab308; }
+.ch-advice p { margin-bottom: .4rem; color: #334155; }
+.ch-advice ul { margin: 0; padding-left: 1.2rem; color: #334155; font-size: .92rem; }
+.ch-advice li { margin-bottom: .2rem; }
+
+.ch-tops { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.ch-table { font-size: .88rem; }
+.ch-table th { color: #475569; font-weight: 700; border-top: 0; white-space: nowrap; }
+.ch-table td { font-variant-numeric: tabular-nums; }
+.ch-table tfoot th { border-top: 2px solid #e2e8f0; color: #0f172a; }
+.ch-tag { display: inline-block; padding: .05rem .45rem; border-radius: 4px; background: #f1f5f9; color: #475569; font-size: .75rem; font-weight: 600; }
+.ch-tag.is-shop { background: #dbeafe; color: #1d4ed8; }
+.ch-tag.is-web  { background: #fef9c3; color: #a16207; }
+
+@media (max-width: 768px) {
+  .ch-cards, .ch-tops { grid-template-columns: minmax(0, 1fr); }
+  .ch-card-value { font-size: 1.5rem; }
+}
+@media print {
+  .no-print { display: none !important; }
+  .ch-card, .ch-panel { break-inside: avoid; }
+}

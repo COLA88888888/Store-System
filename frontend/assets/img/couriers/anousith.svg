@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 72" fill="none">
+  <rect width="120" height="72" rx="10" fill="#E11D2E"/>
+  <path d="M0 50h120v12a10 10 0 0 1-10 10H10A10 10 0 0 1 0 62V50z" fill="#1E3A8A"/>
+  <rect x="8" y="8" width="104" height="36" rx="6" fill="#FFF"/>
+  <text x="60" y="31" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="22" fill="#E11D2E" letter-spacing="1">ANS</text>
+  <circle cx="22" cy="26" r="6" fill="#FACC15"/>
+  <path d="M19 26l2 2 4-4" stroke="#1E3A8A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="60" y="64" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="9.5" fill="#FACC15" letter-spacing=".8">ANOUSITH EXPRESS</text>
+</svg>

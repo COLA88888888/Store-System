@@ -1,0 +1,365 @@
+<?php
+/*
+ * ສ່ວນ: ແຖບເມນູດ້ານເທິງ (Navbar)
+ * ປຸ່ມເປີດ/ປິດເມນູ, ໂມງ, ກະດິ່ງແຈ້ງເຕືອນສາຂາໃຫຍ່ ແລະ ສາຂາຍ່ອຍ, ຈຳນວນວັນໃຊ້ງານທີ່ເຫຼືອ,
+ * ເລືອກສີທີມ, ເລືອກພາສາ ແລະ ປຸ່ມອອກຈາກລະບົບ.
+ * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ home/dashboard.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
+ */
+?>  <!-- ແຖບເມນູດ້ານເທິງ (Top Navigation Bar) -->
+  <nav class="main-header navbar navbar-expand navbar-dark justify-content-between" style="background-color: #244886 !important; border: none !important; border-bottom: none !important; box-shadow: none !important; height: 64px; position: relative !important; z-index: 1030 !important;">
+    <!-- Left side: Menu toggle & Branch Switcher -->
+    <ul class="navbar-nav align-items-center">
+      <li class="nav-item">
+        <a class="nav-link" id="topNavbarPushMenuBtn" href="#" role="button" style="color: #ffffff; font-size: 1.2rem; cursor: pointer;" title="<?php echo htmlspecialchars(t('layout.menu', 'ເມນູ')); ?>">
+          <i class="fas fa-bars"></i>
+        </a>
+      </li>
+      <?php
+        $userStoreId = intval($_SESSION['store_id'] ?? 1);
+        $userIsAdmin = ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' || strtolower($_SESSION['status'] ?? '') === 'admin' || ($_SESSION['user_id'] ?? 0) == 1;
+        $userIsMain = isMainBranch($pdo, $userStoreId);
+        $userCanAllBranches = canViewAllBranches($pdo);
+        $allStores = $pdo->query("SELECT * FROM w_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+        $activeStoreId = getActiveStoreId($pdo);
+        $currentStoreName = '';
+        foreach ($allStores as $s) {
+            if ($s['store_id'] == $activeStoreId) {
+                $currentStoreName = $s['store_name'];
+                break;
+            }
+        }
+      ?>
+      <!-- Branch Switcher Removed -->
+    </ul>
+
+    <?php
+
+      // Low Stock & Out of Stock Alerts for Main Branch & All Branches (Grouped by store)
+      $lowStockList = getLowStockAlerts($pdo);
+      $lowStockCount = count($lowStockList);
+
+      $groupedLowStock = [];
+      foreach ($lowStockList as $alert) {
+          $stId = $alert['store_id'];
+          if (!isset($groupedLowStock[$stId])) {
+              $groupedLowStock[$stId] = [
+                  'store_id'   => $alert['store_id'],
+                  'store_name' => $alert['store_name'],
+                  'is_main'    => $alert['is_main'] ?? 0,
+                  'items'      => []
+              ];
+          }
+          $groupedLowStock[$stId]['items'][] = $alert;
+      }
+    ?>
+
+    <!-- ບັອກສະແກນ + ປຸ່ມຈໍລູກຄ້າ "ຕົວແທນ" ຂອງໜ້າຂາຍ: ສະແດງໃນ Navbar ຂະນະໜ້າຂາຍກຳລັງໂຫຼດ (ຣີເຟຣດ / ເປີດໜ້າຂາຍ)
+         ບໍ່ໃຫ້ບັອກສະແກນຫາຍໄປ — ໜ້າຂາຍໂຫຼດແລ້ວ ບັອກແທ້ (ໃນ iframe) ຂຶ້ນແທນທີ່ ແລະ ຕົວນີ້ເຊື່ອງ.
+         ຄວບຄຸມໂດຍ js_pos_navbar.php (apply), CSS: themes/dashboard-pos-navbar.css -->
+    <div id="posNavGhost" class="pos-nav-ghost" aria-hidden="true" style="display: none;">
+      <div class="pos-nav-ghost-search">
+        <i class="fas fa-search"></i>
+        <span><?php echo htmlspecialchars(t('pos.search_placeholder', 'ສະແກນບາໂຄ້ດ ຫຼື ພິມຊື່ສິນຄ້າ...')); ?></span>
+      </div>
+      <div class="pos-nav-ghost-btn">
+        <i class="fas fa-desktop"></i> <?php echo htmlspecialchars(t('pos.customer_display_btn', 'ຈໍລູກຄ້າ')); ?>
+      </div>
+    </div>
+    <script>
+      // ສະແດງທັນທີຕັ້ງແຕ່ໜ້າເລີ່ມແຕ້ມ ຖ້າໜ້າທີ່ກຳລັງເປີດແມ່ນໜ້າຂາຍ (ກ່ອນ js_pos_navbar.php ໂຫຼດ)
+      (function () {
+        try {
+          var g = document.getElementById('posNavGhost');
+          var src = sessionStorage.getItem('WlaoDev.currentIframeSrc') || '';
+          var l = localStorage.getItem('WlaoDev.pos_nav_left'), r = localStorage.getItem('WlaoDev.pos_nav_right_dist');
+          if (l) g.style.left = l + 'px';
+          if (r) g.style.right = r + 'px';
+          if (window.innerWidth >= 992 && /pos\/pos\.php/.test(src)) g.classList.add('show');
+        } catch (e) {}
+      })();
+    </script>
+
+
+    <!-- Right side: Subscription Days Remaining + Notifications Bell + Logout -->
+    <ul class="navbar-nav ml-auto align-items-center" style="gap: 12px; font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
+      
+      <!-- Notifications Dropdown (Low Stock & Out of Stock Warning Grouped by Branch - Only for Main Branch / Admin) -->
+      <?php if ($userCanAllBranches): ?>
+        <li class="nav-item dropdown">
+          <a class="nav-link text-white position-relative px-2 d-flex align-items-center" data-toggle="dropdown" href="#" onclick="markNotifAsRead('mainNotifBadge')" data-i18n-title="layout.notif_main_title" title="<?php echo htmlspecialchars(t('layout.notif_main_title', 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ສິນສຸດ/ສິນຄ້າໝົດ')); ?>" style="font-size: 1.25rem; cursor: pointer;">
+            <i id="mainNotifBellIcon" class="fas fa-bell text-white"></i>
+            <span id="mainNotifBadge" class="badge badge-danger font-weight-bold position-absolute" style="top: 2px; right: -2px; font-size: 0.68rem; border-radius: 10px; padding: 2px 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); <?php echo ($lowStockCount > 0) ? '' : 'display: none;'; ?>">
+              <?php echo $lowStockCount; ?>
+            </span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right notif-dropdown-box shadow-lg border-0">
+            <div class="dropdown-header font-weight-bold d-flex text-white justify-content-between align-items-center py-2.5 px-3" style="background-color: #244886 !important;">
+              <span class="text-truncate mr-2"><i class="fas fa-exclamation-triangle text-warning mr-1.5"></i> <span data-i18n="layout.notif_main_header"><?php echo htmlspecialchars(t('layout.notif_main_header', 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ໝົດ/ໝົດ')); ?></span> (<span id="mainNotifTitleCount"><?php echo $lowStockCount; ?></span>)</span>
+              <button type="button" id="btnMarkAllMain" class="btn btn-xs btn-outline-light font-weight-bold flex-shrink-0" onclick="markAllNotifsAsRead('mainNotifBadge')" data-i18n="layout.mark_all_read" style="border-radius: 6px; font-size: 0.73rem; display: none;"><?php echo htmlspecialchars(t('layout.mark_all_read', 'ອ່ານທັງໝົດ')); ?></button>
+            </div>
+            <div class="dropdown-divider m-0"></div>
+            
+            <div id="mainNotifDropdownBody" style="max-height: 380px; overflow-y: auto;">
+              <?php if ($lowStockCount > 0 && !empty($groupedLowStock)): ?>
+                <?php foreach ($groupedLowStock as $stId => $branchGroup): ?>
+                  <!-- ຫົວຂໍ້ແຍກຕາມສາຂາ (Branch Section Header) -->
+                  <div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #f1f5f9; font-size: 0.82rem; white-space: nowrap;">
+                    <span class="text-truncate">
+                      <i class="fas fa-store text-primary mr-1"></i> <?php echo htmlspecialchars($branchGroup['store_name']); ?>
+                      <?php if (!empty($branchGroup['is_main'])): ?>
+                        <small class="text-muted"><?php echo htmlspecialchars(t('layout.branch_main_suffix', '(ສາງຫຼັກ)')); ?></small>
+                      <?php endif; ?>
+                    </span>
+                    <span class="badge badge-warning text-dark font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px;">
+                      <?php echo count($branchGroup['items']); ?> <?php echo htmlspecialchars(t('layout.items_unit', 'ລາຍການ')); ?>
+                    </span>
+                  </div>
+
+                  <!-- ລາຍການສິນຄ້າໃນສາຂານັ້ນ (Single Line Flex Row) -->
+                  <?php foreach ($branchGroup['items'] as $alert): ?>
+                    <?php 
+                      $isOutOfStock = intval($alert['qty']) <= 0;
+                      $badgeClass = $isOutOfStock ? 'badge-danger' : 'badge-warning text-dark';
+                      $qtyLabel = $isOutOfStock ? t('layout.out_of_stock', 'ໝົດແລ້ວ (0)') : t('layout.remaining', 'ເຫຼືອ') . ' ' . $alert['qty'] . ' ' . htmlspecialchars($alert['unit'] ?: t('layout.default_unit', 'ອັນ'));
+                    ?>
+                    <div id="notif_item_main_<?php echo $alert['product_id']; ?>" onclick="markItemAsRead('main_<?php echo $alert['product_id']; ?>', 'mainNotifBadge'); goToStockList(<?php echo (int)($alert['store_id'] ?? 0); ?>, <?php echo $isOutOfStock ? 'true' : 'false'; ?>, '<?php echo htmlspecialchars(addslashes((string)$alert['product_id'])); ?>')" class="dropdown-item py-2 px-3 d-flex align-items-center justify-content-between border-bottom flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden;">
+                      <div class="d-flex align-items-center text-nowrap mr-2" style="overflow: hidden; text-overflow: ellipsis; min-width: 0;">
+                        <i class="fas fa-exclamation-circle <?php echo $isOutOfStock ? 'text-danger' : 'text-warning'; ?> mr-1.5" style="font-size: 0.82rem;"></i>
+                        <strong class="text-dark text-truncate" style="font-size: 0.82rem;" title="<?php echo htmlspecialchars($alert['product_name']); ?>"><?php echo htmlspecialchars($alert['product_name']); ?></strong>
+                      </div>
+                      <div class="text-nowrap flex-shrink-0 ml-2">
+                        <span class="badge <?php echo $badgeClass; ?> font-weight-bold px-2 py-1" style="font-size: 0.74rem; border-radius: 6px;"><?php echo $qtyLabel; ?></span>
+                      </div>
+                    </div>
+                  <?php endforeach; ?>
+                <?php endforeach; ?>
+              <?php else: ?>
+                <div class="text-center py-4 text-muted">
+                  <i class="fas fa-check-circle text-success fa-2x mb-2 d-block"></i>
+                  <span style="font-size: 0.85rem;"><?php echo htmlspecialchars(t('layout.no_low_stock', 'ບໍ່ມີສິນຄ້າໃກ້ໝົດ ຫຼື ໝົດແລ້ວ')); ?></span>
+                </div>
+              <?php endif; ?>
+            </div>
+          </div>
+        </li>
+      <?php endif; ?>
+
+      <!-- Sub-Branch Notifications Dropdown: ສະເພາະສິນຄ້າໃກ້ໝົດ/ໝົດ ຂອງສາຂາໂຕເອງ (ສິນຄ້າໃກ້ໝົດອາຍຸ ເພີ່ມໂດຍ js_notification_polling.php) -->
+      <?php if (!$userCanAllBranches): ?>
+        <?php
+          $subStoreId = intval($_SESSION['store_id'] ?? 1);
+          $incomingTransfers = [];
+          $subLowStock = getLowStockAlerts($pdo, $subStoreId);
+          $subNewProducts = [];
+
+          $totalSubNotifications = count($subLowStock);
+        ?>
+        <li class="nav-item dropdown">
+          <a class="nav-link text-white position-relative px-2 d-flex align-items-center" data-toggle="dropdown" href="#" data-i18n-title="layout.notif_main_title" title="<?php echo htmlspecialchars(t('layout.notif_main_title', 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ໝົດ / ໃກ້ໝົດອາຍຸ')); ?>" style="font-size: 1.25rem; cursor: pointer;">
+            <i id="subNotifBellIcon" class="fas fa-bell text-white"></i>
+            <span id="subNotifBadge" class="badge badge-danger font-weight-bold position-absolute" style="top: 2px; right: -2px; font-size: 0.68rem; border-radius: 10px; padding: 2px 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); <?php echo ($totalSubNotifications > 0) ? '' : 'display: none;'; ?>">
+              <?php echo $totalSubNotifications; ?>
+            </span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right notif-dropdown-box shadow-lg border-0">
+            <div class="dropdown-header font-weight-bold d-flex text-white justify-content-between align-items-center py-2.5 px-3" style="background-color: #244886 !important;">
+              <span class="text-truncate mr-2"><i class="fas fa-bell text-white mr-1.5"></i> <span data-i18n="layout.notif_main_header"><?php echo htmlspecialchars(t('layout.notif_main_header', 'ສິນຄ້າໃກ້ໝົດ / ໃກ້ໝົດອາຍຸ')); ?></span> (<span id="subNotifTitleCount"><?php echo $totalSubNotifications; ?></span>)</span>
+              <button type="button" id="btnMarkAllSub" class="btn btn-xs btn-outline-light font-weight-bold flex-shrink-0" onclick="markAllNotifsAsRead('subNotifBadge')" data-i18n="layout.mark_all_read" style="border-radius: 6px; font-size: 0.73rem; display: none;"><?php echo htmlspecialchars(t('layout.mark_all_read', 'ອ່ານທັງໝົດ')); ?></button>
+            </div>
+            <div class="dropdown-divider m-0"></div>
+            
+            <div id="subNotifDropdownBody" style="max-height: 380px; overflow-y: auto;">
+              <!-- 1. ລາຍການໂອນສິນຄ້າ (Incoming & Outgoing Stock Transfers) -->
+              <?php if (!empty($incomingTransfers)): ?>
+                <div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #eff6ff; font-size: 0.82rem; white-space: nowrap;">
+                  <span class="text-primary text-truncate"><i class="fas fa-exchange-alt mr-1"></i> <?php echo htmlspecialchars(t('layout.transfer_list', 'ລາຍການໂອນສິນຄ້າ')); ?></span>
+                  <span class="badge badge-primary font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px;"><?php echo count($incomingTransfers); ?> <?php echo htmlspecialchars(t('layout.bill_unit', 'ໃບບິນ')); ?></span>
+                </div>
+                <?php foreach ($incomingTransfers as $trf): ?>
+                  <?php
+                    $isOutgoing = (intval($trf['from_store_id']) === intval($subStoreId));
+                    $targetStoreName = $isOutgoing ? ($trf['to_store_name'] ?: t('layout.branch_sub_default', 'ສາຂາຍ່ອຍ')) : ($trf['from_store_name'] ?: t('layout.branch_main_default', 'ສາຂາໃຫຍ່'));
+                    $directionIcon = $isOutgoing ? 'fa-paper-plane text-success' : 'fa-truck-loading text-primary';
+                    $directionPrefix = $isOutgoing ? t('layout.transfer_to', 'ໂອນໄປຫາ') . ' ' : t('layout.transfer_from', 'ໂອນມາຈາກ') . ' ';
+                  ?>
+                  <div id="notif_item_trf_<?php echo $trf['transfer_id']; ?>" onclick="markItemAsRead('trf_<?php echo $trf['transfer_id']; ?>', 'subNotifBadge'); viewTransferDetailsModal(<?php echo intval($trf['transfer_id']); ?>)" class="dropdown-item py-2 px-3 border-bottom d-flex flex-column" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden; transition: background 0.15s;" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='#ffffff'">
+                    <div class="d-flex align-items-center justify-content-between flex-nowrap w-100">
+                      <div class="d-flex align-items-center text-nowrap mr-2" style="overflow: hidden; text-overflow: ellipsis; min-width: 0;">
+                        <i class="fas <?php echo $directionIcon; ?> mr-2" style="font-size: 0.82rem;"></i>
+                        <span class="text-dark font-weight-bold" style="font-size: 0.84rem;"><?php echo date('d/m/Y H:i', strtotime($trf['transfer_date'])); ?></span>
+                      </div>
+                      <div class="d-flex align-items-center text-nowrap flex-shrink-0">
+                        <span class="badge badge-info font-weight-bold" style="font-size: 0.72rem;"><?php echo intval($trf['total_items'] ?? 1); ?> <?php echo tlh('ລາຍການ'); ?></span>
+                      </div>
+                    </div>
+                    <div class="text-success font-weight-bold mt-1" style="font-size: 0.78rem;">
+                      <i class="fas fa-coins mr-1"></i> <?php echo htmlspecialchars(formatCurrency($trf['total_value'] ?? 0)); ?>
+                    </div>
+                  </div>
+                <?php endforeach; ?>
+              <?php endif; ?>
+
+              <!-- 2. ສິນຄ້າໃນສາຂາໂຕເອງໃກ້ໝົດ / ໝົດແລ້ວ (Low Stock & Out of Stock in Sub-Branch) -->
+              <?php if (!empty($subLowStock)): ?>
+                <div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #fff7ed; font-size: 0.82rem; white-space: nowrap;">
+                  <span class="text-danger text-truncate"><i class="fas fa-exclamation-triangle mr-1"></i> <?php echo htmlspecialchars(t('layout.low_stock_own', 'ສິນຄ້າໃກ້ໝົດ / ໝົດແລ້ວ')); ?></span>
+                  <span class="badge badge-danger font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px;"><?php echo count($subLowStock); ?> <?php echo tlh('ລາຍການ'); ?></span>
+                </div>
+                <?php foreach ($subLowStock as $stk): ?>
+                  <?php 
+                    $isZero = (intval($stk['qty']) <= 0);
+                    $bClass = $isZero ? 'badge-danger' : 'badge-warning text-dark';
+                    $lbl = $isZero ? tl('ໝົດແລ້ວ (0)') : (tl('ເຫຼືອ') . ' ') . $stk['qty'] . ' ' . htmlspecialchars($stk['unit'] ?: 'ອັນ');
+                    $icoClass = $isZero ? 'text-danger' : 'text-warning';
+                  ?>
+                  <div id="notif_item_stk_<?php echo $stk['product_id']; ?>" onclick="markItemAsRead('stk_<?php echo $stk['product_id']; ?>', 'subNotifBadge'); goToStockList(<?php echo (int)($stk['store_id'] ?? 0); ?>, <?php echo $isZero ? 'true' : 'false'; ?>, '<?php echo htmlspecialchars(addslashes((string)$stk['product_id'])); ?>')" class="dropdown-item py-2 px-3 border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden;">
+                    <div class="d-flex align-items-center text-nowrap mr-2" style="overflow: hidden; text-overflow: ellipsis; min-width: 0;">
+                      <i class="fas fa-exclamation-circle <?php echo $icoClass; ?> mr-1.5" style="font-size: 0.82rem;"></i>
+                      <span class="text-dark font-weight-bold text-truncate" style="font-size: 0.82rem;" title="<?php echo htmlspecialchars($stk['product_name']); ?>"><?php echo htmlspecialchars($stk['product_name']); ?></span>
+                    </div>
+                    <div class="text-nowrap flex-shrink-0">
+                      <span class="badge <?php echo $bClass; ?> font-weight-bold px-2 py-1" style="font-size: 0.74rem;"><?php echo $lbl; ?></span>
+                    </div>
+                  </div>
+                <?php endforeach; ?>
+              <?php endif; ?>
+
+              <!-- 3. ສິນຄ້າໃໝ່ (New Products Arrived/Added) -->
+              <?php if (!empty($subNewProducts)): ?>
+                <div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #f0fdf4; font-size: 0.82rem; white-space: nowrap;">
+                  <span class="text-success text-truncate"><i class="fas fa-sparkles mr-1"></i> <?php echo tlh('ສິນຄ້າໃໝ່ເພີ່ມເຂົ້າສາຂາ'); ?></span>
+                  <span class="badge badge-success font-weight-bold flex-shrink-0 ml-2" style="font-size: 0.7rem; border-radius: 6px;"><?php echo count($subNewProducts); ?> <?php echo tlh('ລາຍການ'); ?></span>
+                </div>
+                <?php foreach ($subNewProducts as $np): ?>
+                  <div id="notif_item_np_<?php echo $np['product_id']; ?>" onclick="markItemAsRead('np_<?php echo $np['product_id']; ?>', 'subNotifBadge')" class="dropdown-item py-2 px-3 border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #ffffff; cursor: pointer; white-space: nowrap; overflow: hidden;">
+                    <div class="d-flex align-items-center text-nowrap mr-2" style="overflow: hidden; text-overflow: ellipsis; min-width: 0;">
+                      <i class="fas fa-sparkles text-success mr-1.5" style="font-size: 0.82rem;"></i>
+                      <span class="text-dark font-weight-bold text-truncate" style="font-size: 0.82rem;" title="<?php echo htmlspecialchars($np['product_name']); ?>"><?php echo htmlspecialchars($np['product_name']); ?></span>
+                      <small class="text-muted ml-1.5"><?php echo date('d/m/Y', strtotime($np['created_at'] ?? 'now')); ?></small>
+                    </div>
+                    <div class="text-nowrap flex-shrink-0">
+                      <span class="badge badge-light border text-dark font-weight-bold" style="font-size: 0.76rem;"><?php echo number_format($np['price'], 0); ?> <?php echo kipSymbol(); ?></span>
+                    </div>
+                  </div>
+                <?php endforeach; ?>
+              <?php endif; ?>
+
+              <?php if ($totalSubNotifications === 0): ?>
+                <div class="text-center py-4 text-muted">
+                  <i class="fas fa-check-circle text-success fa-2x mb-2 d-block"></i>
+                  <span style="font-size: 0.85rem;"><?php echo htmlspecialchars(t('layout.no_sub_notif', 'ບໍ່ມີສິນຄ້າໃກ້ໝົດ ຫຼື ໃກ້ໝົດອາຍຸ')); ?></span>
+                </div>
+              <?php endif; ?>
+            </div>
+          </div>
+        </li>
+      <?php endif; ?>
+
+
+      <!-- Theme Colour Picker (recolours sidebar + navbar, saved per-browser) -->
+      <li class="nav-item dropdown d-flex align-items-center mr-2">
+        <a class="nav-link p-0 d-flex align-items-center justify-content-center text-white"
+           href="#"
+           id="themeColorDropdown"
+           role="button"
+           data-toggle="dropdown"
+           aria-haspopup="true"
+           aria-expanded="false"
+           style="font-size: 1.15rem; cursor: pointer; width: 32px; height: 32px;"
+           data-i18n-title="layout.theme_color_title"
+           title="<?php echo htmlspecialchars(t('layout.theme_color_title', 'ປ່ຽນສີພື້ນຫຼັງ')); ?>">
+          <i class="fas fa-palette"></i>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right shadow-lg p-2"
+             aria-labelledby="themeColorDropdown"
+             style="min-width: 188px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: #ffffff;">
+          <div class="px-1 pb-2 font-weight-bold text-muted" style="font-size: 0.78rem;" data-i18n="layout.theme_color_title"><?php echo htmlspecialchars(t('layout.theme_color_title', 'ປ່ຽນສີພື້ນຫຼັງ')); ?></div>
+          <div class="d-flex flex-wrap" style="gap: 8px;">
+            <?php
+              $posThemeColors = ['#244886','#1d4ed8','#0369a1','#0f766e','#166534','#4d7c0f','#b45309','#c2410c','#be123c','#9f1239','#6d28d9','#7c3aed','#374151','#111827','#0b7285'];
+              foreach ($posThemeColors as $tc):
+            ?>
+              <button type="button" class="pos-theme-swatch" data-color="<?php echo $tc; ?>" title="<?php echo $tc; ?>" style="background: <?php echo $tc; ?>;"></button>
+            <?php endforeach; ?>
+          </div>
+          <button type="button" id="posThemeReset" class="btn btn-sm btn-light border w-100 mt-2 font-weight-bold" style="font-size: 0.78rem; border-radius: 8px;" data-i18n="layout.theme_color_reset"><?php echo htmlspecialchars(t('layout.theme_color_reset', 'ຄ່າເລີ່ມຕົ້ນ')); ?></button>
+        </div>
+      </li>
+
+      <!-- Language Switcher Dropdown (Flags Only: Laos / Thailand / China / US) -->
+      <?php $currentLangCode = getCurrentLang(); ?>
+      <li class="nav-item dropdown d-flex align-items-center mr-2">
+        <a class="nav-link p-0 d-flex align-items-center justify-content-center" 
+           href="#" 
+           id="langDropdown" 
+           role="button" 
+           data-toggle="dropdown" 
+           aria-haspopup="true" 
+           aria-expanded="false" 
+           style="background: transparent; border: none; padding: 0 !important;"
+           data-i18n-title="layout.lang_switch_title"
+           title="<?php echo htmlspecialchars(t('layout.lang_switch_title', 'ປ່ຽນພາສາ')); ?>">
+          <img id="currentLangFlagImg" src="../assets/img/flag_img/<?php echo POS_LANG_META[$currentLangCode]['img']; ?>"
+               alt="<?php echo $currentLangCode; ?>"
+               style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; box-shadow: 0 1.5px 4px rgba(0,0,0,0.35); border: 2px solid rgba(255,255,255,0.8);">
+        </a>
+        <div class="dropdown-menu dropdown-menu-right shadow-lg py-1.5 px-1" 
+             aria-labelledby="langDropdown" 
+             style="min-width: 60px; width: 60px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); background: #ffffff; text-align: center;">
+          <?php foreach (POS_LANG_META as $langCode => $meta): ?>
+            <a class="dropdown-item p-1.5 d-flex align-items-center justify-content-center my-1 lang-flag-btn<?php echo $currentLangCode === $langCode ? ' active' : ''; ?>" 
+               href="javascript:void(0);" 
+               data-lang="<?php echo htmlspecialchars($langCode); ?>" 
+               style="border-radius: 6px; background: <?php echo $currentLangCode === $langCode ? '#eaf2ff' : 'transparent'; ?>; transition: background 0.15s;" 
+               title="<?php echo htmlspecialchars($meta['label']); ?>">
+              <img src="../assets/img/flag_img/<?php echo $meta['img']; ?>"
+                   alt="<?php echo $langCode; ?>"
+                   style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; box-shadow: 0 1.5px 3px rgba(0,0,0,0.25);">
+            </a>
+          <?php endforeach; ?>
+        </div>
+      </li>
+
+      <!-- ຜູ້ໃຊ້ທີ່ເຂົ້າສູ່ລະບົບ: ຮູບ + ຊື່ + ສະຖານະ. ຄລິກ → ດັອບດາວ (ເລື່ອນລົງເລັກນ້ອຍ — themes/dashboard-shell.css .nav-user-menu)
+           ທີ່ມີປຸ່ມອອກຈາກລະບົບ. ຈໍນ້ອຍ: ສະແດງແຕ່ຮູບ. $display_name / $profile_img_path ມາຈາກ home/dashboard.php -->
+      <li class="nav-item dropdown nav-user-chip">
+        <a class="nav-link d-flex align-items-center px-1 nav-user-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false" title="<?php echo htmlspecialchars($display_name); ?>">
+          <img src="<?php echo htmlspecialchars($profile_img_path); ?>" alt="User Avatar" class="img-circle"
+               style="width: 36px; height: 36px; object-fit: cover; border: 2px solid rgba(255,255,255,0.6); flex-shrink: 0;">
+          <div class="d-none d-md-flex flex-column ml-2" style="line-height: 1.15; max-width: 150px;">
+            <span class="text-white font-weight-bold" style="font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($display_name); ?></span>
+            <span style="font-size: 0.72rem; color: #4ade80; font-weight: 600; display: flex; align-items: center; gap: 4px; white-space: nowrap;">
+              <i class="fas fa-circle" style="font-size: 6px;"></i> <span data-i18n="layout.online_status"><?php echo htmlspecialchars(t('layout.online_status', 'ກຳລັງໃຊ້ງານ')); ?></span>
+            </span>
+          </div>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right nav-user-menu shadow-lg border-0">
+          <div class="d-flex align-items-center px-3 pt-2 pb-2">
+            <img src="<?php echo htmlspecialchars($profile_img_path); ?>" alt="" class="img-circle" style="width: 42px; height: 42px; object-fit: cover; flex-shrink: 0;">
+            <div class="ml-2" style="min-width: 0; line-height: 1.25;">
+              <div class="font-weight-bold text-dark" style="font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($display_name); ?></div>
+              <?php
+                // ຕຳແໜ່ງ (w_tbuser.status ເກັບເປັນພາສາລາວ) → key ແປພາສາ ເພື່ອໃຫ້ປ່ຽນພາສາທັນທີ (data-i18n, js_language.php)
+                $__navRole = trim((string)($_SESSION['status'] ?? ''));
+                $__navRoleKey = [
+                    'ຜູ້ບໍລິຫານ' => 'layout.role_admin', 'admin' => 'layout.role_admin', 'super admin' => 'layout.role_admin',
+                    'ຜູ້ຈັດການ' => 'layout.role_manager', 'manager' => 'layout.role_manager',
+                    'ພະນັກງານ' => 'layout.role_staff', 'staff' => 'layout.role_staff',
+                ][mb_strtolower($__navRole)] ?? null;
+              ?>
+              <div class="text-muted" style="font-size: 0.78rem;"<?php echo $__navRoleKey ? ' data-i18n="' . $__navRoleKey . '"' : ''; ?>><?php echo htmlspecialchars($__navRoleKey ? t($__navRoleKey, $__navRole) : $__navRole); ?></div>
+              <!-- ສະຖານະໃຊ້ງານ: ສະແດງສະເພາະຈໍນ້ອຍ (ຈໍໃຫຍ່ມີຢູ່ແລ້ວຂ້າງຮູບໃນແຖບເທິງ) -->
+              <div class="d-flex d-md-none align-items-center" style="font-size: 0.75rem; color: #16a34a; font-weight: 600; gap: 4px; white-space: nowrap;">
+                <i class="fas fa-circle" style="font-size: 6px;"></i> <span data-i18n="layout.online_status"><?php echo htmlspecialchars(t('layout.online_status', 'ກຳລັງໃຊ້ງານ')); ?></span>
+              </div>
+            </div>
+          </div>
+          <div class="dropdown-divider my-1"></div>
+          <a class="dropdown-item nav-user-logout font-weight-bold" href="javascript:void(0);" onclick="confirmLogout()">
+            <i class="fas fa-power-off mr-2"></i><span data-i18n="layout.logout"><?php echo htmlspecialchars(t('layout.logout', 'ອອກຈາກລະບົບ')); ?></span>
+          </a>
+        </div>
+      </li>
+    </ul>
+  </nav>
+

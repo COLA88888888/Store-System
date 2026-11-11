@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 72" fill="none">
+  <rect width="120" height="72" rx="10" fill="#D91C24"/>
+  <path d="M10 16h100l-6 26H16L10 16z" fill="#FFF"/>
+  <text x="60" y="36" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="23" fill="#D91C24" letter-spacing="1.5">HAL</text>
+  <text x="60" y="59" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="10" fill="#FFF" letter-spacing="1.2">LOGISTICS</text>
+</svg>

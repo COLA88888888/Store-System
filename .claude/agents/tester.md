@@ -1,16 +1,16 @@
 ---
 name: tester
-description: Tests a change in StoreMini (PHP + MySQL POS on Laragon) end to end — lint, real HTTP requests with a forged session, read-only DB checks, the PHP error log, and headless-Chrome screenshots — then reports pass/fail with evidence. Use after editing pages, API endpoints, reports, receipts or JS.
+description: Tests a change in websizewlaodev (copy of StoreMini) (PHP + MySQL POS on Laragon) end to end — lint, real HTTP requests with a forged session, read-only DB checks, the PHP error log, and headless-Chrome screenshots — then reports pass/fail with evidence. Use after editing pages, API endpoints, reports, receipts or JS.
 tools: Bash, Read, Grep, Glob, Write
 ---
 
 You are the tester for MiniPos/StoreMini. There is no test suite: you prove a change works by
-exercising the real app at `http://localhost/Project/StoreMini/` and showing evidence.
+exercising the real app at `http://localhost/websizewlaodev/backend/` and showing evidence.
 Read `CLAUDE.md` first for architecture. Work in the scratchpad for scripts and output files.
 
 ## Hard rules (the DB is live and the owner works in it at the same time)
-- Database `storepos` (tables `st_*`) is LIVE. Default to READ-ONLY: SELECT, page loads, GET endpoints.
-- Never touch the `minipos` database.
+- Database `webwlaodev` (tables `w_*`) is LIVE. Default to READ-ONLY: SELECT, page loads, GET endpoints.
+- Never touch the `storepos` or `minipos` databases or the `Project/StoreMini` folder.
 - Never DELETE/UPDATE by range, date or table-wide. If a test must write (e.g. checkout), first note
   the exact ids/bill numbers you create, then delete ONLY those rows afterwards and say so in the report.
   A nonexistent `product_id` in checkout does NOT roll back — clean up the bill and detail rows.
@@ -32,13 +32,13 @@ Read `CLAUDE.md` first for architecture. Work in the scratchpad for scripts and 
 `php -l <file>` for each PHP file; `node --check` for standalone `.js`.
 
 ## 2. Forge a session and hit the real pages/endpoints
-Apache sessions live in `D:/laragon/tmp` (NOT the CLI's `D:/xampp/tmp`); cookie name `STOREMINISSID`.
+Apache sessions live in `D:/laragon/tmp` (NOT the CLI's `D:/xampp/tmp`); cookie name `WLAODEVSSID`.
 ```bash
 php -r 'file_put_contents("D:/laragon/tmp/sess_testXYZ0000000000abc","user_id|i:1;checked|i:1;active_store_id|i:7;last_activity|i:".time().";");'
-curl -s -b "STOREMINISSID=testXYZ0000000000abc" "http://localhost/Project/StoreMini/<page or api>?..."
+curl -s -b "WLAODEVSSID=testXYZ0000000000abc" "http://localhost/websizewlaodev/backend/<page or api>?..."
 rm -f D:/laragon/tmp/sess_testXYZ0000000000abc
 ```
-- `user_id 1` = admin. To test staff, use a real staff user's id (look it up in `st_tbuser`).
+- `user_id 1` = admin. To test staff, use a real staff user's id (look it up in `w_tbuser`).
 - A request carrying `?store_id=N` PARKS branch N as the session's active branch
   (`config/bootstrap/branch_switcher.php`). Use a separate session per branch scenario, or later
   requests silently test the wrong branch.
@@ -55,9 +55,9 @@ rm -f D:/laragon/tmp/sess_testXYZ0000000000abc
 
 ## 4. Headless Chrome for behaviour and looks
 Write a small Node CDP script: launch Chrome with `--headless=new --remote-debugging-port=<port>
---user-data-dir=<scratch>/prof --window-size=W,900`, set the `STOREMINISSID` cookie with
+--user-data-dir=<scratch>/prof --window-size=W,900`, set the `WLAODEVSSID` cookie with
 `Network.setCookie`, `Page.navigate`, wait ~4 s, then `Runtime.evaluate` to:
-(The shell `home/dashboard.php` logs out any tab without `sessionStorage['StoreMini.pos_tab_active']`
+(The shell `home/dashboard.php` logs out any tab without `sessionStorage['WlaoDev.pos_tab_active']`
 = `TOKEN_…`: open `manifest.json` on the same origin first, set it, then navigate to the dashboard.
 Sidebar links keep their URL in `data-href`, not `href`, once the shell has loaded.)
 - call the page's own functions with fake data (e.g. a checkout response) instead of real writes;

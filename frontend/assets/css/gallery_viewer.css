@@ -1,0 +1,48 @@
+/**
+ * gallery_viewer.css — ເບິ່ງຮູບເຕັມຈໍ (components/gallery_viewer.php, assets/js/gallery_viewer.js)
+ * ພື້ນມືດ, ແຖບເທິງ (ລຳດັບ + ເຄື່ອງມື), ຮູບກາງ, ລູກສອນ 2 ຂ້າງ, ແຖບຮູບນ້ອຍລຸ່ມ (ຮູບທີ່ເລືອກ = ຂອບຂາວ)
+ */
+html.gv-open { overflow: hidden; }
+.gv { position: fixed; inset: 0; z-index: 2500; display: flex; flex-direction: column; background: rgba(17, 17, 19, .97); color: #fff; user-select: none; -webkit-user-select: none; }
+.gv[hidden] { display: none; }
+
+.gv-top { position: relative; z-index: 3; display: flex; align-items: center; justify-content: space-between; height: 54px; padding: 0 0 0 12px; }
+.gv-count { font-size: 1.05rem; letter-spacing: .02em; }
+.gv-tools { display: flex; height: 100%; background: rgba(0, 0, 0, .35); }
+.gv-tools button { display: grid; place-items: center; width: 56px; height: 100%; border: 0; background: none; color: #f1f5f9; cursor: pointer; transition: background .15s, color .15s; }
+.gv-tools button:hover { background: rgba(255, 255, 255, .1); color: #fff; }
+.gv-tools button.is-on { color: #60a5fa; }
+.gv-pause { display: none; }
+.gv.is-playing .gv-play { display: none; }
+.gv.is-playing .gv-pause { display: block; }
+
+.gv-stage { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding: 0 80px; touch-action: none; cursor: zoom-in; }
+.gv.is-zoomed .gv-stage { cursor: grab; }
+.gv.is-dragging .gv-stage { cursor: grabbing; }
+.gv-img { max-width: 100%; max-height: calc(100% - 8px); object-fit: contain; transform-origin: center center; transition: transform .2s ease, opacity .18s ease; will-change: transform; box-shadow: 0 10px 40px rgba(0, 0, 0, .45); }
+.gv.is-dragging .gv-img { transition: opacity .18s ease; }
+.gv-img.is-fading { opacity: 0; }
+.gv-cap { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); max-width: 80%; margin: 0; padding: .35rem .9rem; border-radius: 4px; background: rgba(0, 0, 0, .55); font-size: .88rem; text-align: center; }
+
+.gv-nav { position: absolute; top: 50%; z-index: 3; display: grid; place-items: center; width: 50px; height: 50px; margin-top: -25px; border: 0; border-radius: 4px; background: rgba(0, 0, 0, .45); color: #fff; cursor: pointer; transition: background .15s; }
+.gv-nav:hover { background: rgba(0, 0, 0, .7); }
+.gv-nav.is-prev { left: 8px; }
+.gv-nav.is-next { right: 8px; }
+.gv.is-single .gv-nav, .gv.is-single [data-gv="play"], .gv.is-single [data-gv="thumbs"] { display: none; }
+
+.gv-thumbs { flex: none; display: flex; gap: 12px; height: 132px; padding: 0 12px 12px; overflow-x: auto; scrollbar-width: thin; scrollbar-color: #52525b transparent; transition: height .2s ease, padding .2s ease; }
+.gv.is-thumbs-off .gv-thumbs, .gv.is-single .gv-thumbs { height: 0; padding-bottom: 0; overflow: hidden; }
+.gv-thumbs button { flex: none; height: 120px; aspect-ratio: 3 / 2; padding: 0; border: 2px solid transparent; border-radius: 2px; background: #27272a; cursor: pointer; opacity: .75; transition: opacity .15s, border-color .15s; }
+.gv-thumbs button:hover { opacity: 1; }
+.gv-thumbs button.is-active { border-color: #fff; opacity: 1; }
+.gv-thumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+@media (max-width: 767.98px) {
+  .gv-top { height: 48px; }
+  .gv-tools button { width: 44px; }
+  .gv-tools [data-gv="zin"], .gv-tools [data-gv="zout"] { display: none; }   /* ໂທລະສັບ: ກົດສອງເທື່ອເພື່ອຊູມ */
+  .gv-stage { padding: 0 8px; }
+  .gv-nav { width: 40px; height: 40px; margin-top: -20px; background: rgba(0, 0, 0, .35); }
+  .gv-thumbs { gap: 8px; height: calc(80px + env(safe-area-inset-bottom, 0px)); padding: 0 8px calc(8px + env(safe-area-inset-bottom, 0px)); }
+  .gv-thumbs button { height: 72px; }
+}

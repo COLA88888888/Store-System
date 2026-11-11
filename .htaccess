@@ -1,9 +1,73 @@
-# MiniPos and ClothingPOS both run on http://localhost. With PHP's default "PHPSESSID" cookie
-# they shared one session, so logging in, switching language or branch in one app changed the
-# other. Pharmacy also used MINIPOSSID, so StoreMini now has its own STOREMINISSID.
+# Every app on http://localhost shares one cookie jar. This folder (websizewlaodev) is a copy of
+# Project/StoreMini, so it gets its own session cookie WLAODEVSSID; with StoreMini's STOREMINISSID
+# the two apps would share one login, language and branch.
 <IfModule mod_php.c>
-    php_value session.name STOREMINISSID
+    php_value session.name WLAODEVSSID
 </IfModule>
 <IfModule mod_php7.c>
-    php_value session.name STOREMINISSID
+    php_value session.name WLAODEVSSID
+</IfModule>
+
+# ---------- ຄວາມໄວ: ບີບອັດ + cache ----------
+# ບີບອັດ HTML / JSON ທີ່ PHP ສ້າງ (~70–85% ນ້ອຍລົງ). ໄຟລ໌ທີ່ຕ້ອງການ Content-Length ຈິງ
+# (ດາວໂຫຼດ backup, frontend/api/translate_missing.php) ປິດເອງດ້ວຍ ini_set.
+<IfModule mod_php.c>
+    php_flag zlib.output_compression On
+    php_value zlib.output_compression_level 5
+</IfModule>
+# ໄຟລ໌ CSS / JS / SVG — ບີບອັດເມື່ອເຊີເວີເປີດ mod_deflate (Laragon ປິດໄວ້ເປັນຄ່າເລີ່ມຕົ້ນ)
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+# Cache ຂອງ browser: ໄຟລ໌ທີ່ມີ ?v=<ເວລາແກ້ໄຂ> ປ່ຽນ URL ທຸກຄັ້ງທີ່ແກ້ → ເກັບໄດ້ 1 ປີ.
+# ໄຟລ໌ບໍ່ມີ ?v= ຖາມເຊີເວີທຸກຄັ້ງ (ETag → 304), ຍົກເວັ້ນ library/ຟອນ/ຮູບ ທີ່ບໍ່ຄ່ອຍປ່ຽນ ເກັບ 1 ວັນ.
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|png|jpe?g|gif|webp|svg|ico|woff2?|ttf|eot|mp3)$">
+        <If "%{QUERY_STRING} =~ /(^|&)v=/">
+            Header set Cache-Control "public, max-age=31536000, immutable"
+        </If>
+        <ElseIf "%{REQUEST_URI} =~ m#/(plugins|dist|vendors|fontawesome-free-[^/]+|icon|ionicons-[^/]+|fonts|product_img|img)/#">
+            Header set Cache-Control "public, max-age=86400"
+        </ElseIf>
+        <Else>
+            Header set Cache-Control "no-cache"
+        </Else>
+    </FilesMatch>
+</IfModule>
+
+# ໜ້າຫຼັກຂອງໂປຣເຈັກ = ເວັບໄຊ frontend/ (URL ບໍ່ມີ /frontend/): /websizewlaodev/pages/shop.php
+# ຖືກສົ່ງເຂົ້າ frontend/pages/shop.php ພາຍໃນ. backend/ (POS) ບໍ່ຖືກແຕະ.
+# ໄຟລ໌ອື່ນທີ່ຢູ່ root (CLAUDE.md, .git, …) ກໍຖືກສົ່ງເຂົ້າ frontend/ ຈຶ່ງເປີດຈາກ browser ບໍ່ໄດ້ (404).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # BASE = URL ຂອງໂຟນເດີນີ້ (ເຊັ່ນ /websizewlaodev/) — ບໍ່ຕ້ອງຂຽນຊື່ໂຟນເດີຕາຍຕົວ
+    RewriteCond %{REQUEST_URI}::$1 ^(.*?/)(.*)::\2$
+    RewriteRule ^(.*)$ - [E=BASE:%1]
+
+    # ລິ້ງເກົ່າທີ່ມີ /frontend/ → URL ສັ້ນ (ກວດ THE_REQUEST ເພື່ອບໍ່ໃຫ້ວົນກັບການ rewrite ພາຍໃນຂ້າງລຸ່ມ)
+    RewriteCond %{THE_REQUEST} \s\S*/frontend/
+    RewriteRule ^frontend/(.*)$ %{ENV:BASE}$1 [R=302,L]
+
+    # SEO: /robots.txt ແລະ /sitemap.xml ສ້າງດ້ວຍ PHP (frontend/robots.php, frontend/sitemap.php)
+    RewriteRule ^robots\.txt$ frontend/robots.php [L]
+    RewriteRule ^sitemap\.xml$ frontend/sitemap.php [L]
+
+    # ໜ້າລົງທະບຽນແຍກຖືກລຶບແລ້ວ (ລົງທະບຽນໃນ popup ເທົ່ານັ້ນ) → ລິ້ງເກົ່າໄປໜ້າຫຼັກ ແລະ ເປີດ popup (#register — assets/js/member.js)
+    RewriteRule ^pages/register(\.php)?$ %{ENV:BASE}#register [R=302,NE,QSD,L]
+
+    # ບໍ່ສະແດງ .php ໃນ URL ຂອງໜ້າເວັບ: ລິ້ງເກົ່າ pages/about.php → 301 ໄປ pages/about (GET ເທົ່ານັ້ນ,
+    # POST ຂອງຟອມບໍ່ຖືກ redirect). ກວດ THE_REQUEST ເພື່ອບໍ່ໃຫ້ວົນກັບການ rewrite ພາຍໃນ.
+    RewriteCond %{REQUEST_METHOD} =GET
+    RewriteCond %{THE_REQUEST} \s\S*/pages/[A-Za-z0-9_-]+\.php[\s?]
+    RewriteRule ^pages/([A-Za-z0-9_-]+)\.php$ %{ENV:BASE}pages/$1 [R=301,L]
+    RewriteCond %{REQUEST_METHOD} =GET
+    RewriteCond %{THE_REQUEST} \s\S*/index\.php[\s?]
+    RewriteRule ^index\.php$ %{ENV:BASE} [R=301,L]
+    # pages/about → frontend/pages/about.php (ພາຍໃນ)
+    RewriteRule ^pages/([A-Za-z0-9_-]+)$ frontend/pages/$1.php [L]
+
+    RewriteRule ^backend(/|$) - [L]
+    RewriteRule ^frontend/ - [L]
+    RewriteRule ^(.*)$ frontend/$1 [L]
 </IfModule>

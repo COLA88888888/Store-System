@@ -1,0 +1,691 @@
+/* ໜ້າຄຳສັ່ງຊື້ຈາກເວັບໄຊ (pages/web_orders/index.php + partials/rows.php) */
+.wo-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.wo-title { margin: 0; font-size: 1.3rem; font-weight: 700; color: #0f172a; }
+.wo-title small { font-size: .85rem; font-weight: 400; }
+
+/* ແຖບຄົ້ນຫາ + ເລືອກສະຖານະ ຮຽງແຖວດຽວ, ສູງເທົ່າກັນ */
+.wo-toolbar { display: flex; gap: .5rem; flex: 0 1 560px; min-width: 0; }
+.wo-toolbar .form-control { height: 40px; border-radius: 6px; border-color: #cbd5e1; font-size: .9rem; }
+.wo-toolbar .form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); }
+.wo-search { position: relative; flex: 1 1 auto; min-width: 0; }
+.wo-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
+.wo-search .form-control { padding-left: 36px; }
+.wo-toolbar select.form-control { flex: 0 0 200px; width: 200px; }
+
+/* ========================================================
+   ຕາຕະລາງຄຳສັ່ງຊື້ຈາກເວັບໄຊ: ແຖວດຽວ 7 ຖັນ ລະອຽດ + Scrollbar
+   ======================================================== */
+.wo-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .04);
+  overflow: hidden;
+  background: #ffffff;
+}
+.wo-table-responsive {
+  width: 100%;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+.wo-table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+.wo-table-responsive::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+.wo-table-responsive::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.wo-table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.wo-table {
+  width: 100%;
+  min-width: 1310px;
+  font-size: .88rem;
+  margin-bottom: 0;
+  border-collapse: collapse;
+}
+.wo-table thead th {
+  background: #f8fafc !important;
+  border-top: 0 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  padding: .75rem .85rem !important;
+  font-size: .86rem;
+}
+.wo-table tbody tr {
+  transition: background-color .15s ease;
+  border-bottom: 1px solid #f1f5f9;
+}
+.wo-table tbody tr:hover {
+  background-color: #f8fafc !important;
+}
+.wo-table td {
+  vertical-align: middle !important;
+  padding: .85rem 1rem !important;
+  white-space: nowrap !important;
+  border-color: #f1f5f9 !important;
+}
+#woRows { transition: opacity .15s; }
+
+/* ຖັນ 1: ເລກຄຳສັ່ງຊື້ */
+.wo-table td.wo-col-order { white-space: nowrap; }
+.wo-order-no { font-size: .95rem; color: #2563eb; letter-spacing: 0.2px; font-weight: 700; }
+.wo-order-date { font-size: .78rem; color: #64748b; margin-top: .15rem; }
+
+/* ຖັນ 2: ລູກຄ້າ */
+.wo-table td.wo-col-customer { white-space: nowrap; }
+.wo-cust-name-line { display: flex; align-items: center; gap: .4rem; white-space: nowrap; }
+.wo-cust-name-line b { font-size: .95rem; color: #0f172a; }
+.wo-cust-contact-line { display: flex; align-items: center; gap: .5rem; margin-top: .2rem; white-space: nowrap; }
+.wo-cust-phone { color: #2563eb; font-size: .84rem; text-decoration: none; font-weight: 500; }
+.wo-cust-phone:hover { text-decoration: underline; color: #1d4ed8; }
+.wo-cust-courier { font-size: .8rem; color: #475569; background: #f1f5f9; padding: .15rem .5rem; border-radius: 4px; border: 1px solid #e2e8f0; }
+.wo-courier-logo-img {
+  height: 24px;
+  width: auto;
+  max-width: 58px;
+  object-fit: contain;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 1px 3px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  vertical-align: middle;
+  display: inline-block;
+}
+.wo-cust-courier-icon { font-size: .85rem; vertical-align: middle; }
+.wo-info-icon { font-size: .82rem; cursor: help; }
+
+/* ຖັນ 3: ສະລິບ (ສະແດງສະເພາະຮູບ ບໍ່ມີຕົວໜັງສື — ກາດໃຫຍ່ຂຶ້ນ 58px) */
+.wo-table td.wo-col-slip { text-align: center; white-space: nowrap; }
+.wo-slip-thumb-link {
+  position: relative;
+  display: inline-block;
+  width: 58px;
+  height: 58px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  cursor: zoom-in;
+  transition: all .2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  vertical-align: middle;
+}
+.wo-slip-thumb-link:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.28);
+  transform: scale(1.06);
+}
+.wo-slip-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.wo-slip-zoom-icon {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 18px;
+  height: 18px;
+  background: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .7rem;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.wo-slip-thumb-link:hover .wo-slip-zoom-icon {
+  opacity: 1;
+}
+  color: #ffffff;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .65rem;
+  opacity: 0;
+  transition: opacity .15s ease;
+}
+.wo-slip-thumb-link:hover .wo-slip-zoom-icon {
+  opacity: 1;
+}
+
+/* ຖັນ 4: ສິນຄ້າ & ຍອດລວມ */
+.wo-table td.wo-col-products { white-space: nowrap; }
+.wo-prod-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; white-space: nowrap; }
+.wo-prod-items { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
+.wo-prod-item { display: flex; align-items: center; gap: .4rem; white-space: nowrap; }
+.wo-prod-name { color: #1e293b; font-size: .88rem; font-weight: 500; }
+.wo-prod-qty { font-weight: 700; color: #0f172a; }
+.wo-prod-sub { color: #64748b; font-size: .82rem; }
+.wo-prod-noprice { color: #dc2626; font-size: .78rem; }
+.wo-prod-total {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .25rem .6rem;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.wo-total-lbl { font-size: .82rem; color: #991b1b; }
+.wo-total-num { font-size: .95rem; color: #dc2626; }
+
+/* ຖັນ 5: ສະຖານະ */
+.wo-table td.wo-col-status { white-space: nowrap; }
+.wo-table .wo-status-select {
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: .88rem;
+  font-weight: 700;
+  padding: 0 .65rem;
+  min-width: 155px;
+  box-shadow: none !important;
+}
+.wo-status-time { margin-top: .2rem; font-size: .72rem; color: #94a3b8; white-space: nowrap; }
+
+/* ຖັນ 6: ເລກໃບຝາກເຄື່ອງ & ເຄື່ອງມືຂົນສົ່ງ */
+.wo-table td.wo-col-tracking { white-space: nowrap; }
+.wo-track-box {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  height: 38px;
+  padding: .15rem .25rem .15rem .65rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  white-space: nowrap;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.wo-track-box:focus-within {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+}
+.wo-track-icon { color: #94a3b8; font-size: .9rem; }
+.wo-track-input {
+  width: 125px;
+  height: 30px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: .86rem;
+  color: #1e293b;
+  font-weight: 600;
+}
+.wo-track-btn,
+.wo-table td button.wo-track-btn {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: 30px !important;
+  padding: 0 .75rem !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: .3rem !important;
+  border-radius: 6px !important;
+  border: 0 !important;
+  background: #2563eb !important;
+  color: #ffffff !important;
+  font-size: .8rem !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  transform: none !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
+.wo-track-btn:hover,
+.wo-table td button.wo-track-btn:hover {
+  background: #1d4ed8 !important;
+  transform: none !important;
+}
+
+/* ຖັນ 6: ເລກໃບຝາກເຄື່ອງ & ບິນຂົນສົ່ງ (ຮູບແບບໃໝ່ ສວຍງາມ) */
+.wo-ship-cell {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  min-width: 0;
+}
+.wo-ship-track-row {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  white-space: nowrap;
+}
+.wo-ship-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .2rem .55rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  font-size: .84rem;
+  color: #1e40af;
+  font-family: monospace;
+  letter-spacing: .5px;
+  line-height: 1.3;
+}
+.wo-ship-pill i { font-size: .82rem; color: #3b82f6; }
+.wo-ship-no { font-weight: 700; color: #1d4ed8; font-size: .9rem; }
+.wo-ship-edit-ico,
+.wo-table td button.wo-ship-edit-ico {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  max-width: 26px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #ffffff !important;
+  color: #64748b !important;
+  font-size: .72rem !important;
+  cursor: pointer !important;
+  transition: all .15s ease !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+.wo-ship-edit-ico:hover,
+.wo-table td button.wo-ship-edit-ico:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+  transform: none !important;
+}
+.wo-ship-edit-wrap {
+  margin-top: .15rem;
+}
+.wo-ship-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  white-space: nowrap;
+}
+.wo-btn-waybill {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  height: 28px;
+  padding: 0 .65rem;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff !important;
+  font-size: .78rem;
+  font-weight: 700;
+  border-radius: 6px;
+  text-decoration: none !important;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, .25);
+  transition: all .15s ease;
+}
+.wo-btn-waybill:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  box-shadow: 0 3px 6px rgba(37, 99, 235, .35);
+  transform: translateY(-1px);
+  color: #ffffff !important;
+}
+.wo-btn-receipt {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  height: 28px;
+  padding: 0 .55rem;
+  border-radius: 6px;
+  font-size: .76rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: all .15s ease;
+  margin: 0;
+  line-height: 1;
+}
+.wo-btn-receipt.is-view {
+  background: #f0fdf4;
+  color: #15803d !important;
+  border: 1px solid #bbf7d0;
+}
+.wo-btn-receipt.is-view:hover {
+  background: #dcfce7;
+  color: #166534 !important;
+}
+.wo-btn-receipt.is-upload {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+.wo-btn-receipt.is-upload:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+/* ຖັນ 7: ຈັດການ (ໄອຄອນ WhatsApp + ປຸ່ມຈັດການ ແຖວດຽວ ບໍ່ທັບກັນ) */
+.wo-table td.wo-col-actions { text-align: center; white-space: nowrap; }
+.wo-actions-wrap {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  white-space: nowrap !important;
+  vertical-align: middle;
+  flex-wrap: nowrap !important;
+}
+
+/* ໄອຄອນ WhatsApp ສະເພາະ (38px ວົງມົນ) */
+.wo-btn-wa,
+.wo-table td a.wo-btn-wa {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 38px !important;
+  min-width: 38px !important;
+  max-width: 38px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 50% !important;
+  background: #25D366 !important;
+  border: 1px solid #1ebe5d !important;
+  color: #ffffff !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 6px rgba(37, 211, 102, .35) !important;
+  transition: all .15s ease-in-out !important;
+  transform: none !important;
+  opacity: 1 !important;
+  flex: 0 0 38px !important;
+}
+.wo-btn-wa:hover,
+.wo-table td a.wo-btn-wa:hover {
+  background: #1eb956 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(37, 211, 102, .48) !important;
+  transform: scale(1.05) !important;
+}
+.wo-btn-wa i {
+  color: #ffffff !important;
+  font-size: 1.35rem !important;
+  line-height: 1 !important;
+}
+
+/* ປຸ່ມຈັດການ (ສຳເລັດ, ຍົກເລີກ, ເປີດຄືນ) — ບັງຄັບ width: auto ແລະ padding ບໍ່ໃຫ້ຖືກ 02-components.css ບີບເຫຼືອ 30px */
+.wo-btn-action,
+.wo-table td button.wo-btn-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  width: auto !important;
+  min-width: 76px !important;
+  max-width: none !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  margin: 0 !important;
+  border-radius: 8px !important;
+  font-size: .86rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transform: none !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  flex: 0 0 auto !important;
+}
+
+.wo-btn-action.is-done,
+.wo-table td button.wo-btn-action.is-done {
+  background: #2563eb !important;
+  border: 1px solid #2563eb !important;
+  color: #ffffff !important;
+}
+.wo-btn-action.is-done:hover,
+.wo-table td button.wo-btn-action.is-done:hover {
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+  transform: none !important;
+}
+
+.wo-btn-action.is-cancel,
+.wo-table td button.wo-btn-action.is-cancel {
+  background: #ffffff !important;
+  border: 1px solid #fca5a5 !important;
+  color: #dc2626 !important;
+}
+.wo-btn-action.is-cancel:hover,
+.wo-table td button.wo-btn-action.is-cancel:hover {
+  background: #fef2f2 !important;
+  border-color: #dc2626 !important;
+  transform: none !important;
+}
+
+.wo-btn-action.is-reopen,
+.wo-table td button.wo-btn-action.is-reopen {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+}
+.wo-btn-action.is-reopen:hover,
+.wo-table td button.wo-btn-action.is-reopen:hover {
+  background: #f1f5f9 !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+  transform: none !important;
+}
+
+.wo-more { border: 1px solid #e2e8f0; border-radius: 4px; padding: .3rem .5rem; background: #f8fafc; }
+.wo-more summary { font-size: .8rem; color: #2563eb; cursor: pointer; }
+.wo-more[open] summary { margin-bottom: .4rem; }
+
+/* ປຸ່ມ ປິດບັນຊີ / ເປີດຄືນ (pages/web_members) — ແຖວດຽວ ບໍ່ຕັດລົງແຖວ (ທັບກົດປຸ່ມໄອຄອນ 30px ຂອງ global-custom) */
+.wo-table td .wm-toggle {
+  display: inline-block !important; width: auto !important; height: auto !important; min-width: 0 !important;
+  margin: 0 !important; padding: .3rem .75rem !important; border-radius: 4px; border: 1px solid !important;
+  white-space: nowrap; font-size: .8rem; line-height: 1.3; background: #fff !important; transform: none !important; opacity: 1 !important;
+}
+.wo-table td .wm-toggle.is-off { border-color: #dc2626 !important; color: #dc2626 !important; }
+.wo-table td .wm-toggle.is-off:hover { background: #fef2f2 !important; }
+.wo-table td .wm-toggle.is-on { border-color: #16a34a !important; color: #16a34a !important; }
+.wo-table td .wm-toggle.is-on:hover { background: #f0fdf4 !important; }
+
+/* ແຖບແບ່ງໜ້າ */
+.wo-pager { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; padding: .75rem 1rem; border-top: 1px solid #e2e8f0; }
+.wo-pager-info { font-size: .85rem; color: #64748b; }
+
+@media (max-width: 768px) {
+  .wo-toolbar { flex: 1 1 100%; flex-wrap: wrap; }
+  .wo-toolbar select.form-control { flex: 1 1 100%; width: 100%; }
+}
+
+/* v38: ສະມາຊິກ, ສະລິບ, ສະຖານະ 6 ຂັ້ນ + ເລກໃບຝາກເຄື່ອງ */
+.wo-member { margin-left: .35rem; font-size: .72rem; vertical-align: middle; }
+.wo-slip {
+  display: inline-flex; align-items: center; gap: .35rem; max-width: 100%; margin: 0;
+  height: 24px; padding: 0 .45rem 0 .2rem; border: 1px solid #bbf7d0; border-radius: 999px;
+  background: #f0fdf4; color: #15803d; font-size: .75rem; font-weight: 600; line-height: 1;
+  text-decoration: none; cursor: zoom-in; white-space: nowrap;
+}
+.wo-slip:hover { border-color: #16a34a; color: #166534; text-decoration: none; }
+.wo-slip img { flex: 0 0 20px; width: 20px; height: 20px; object-fit: cover; border-radius: 50%; border: 1px solid #bbf7d0; }
+.wo-slip-txt { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .75rem; }
+.wo-slip-zoom { flex-shrink: 0; color: #16a34a; font-size: .72rem; margin-left: .15rem; }
+.wo-noslip { font-size: .72rem; padding: .15rem .45rem; vertical-align: middle; }
+.wo-status-select { font-weight: 700; }
+.wo-status-select.is-pending { background: #fef3c7; color: #92400e; }
+.wo-status-select.is-confirmed, .wo-status-select.is-packing { background: #e0f2fe; color: #075985; }
+.wo-status-select.is-shipped, .wo-status-select.is-arrived { background: #e0e7ff; color: #1e3a8a; }
+.wo-status-select.is-completed { background: #dcfce7; color: #15803d; }
+.wo-status-select.is-cancelled { background: #f1f5f9; color: #64748b; }
+.wo-status-select option { background: #fff; color: #1f2937; }
+
+/* ແຖວບັດສະຖິຕິ (pages/web_orders/partials/stats.php) */
+.wo-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin: 0 0 1rem; }
+.wo-stat { display: flex; align-items: center; gap: .7rem; padding: .8rem .9rem; border-radius: 10px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 2px 8px rgba(15, 23, 42, .04); }
+.wo-stat i { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-size: 1rem; flex-shrink: 0; }
+.wo-stat span { display: block; font-size: .78rem; color: #64748b; }
+.wo-stat b { display: block; font-size: 1.15rem; color: #0f172a; line-height: 1.3; }
+.wo-stat b small { font-size: .7rem; color: #b45309; font-weight: 600; }
+.wo-stat.is-blue i { background: #dbeafe; color: #1d4ed8; }
+.wo-stat.is-amber i { background: #fef3c7; color: #b45309; }
+.wo-stat.is-green i { background: #dcfce7; color: #15803d; }
+.wo-stat.is-purple i { background: #ede9fe; color: #6d28d9; }
+@media (max-width: 1200px) { .wo-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 576px) { .wo-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ສະມາຊິກເວັບໄຊ (pages/web_members/index.php): ຍັບເຂົ້າກັນ ບໍ່ໃຫ້ມີສະກໍບາລຸ່ມ */
+.wo-table.wm-table {
+  min-width: 0 !important;
+  width: 100% !important;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+.wm-table-responsive {
+  width: 100%;
+}
+@media (min-width: 992px) {
+  .wm-table-responsive {
+    overflow-x: visible !important;
+  }
+}
+.wo-table.wm-table thead th {
+  padding: .5rem .5rem !important;
+  font-size: .82rem !important;
+  white-space: nowrap !important;
+  background: #f8fafc !important;
+  border-top: 0 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  color: #334155 !important;
+}
+.wo-table.wm-table td {
+  padding: .45rem .5rem !important;
+  font-size: .83rem !important;
+  vertical-align: middle !important;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+/* ຖັນຊື່: ຍືດຫຍຸ່ນໄດ້ ບໍ່ດັນຕາຕະລາງເກີນຈໍ */
+.wo-table.wm-table td.wm-col-name {
+  white-space: normal;
+  min-width: 120px;
+}
+.wo-table.wm-table .wm-name-txt {
+  font-weight: 600;
+  color: #0f172a;
+}
+.wo-table.wm-table td.wm-col-email {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wo-table.wm-table td.wm-col-no {
+  width: 90px;
+}
+.wo-table.wm-table td.wm-col-tel {
+  width: 110px;
+}
+.wo-table.wm-table td.wm-col-date,
+.wo-table.wm-table td.wm-col-login {
+  width: 115px;
+  font-size: .8rem !important;
+  color: #475569;
+}
+.wo-table.wm-table td.wm-col-status {
+  width: 70px;
+  text-align: center;
+}
+.wo-table.wm-table td.wm-actions {
+  width: 75px;
+  white-space: nowrap;
+  text-align: center;
+}
+.wm-table td.wm-actions form {
+  display: inline-block;
+  margin: 0;
+}
+.wo-table.wm-table td .wm-ico {
+  width: 28px !important;
+  height: 28px !important;
+  display: inline-grid !important;
+  place-items: center;
+  padding: 0 !important;
+  margin: 0 1px !important;
+  border: 1px solid #bfdbfe !important;
+  background: #fff !important;
+  font-size: .78rem;
+  cursor: pointer;
+  vertical-align: middle;
+  opacity: 1 !important;
+  transform: none !important;
+  transition: background .15s ease !important;
+}
+.wo-table.wm-table td .wm-ico.is-off { border-color: #fca5a5 !important; color: #dc2626 !important; }
+.wo-table.wm-table td .wm-ico.is-on { border-color: #86efac !important; color: #16a34a !important; }
+.wo-table.wm-table td .wm-ico.is-key { border-color: #bfdbfe !important; color: #2563eb !important; }
+.wo-table.wm-table td .wm-ico:hover { transform: none !important; opacity: 1 !important; }
+.wo-table.wm-table td .wm-ico.is-off:hover { background: #fef2f2 !important; }
+.wo-table.wm-table td .wm-ico.is-on:hover { background: #f0fdf4 !important; }
+.wo-table.wm-table td .wm-ico.is-key:hover { background: #eff6ff !important; }
+.wm-table tbody tr:hover td { background: #f8fafc; }
+
+/* ບັດສະຖິຕິ: ມີສີ ແລະ ໃຫຍ່ຂຶ້ນ (partials/stats.php) — ກາດໃຫຍ່ຂຶ້ນ */
+.wo-stats { gap: 1.2rem; margin-bottom: 1.4rem; }
+.wo-stat {
+  position: relative;
+  overflow: hidden;
+  gap: 1.15rem;
+  padding: 1.35rem 1.45rem;
+  border: 0;
+  border-radius: 16px;
+  color: #fff;
+  box-shadow: 0 12px 28px -12px rgba(15, 23, 42, .45);
+}
+.wo-stat::after { content: ''; position: absolute; right: -25px; bottom: -35px; width: 125px; height: 125px; border-radius: 50%; background: rgba(255, 255, 255, .14); }
+.wo-stat i { width: 58px; height: 58px; border-radius: 16px; font-size: 1.55rem; background: rgba(255, 255, 255, .22) !important; color: #fff !important; }
+.wo-stat span { color: rgba(255, 255, 255, .9); font-size: .92rem; font-weight: 600; margin-bottom: .2rem; }
+.wo-stat > div { min-width: 0; position: relative; z-index: 1; }
+.wo-stat span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wo-stat b { color: #fff; font-size: clamp(1.35rem, 1.85vw, 1.9rem); font-weight: 800; white-space: nowrap; line-height: 1.25; }
+.wo-stat b small { color: #fef3c7; font-size: .78rem; font-weight: 600; }
+.wo-stat.is-blue { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+.wo-stat.is-amber { background: linear-gradient(135deg, #d97706, #f59e0b); }
+.wo-stat.is-green { background: linear-gradient(135deg, #059669, #10b981); }
+.wo-stat.is-purple { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+
+@media (max-width: 1200px) { .wo-stat b { font-size: 1.45rem; } }
+
+/* ບິນຮັບເຄື່ອງ (ແທນເລກໃບຝາກເຄື່ອງ) — partials/rows.php .wo-receipt */
+.wo-table .wo-receipt { display: flex; align-items: center; gap: .5rem; margin-top: .5rem; padding: .3rem .35rem; border: 1px dashed #cbd5e1; border-radius: 10px; background: #fff; }
+.wo-table .wo-receipt.is-busy { opacity: .5; pointer-events: none; }
+.wo-table .wo-receipt-thumb { flex: 0 0 38px; width: 38px; height: 38px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; cursor: zoom-in; }
+.wo-table .wo-receipt-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.wo-table .wo-receipt-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.wo-table .wo-receipt-txt b { font-size: .8rem; color: #15803d; }
+.wo-table .wo-receipt-txt small { font-size: .72rem; color: #94a3b8; }
+.wo-table td .wo-receipt .wo-receipt-btn {
+  width: 100% !important; height: 32px !important; padding: 0 .7rem !important; margin: 0 !important;
+  display: inline-flex !important; align-items: center; justify-content: center; gap: .35rem; border: 0 !important; border-radius: 8px;
+  background: #2563eb !important; color: #fff !important; font-size: .8rem; font-weight: 600; white-space: nowrap; transform: none !important; opacity: 1 !important;
+}
+.wo-table td .wo-receipt .wo-receipt-btn:hover { background: #1d4ed8 !important; }
+.wo-table td .wo-receipt .wo-receipt-btn.is-change { flex: 0 0 32px; width: 32px !important; padding: 0 !important; background: #eff6ff !important; color: #2563eb !important; }

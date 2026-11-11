@@ -1,0 +1,180 @@
+<?php
+/**
+ * ໂຄງສ້າງໄຟລ໌ (ແຍກເປັນໄຟລ໌ຍ່ອຍເພື່ອໃຫ້ອ່ານງ່າຍ — ແຕ່ລະໄຟລ໌ບໍ່ເກີນ 500 ແຖວ):
+ * ໜ້າຈັດການສິນຄ້າ: ຮັບການກະທຳ POST (ເພີ່ມ / ເພີ່ມຫຼາຍລາຍການ / ແກ້ໄຂ / ລົບ) → ດຶງຂໍ້ມູນ → ສະແດງຕາຕະລາງ. ແຕ່ລະການກະທຳແຍກໄວ້ໃນ actions/, ສ່ວນສະແດງຜົນ ແລະ JS ແຍກໄວ້ໃນ partials/products/.
+ *   - actions/add_product.php : ການກະທຳ: ເພີ່ມສິນຄ້າທີລະລາຍການ
+ *   - actions/add_products_bulk.php : ການກະທຳ: ເພີ່ມສິນຄ້າຫຼາຍລາຍການພ້ອມກັນ
+ *   - actions/edit_product.php : ການກະທຳ: ແກ້ໄຂສິນຄ້າ
+ *   - actions/delete_product.php : ການກະທຳ: ລົບສິນຄ້າ
+ *   - partials/products/page_table.php : ສ່ວນສະແດງຜົນ: ຫົວໜ້າ ແລະ ຕາຕະລາງສິນຄ້າ
+ *   - partials/products/products_js.php : JS ຂອງໜ້າສິນຄ້າ
+ */
+session_start();
+$base_path = '../../';
+require_once __DIR__ . '/../../config/db.php';
+
+// Check if logged in and has access to stock
+if (empty($_SESSION['user_id']) || (!hasPermission('products'))) {
+    echo "<script>window.top.location.href = '../../index.php';</script>";
+    exit();
+}
+
+$message = '';
+$message_type = '';
+
+$isAdmin = (
+    ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' ||
+    strtolower($_SESSION['status'] ?? '') === 'admin' ||
+    ($_SESSION['user_id'] ?? 0) == 1
+);
+
+// Multi-currency: prices stored in KIP; the list shows the active display currency.
+$__pdc = getDisplayCurrency($pdo);
+$__psym = $__pdc['symbol']; $__pdec = (int)$__pdc['decimals'];
+
+require_once __DIR__ . '/components/product_image_helpers.php';
+require_once __DIR__ . '/components/product_gallery_helpers.php';   // ຮູບຫຼາຍມຸມ (w_product_images)
+
+// ====== Handle POST actions ======
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+
+    // --- ADD ---
+    if ($_POST['action'] === 'add_product') {
+        // ການກະທຳ: ເພີ່ມສິນຄ້າທີລະລາຍການ
+        require __DIR__ . '/actions/add_product.php';
+    }
+
+    // --- ADD BULK (ເພີ່ມຫຼາຍລາຍການພ້ອມກັນ) ---
+    // Each row carries: category, name, barcode, unit, buy price, sell price, and an optional
+    // image (uploaded beforehand, see api/products_api.php?action=upload_image). One supplier box
+    // (bulk_supplier_id) applies to the whole batch. Starting stock qty is always 0. Fully-blank rows are skipped silently;
+    // partially-filled / invalid rows are reported back and the rest still go in.
+    elseif ($_POST['action'] === 'add_products_bulk') {
+        // ການກະທຳ: ເພີ່ມສິນຄ້າຫຼາຍລາຍການພ້ອມກັນ
+        require __DIR__ . '/actions/add_products_bulk.php';
+    }
+
+    // --- EDIT ---
+    elseif ($_POST['action'] === 'edit_product') {
+        // ການກະທຳ: ແກ້ໄຂສິນຄ້າ
+        require __DIR__ . '/actions/edit_product.php';
+    }
+
+    // --- DELETE ---
+    elseif ($_POST['action'] === 'delete_product') {
+        // ການກະທຳ: ລົບສິນຄ້າ
+        require __DIR__ . '/actions/delete_product.php';
+    }
+}
+
+// ====== Fetch data ======
+$userStoreId = intval($_SESSION['store_id'] ?? 1);
+$isMain = isMainBranch($pdo, $userStoreId);
+$canAllBranches = canViewAllBranches($pdo);
+
+if (isset($_GET['store_id']) && ($canAllBranches)) {
+    $_SESSION['active_store_id'] = intval($_GET['store_id']);
+}
+
+$currentStoreId = getActiveStoreId($pdo);
+
+// Sub-branch users are strictly restricted to their own branch
+if (!$canAllBranches) {
+    $selectedStoreId = $userStoreId;
+} else {
+    $selectedStoreId = isset($_GET['store_id']) ? intval($_GET['store_id']) : $currentStoreId;
+}
+
+$catStmt = $pdo->query("SELECT * FROM w_categories ORDER BY category_id ASC");
+$categories = $catStmt->fetchAll();
+
+$unitStmt = $pdo->query("SELECT * FROM w_units ORDER BY unit_id ASC");
+$units = $unitStmt->fetchAll();
+
+// ຜູ້ສະໜອງ (ສະເພາະທີ່ຍັງໃຊ້ງານ) ສຳລັບ dropdown ໃນຟອມເພີ່ມ/ແກ້ໄຂສິນຄ້າ
+$suppliers = [];
+try {
+    $supStmt = $pdo->prepare("SELECT supplier_id, supplier_name FROM w_suppliers WHERE store_id = ? AND status = 'active' ORDER BY supplier_name ASC");
+    $supStmt->execute([$selectedStoreId]);
+    $suppliers = $supStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {}
+
+// ໂຊນ ແລະ ຊັ້ນວາງ ສຳລັບ dropdown ໃນຟອມເພີ່ມ/ແກ້ໄຂສິນຄ້າ
+$zones = [];
+$shelves = [];
+// ໂຊນ / ຊັ້ນວາງ (w_zones, w_shelves) ຖືກລຶບອອກພ້ອມລະບົບກວດສອບສິນຄ້າ (09/11/2026) → ລາຍການຫວ່າງ = ຊ່ອງໂຊນ/ຊັ້ນວາງເຊື່ອງເອງ
+$stores = $pdo->query("SELECT * FROM w_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
+
+$products_stmt = $pdo->prepare("
+    SELECT p.*, c.category_name, s.store_name, s.store_code
+    FROM w_products p
+    LEFT JOIN w_categories c ON p.category_id = c.category_id
+    LEFT JOIN w_tbstore s ON p.store_id = s.store_id
+    WHERE p.store_id = ?
+    ORDER BY p.code1 DESC, p.product_id DESC
+");
+$products_stmt->execute([$selectedStoreId]);
+$products = $products_stmt->fetchAll();
+
+// ໂຊນ ແລະ ຊັ້ນວາງ: ດຶງຂໍ້ມູນຈາກຕາຕະລາງ w_zones (ໂຊນສິນຄ້າ) ແລະ w_shelves (ຊັ້ນວາງສິນຄ້າ) ໂດຍກົງ
+$zsZoneCol   = !empty($zones);
+$zsShelfCol  = !empty($shelves);
+$zsZoneForm  = $zsZoneCol;
+$zsShelfForm = $zsShelfCol;
+
+// ລາຍການໃນບັອກກັ່ນຕອງ: ດຶງມາຈາກຕາຕະລາງ w_zones ແລະ w_shelves ຂອງສາຂານີ້
+$zoneFilterOptions = [];
+foreach ($zones as $__zr) {
+    $__zn = trim((string)($__zr['zone_name'] ?? ''));
+    if ($__zn !== '') {
+        $zoneFilterOptions[] = $__zn;
+    }
+}
+$zoneFilterOptions = array_values(array_unique($zoneFilterOptions));
+sort($zoneFilterOptions, SORT_NATURAL | SORT_FLAG_CASE);
+
+$shelfFilterOptions = [];
+foreach ($shelves as $__sr) {
+    $__sn = trim((string)($__sr['shelf_name'] ?? ''));
+    if ($__sn !== '') {
+        $shelfFilterOptions[] = $__sn;
+    }
+}
+$shelfFilterOptions = array_values(array_unique($shelfFilterOptions));
+sort($shelfFilterOptions, SORT_NATURAL | SORT_FLAG_CASE);
+
+// ດຶງຂໍ້ມູນ product_units ທັງໝົດມາ map
+$allUnitsStmt = $pdo->query("SELECT * FROM w_product_units ORDER BY multiplier ASC, id ASC");
+$productUnitsMap = [];
+while ($u = $allUnitsStmt->fetch()) {
+    $productUnitsMap[$u['product_id']][] = $u;
+}
+
+// ຄຳນວນລຳດັບສິນຄ້າຖັດໄປ (Global entry sequence number: 0001, 0002, 0003...)
+$totalProductCount = count($products);
+$nextSeqNum = $totalProductCount + 1;
+$nextSeqFormatted = str_pad($nextSeqNum, 4, '0', STR_PAD_LEFT);
+
+require_once __DIR__ . '/../../layouts/header.php';
+?>
+
+<link rel="stylesheet" href="../../themes/products.css?v=<?php echo filemtime(__DIR__ . '/../../themes/products.css'); ?>">
+<?php /* ບໍ່ມີລາຍຊື່ໂຊນ/ຊັ້ນວາງ → ເຊື່ອງບັອກ .zs-zone-field / .zs-shelf-field ໃນທຸກຟອມ (themes/products.css) */ ?>
+<script>
+  document.documentElement.classList.toggle('zs-no-zone', <?php echo $zsZoneForm ? 'false' : 'true'; ?>);
+  document.documentElement.classList.toggle('zs-no-shelf', <?php echo $zsShelfForm ? 'false' : 'true'; ?>);
+</script>
+
+<div class="container-fluid p-4">
+
+<?php require __DIR__ . '/partials/products/page_table.php'; /* ສ່ວນສະແດງຜົນ: ຫົວໜ້າ ແລະ ຕາຕະລາງສິນຄ້າ */ ?>
+<!-- ====== Modal Components ====== -->
+<?php require_once __DIR__ . '/components/form_add_product.php'; ?>
+<?php require_once __DIR__ . '/components/form_edit_product.php'; ?>
+
+
+
+<?php require __DIR__ . '/partials/products/products_zone_shelf_js.php'; /* JS ໂຊນ ແລະ ຊັ້ນວາງ */ ?>
+<?php require __DIR__ . '/partials/products/products_js.php'; /* JS ຂອງໜ້າສິນຄ້າ */ ?>
+
+<?php require_once __DIR__ . '/../../layouts/footer.php'; ?>

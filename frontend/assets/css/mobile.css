@@ -1,0 +1,109 @@
+/**
+ * mobile.css — ປັບສະເພາະໂທລະສັບ (ໂຫຼດຫຼັງສຸດໃນ layouts/header.php, ຫຼັງ CSS ສະເພາະໜ້າ):
+ *   1) ໜ້າຢູ່ນິ່ງ: ບໍ່ເລື່ອນອອກຂ້າງ (ບໍ່ "ແຕກອອກ"), ບໍ່ຊູມ (ແຕະສອງເທື່ອ / ກົດຊ່ອງພິມ iOS)
+ *   2) ເມນູ ☰ ເລື່ອນລົງແບບສະໂລ (ແທນການໂຜ່ຂຶ້ນທັນທີ)
+ *   3) ກາດ "ເປັນຫຍັງຕ້ອງເລືອກ" ບໍ່ບິນເຂົ້າຈາກຊ້າຍ/ຂວາ — ສະແດງຢູ່ນິ່ງໆ
+ *   4) "ພ້ອມບໍລິການ 24 ຊົ່ວໂມງ" ບໍ່ລົງແຖວ + ຫົວຂໍ້ບໍລິການຈັດແຖວໃໝ່
+ *   5) ກາດທັງໝົດ ມຸມ 4px
+ */
+@media (max-width: 767.98px) {
+  /* 1) ໜ້າຢູ່ນິ່ງ */
+  html, body { overflow-x: hidden; overflow-x: clip; max-width: 100%; }   /* hidden = ສຳຮອງ iOS ລຸ້ນເກົ່າທີ່ບໍ່ຮູ້ຈັກ clip */
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body { touch-action: manipulation; }   /* ບໍ່ຊູມເມື່ອແຕະສອງເທື່ອ */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }   /* iOS ບໍ່ຊູມຕອນກົດຊ່ອງພິມ */
+
+  /* 2) ເມນູ ☰: ເລື່ອນລົງຈາກໃຕ້ແຖບເທິງ */
+  .site-nav {
+    display: flex !important;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    clip-path: inset(0 0 100% 0);
+    pointer-events: none;
+    transition: clip-path .32s ease, opacity .25s ease, transform .32s ease, visibility 0s linear .32s;
+  }
+  .site-nav.open {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 0 0);
+    pointer-events: auto;
+    transition: clip-path .32s ease, opacity .25s ease, transform .32s ease, visibility 0s;
+  }
+  .site-nav .nav-link { padding: .8rem .4rem; border-bottom: 1px solid #f1f5f9; }
+  .site-nav .nav-link:last-child { border-bottom: 0; }
+
+  /* ເມື່ອເມນູ ☰ ເປີດຢູ່: ເຊື່ອງປຸ່ມແຊັດລອຍ ບໍ່ໃຫ້ຊ້ອນ ຫຼື ບັງເມນູ */
+  body.nav-open .fc-widget {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.8) !important;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+  }
+
+  /* 3) ກາດ "ເປັນຫຍັງຕ້ອງເລືອກ" ແລະ ເອັບເຟັກລອຍຂຶ້ນ: ຢູ່ນິ່ງ */
+  .home-why-grid .abt-why-item,
+  .home-why-grid .abt-why-item.is-in,
+  [data-reveal], [data-reveal]:not(.is-in) {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    transition: none !important;
+    will-change: auto;
+  }
+
+  /* 4) ຫົວຂໍ້ບໍລິການ: ປ້າຍບໍ່ລົງແຖວ, ຫົວຂໍ້ເຕັມແຖວ, ລູກສອນ + "ເບິ່ງທັງໝົດ" ແຖວລຸ່ມ */
+  .srv-live-pill { white-space: nowrap; }
+  .srv-section-head { flex-direction: column; align-items: stretch; gap: .8rem; }
+  .srv-head-nav { justify-content: space-between; width: 100%; }
+  .srv-head-nav a { white-space: nowrap; }
+
+  /* 5) ກາດ: ມຸມ 4px */
+  .card, .srv-card, .bs-card, .solution-tile, .solutions-card, .wk-card, .portfolio-card, .sysp-card,
+  .abt-why-item, .stack-hub-item, .ap-card, .ap-hist, .ot-table tr, .mo-box, .mf-card, .eq-banner {
+    border-radius: 4px !important;
+  }
+}
+
+/* ---------- popup ລົງທະບຽນ / ເຂົ້າສູ່ລະບົບ (components/member_modal.php) ໃນໂທລະສັບ ----------
+   ເຕັມຈໍ (ເຫັນຟອມຄົບ ເລື່ອນໄດ້ບ່ອນດຽວ), ແຖບເທິງ: × ຊ້າຍ | ທຸງພາສາ ຂວາ — ບໍ່ທັບກັນ ແລະ ບໍ່ທັບໂລໂກ້; ເຄົາລົບຕິ່ງ/ແຖບລຸ່ມຂອງ iPhone */
+@media (max-width: 767.98px) {
+  .mm { padding: 0; place-items: stretch; }
+  .mm-dialog { width: 100%; height: 100%; height: 100dvh; max-height: none; border-radius: 0; box-shadow: none; transform: none !important; }
+  .mm-form-side {
+    justify-content: flex-start;
+    padding: calc(env(safe-area-inset-top, 0px) + 4rem) 1.2rem calc(env(safe-area-inset-bottom, 0px) + 1.4rem);
+    -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+  }
+  .mm-x { position: absolute; top: calc(env(safe-area-inset-top, 0px) + .75rem); left: .9rem; right: auto; z-index: 40; width: 40px; height: 40px; }
+  .mm-lang-corner { top: calc(env(safe-area-inset-top, 0px) + .75rem); right: .9rem; }
+  .mm-brand-top { margin-bottom: 1.3rem; }
+}
+
+/* ---------- ຈໍຂະໜາດກາງ (768–1180px, ແທັບເລັດ / ແລັບທັອບນ້ອຍ): ເມນູ 7 ລາຍການບໍ່ພໍແຖວດຽວ
+   (ປຸ່ມ ລົງທະບຽນ / ເຂົ້າສູ່ລະບົບ ຕົກຈໍ) → ຫຍໍ້ເປັນປຸ່ມ ☰ ເລື່ອນລົງ ຄືກັບໂທລະສັບ ---------- */
+@media (min-width: 768px) and (max-width: 1180px) {
+  .nav-toggle { display: block; }
+  .nav-actions { margin-left: auto; }
+  .site-nav {
+    display: flex !important; position: absolute; top: 100%; left: 0; right: 0;
+    flex-direction: column; align-items: stretch; padding: .75rem 1.5rem 1rem;
+    background: #fff; border-bottom: 1px solid var(--border); box-shadow: var(--shadow);
+    visibility: hidden; opacity: 0; transform: translateY(-10px); clip-path: inset(0 0 100% 0); pointer-events: none;
+    transition: clip-path .32s ease, opacity .25s ease, transform .32s ease, visibility 0s linear .32s;
+  }
+  .site-nav.open {
+    visibility: visible; opacity: 1; transform: none; clip-path: inset(0 0 0 0); pointer-events: auto;
+    transition: clip-path .32s ease, opacity .25s ease, transform .32s ease, visibility 0s;
+  }
+  .site-nav .nav-link { padding: .8rem .5rem; border-bottom: 1px solid #f1f5f9; }
+  .site-nav .nav-link:last-child { border-bottom: 0; }
+
+  body.nav-open .fc-widget {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.8) !important;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+  }
+}

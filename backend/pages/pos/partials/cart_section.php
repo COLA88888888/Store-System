@@ -1,0 +1,137 @@
+<!-- Right Side: POS Cart Panel -->
+<div class="pos-cart shadow-sm">
+  <!-- Active Bills Navigation Bar -->
+  <div class="pos-active-bills-bar bg-light border-bottom p-2 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center" style="gap: 5px;">
+    </div>
+    <div class="d-flex align-items-center" style="gap: 5px;">
+      <button type="button" class="btn btn-sm btn-success font-weight-bold px-2.5 py-1.5 shadow-sm" onclick="createNewBillModal()" title="<?php echo htmlspecialchars(t('pos.new_bill', 'ເປີດບິນໃໝ່')); ?>" style="border-radius: 4px; white-space: nowrap; font-size: 0.85rem;">
+        <i class="fas fa-plus-circle mr-1"></i>
+        <span class="d-none d-sm-inline"><?php echo htmlspecialchars(t('pos.new_bill', 'ເປີດບິນໃໝ່')); ?></span>
+        <span class="d-inline d-sm-none"><?php echo tlh('ບິນໃໝ່'); ?></span>
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-warning text-dark font-weight-bold px-2.5 py-1.5 shadow-sm" id="btnActiveBills" onclick="openActiveBillsModal()" title="<?php echo htmlspecialchars(t('pos.active_bills_title', 'ບິນທີ່ເປີດຢູ່')); ?>" disabled style="border-radius: 4px; white-space: nowrap; font-size: 0.85rem; background: #ffffff;">
+        <i class="fas fa-list-alt mr-1 text-primary"></i>
+        <span class="d-none d-sm-inline"><?php echo htmlspecialchars(t('pos.active_bills_title', 'ບິນທີ່ເປີດຢູ່')); ?></span>
+        <span class="d-inline d-sm-none"><?php echo tlh('ບິນເປີດ'); ?></span>
+        <span class="badge badge-dark font-weight-bold ml-1" id="activeBillsCountBadge" style="display: none;">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Customer Bar -->
+  <div class="pos-customer-bar bg-white border-bottom p-2 d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center pr-2" style="overflow: hidden; flex: 1;">
+      <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mr-2" style="width: 38px; height: 38px; flex-shrink: 0; border: 1.5px solid #c7d2e8;">
+        <i class="fas fa-user text-primary" style="font-size: 1.1rem;"></i>
+      </div>
+      <div style="overflow: hidden; min-width: 0;">
+        <small class="text-muted font-weight-bold d-block" style="font-size: 0.82rem; line-height: 1.1; margin-bottom: 2px;"><?php echo htmlspecialchars(t('pos.customer_label', 'ລູກຄ້າ / ສະມາຊິກ:')); ?></small>
+        <span class="font-weight-bold text-dark text-truncate d-block" style="font-size: 0.92rem; line-height: 1.2;" id="selectedCustomerDisplay"><?php echo htmlspecialchars(t('pos.customer_default', 'ລູກຄ້າທົ່ວໄປ')); ?></span>
+      </div>
+    </div>
+    <div class="d-flex align-items-center" style="gap: 6px; flex-shrink: 0;">
+      <!-- Loyalty: points balance + redeem button, shown only for a customer with points (pos_loyalty_js.php) -->
+      <span id="selectedCustomerPoints" class="badge badge-pill font-weight-bold" style="display: none; background:#fef3c7; color:#b45309; border:1px solid #fde68a; font-size:0.8rem; padding: 4px 8px;"><i class="fas fa-star mr-1"></i><span id="selectedCustomerPointsVal">0</span></span>
+      <button class="btn btn-sm font-weight-bold px-2 py-1" type="button" id="btnRedeemPoints" onclick="openRedeemPointsModal()" style="display: none; border-radius: 4px; font-size: 0.82rem; background: #f59e0b; border-color: #d97706; color: #ffffff;" title="<?php echo htmlspecialchars(t('pos.redeem_btn', 'ແລກຄະແນນ')); ?>">
+        <i class="fas fa-gift mr-1"></i><span class="d-none d-xl-inline"><?php echo htmlspecialchars(t('pos.redeem_btn', 'ແລກຄະແນນ')); ?></span>
+      </button>
+      <button class="btn btn-sm btn-outline-primary font-weight-bold px-2.5 py-1" type="button" onclick="openCustomerSelectModal()" style="border-radius: 4px; font-size: 0.82rem;">
+        <i class="fas fa-search mr-1"></i> <?php echo htmlspecialchars(t('pos.select', 'ເລືອກ')); ?>
+      </button>
+      <button class="btn btn-sm btn-outline-success font-weight-bold px-2 py-1" type="button" onclick="openAddCustomerModal()" style="border-radius: 4px; font-size: 0.82rem;" title="<?php echo htmlspecialchars(t('pos.add_new_customer', 'ເພີ່ມລູກຄ້າໃໝ່')); ?>">
+        <i class="fas fa-user-plus"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="cart-items" id="cartItemsContainer">
+    <!-- Same empty state updateCartUI() (pos_cart_js.php) draws, so the panel doesn't switch
+         looks the first time the cart is re-rendered (e.g. when a customer is picked). -->
+    <div class="cart-empty-state d-flex flex-column align-items-center justify-content-center h-100 py-5">
+      <i class="fas fa-shopping-basket text-muted mb-2" style="font-size: 2.2rem; opacity: 0.3;"></i>
+      <div class="text-muted font-weight-bold" style="font-size: 0.92rem;"><?php echo htmlspecialchars(t('pos.cart_empty_title', 'ບໍ່ມີລາຍການສິນຄ້າໃນກະຕ່າ')); ?></div>
+      <small class="text-muted"><?php echo htmlspecialchars(t('pos.cart_empty_hint', 'ກະລຸນາເລືອກສິນຄ້າ ຫຼື ສະແກນບາໂຄ້ດ')); ?></small>
+    </div>
+  </div>
+
+  <!-- Calculations Summary & Actions -->
+  <div class="cart-footer">
+    <!-- ມູນຄ່າ (Subtotal ຢູ່ຝາກຊ້າຍ) ແລະ ສ່ວນຫຼຸດທ້າຍບິນ (ຢູ່ຝາກຂວາ, ບັອກໃຫຍ່ຂຶ້ນ ມຸມ 4px) ຄົນລະຝາກເລີຍ -->
+    <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap" style="gap: 10px;">
+      <!-- ມູນຄ່າ (Subtotal ຢູ່ຝາກຊ້າຍ) -->
+      <div class="d-flex align-items-center">
+        <span class="font-weight-bold text-muted mr-2" style="font-size: 0.92rem;"><?php echo htmlspecialchars(t('pos.subtotal_label', 'ລວມມູນຄ່າ:')); ?></span>
+        <span class="font-weight-bold text-dark" style="font-size: 1.05rem;" id="cartSubtotal">0 <?php echo kipSymbol(); ?></span>
+      </div>
+
+      <!-- ສ່ວນຫຼຸດ (Discount ຢູ່ຝາກຂວາ: ບັອກສັ້ນລົງ, ປຸ່ມ ₭ ແລະ % ໃຫຍ່ຂຶ້ນ ກວ້າງຂຶ້ນ ແລະ ບໍ່ຕິດກັນ) -->
+      <div class="d-flex align-items-center" style="gap: 6px;">
+        <span class="font-weight-bold text-muted" style="font-size: 0.90rem; white-space: nowrap;"><?php echo htmlspecialchars(t('pos.bill_discount_label', 'ສ່ວນຫຼຸດ:')); ?></span>
+        <div class="d-flex align-items-center" style="gap: 5px;">
+          <div style="position: relative; width: 100px;">
+            <input type="text" inputmode="decimal" id="cartDiscount" data-mode="amount" class="form-control text-right text-danger font-weight-bold" value="0" style="height: 34px; padding: 4px 8px; font-size: 1rem; border-radius: 6px !important; width: 100%; border: 1px solid #ced4da;" oninput="formatCartDiscountInput(this); updateCartUI();">
+          </div>
+          <!-- ເລືອກແບບສ່ວນຫຼຸດ: ກີບ (ຈຳນວນເງິນ) ຫຼື % ຂອງຍອດລວມ (pos_js.php: setCartDiscountModeAndReset) -->
+          <button type="button" class="btn btn-primary font-weight-bold cart-disc-mode-btn d-inline-flex align-items-center justify-content-center shadow-none" data-mode="amount" id="cartDiscountModeBtn" onclick="setCartDiscountModeAndReset('amount')" title="<?php echo tlh('ສ່ວນຫຼຸດເປັນຈຳນວນເງິນ'); ?>" style="height: 34px !important; width: 42px !important; min-width: 42px !important; padding: 0 !important; font-size: 1.05rem !important; border-radius: 6px !important;">
+            <?php echo htmlspecialchars($posDisplayCurrency['symbol'] ?? kipSymbol()); ?>
+          </button>
+          <button type="button" class="btn btn-outline-secondary font-weight-bold cart-disc-mode-btn d-inline-flex align-items-center justify-content-center shadow-none" data-mode="percent" onclick="setCartDiscountModeAndReset('percent')" title="<?php echo tlh('ສ່ວນຫຼຸດເປັນເປີເຊັນ'); ?>" style="height: 34px !important; width: 42px !important; min-width: 42px !important; padding: 0 !important; font-size: 1.05rem !important; border-radius: 6px !important;">
+            %
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Loyalty points redeemed on this bill (discount rewards) — filled by pos_loyalty_js.php -->
+    <div id="cartPointsRow" class="mb-1" style="display: none;">
+      <div class="d-flex justify-content-between align-items-center small">
+        <span class="font-weight-bold" style="color: #b45309;"><i class="fas fa-gift mr-1"></i><?php echo htmlspecialchars(t('pos.redeem_row_label', 'ແລກຄະແນນ')); ?> (<span id="cartPointsUsed">0</span> <?php echo htmlspecialchars(t('pos.points_unit', 'ຄະແນນ')); ?>)</span>
+        <span class="font-weight-bold text-danger" id="cartPointsDiscount">0 <?php echo kipSymbol(); ?></span>
+      </div>
+      <div id="cartRedemptionList" style="font-size: 0.78rem;"></div>
+    </div>
+
+    <?php
+      $cTaxType = !empty($company['tax_type']) ? $company['tax_type'] : 'none';
+      $cVatPercent = ($cTaxType === 'none') ? 0 : (isset($company['vat_percent']) ? floatval($company['vat_percent']) : 0);
+      $showCartVat = ($cVatPercent > 0 && $cTaxType !== 'none');
+      $cLabelText = ($cTaxType === 'exclusive') ? (t('pos.vat_exclusive_label', 'ອມພ') . " ({$cVatPercent}%):") : (t('pos.vat_inclusive_label', 'ລວມ ອມພ') . " ({$cVatPercent}%):");
+    ?>
+    <div class="d-flex justify-content-between align-items-center mb-0.5 small text-muted" id="cartVatRow" style="<?php echo $showCartVat ? 'display: flex !important;' : 'display: none !important;'; ?>">
+      <span id="cartVatLabel"><?php echo $cLabelText; ?></span>
+      <span class="font-weight-bold text-dark" id="cartVat">0 <?php echo kipSymbol(); ?></span>
+    </div>
+    
+    <div class="d-flex justify-content-between align-items-center mb-1 pt-1 border-top">
+      <span class="font-weight-bold" style="font-size: 1.0rem; color: #1e293b;"><?php echo htmlspecialchars(t('pos.net_total_label', 'ຍອດຊຳລະສຸດທິ:')); ?></span>
+      <span class="font-weight-bold" style="font-size: 1.35rem; color: #16a34a;" id="cartTotal">0 <?php echo kipSymbol(); ?></span>
+    </div>
+
+    <!-- Action Buttons Bar (Single-Row Compact 4-Button Bar) -->
+    <div class="pt-1 mt-1 border-top">
+      <div class="d-flex align-items-center" style="gap: 5px; width: 100%;">
+        <button class="btn btn-info font-weight-bold text-white d-flex align-items-center justify-content-center shadow-sm" onclick="holdCurrentOrder()" id="btnHoldOrder" style="flex: 1; min-width: 0; border-radius: 4px; font-size: 0.86rem; min-height: 38px; padding: 4px 3px; white-space: nowrap;">
+          <i class="fas fa-pause-circle mr-1" style="font-size: 0.88rem !important;"></i> <span><?php echo htmlspecialchars(t('pos.hold_bill', 'ພັກບິນ')); ?></span>
+        </button>
+        <button class="btn btn-primary font-weight-bold text-white d-flex align-items-center justify-content-center shadow-sm" onclick="openHeldOrdersModal()" id="btnHeldOrders" style="flex: 1; min-width: 0; border-radius: 4px; font-size: 0.86rem; min-height: 38px; padding: 4px 3px; white-space: nowrap;">
+          <i class="fas fa-history mr-1" style="font-size: 0.88rem !important;"></i> <span><?php echo htmlspecialchars(t('pos.held_bills', 'ບິນທີ່ພັກ')); ?></span> <span class="badge badge-danger badge-hold-count font-weight-bold ml-1" id="heldCountBadge" style="font-size: 0.76rem; padding: 1px 3px;">0</span>
+        </button>
+        <button class="btn btn-danger font-weight-bold d-flex align-items-center justify-content-center shadow-sm" onclick="confirmClearCart()" id="btnClearCart" style="flex: 1; min-width: 0; border-radius: 4px; font-size: 0.86rem; min-height: 38px; padding: 4px 3px; white-space: nowrap;">
+          <i class="fas fa-trash-alt mr-1" style="font-size: 0.88rem !important;"></i> <span><?php echo htmlspecialchars(t('pos.clear', 'ລ້າງ')); ?></span>
+        </button>
+        <button class="btn btn-warning font-weight-bold text-dark shadow-sm d-flex align-items-center justify-content-center" onclick="openCheckoutModal()" id="btnCheckout" style="flex: 1.3; min-width: 0; border-radius: 4px; font-size: 0.90rem; min-height: 38px; padding: 4px 5px; white-space: nowrap; background: #eab308; border-color: #ca8a04;">
+          <i class="fas fa-money-bill-wave mr-1" style="font-size: 0.94rem !important;"></i> <span><?php echo htmlspecialchars(t('pos.pay', 'ຊຳລະເງິນ')); ?></span>
+        </button>
+      </div>
+    </div>
+
+
+
+
+
+
+
+
+  </div>
+</div>

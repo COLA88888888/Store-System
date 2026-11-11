@@ -1,0 +1,288 @@
+/*
+ * layout.css — ໂຄງໜ້າ: container, ຫົວເວັບ, ເມນູ, ທ້າຍເວັບ, section ແລະ grid.
+ */
+.container { width: 100%; max-width: var(--container); margin: 0 auto; padding: 0 1.25rem; }
+.container.narrow { max-width: 720px; }
+.site-main { flex: 1; }
+
+/* ---------- ຫົວເວັບ: ໂລໂກ້ | ເມນູ | ກະຕ່າ · ທຸງ · ເຂົ້າສູ່ລະບົບ ---------- */
+/* ຄອມ ແລະ ແທັບເລັດ (≥ 768px) ໜ້າຕາດຽວກັນ: ທຸກຂະໜາດ/ໄລຍະຫ່າງ ເປັນ em ຂອງ font-size ຂອງ .site-header
+   ເຊິ່ງຫຍໍ້/ຂະຫຍາຍຕາມຄວາມກວ້າງຈໍ (12px ທີ່ 768px → 16px ຕັ້ງແຕ່ 1024px) — ສັດສ່ວນ ແລະ ໄລຍະຫ່າງຄືກັນທຸກຈໍ.
+   ມືຖື (< 768px) ເທົ່ານັ້ນ ທີ່ເມນູຫຍໍ້ເປັນປຸ່ມ ☰ (ລຸ່ມສຸດຂອງໄຟລ໌). */
+.site-header {
+  font-size: clamp(12px, 1.5625vw, 16px);
+  --header-h: 4.25em;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, .97);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--border);
+}
+.site-header .container { max-width: 100%; padding: 0 2.25rem; }
+.header-inner { display: flex; align-items: center; gap: 1.75em; min-height: var(--header-h); }
+
+.brand { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; font-weight: 700; font-size: 1.2rem; color: var(--text); }
+.site-header .brand { gap: .45em; font-size: 1.3em; color: var(--primary); }
+.site-header .brand:hover { color: var(--primary-dark); }
+.brand img { object-fit: contain; }
+.site-header .brand img { width: auto; height: 2.1em; } /* ໂລໂກ້ກວ້າງ (404×268) — ກຳນົດຄວາມສູງ, ຄວາມກວ້າງຕາມສັດສ່ວນ */
+
+.site-nav { display: flex; align-items: center; gap: .3em; flex-shrink: 0; margin-left: auto; } /* ເມນູຢູ່ຂວາມື ຕິດກັບກະຕ່າ */
+.nav-link { padding: .55em .9em; border-radius: .625em; color: #334155; font-weight: 500; white-space: nowrap; }
+.nav-link:hover { background: #f1f5f9; color: var(--primary-dark); }
+.nav-link.active { background: #eef2f7; color: var(--primary-dark); }
+
+.nav-actions { display: flex; align-items: center; gap: 1.25em; flex-shrink: 0; }
+.site-nav .nav-mobile-only { display: none; }
+/* ທຸງພາສາ (ວົງມົນ) + ລາຍການພາສາ ທີ່ເລື່ອນລົງຊ້າໆ ເມື່ອກົດ (.open ຕັ້ງໂດຍ assets/js/main.js) */
+.lang-switch { position: relative; }
+.lang-current {
+  display: block; width: 2em; height: 2em; padding: 0;
+  border: 0; border-radius: 50%; background: none; cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, .12);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.lang-current:hover, .lang-switch.open .lang-current { transform: scale(1.06); box-shadow: 0 0 0 2px var(--primary-soft), 0 0 0 1px rgba(15, 23, 42, .15); }
+.lang-current img, .lang-item img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+.lang-menu {
+  position: absolute; top: calc(100% + 14px); right: -12px; z-index: 60;
+  min-width: 210px; padding: .5rem;
+  background: #fff; border: 1px solid var(--border); border-radius: 6px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, .14);
+  opacity: 0; visibility: hidden;
+  transform: translateY(-10px) scale(.97); transform-origin: top right;
+  transition: opacity .35s ease, transform .35s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .35s;
+}
+.lang-switch.open .lang-menu {
+  opacity: 1; visibility: visible; transform: none;
+  transition: opacity .35s ease, transform .35s cubic-bezier(.2, .8, .2, 1), visibility 0s;
+}
+.lang-item {
+  display: flex; align-items: center; gap: .85rem;
+  padding: .6rem .8rem; border-radius: 6px;
+  color: var(--text); font-size: 1.05rem;
+  transition: background .2s ease;
+}
+.lang-item img { width: 30px; height: 30px; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(15, 23, 42, .1); }
+.lang-item:hover { background: #f1f5f9; color: var(--text); }
+.lang-item.active { background: var(--primary-soft); color: var(--primary-dark); font-weight: 600; }
+.lang-item.active img { box-shadow: 0 0 0 2px var(--primary); }
+.btn-login {
+  height: 2.65em; padding: 0 1.15em; border-radius: .4em;
+  background: #1e3a8a; color: #fff; font-size: .95em; font-weight: 600; white-space: nowrap;
+}
+.btn-login:hover { background: #172e6e; color: #fff; }
+/* ສະໝັກສະມາຊິກ / ບັນຊີສະມາຊິກ (layouts/navbar.php) — ຂອບ ຄູ່ກັບປຸ່ມເຂົ້າສູ່ລະບົບ */
+.btn-member {
+  height: 2.65em; padding: 0 1em; border-radius: .4em; border: 1.5px solid #1e3a8a;
+  background: #fff; color: #1e3a8a; font-size: .95em; font-weight: 600; white-space: nowrap; gap: .35em;
+}
+.btn-member:hover { background: #eef2ff; color: #1e3a8a; }
+.btn-member-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }   /* ຊື່ສະມາຊິກຍາວ → ຕັດດ້ວຍ ... */
+
+.nav-toggle { display: none; border: 0; background: none; padding: .5rem; cursor: pointer; }
+.nav-toggle span { display: block; width: 24px; height: 2px; margin: 5px 0; background: var(--text); border-radius: 2px; }
+
+/* ---------- section ---------- */
+.section { padding: 3.5rem 0; }
+.section-alt { background: var(--bg-alt); }
+.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+.section-head h2 { margin: 0; }
+
+.grid { display: grid; gap: 1.25rem; }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* ---------- ທ້າຍເວັບ ---------- */
+.site-footer { position: relative; z-index: 2; color: #fff; margin-top: 0; }
+.site-footer .container { max-width: 1200px; margin: 0 auto; padding-left: 1.5rem; padding-right: 1.5rem; }
+.footer-main {
+  position: relative; overflow: hidden;
+  background-color: #0a3b8c;
+}
+.footer-grid {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.25rem;
+  justify-content: center;
+  padding: 3.25rem 0 0;
+}
+.footer-grid > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  justify-self: center;
+  width: 100%;
+  max-width: 240px;
+}
+.footer-watermark {
+  position: relative; z-index: 0;
+  margin-top: -2rem;
+  text-align: center;
+  font-size: clamp(5rem, 18.5vw, 19.5rem);
+  font-weight: 800;
+  line-height: .76;
+  letter-spacing: -.03em;
+  color: rgba(255, 255, 255, .2);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, .28),
+    0 2px 0 rgba(12, 72, 170, .9),
+    0 4px 0 rgba(9, 56, 138, .9),
+    0 6px 0 rgba(7, 44, 112, .9),
+    0 8px 0 rgba(5, 34, 88, .9),
+    0 10px 0 rgba(4, 25, 66, .88),
+    0 12px 0 rgba(3, 18, 48, .85),
+    0 18px 28px rgba(2, 10, 30, .55);
+  white-space: nowrap;
+  user-select: none;
+  pointer-events: none;
+  transform: translateY(8%);
+}
+.site-footer h4 { margin: 0 0 1.15rem; font-size: 1.05rem; font-weight: 700; color: #fff; text-align: left; }
+.footer-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: .7rem; width: 100%; }
+.footer-links li { margin: 0; font-size: .93rem; line-height: 1.45; text-align: left; width: 100%; }
+.site-footer a { color: rgba(255, 255, 255, .92); transition: color .15s ease; }
+.site-footer a:hover { color: #facc15; }
+.footer-contact li a { display: inline-flex; align-items: center; justify-content: flex-start; gap: .55rem; text-align: left; }
+.footer-contact svg { flex-shrink: 0; color: #fff; }
+.footer-contact .ico-wa { color: #25d366; }
+.footer-contact .ico-fb { color: #fff; }
+.footer-contact .ico-pin,
+.footer-addr svg {
+  color: #ef4444 !important;
+  filter: drop-shadow(0 2px 6px rgba(239, 68, 68, .45));
+}
+.footer-addr { font-size: .88rem; margin-top: .15rem; text-align: left; }
+.footer-addr a { display: inline-flex; align-items: flex-start; justify-content: flex-start; gap: .55rem; line-height: 1.45; text-align: left; }
+.footer-addr svg { margin-top: .15rem; flex-shrink: 0; }
+.footer-hours { color: rgba(255, 255, 255, .92); font-size: .9rem; margin-top: .25rem; text-align: left; }
+.footer-map {
+  margin-top: .85rem; border-radius: 6px; overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .22);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .2);
+  width: 100%;
+  max-width: 220px;
+}
+.footer-map .map-embed { background: rgba(255, 255, 255, .08); }   /* ກ່ອງສຳຮອງຂອງແຜນທີ່ (components/map_embed.php) ສີຂາວໃສເທິງພື້ນຟ້າ */
+.footer-map .map-embed-fallback { background: transparent; color: #fff; }
+/* ແຖບທ້າຍ: ເສັ້ນຂາວບາງຂວາງ + 3 ກ່ອງສະຖິຕິວາງຄ່ອມເສັ້ນ (ເຄິ່ງເທິງ/ເຄິ່ງລຸ່ມ), ລິຂະສິດຢູ່ກາງລຸ່ມ, ກັບຂຶ້ນດ້ານເທິງຊິດຂວາ */
+.footer-bottom {
+  position: relative; z-index: 1;
+  background: #0a3b8c;
+  padding: .4rem 0 1.4rem; font-size: .875rem; color: #fff;
+}
+/* ເສັ້ນຂາວບາງ ຂວາງເຕັມແຖວ ຢູ່ກາງຄວາມສູງຂອງກ່ອງພໍດີ; ກຸ່ມກ່ອງ (.footer-stats-group) ມີພື້ນສີ footer
+   + padding ຂ້າງ → ເສັ້ນຢຸດກ່ອນກ່ອງທຳອິດ ແລະ ເລີ່ມຫຼັງກ່ອງສຸດທ້າຍ (ບໍ່ຂີດຕໍ່ກັນລະຫວ່າງກ່ອງ) */
+.footer-stats { position: relative; display: flex; justify-content: center; padding: 0 1rem; }
+.footer-stats::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+  background: rgba(255, 255, 255, .45);
+}
+.footer-stats-group {
+  position: relative; display: flex; justify-content: center; align-items: stretch; gap: 1.25rem; flex-wrap: wrap;
+  padding: 0 1rem; background: #0a3b8c;
+}
+.footer-stat {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem;
+  min-width: 120px; padding: .25rem .7rem;
+  background: #0a3b8c; border: 1px solid rgba(255, 255, 255, .85); border-radius: 4px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .12);
+}
+.footer-stat-label { display: inline-flex; align-items: center; gap: .3rem; font-size: .7rem; color: #fff; }
+.footer-stat-label svg { width: 11px; height: 11px; }
+.footer-stat-num { font-size: .68rem; font-weight: 600; color: #fff; }
+.footer-stat-num strong { font-size: .9rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.footer-bottom-inner {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 1rem;
+  margin-top: 1.1rem;
+}
+.footer-copy { color: #fff; font-size: .95rem; text-align: center; }
+.site-footer .footer-top { justify-self: end; display: inline-flex; align-items: center; gap: .5rem; color: #fff; font-size: .92rem; margin-right: 4.5rem; }
+.site-footer .footer-top:hover { color: #facc15; }
+@media (max-width: 760px) {
+  .footer-stats-group { gap: .5rem; padding: 0 .5rem; }
+  .footer-stat { min-width: 0; flex: 0 1 120px; padding: .3rem .5rem; }
+  .footer-stat-label { font-size: .7rem; }
+  .footer-bottom-inner { grid-template-columns: 1fr; justify-items: center; gap: .6rem; margin-top: 1.1rem; }
+  .footer-bottom-inner > span:first-child { display: none; }
+  .site-footer .footer-top { justify-self: center; margin-right: 0; }
+}
+
+/* ---------- ໜ້າຈໍນ້ອຍ ---------- */
+@media (max-width: 992px) {
+  .grid-4 { grid-template-columns: repeat(3, 1fr); }
+  .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 2.25rem; }
+}
+/* ມືຖື: ເມນູບໍ່ພໍໃນແຖວດຽວ → ຫຍໍ້ເປັນປຸ່ມ ☰, ກະຕ່າ ແລະ ປຸ່ມຕ່າງໆ ຊິດຂວາ */
+@media (max-width: 767.98px) {
+  .site-header { font-size: 15px; --header-h: 60px; }
+  .site-header .container { padding: 0 1.25rem; }
+  .header-inner { gap: 1rem; }
+  .nav-toggle { display: block; }
+  .nav-actions { margin-left: auto; gap: .75rem; }
+  .site-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    padding: .75rem 1.25rem 1rem;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .site-nav.open { display: flex; }
+}
+@media (max-width: 860px) {
+  .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .site-footer .container { padding-left: 1.1rem; padding-right: 1.1rem; }
+  .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1.25rem;
+    padding: 2.25rem 0 1.8rem;
+    justify-content: start;
+  }
+  .footer-grid > div {
+    justify-self: start;
+    max-width: 100%;
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+@media (max-width: 480px) {
+  .site-header .brand span { display: none; }
+  .nav-actions { gap: .4rem; }
+  .btn-login { height: 36px; padding: 0 .75rem; font-size: .875rem; }
+  .btn-member { height: 36px; padding: 0 .5rem; font-size: .74rem; }
+  .nav-actions .btn-login { display: none; }   /* ຈໍແຄບ: ແຖບເທິງລົ້ນຈໍ → "ເຂົ້າສູ່ລະບົບ" ຍ້າຍໄປເມນູ ☰ (.nav-mobile-only) */
+  .site-nav .nav-mobile-only { display: block; }
+  .btn-member.is-in span { display: none; }
+  .site-footer .container { padding-left: .95rem; padding-right: .95rem; }
+  .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.85rem 1rem;
+    padding: 2rem 0 1.5rem;
+    justify-content: start;
+  }
+  .footer-grid > div {
+    justify-self: start;
+    max-width: 100%;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .site-footer h4 { font-size: .98rem; margin-bottom: .85rem; }
+  .footer-links { gap: .55rem; }
+  .footer-links li { font-size: .86rem; line-height: 1.4; }
+  .footer-contact li a { font-size: .82rem; }
+  .footer-addr { font-size: .8rem; }
+}
+@media (max-width: 520px) {
+  h1 { font-size: 1.7rem; }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); gap: .75rem; }
+  .form-row { grid-template-columns: 1fr; gap: 0; }
+}

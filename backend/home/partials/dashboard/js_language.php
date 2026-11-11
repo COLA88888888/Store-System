@@ -1,0 +1,478 @@
+<?php
+/*
+ * ສ່ວນ: JS: ປ່ຽນພາສາທັນທີ
+ * ເລີ່ມ <script> ຫຼັກ: ເມື່ອກົດທຸງ ຈະແປຂໍ້ຄວາມໃນ shell ແລະ ໃນ iframe ທັນທີໂດຍບໍ່ໂຫຼດໜ້າໃໝ່
+ * (ໃຊ້ພົດຈະນານຸກົມຂອງທຸກພາສາ).
+ * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ home/dashboard.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
+ */
+?>  <script>
+    // I18N_LAYOUT: translated strings used by JS-rendered navbar/notification markup
+    // (kept in sync with lang/<locale>/layout.php so live-polled notifications stay translated too)
+    var I18N_LAYOUT = <?php echo tjson([
+        'layout.package_label' => 'ແພັກເກັດ',
+        'layout.days_unit' => 'ວັນ',
+        'layout.package_unlimited' => 'ບໍ່ມີກຳນົດ',
+        'layout.access_expiry_warning_title' => 'ອາຍຸການນຳໃຊ້ໃກ້ໝົດ',
+        'layout.access_expiry_warning_text' => 'ບັນຊີຂອງທ່ານຈະໝົດອາຍຸໃນອີກ %d ມື້. ກະລຸນາຕິດຕໍ່ຜູ້ບໍລິຫານເພື່ອຕໍ່ອາຍຸການນຳໃຊ້.',
+        'layout.access_expiry_warning_text_today' => 'ບັນຊີຂອງທ່ານຈະໝົດອາຍຸໃນມື້ນີ້! ກະລຸນາຕິດຕໍ່ຜູ້ບໍລິຫານເພື່ອຕໍ່ອາຍຸການນຳໃຊ້.',
+        'layout.branch_main_suffix' => '(ສາງຫຼັກ)',
+        'layout.items_unit' => 'ລາຍການ',
+        'layout.out_of_stock' => 'ໝົດແລ້ວ (0)',
+        'layout.remaining' => 'ເຫຼືອ',
+        'layout.default_unit' => 'ອັນ',
+        'layout.no_low_stock' => 'ບໍ່ມີສິນຄ້າໃກ້ໝົດ ຫຼື ໝົດແລ້ວ',
+        'layout.no_new_notif' => 'ບໍ່ມີສິນຄ້າໃກ້ໝົດ ຫຼື ໃກ້ໝົດອາຍຸ',
+        'layout.no_sub_notif' => 'ບໍ່ມີສິນຄ້າໃກ້ໝົດ ຫຼື ໃກ້ໝົດອາຍຸ',
+        'layout.transfer_list' => 'ລາຍການໂອນສິນຄ້າ',
+        'layout.bill_unit' => 'ໃບບິນ',
+        'layout.transfer_to' => 'ໂອນໄປຫາ',
+        'layout.transfer_from' => 'ໂອນມາຈາກ',
+        'layout.branch_sub_default' => 'ສາຂາຍ່ອຍ',
+        'layout.branch_main_default' => 'ສາຂາໃຫຍ່',
+        'layout.item_transferred' => 'ສິນຄ້າໂອນ',
+        'layout.low_stock_own' => 'ສິນຄ້າໃກ້ໝົດ / ໝົດແລ້ວ',
+        'layout.new_products' => 'ສິນຄ້າໃໝ່ເພີ່ມເຂົ້າສາຂາ',
+        'layout.sub_branch_imports' => 'ສາຂາຍ່ອຍເພີ່ມສິນຄ້າເຂົ້າ',
+        'layout.click_to_restock' => 'ກົດເພື່ອໄປໜ້ານຳເຂົ້າສິນຄ້າ',
+        'layout.default_product' => 'ສິນຄ້າ',
+        'layout.logout' => 'ອອກຈາກລະບົບ',
+        'layout.logout_confirm_title' => 'ຢືນຢັນການອອກຈາກລະບົບ',
+        'layout.logout_confirm_text' => 'ທ່ານຕ້ອງການອອກຈາກລະບົບແທ້ຫຼືບໍ່?',
+        'layout.cancel' => 'ຍົກເລີກ',
+        'layout.ok' => 'ຕົກລົງ',
+        'layout.logout_blocked_title' => 'ຍັງອອກຈາກລະບົບບໍ່ໄດ້',
+        'layout.logout_blocked_after' => 'ກະລຸນາປິດກະກ່ອນ ຈຶ່ງສາມາດອອກຈາກລະບົບໄດ້. ກົດປິດກະ ແລະ ນັບເງິນໃນລິ້ນຊັກ ເພື່ອໃຫ້ລາຍງານຕາມກະຖືກຕ້ອງ.',
+        'layout.logout_blocked_before' => 'ກະຂອງທ່ານຍັງບໍ່ຮອດໂມງປິດ (%s). ອອກຈາກລະບົບໄດ້ ເມື່ອຮອດເວລາ ແລະ ກົດປິດກະແລ້ວເທົ່ານັ້ນ.',
+        'layout.close_shift_now' => 'ໄປປິດກະດຽວນີ້',
+    ]); ?>;
+
+    // Own account's remaining access days (owner-only field, Users Management) — null when
+    // unlimited, not applicable (owner account), or more than 10 days away. Folded into
+    // whichever notification bell (main/sub) this session sees — see pollLiveNotifications().
+    var MY_ACCESS_DAYS_LEFT = <?php echo ($myAccessDaysLeftForWarning === null) ? 'null' : intval($myAccessDaysLeftForWarning); ?>;
+
+    // I18N_ALL_LAYOUT: sidebar/navbar strings for EVERY supported language (not just the
+    // current one), embedded once so a flag click can repaint the chrome instantly, client-side,
+    // with zero network round trip / page reload.
+    var I18N_ALL_LAYOUT = <?php
+        $allLayoutDict = [];
+        foreach (POS_SUPPORTED_LANGS as $lc) {
+            $allLayoutDict[$lc] = loadLangDomain($lc, 'layout');
+        }
+        echo json_encode($allLayoutDict, JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT);
+    ?>;
+
+    // I18N_ALL_MERGED: every lang/*/*.php domain merged per language (same dict t() uses
+    // server-side), embedded once so the CURRENT iframe page's own already-rendered content can
+    // also be translated instantly client-side — no reload. Pages don't carry data-i18n
+    // attributes on their body content (only the shell does), so translateIframeContent() below
+    // works by reverse-matching each visible text node's current string back to its translation
+    // key in the outgoing language's dict, then swapping in the incoming language's value for
+    // that same key. Text that doesn't match any known dict value (product names, numbers,
+    // prices, anything sprintf-formatted with a %d already substituted in) is simply left alone.
+    // (~1 MB) — ໂຫຼດຈາກ home/i18n_all.php ເປັນໄຟລ໌ແຍກ ທີ່ browser ເກັບ cache (v = ເວລາແກ້ໄຟລ໌ພາສາລ່າສຸດ)
+    </script>
+    <script src="<?php
+        $i18nVer = 0;
+        foreach (glob(__DIR__ . '/../../../lang/*/*.php') ?: [] as $lf) { $i18nVer = max($i18nVer, (int)filemtime($lf)); }
+        echo $base_path . 'home/i18n_all.php?v=' . $i18nVer;
+    ?>"></script>
+    <script>
+    var POS_LANG_META_JS = <?php echo json_encode(POS_LANG_META, JSON_UNESCAPED_UNICODE | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+
+    // Tracks the language the iframe's current page content was actually rendered in
+    // server-side, so a flag click knows which dict to reverse-match FROM.
+    var CURRENT_ACTIVE_LANG = '<?php echo getCurrentLang(); ?>';
+
+    // Language flag switcher: repaints the sidebar/navbar chrome AND the current iframe page's
+    // content instantly, client-side — no reload, no waiting on the network. The choice is still
+    // persisted server-side in the background so the next real navigation renders pre-translated.
+    document.addEventListener('DOMContentLoaded', function() {
+      function applyLangInstantly(lang) {
+        var dict = I18N_ALL_LAYOUT[lang];
+        if (!dict) return;
+
+        // Keep I18N_LAYOUT (used by JS-rendered notification dropdown markup) in sync too.
+        I18N_LAYOUT = dict;
+
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+          var key = el.getAttribute('data-i18n');
+          if (dict[key]) el.textContent = dict[key];
+        });
+        document.querySelectorAll('[data-i18n-title]').forEach(function(el) {
+          var key = el.getAttribute('data-i18n-title');
+          if (dict[key]) el.setAttribute('title', dict[key]);
+        });
+        document.documentElement.setAttribute('lang', lang);
+
+        var meta = POS_LANG_META_JS[lang];
+        if (meta) {
+          var triggerImg = document.getElementById('currentLangFlagImg');
+          if (triggerImg) {
+            triggerImg.src = '../assets/img/flag_img/' + meta.img;
+            triggerImg.alt = lang;
+          }
+        }
+
+        document.querySelectorAll('.lang-flag-btn').forEach(function(el) {
+          var isActive = el.getAttribute('data-lang') === lang;
+          el.classList.toggle('active', isActive);
+          el.style.background = isActive ? '#eaf2ff' : 'transparent';
+        });
+      }
+
+      var reverseMapCache = {};
+      function getReverseMap(fromLang) {
+        if (reverseMapCache[fromLang]) return reverseMapCache[fromLang];
+        var dict = I18N_ALL_MERGED[fromLang] || {};
+        var rev = {};
+        // ຄ່າທີ່ເປັນຕົວເລກ/ເຄື່ອງໝາຍລ້ວນ ("0", "192.168...") ບໍ່ເອົາເຂົ້າ: ບໍ່ດັ່ງນັ້ນທຸກຕົວເລກ 0 ໃນໜ້າ (ເຊັ່ນ ປ້າຍຈຳນວນ
+        // ສິນຄ້າໃນປະເພດ) ຈະຖືກປ່ຽນເປັນ placeholder ຂອງພາສາໃໝ່ ("例如：12").
+        var NO_WORD_RE = /^[\d\s.,:%+\-–\/()₭฿$¥]*$/;
+        for (var key in dict) {
+          if (!Object.prototype.hasOwnProperty.call(dict, key)) continue;
+          var val = (dict[key] || '').trim();
+          if (NO_WORD_RE.test(val)) continue;
+          if (val && !(val in rev)) rev[val] = key; // first key wins on a shared-text collision
+        }
+        reverseMapCache[fromLang] = rev;
+        return rev;
+      }
+
+      // Dictionary values with %s / %d placeholders, compiled to anchored regexes (longest
+      // literal text first, so "ກາຍມາ %s ມື້" wins over the bare "%s ມື້"). Values whose fixed
+      // text is under 2 characters are skipped — they'd match almost anything.
+      var sprintfPatternCache = {};
+      function getSprintfPatterns(fromLang) {
+        if (sprintfPatternCache[fromLang]) return sprintfPatternCache[fromLang];
+        var dict = I18N_ALL_MERGED[fromLang] || {};
+        var list = [], seen = {};
+        for (var key in dict) {
+          if (!Object.prototype.hasOwnProperty.call(dict, key)) continue;
+          var val = (dict[key] || '').trim();
+          if (!/%[sd]/.test(val) || seen[val]) continue;
+          var literal = val.replace(/%[sd]/g, '').replace(/\s+/g, '');
+          // One CJK character is a whole word ("%s 天" = "%s days"); anything else needs 2+.
+          if (literal.length < 2 && !/[㐀-鿿]/.test(literal)) continue;
+          seen[val] = 1;
+          var src = val.split(/%[sd]/).map(function (part) {
+            return part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          }).join('(.+?)');
+          list.push({ key: key, re: new RegExp('^' + src + '$'), weight: literal.length });
+        }
+        list.sort(function (a, b) { return b.weight - a.weight; });
+        sprintfPatternCache[fromLang] = list;
+        return list;
+      }
+
+      function translateIframeContent(fromLang, toLang) {
+        var frameEl = document.querySelector('iframe[name="frame"]');
+        if (!frameEl) return;
+        var frameDoc;
+        try {
+          frameDoc = frameEl.contentDocument || frameEl.contentWindow.document;
+        } catch (e) {
+          return; // cross-origin guard, shouldn't happen — the iframe is always same-origin
+        }
+        if (!frameDoc || !frameDoc.body) return;
+        try {
+          frameDoc.documentElement.setAttribute('lang', toLang);
+          var fWin = frameEl.contentWindow;
+          if (fWin) fWin.POS_CURRENT_LANG = toLang;
+        } catch (e) {}
+
+        var rev = getReverseMap(fromLang);
+        var toDict = I18N_ALL_MERGED[toLang] || {};
+
+        var walker = frameDoc.createTreeWalker(frameDoc.body, NodeFilter.SHOW_TEXT, {
+          acceptNode: function(node) {
+            var tag = node.parentNode && node.parentNode.tagName;
+            if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return NodeFilter.FILTER_REJECT;
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        });
+        // "ກີບ (₭)" / "BCEL One (ສາຂາຫຼັກ)": a known word followed by a bracketed part that
+        // isn't in any dictionary (currency symbol, count, code) — translate the word, keep the rest.
+        var BRACKET_TAIL_RE = /^(.+?)(\s*\([^()]*\))$/;
+        var patterns = getSprintfPatterns(fromLang);
+
+        var DYNAMIC_ALIASES = [
+          // Clear / auto-closed system
+          {
+            matches: ['ລະບົບ (ປິດອໍໂຕ້)', 'ລະບົບ (ປິດອັດຕະໂນມັດ)', 'ລະບົບ', 'ระบบ (ปิดอัตโนมัติ)', 'ระบบ (ปิดออโต้)', 'ระบบ', 'System (auto-closed)', 'System (auto closed)', 'System', 'Hệ thống (tự đóng)', 'Hệ thống', '系统（自动交班）', '系统(自动交班)', '系统（自动关闭）', '系统(自动关闭)', '系统'],
+            trans: { lo: 'ລະບົບ (ປິດອໍໂຕ້)', th: 'ระบบ (ปิดอัตโนมัติ)', en: 'System (auto-closed)', zh: '系统（自动交班）', vi: 'Hệ thống (tự đóng)' }
+          },
+          // General customer
+          {
+            matches: ['ລູກຄ້າທົ່ວໄປ', 'ลูกค้าทั่วไป', 'Walk-in Customer', 'General Customer', 'Khách lẻ', 'Khách thông thường', '普通顾客', '散客'],
+            trans: { lo: 'ລູກຄ້າທົ່ວໄປ', th: 'ลูกค้าทั่วไป', en: 'Walk-in Customer', zh: '散客', vi: 'Khách lẻ' }
+          },
+          // Cash
+          {
+            matches: ['ເງິນສົດ', 'เงินสด', 'Cash', 'Tiền mặt', '现金'],
+            trans: { lo: 'ເງິນສົດ', th: 'เงินสด', en: 'Cash', zh: '现金', vi: 'Tiền mặt' }
+          },
+          // All products
+          {
+            matches: ['ທຸກສິນຄ້າ', 'ทุกสินค้า', 'All Products', 'All', 'all', 'Tất cả sản phẩm', '所有商品'],
+            trans: { lo: 'ທຸກສິນຄ້າ', th: 'ทุกสินค้า', en: 'All Products', zh: '所有商品', vi: 'Tất cả sản phẩm' }
+          },
+          // Morning Shift
+          {
+            matches: ['ກະເຊົ້າ', 'กะเช้า', 'morning shift', 'morning', 'ca sáng', '早班'],
+            trans: { lo: 'ກະເຊົ້າ', th: 'กะเช้า', en: 'Morning Shift', zh: '早班', vi: 'Ca sáng' }
+          },
+          // Afternoon Shift
+          {
+            matches: ['ກະບ່າຍ', 'กะบ่าย', 'afternoon shift', 'afternoon', 'ca chiều', '下午班'],
+            trans: { lo: 'ກະບ່າຍ', th: 'กะบ่าย', en: 'Afternoon Shift', zh: '下午班', vi: 'Ca chiều' }
+          },
+          // Evening Shift
+          {
+            matches: ['ກະແລງ', 'กะเย็น', 'evening shift', 'evening', 'ca tối', '晚班'],
+            trans: { lo: 'ກະແລງ', th: 'กะเย็น', en: 'Evening Shift', zh: '晚班', vi: 'Ca tối' }
+          },
+          // Night Shift
+          {
+            matches: ['ກະດຶກ', 'ກະກາງຄືນ', 'กะดึก', 'night shift', 'night', 'ca đêm', '夜班'],
+            trans: { lo: 'ກະດຶກ', th: 'กะดึก', en: 'Night Shift', zh: '夜班', vi: 'Ca đêm' }
+          },
+          // Shift closed status
+          {
+            matches: ['ປິດແລ້ວ', 'ປິດໄວ້', 'ปิดแล้ว', 'ปิดไว้', 'Closed', 'closed', 'Đã đóng', '已关闭', '已关班'],
+            trans: { lo: 'ປິດແລ້ວ', th: 'ปิดแล้ว', en: 'Closed', zh: '已关闭', vi: 'Đã đóng' }
+          },
+          // Shift open status
+          {
+            matches: ['ກຳລັງເປີດ', 'ເປີດຢູ່', 'กำลังเปิด', 'เปิดอยู่', 'Open', 'open', 'Đang mở', '进行中', '正在开班'],
+            trans: { lo: 'ກຳລັງເປີດ', th: 'กำลังเปิด', en: 'Open', zh: '进行中', vi: 'Đang mở' }
+          }
+        ];
+
+        var DISC_WORDS = { lo: 'ຫຼຸດ', th: 'ลด', en: 'Off', zh: '减', vi: 'Giảm' };
+        var GIFT_WORDS = { lo: 'ແຖມ', th: 'แถม', en: 'Free', zh: '送', vi: 'Tặng' };
+        var PROMO_DISC_RE = /^([•·\-\s]*)(?:ຫຼຸດ|ລົດ|ลด|giảm|off|discount|减)(\s+)([\d,.]+)([\s\S]*)$/i;
+        var PROMO_NAMED_DISC_RE = /^([^\n·•]+?)([·•\-\s]+)(?:ຫຼຸດ|ລົດ|ลด|giảm|off|discount|减)(\s+)([\d,.]+)([\s\S]*)$/i;
+        var PROMO_GIFT_RE = /^([•·\-\s]*)(?:ແຖມ|แถม|free|tặng|送|赠)(\s+)([\s\S]+)$/i;
+        var EMOJI_PREFIX_RE = /^([\uD800-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\uFE0F|\uFE0E|[📦🎁🏷️💵💰📅🛒])\s*/;
+
+        function translateText(text) {
+          var key = rev[text];
+          if (key && toDict[key]) return toDict[key];
+          var m = text.match(BRACKET_TAIL_RE);
+          if (m) {
+            var headKey = rev[m[1].trim()];
+            if (headKey && toDict[headKey]) return toDict[headKey] + m[2];
+          }
+
+          // Check dynamic database aliases
+          var textLower = text.toLowerCase();
+          for (var a = 0; a < DYNAMIC_ALIASES.length; a++) {
+            var da = DYNAMIC_ALIASES[a];
+            for (var mi = 0; mi < da.matches.length; mi++) {
+              if (text === da.matches[mi] || textLower === da.matches[mi].toLowerCase()) {
+                return da.trans[toLang] || da.trans['lo'];
+              }
+            }
+          }
+
+          // Emoji prefix (e.g. "📦 ທຸກສິນຄ້າ" -> "📦 All Products")
+          var em = text.match(EMOJI_PREFIX_RE);
+          if (em) {
+            var rest = text.substring(em[0].length).trim();
+            var trRest = translateText(rest);
+            if (trRest) return em[0] + trRest;
+          }
+
+          // Promo discount badges (e.g. "• ລົດ 2,000 ກີບ" -> "• 减 2,000 基普")
+          var pdm = text.match(PROMO_DISC_RE);
+          if (pdm) {
+            var dw = DISC_WORDS[toLang] || 'ຫຼຸດ';
+            var amt = pdm[3];
+            var tail = pdm[4] || '';
+            if (KIP_AMOUNT_RE && fromKip && tail.indexOf(fromKip) !== -1) {
+              tail = tail.replace(KIP_AMOUNT_RE, '$1' + toKip);
+            }
+            return pdm[1] + dw + pdm[2] + amt + tail;
+          }
+
+          // Named promo badges (e.g. "ໂປຣ · ຫຼຸດ 2,000 ກີບ")
+          var pndm = text.match(PROMO_NAMED_DISC_RE);
+          if (pndm) {
+            var dw = DISC_WORDS[toLang] || 'ຫຼຸດ';
+            var amt = pndm[4];
+            var tail = pndm[5] || '';
+            if (KIP_AMOUNT_RE && fromKip && tail.indexOf(fromKip) !== -1) {
+              tail = tail.replace(KIP_AMOUNT_RE, '$1' + toKip);
+            }
+            return pndm[1] + pndm[2] + dw + pndm[3] + amt + tail;
+          }
+
+          // Promo gift badges (e.g. "• ແຖມ ນ້ຳດື່ມ")
+          var pgm = text.match(PROMO_GIFT_RE);
+          if (pgm) {
+            var gw = GIFT_WORDS[toLang] || 'ແຖມ';
+            return pgm[1] + gw + pgm[2] + pgm[3];
+          }
+
+          // "3 ມື້" / "ສະແດງ 1–10 ຈາກ 25 ລາຍການ": a sprintf string with its values already filled
+          // in — match it against the %s/%d patterns and refill the target language's pattern.
+          for (var i = 0; i < patterns.length; i++) {
+            var pm = text.match(patterns[i].re);
+            if (!pm) continue;
+            var target = toDict[patterns[i].key];
+            if (!target) continue;
+            var args = pm.slice(1);
+            return target.replace(/%[sd]/g, function () { return args.length ? args.shift() : ''; });
+          }
+          return null;
+        }
+
+        // ຫົວໜ່ວຍເງິນກີບຫຼັງຕົວເລກ ("132,000 ກີບ" → "132,000 Kip", "(ກີບ)" → "(Kip)")
+        var fromKip = (I18N_ALL_MERGED[fromLang] || {})['currency.kip'];
+        var toKip = toDict['currency.kip'];
+        var KIP_AMOUNT_RE = (fromKip && toKip && fromKip !== toKip)
+          ? new RegExp('([\\d(][\\s\\u00A0]*)' + fromKip.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')
+          : null;
+
+        var node;
+        while ((node = walker.nextNode())) {
+          var trimmed = node.nodeValue.trim();
+          if (!trimmed) continue;
+          var translated = translateText(trimmed);
+          if (translated !== null) {
+            var lead = node.nodeValue.match(/^\s*/)[0];
+            var trail = node.nodeValue.match(/\s*$/)[0];
+            node.nodeValue = lead + translated + trail;
+          } else if (KIP_AMOUNT_RE && node.nodeValue.indexOf(fromKip) !== -1) {
+            node.nodeValue = node.nodeValue.replace(KIP_AMOUNT_RE, '$1' + toKip);
+          }
+        }
+
+        ['placeholder', 'title'].forEach(function(attr) {
+          frameDoc.querySelectorAll('[' + attr + ']').forEach(function(el) {
+            var val = (el.getAttribute(attr) || '').trim();
+            var key = rev[val];
+            if (key && toDict[key]) el.setAttribute(attr, toDict[key]);
+          });
+        });
+
+        frameDoc.querySelectorAll('input[type="submit"], input[type="button"], input[type="reset"]').forEach(function(el) {
+          var val = (el.value || '').trim();
+          var key = rev[val];
+          if (key && toDict[key]) el.value = toDict[key];
+        });
+      }
+
+      // Re-point the iframe page's own JS i18n dictionaries (I18N_*, PROMO_I18N, …) at the
+      // incoming language, so a Swal/alert fired AFTER a flag switch — with no reload — speaks
+      // the new language too, not just the already-painted DOM. Every such object is a flat
+      // map keyed by the same "domain.key" strings t()/tjson() use, so we can find them by
+      // shape on the (same-origin) iframe window and swap each value from I18N_ALL_MERGED.
+      function retranslateIframeI18nObjects(toLang) {
+        var frameEl = document.querySelector('iframe[name="frame"]');
+        if (!frameEl) return;
+        var win;
+        try { win = frameEl.contentWindow; } catch (e) { return; }
+        if (!win) return;
+        var toDict = I18N_ALL_MERGED[toLang];
+        if (!toDict) return;
+        var props;
+        try { props = Object.keys(win); } catch (e) { return; }
+        // "domain.key" shape — the exact form t()/tjson() keys take.
+        var KEY_RE = /^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$/;
+        var hasOwn = Object.prototype.hasOwnProperty;
+        props.forEach(function(prop) {
+          var obj;
+          try { obj = win[prop]; } catch (e) { return; }
+          // Plain dictionary only: object, not null, not an Array/DOM/function. Don't compare
+          // prototypes across realms (the iframe has its own Object.prototype) — the key
+          // heuristic below is strict enough on its own.
+          if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return;
+          if (typeof obj.nodeType === 'number') return; // DOM node
+          var oKeys;
+          try { oKeys = Object.keys(obj); } catch (e) { return; }
+          if (!oKeys.length || oKeys.length > 2000) return;
+          var isI18n = oKeys.some(function(k) {
+            return KEY_RE.test(k) && hasOwn.call(toDict, k);
+          });
+          if (!isI18n) return;
+          oKeys.forEach(function(k) {
+            if (hasOwn.call(toDict, k)) {
+              try { obj[k] = toDict[k]; } catch (e) {}
+            }
+          });
+        });
+      }
+
+      document.querySelectorAll('.lang-flag-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var lang = btn.getAttribute('data-lang');
+          if (!lang || lang === CURRENT_ACTIVE_LANG) return;
+          var fromLang = CURRENT_ACTIVE_LANG;
+
+          // 1. Instant, client-side repaint of the persistent chrome.
+          applyLangInstantly(lang);
+
+          // 2. Instant, client-side translation of the current iframe page's own content —
+          //    no reload, matching the shell's zero-network-wait feel.
+          translateIframeContent(fromLang, lang);
+
+          // 2b. Re-point that page's JS i18n dictionaries so its popups switch too.
+          retranslateIframeI18nObjects(lang);
+
+          // 2c. Notify the iframe page so it can redo anything the DOM walker can't reach —
+          //     e.g. redraw <canvas> charts whose labels are baked into the bitmap, or re-render
+          //     JS-animated counters whose suffix text got baked into a compound text node
+          //     ("16 ບິນ") that never exact-matches a dictionary value on its own.
+          try {
+            var _frameForEvt = document.querySelector('iframe[name="frame"]');
+            if (_frameForEvt && _frameForEvt.contentWindow) {
+              _frameForEvt.contentWindow.dispatchEvent(new CustomEvent('pos:langchange', { detail: { lang: lang, fromLang: fromLang } }));
+            }
+          } catch (e) {}
+
+          CURRENT_ACTIVE_LANG = lang;
+
+          // 3. Persist the choice server-side, then reload the content page so EVERYTHING the
+          //    server renders (t(), page dictionaries, AJAX-built tables) comes back in the new
+          //    language — the user never has to press refresh. Step 2 above already repainted
+          //    what it could instantly, so the reload just fills in the rest.
+          fetch('../lang/set_lang.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'lang=' + encodeURIComponent(lang)
+          }).then(function() {
+            reloadFrameAfterLangChange();
+            notifyCustomerDisplayLang(lang);
+          }).catch(function() {});
+        });
+      });
+    });
+
+    // ແຈ້ງຈໍລູກຄ້າ (pages/pos/customer_display.php, ໜ້າຕ່າງແຍກ) ໃຫ້ປ່ຽນພາສານຳ — ສົ່ງຫຼັງ set_lang.php ບັນທຶກແລ້ວ
+    // ເພື່ອໃຫ້ຈໍລູກຄ້າໂຫຼດໃໝ່ເປັນພາສາໃໝ່. BroadcastChannel + localStorage (ກໍລະນີ browser ບໍ່ຮອງຮັບ channel).
+    function notifyCustomerDisplayLang(lang) {
+      try { new BroadcastChannel('WlaoDev.ui_lang_channel').postMessage({ lang: lang }); } catch (e) {}
+      try { localStorage.setItem('WlaoDev.ui_lang', JSON.stringify({ lang: lang, at: Date.now() })); } catch (e) {}
+    }
+
+    // ໂຫຼດໜ້າໃນ iframe ໃໝ່ຫຼັງປ່ຽນພາສາ (ບໍ່ຕ້ອງກົດ refresh). ຂ້າມ:
+    //  - ໜ້າທີ່ປ່ຽນພາສາສົດໄດ້ເອງ ແລະ ມີຂໍ້ມູນຄ້າງຢູ່ (window.POS_LANG_LIVE = true — ໜ້າຂາຍ/ກະຕ່າ)
+    //  - ມີ popup/modal ເປີດຢູ່ (ບໍ່ໃຫ້ຂໍ້ມູນທີ່ກຳລັງພິມຫາຍ) — ໜ້າຈະເປັນພາສາໃໝ່ຕອນເປີດຄັ້ງຕໍ່ໄປ
+    function reloadFrameAfterLangChange() {
+      var frameEl = document.querySelector('iframe[name="frame"]');
+      if (!frameEl) return;
+      var win, doc;
+      try { win = frameEl.contentWindow; doc = win.document; } catch (e) { return; }
+      if (!win || !doc || win.POS_LANG_LIVE) return;
+      if (doc.querySelector('.modal.show, .swal2-container.swal2-shown, .swal2-popup')) return;
+      if (typeof showFastLoader === 'function') showFastLoader();
+      try { win.location.reload(); } catch (e) {}
+    }
+
+    // Web Audio API Notification Chime Generator with Mobile Autoplay Policy Unlocker
+    var sharedAudioCtx = null;
+    var isAudioUnlocked = false;
+

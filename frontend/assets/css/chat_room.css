@@ -1,0 +1,950 @@
+/*
+ * chat_room.css — ໜ້າຕິດຕໍ່ = ຫ້ອງແຊັດແບບແອັບ 3 ຖັນ (pages/contact.php, ໂຫຼດຜ່ານ $pageStyles ຫຼັງ pages.css):
+ *   .cr-rail (ແຖບໄອຄອນແຄບ) | .ct-form.chat (ຫ້ອງແຊັດ — ຄລາສເດີມທີ່ assets/js/chat.js ໃຊ້) | .cr-info (ໂປຣໄຟລ໌ + ແທັບ)
+ * ຂຽນທັບ .ct-* ເດີມຂອງ pages.css (ຫົວແຊັດສີຂາວ, ພື້ນເທົາອ່ອນ, ຟອງຂໍ້ຄວາມມົນ).
+ */
+.ct { padding: 1rem 0 2.5rem; }
+.ct-workspace.cr {
+  grid-template-columns: 92px minmax(0, 1fr) 360px; gap: 0;
+  height: clamp(600px, calc(100vh - 120px), 860px);
+  border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #fff;
+  box-shadow: 0 10px 30px -18px rgba(15, 23, 42, .25);
+}
+.cr.is-info-off { grid-template-columns: 92px minmax(0, 1fr) 0; }
+.cr.is-info-off .cr-info { display: none; }
+
+/* ---------- ຮູບໂປຣໄຟລ໌ (ຫົວແຊັດ) ---------- */
+.cr-ava { position: relative; flex: none; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: #fff; border: 1px solid #e2e8f0; }
+.cr-ava img { object-fit: contain; }
+.cr-online { position: absolute; right: 1px; bottom: 1px; width: 11px; height: 11px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 2px #fff; }
+.cr-unread { flex: none; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #ef4444; color: #fff; font-size: .72rem; font-weight: 700; line-height: 20px; text-align: center; }
+
+/* ---------- ຖັນ 2: ຫ້ອງແຊັດ (ຂຽນທັບ pages.css) ---------- */
+.cr .ct-form.chat {
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  position: relative;
+}
+.cr .chat-top { gap: .8rem; padding: .85rem 1.2rem; background: #fff; border-bottom: 1px solid #e2e8f0; }
+.cr .chat-avatar { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #e2e8f0; background: #fff; }
+.cr .chat-who { flex: 1; min-width: 0; }
+.cr .chat-who h1 { color: #0f172a; font-size: 1.05rem; }
+.cr .chat-who small { color: #16a34a; }
+.cr-top-actions { display: flex; align-items: center; gap: .35rem; }
+.cr-top-actions a, .cr-top-actions button { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: #0f172a; cursor: pointer; }
+.cr-top-actions a:hover, .cr-top-actions button:hover { background: #f1f5f9; color: #1d4ed8; }
+.cr .chat-log {
+  background: #f1f5f9;
+  padding: 1.25rem 1.5rem;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
+}
+.cr .chat-bubble { border-radius: 14px 14px 14px 4px; background: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .06); }
+.cr .chat-msg.is-visitor .chat-bubble { border-radius: 14px 14px 4px 14px; background: #1d4ed8; color: #fff; }
+.cr .chat-quick { border-top: 1px solid #e2e8f0; }
+.cr .chat-quick button { border-radius: 999px; }
+.cr .chat-input { display: flex; align-items: center; gap: .55rem; padding: .75rem 1rem; border-top: 1px solid #e2e8f0; position: relative; }
+.cr .chat-mic, .cr .chat-send { border-radius: 50%; }
+.cr .chat-guest-bar { border-top: 1px solid #e2e8f0; }
+
+/* ---------- ຖັນ 3: ໂປຣໄຟລ໌ + ແທັບ (Redesigned Profile View) ---------- */
+.cr-info { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-left: 1px solid #e2e8f0; background: #fff; overflow: hidden; }
+.cr-info-head { display: none; }
+.cr-info-scroll { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; scrollbar-width: thin; scrollbar-color: transparent transparent; }
+.cr-info-scroll:hover { scrollbar-color: #cbd5e1 transparent; }
+.cr-profile { display: flex; flex-direction: column; align-items: center; gap: .35rem; padding: 1.5rem 1rem 1.3rem; text-align: center; border-bottom: 8px solid #f8fafc; background: #fff; }
+.cr-profile-ava-wrap { position: relative; margin-bottom: .35rem; }
+.cr-profile-ava { display: grid; place-items: center; width: 88px; height: 88px; border-radius: 50%; border: 3px solid #ffffff; background: #fff; box-shadow: 0 4px 16px rgba(15, 23, 42, .08); overflow: hidden; }
+.cr-profile-ava img { width: 56px; height: auto; object-fit: contain; }
+.cr-profile-verified { position: absolute; bottom: 0; right: 2px; width: 22px; height: 22px; border-radius: 50%; background: #2563eb; color: #fff; font-size: .72rem; font-weight: 800; display: grid; place-items: center; border: 2px solid #fff; }
+.cr-profile-name { font-size: 1.22rem; font-weight: 800; color: #0f172a; line-height: 1.25; margin: 0; }
+.cr-profile-sub { margin: 0; font-size: .82rem; color: #64748b; line-height: 1.4; }
+.cr-profile-status { display: inline-flex; align-items: center; gap: 5px; font-size: .78rem; color: #16a34a; font-weight: 600; background: #f0fdf4; padding: .18rem .7rem; border-radius: 999px; margin-top: .15rem; }
+.cr-profile-actions { display: flex; align-items: center; justify-content: center; gap: 1.4rem; margin-top: 1rem; width: 100%; }
+.cr-prof-act { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #334155; text-decoration: none; font-size: .75rem; font-weight: 600; }
+.cr-prof-ico { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: #ffffff; transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 4px 12px rgba(15, 23, 42, .12); }
+.cr-prof-act:active .cr-prof-ico { transform: scale(.92); }
+.cr-prof-act.is-call .cr-prof-ico { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+.cr-prof-act.is-wa .cr-prof-ico { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.cr-prof-act.is-about .cr-prof-ico { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.cr-tabs { display: flex; border-bottom: 1px solid #e2e8f0; background: #fff; position: sticky; top: 0; z-index: 5; }
+.cr-tabs button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: .75rem .3rem; border: 0; border-bottom: 3px solid transparent; background: none; color: #64748b; font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; transition: all .2s ease; }
+.cr-tabs button:hover { color: #0f172a; }
+.cr-tabs button.is-active { color: #0084ff; border-bottom-color: #0084ff; }
+.cr-pane { padding: 1rem; }
+.cr-pane[hidden] { display: none; }
+.cr-order { display: flex; align-items: center; gap: .6rem; padding: .6rem .5rem; border-bottom: 1px solid #f1f5f9; color: #0f172a; text-decoration: none; }
+.cr-order:hover { background: #f8fafc; color: #0f172a; }
+.cr-order img { flex: none; object-fit: contain; }
+.cr-order > span:not(.mo-badge) { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.35; }
+.cr-order b { font-size: .86rem; color: #1e3a8a; }
+.cr-order small { color: #64748b; font-size: .76rem; }
+.cr-more { display: block; margin-top: .6rem; text-align: center; font-size: .86rem; font-weight: 700; }
+.cr-empty { display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 2.2rem .6rem; text-align: center; }
+.cr-empty strong { font-size: 1.12rem; color: #0f172a; }
+.cr-empty span { color: #64748b; font-size: .88rem; line-height: 1.5; }
+.cr-empty-btn { margin-top: .5rem; padding: .55rem 1.2rem; border-radius: 999px; background: #f1f5f9; color: #0f172a; font-weight: 700; font-size: .88rem; text-decoration: none; }
+.cr-empty-btn:hover { background: #e2e8f0; color: #0f172a; }
+.cr-media { display: flex; align-items: flex-start; gap: .55rem; padding: .55rem .2rem; border-bottom: 1px solid #f1f5f9; }
+.cr-media-ico { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: #eff6ff; }
+.cr-media-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .3rem; font-size: .85rem; overflow-wrap: anywhere; }
+.cr-media-body audio { width: 100%; height: 32px; }
+.cr-media small { flex: none; color: #94a3b8; font-size: .74rem; }
+
+/* ---------- ຈໍມືຖື / ແທັບເລັດ (≤992px): ຫ້ອງແຊັດເຕັມຈໍແບບ Native App (Fastwork Style) ---------- */
+@media (max-width: 992px) {
+  html:has(body.page-contact),
+  body.page-contact {
+    height: 100% !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  body.page-contact .site-header {
+    flex-shrink: 0 !important;
+    z-index: 100 !important;
+  }
+  body.page-contact .site-main {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  body.page-contact .site-footer,
+  body.page-contact .mbar {
+    display: none !important;
+  }
+  body.page-contact .ct {
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  body.page-contact .ct > .container {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  body.page-contact .ct-workspace.cr,
+  body.page-contact .cr.is-info-off {
+    grid-template-columns: minmax(0, 1fr) !important;
+    height: 100% !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+  body.page-contact .cr-info {
+    display: flex !important;
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    left: 0 !important;
+    z-index: 2100 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    height: 100dvh !important;
+    background: #ffffff !important;
+    border-left: 0 !important;
+    box-shadow: none !important;
+    transform: translateX(100%) !important;
+    transition: transform .28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    overflow: hidden !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    flex-direction: column !important;
+  }
+  html.cr-info-on body.page-contact .cr-info {
+    transform: translateX(0) !important;
+  }
+  html.cr-info-on {
+    overflow: hidden !important;
+    touch-action: none !important;
+  }
+  .cr-info-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    padding: 0 .65rem !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #eef2f6 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+    flex-shrink: 0 !important;
+  }
+  .cr-info-back-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    background: transparent !important;
+    border: 0 !important;
+    padding: .45rem .65rem !important;
+    color: #0084ff !important;
+    font-size: .95rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    border-radius: 8px !important;
+    font-family: inherit !important;
+  }
+  .cr-info-back-btn:active {
+    background: #f1f5f9 !important;
+  }
+  .cr-info-title {
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+  }
+  .cr-info-head-space {
+    width: 60px !important;
+  }
+  body.page-contact .cr-top-actions [data-cr-toggle-info] {
+    display: grid !important;
+  }
+  body.page-contact .cr .ct-form.chat {
+    height: 100% !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    position: relative !important;
+  }
+  body.page-contact .cr .chat-top {
+    flex-shrink: 0 !important;
+    padding: .65rem .95rem !important;
+  }
+  body.page-contact .cr .chat-log {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: scroll !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+    touch-action: pan-y !important;
+    padding: .85rem .95rem !important;
+  }
+  body.page-contact .cr .chat-quick-wrap {
+    flex-shrink: 0 !important;
+  }
+  body.page-contact .cr .chat-input {
+    flex-shrink: 0 !important;
+    padding: .6rem .85rem !important;
+    padding-bottom: max(.6rem, env(safe-area-inset-bottom)) !important;
+  }
+  body.page-contact .cr .chat-contact,
+  body.page-contact .cr .chat-rec,
+  body.page-contact .cr .chat-guest-bar {
+    flex-shrink: 0 !important;
+  }
+}
+
+.cr-mobile-only { display: none !important; }
+button.cr-empty-btn { border: 0; font: inherit; font-weight: 700; font-size: .88rem; cursor: pointer; }
+
+/* ---------- popup (components/chat_room_modals.php) ---------- */
+html.crm-open { overflow: hidden; }
+.crm { position: fixed; inset: 0; z-index: 1300; display: grid; place-items: center; padding: 1rem; }
+.crm[hidden] { display: none; }
+.crm-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, .45); backdrop-filter: blur(3px); }
+.crm-box { position: relative; display: flex; flex-direction: column; width: min(440px, 100%); max-height: min(640px, calc(100vh - 2rem)); padding: 1.15rem 1.1rem 1rem; border-radius: 18px; font-size: .9rem; background: #fff; box-shadow: 0 30px 70px -20px rgba(2, 6, 23, .45); animation: crmIn .22s ease-out; }
+@keyframes crmIn { from { opacity: 0; transform: translateY(14px) scale(.97); } }
+.crm-box h2 { margin: 0 0 .7rem; text-align: center; font-size: 1.02rem; color: #0f172a; }
+.crm-x { position: absolute; top: .65rem; right: .7rem; display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 50%; background: none; color: #334155; cursor: pointer; }
+.crm-x:hover { background: #f1f5f9; }
+.crm-body { overflow-y: auto; padding: 0 .3rem; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+.crm-x svg { width: 18px; height: 18px; }
+.crm-step { display: flex; gap: .7rem; margin-bottom: .9rem; }
+.crm-num { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #eff6ff; color: #1d4ed8; font-weight: 800; font-size: .88rem; }
+.crm-step b { display: block; margin: .3rem 0 .2rem; font-size: .9rem; color: #0f172a; }
+.crm-step ul { margin: 0; padding-left: 1rem; color: #334155; font-size: .82rem; line-height: 1.7; }
+.crm-tip-head { display: flex; align-items: center; gap: .35rem; margin: .3rem 0 .4rem; font-size: .88rem; font-weight: 700; color: #0f172a; }
+.crm-tip { padding: .7rem .8rem; border-radius: 10px; background: #f3f4f8; color: #475569; font-size: .8rem; line-height: 1.6; }
+.crm-tip p { margin: 0 0 .6rem; } .crm-tip p:last-child { margin: 0; }
+.crm-ok { margin-top: .8rem; padding: .6rem; font-size: .88rem; border: 0; border-radius: 999px; background: #0f172a; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.crm-ok:hover { background: #1e293b; }
+.crm-group { margin: .7rem 0 .2rem; color: #475569; font-size: .78rem; font-weight: 700; }
+.crm-group:first-child { margin-top: 0; }
+.crm-row { display: flex; align-items: center; gap: .7rem; padding: .45rem 0; cursor: default; }
+label.crm-row { cursor: pointer; }
+.crm-ico { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #f1f5f9; color: #334155; }
+.crm-ico svg { width: 18px; height: 18px; }
+.crm-text { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.4; }
+.crm-text b { color: #0f172a; font-size: .86rem; }
+.crm-text small { color: #64748b; font-size: .74rem; }
+.crm-switch { appearance: none; -webkit-appearance: none; flex: none; position: relative; width: 40px; height: 23px; margin: 0; border-radius: 999px; background: #e2e8f0; cursor: pointer; transition: background .2s; }
+.crm-switch::after { content: ''; position: absolute; top: 2.5px; left: 2.5px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, .3); transition: transform .2s; }
+.crm-switch:checked { background: #1d4ed8; }
+.crm-switch:checked::after { transform: translateX(17px); }
+.crm-btn { flex: none; padding: .38rem .9rem; border: 0; border-radius: 999px; background: #0f172a; color: #fff; font: inherit; font-weight: 700; font-size: .76rem; cursor: pointer; }
+.crm-btn:disabled { background: #e2e8f0; color: #64748b; cursor: default; }
+.crm-btn.is-on { background: #dcfce7; color: #15803d; }
+.crm-theme-name { color: #1d4ed8; font-weight: 700; font-size: .82rem; }
+.crm-themes { display: flex; gap: .55rem; flex-wrap: wrap; padding: .3rem 0 .5rem; }
+/* ກາດທີມ: ຕັ້ງສູງ ສີພື້ນເຕັມກາດ, ຟອງສີທີມ (ຂໍ້ຄວາມລູກຄ້າ) ຢູ່ເທິງຂວາ + ຟອງຂາວ (ທີມງານ) ຢູ່ລຸ່ມຊ້າຍ */
+.crm-theme { position: relative; flex: 0 0 auto; width: 62px; height: 88px; padding: 0; border: 2px solid transparent; border-radius: 6px; background: var(--bg); cursor: pointer; overflow: hidden; transition: transform .15s ease, box-shadow .15s ease; }
+.crm-theme:hover { transform: translateY(-2px); }
+.crm-theme i { position: absolute; height: 17px; border-radius: 999px; }
+.crm-b1 { top: 18px; right: 7px; width: 40px; background: var(--bubble); }
+.crm-b2 { top: 44px; left: 7px; width: 40px; background: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .08); }
+.crm-theme.is-active { border-color: #1d4ed8; box-shadow: 0 0 0 3px #dbeafe; }
+
+/* ---------- ທີມສີຫ້ອງແຊັດ (.cr[data-theme], ເລືອກໃນຕັ້ງຄ່າ) ---------- */
+.cr[data-theme="sky"] .chat-log { background: #9ab6ee; }
+.cr[data-theme="sky"] .chat-msg.is-visitor .chat-bubble { background: #a3e635; color: #1f2937; }
+.cr[data-theme="sun"] .chat-log { background: #fff7c2; }
+.cr[data-theme="sun"] .chat-msg.is-visitor .chat-bubble { background: #eab308; color: #1f2937; }
+.cr[data-theme="mint"] .chat-log { background: #d3f2df; }
+.cr[data-theme="mint"] .chat-msg.is-visitor .chat-bubble { background: #047857; }
+.cr[data-theme="rose"] .chat-log { background: #fde9e4; }
+.cr[data-theme="rose"] .chat-msg.is-visitor .chat-bubble { background: #c81e1e; }
+
+@media (max-width: 992px) {
+  .cr-mobile-only { display: grid !important; }
+  .crm-box { padding: 1rem .85rem .85rem; border-radius: 16px; }
+  .crm-themes { padding-left: 0; }
+}
+
+/* ---------- ເຕັມຈໍ (ແບບແອັບແຊັດ): ກວ້າງເຕັມ ແລະ ສູງ = ຈໍ − ເມນູເທິງ, ບໍ່ມີຂອບ/ມຸມມົນ ----------
+   ຄວາມສູງເມນູ = 4.25em × clamp(12px, 1.5625vw, 16px) (layouts .site-header ໃນ layout.css) + ເສັ້ນລຸ່ມ 1px */
+.page-contact .ct { padding: 0; background: #fff; }
+.page-contact .ct > .container { max-width: none; padding: 0; }
+.page-contact .ct-workspace.cr {
+  height: calc(100vh - 4.25 * clamp(12px, 1.5625vw, 16px) - 1px);
+  height: calc(100dvh - 4.25 * clamp(12px, 1.5625vw, 16px) - 1px);
+  min-height: 560px;
+  border: 0; border-radius: 0; box-shadow: none;
+}
+.page-contact .cr-info { background: #fff; }
+@media (min-width: 1440px) {
+  .page-contact .ct-workspace.cr { grid-template-columns: 96px minmax(0, 1fr) 380px; }
+  .page-contact .cr.is-info-off { grid-template-columns: 96px minmax(0, 1fr) 0; }
+}
+@media (max-width: 992px) {
+  .page-contact .ct-workspace.cr { height: auto; min-height: 0; }
+  .page-contact .cr .ct-form.chat { height: calc(100dvh - 60px - 64px); min-height: 460px; }   /* ມືຖື: ເມນູ 60px + ແຖບຕິດຕໍ່ລຸ່ມ */
+}
+
+/* ---------- ແຖບໄອຄອນແຄບຊ້າຍ (ແທນລາຍຊື່ແຊັດ — ມີຫ້ອງດຽວ) ---------- */
+.cr-rail { display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 1.1rem .4rem; background: #f8fafc; border-right: 1px solid #e2e8f0; }
+.cr-rail-btn { position: relative; display: flex; flex-direction: column; align-items: center; gap: .3rem; width: 76px; padding: .55rem .2rem; border: 0; border-radius: 12px; background: none; color: #334155; font: inherit; font-size: .76rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+.cr-rail-btn svg { width: 24px; height: 24px; }
+.cr-rail-btn:hover { background: #eef2f7; color: #1d4ed8; }
+.cr-rail-btn.is-active { color: #0f172a; }
+.cr-rail-btn.is-active svg { box-sizing: content-box; padding: 12px; border-radius: 14px; background: #fff; box-shadow: 0 2px 8px rgba(15, 23, 42, .1); }
+.cr-rail-dot { position: absolute; top: 4px; right: 10px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ef4444; color: #fff; font-size: .68rem; font-style: normal; font-weight: 700; line-height: 18px; }
+.cr-rail-bottom { margin-top: auto; display: flex; flex-direction: column; gap: .4rem; }
+
+/* ---------- ຍັງບໍ່ເຄີຍແຊັດ: ຮູບປະກອບກາງຈໍ ---------- */
+.cr-start { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 2rem 1rem; text-align: center; }
+.cr-start p { margin: 0; max-width: 300px; color: #64748b; font-size: 1rem; font-weight: 600; line-height: 1.6; }
+.chat-log:has(.chat-msg) .cr-start { display: none; }
+
+@media (max-width: 1180px) {
+  .ct-workspace.cr, .page-contact .ct-workspace.cr { grid-template-columns: 84px minmax(0, 1fr) 300px; }
+}
+@media (max-width: 992px) {
+  .ct-workspace.cr, .page-contact .ct-workspace.cr, .cr.is-info-off { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------- ເລື່ອນ: ຖັນລະ 1 ບ່ອນ, ແຖບເລື່ອນບາງ (ບໍ່ຊ້ອນກັນ) ----------
+   ຖັນຂວາ: ໂປຣໄຟລ໌ + ແທັບຢູ່ກັບທີ່, ເລື່ອນສະເພາະ .cr-panes. ຈໍໃຫຍ່: ເຊື່ອງ footer → ໜ້າບໍ່ເລື່ອນ (ມີແທັບ "ຕິດຕໍ່" ແລ້ວ) */
+.cr-panes { position: relative; flex: 1; min-height: 0; overflow-y: auto; }
+.cr-panes, .cr .chat-log, .om-body { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+.cr-panes:hover, .cr .chat-log:hover, .om-body:hover { scrollbar-color: #cbd5e1 transparent; }
+@media (min-width: 993px) {
+  body.page-contact .site-footer, body.page-orders .site-footer { display: none; }
+}
+@media (min-width: 993px) and (min-height: 640px) {   /* ຈໍເຕີ້ຍກວ່າ min-height 560px ຍັງເລື່ອນໜ້າໄດ້ */
+  html:has(body.page-contact), html:has(body.page-orders) { overflow: hidden; }
+}
+
+/* ---------- ຈຸດໂຫຼດ ເວລາສະຫຼັບແທັບ ---------- */
+.cr-loading { display: flex; align-items: center; justify-content: center; gap: 6px; height: 100%; min-height: 220px; }
+.cr-loading[hidden] { display: none; }
+.cr-loading i { width: 9px; height: 9px; border-radius: 50%; background: #64748b; animation: cr-dot 1s ease-in-out infinite; }
+.cr-loading i:nth-child(2) { animation-delay: .15s; }
+.cr-loading i:nth-child(3) { animation-delay: .3s; }
+.cr-loading i:nth-child(4) { animation-delay: .45s; }
+@keyframes cr-dot { 0%, 100% { transform: scale(.6); opacity: .45; } 50% { transform: scale(1.5); opacity: 1; } }
+
+/* ---------- ມີເດຍ: ປຸ່ມແຍກ 2 ອັນ ---------- */
+.cr-seg { display: flex; gap: 4px; margin-bottom: .7rem; padding: 4px; border-radius: 12px; background: #f1f5f9; }
+.cr-seg button { flex: 1; padding: .55rem .3rem; border: 0; border-radius: 9px; background: none; color: #475569; font: inherit; font-size: .86rem; font-weight: 700; cursor: pointer; }
+.cr-seg button.is-active { background: #fff; color: #0f172a; box-shadow: 0 1px 4px rgba(15, 23, 42, .1); }
+.cr-media[hidden] { display: none; }
+
+
+
+/* ---------- ຕັ້ງຄ່າ: ເວີຊັນ + ປຸ່ມຂອບ ---------- */
+.crm-version { margin: -.4rem 0 .5rem; text-align: center; color: #94a3b8; font-size: .74rem; }
+.crm-btn.is-outline { border: 1px solid #cbd5e1; background: #fff; color: #0f172a; }
+.crm-btn.is-outline:hover:not(:disabled) { background: #f8fafc; }
+
+/* ---------- ສະຕິກເກີ (assets/js/chat_stickers.js) ---------- */
+.cr .chat-msg.is-sticker .chat-bubble { padding: 0; border: 0; background: none !important; box-shadow: none; font-size: 3.6rem; line-height: 1.1; }
+.cr-stk { border-top: 1px solid #e2e8f0; background: #fff; }
+.cr-stk[hidden], .cr-stk-preview[hidden] { display: none; }
+.cr-stk-tabs { display: flex; gap: .25rem; padding: .45rem .7rem 0; overflow-x: auto; scrollbar-width: none; }
+.cr-stk-tabs button { flex: none; padding: .35rem .8rem; border: 0; border-radius: 999px; background: none; color: #475569; font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
+.cr-stk-tabs button.is-active { background: #eff6ff; color: #1d4ed8; }
+.cr-stk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: .2rem; max-height: 168px; padding: .5rem .7rem .7rem; overflow-y: auto; scrollbar-width: thin; }
+.cr-stk-grid button { height: 52px; border: 0; border-radius: 10px; background: none; font-size: 2rem; cursor: pointer; transition: transform .12s ease; }
+.cr-stk-grid button:hover { background: #f1f5f9; transform: scale(1.12); }
+.cr-stk-grid p { grid-column: 1 / -1; margin: .6rem 0; color: #94a3b8; text-align: center; font-size: .85rem; }
+.cr-stk-preview { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .6rem 1rem; border-top: 1px solid #e2e8f0; background: #f8fafc; }
+.cr-stk-big { font-size: 3.4rem; line-height: 1; }
+.cr-stk-preview div { display: flex; gap: .5rem; }
+.cr-stk-preview button { padding: .5rem 1.2rem; border-radius: 999px; font: inherit; font-weight: 700; cursor: pointer; }
+.cr-stk-cancel { border: 1px solid #cbd5e1; background: #fff; color: #334155; }
+.cr-stk-send { border: 0; background: #1d4ed8; color: #fff; }
+[data-chat-sticker].is-on { background: #dbeafe; }
+
+/* ---------- ໄຟລ໌ແນບໃນແຊັດ (assets/js/chat.js fileNode) ---------- */
+.cr .chat-msg.is-file-image .chat-bubble, .cr .chat-msg.is-file-video .chat-bubble { padding: 4px; background: #fff !important; }
+.chat-att-img { display: block; }
+.chat-att-img img { display: block; max-width: min(280px, 60vw); max-height: 320px; border-radius: 10px; object-fit: cover; cursor: zoom-in; }
+.chat-att-video { display: block; max-width: min(320px, 65vw); max-height: 320px; border-radius: 10px; background: #000; }
+.chat-att-file { display: flex; align-items: center; gap: .65rem; min-width: 200px; max-width: 300px; color: inherit; text-decoration: none; }
+.chat-att-file span:last-child { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+.chat-att-file b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .9rem; }
+.chat-att-file small { opacity: .8; font-size: .76rem; }
+.chat-att-ext { flex: none; display: grid; place-items: center; width: 40px; height: 46px; border-radius: 8px; background: #e0e7ff; color: #1d4ed8; font-size: .66rem; font-weight: 800; letter-spacing: .02em; }
+.cr .chat-msg.is-visitor .chat-att-file .chat-att-ext { background: rgba(255, 255, 255, .22); color: #fff; }
+
+/* ---------- ແທັບ ມີເດຍ ແລະ ໄຟລ໌ ---------- */
+.cr-gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.cr-gallery[hidden], .cr-files[hidden] { display: none; }
+.cr-g { position: relative; display: block; aspect-ratio: 1; overflow: hidden; border-radius: 6px; background: #f1f5f9; }
+.cr-g img, .cr-g video { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s ease; }
+.cr-g:hover img, .cr-g:hover video { transform: scale(1.05); }
+.cr-g.is-video i { position: absolute; inset: 0; margin: auto; width: 34px; height: 34px; border-radius: 50%; background: rgba(15, 23, 42, .55); }
+.cr-g.is-video i::after { content: ""; position: absolute; left: 13px; top: 10px; border: 7px solid transparent; border-left: 11px solid #fff; border-right: 0; }
+.cr-files { display: flex; flex-direction: column; }
+.cr-file { display: flex; align-items: center; gap: .7rem; padding: .6rem .3rem; border-bottom: 1px solid #f1f5f9; color: #0f172a; text-decoration: none; }
+.cr-file:hover { background: #f8fafc; color: #0f172a; }
+.cr-file > span:last-child { display: flex; flex-direction: column; min-width: 0; line-height: 1.35; }
+.cr-file b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .88rem; }
+.cr-file small { color: #64748b; font-size: .76rem; }
+.cr-media-empty { display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 4rem 1rem; color: #94a3b8; }
+.cr-media-empty[hidden] { display: none; }
+.cr-media-empty span { color: #64748b; font-size: .92rem; }
+
+/* ---------- ເບິ່ງຮູບ / ວິດີໂອ ເຕັມຈໍ ---------- */
+.cr-viewer { position: fixed; inset: 0; z-index: 2200; display: flex; align-items: center; justify-content: center; padding: 3.5rem 1rem; background: rgba(15, 23, 42, .88); }
+.cr-viewer[hidden] { display: none; }
+.cr-viewer-body img, .cr-viewer-body video { display: block; max-width: 92vw; max-height: 82vh; border-radius: 8px; }
+.cr-viewer-x { position: absolute; top: .8rem; right: 1rem; width: 44px; height: 44px; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .14); color: #fff; font-size: 1.8rem; line-height: 1; cursor: pointer; }
+.cr-viewer-x:hover { background: rgba(255, 255, 255, .26); }
+.cr-viewer-dl { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); padding: .5rem 1.3rem; border-radius: 999px; background: #fff; color: #0f172a; font-weight: 700; text-decoration: none; }
+.cr .chat-msg .chat-att-file, .cr .chat-msg .chat-att-file:hover { color: inherit; text-decoration: none; }
+
+/* ---------- ມືຖື: ແຖບໄອຄອນ → ລິ້ນຊັກເລື່ອນອອກຈາກຂວາ (ປຸ່ມ ☰ .cr-rail-open) ---------- */
+.cr-rail-logo, .cr-rail-back, .cr-info-back, .cr-info-close { display: none; }
+.cr-rail-open { flex: none; place-items: center; width: 40px; height: 40px; margin-right: .2rem; border: 0; border-radius: 10px; background: none; color: #0f172a; cursor: pointer; }
+.cr-rail-open:hover { background: #f1f5f9; }
+@media (max-width: 992px) {
+  .cr-rail, .om-shell .cr-rail {
+    display: flex; position: fixed; top: 0; bottom: 0; right: 0; left: auto; z-index: 1450;
+    width: min(300px, 82vw); padding: 1.2rem .9rem 1.4rem; align-items: stretch; gap: .35rem;
+    border-left: 1px solid #e2e8f0; border-right: 0; box-shadow: -8px 0 30px rgba(15, 23, 42, .18);
+    transform: translateX(105%); transition: transform .25s ease; overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  html.cr-rail-on .cr-rail { transform: none; }
+  html.cr-rail-on { overflow: hidden; touch-action: none; }
+  .cr-rail-back { display: block; position: fixed; inset: 0; z-index: 1440; background: rgba(15, 23, 42, .45); opacity: 0; visibility: hidden; transition: opacity .25s, visibility .25s; }
+  html.cr-rail-on .cr-rail-back { opacity: 1; visibility: visible; }
+  .cr-rail-logo { display: flex; align-items: center; gap: .55rem; margin: 0 .3rem 1.6rem; color: #0f172a; font-size: 1.3rem; font-weight: 800; text-decoration: none; }
+  .cr-rail-btn { flex-direction: row; gap: 1.1rem; width: auto; padding: .45rem .55rem; font-size: .98rem; text-align: left; }
+  .cr-rail-btn svg { box-sizing: content-box; padding: 12px; border-radius: 14px; }
+  .cr-rail-btn.is-active { background: none; }
+  .cr-rail-dot { top: 2px; left: 44px; right: auto; }
+  .cr-rail-bottom { gap: .2rem; }
+}
+
+/* ຊ່ອງພິມຂໍ້ຄວາມ: ບໍ່ສະແດງແຖບເລື່ອນ (ຍັງເລື່ອນໄດ້ຕອນຂໍ້ຄວາມຍາວ) */
+.chat-input textarea { scrollbar-width: none; -ms-overflow-style: none; }
+.chat-input textarea::-webkit-scrollbar { display: none; }
+
+/* ເສັ້ນແບ່ງວັນໃນແຊັດ (assets/js/chat.js dayNode): ມື້ນີ້ / ມື້ວານ / ວັນທີ */
+.chat-day { display: flex; justify-content: center; margin: .6rem 0 .3rem; }
+.chat-day span { padding: .18rem .75rem; border-radius: 999px; background: rgba(15, 23, 42, .07); color: #475569; font-size: .74rem; font-weight: 600; }
+
+/* ປຸ່ມກັບຄືນ / ອໍເດີ ແລະ ແຖບ ແຊັດ | ອໍເດີ — ສະເພາະມືຖື */
+.cr-back, .cr-mtabs, .cr-top-actions a.cr-m-orders { display: none; }
+
+.chat-avatar-btn {
+  background: none; border: 0; padding: 0; margin: 0; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+/* ປຸ່ມປິດລິ້ນຊັກຂໍ້ມູນມີເດຍໃນມືຖື */
+.cr-info-close {
+  display: none; position: absolute; top: .85rem; right: .85rem; width: 34px; height: 34px;
+  border-radius: 50%; border: 0; background: #f1f5f9; color: #475569; font-size: 1.3rem;
+  line-height: 1; place-items: center; cursor: pointer; z-index: 10;
+}
+.cr-info-close:hover { background: #e2e8f0; color: #0f172a; }
+
+/* ---------- ປຸ່ມແຄບຊູນ ແລະ ເມນູປຸ່ມບວກ + (Universal) ---------- */
+.chat-input-pill {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  background: #f1f5f9;
+  border-radius: 999px;
+  padding: 2px 8px 2px 14px;
+  border: 1px solid transparent;
+  transition: all .2s ease;
+  position: relative;
+}
+.chat-input-pill:focus-within {
+  background: #ffffff;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+}
+.chat-input-pill textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 38px;
+  min-height: 38px;
+  max-height: 120px;
+  border: 0 !important;
+  background: transparent !important;
+  padding: .5rem 0 !important;
+  font-size: .95rem !important;
+  line-height: 1.4 !important;
+  color: #0f172a !important;
+  outline: none !important;
+  box-shadow: none !important;
+  resize: none !important;
+}
+.chat-input-pill textarea::placeholder {
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chat-plus-btn, .chat-cam-btn, .chat-stk-btn {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 0;
+  transition: all .2s ease;
+}
+.chat-plus-btn:hover, .chat-cam-btn:hover, .chat-stk-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.chat-mic-btn, .chat-send {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background: #0084ff;
+  background: linear-gradient(135deg, #0084ff 0%, #0066ee 100%);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(0, 132, 255, .28);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.chat-mic-btn:active, .chat-send:active { transform: scale(.93); }
+.chat-input:has(textarea:placeholder-shown) .chat-send { display: none; }
+.chat-input:not(:has(textarea:placeholder-shown)) .chat-mic-btn { display: none; }
+
+/* ເມນູປຸ່ມບວກ + (ແນບເອກະສານ / ສົ່ງຕຳແໜ່ງ / ອໍເດີ / ຂໍ້ມູນຮ້ານ) */
+.cr-plus-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: .65rem;
+  z-index: 50;
+  display: flex;
+  gap: .85rem;
+  padding: .85rem 1.1rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 12px 32px -4px rgba(15, 23, 42, .18);
+  animation: crPlusPop .22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes crPlusPop {
+  from { opacity: 0; transform: translateY(8px) scale(.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.cr-plus-menu[hidden] { display: none !important; }
+.cr-plus-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #334155;
+  font-size: .72rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+}
+.cr-plus-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  transition: transform .15s ease;
+}
+.cr-plus-item:active .cr-plus-icon { transform: scale(.92); }
+.cr-plus-icon-doc { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.cr-plus-icon-loc { background: linear-gradient(135deg, #10b981, #059669); }
+.cr-plus-icon-order { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.cr-plus-icon-info { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+
+/* ---------- ມືຖື (≤992px): ຫ້ອງແຊັດເລເອົ້າ Messenger / LINE / WhatsApp ---------- */
+@media (max-width: 992px) {
+  /* ຫົວແຊັດ: ← [ຮູບໂລໂກ້] ຊື່ຮ້ານ / ອອນໄລນ໌ ... 📞 [ໂທເທົ່ານັ້ນ, ບໍ່ມີວິດີໂອຄໍ] */
+  body.page-contact .cr .chat-top {
+    gap: .55rem !important;
+    padding: .6rem .8rem !important;
+    border-bottom: 1px solid #eef2f6 !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .03) !important;
+  }
+  .cr-back {
+    display: grid !important;
+    place-items: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    color: #0f172a !important;
+    margin-right: -2px !important;
+  }
+  .cr-back:hover, .cr-back:active { background: #f1f5f9 !important; color: #0f172a !important; }
+  body.page-contact .cr .chat-top .chat-avatar {
+    display: inline-flex !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    border: 1px solid #e2e8f0 !important;
+    background: #fff !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+    overflow: hidden !important;
+  }
+  body.page-contact .cr .chat-top .chat-avatar img {
+    width: 26px !important;
+    height: 18px !important;
+    object-fit: contain !important;
+  }
+  body.page-contact .cr .chat-who {
+    cursor: pointer;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 1px !important;
+  }
+  body.page-contact .cr .chat-who h1 {
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+    color: #0f172a !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  body.page-contact .cr .chat-who small {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    font-size: .75rem !important;
+    line-height: 1.2 !important;
+    color: #16a34a !important;
+    font-weight: 500 !important;
+  }
+  body.page-contact .cr .chat-who .chat-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    flex-shrink: 0;
+  }
+
+  /* ປຸ່ມຂວາຫົວແຊັດ: ສະແດງສະເພາະ ໂທສາຍດ່ວນ (ບໍ່ມີວິດີໂອຄໍ, ບໍ່ມີອໍເດີ/ເມນູລົບກວນ) */
+  .cr .cr-top-actions {
+    margin-left: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: .2rem !important;
+  }
+  body.page-contact .cr .cr-rail-open,
+  body.page-contact .cr .cr-top-actions a[href*="wa.me"],
+  body.page-contact .cr .cr-top-actions a.cr-m-orders,
+  body.page-contact .cr .cr-top-actions [data-cr-toggle-info] {
+    display: none !important;
+  }
+  body.page-contact .cr .cr-top-actions a[href^="tel:"] {
+    display: grid !important;
+    place-items: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    color: #0f172a !important;
+    background: transparent !important;
+    transition: background .2s ease;
+  }
+  body.page-contact .cr .cr-top-actions a[href^="tel:"]:active {
+    background: #f1f5f9 !important;
+  }
+  body.page-contact .cr .cr-top-actions svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+
+  /* ບໍ່ມີແຖບແຊັດ/ອໍເດີ ໃຕ້ຫົວ (ໃຫ້ເນື້ອໃນເຕັມຈໍແບບ Native Chat) */
+  .cr-mtabs { display: none !important; }
+
+  /* ຟອງຂໍ້ຄວາມໃນມືຖື (Chat Bubbles) */
+  body.page-contact .cr .chat-msg.is-visitor .chat-bubble {
+    background: #0084ff !important;
+    color: #ffffff !important;
+    border-radius: 18px 18px 4px 18px !important;
+    border: 0 !important;
+    box-shadow: 0 1px 2px rgba(0, 132, 255, .2) !important;
+  }
+  body.page-contact .cr .chat-msg.is-visitor .chat-bubble a {
+    color: #ffffff !important;
+    text-decoration: underline !important;
+  }
+  body.page-contact .cr .chat-msg:not(.is-visitor) .chat-bubble {
+    border-radius: 18px 18px 18px 4px !important;
+    background: #ffffff !important;
+    border: 1px solid #eef2f6 !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .04) !important;
+  }
+
+  /* ແຖບພິມລຸ່ມ: [+] [ (ພິມຂໍ້ຄວາມ...) (ສະຕິກເກີ) ] [📷] [🎤 / ✈] */
+  body.page-contact .cr .chat-input {
+    display: flex !important;
+    align-items: center !important;
+    gap: .45rem !important;
+    padding: .5rem .65rem !important;
+    padding-bottom: max(.6rem, env(safe-area-inset-bottom)) !important;
+    background: #ffffff !important;
+    border-top: 1px solid #eef2f6 !important;
+    box-shadow: 0 -2px 10px rgba(15, 23, 42, .03) !important;
+    position: relative !important;
+  }
+
+  /* ປຸ່ມບວກ + ຊ້າຍສຸດ */
+  body.page-contact .cr .chat-plus-btn {
+    flex: 0 0 38px !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    border: 0 !important;
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+    display: grid !important;
+    place-items: center !important;
+    cursor: pointer !important;
+    transition: all .2s ease !important;
+    padding: 0 !important;
+  }
+  body.page-contact .cr .chat-plus-btn.is-active {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+    transform: rotate(45deg);
+  }
+
+  /* ກ່ອງແຄບຊູນພິມຂໍ້ຄວາມ (Pill) */
+  body.page-contact .cr .chat-input-pill {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    background: #f1f5f9 !important;
+    border-radius: 24px !important;
+    padding: 2px 6px 2px 14px !important;
+    position: relative !important;
+    border: 1px solid #e2e8f0 !important;
+    transition: border-color .2s, background .2s;
+  }
+  body.page-contact .cr .chat-input-pill:focus-within {
+    background: #ffffff !important;
+    border-color: #93c5fd !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .1) !important;
+  }
+  body.page-contact .cr .chat-input-pill textarea {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 120px !important;
+    border: 0 !important;
+    background: transparent !important;
+    padding: .5rem 0 !important;
+    font-size: .95rem !important;
+    line-height: 1.4 !important;
+    color: #0f172a !important;
+    outline: none !important;
+    box-shadow: none !important;
+    resize: none !important;
+  }
+
+  /* ປຸ່ມສະຕິກເກີໃນແຄບຊູນ */
+  body.page-contact .cr .chat-stk-btn {
+    flex: 0 0 32px !important;
+    width: 32px !important;
+    height: 32px !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: #64748b !important;
+    display: grid !important;
+    place-items: center !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+  }
+
+  /* ປຸ່ມກ້ອງຖ່າຍຮູບ 📷 ຖັດຈາກແຄບຊູນ */
+  body.page-contact .cr .chat-cam-btn {
+    flex: 0 0 38px !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 50% !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: #475569 !important;
+    display: grid !important;
+    place-items: center !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    transition: background .2s;
+  }
+  body.page-contact .cr .chat-cam-btn:active {
+    background: #f1f5f9 !important;
+  }
+
+  /* ປຸ່ມໄມໂຄຣໂຟນ 🎤 / ປຸ່ມສົ່ງ ✈ (ສີຟ້າສົດມົນກົມ ຄື WhatsApp / LINE) */
+  body.page-contact .cr .chat-mic-btn,
+  body.page-contact .cr .chat-send {
+    flex: 0 0 42px !important;
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 50% !important;
+    border: 0 !important;
+    background: #0084ff !important;
+    background: linear-gradient(135deg, #0084ff 0%, #0066ee 100%) !important;
+    color: #ffffff !important;
+    display: grid !important;
+    place-items: center !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    box-shadow: 0 3px 10px rgba(0, 132, 255, .32) !important;
+    transition: transform .15s ease, box-shadow .15s ease !important;
+  }
+  body.page-contact .cr .chat-mic-btn:active,
+  body.page-contact .cr .chat-send:active {
+    transform: scale(.93) !important;
+  }
+
+  /* ສະຫຼັບລະຫວ່າງປຸ່ມໄມ ແລະ ປຸ່ມສົ່ງ */
+  body.page-contact .cr .chat-input:has(textarea:placeholder-shown) .chat-send {
+    display: none !important;
+  }
+  body.page-contact .cr .chat-input:not(:has(textarea:placeholder-shown)) .chat-mic-btn {
+    display: none !important;
+  }
+}
+
+/* ຈໍຄອມ: ກົດລູກສອນ [data-cr-toggle-info] → ຖັນຂວາ (.cr-info) ເລື່ອນປິດ/ເປີດແບບນຸ່ມ (ບໍ່ຫາຍທັນທີ) + ລູກສອນກັບທິດ */
+@media (min-width: 993px) {
+  .cr { transition: grid-template-columns .4s cubic-bezier(.4, 0, .2, 1); }
+  .cr .cr-info { min-width: 0; overflow: hidden; transition: opacity .3s ease, transform .4s cubic-bezier(.4, 0, .2, 1), visibility .4s; }
+  .cr .cr-info > * { min-width: 300px; }   /* ເນື້ອໃນບໍ່ບີບຕົວຕອນກຳລັງເລື່ອນ */
+  .cr.is-info-off .cr-info { display: flex; opacity: 0; transform: translateX(48px); visibility: hidden; pointer-events: none; border-left-color: transparent; }
+  .cr [data-cr-toggle-info] svg { transition: transform .35s ease; }
+  .cr.is-info-off [data-cr-toggle-info] svg { transform: rotate(180deg); }
+}
+@media (min-width: 993px) and (prefers-reduced-motion: reduce) {
+  .cr, .cr .cr-info, .cr [data-cr-toggle-info] svg { transition: none; }
+}
+
+/* ມືຖື: ແຖບພິມ + ປຸ່ມສົ່ງ ບໍ່ຕິດຂອບລຸ່ມເກີນ — ເວັ້ນໄລຍະ + ພື້ນທີ່ແຖບ home ຂອງ iPhone (safe-area) */
+@media (max-width: 992px) {
+  body.page-contact .cr .chat-rec { padding-bottom: calc(1.1rem + env(safe-area-inset-bottom, 0px)) !important; }
+}
+
+/* ມືຖື: ໜ້າແຊັດສູງເທົ່າພື້ນທີ່ທີ່ເຫັນແທ້ (main.js ຕັ້ງ --app-h/--app-top ຈາກ visualViewport) — ບ່ອນພິມ + ປຸ່ມສົ່ງໄຟລ໌ ບໍ່ຖືກແຖບ browser ບັງ */
+@media (max-width: 992px) {
+  html:has(body.page-contact), body.page-contact { height: var(--app-h, 100dvh) !important; height: min(var(--app-h, 100dvh), 100svh) !important; }   /* ບໍ່ສູງເກີນ 100svh (ແຖບ iPhone ທັບ) */
+  body.page-contact { top: var(--app-top, 0px) !important; bottom: auto !important; }
+  body.page-contact .cr .chat-input { padding-bottom: max(.6rem, env(safe-area-inset-bottom)) !important; }
+}
+
+/* ມືຖື (iPhone): ກ່ອງແຊັດ position:fixed ຈາກລຸ່ມເມນູເທິງ (--cr-top) ຮອດລຸ່ມຈໍ — iPhone ວາງ fixed bottom:0 ໄວ້ເທິງແຖບເຄື່ອງມື
+   browser ສະເໝີ (ຄືແຖບປຸ່ມລຸ່ມຈໍເດີມ) → ບ່ອນພິມ + ປຸ່ມ ເຫັນຕະຫຼອດ; ແປ້ນພິມເປີດ → ຍົກຂຶ້ນ (--kb). ຄ່າຈາກ main.js */
+@media (max-width: 992px) {
+  body.page-contact .ct-workspace.cr {
+    position: fixed !important; top: var(--cr-top, 60px) !important; left: 0 !important; right: 0 !important;
+    bottom: var(--kb, 0px) !important; height: auto !important; z-index: 5;
+  }
+}
+
+/* ອັດສຽງແບບລັອກ (voice_rec.js) / [hidden]: ເຊື່ອງຟອມພິມໄດ້ແທ້ — ຊະນະກົດ display:flex !important ຂອງແຖບພິມມືຖືຂ້າງເທິງ */
+body.page-contact .cr .chat-input.vr-form-off, body.page-contact .cr .chat-input[hidden] { display: none !important; }

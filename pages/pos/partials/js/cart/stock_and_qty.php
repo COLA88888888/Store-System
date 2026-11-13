@@ -81,24 +81,31 @@ function triggerAudioSoundAlert() {
   } catch(e) {}
 }
 
+// ສຽງເວົ້າສະຕັອກ: ກົດຂາຍຕິດໆກັນ (8 → 7 → 6 → 2) ເວົ້າແຕ່ຈຳນວນສຸດທ້າຍເທື່ອດຽວ —
+// ທຸກຄັ້ງທີ່ກົດໃໝ່ ຍົກເລີກສຽງທີ່ລໍຖ້າຢູ່ ແລ້ວນັບເວລາໃໝ່ (ໃຊ້ຮ່ວມກັບ add_to_cart.php)
+var STOCK_SPEECH_DELAY_MS = 900;
+function scheduleStockSpeech(speakFn) {
+  if (!window.LaoTTS) return;
+  clearTimeout(window._stockSpeechTimer);
+  window._stockSpeechTimer = setTimeout(function() {
+    try { speakFn(); } catch(e) {}
+  }, STOCK_SPEECH_DELAY_MS);
+}
+
 function showLowStockToast(productName, remainingQty, unitName) {
   triggerAudioSoundAlert();
 
   var isZero = (remainingQty <= 0);
   var uName = unitName || posT('pos.unit_generic');
 
-  // Lao TTS: ເວົ້າແຈ້ງເຕືອນສິນຄ້າໝົດ ຫຼື ໃກ້ໝົດ ຖັດຈາກສຽງເຕືອນທັນທີ
-  try {
-    if (window.LaoTTS) {
-      setTimeout(function() {
-        if (isZero) {
-          LaoTTS.speakOutOfStock(productName);
-        } else {
-          LaoTTS.speakLowStock(productName, remainingQty, uName);
-        }
-      }, 300);
+  // Lao TTS: ເວົ້າແຈ້ງເຕືອນສິນຄ້າໝົດ ຫຼື ໃກ້ໝົດ (ເວົ້າແຕ່ຈຳນວນສຸດທ້າຍ ເມື່ອຢຸດກົດແລ້ວ)
+  scheduleStockSpeech(function() {
+    if (isZero) {
+      LaoTTS.speakOutOfStock(productName);
+    } else {
+      LaoTTS.speakLowStock(productName, remainingQty, uName);
     }
-  } catch(e) {}
+  });
   Swal.fire({
     icon: isZero ? 'error' : 'warning',
     title: isZero ? posT('pos.toast_out_title') : posT('pos.toast_low_title'),

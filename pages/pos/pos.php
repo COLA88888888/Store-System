@@ -150,6 +150,7 @@ window.POS_LOYALTY = <?php echo json_encode($posLoyalty, JSON_UNESCAPED_UNICODE)
 <link rel="stylesheet" href="../../themes/pos/03-products-checkout.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="../../themes/pos/04-cart-items.css?v=<?php echo time(); ?>">
 <link rel="stylesheet" href="../../themes/pos/05-product-card-image.css?v=<?php echo time(); ?>">
+<link rel="stylesheet" href="../../themes/pos/06-camera-scan.css?v=<?php echo time(); ?>">
 
 <div class="pos-wrapper">
   <!-- Mobile Navigation / Tab Switcher (Visible ONLY on Mobile Phones < 768px) -->

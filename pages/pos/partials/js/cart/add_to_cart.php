@@ -84,9 +84,9 @@ function _doAddToCart(product, unitObj) {
       triggerAudioSoundAlert();
     }
     if (window.LaoTTS && typeof LaoTTS.speakLowStock === 'function') {
-      setTimeout(function() {
+      scheduleStockSpeech(function() {
         LaoTTS.speakLowStock(product.product_name, currentRemaining, product.unit || posT('pos.unit_generic'));
-      }, 300);
+      });
     }
     Swal.fire({
       icon: 'warning',

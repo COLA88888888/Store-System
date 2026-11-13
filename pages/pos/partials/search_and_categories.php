@@ -17,6 +17,10 @@
         <button type="button" class="pos-search-clear" onclick="document.getElementById('barcodeInput').value=''; filterGrid(); ensureBarcodeInputFocused();" title="<?php echo htmlspecialchars(t('pos.clear', 'ລ້າງ')); ?>">
           <i class="fas fa-times"></i>
         </button>
+        <!-- ປຸ່ມກ້ອງສະແກນ (ສະແດງສະເພາະມືຖື/ແທັບເລັດ — themes/pos/06-camera-scan.css, JS: partials/js/pos_camera_scan_js.php) -->
+        <button type="button" class="pos-search-camera" id="btnCameraScan" onclick="openPosCameraScanner()" title="<?php echo htmlspecialchars(tl('ສະແກນດ້ວຍກ້ອງ')); ?>">
+          <i class="fas fa-camera"></i>
+        </button>
         <!-- Scan indicator label -->
         <div class="pos-search-badge">
           <i class="fas fa-wifi fa-rotate-90 mr-1" style="font-size:0.82rem;"></i> SCAN

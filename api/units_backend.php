@@ -17,12 +17,9 @@ if (empty($_SESSION['user_id']) || (!hasPermission('units'))) {
 // User store and permissions
 $userStoreId = intval($_SESSION['store_id'] ?? 1);
 $currentStoreId = intval($_SESSION['active_store_id'] ?? $userStoreId);
-$canAllBranches = (
-    ($_SESSION['status'] ?? '') === 'ຜູ້ບໍລິຫານ' ||
-    strtolower($_SESSION['status'] ?? '') === 'admin' ||
-    ($_SESSION['user_id'] ?? 0) == 1 ||
-    !empty($_SESSION['can_all_branches'])
-);
+// ເລືອກ/ເບິ່ງສາຂາອື່ນໄດ້ສະເພາະ Id 1 ແລະ ຜູ້ໃຊ້ຂອງສາຂາຫຼັກ (canViewAllBranches) — ສາຂາ 2 ຂຶ້ນໄປ (ລວມຜູ້ບໍລິຫານ)
+// ບໍ່ເຫັນບັອກເລືອກສາຂາ ແລະ ຖືກລັອກໃສ່ສາຂາຕົນເອງ
+$canAllBranches = canViewAllBranches($pdo);
 $stores = $pdo->query("SELECT * FROM st_tbstore WHERE status = 'active' ORDER BY is_main DESC, store_id ASC")->fetchAll(PDO::FETCH_ASSOC);
 
 if (!$canAllBranches) {
@@ -38,7 +35,7 @@ $unit_message_type = '';
 // Handle Unit Form Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
-        $unitActiveStoreId = !empty($_POST['store_id']) ? intval($_POST['store_id']) : $selectedStoreId;
+        $unitActiveStoreId = ($canAllBranches && !empty($_POST['store_id'])) ? intval($_POST['store_id']) : $selectedStoreId;   // ສາຂາຍ່ອຍ: ສາຂາຕົນເອງສະເໝີ
 
         if ($_POST['action'] === 'add_unit') {
             $name = trim($_POST['unit_name'] ?? '');

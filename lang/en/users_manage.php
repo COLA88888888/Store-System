@@ -16,6 +16,7 @@ return [
     'users_manage.th_actions' => 'Actions',
     'users_manage.default_store' => 'Main Branch',
     'users_manage.status_online' => 'Online',
+    'users_manage.status_branch_closed' => 'Branch closed',
     'users_manage.status_offline' => 'Offline',
     'users_manage.role_admin' => 'Admin',
     'users_manage.role_employee' => 'Employee',
@@ -88,7 +89,7 @@ return [
 
     'users_manage.label_access_days' => 'Days of access allowed:',
     'users_manage.placeholder_access_days' => 'Leave blank = unlimited',
-    'users_manage.hint_access_days' => 'Counted from today; leave blank for unlimited access',
+    'users_manage.hint_access_days' => 'Counted from today (0 = expires now, cannot sign in); leave blank for unlimited access',
     'users_manage.access_expired' => 'Expired',
     'users_manage.access_days_left' => '%d days left',
     'users_manage.th_access_expiry' => 'Access Expiry',

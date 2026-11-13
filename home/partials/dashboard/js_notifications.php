@@ -72,7 +72,7 @@
     // Low-stock / out-of-stock alerts (keys main_*, stk_*) are STICKY per branch: they cannot be
     // dismissed and only clear once the product is restocked. Every other notification's
     // "read" state expires after 1 day, so those alerts disappear on their own.
-    var NOTIF_STICKY_RE = /^(main_|stk_)/;
+    var NOTIF_STICKY_RE = /^(main_|stk_|lic_)/;   // lic_ = ແພັກເກັດໃກ້ໝົດອາຍຸ (navbar.php) — ຄ້າງໄວ້ຈົນຕໍ່ອາຍຸ
     var NOTIF_READ_TTL = 86400000; // 1 day
 
     function loadReadNotifKeys(badgeId) {

@@ -39,6 +39,23 @@ $config = file_exists($configFile) ? require $configFile : [
 $message = '';
 $message_type = '';
 
+// AJAX: ກົດສະວິດ (ເປີດໃຊ້ງານສຽງ / ຈຸດທີ່ໃຫ້ເວົ້າ) → ບັນທຶກທັນທີ ບໍ່ຕ້ອງກົດ "ບັນທຶກການຕັ້ງຄ່າ"
+// (ໜ້າຂາຍ/ຈໍລູກຄ້າ ອ່ານສະວິດຄືນເອງ — assets/js/tts-speak.js)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_tts_switch'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    $key = (string)($_POST['key'] ?? '');
+    if (!in_array($key, ['enabled', 'pos_total', 'pos_sale', 'pos_stock', 'pos_queue', 'pos_welcome'], true)) {
+        echo json_encode(['success' => false, 'message' => 'ສະວິດບໍ່ຖືກຕ້ອງ']);
+        exit();
+    }
+    $config[$key] = !empty($_POST['value']);
+    $export = "<?php\n/**\n * ການຕັ້ງຄ່າ Lao TTS API (StoreMini)\n * ຮອງຮັບ Microsoft Edge Neural TTS (ຟຣີ 100% ບໍ່ຈຳກັດ) ແລະ Siangmuan.com\n */\nreturn " . var_export($config, true) . ";\n";
+    $ok = @file_put_contents($configFile, $export) !== false;
+    if ($ok && function_exists('opcache_invalidate')) @opcache_invalidate($configFile, true);
+    echo json_encode(['success' => $ok, 'message' => $ok ? '' : 'ຂຽນໄຟລ໌ config/tts_config.php ບໍ່ໄດ້']);
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_tts_settings'])) {
     $config['enabled']     = !empty($_POST['tts_enabled']);
     $config['provider']    = trim($_POST['provider'] ?? 'edge');
@@ -52,7 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_tts_settings']))
 
     $export = "<?php\n/**\n * ການຕັ້ງຄ່າ Lao TTS API (StoreMini)\n * ຮອງຮັບ Microsoft Edge Neural TTS (ຟຣີ 100% ບໍ່ຈຳກັດ) ແລະ Siangmuan.com\n */\nreturn " . var_export($config, true) . ";\n";
     if (@file_put_contents($configFile, $export) !== false) {
-        $message = 'ບັນທຶກການຕັ້ງຄ່າລະບົບສຽງສຳເລັດແລ້ວ!';
+        if (function_exists('opcache_invalidate')) @opcache_invalidate($configFile, true);
+        $message ='ບັນທຶກການຕັ້ງຄ່າລະບົບສຽງສຳເລັດແລ້ວ!';
         $message_type = 'success';
     } else {
         $message = 'ບັນທຶກບໍ່ສຳເລັດ: ຂຽນໄຟລ໌ config/tts_config.php ບໍ່ໄດ້';

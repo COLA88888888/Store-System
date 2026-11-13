@@ -31,6 +31,9 @@
           // ເຊັກສະຕັອກ / ປິດກະ: ບໍ່ຢູ່ໃນກະດິ່ງແລ້ວ — ຍັງປ໊ອບອັບມຸມຂວາເທິງຄືເກົ່າ
           toastNewStockChecks(res.stock_checks, badgeId);
           toastNewShiftCloses(res.shift_closes, badgeId);
+          // ແພັກເກັດໃກ້ໝົດອາຍຸ (ແຖວສີແດງ — navbar.php) ນັບເປັນ 1 ແຈ້ງເຕືອນ
+          var licHtml = window.LICENSE_NOTIF_HTML || '';
+          if (licHtml) unreadCount += 1;
           var totalServerCount = unreadCount;
           var readKeys = [];
           try { readKeys = loadReadNotifKeys(badgeId); } catch (e) { readKeys = []; }
@@ -58,7 +61,7 @@
           if (res.is_main) {
             var bodyEl = $('#mainNotifDropdownBody');
             if (bodyEl.length > 0) {
-              var html = '';
+              var html = licHtml;
 
               // 1. Near-expiry / expired products (all branches, so prefix the branch name)
               html += buildExpiryNotifHtml(res.expiry_list, true);
@@ -97,7 +100,7 @@
           } else {
             var bodyEl = $('#subNotifDropdownBody');
             if (bodyEl.length > 0) {
-              var html = buildExpiryNotifHtml(res.sub_expiry, false);
+              var html = licHtml + buildExpiryNotifHtml(res.sub_expiry, false);
 
               if (res.sub_low_stock && res.sub_low_stock.length > 0) {
                 html += '<div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #fff7ed; font-size: 0.82rem; white-space: nowrap;">';

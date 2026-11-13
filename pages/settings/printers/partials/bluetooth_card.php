@@ -132,7 +132,9 @@ var I18N_BT_CARD = <?php echo tjson([
       .html(info.connected ? OK + ' ' + T('bt_connected_to', info.name)
                            : '<i class="fas fa-times-circle mr-1"></i> ' + T('bt_not_connected'));
     $('#btList').html(items.length ? items.map(function (p) {
-      return '<div class="d-flex align-items-center justify-content-between py-2 border-bottom">' +
+      // ແຖວທີ່ຍັງບໍ່ໄດ້ເຊື່ອມ: ກົດບ່ອນໃດກໍໄດ້ໃນແຖວ (ຫຼື ປຸ່ມ "ເຊື່ອມເຄື່ອງນີ້") = ເຊື່ອມເຄື່ອງນັ້ນ
+      return '<div class="d-flex align-items-center justify-content-between py-2 border-bottom' + (p.connected ? '' : ' bt-row') + '"' +
+        (p.connected ? '' : ' data-key="' + esc(p.key) + '" style="cursor: pointer;" title="' + T('bt_use') + '"') + '>' +
         '<span><i class="' + (p.mode === 'serial' ? 'fas fa-plug' : 'fab fa-bluetooth-b') + ' mr-2 ' + (p.connected ? 'text-success' : 'text-muted') + '"></i>' +
           '<b>' + esc(p.name) + '</b>' +
           (p.connected ? ' <span class="badge badge-success ml-1">' + T('bt_connected') + '</span>' : ' <span class="badge badge-light border ml-1">' + T('bt_not_connected') + '</span>') + '</span>' +
@@ -242,10 +244,14 @@ var I18N_BT_CARD = <?php echo tjson([
     });
   });
 
-  $('#btList').on('click', '.bt-use', function () {
+  var btUsing = false;
+  $('#btList').on('click', '.bt-row', function (e) {
+    if ($(e.target).closest('.bt-remove').length || btUsing) return;
+    btUsing = true;
     busy(T('bt_connecting'));
     var key = $(this).attr('data-key');
     P.use(key).then(function (name) {
+      btUsing = false;
       render();
       msg(OK + T('bt_connected_msg', name), 'text-success');
       Swal.fire({
@@ -256,19 +262,21 @@ var I18N_BT_CARD = <?php echo tjson([
         showConfirmButton: false
       });
     }).catch(function (e) {
+      btUsing = false;
       render();
       msg(e && e.message ? esc(e.message) : T('bt_connect_fail'), 'text-danger');
       Swal.fire({
         icon: 'error',
         title: '<?php echo tlj('ເຊື່ອມຕໍ່ປິ່ນເຕີບໍ່ສຳເລັດ'); ?>',
-        text: '<?php echo tlj('ກະລຸນາລອງໃໝ່ອີກຄັ້ງ'); ?>',
+        text: '<?php echo tlj('ກວດວ່າເປີດເຄື່ອງພິມຢູ່ — ເປີດເຄື່ອງແລ້ວ ລະບົບຈະເຊື່ອມເອງ'); ?>',
         confirmButtonText: '<?php echo tlj('ຕົກລົງ'); ?>',
         confirmButtonColor: '#2563eb'
       });
     });
   });
 
-  $('#btList').on('click', '.bt-remove', function () {
+  $('#btList').on('click', '.bt-remove', function (e) {
+    e.stopPropagation();
     var key = $(this).attr('data-key');
     Swal.fire({ icon: 'warning', title: I18N_BT_CARD['printers.bt_remove_confirm'], showCancelButton: true, reverseButtons: true,
       confirmButtonText: I18N_BT_CARD['printers.bt_remove_btn'], cancelButtonText: I18N_BT_CARD['printers.bt_cancel'], confirmButtonColor: '#ef4444' }).then(function (r) {

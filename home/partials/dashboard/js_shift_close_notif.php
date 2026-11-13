@@ -64,13 +64,24 @@
     }
     window.openShiftCloseFromNotif = openShiftCloseFromNotif;
 
-    // ປ໊ອບອັບ (toast) ຄັ້ງດຽວຕໍ່ກະທີ່ປິດ — ຈື່ key ທີ່ສະແດງແລ້ວໄວ້ 3 ວັນ
+    // ປ໊ອບອັບ (toast) ຄັ້ງດຽວຕໍ່ກະທີ່ປິດ — ຈື່ key ທີ່ສະແດງແລ້ວໄວ້ 3 ວັນ.
+    // ຮອບທຳອິດຫຼັງເປີດດາສບອດ (ເຂົ້າລະບົບ / ໂຫຼດໜ້າໃໝ່): ຈື່ກະທີ່ປິດໄປແລ້ວໄວ້ເງົາໆ ບໍ່ປ໊ອບອັບ —
+    // ປ໊ອບອັບສະເພາະກະທີ່ປິດລະຫວ່າງທີ່ກຳລັງເປີດລະບົບຢູ່ (ຂອງເກົ່າຍັງເບິ່ງໄດ້ໃນລາຍງານປິດກະ)
+    var shcPrimed = false;
     function toastNewShiftCloses(list, badgeId) {
-      if (!list || !list.length || typeof Swal === 'undefined') return;
+      if (typeof Swal === 'undefined') return;
       var shown = {};
       try { shown = JSON.parse(localStorage.getItem('StoreMini.shc_notif_toasted') || '{}'); } catch (e) { shown = {}; }
       var now = Date.now(), fresh = null;
       Object.keys(shown).forEach(function(k) { if (now - shown[k] > 3 * 86400000) delete shown[k]; });
+      list = list || [];
+      if (!shcPrimed) {
+        shcPrimed = true;
+        list.forEach(function(it) { shown[it.key] = shown[it.key] || now; });
+        try { localStorage.setItem('StoreMini.shc_notif_toasted', JSON.stringify(shown)); } catch (e) {}
+        return;
+      }
+      if (!list.length) return;
       list.forEach(function(it) { if (!fresh && !shown[it.key]) fresh = it; });
       if (!fresh) return;
       list.forEach(function(it) { shown[it.key] = shown[it.key] || now; });   // ສະແດງອັນລ່າສຸດອັນດຽວ, ອັນອື່ນຢູ່ໃນກະດິ່ງ

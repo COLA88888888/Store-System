@@ -55,10 +55,30 @@
       $formattedStart = date('d/m/Y', strtotime($license_start));
       $formattedExpire = date('d/m/Y', strtotime($license_expire));
 
-      // The "ແພັກເກັດ" badge is about THIS user's own personal access limit only (not the
-      // shop-wide license, which caused confusion before) — shows their remaining days when
-      // the owner has set one, or "ບໍ່ມີກຳນົດ" (unlimited) when no personal limit applies.
-      $displayDaysRemaining = $myAccessDaysLeft;
+      // Subscription calculation:
+      $effectiveDays = $daysRemaining;
+      if ($myAccessDaysLeft !== null) {
+        $effectiveDays = min($effectiveDays, $myAccessDaysLeft);
+      }
+      $isLicenseWarning = ($effectiveDays <= 10 && $effectiveDays >= 0);
+
+      // The "ແພັກເກັດ" badge shows personal limit if set; if not set and shop license is within 10 days, show countdown.
+      $displayDaysRemaining = $myAccessDaysLeft ?? ($isLicenseWarning ? $effectiveDays : null);
+
+      // ແຖວສີແດງ "ແພັກເກັດໃກ້ໝົດອາຍຸ" (ເຫຼືອ <= 10 ວັນ) ໃນກະດິ່ງແຈ້ງເຕືອນ: ນັບເປັນ 1 ແຈ້ງເຕືອນໃນຕົວເລກກະດິ່ງ ແລະ
+      // ຄ້າງໄວ້ (ກົດອ່ານແລ້ວບໍ່ຫາຍ — key lic_ ໃນ NOTIF_STICKY_RE). ດຶງແຈ້ງເຕືອນທຸກ 1.5 ວິນາທີ ສ້າງກະດິ່ງໃໝ່ທັງໝົດ
+      // ຈຶ່ງສົ່ງ HTML ນີ້ໃຫ້ JS ໃສ່ຄືນທຸກຮອບ (window.LICENSE_NOTIF_HTML — js_notification_polling.php)
+      $licenseNotifHtml = '';
+      if (!empty($isLicenseWarning)) {
+        $licenseNotifHtml = '<div id="notif_item_lic_expire" class="dropdown-item px-3 py-2 text-white border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background: linear-gradient(90deg, #991b1b, #dc2626); font-size: 0.8rem; white-space: nowrap;">'
+          . '<div class="d-flex align-items-center text-truncate mr-2">'
+          . '<i class="fas fa-exclamation-triangle text-warning mr-1.5" style="font-size: 0.9rem;"></i>'
+          . '<span class="text-truncate"><strong>' . htmlspecialchars(t('layout.package_label', 'ແພັກເກັດ')) . ':</strong> ' . tlh('ເຫຼືອ') . ' ' . (int)$effectiveDays . ' ' . htmlspecialchars(t('layout.days_unit', 'ວັນ')) . ' (' . tlh('ໝົດ') . ' ' . htmlspecialchars($formattedExpire) . ')</span>'
+          . '</div>'
+          . '<a href="tel:02055949007" onclick="event.stopPropagation();" class="btn btn-xs btn-light font-weight-bold flex-shrink-0 text-danger" style="border-radius: 4px; font-size: 0.72rem;">' . tlh('ໂທຕໍ່') . '</a>'
+          . '</div>';
+      }
+      $licenseNotifCount = $licenseNotifHtml !== '' ? 1 : 0;
 
       // Low Stock & Out of Stock Alerts for Main Branch & All Branches (Grouped by store)
       $lowStockList = getLowStockAlerts($pdo);
@@ -105,6 +125,8 @@
       })();
     </script>
 
+    <script>window.LICENSE_NOTIF_HTML = <?php echo json_encode($licenseNotifHtml, JSON_UNESCAPED_UNICODE); ?>;</script>
+
     <!-- Right side: Subscription Days Remaining + Notifications Bell + Logout -->
     <ul class="navbar-nav ml-auto align-items-center" style="gap: 12px; font-family: 'Nuanta', 'Noto Sans Lao', 'Souliyo', 'Boon', sans-serif;">
       
@@ -113,18 +135,19 @@
         <li class="nav-item dropdown">
           <a class="nav-link text-white position-relative px-2 d-flex align-items-center" data-toggle="dropdown" href="#" onclick="markNotifAsRead('mainNotifBadge')" data-i18n-title="layout.notif_main_title" title="<?php echo htmlspecialchars(t('layout.notif_main_title', 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ສິນສຸດ/ສິນຄ້າໝົດ')); ?>" style="font-size: 1.25rem; cursor: pointer;">
             <i id="mainNotifBellIcon" class="fas fa-bell text-white"></i>
-            <span id="mainNotifBadge" class="badge badge-danger font-weight-bold position-absolute" style="top: 2px; right: -2px; font-size: 0.68rem; border-radius: 10px; padding: 2px 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); <?php echo ($lowStockCount > 0) ? '' : 'display: none;'; ?>">
-              <?php echo $lowStockCount; ?>
+            <span id="mainNotifBadge" class="badge badge-danger font-weight-bold position-absolute" style="top: 2px; right: -2px; font-size: 0.68rem; border-radius: 10px; padding: 2px 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); <?php echo ($lowStockCount + $licenseNotifCount > 0) ? '' : 'display: none;'; ?>">
+              <?php echo $lowStockCount + $licenseNotifCount; ?>
             </span>
           </a>
           <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right notif-dropdown-box shadow-lg border-0">
             <div class="dropdown-header font-weight-bold d-flex text-white justify-content-between align-items-center py-2.5 px-3" style="background-color: #244886 !important;">
-              <span class="text-truncate mr-2"><i class="fas fa-exclamation-triangle text-warning mr-1.5"></i> <span data-i18n="layout.notif_main_header"><?php echo htmlspecialchars(t('layout.notif_main_header', 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ໝົດ/ໝົດ')); ?></span> (<span id="mainNotifTitleCount"><?php echo $lowStockCount; ?></span>)</span>
+              <span class="text-truncate mr-2"><i class="fas fa-exclamation-triangle text-warning mr-1.5"></i> <span data-i18n="layout.notif_main_header"><?php echo htmlspecialchars(t('layout.notif_main_header', 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ໝົດ/ໝົດ')); ?></span> (<span id="mainNotifTitleCount"><?php echo $lowStockCount + $licenseNotifCount; ?></span>)</span>
               <button type="button" id="btnMarkAllMain" class="btn btn-xs btn-outline-light font-weight-bold flex-shrink-0" onclick="markAllNotifsAsRead('mainNotifBadge')" data-i18n="layout.mark_all_read" style="border-radius: 6px; font-size: 0.73rem; display: none;"><?php echo htmlspecialchars(t('layout.mark_all_read', 'ອ່ານທັງໝົດ')); ?></button>
             </div>
             <div class="dropdown-divider m-0"></div>
             
             <div id="mainNotifDropdownBody" style="max-height: 380px; overflow-y: auto;">
+              <?php echo $licenseNotifHtml; /* ແຖວສີແດງ ແພັກເກັດໃກ້ໝົດອາຍຸ (ສ້າງໄວ້ຂ້າງເທິງ) */ ?>
               <?php if ($lowStockCount > 0 && !empty($groupedLowStock)): ?>
                 <?php foreach ($groupedLowStock as $stId => $branchGroup): ?>
                   <!-- ຫົວຂໍ້ແຍກຕາມສາຂາ (Branch Section Header) -->
@@ -177,7 +200,7 @@
           $subLowStock = getLowStockAlerts($pdo, $subStoreId);
           $subNewProducts = [];
 
-          $totalSubNotifications = count($subLowStock);
+          $totalSubNotifications = count($subLowStock) + $licenseNotifCount;
         ?>
         <li class="nav-item dropdown">
           <a class="nav-link text-white position-relative px-2 d-flex align-items-center" data-toggle="dropdown" href="#" data-i18n-title="layout.notif_main_title" title="<?php echo htmlspecialchars(t('layout.notif_main_title', 'ແຈ້ງເຕືອນສິນຄ້າໃກ້ໝົດ / ໃກ້ໝົດອາຍຸ')); ?>" style="font-size: 1.25rem; cursor: pointer;">
@@ -194,6 +217,7 @@
             <div class="dropdown-divider m-0"></div>
             
             <div id="subNotifDropdownBody" style="max-height: 380px; overflow-y: auto;">
+              <?php echo $licenseNotifHtml; /* ແຖວສີແດງ ແພັກເກັດໃກ້ໝົດອາຍຸ (ສ້າງໄວ້ຂ້າງເທິງ) */ ?>
               <!-- 1. ລາຍການໂອນສິນຄ້າ (Incoming & Outgoing Stock Transfers) -->
               <?php if (!empty($incomingTransfers)): ?>
                 <div class="px-3 py-1.5 font-weight-bold text-dark border-bottom d-flex align-items-center justify-content-between flex-nowrap" style="background-color: #eff6ff; font-size: 0.82rem; white-space: nowrap;">
@@ -282,10 +306,17 @@
 
       <!-- Subscription info — shown to everyone (not just main-branch/admin), since a
            sub-branch employee with a personal access limit needs to see their own countdown too. -->
-      <li class="nav-item d-none d-md-flex align-items-center text-white mr-1" style="font-size: 0.85rem; font-weight: 600;">
-        <span class="d-inline-flex align-items-center">
-          <span data-i18n="layout.package_label"><?php echo htmlspecialchars(t('layout.package_label', 'ແພັກເກັດ')); ?></span>:<?php if ($displayDaysRemaining !== null): ?><span class="mx-1 text-white" style="font-size: 0.95rem; font-weight: 800"><?php echo $displayDaysRemaining; ?></span> <span data-i18n="layout.days_unit"><?php echo htmlspecialchars(t('layout.days_unit', 'ວັນ')); ?></span><?php else: ?><span class="mx-1 text-white" style="font-size: 0.95rem; font-weight: 800" data-i18n="layout.package_unlimited"><?php echo htmlspecialchars(t('layout.package_unlimited', 'ບໍ່ມີກຳນົດ')); ?></span><?php endif; ?>
-        </span>
+      <li class="nav-item d-none d-md-flex align-items-center mr-1" style="font-size: 0.85rem; font-weight: 600;">
+        <?php if (!empty($isLicenseWarning)): ?>
+          <span class="badge badge-danger px-2.5 py-1.5 d-inline-flex align-items-center shadow-sm" style="font-size: 0.82rem; border-radius: 6px; letter-spacing: 0.2px;">
+            <i class="fas fa-exclamation-triangle mr-1 text-warning"></i>
+            <span><?php echo htmlspecialchars(t('layout.package_label', 'ແພັກເກັດ')); ?>: <?php echo $effectiveDays; ?> <?php echo htmlspecialchars(t('layout.days_unit', 'ວັນ')); ?></span>
+          </span>
+        <?php else: ?>
+          <span class="d-inline-flex align-items-center text-white">
+            <span data-i18n="layout.package_label"><?php echo htmlspecialchars(t('layout.package_label', 'ແພັກເກັດ')); ?></span>:<?php if ($displayDaysRemaining !== null): ?><span class="mx-1 text-white" style="font-size: 0.95rem; font-weight: 800"><?php echo $displayDaysRemaining; ?></span> <span data-i18n="layout.days_unit"><?php echo htmlspecialchars(t('layout.days_unit', 'ວັນ')); ?></span><?php else: ?><span class="mx-1 text-white" style="font-size: 0.95rem; font-weight: 800" data-i18n="layout.package_unlimited"><?php echo htmlspecialchars(t('layout.package_unlimited', 'ບໍ່ມີກຳນົດ')); ?></span><?php endif; ?>
+          </span>
+        <?php endif; ?>
       </li>
 
       <!-- Theme Colour Picker (recolours sidebar + navbar, saved per-browser) -->

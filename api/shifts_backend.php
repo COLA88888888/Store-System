@@ -54,6 +54,19 @@ function shiftStaffList($pdo, $idsCsv, $storeId) {
     $st->execute([$storeId]);
     return array_map(function ($r) { return ['id' => (int)$r['Id'], 'name' => $r['name']]; }, $st->fetchAll(PDO::FETCH_ASSOC));
 }
+// ພະນັກງານທີ່ຖືກກຳນົດໃສ່ກະອື່ນ (ທີ່ເປີດໃຊ້) ຂອງສາຂານີ້ແລ້ວ — ພະນັກງານ 1 ຄົນ ຢູ່ໄດ້ກະດຽວໃນສາຂາ
+// ($exceptShiftId = ກະທີ່ກຳລັງແກ້ໄຂ ບໍ່ນັບ)
+function shiftTakenStaffIds($pdo, $storeId, $exceptShiftId = 0) {
+    $st = $pdo->prepare("SELECT staff_user_ids FROM st_shifts WHERE store_id = ? AND status = 1 AND id <> ?");
+    $st->execute([(int)$storeId, (int)$exceptShiftId]);
+    $taken = [];
+    foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $csv) {
+        foreach (explode(',', (string)$csv) as $uid) {
+            if ((int)$uid > 0) $taken[(int)$uid] = true;
+        }
+    }
+    return $taken;
+}
 function shiftStaffNames($pdo, $idsCsv, $storeId) {
     return implode(', ', array_column(shiftStaffList($pdo, $idsCsv, $storeId), 'name'));
 }
@@ -570,7 +583,14 @@ try {
             // ພະນັກງານປະຈຳກະ: ສະເພາະຜູ້ໃຊ້ຂອງສາຂານີ້
             $staffIn = $_POST['staff_user_ids'] ?? [];
             if (!is_array($staffIn)) $staffIn = explode(',', (string)$staffIn);
-            $staffCsv = implode(',', array_column(shiftStaffList($pdo, implode(',', $staffIn), $activeStoreId), 'id'));
+            $staffValid = shiftStaffList($pdo, implode(',', $staffIn), $activeStoreId);
+            // ພະນັກງານທີ່ຢູ່ກະອື່ນຂອງສາຂານີ້ແລ້ວ → ບໍ່ໃຫ້ຊ້ຳ
+            $taken = shiftTakenStaffIds($pdo, $activeStoreId, $id);
+            $dup = array_filter($staffValid, function ($u) use ($taken) { return isset($taken[$u['id']]); });
+            if ($dup) {
+                respond(['success' => false, 'message' => tl('ພະນັກງານນີ້ຢູ່ກະອື່ນຂອງສາຂານີ້ແລ້ວ') . ': ' . implode(', ', array_column($dup, 'name'))]);
+            }
+            $staffCsv = implode(',', array_column($staffValid, 'id'));
 
             if (empty($shiftName)) {
                 respond(['success' => false, 'message' => tl('ກະລຸນາປ້ອນຊື່ກະ')]);
@@ -652,9 +672,13 @@ try {
                                    AND Id != 1
                                  ORDER BY name");
             $st->execute([$activeStoreId]);
-            $staff = array_map(function ($r) {
-                return ['id' => (int)$r['Id'], 'name' => $r['name'], 'role' => $r['status']];
-            }, $st->fetchAll(PDO::FETCH_ASSOC));
+            // ບໍ່ສະແດງພະນັກງານທີ່ຢູ່ກະອື່ນຂອງສາຂານີ້ແລ້ວ (shift_id = ກະທີ່ກຳລັງແກ້ໄຂ — ຄົນໃນກະນີ້ຍັງສະແດງ)
+            $taken = shiftTakenStaffIds($pdo, $activeStoreId, intval($_GET['shift_id'] ?? 0));
+            $staff = [];
+            foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+                if (isset($taken[(int)$r['Id']])) continue;
+                $staff[] = ['id' => (int)$r['Id'], 'name' => $r['name'], 'role' => $r['status']];
+            }
             respond(['success' => true, 'staff' => $staff]);
             break;
         }

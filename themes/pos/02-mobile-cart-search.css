@@ -476,13 +476,9 @@ html.pos-nav-mode .pos-topbar-btn {
 }
 
 /* ===== ໜ້າຈໍໂທລະສັບ (< 768px) =====
-   ບໍ່ສະແດງບັອກສະແກນ (ຄືກັບ Pharmacy) ແລະ ບັດສິນຄ້າຢູ່ໃກ້ກັນ — ຫ່າງກັນ 6px ທັງແນວນອນ ແລະ ແນວຕັ້ງ.
+   ສະແດງບັອກຄົ້ນຫາ + ປຸ່ມກ້ອງສະແກນ (themes/pos/06-camera-scan.css) ແລະ ບັດສິນຄ້າຢູ່ໃກ້ກັນ — ຫ່າງກັນ 6px ທັງແນວນອນ ແລະ ແນວຕັ້ງ.
    ຢູ່ທ້າຍໄຟລ໌ເພື່ອໃຫ້ຊະນະ row-gap/padding ຂອງ @media (max-width: 575.98px) ທາງເທິງ. */
 @media (max-width: 767.98px) {
-    .pos-search-row {
-        display: none !important;
-    }
-
     .pos-sticky-topbar {
         padding-top: 4px !important;
         margin-bottom: 4px !important;

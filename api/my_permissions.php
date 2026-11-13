@@ -39,4 +39,9 @@ foreach ($modules as $m) {
                . (hasPermission($m, 'edit') ? '1' : '0') . (hasPermission($m, 'del') ? '1' : '0');
 }
 
+// ສາຂາທີ່ຍັງບໍ່ໄດ້ເພີ່ມກະ → ເຊື່ອງເມນູລາຍງານກະ (ຄືບໍ່ມີສິດ); ເພີ່ມກະແລ້ວ ເມນູຂຶ້ນມາເອງໃນຮອບຖາມຕໍ່ໄປ
+if (!branchHasShifts($pdo, intval($_SESSION['store_id'] ?? 0))) {
+    foreach (['shift_report', 'shift_close_report', 'shift_revenue_report'] as $m) $perms[$m] = '0000';
+}
+
 echo json_encode(['success' => true, 'perms' => $perms, 'sig' => md5(json_encode($perms))], JSON_UNESCAPED_UNICODE);

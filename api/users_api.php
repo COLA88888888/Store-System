@@ -65,9 +65,10 @@ function resolveAccessExpireDate($rawDays) {
         return [true, null]; // owner cleared the field -> unlimited
     }
     $days = intval($rawDays);
-    if ($days <= 0) {
+    if ($days < 0) {
         return [false, null];
     }
+    // 0 ມື້ = ໝົດອາຍຸມື້ນີ້ເລີຍ (ວັນໝົດອາຍຸ <= ມື້ນີ້ → ເຂົ້າລະບົບບໍ່ໄດ້, ໄປໜ້າ auth/access_expired.php)
     return [true, date('Y-m-d', strtotime("+{$days} days"))];
 }
 
@@ -76,7 +77,8 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 // === 0. GET LIVE USER STATUSES (Real-time Polling) ===
 if ($action === 'get_live_user_statuses') {
     try {
-        $stmt = $pdo->query("SELECT Id, status, last_activity, account_active FROM st_tbuser" . ($canAllBranches ? '' : ' WHERE store_id = ' . $userStoreId));
+        // store_status: ສາຂາຖືກປິດ/ລຶບ → ຜູ້ໃຊ້ນັ້ນເຂົ້າລະບົບບໍ່ໄດ້ (config/bootstrap/session_auth.php) ຈຶ່ງບໍ່ນັບເປັນອອນລາຍ
+        $stmt = $pdo->query("SELECT u.Id, u.status, u.last_activity, u.account_active, s.status AS store_status FROM st_tbuser u LEFT JOIN st_tbstore s ON s.store_id = u.store_id" . ($canAllBranches ? '' : ' WHERE u.store_id = ' . $userStoreId));
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $result = [];
         $now = time();
@@ -88,9 +90,12 @@ if ($action === 'get_live_user_statuses') {
                     $isOnline = true;
                 }
             }
+            $branchClosed = ((int)$u['Id'] !== 1 && ($u['store_status'] ?? null) !== 'active');
+            if ($branchClosed) $isOnline = false;
             $result[] = [
                 'id' => (int)$u['Id'],
                 'is_online' => $isOnline,
+                'branch_closed' => $branchClosed,
                 'account_active' => (int)($u['account_active'] ?? 1),
                 'status' => trim($u['status'] ?? $u['userstatus'] ?? 'ພະນັກງານ'),
                 'last_activity' => $u['last_activity'] ?? null

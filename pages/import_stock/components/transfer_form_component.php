@@ -28,15 +28,17 @@
       <label class="font-weight-bold text-dark mb-1" style="font-size: 0.88rem;">
         <?php echo htmlspecialchars(t('stock_transfer.from_store_label', 'ສາຂາຕົ້ນທາງ')); ?> <span class="text-danger">*</span>
       </label>
-      <select name="from_store_id" id="from_store_id" class="form-control font-weight-bold" style="height: 42px; border-radius: 8px;">
-        <?php foreach ($stores as $st): ?>
-          <?php if (!empty($canAllBranches) || $st['store_id'] == $sourceStoreId): ?>
-          <option value="<?php echo $st['store_id']; ?>" <?php echo ($sourceStoreId == $st['store_id']) ? 'selected' : ''; ?>>
-            <?php echo htmlspecialchars($st['store_name']); ?> <?php echo !empty($st['is_main']) ? htmlspecialchars(t('stock_transfer.main_warehouse_suffix', '(ສາງຫຼັກ)')) : ''; ?>
-          </option>
-          <?php endif; ?>
-        <?php endforeach; ?>
-      </select>
+      <?php /* ລັອກໄວ້ = ສາຂາທີ່ກຳລັງເຮັດວຽກ ($sourceStoreId — stock_transfer.php); ບໍ່ມີບັອກເລືອກ */
+        $srcStoreLabel = '';
+        foreach ($stores as $st) {
+          if ($st['store_id'] == $sourceStoreId) {
+            $srcStoreLabel = $st['store_name'] . (!empty($st['is_main']) ? ' ' . t('stock_transfer.main_warehouse_suffix', '(ສາງຫຼັກ)') : '');
+          }
+        } ?>
+      <input type="hidden" name="from_store_id" id="from_store_id" value="<?php echo (int)$sourceStoreId; ?>">
+      <div class="form-control font-weight-bold d-flex align-items-center" style="height: 42px; border-radius: 8px; background: #eff6ff; color: #1e40af; cursor: default;" title="<?php echo htmlspecialchars($srcStoreLabel); ?>">
+        <i class="fas fa-lock mr-2 text-primary" style="font-size: 0.8rem;"></i><span class="text-truncate"><?php echo htmlspecialchars($srcStoreLabel); ?></span>
+      </div>
     </div>
 
     <!-- 4. To Store -->

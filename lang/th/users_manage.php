@@ -16,6 +16,7 @@ return [
     'users_manage.th_actions' => 'จัดการ',
     'users_manage.default_store' => 'สาขาหลัก',
     'users_manage.status_online' => 'ใช้งานอยู่',
+    'users_manage.status_branch_closed' => 'สาขาถูกปิด',
     'users_manage.status_offline' => 'ไม่ได้ใช้งาน',
     'users_manage.role_admin' => 'ผู้ดูแลระบบ',
     'users_manage.role_employee' => 'พนักงาน',
@@ -88,7 +89,7 @@ return [
 
     'users_manage.label_access_days' => 'จำนวนวันที่อนุญาตให้ใช้งาน:',
     'users_manage.placeholder_access_days' => 'เว้นว่าง = ไม่จำกัด',
-    'users_manage.hint_access_days' => 'นับจากวันนี้ หากเว้นว่างจะใช้งานได้ไม่จำกัด',
+    'users_manage.hint_access_days' => 'นับจากวันนี้ (0 = หมดอายุทันที เข้าระบบไม่ได้) หากเว้นว่างจะใช้งานได้ไม่จำกัด',
     'users_manage.access_expired' => 'หมดอายุแล้ว',
     'users_manage.access_days_left' => 'เหลือ %d วัน',
     'users_manage.th_access_expiry' => 'วันหมดอายุการใช้งาน',

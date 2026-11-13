@@ -21,10 +21,8 @@ $message_type = '';
 
 // Handle POST Transfer Execution
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'execute_transfer') {
-    $from_store_id = intval($_POST['from_store_id'] ?? 1);
-    if (!$canAllBranches) {
-        $from_store_id = $userStoreId;
-    }
+    // ສາຂາຕົ້ນທາງລັອກໄວ້ = ສາຂາທີ່ກຳລັງເຮັດວຽກ (ບໍ່ຮັບຄ່າຈາກຟອມ)
+    $from_store_id = $canAllBranches ? (int)getActiveStoreId($pdo) : $userStoreId;
     $to_store_id   = intval($_POST['to_store_id'] ?? 0);
     $notes         = trim($_POST['notes'] ?? '');
     $items_json    = $_POST['items_json'] ?? '[]';
@@ -239,13 +237,9 @@ $preSearch = trim($_GET['search'] ?? '');
 $preProductId = intval($_GET['product_id'] ?? 0);
 $autoAdd = intval($_GET['auto_add'] ?? 0);
 
-$sourceStoreId = getActiveStoreId($pdo);
-if (!empty($_GET['from_store']) && !empty($canAllBranches)) {
-    $sourceStoreId = intval($_GET['from_store']);
-}
-if (!$canAllBranches) {
-    $sourceStoreId = $userStoreId;
-}
+// ສາຂາຕົ້ນທາງລັອກໄວ້ (ບໍ່ມີບັອກເລືອກ): ສາຂາຍ່ອຍ = ສາຂາຕົນເອງ, ສາຂາຫຼັກ = ສາຂາທີ່ເລືອກໃນຕົວສະຫຼັບສາຂາດ້ານເທິງ.
+// ຕ້ອງກົງກັບ $from_store_id ຕອນບັນທຶກ (ຂ້າງເທິງ)
+$sourceStoreId = $canAllBranches ? (int)getActiveStoreId($pdo) : $userStoreId;
 
 // Fetch categories for modal filter
 $catStmt = $pdo->query("SELECT category_id, category_name FROM st_categories ORDER BY category_id ASC");

@@ -24,7 +24,9 @@ if (isset($_GET['config'])) {
     exit();
 }
 // ປິດສຽງ → ບໍ່ສ້າງສຽງ (ບໍ່ເຊື່ອມ Microsoft ບໍ່ປຸກເຄື່ອງສ້າງສຽງ). ປຸ່ມທົດສອບໃນໜ້າຕັ້ງຄ່າ (?test=1) ຍັງໃຊ້ໄດ້
-if (!$ttsSwitches['enabled'] && !isset($_GET['test'])) {
+// ຈຸດທີ່ປິດສະວິດ (&kind=pos_stock ...) ກໍບໍ່ສ້າງສຽງຄືກັນ
+$ttsKind = (string)($_GET['kind'] ?? '');
+if (!isset($_GET['test']) && (!$ttsSwitches['enabled'] || (isset($ttsSwitches[$ttsKind]) && $ttsKind !== 'enabled' && !$ttsSwitches[$ttsKind]))) {
     http_response_code(204);
     exit();
 }
@@ -49,18 +51,9 @@ if (session_status() === PHP_SESSION_ACTIVE) {
     session_write_close();
 }
 
-// ?warm=1 (assets/js/tts-speak.js ຕອນເປີດໜ້າຂາຍ/ຈໍລູກຄ້າ): ປຸກເຄື່ອງສ້າງສຽງ (api/tts_daemon.py) ໄວ້ລ່ວງໜ້າ —
-// ສຽງທຳອິດຂອງມື້ບໍ່ຕ້ອງລໍເປີດ Python. ຕອບທັນທີ ບໍ່ສ້າງສຽງ.
+// ?warm=1 (assets/js/tts-speak.js ຕອນເປີດໜ້າຂາຍ/ຈໍລູກຄ້າ): ເມື່ອກ່ອນປຸກເຄື່ອງສ້າງສຽງ Python — ຕອນນີ້ສ້າງສຽງດ້ວຍ PHP
+// ລ້ວນ (api/tts/edge_tts.php) ບໍ່ມີຫຍັງຕ້ອງປຸກ. ຕອບທັນທີ.
 if (isset($_GET['warm'])) {
-    $warmFp = @fsockopen('127.0.0.1', 5599, $wErr, $wStr, 0.3);
-    if ($warmFp) {
-        fclose($warmFp);
-    } elseif (stripos(PHP_OS, 'WIN') === 0 && file_exists(__DIR__ . '/tts_daemon.py')) {
-        $warmPy = 'C:\\Users\\rog\\AppData\\Local\\Programs\\Python\\Python313\\pythonw.exe';
-        if (!file_exists($warmPy)) $warmPy = 'pythonw';
-        if (!is_dir($cacheDir)) @mkdir($cacheDir, 0755, true);
-        @pclose(@popen('start "" /B "' . $warmPy . '" "' . __DIR__ . '/tts_daemon.py" "' . rtrim(realpath($cacheDir) ?: $cacheDir, '/\\') . '" 5599', 'r'));
-    }
     http_response_code(204);
     exit();
 }
@@ -265,72 +258,17 @@ if (file_exists($cacheFile) && filesize($cacheFile) > 0) {
     exit();
 }
 
-if (!defined('TTS_DAEMON_PORT')) define('TTS_DAEMON_PORT', 5599);
-
-function ttsPythonBin($windowless = false) {
-    $customPython = 'C:\\Users\\rog\\AppData\\Local\\Programs\\Python\\Python313\\python.exe';
-    if (file_exists($customPython)) {
-        $w = dirname($customPython) . '\\pythonw.exe';
-        return ($windowless && file_exists($w)) ? $w : $customPython;
-    }
-    return $windowless ? 'pythonw' : 'python';
-}
-
 /**
- * ສ້າງສຽງຜ່ານເຄື່ອງສ້າງສຽງທີ່ເປີດຄ້າງໄວ້ (api/tts_daemon.py) — ~0.9 s ແທນ ~5 s ຂອງການເປີດ Python ໃໝ່.
- * ຄືນ true = ສຳເລັດ, false = ສ້າງບໍ່ໄດ້, null = ເຄື່ອງສ້າງສຽງບໍ່ໄດ້ເປີດ (ຈະເປີດໃຫ້ ແລ້ວໃຊ້ວິທີເກົ່າເທື່ອນີ້)
- */
-function callEdgeDaemon($text, $voice, $destFile) {
-    $fp = @fsockopen('127.0.0.1', TTS_DAEMON_PORT, $errno, $errstr, 0.3);
-    if (!$fp) {
-        return null;
-    }
-    stream_set_timeout($fp, 25);
-    fwrite($fp, json_encode(['text' => $text, 'voice' => $voice, 'file' => basename($destFile)], JSON_UNESCAPED_UNICODE) . "\n");
-    $reply = trim((string)fgets($fp));
-    fclose($fp);
-    clearstatcache(true, $destFile);
-    return $reply === 'OK' && file_exists($destFile) && filesize($destFile) > 0;
-}
-
-function startEdgeDaemon($cacheDir) {
-    $script = __DIR__ . '/tts_daemon.py';
-    if (!file_exists($script) || stripos(PHP_OS, 'WIN') !== 0) {
-        return;
-    }
-    // ເປີດແຍກອອກຈາກ request (start /B) ໂດຍບໍ່ມີໜ້າຕ່າງ — ເປີດຊ້ຳ ໂຕໃໝ່ຈະອອກເອງ (port ຖືກໃຊ້ແລ້ວ)
-    $cmd = 'start "" /B "' . ttsPythonBin(true) . '" "' . $script . '" "' . rtrim(realpath($cacheDir) ?: $cacheDir, '/\\') . '" ' . TTS_DAEMON_PORT;
-    @pclose(@popen($cmd, 'r'));
-}
-
-/**
- * ຟັງຊັນສ້າງສຽງຜ່ານ Microsoft Edge Neural TTS (Python edge-tts)
+ * ສ້າງສຽງຜ່ານ Microsoft Edge Neural TTS ດ້ວຍ PHP ລ້ວນ (api/tts/edge_tts.php — ບໍ່ໃຊ້ Python ແລ້ວ)
  */
 function callEdgeTTS($text, $voice, $destFile) {
-    global $cacheDir;
+    require_once __DIR__ . '/tts/edge_tts.php';
     $selectedVoice = $voice;
     if (empty($selectedVoice) || strpos($selectedVoice, 'lo-LA-') !== 0) {
         $selectedVoice = 'lo-LA-KeomanyNeural';
     }
-
-    // 1. ເຄື່ອງສ້າງສຽງທີ່ເປີດຄ້າງໄວ້ (ໄວ)
-    $viaDaemon = callEdgeDaemon($text, $selectedVoice, $destFile);
-    if ($viaDaemon === true) {
-        return true;
-    }
-    if ($viaDaemon === null) {
-        startEdgeDaemon($cacheDir);   // ຂໍ້ຄວາມຕໍ່ໄປຈະໄວ
-    }
-
-    // 2. ວິທີເກົ່າ: ເປີດ Python ໃໝ່ສຳລັບຂໍ້ຄວາມນີ້
-    $script = __DIR__ . '/edge_tts_speak.py';
-    if (!file_exists($script)) {
-        return false;
-    }
-    $cmd = '"' . ttsPythonBin() . '" "' . $script . '" ' . escapeshellarg(base64_encode($text)) . ' ' . escapeshellarg($destFile) . ' ' . escapeshellarg($selectedVoice);
-    @exec($cmd, $output, $returnCode);
-    clearstatcache(true, $destFile);
-    return ($returnCode === 0 && file_exists($destFile) && filesize($destFile) > 0);
+    if (!is_dir(dirname($destFile))) @mkdir(dirname($destFile), 0755, true);
+    return edgeTtsSynthesize($text, $selectedVoice, $destFile);
 }
 
 // 2. ຖ້າເລືອກ Provider ເປັນ Microsoft Edge (ຟຣີ 100% ບໍ່ຈຳກັດ)
@@ -426,5 +364,5 @@ header('Content-Type: application/json; charset=utf-8');
 echo json_encode([
     'success' => false,
     'message' => 'ບໍ່ສາມາດສ້າງສຽງເວົ້າໄດ້ (ທັງ Siangmuan ແລະ Edge TTS ບໍ່ພ້ອມໃຊ້ງານ)',
-    'hint'    => 'ກວດສອບການຕິດຕັ້ງ python ແລະ edge-tts'
+    'hint'    => 'ກວດສອບອິນເຕີເນັດ (ເຊື່ອມ speech.platform.bing.com) ຫຼື API Key ຂອງ SiangMuan'
 ], JSON_UNESCAPED_UNICODE);

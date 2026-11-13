@@ -121,6 +121,39 @@ function hasNonEnglishChars(str) {
   return /[^\x20-\x7E]/.test(str);
 }
 
+// ໂທລະສັບ/ແທັບເລັດ — ບໍ່ເຕືອນໃຫ້ປ່ຽນແປ້ນພິມ (ແປງຕົວອັກສອນເອງ ຫຼື ຊອກຕາມທີ່ພິມ)
+function isPosMobile() {
+  return window.innerWidth < 768 || !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+}
+
+// ເຄື່ອງສະແກນ "ພິມ" ຕາມປຸ່ມແປ້ນພິມ: ຖ້າແປ້ນພິມເປັນລາວ/ໄທ ເລກ 1234 ຈະອອກເປັນ ຢຟໂຖ / ๅ/-ภ.
+// ແປງຄືນເປັນປຸ່ມພາສາອັງກິດທີ່ເຄື່ອງສະແກນຕັ້ງໃຈກົດ (ແປ້ນ Kedmanee, ແຖວບໍ່ກົດ Shift).
+var POS_KEYMAP_LAO = {
+  'ຢ':'1','ຟ':'2','ໂ':'3','ຖ':'4','ຸ':'5','ູ':'6','ຄ':'7','ຕ':'8','ຈ':'9','ຂ':'0','ຊ':'-','ໍ':'=',
+  'ົ':'q','ໄ':'w','ຳ':'e','ພ':'r','ະ':'t','ິ':'y','ີ':'u','ຮ':'i','ນ':'o','ຍ':'p','ບ':'[','ລ':']',
+  'ັ':'a','ຫ':'s','ກ':'d','ດ':'f','ເ':'g','້':'h','່':'j','າ':'k','ສ':'l','ວ':';','ງ':"'",
+  'ຜ':'z','ປ':'x','ແ':'c','ອ':'v','ຶ':'b','ື':'n','ທ':'m','ມ':',','ໃ':'.','ຝ':'/'
+};
+var POS_KEYMAP_THAI = {
+  'ๅ':'1','/':'2','-':'3','ภ':'4','ถ':'5','ุ':'6','ึ':'7','ค':'8','ต':'9','จ':'0','ข':'-','ช':'=',
+  'ๆ':'q','ไ':'w','ำ':'e','พ':'r','ะ':'t','ั':'y','ี':'u','ร':'i','น':'o','ย':'p','บ':'[','ล':']',
+  'ฟ':'a','ห':'s','ก':'d','ด':'f','เ':'g','้':'h','่':'j','า':'k','ส':'l','ว':';','ง':"'",
+  'ผ':'z','ป':'x','แ':'c','อ':'v','ิ':'b','ื':'n','ท':'m','ม':',','ใ':'.','ฝ':'/'
+};
+function convertKeyboardLayoutToEnglish(str) {
+  if (!hasNonEnglishChars(str)) return str;
+  var map = /[຀-໿]/.test(str) ? POS_KEYMAP_LAO : (/[฀-๿]/.test(str) ? POS_KEYMAP_THAI : null);
+  if (!map) return str;
+  var out = '', chars = Array.from(str);
+  for (var i = 0; i < chars.length; i++) {
+    var ch = chars[i];
+    if (map.hasOwnProperty(ch)) out += map[ch];
+    else if (/[\x20-\x7E]/.test(ch)) out += ch;
+    else return str; // ມີຕົວອັກສອນທີ່ແປງບໍ່ໄດ້ → ຄືນຄ່າເດີມ
+  }
+  return out;
+}
+
 function showSwitchKeyboardAlert(code) {
   Swal.fire({
     icon: 'warning',
@@ -157,9 +190,15 @@ function handleBarcodeSubmit() {
 
   var scanned = isLikelyScannerInput();
   barcodeKeyBurst.count = 0;
-  if (scanned && hasNonEnglishChars(rawCode)) {
-    showSwitchKeyboardAlert(rawCode);
-    return;
+  if (hasNonEnglishChars(rawCode)) {
+    // ແປ້ນພິມລາວ/ໄທ: ແປງຄືນເປັນເລກບາໂຄ້ດ — ຖ້າກົງກັບສິນຄ້າ ໃຊ້ເລີຍ ບໍ່ຕ້ອງເຕືອນ
+    var converted = convertKeyboardLayoutToEnglish(rawCode);
+    if (converted !== rawCode && matchProductByCode(converted)) {
+      rawCode = converted;
+    } else if (scanned && !isPosMobile()) {
+      showSwitchKeyboardAlert(rawCode);
+      return;
+    }
   }
 
   barcodeShowingLastScan = true;
@@ -180,7 +219,35 @@ $('#barcodeInput').on('focus', function() {
   if (barcodeShowingLastScan) { var el = this; setTimeout(function() { try { el.select(); } catch (e) {} }, 0); }
 });
 
+// ຊອກສິນຄ້າຕາມບາໂຄ້ດ/ລະຫັດສິນຄ້າ/ບາໂຄ້ດຫົວໜ່ວຍ (ກົງກັນທັງໝົດ) → { product, unit } ຫຼື null
+function matchProductByCode(code) {
+  var cleanCode = String(code || '').toLowerCase();
+  if (!cleanCode) return null;
+  for (var i = 0; i < allProducts.length; i++) {
+    var p = allProducts[i];
+    if ((p.barcode && p.barcode.toLowerCase() === cleanCode) || String(p.product_id) === cleanCode) {
+      return { product: p, unit: { unit_name: p.unit || 'ອັນ', multiplier: 1, price: p.price, bprice: p.bprice } };
+    }
+    if (p.extra_units && p.extra_units.length > 0) {
+      for (var j = 0; j < p.extra_units.length; j++) {
+        var eu = p.extra_units[j];
+        if (eu.barcode && eu.barcode.toLowerCase() === cleanCode) return { product: p, unit: eu };
+      }
+    }
+  }
+  return null;
+}
+
 function findAndAddByBarcode(code) {
+  // ບາໂຄ້ດຈາກແປ້ນພິມລາວ/ໄທ → ແປງຄືນເປັນເລກ ຖ້າກົງກັບສິນຄ້າ
+  if (hasNonEnglishChars(code)) {
+    var conv = convertKeyboardLayoutToEnglish(code);
+    if (conv !== code && matchProductByCode(conv)) {
+      code = conv;
+      var bi = document.getElementById('barcodeInput');
+      if (bi && hasNonEnglishChars(bi.value)) bi.value = conv;
+    }
+  }
   var cleanCode = code.toLowerCase();
   var matchedProduct = null;
   var matchedUnit = null;
@@ -224,7 +291,7 @@ function findAndAddByBarcode(code) {
   if (matchedProduct) {
     playPosBeep();
     addProductToCart(matchedProduct, matchedUnit);
-  } else if (hasNonEnglishChars(code)) {
+  } else if (hasNonEnglishChars(code) && !isPosMobile()) {
     // ເຄື່ອງສະແກນຊ້າ (ບໍ່ຜ່ານການກວດຄວາມໄວ) ແຕ່ຊອກບໍ່ພົບ ແລະ ມີອັກສອນນອກພາສາອັງກິດ → ບອກໃຫ້ກວດແປ້ນພິມນຳ
     Swal.fire({
       icon: 'warning',

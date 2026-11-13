@@ -4,7 +4,7 @@
  * ຮອງຮັບ Microsoft Edge Neural TTS (ຟຣີ 100% ບໍ່ຈຳກັດ) ແລະ Siangmuan.com
  */
 return array (
-  'enabled' => true,
+  'enabled' => false,
   'provider' => 'edge',
   'voice' => 'lo-LA-KeomanyNeural',
   'api_url' => 'https://siangmuan.com/tts',

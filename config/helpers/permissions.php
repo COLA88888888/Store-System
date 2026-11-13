@@ -123,9 +123,10 @@ if (!function_exists('hasPermission')) {
 
         $targetModule = $aliasMap[$module] ?? $module;
 
-        // ເມນູຕັ້ງຄ່າລະບົບສຽງ: ເຫັນສະເພາະຜູ້ເບິ່ງແຍງລະບົບ — ສະວິດ ຫຼື ຄໍລຳສິດໃດກໍເປີດໃຫ້ຄົນອື່ນບໍ່ໄດ້
-        if ($module === 'tts') {
-            return $isAdminUser;
+        // ຕັ້ງຄ່າລະບົບສຽງ ແລະ ລ້າງຂໍ້ມູນລະບົບ: ສະເພາະຜູ້ເບິ່ງແຍງລະບົບ (Id 1 — ຜ່ານໄປແລ້ວຂ້າງເທິງ).
+        // ຄົນອື່ນ ລວມທັງຜູ້ບໍລິຫານ ບໍ່ເຫັນເມນູ ແລະ ເຂົ້າໜ້າບໍ່ໄດ້ — ສະວິດ ຫຼື ຄໍລຳສິດໃດກໍເປີດໃຫ້ບໍ່ໄດ້
+        if ($module === 'tts' || $module === 'clear_data') {
+            return false;
         }
 
         // Check explicit switch key for exact module or target module alias (e.g., perm_bank_edit_6 or perm_accounting_edit_6)

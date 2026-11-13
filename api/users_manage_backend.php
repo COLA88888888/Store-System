@@ -31,7 +31,7 @@ if ($page > $total_pages) {
 $offset = ($page - 1) * $limit;
 
 // Fetch paginated users with branch store name
-$stmtUsers = $pdo->prepare("SELECT u.*, s.store_name FROM st_tbuser u LEFT JOIN st_tbstore s ON u.store_id = s.store_id" . $userScopeSql . " ORDER BY u.Id ASC LIMIT ? OFFSET ?");
+$stmtUsers = $pdo->prepare("SELECT u.*, s.store_name, s.status AS store_status FROM st_tbuser u LEFT JOIN st_tbstore s ON u.store_id = s.store_id" . $userScopeSql . " ORDER BY u.Id ASC LIMIT ? OFFSET ?");
 $stmtUsers->bindValue(1, $limit, PDO::PARAM_INT);
 $stmtUsers->bindValue(2, $offset, PDO::PARAM_INT);
 $stmtUsers->execute();

@@ -87,19 +87,20 @@ body {
    ============================================================ */
 .login-left-pane {
     background: #ffffff;
-    padding: 32px 42px 26px;
+    padding: 24px 38px 24px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     position: relative;
+    min-height: 560px;
 }
 
 /* ປຸ່ມປ່ຽນພາສາຢູ່ມຸມຂວາເທິງ */
 .login-lang-corner {
     position: absolute;
-    top: 20px;
-    right: 22px;
-    z-index: 20;
+    top: 18px;
+    right: 20px;
+    z-index: 30;
 }
 
 .login-lang-flag-icon {
@@ -107,40 +108,78 @@ body {
     height: 38px;
     border-radius: 50%;
     object-fit: cover;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.22);
-    border: 2.5px solid #e2e8f0;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+    border: 2.5px solid #ffffff;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .login-lang-flag-icon:hover {
     transform: scale(1.06);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
-/* ໂລໂກ້ລະບົບຂະໜາດໃຫຍ່ ເຫັນແຕ່ໂລໂກ້ ບໍ່ມີກາດອ້ອມ */
+/* ============================================================
+   WAVING SILK FLAG HERO (3D Green & Blue Silk Banner — ສີຂຽວປົນຟ້າ ຄືໂລໂກ້)
+   ============================================================ */
+.login-flag-hero-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 175px;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+    border-top-left-radius: 18px;
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.92) 52%, rgba(0,0,0,0) 100%);
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0.92) 52%, rgba(0,0,0,0) 100%);
+}
+
+.login-flag-hero-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.login-form-top-wrap,
+.login-pane-footer {
+    position: relative;
+    z-index: 2;
+}
+
+/* ໂລໂກ້ລະບົບຢູ່ກາງ ໂປ່ງໃສ ບໍ່ມີກາດ/ຂອບສີຂາວ (Centered Brand Logo) */
 .login-hero-logo {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 4px auto 12px;
+    margin: 6px auto 14px;
+    position: relative;
+    z-index: 5;
 }
 
-.login-hero-logo img {
-    height: 96px;
+.login-hero-logo-img {
+    height: 72px;
     width: auto;
     max-width: 220px;
     object-fit: contain;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    padding: 0;
-    display: block;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+    transition: transform 0.25s ease;
 }
 
-/* Header Title: WlaoDev POS ສຳລັບທຸລະກິດທ່ານ */
+.login-hero-logo-img:hover {
+    transform: scale(1.05);
+}
+
+/* Header Title: WlaoDev POS ສຳລັບທຸລະກິດທ່ານ (Centered 2-Tone Brand Colors) */
 .login-title-group {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
+    position: relative;
+    z-index: 5;
 }
 
 .login-title-main {
@@ -148,6 +187,7 @@ body {
     font-weight: 900;
     margin: 0;
     line-height: 1.3;
+    letter-spacing: 0.2px;
 }
 
 .login-title-main .brand-blue {
@@ -231,14 +271,14 @@ body {
     color: #1e293b;
 }
 
-/* Login Submit Button */
+/* Login Submit Button (ປຸ່ມສີຟ້າຄືເກົ່າ) */
 .btn-login-custom {
     width: 100%;
     height: 50px;
     background: linear-gradient(90deg, #0066ff 0%, #0052cc 100%);
     color: #ffffff;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 1.05rem;
     font-weight: 800;
     cursor: pointer;
@@ -246,16 +286,16 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    margin-top: 22px;
-    box-shadow: 0 8px 20px rgba(0, 102, 255, 0.32);
-    transition: all 0.2s ease;
+    margin-top: 18px;
+    box-shadow: 0 4px 14px rgba(0, 102, 255, 0.35);
+    transition: all 0.25s ease;
     outline: none !important;
 }
 
 .btn-login-custom:hover {
     background: linear-gradient(90deg, #0052cc 0%, #003d99 100%);
-    box-shadow: 0 10px 24px rgba(0, 102, 255, 0.42);
-    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 102, 255, 0.45);
+    transform: translateY(-2px);
 }
 
 /* Bottom Note inside Left Pane */
@@ -1251,25 +1291,17 @@ body {
         min-width: 0;
         flex: 0 0 auto;
         min-height: 0 !important;
-        background: transparent !important;
-        padding: 50px 22px 14px !important;
+        background: #ffffff !important;
+        border-radius: 22px !important;
+        padding: 24px 22px 18px !important;
         justify-content: flex-start;
-        overflow: visible !important;
+        overflow: hidden !important;
         position: relative;
         filter: drop-shadow(0 12px 28px rgba(3, 8, 22, 0.5));
     }
 
-    /* ພື້ນກາດສີຂາວທີ່ຫຼຸບໂຄ້ງເປັນວົງມົນຢູ່ກາງເທິງ ຮັບກັບໂລໂກ້ນູນວົງມົນ (ສະເພາະໂທລະສັບ) */
     .login-left-pane::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: #ffffff;
-        border-radius: 22px;
-        -webkit-mask-image: radial-gradient(circle 45px at 50% 0px, transparent 43.5px, #000 45px);
-        mask-image: radial-gradient(circle 45px at 50% 0px, transparent 43.5px, #000 45px);
-        z-index: 0;
-        pointer-events: none;
+        display: none !important;
     }
 
     .login-form-top-wrap {
@@ -1286,6 +1318,15 @@ body {
         z-index: 2;
     }
 
+    .login-hero-logo {
+        margin: 4px auto 10px;
+    }
+
+    .login-hero-logo-img {
+        height: 62px;
+        max-width: 185px;
+    }
+
     /* ທຸງປ່ຽນພາສາໃຫຍ່ຂຶ້ນອີກໃນໂທລະສັບ */
     .login-lang-corner {
         top: 10px;
@@ -1296,39 +1337,8 @@ body {
     .login-lang-flag-icon {
         width: 40px;
         height: 40px;
-        border: 2.5px solid #e2e8f0;
-        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.22);
-    }
-
-    /* ໂລໂກ້ນູນຂຶ້ນເປັນວົງມົນ 3D ຂະໜາດສົມສ່ວນ ບໍ່ກິນພື້ນທີ່ຟອມ */
-    .login-hero-logo {
-        position: absolute;
-        top: -38px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 76px;
-        height: 76px;
-        margin: 0 !important;
-        border-radius: 50%;
-        background: radial-gradient(circle at 32% 26%, #ffffff 0%, #f8fafc 68%, #e2e8f0 100%);
-        border: 3px solid #ffffff;
-        box-shadow:
-            0 8px 20px rgba(3, 10, 28, 0.45),
-            0 3px 8px rgba(37, 99, 235, 0.22),
-            inset 0 2px 5px rgba(255, 255, 255, 1),
-            inset 0 -3px 6px rgba(148, 163, 184, 0.35);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 6;
-    }
-
-    .login-hero-logo img {
-        width: 54px;
-        height: 54px;
-        max-width: 54px;
-        object-fit: contain;
-        border-radius: 50%;
+        border: 2.5px solid #ffffff;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.35);
     }
 
     .login-title-group {

@@ -1,0 +1,184 @@
+/*
+ * 06-camera-scan.css — ປຸ່ມກ້ອງໃນບັອກຄົ້ນຫາ ແລະ ໜ້າຕ່າງສະແກນບາໂຄ້ດດ້ວຍກ້ອງ (ມືຖື)
+ * (markup ປຸ່ມ: pages/pos/partials/search_and_categories.php,
+ *  ໜ້າຕ່າງສະແກນສ້າງໃນ JS: pages/pos/partials/js/pos_camera_scan_js.php)
+ * ໂຫຼດຕໍ່ຈາກ 05-product-card-image.css ໃນ pages/pos/pos.php
+ */
+
+/* ຄອມ: ບໍ່ສະແດງປຸ່ມກ້ອງ (ໃຊ້ເຄື່ອງສະແກນ USB) */
+.pos-search-camera {
+    display: none;
+}
+
+/* ມືຖື/ແທັບເລັດ: ສະແດງປຸ່ມກ້ອງຢູ່ຂວາມືແທນປ້າຍ SCAN */
+@media (max-width: 767.98px) {
+    .pos-search-camera {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        /* ສີດຽວຄົງທີ່ (ບໍ່ປ່ຽນຕາມສີທີມ) ແລະ ໄອຄອນນ້ອຍພໍດີຢູ່ໃນຂອບບັອກ */
+        width: 36px;
+        height: 32px;
+        margin: 0 2px 0 0;
+        padding: 0;
+        border: none;
+        border-radius: 8px;
+        background: transparent !important;
+        color: #334155 !important;
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .pos-search-camera:active {
+        background: #e2e8f0 !important;
+    }
+
+    .pos-search-wrapper .pos-search-badge {
+        display: none !important;
+    }
+}
+
+/* ===== ໜ້າຕ່າງສະແກນ (ເຕັມຈໍ) ===== */
+.pos-cam-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    background: #000000;
+    color: #ffffff;
+}
+
+.pos-cam-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    padding-top: max(10px, env(safe-area-inset-top));
+    background: rgba(15, 23, 42, 0.92);
+}
+
+.pos-cam-title {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.pos-cam-close {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.pos-cam-body {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#posCameraReader {
+    width: 100%;
+    max-width: 640px;
+    border: none !important;
+}
+
+#posCameraReader video {
+    width: 100% !important;
+    height: auto !important;
+    object-fit: cover;
+}
+
+/* ວິດີໂອຂອງ BarcodeDetector (ເຕັມພື້ນທີ່) */
+#posCameraReader .pos-cam-video {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: calc(100vh - 140px);
+    object-fit: cover;
+}
+
+/* ກອບເລັງບາໂຄ້ດ — ນອກກອບມືດລົງ, ມີເສັ້ນແດງວິ່ງ */
+.pos-cam-guide {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 82%;
+    max-width: 520px;
+    height: 34%;
+    max-height: 240px;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* ເສັ້ນສີແດງເລື່ອນລົງຈາກເທິງລົງລຸ່ມ ພ້ອມແສງຫາງ (ເອັບເຟັກສະແກນ) */
+.pos-cam-line {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    top: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: #ff2d2d;
+    box-shadow: 0 0 10px 2px rgba(255, 45, 45, 0.85);
+    animation: posCamLine 1.8s linear infinite;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.pos-cam-line::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 3px;
+    height: 46px;
+    background: linear-gradient(to bottom, rgba(255, 45, 45, 0) 0%, rgba(255, 45, 45, 0.28) 100%);
+}
+
+@keyframes posCamLine {
+    0%   { top: 0;    opacity: 0; }
+    8%   { opacity: 1; }
+    92%  { opacity: 1; }
+    100% { top: calc(100% - 3px); opacity: 0; }
+}
+
+/* html5-qrcode (iPhone): ກອບຂອງໄລບຣາຣີ — ໃສ່ເສັ້ນແດງໄວ້ພາຍໃນ */
+#posCameraReader #qr-shaded-region {
+    overflow: hidden;
+}
+
+.pos-cam-status {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    font-size: 0.95rem;
+    color: #cbd5e1;
+    pointer-events: none;
+}
+
+.pos-cam-footer {
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+    text-align: center;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    background: rgba(15, 23, 42, 0.92);
+}

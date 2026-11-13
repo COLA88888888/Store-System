@@ -5,6 +5,13 @@
   $bp = $base_path ?? '';
   $headerLogoImg = $bp . 'assets/img/logosystem/Wlaodev.jpg';
   $headerBrandText = 'Wlaodev POS';
+  // ເມນູລາຍງານກະ: ສາຂາທີ່ຍັງບໍ່ໄດ້ເພີ່ມກະ → ເຊື່ອງ (api/my_permissions.php ສົ່ງ '0000' ໃຫ້ໂມດູນເຫຼົ່ານີ້ຄືກັນ
+  // ເມນູຈຶ່ງຂຶ້ນມາເອງທັນທີທີ່ເພີ່ມກະ — js_live_permissions.php)
+  $sbHasShifts = isset($pdo) && branchHasShifts($pdo, intval($_SESSION['store_id'] ?? 0));
+  $shiftMenuAttr = function ($module) use ($sbHasShifts) {
+      $attr = permMenuAttr($module);
+      return ($sbHasShifts || strpos($attr, ' hidden') !== false) ? $attr : $attr . ' hidden';
+  };
 ?>
 <!-- UNIFIED SIDEBAR (ແຖບເມນູໄດນາມິກກວດສອບຕາມສິດ) -->
 <aside class="main-sidebar elevation-0 sidebar-dark-primary" style="background-color: #244886; position: fixed; top: 0; bottom: 0; left: 0; z-index: 1038; border-right: 1px solid rgba(255, 255, 255, 0.18) !important; box-shadow: none !important;">
@@ -160,7 +167,7 @@
               </li>
 
               <!-- 10. ລາຍງານປິດກະ -->
-              <li class="nav-item"<?php echo permMenuAttr('shift_close_report'); ?>>
+              <li class="nav-item"<?php echo $shiftMenuAttr('shift_close_report'); ?>>
                 <a href="<?php echo $bp; ?>pages/reports/shift_close_report.php" target="frame" class="nav-link">
                   <i class="nav-icon fas fa-cash-register text-info"></i>
                   <p data-i18n="layout.shift_close_report"><?php echo htmlspecialchars(t('layout.shift_close_report', 'ລາຍງານປິດກະ')); ?></p>
@@ -168,7 +175,7 @@
               </li>
 
               <!-- 11. ລາຍງານລາຍຮັບຕາມກະ -->
-              <li class="nav-item"<?php echo permMenuAttr('shift_revenue_report'); ?>>
+              <li class="nav-item"<?php echo $shiftMenuAttr('shift_revenue_report'); ?>>
                 <a href="<?php echo $bp; ?>pages/reports/shift_revenue_report.php" target="frame" class="nav-link">
                   <i class="nav-icon fas fa-chart-line text-success"></i>
                   <p data-i18n="layout.shift_revenue_report"><?php echo htmlspecialchars(t('layout.shift_revenue_report', 'ລາຍງານລາຍຮັບຕາມກະ')); ?></p>
@@ -189,6 +196,14 @@
           <!-- Header: Administration & Settings -->
           <li class="nav-header text-uppercase"<?php echo permMenuAttr('users', 'permissions', 'branches', 'stores', 'print_barcode', 'exchange_rate', 'promotions', 'price_adjustment', 'printers', 'loyalty', 'expiry', 'shifts', 'clear_data', 'tts', 'database'); ?> style="color: rgba(255,255,255,0.85); font-size: 0.75rem; letter-spacing: 1px; padding-top: 15px;" data-i18n="layout.admin_header"><?php echo htmlspecialchars(t('layout.admin_header', 'ການຈັດການລະບົບ')); ?></li>
 
+            <!-- Menu: ຈັດການສາຂາ (ໂຟເດີແຍກຕ່າງຫາກ pages/branches/) -->
+            <li class="nav-item"<?php echo permMenuAttr('branches'); ?>>
+              <a href="<?php echo $bp; ?>pages/branches/branches.php" target="frame" class="nav-link">
+                <i class="nav-icon fas fa-network-wired text-success"></i>
+                <p data-i18n="layout.branches"><?php echo htmlspecialchars(t('layout.branches', 'ຈັດການສາຂາ')); ?></p>
+              </a>
+            </li>
+            
             <!-- Menu: Users Management -->
             <li class="nav-item"<?php echo permMenuAttr('users'); ?>>
               <a href="<?php echo $bp; ?>pages/users_manage/users_manage.php" target="frame" class="nav-link">
@@ -202,14 +217,6 @@
               <a href="<?php echo $bp; ?>pages/permissions/permissions.php" target="frame" class="nav-link">
                 <i class="nav-icon fas fa-user-shield text-warning"></i>
                 <p data-i18n="layout.permissions"><?php echo htmlspecialchars(t('layout.permissions', 'ກຳນົດສິດ')); ?></p>
-              </a>
-            </li>
-
-            <!-- Menu: ຈັດການສາຂາ (ໂຟເດີແຍກຕ່າງຫາກ pages/branches/) -->
-            <li class="nav-item"<?php echo permMenuAttr('branches'); ?>>
-              <a href="<?php echo $bp; ?>pages/branches/branches.php" target="frame" class="nav-link">
-                <i class="nav-icon fas fa-network-wired text-success"></i>
-                <p data-i18n="layout.branches"><?php echo htmlspecialchars(t('layout.branches', 'ຈັດການສາຂາ')); ?></p>
               </a>
             </li>
 

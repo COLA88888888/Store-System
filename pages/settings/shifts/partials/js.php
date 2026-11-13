@@ -92,7 +92,7 @@ function getShiftWord(key) {
     no_shifts: { lo: 'ຍັງບໍ່ມີຂໍ້ມູນກະເຮັດວຽກ. ກະລຸນາກົດ', th: 'ยังไม่มีข้อมูลกะทำงาน กรุณากด', en: 'No shift configurations yet. Please click', zh: '暂无班次数据。请点击', vi: 'Chưa có ca làm việc. Vui lòng bấm' },
     add_new_shift: { lo: 'ເພີ່ມກະໃໝ່', th: 'เพิ่มกะใหม่', en: 'Add New Shift', zh: '新增班次', vi: 'Thêm ca mới' },
     cannot_load_staff: { lo: 'ໂຫຼດລາຍຊື່ພະນັກງານບໍ່ໄດ້', th: 'ไม่สามารถโหลดรายชื่อพนักงานได้', en: 'Cannot load staff list', zh: '无法加载员工列表', vi: 'Không thể tải danh sách nhân viên' },
-    no_staff_in_branch: { lo: 'ສາຂານີ້ຍັງບໍ່ມີພະນັກງານ', th: 'สาขานี้ยังไม่มีพนักงาน', en: 'No staff in this branch', zh: '该分店暂无员工', vi: 'Chi nhánh này chưa có nhân viên' },
+    no_staff_in_branch: { lo: 'ບໍ່ມີພະນັກງານທີ່ເລືອກໄດ້ (ພະນັກງານຂອງສາຂານີ້ຢູ່ກະອື່ນໝົດແລ້ວ ຫຼື ຍັງບໍ່ມີພະນັກງານ)', th: 'ไม่มีพนักงานที่เลือกได้ (อยู่กะอื่นหมดแล้ว หรือยังไม่มีพนักงาน)', en: 'No staff available (all assigned to other shifts, or none in this branch)', zh: '没有可选员工（已全部分配到其他班次或该分店暂无员工）', vi: 'Không có nhân viên khả dụng (đã ở ca khác hoặc chi nhánh chưa có nhân viên)' },
     please_select_staff: { lo: 'ກະລຸນາເລືອກພະນັກງານກະນີ້ກ່ອນ', th: 'กรุณาเลือกพนักงานในกะนี้ก่อน', en: 'Please select staff for this shift first', zh: '请先选择此班次的员工', vi: 'Vui lòng chọn nhân viên cho ca này trước' },
     selected_count: { lo: 'ເລືອກແລ້ວ', th: 'เลือกแล้ว', en: 'Selected', zh: '已选择', vi: 'Đã chọn' }
   };
@@ -450,11 +450,12 @@ function updateShiftStaffCount() {
       .html('<i class="fas fa-check-circle mr-1"></i> ' + getShiftWord('selected_count') + ' ' + count + ' ' + getShiftWord('person'));
   }
 }
-// ໂຫຼດລາຍຊື່ພະນັກງານຂອງສາຂາ ເປັນ checkbox ແລ້ວຕິກຄົນທີ່ຢູ່ໃນກະນີ້ (selectedIds)
-function loadShiftStaffPicker(selectedIds) {
+// ໂຫຼດລາຍຊື່ພະນັກງານຂອງສາຂາ ເປັນ checkbox ແລ້ວຕິກຄົນທີ່ຢູ່ໃນກະນີ້ (selectedIds).
+// ຄົນທີ່ຢູ່ກະອື່ນຂອງສາຂານີ້ແລ້ວ ບໍ່ສະແດງ (list_staff ກັ່ນອອກ — shiftId = ກະທີ່ກຳລັງແກ້ໄຂ, 0 = ກະໃໝ່)
+function loadShiftStaffPicker(selectedIds, shiftId) {
   var sel = (selectedIds || []).map(function (x) { return parseInt(x, 10); });
   var $box = $('#shiftStaffList');
-  $.get(window.SHIFTS_API, { action: 'list_staff' }, function (res) {
+  $.get(window.SHIFTS_API, { action: 'list_staff', shift_id: parseInt(shiftId, 10) || 0 }, function (res) {
     if (!res || !res.success) { $box.html('<div class="text-danger small py-2 text-center">' + getShiftWord('cannot_load_staff') + '</div>'); return; }
     if (!res.staff.length) { $box.html('<div class="text-muted small py-2 text-center">' + getShiftWord('no_staff_in_branch') + '</div>'); updateShiftStaffCount(); return; }
     $box.html(res.staff.map(function (u) {
@@ -499,7 +500,7 @@ $(document).on('click', '#btnSaveShiftConfig', function (e) {
 
 function openAddShiftModal() {
   $('#formShiftConfig')[0].reset();
-  loadShiftStaffPicker([]);
+  loadShiftStaffPicker([], 0);
   $('#shiftConfigId').val('0');
   $('#shiftConfigStatus').prop('checked', true);
   initShiftTimePickers();
@@ -515,7 +516,7 @@ function editShiftConfig(shift) {
   initShiftTimePickers();
   setShiftPickerTime(shift.start_time_fmt || '07:00', shift.end_time_fmt || '15:00');
   $('#shiftConfigStatus').prop('checked', parseInt(shift.status) === 1);
-  loadShiftStaffPicker((shift.staff || []).map(function (u) { return u.id; }));
+  loadShiftStaffPicker((shift.staff || []).map(function (u) { return u.id; }), shift.id);
   $('#modalShiftConfigTitle').html('<i class="fas fa-edit text-warning mr-2"></i> <?php echo tlj('ແກ້ໄຂກະເຮັດວຽກ'); ?>');
   $('#modalShiftConfig').modal('show');
 }

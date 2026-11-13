@@ -1,22 +1,39 @@
 <?php
+/**
+ * ໜ້າແພັກເກັດໝົດອາຍຸ (ລະບົບທັງໝົດ — st_tbcompanyinfo.license_expire_date ຂອງສາຂາຫຼັກ).
+ * ໂຄງດຽວກັບໜ້າເຂົ້າສູ່ລະບົບ: ກາດສີຂາວ + ໂລໂກ້ບໍ່ມີພື້ນຫຼັງ. ສ່ວນຮ່ວມ (auth/partials/expired/, ຕາມລຳດັບ require):
+ *   - head_logo.php      : ປຸ່ມປ່ຽນພາສາ + ໂລໂກ້
+ *   - contact_footer.php : ປຸ່ມຕິດຕໍ່ຕໍ່ອາຍຸ, ລິ້ງກັບໜ້າເຂົ້າສູ່ລະບົບ, ທ້າຍກາດ (ປິດເຄິ່ງຊ້າຍ)
+ *   - right_pane.php     : ເຄິ່ງຂວາ (ໂລ່ + ກະແຈ), ປິດກາດ, script ປ່ຽນພາສາ
+ */
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-// A visitor arriving here should not still be logged in — config/db.php's per-request check
-// and check_user.php's login-time check both destroy the session before sending anyone here,
-// but clear it again defensively in case this URL is opened directly.
+// Clear session defensively
 session_unset();
 session_destroy();
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../lang/translator.php';
-$site_logo = '../assets/img/logosystem/Wlaodev.jpg';
+
+$site_logo = '../assets/img/logosystem/wlaodev_system_logo.jpg';
+if (!is_file(__DIR__ . '/../assets/img/logosystem/wlaodev_system_logo.jpg')) {
+    $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
+}
+$site_logo_png = '../assets/img/logosystem/Wlaodev.png';
+if (!is_file(__DIR__ . '/../assets/img/logosystem/Wlaodev.png')) {
+    $site_logo_png = $site_logo;
+}
 
 $expire_display = '-';
+$store_name = '';
 try {
-    $exp = $pdo->query("SELECT license_expire_date FROM st_tbcompanyinfo WHERE branch_id = (SELECT store_id FROM st_tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1) LIMIT 1")->fetchColumn();
-    if (!empty($exp)) {
-        $expire_display = date('d/m/Y', strtotime($exp));
+    $info = $pdo->query("SELECT com_name_la, license_expire_date FROM st_tbcompanyinfo WHERE branch_id = (SELECT store_id FROM st_tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1) LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+    if ($info) {
+        if (!empty($info['license_expire_date'])) {
+            $expire_display = date('d/m/Y', strtotime($info['license_expire_date']));
+        }
+        $store_name = trim($info['com_name_la'] ?? '');
     }
 } catch (Throwable $ex) {}
 ?>
@@ -24,76 +41,68 @@ try {
 <html lang="<?php echo htmlspecialchars(getCurrentLang()); ?>" translate="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
-    <title>Wlaodev POS</title>
-    <link rel="shortcut icon" href="<?php echo $site_logo; ?>" type="image/x-icon">
+    <title>ແພັກເກັດໝົດອາຍຸການໃຊ້ງານ - WlaoDev POS</title>
+    <link rel="shortcut icon" href="<?php echo htmlspecialchars($site_logo); ?>" type="image/x-icon">
 
     <!-- CSS Plugins & Theme -->
     <link rel="stylesheet" href="../plugins/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../fontawesome-free-5.15.3-web/css/all.min.css">
+    <link rel="stylesheet" href="../sweetalert/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="../assets/css/local-font.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../themes/login.css?v=<?php echo filemtime(__DIR__ . '/../themes/login.css'); ?>">
+    <link rel="stylesheet" href="../themes/login-hero.css?v=<?php echo filemtime(__DIR__ . '/../themes/login-hero.css'); ?>">
+    <link rel="stylesheet" href="../themes/expired-pages.css?v=<?php echo filemtime(__DIR__ . '/../themes/expired-pages.css'); ?>">
 </head>
-<body>
+<body class="expired-page">
 
-    <!-- Banner Background on Top -->
-    <div class="login-banner-stripe"></div>
-    <div class="login-banner-bg"></div>
-    <div class="login-banner-overlay"></div>
+    <!-- Ambient Background Glows (ດຽວກັບໜ້າ Login) -->
+    <div class="login-bg-glow-1"></div>
+    <div class="login-bg-glow-2"></div>
 
-    <!-- License Expired Container -->
-    <div class="login-card-container">
-        <!-- Main Card -->
-        <div class="login-card">
-            <!-- Overlapping Circle Logo Badge -->
-            <div class="logo-badge">
-                <img src="<?php echo htmlspecialchars($site_logo); ?>" alt="POS Logo">
-            </div>
+    <div class="login-split-wrapper">
+        <div class="login-split-card" id="loginSplitCard">
 
-            <!-- Title Header -->
-            <div class="login-header-text">
-                <h4 style="color: #dc2626;"><i class="fas fa-exclamation-triangle mr-1"></i> <?php echo htmlspecialchars(t('license_expired.title', 'ແພັກເກັດຂອງທ່ານໝົດອາຍຸແລ້ວ')); ?></h4>
-            </div>
+            <!-- ================= LEFT PANE: EXPIRED NOTICE & CONTACT ACTIONS ================= -->
+            <div class="login-left-pane login-brand-hero">
+<?php require __DIR__ . '/partials/expired/head_logo.php'; ?>
 
-            <div class="text-center" style="padding: 4px 8px 20px;">
-                <p style="font-size: 0.95rem; color: #334155; margin-bottom: 4px;">
-                    <?php echo htmlspecialchars(t('license_expired.body', 'ບໍ່ສາມາດເຂົ້າໃຊ້ງານລະບົບໄດ້ຈົນກວ່າຈະຕໍ່ອາຍຸແພັກເກັດ')); ?>
-                </p>
-                <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 18px;">
-                    <?php echo htmlspecialchars(t('license_expired.expired_on', 'ໝົດອາຍຸວັນທີ')); ?>: <strong><?php echo htmlspecialchars($expire_display); ?></strong>
-                </p>
+                <div class="login-form-top-wrap">
+                    <!-- Header Title: WlaoDev POS (ສີຟ້າ) ແພັກເກັດໝົດອາຍຸ (ສີແດງ) -->
+                    <div class="login-title-group text-center mb-2">
+                        <h3 class="login-title-main">
+                            <span class="brand-blue">WlaoDev POS</span> <span class="text-danger"><i class="fas fa-lock ml-1 mr-1" style="font-size: 1.25rem;"></i> ແພັກເກັດໝົດອາຍຸ</span>
+                        </h3>
+                        <p class="text-muted mt-1 mb-0" style="font-size: 0.9rem; font-weight: 600;">ກະລຸນາຕິດຕໍ່ຕໍ່ອາຍຸການໃຊ້ງານລະບົບ</p>
+                    </div>
 
-                <p style="font-size: 0.95rem; font-weight: 700; color: #1e293b; margin-bottom: 14px;">
-                    <?php echo htmlspecialchars(t('license_expired.contact_us', 'ກະລຸນາຕິດຕໍ່ພວກເຮົາເພື່ອຕໍ່ອາຍຸການນຳໃຊ້')); ?>
-                </p>
+                    <!-- Store Name Badge (ຖ້າມີ) -->
+                    <?php if ($store_name !== ''): ?>
+                        <div class="text-center mb-2">
+                            <span class="badge badge-light border text-dark font-weight-bold px-3 py-1.5" style="font-size: 0.85rem; border-radius: 20px;">
+                                <i class="fas fa-store mr-1 text-primary"></i> <?php echo htmlspecialchars($store_name); ?>
+                            </span>
+                        </div>
+                    <?php endif; ?>
 
-                <div class="d-flex flex-column" style="gap: 10px;">
-                    <a href="https://wa.me/8562055949007" target="_blank" rel="noopener noreferrer"
-                       class="btn btn-success btn-block font-weight-bold" style="border-radius: 8px; padding: 10px;">
-                        <i class="fab fa-whatsapp mr-2"></i> +856 20 55 949 007
-                    </a>
-                    <a href="https://wa.me/8562095321848" target="_blank" rel="noopener noreferrer"
-                       class="btn btn-success btn-block font-weight-bold" style="border-radius: 8px; padding: 10px;">
-                        <i class="fab fa-whatsapp mr-2"></i> +856 20 95 321 848
-                    </a>
-                    <a href="https://www.facebook.com/profile.php?id=100067585680024&locale=th_TH" target="_blank" rel="noopener noreferrer"
-                       class="btn btn-primary btn-block font-weight-bold" style="border-radius: 8px; padding: 10px; background: #1877f2; border-color: #1877f2;">
-                        <i class="fab fa-facebook mr-2"></i> WLaoDev
-                    </a>
-                </div>
+                    <!-- Expired Alert Box -->
+                    <div class="expired-alert-box">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="badge badge-danger font-weight-bold mr-2" style="font-size: 0.76rem; border-radius: 6px;">
+                                <i class="fas fa-exclamation-triangle mr-1"></i> ໝົດອາຍຸ
+                            </span>
+                            <span style="font-size: 0.88rem; color: #991b1b; font-weight: 700;">
+                                ວັນທີໝົດອາຍຸ: <u style="font-size: 0.95rem;"><?php echo htmlspecialchars($expire_display); ?></u>
+                            </span>
+                        </div>
+                        <div style="font-size: 0.82rem; color: #7f1d1d; line-height: 1.45;">
+                            ລະບົບຖືກລະງັບການເຂົ້າໃຊ້ງານຊົ່ວຄາວ. ຂໍ້ມູນສິນຄ້າ ແລະ ຍອດຂາຍທັງໝົດຍັງຄົງຢູ່ປອດໄພ.
+                        </div>
+                    </div>
 
-                <a href="login.php" class="d-block mt-4" style="font-size: 0.85rem; color: #64748b;">
-                    <i class="fas fa-arrow-left mr-1"></i> <?php echo htmlspecialchars(t('license_expired.back_to_login', 'ກັບຄືນໜ້າເຂົ້າສູ່ລະບົບ')); ?>
-                </a>
-            </div>
-        </div>
+<?php require __DIR__ . '/partials/expired/contact_footer.php'; ?>
 
-        <!-- Footer Below Card -->
-        <div class="bct-footer">
-            <div class="bct-footer-copy">&copy; 2026 - Wlaodev POS By <a href="https://laodev.la/" target="_blank" rel="noopener noreferrer">LaoDev.la</a></div>
-        </div>
-    </div>
-
+<?php require __DIR__ . '/partials/expired/right_pane.php'; ?>
 </body>
 </html>

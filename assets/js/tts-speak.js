@@ -22,6 +22,19 @@
     if (kind && ttsCfg[kind] === false) return false;
     return true;
   }
+  // ທີ່ຢູ່ອ່ານສະວິດຈາກເຊີເວີ (api/tts_speak.php?config=1) — ເອົາຈາກ src ຂອງໄຟລ໌ນີ້ ຈຶ່ງຖືກທຸກຄວາມເລິກຂອງໜ້າ
+  var cfgUrl = (function () {
+    try {
+      var src = document.currentScript && document.currentScript.src;
+      return src ? src.replace(/assets\/js\/tts-speak\.js.*$/, 'api/tts_speak.php?config=1') : '';
+    } catch (e) { return ''; }
+  })();
+  function fetchCfg(cb) {
+    if (!cfgUrl || !ttsCfg) { if (cb) cb(); return; }
+    fetch(cfgUrl, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) {
+      if (c && typeof c === 'object' && 'enabled' in c) applyCfg(c);
+    }).catch(function () {}).then(function () { if (cb) cb(); });
+  }
 
   var basePath = (function () {
     // ກວດສອບ base path ອັດຕະໂນມັດ ຕາມ folder ຂອງໜ້າທີ່ເປີດຢູ່
@@ -44,10 +57,11 @@
     return text;
   }
 
-  function getAudioUrl(text, voice) {
+  // kind ສົ່ງໄປນຳ: ເຊີເວີບໍ່ສ້າງສຽງໃຫ້ຈຸດທີ່ປິດສະວິດ (ກັນກໍລະນີໜ້ານີ້ຍັງຖືສະວິດເກົ່າ)
+  function getAudioUrl(text, voice, kind) {
     var v = voice || selectedVoice;
     var cleaned = cleanSpeechUnits(text);
-    return basePath + 'api/tts_speak.php?text=' + encodeURIComponent(cleaned) + (v ? '&voice=' + encodeURIComponent(v) : '');
+    return basePath + 'api/tts_speak.php?text=' + encodeURIComponent(cleaned) + (v ? '&voice=' + encodeURIComponent(v) : '') + (kind ? '&kind=' + encodeURIComponent(kind) : '');
   }
 
   function preload(text, voice, kind) {
@@ -55,7 +69,7 @@
     if (!text || typeof text !== 'string') return;
     text = text.trim();
     if (!text) return;
-    var url = getAudioUrl(text, voice);
+    var url = getAudioUrl(text, voice, kind);
     if (preloadedAudio[url]) return;
     try {
       var a = new Audio();
@@ -65,8 +79,8 @@
     } catch (e) {}
   }
 
-  function fallbackWebSpeech(text, onDone) {
-    if (!ttsAllowed()) return false;
+  function fallbackWebSpeech(text, onDone, kind) {
+    if (!ttsAllowed(kind)) return false;
     try {
       if ('speechSynthesis' in window) {
         var u = new SpeechSynthesisUtterance(text);
@@ -90,7 +104,7 @@
 
     isPlaying = true;
     var item = queue.shift();
-    var url = getAudioUrl(item.text, item.voice);
+    var url = getAudioUrl(item.text, item.voice, item.kind);
 
     var audio = preloadedAudio[url] || new Audio(url);
     currentAudio = audio;
@@ -101,28 +115,31 @@
       playNext();
     };
 
+    // ສຽງຈາກເຊີເວີຫຼິ້ນບໍ່ໄດ້ (ລວມເຊີເວີປະຕິເສດ 204 ເພາະປິດສະວິດ) → ອ່ານສະວິດຄືນກ່ອນ ແລ້ວຈຶ່ງໃຊ້ສຽງສຳຮອງຂອງ browser
+    // ຖ້າຍັງເປີດຢູ່ (ບໍ່ດັ່ງນັ້ນສະວິດເກົ່າໃນໜ້າ ເຮັດໃຫ້ browser ເວົ້າແທນ ເຖິງປິດແລ້ວ)
+    var failed = false;
+    function onFail(err) {
+      if (failed) return;
+      failed = true;
+      fetchCfg(function () {
+        var handled = fallbackWebSpeech(item.text, function () {
+          if (typeof item.onEnd === 'function') item.onEnd();
+          playNext();
+        }, item.kind);
+        if (!handled) {
+          if (typeof item.onError === 'function') item.onError(err);
+          playNext();
+        }
+      });
+    }
     audio.onerror = function (e) {
       console.warn('[LaoTTS] Error playing API audio for:', item.text, e);
-      var handled = fallbackWebSpeech(item.text, function () {
-        if (typeof item.onEnd === 'function') item.onEnd();
-        playNext();
-      });
-      if (!handled) {
-        if (typeof item.onError === 'function') item.onError(e);
-        playNext();
-      }
+      onFail(e);
     };
 
     audio.play().catch(function (err) {
       console.warn('[LaoTTS] Autoplay blocked or failed. Attempting fallback...', err);
-      var handled = fallbackWebSpeech(item.text, function () {
-        if (typeof item.onEnd === 'function') item.onEnd();
-        playNext();
-      });
-      if (!handled) {
-        if (typeof item.onError === 'function') item.onError(err);
-        playNext();
-      }
+      onFail(err);
     });
   }
 
@@ -143,7 +160,8 @@
         text: text,
         onEnd: onEnd,
         onError: onError,
-        voice: voice
+        voice: voice,
+        kind: kind
       });
 
       if (!isPlaying) {
@@ -442,33 +460,27 @@
   };
 
   LaoTTS.isEnabled = function (kind) { return ttsAllowed(kind); };
+
+  // ໃຊ້ສະວິດໃໝ່: ປິດທັງໝົດ → ຢຸດສຽງທີ່ກຳລັງເວົ້າ + ລ້າງຄິວ; ປິດຈຸດໃດ → ຕັດຂໍ້ຄວາມຂອງຈຸດນັ້ນອອກຈາກຄິວ
+  function applyCfg(c) {
+    ttsCfg = c;
+    if (!c.enabled) {
+      LaoTTS.stop();
+      try { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); } catch (e) {}
+      return;
+    }
+    queue = queue.filter(function (it) { return ttsAllowed(it.kind); });
+  }
   window.LaoTTS = LaoTTS;
 
-  // ອ່ານການຕັ້ງຄ່າສຽງຄືນ (ຜູ້ບໍລິຫານອາດປິດ/ເປີດ ລະຫວ່າງໜ້າຂາຍເປີດຢູ່) — ປິດແລ້ວ ຢຸດສຽງທີ່ກຳລັງເວົ້າທັນທີ
+  // ອ່ານການຕັ້ງຄ່າສຽງຄືນ (ຜູ້ບໍລິຫານອາດປິດ/ເປີດ ລະຫວ່າງໜ້າຂາຍເປີດຢູ່): ທຸກ 5 ວິນາທີ, ຕອນກັບມາແຖບນີ້,
+  // ແລະ ທັນທີທີ່ໜ້າຕັ້ງຄ່າໃນ browser ດຽວກັນກົດສະວິດ (localStorage 'tts_cfg_changed' — pages/settings/tts/partials/js.php)
   try {
-    var meCfg = document.currentScript && document.currentScript.src;
-    if (meCfg && ttsCfg) {
-      var cfgUrl = meCfg.replace(/assets\/js\/tts-speak\.js.*$/, 'api/tts_speak.php?config=1');
-      var refreshCfg = function () {
-        fetch(cfgUrl, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (c) {
-          if (!c || typeof c !== 'object' || !('enabled' in c)) return;
-          ttsCfg = c;
-          if (!c.enabled) LaoTTS.stop();
-        }).catch(function () {});
-      };
-      setInterval(refreshCfg, 10000);
-      document.addEventListener('visibilitychange', function () { if (!document.hidden) refreshCfg(); });
+    if (cfgUrl && ttsCfg) {
+      setInterval(function () { fetchCfg(); }, 5000);
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) fetchCfg(); });
+      window.addEventListener('storage', function (e) { if (e.key === 'tts_cfg_changed') fetchCfg(); });
     }
   } catch (e) {}
-
-  // ປຸກເຄື່ອງສ້າງສຽງຢູ່ເຊີເວີ (api/tts_daemon.py) ຕອນເປີດໜ້າ — ສຽງທຳອິດບໍ່ຕ້ອງລໍເປີດ Python (~5 ວິນາທີ).
-  // ເອົາທີ່ຢູ່ຈາກ src ຂອງໄຟລ໌ນີ້ເອງ ຈຶ່ງຖືກທຸກຄວາມເລິກຂອງໜ້າ. ເທື່ອດຽວຕໍ່ແຖບ.
-  try {
-    var me = document.currentScript && document.currentScript.src;
-    if (me && !window.__ttsWarmed) {
-      window.__ttsWarmed = true;
-      var warmUrl = me.replace(/assets\/js\/tts-speak\.js.*$/, 'api/tts_speak.php?warm=1');
-      setTimeout(function () { fetch(warmUrl, { cache: 'no-store' }).catch(function () {}); }, 800);
-    }
-  } catch (e) {}
+  // (ເມື່ອກ່ອນປຸກເຄື່ອງສ້າງສຽງ Python ຕອນເປີດໜ້າ — ຕອນນີ້ເຊີເວີສ້າງສຽງດ້ວຍ PHP ລ້ວນ ບໍ່ຕ້ອງປຸກ: api/tts/edge_tts.php)
 })(window);

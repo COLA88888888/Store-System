@@ -299,12 +299,15 @@ if (!function_exists('customerCodeLabel')) {
     }
 }
 if (!function_exists('branchHasShifts')) {
-    // ສາຂານີ້ໃຊ້ລະບົບກະບໍ່: ມີກະທີ່ເປີດໃຊ້ (ຕັ້ງຄ່າ > ກະເຮັດວຽກ) ຫຼື ເຄີຍເປີດກະມາແລ້ວ.
+    // ສາຂານີ້ໃຊ້ລະບົບກະບໍ່: ມີກະທີ່ເປີດໃຊ້ (ຕັ້ງຄ່າ > ກະເຮັດວຽກ) ຫຼື ມີຮອບເປີດກະທີ່ມີບິນຂາຍຜູກຢູ່.
     // ບໍ່ມີທັງສອງ → ເຊື່ອງເມນູ "ລາຍງານຕາມກະ" (layouts/sidebar.php) ແລະ ກັນໜ້າ pages/reports/shift_report.php
+    // (ລຶບກະໝົດແລ້ວ ເຫຼືອແຕ່ຮອບເປີດກະທີ່ບໍ່ມີບິນ → ຖືວ່າບໍ່ໃຊ້ກະ — ກົງກັບ reportShiftFilter())
     function branchHasShifts($pdo, $storeId) {
         try {
             $st = $pdo->prepare("SELECT (EXISTS(SELECT 1 FROM st_shifts WHERE store_id = ? AND status = 1)
-                                      OR EXISTS(SELECT 1 FROM st_shift_sessions WHERE store_id = ?))");
+                                      OR EXISTS(SELECT 1 FROM st_shift_sessions ss
+                                                JOIN st_tbsale_save b ON b.shift_session_id = ss.id
+                                                WHERE ss.store_id = ?))");
             $st->execute([(int)$storeId, (int)$storeId]);
             return (bool)$st->fetchColumn();
         } catch (Throwable $e) {

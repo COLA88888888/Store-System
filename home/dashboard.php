@@ -64,6 +64,24 @@ if (!empty($_SESSION['user_id'])) {
     } catch (Exception $e) {}
 }
 
+// ດຶງຂໍ້ມູນແພັກເກັດລະບົບທົ່ວຮ້ານ (Shop License Expiry)
+$shopLicenseExpire = null;
+$shopLicenseDaysRemaining = null;
+try {
+    $cLic = $pdo->query("SELECT license_expire_date FROM st_tbcompanyinfo WHERE branch_id = (SELECT store_id FROM st_tbstore WHERE is_main = 1 ORDER BY store_id ASC LIMIT 1) LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+    if ($cLic && !empty($cLic['license_expire_date'])) {
+        $shopLicenseExpire = $cLic['license_expire_date'];
+        $shopLicenseDaysRemaining = (int)ceil((strtotime($shopLicenseExpire) - strtotime(date('Y-m-d'))) / 86400);
+    }
+} catch (Exception $e) {}
+
+$effectiveRemainingDays = $shopLicenseDaysRemaining;
+if ($myAccessDaysLeft !== null) {
+    $effectiveRemainingDays = ($effectiveRemainingDays !== null) ? min($effectiveRemainingDays, $myAccessDaysLeft) : $myAccessDaysLeft;
+}
+$isExpiryWarning = ($effectiveRemainingDays !== null && $effectiveRemainingDays <= 10 && $effectiveRemainingDays >= 0);
+$formattedLicenseExpire = !empty($shopLicenseExpire) ? date('d/m/Y', strtotime($shopLicenseExpire)) : '-';
+
 $display_name = trim(($_SESSION['fname'] ?? '') . ' ' . ($_SESSION['lname'] ?? ''));
 if ($display_name === '') {
     $display_name = $_SESSION['username'] ?? 'admin';
@@ -243,7 +261,7 @@ if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSI
 <?php require __DIR__ . '/partials/dashboard/js_theme_color.php'; /* JS: ສີທີມ */ ?>
 <?php require __DIR__ . '/partials/dashboard/js_pos_navbar.php'; /* JS: ບັອກສະແກນຂອງໜ້າຂາຍຢູ່ໃນ Navbar */ ?>
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper" style="background-color: #f4f6f9; position: relative;">
+  <div class="content-wrapper" style="background-color: #f4f6f9; position: relative; display: flex; flex-direction: column;">
     <!-- Page Loading Logo Overlay -->
     <?php echo themeCssLink('dashboard-preloader.css'); /* CSS ຍ້າຍໄປ themes/dashboard-preloader.css */ ?>
     <div id="iframeLoaderOverlay" class="system-loader-overlay">
@@ -258,7 +276,7 @@ if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSI
       <div class="system-loader-slow-hint" id="systemLoaderSlowHint"><?php echo tlh('ກະລຸນາລໍຖ້າຈັກໜ່ອຍ... ລະບົບກຳລັງປະມວນຜົນ'); ?></div>
     </div>
 
-    <iframe id="mainContentFrame" width="100%" height="100%" frameborder="0" name="frame" src="<?php echo $default_iframe_src; ?>" onload="if (typeof hideFastLoader === 'function') hideFastLoader();" style="background-color: #f4f6f9;"></iframe>
+    <iframe id="mainContentFrame" allow="camera" width="100%" height="100%" frameborder="0" name="frame" src="<?php echo $default_iframe_src; ?>" onload="if (typeof hideFastLoader === 'function') hideFastLoader();" style="background-color: #f4f6f9;"></iframe>
     <?php echo themeCssLink('dashboard-frame.css'); /* CSS ຍ້າຍໄປ themes/dashboard-frame.css */ ?>
     <script>
       (function () {
@@ -406,5 +424,42 @@ if (($_SESSION['status'] ?? '') === 'ພະນັກງານ' && intval($_SESSI
 </script>
 
 <?php require_once __DIR__ . '/../layouts/image_preview_modal.php'; /* Lightbox ສະແດງຮູບສິນຄ້າ & ຮູບຜູ້ນຳໃຊ້ */ ?>
+<?php if (!empty($isExpiryWarning)): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    if (!sessionStorage.getItem('lic_warn_popup_shown')) {
+      sessionStorage.setItem('lic_warn_popup_shown', '1');
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ແຈ້ງເຕືອນ: ແພັກເກັດໃກ້ໝົດອາຍຸ!',
+          html: `
+            <div style="text-align: left; font-size: 0.95rem; line-height: 1.6;">
+              <p class="mb-1">ແພັກເກັດການໃຊ້ງານລະບົບຈະໝົດອາຍຸພາຍໃນອີກ <b style="color: #dc2626; font-size: 1.15rem;"><?php echo $effectiveRemainingDays; ?> ມື້</b></p>
+              <p class="text-muted mb-2">ວັນທີໝົດອາຍຸ: <b><?php echo htmlspecialchars($formattedLicenseExpire); ?></b></p>
+              <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; margin-top: 10px;">
+                <div style="font-weight: bold; color: #991b1b; margin-bottom: 6px;"><i class="fas fa-phone-alt mr-1"></i> ຕິດຕໍ່ຕໍ່ອາຍຸການໃຊ້ງານ:</div>
+                <div style="font-size: 1rem; color: #1e293b;">
+                  📞 <a href="tel:02055949007" style="color: #b91c1c; font-weight: 700;">020 55949007</a> / 
+                  <a href="tel:02095321848" style="color: #b91c1c; font-weight: 700;">020 95321848</a>
+                </div>
+                <div style="margin-top: 8px;">
+                  <a href="https://wa.me/8562055949007" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-success font-weight-bold" style="border-radius: 6px; background-color: #22c55e; border-color: #22c55e;">
+                    <i class="fab fa-whatsapp mr-1"></i> ທັກ WhatsApp ຕໍ່ອາຍຸ
+                  </a>
+                </div>
+              </div>
+            </div>
+          `,
+          confirmButtonText: 'ຮັບຊາບ',
+          confirmButtonColor: '#2563eb'
+        });
+      }
+    }
+  } catch(e) {}
+});
+</script>
+<?php endif; ?>
 </body>
 </html>

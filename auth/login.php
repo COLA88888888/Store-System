@@ -24,6 +24,10 @@ $site_logo = '../assets/img/logosystem/wlaodev_system_logo.jpg';
 if (!is_file(__DIR__ . '/../assets/img/logosystem/wlaodev_system_logo.jpg')) {
     $site_logo = '../assets/img/logosystem/Wlaodev.jpg';
 }
+$site_logo_png = '../assets/img/logosystem/Wlaodev.png';
+if (!is_file(__DIR__ . '/../assets/img/logosystem/Wlaodev.png')) {
+    $site_logo_png = $site_logo;
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(getCurrentLang()); ?>" translate="no">
@@ -40,6 +44,7 @@ if (!is_file(__DIR__ . '/../assets/img/logosystem/wlaodev_system_logo.jpg')) {
     <link rel="stylesheet" href="../sweetalert/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="../assets/css/local-font.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="../themes/login.css?v=<?php echo filemtime(__DIR__ . '/../themes/login.css'); ?>">
+    <link rel="stylesheet" href="../themes/login-hero.css?v=<?php echo filemtime(__DIR__ . '/../themes/login-hero.css'); ?>">
     <link rel="stylesheet" href="../themes/dashboard-preloader.css?v=<?php echo filemtime(__DIR__ . '/../themes/dashboard-preloader.css'); ?>">
 </head>
 <body>

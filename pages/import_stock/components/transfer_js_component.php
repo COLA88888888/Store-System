@@ -50,14 +50,7 @@
         addCurrentItemToCart();
       }
     }
-    // ປ່ຽນສາຂາຕົ້ນທາງ ຫຼື ວັນທີໂອນ -> ອັບເດດເລກທີໃບໂອນ
-    $('#from_store_id').on('change', function() {
-      var sid = $(this).val();
-      if (sid && sid != '<?php echo $sourceStoreId; ?>') {
-        window.location.href = 'stock_transfer.php?from_store=' + sid;
-      }
-    });
-
+    // ສາຂາຕົ້ນທາງລັອກໄວ້ (hidden input); ປ່ຽນວັນທີໂອນ -> ອັບເດດເລກທີໃບໂອນ
     $('#transfer_date').on('change', function() {
       var sid = $('#from_store_id').val();
       var dt = $(this).val();

@@ -1,0 +1,24 @@
+/* ============================================================
+   ໂລໂກ້ຟອມເຂົ້າສູ່ລະບົບ: ຟອມພື້ນຂາວລ້ວນ, ໂລໂກ້ໂປ່ງໃສ ບໍ່ມີພື້ນຫຼັງ.
+   ບໍ່ມີເສັ້ນຂອບອ້ອມໂລໂກ້ — ມີແຕ່ເງົາອ່ອນໆ.
+   ໃຊ້ສະເພາະ .login-brand-hero (ໜ້າເຂົ້າສູ່ລະບົບ, license_expired.php, access_expired.php)
+   ============================================================ */
+.login-brand-hero .login-hero-logo {
+    margin: 4px auto 16px;
+}
+
+.login-brand-hero .login-hero-logo-img {
+    height: 84px;
+    max-width: 240px;
+    filter: drop-shadow(0 4px 10px rgba(15, 59, 95, 0.25));
+}
+
+@media (max-width: 860px) {
+    .login-brand-hero .login-hero-logo {
+        margin: 4px auto 12px;
+    }
+
+    .login-brand-hero .login-hero-logo-img {
+        height: 70px;
+    }
+}

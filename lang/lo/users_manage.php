@@ -16,6 +16,7 @@ return [
     'users_manage.th_actions' => 'ຈັດການ',
     'users_manage.default_store' => 'ສາຂາຫຼັກ',
     'users_manage.status_online' => 'ໃຊ້ງານຢູ່',
+    'users_manage.status_branch_closed' => 'ສາຂາຖືກປິດ',
     'users_manage.status_offline' => 'ບໍ່ໄດ້ໃຊ້ງານ',
     'users_manage.role_admin' => 'ຜູ້ບໍລິຫານ',
     'users_manage.role_employee' => 'ພະນັກງານ',
@@ -88,7 +89,7 @@ return [
 
     'users_manage.label_access_days' => 'ຈຳນວນມື້ອະນຸຍາດໃຫ້ໃຊ້ງານ:',
     'users_manage.placeholder_access_days' => 'ຫວ່າງໄວ້ = ບໍ່ຈຳກັດ',
-    'users_manage.hint_access_days' => 'ນັບຈາກມື້ນີ້ ຫາກຫວ່າງໄວ້ຈະໃຊ້ງານໄດ້ບໍ່ຈຳກັດ',
+    'users_manage.hint_access_days' => 'ນັບຈາກມື້ນີ້ (0 = ໝົດອາຍຸທັນທີ ເຂົ້າລະບົບບໍ່ໄດ້) ຫາກຫວ່າງໄວ້ຈະໃຊ້ງານໄດ້ບໍ່ຈຳກັດ',
     'users_manage.access_expired' => 'ໝົດອາຍຸແລ້ວ',
     'users_manage.access_days_left' => 'ເຫຼືອ %d ມື້',
     'users_manage.th_access_expiry' => 'ວັນໝົດອາຍຸການໃຊ້ງານ',

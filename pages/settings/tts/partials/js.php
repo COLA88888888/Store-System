@@ -294,6 +294,32 @@ function addAllPresets() {
   });
 }
 
+// ---- ສະວິດ: ບັນທຶກທັນທີທີ່ກົດ (ປິດ = ໜ້າຂາຍ/ຈໍລູກຄ້າ ຢຸດເວົ້າເລີຍ ບໍ່ຕ້ອງກົດ "ບັນທຶກການຕັ້ງຄ່າ") ----
+['tts_enabled', 'pos_total', 'pos_sale', 'pos_stock', 'pos_queue', 'pos_welcome'].forEach(function (id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('change', function () {
+    var key = id === 'tts_enabled' ? 'enabled' : id;
+    $.post(window.location.pathname, { save_tts_switch: 1, key: key, value: el.checked ? 1 : 0 }, null, 'json')
+      .done(function (res) {
+        if (!res || !res.success) {
+          el.checked = !el.checked;
+          if (id === 'tts_enabled') ttsPaintEnabled();
+          ttsError('ບັນທຶກບໍ່ສຳເລັດ', ttsEsc((res && res.message) || ''));
+          return;
+        }
+        // ແຈ້ງແຖບອື່ນໃນ browser ດຽວກັນ (ໜ້າຂາຍ, ຈໍລູກຄ້າ) ໃຫ້ອ່ານສະວິດຄືນທັນທີ
+        try { localStorage.setItem('tts_cfg_changed', String(Date.now())); } catch (e) {}
+        ttsNotify('success', el.checked ? 'ເປີດສຽງແລ້ວ' : 'ປິດສຽງແລ້ວ');
+      })
+      .fail(function () {
+        el.checked = !el.checked;
+        if (id === 'tts_enabled') ttsPaintEnabled();
+        ttsError('ບັນທຶກບໍ່ສຳເລັດ', 'ເຊື່ອມຕໍ່ເຊີເວີບໍ່ໄດ້');
+      });
+  });
+});
+
 // ---- ບັນທຶກການຕັ້ງຄ່າ ----
 document.getElementById('ttsSettingsForm').addEventListener('submit', function () {
   Swal.fire({ title: 'ກຳລັງບັນທຶກ...', allowOutsideClick: false, didOpen: function () { Swal.showLoading(); } });

@@ -107,16 +107,21 @@ try {
 
             $userStoreId = intval($user['store_id'] ?? $user['branch_id'] ?? 1);
 
-            // Check if assigned branch store is active (unless Admin/Executive)
-            if (!$isAdmin) {
+            // ສາຂາຂອງຜູ້ໃຊ້ຖືກປິດ (status ບໍ່ແມ່ນ active) ຫຼື ຖືກລຶບ (ບໍ່ມີແຖວໃນ st_tbstore) → ເຂົ້າບໍ່ໄດ້ ລວມທັງຜູ້ບໍລິຫານຂອງສາຂານັ້ນ.
+            // ຍົກເວັ້ນ Id 1 (ຜູ້ເບິ່ງແຍງລະບົບ — ຕ້ອງເຂົ້າໄປເປີດສາຂາຄືນໄດ້). ຕອບ JSON ໃຫ້ຟອມເຂົ້າສູ່ລະບົບ (AJAX) ສະແດງຂໍ້ຄວາມ
+            if (intval($user['Id'] ?? 0) !== 1) {
                 $stmtBranchCheck = $pdo->prepare("SELECT status, store_name FROM st_tbstore WHERE store_id = ?");
                 $stmtBranchCheck->execute([$userStoreId]);
                 $branchInfo = $stmtBranchCheck->fetch(PDO::FETCH_ASSOC);
 
-                if ($branchInfo && ($branchInfo['status'] ?? '') !== 'active') {
-                    $branchName = htmlspecialchars($branchInfo['store_name'] ?? tl('ສາຂານີ້'));
-                    header("Location: ../login.php?error=branch_inactive&msg=" . urlencode(("" . tl('ສາຂາ') . " ({$branchName}) " . tl('ຖືກປິດໃຊ້ງານຊົ່ວຄາວ! ບໍ່ສາມາດເຂົ້າໃຊ້ງານໄດ້') . "")));
-                    exit();
+                if (!$branchInfo || ($branchInfo['status'] ?? '') !== 'active') {
+                    $branchName = $branchInfo ? trim((string)($branchInfo['store_name'] ?? '')) : '';
+                    respond_json([
+                        'success' => false,
+                        'branch_closed' => true,
+                        'message' => tl('ບໍ່ສາມາດເຂົ້າສາຂານີ້ໄດ້') . ($branchName !== '' ? " ({$branchName})" : '') . ' — '
+                                   . ($branchInfo ? tl('ສາຂານີ້ຖືກປິດໃຊ້ງານແລ້ວ') : tl('ສາຂານີ້ຖືກລຶບແລ້ວ')),
+                    ]);
                 }
             }
 

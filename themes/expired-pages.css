@@ -1,0 +1,67 @@
+/* ============================================================
+   ໜ້າໝົດອາຍຸ (auth/license_expired.php — ແພັກເກັດ, auth/access_expired.php — ບັນຊີຜູ້ໃຊ້)
+   ໃຊ້ໂຄງດຽວກັບໜ້າເຂົ້າສູ່ລະບົບ (themes/login.css + login-hero.css): ກາດສີຂາວ + ໂລໂກ້ບໍ່ມີພື້ນຫຼັງ.
+   ສ່ວນ HTML ຮ່ວມ: auth/partials/expired/
+   ============================================================ */
+.contact-btn {
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.22s ease;
+    text-decoration: none !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.contact-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+.expired-alert-box {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    text-align: left;
+}
+.expired-shield-icon {
+    animation: pulseLock 2.4s infinite ease-in-out;
+}
+@keyframes pulseLock {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.4)); }
+    50% { transform: scale(1.05); filter: drop-shadow(0 0 25px rgba(239, 68, 68, 0.7)); }
+}
+.lock-stat-card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: #ffffff;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ຫົວຂໍ້ໜ້າໝົດອາຍຸ: ໂລໂກ້ນ້ອຍລົງກວ່າໜ້າເຂົ້າສູ່ລະບົບ ໃຫ້ເນື້ອໃນພໍດີກາດ */
+.expired-page .login-hero-logo {
+    margin: 0 auto 8px;
+}
+.expired-page .login-hero-logo-img {
+    height: 70px;
+}
+.expired-page .login-title-group {
+    margin-bottom: 12px;
+}
+.expired-page .login-title-main {
+    font-size: 1.45rem;
+}
+.expired-page .brand-wd {
+    color: #0066ff;
+    font-weight: 800;
+}

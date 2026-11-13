@@ -40,6 +40,11 @@ if (isset($_SESSION['user_id'])) {
     } catch (Throwable $ex) {
         $licExpire = null;
     }
+    if (!empty($licExpire)) {
+        $daysRem = (int)ceil((strtotime($licExpire) - strtotime(date('Y-m-d'))) / 86400);
+        $_SESSION['license_days_remaining'] = $daysRem;
+        $_SESSION['license_expire_date'] = $licExpire;
+    }
     if (!empty($licExpire) && strtotime($licExpire) < strtotime(date('Y-m-d'))) {
         session_unset();
         session_destroy();
@@ -70,6 +75,25 @@ if (isset($_SESSION['user_id'])) {
             $redirectDisabledPath = $authPrefix . 'auth/login.php?disabled=1';
             echo "<script>if (window.top) { window.top.location.href = '{$redirectDisabledPath}'; } else { window.location.href = '{$redirectDisabledPath}'; }</script>";
             exit();
+        }
+        // ສາຂາຂອງຜູ້ໃຊ້ຖືກປິດ ຫຼື ຖືກລຶບ ລະຫວ່າງທີ່ຍັງເຂົ້າລະບົບຢູ່ → ອອກຈາກລະບົບ ແລ້ວໜ້າເຂົ້າສູ່ລະບົບເຕືອນ
+        // "ບໍ່ສາມາດເຂົ້າສາຂານີ້ໄດ້" (?branch_closed=1 — auth/partials/login/login_js.php). ກວດກ່ອນອັບເດດ last_activity
+        // ຂ້າງລຸ່ມ ເພື່ອບໍ່ໃຫ້ຜູ້ໃຊ້ທີ່ເຂົ້າບໍ່ໄດ້ ຂຶ້ນເປັນ "ອອນລາຍ" ໃນໜ້າຈັດການຜູ້ໃຊ້. Id 1 ຍົກເວັ້ນ (ຄືກັບ auth/check_user.php)
+        if ($myAccessRow) {
+            try {
+                $myBranchStmt = $pdo->prepare("SELECT status FROM st_tbstore WHERE store_id = ? LIMIT 1");
+                $myBranchStmt->execute([(int)($myAccessRow['store_id'] ?? 0)]);
+                $myBranchStatus = $myBranchStmt->fetchColumn();
+            } catch (Throwable $ex) {
+                $myBranchStatus = 'active';   // ກວດບໍ່ໄດ້ → ບໍ່ໄລ່ອອກ
+            }
+            if ($myBranchStatus !== 'active') {
+                session_unset();
+                session_destroy();
+                $closedPath = $authPrefix . 'auth/login.php?branch_closed=1';
+                echo "<script>if (window.top) { window.top.location.href = '{$closedPath}'; } else { window.location.href = '{$closedPath}'; }</script>";
+                exit();
+            }
         }
         if (!empty($myAccessExpire) && strtotime($myAccessExpire) <= strtotime(date('Y-m-d'))) {
             session_unset();
@@ -186,22 +210,7 @@ if ($conn && !empty($_SESSION['user_id'])) {
         $_SESSION['switch_states'] = $swStates;
 
 
-        // Enforce active branch status check (log out non-admin user if their branch is disabled/inactive)
-        if (!$isAdmin) {
-            $userBranchId = (int)($_SESSION['store_id'] ?? 1);
-            $chkBranchRes = mysqli_query($conn, "SELECT status, store_name FROM st_tbstore WHERE store_id = '$userBranchId' LIMIT 1");
-            if ($chkBranchRes && $bRow = mysqli_fetch_assoc($chkBranchRes)) {
-                if (($bRow['status'] ?? '') !== 'active') {
-                    // Destroy session and redirect to login
-                    session_unset();
-                    session_destroy();
-                    $bName = htmlspecialchars($bRow['store_name'] ?? tl('ສາຂານີ້'));
-                    $baseLoginPath = (basename($scriptDir) === 'pages') ? '../login.php' : '../../login.php';
-                    echo ("<script>alert('" . tl('ສາຂາ') . " ({$bName}) " . tl('ຖືກປິດໃຊ້ງານຊົ່ວຄາວ! ລະບົບຈະອອກຈາກປະຕູເຂົ້າໃຊ້ງານ.') . "'); window.location.href = '{$baseLoginPath}';</script>");
-                    exit();
-                }
-            }
-        }
+        // (ສາຂາຖືກປິດ/ລຶບ: ກວດຢູ່ເທິງສຸດ ກ່ອນອັບເດດ last_activity — ເບິ່ງຂ້າງເທິງ)
 
         // Multi-Branch Store Switcher Handler runs at the very bottom of this file —
         // it needs isMainBranch() and $pdo, both of which are defined further down.

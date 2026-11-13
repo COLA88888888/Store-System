@@ -18,6 +18,7 @@
             'login.err_password_required' => 'ກະລຸນາປ້ອນລະຫັດຜ່ານ!',
             'login.err_invalid' => 'ລະຫັດບໍ່ຖືກຕ້ອງ ກະລຸນາລອງໃໝ່',
             'login.err_account_disabled' => 'ບັນຊີນີ້ຖືກປິດໃຊ້ງານແລ້ວ ກະລຸນາຕິດຕໍ່ຜູ້ບໍລິຫານ',
+            'login.err_branch_closed' => 'ບໍ່ສາມາດເຂົ້າສາຂານີ້ໄດ້ — ສາຂາຖືກປິດໃຊ້ງານ ຫຼື ຖືກລຶບແລ້ວ ກະລຸນາຕິດຕໍ່ຜູ້ບໍລິຫານ',
         ]); ?>;
 
         $(document).ready(function() {
@@ -121,6 +122,20 @@
                 icon: 'error',
                 title: I18N_LOGIN['login.warning_title'],
                 text: I18N_LOGIN['login.err_account_disabled'],
+                confirmButtonColor: '#007bff',
+                confirmButtonText: I18N_LOGIN['login.ok'],
+                heightAuto: false
+            }).then(function() {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            });
+            <?php endif; ?>
+
+            // ສາຂາຖືກປິດ ຫຼື ຖືກລຶບ ລະຫວ່າງໃຊ້ງານ (config/bootstrap/session_auth.php ສົ່ງມາ ?branch_closed=1)
+            <?php if (isset($_GET['branch_closed'])): ?>
+            Swal.fire({
+                icon: 'error',
+                title: I18N_LOGIN['login.warning_title'],
+                text: I18N_LOGIN['login.err_branch_closed'],
                 confirmButtonColor: '#007bff',
                 confirmButtonText: I18N_LOGIN['login.ok'],
                 heightAuto: false
@@ -299,5 +314,6 @@
                     }
                 });
             });
+
         });
     </script>

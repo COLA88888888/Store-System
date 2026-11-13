@@ -5,7 +5,8 @@
  * ໄຟລ໌ນີ້ຖືກແຍກອອກມາຈາກ auth/login.php ແລະ ຖືກດຶງເຂົ້າໄປໃຊ້ດ້ວຍ require ຢູ່ຈຸດເດີມ (ໃຊ້ຕົວແປຮ່ວມກັນ).
  */
 ?>            <!-- ================= LEFT PANE: LOGIN FORM ================= -->
-            <div class="login-left-pane">
+            <div class="login-left-pane login-brand-hero">
+                <!-- ຟອມພື້ນຂາວລ້ວນ; ໂລໂກ້ຢູ່ໃນປ້າຍສີຂຽວ-ຟ້າ ຄືໂລໂກ້ WLaoDev — CSS themes/login-hero.css -->
                 <!-- ປຸ່ມປ່ຽນພາສາມຸມຂວາເທິງ -->
                 <div class="dropdown login-lang-corner">
                     <?php $loginCurrentLang = getCurrentLang(); ?>
@@ -39,12 +40,12 @@
                 </div>
 
                 <div class="login-form-top-wrap">
-                    <!-- ໂລໂກ້ລະບົບຂະໜາດໃຫຍ່ ເຫັນແຕ່ໂລໂກ້ ບໍ່ມີກາດອ້ອມ -->
-                    <div class="login-hero-logo">
-                        <img src="<?php echo htmlspecialchars($site_logo); ?>" alt="WLaoDev Logo">
+                    <!-- ໂລໂກ້ລະບົບຢູ່ກາງ ໂປ່ງໃສ ບໍ່ມີພື້ນຫຼັງ (Centered Brand Logo) -->
+                    <div class="login-hero-logo" id="loginHeroLogoBox">
+                        <img src="<?php echo htmlspecialchars($site_logo_png ?? $site_logo); ?>" alt="WLaoDev Logo" class="login-hero-logo-img" id="loginStaticLogoFallback">
                     </div>
 
-                    <!-- Header Title: WlaoDev POS ສຳລັບທຸລະກິດທ່ານ -->
+                    <!-- Header Title: WlaoDev POS (ສີຟ້າ) ສຳລັບທຸລະກິດທ່ານ (ສີມ່ວງ) ຄືເກົ່າ -->
                     <div class="login-title-group">
                         <h3 class="login-title-main">
                             <span class="brand-blue">WlaoDev POS</span> <span class="brand-purple"><?php echo tlh('ສຳລັບທຸລະກິດທ່ານ'); ?></span>

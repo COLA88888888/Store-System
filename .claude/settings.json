@@ -102,7 +102,10 @@
       "Bash(sed -i 's|eval\\(fs.readFileSync\\(process.argv\\\\[2\\\\], '\\\\''utf8'\\\\''\\)\\); return window.POSCUR;|eval\\(fs.readFileSync\\(process.argv[2], '\\\\''utf8'\\\\''\\)\\); global.POSCUR = window.POSCUR; return window.POSCUR;|' C:/Users/rog/AppData/Local/Temp/claude/d--laragon-www-Project-StoreMini/c58a9cda-27c5-49bb-a942-730c0e8f0c01/scratchpad/sim.js)",
       "Bash(node C:/Users/rog/AppData/Local/Temp/claude/d--laragon-www-Project-StoreMini/c58a9cda-27c5-49bb-a942-730c0e8f0c01/scratchpad/sim.js C:/Users/rog/AppData/Local/Temp/claude/d--laragon-www-Project-StoreMini/c58a9cda-27c5-49bb-a942-730c0e8f0c01/scratchpad/poscur.js)",
       "Bash(php -l pages/pos/partials/js/checkout/open_and_submit.php)",
-      "Bash(php -l api/pos_backend.php)"
+      "Bash(php -l api/pos_backend.php)",
+      "Bash(mkdir -p plugins/html5-qrcode)",
+      "Bash(curl -sSfL -o plugins/html5-qrcode/html5-qrcode.min.js https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js)",
+      "Bash(php -l pages/pos/partials/js/pos_camera_scan_js.php)"
     ]
   }
 }

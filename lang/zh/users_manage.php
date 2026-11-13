@@ -16,6 +16,7 @@ return [
     'users_manage.th_actions' => '操作',
     'users_manage.default_store' => '总店',
     'users_manage.status_online' => '在线',
+    'users_manage.status_branch_closed' => '分店已关闭',
     'users_manage.status_offline' => '离线',
     'users_manage.role_admin' => '管理员',
     'users_manage.role_employee' => '员工',
@@ -88,7 +89,7 @@ return [
 
     'users_manage.label_access_days' => '允许使用的天数：',
     'users_manage.placeholder_access_days' => '留空 = 不限制',
-    'users_manage.hint_access_days' => '从今天开始计算，留空则不限制使用',
+    'users_manage.hint_access_days' => '从今天开始计算（0 = 立即到期，无法登录），留空则不限制使用',
     'users_manage.access_expired' => '已过期',
     'users_manage.access_days_left' => '剩余 %d 天',
     'users_manage.th_access_expiry' => '使用到期日',

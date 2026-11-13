@@ -26,11 +26,13 @@ if (!function_exists('reportShiftFilter')) {
         $options = [];
         if ($storeId > 0) {
             try {
-                // ກະທີ່ຕັ້ງໄວ້ (ລວມກະທີ່ປິດໃຊ້ແລ້ວ — ຍັງມີປະຫວັດຂາຍ) + ກະທີ່ຖືກລຶບແຕ່ຍັງມີຮອບເປີດກະ
+                // ກະທີ່ຕັ້ງໄວ້ (ລວມກະທີ່ປິດໃຊ້ແລ້ວ — ຍັງມີປະຫວັດຂາຍ) + ກະທີ່ຖືກລຶບແຕ່ຍັງມີບິນຂາຍຜູກຢູ່
+                // (ກະທີ່ລຶບແລ້ວ ແລະ ບໍ່ມີບິນ → ບໍ່ສະແດງ ເຖິງຈະຍັງມີຮອບເປີດກະເຫຼືອຢູ່)
                 $st = $pdo->prepare("SELECT id, shift_name, start_time, end_time FROM st_shifts WHERE store_id = ?
                                      UNION
                                      SELECT ss.shift_id, MAX(ss.shift_name), NULL, NULL FROM st_shift_sessions ss
                                      WHERE ss.store_id = ? AND NOT EXISTS (SELECT 1 FROM st_shifts sh WHERE sh.id = ss.shift_id)
+                                       AND EXISTS (SELECT 1 FROM st_tbsale_save b WHERE b.shift_session_id = ss.id)
                                      GROUP BY ss.shift_id
                                      ORDER BY start_time IS NULL, start_time, shift_name");
                 $st->execute([$storeId, $storeId]);

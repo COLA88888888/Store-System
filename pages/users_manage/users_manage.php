@@ -88,6 +88,9 @@ require_once __DIR__ . '/../../layouts/header.php';
                             $isOnline = true;
                         }
                     }
+                    // ສາຂາຖືກປິດ/ລຶບ → ເຂົ້າລະບົບບໍ່ໄດ້ (config/bootstrap/session_auth.php) → ບໍ່ສະແດງເປັນອອນລາຍ (Id 1 ຍົກເວັ້ນ)
+                    $isBranchClosed = ((int)$u['Id'] !== 1 && ($u['store_status'] ?? null) !== 'active');
+                    if ($isBranchClosed) $isOnline = false;
                     $u['is_online'] = $isOnline;
                     $userJson = htmlspecialchars(json_encode($u), ENT_QUOTES, 'UTF-8');
                     $userStatus = trim($u['status'] ?? $u['userstatus'] ?? 'ພະນັກງານ');
@@ -130,6 +133,10 @@ require_once __DIR__ . '/../../layouts/header.php';
                           <?php if (!$isAccountActive): ?>
                             <span class="badge badge-dark px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;">
                               <i class="fas fa-user-slash mr-1"></i> <?php echo htmlspecialchars(t('users_manage.status_disabled', 'ປິດໃຊ້ງານ (ລາອອກ)')); ?>
+                            </span>
+                          <?php elseif ($isBranchClosed): ?>
+                            <span class="badge badge-secondary px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;">
+                              <i class="fas fa-store-slash mr-1"></i> <?php echo htmlspecialchars(t('users_manage.status_branch_closed', 'ສາຂາຖືກປິດ')); ?>
                             </span>
                           <?php elseif ($isOnline): ?>
                             <span class="badge badge-success px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;">
@@ -281,6 +288,7 @@ require_once __DIR__ . '/components/form_edit_user.php';
   var API_URL   = '<?php echo $base_path; ?>api/users_api.php';
   var I18N_USERS = <?php echo tjson([
     'users_manage.status_online' => 'ໃຊ້ງານຢູ່',
+    'users_manage.status_branch_closed' => 'ສາຂາຖືກປິດ',
     'users_manage.status_offline' => 'ບໍ່ໄດ້ໃຊ້ງານ',
     'users_manage.status_disabled' => 'ປິດໃຊ້ງານ (ລາອອກ)',
     'users_manage.role_admin' => 'ຜູ້ບໍລິຫານ',
@@ -309,6 +317,7 @@ window.pollLiveUserStatuses = function() {
       if (res.status === 'success' && Array.isArray(res.users)) {
         var i18n = typeof I18N_USERS !== 'undefined' ? I18N_USERS : {};
         var onlineText = i18n['users_manage.status_online'] || '<?php echo tlj('ໃຊ້ງານຢູ່'); ?>';
+        var branchClosedText = i18n['users_manage.status_branch_closed'] || '<?php echo tlj('ສາຂາຖືກປິດ'); ?>';
         var offlineText = i18n['users_manage.status_offline'] || '<?php echo tlj('ບໍ່ໄດ້ໃຊ້ງານ'); ?>';
         var disabledText = i18n['users_manage.status_disabled'] || '<?php echo tlj('ປິດໃຊ້ງານ (ລາອອກ)'); ?>';
         var formatLastOnlineJs = function(dtStr) {
@@ -339,6 +348,9 @@ window.pollLiveUserStatuses = function() {
             var bHtml = '';
             if (u.account_active === 0) {
               bHtml = '<span class="badge badge-dark px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-user-slash mr-1"></i> ' + disabledText + '</span>';
+              lastText.show();
+            } else if (u.branch_closed) {
+              bHtml = '<span class="badge badge-secondary px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-store-slash mr-1"></i> ' + branchClosedText + '</span>';
               lastText.show();
             } else if (u.is_online) {
               bHtml = '<span class="badge badge-success px-2.5 py-1.5 shadow-sm" style="border-radius: 6px; font-size: 0.82rem;"><i class="fas fa-circle mr-1" style="font-size: 0.55rem; vertical-align: middle;"></i> ' + onlineText + '</span>';
